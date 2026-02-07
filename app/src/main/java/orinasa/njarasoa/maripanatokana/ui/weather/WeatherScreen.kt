@@ -67,6 +67,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.data.remote.wmoDescription
+import orinasa.njarasoa.maripanatokana.data.remote.wmoEmoji
 import orinasa.njarasoa.maripanatokana.domain.model.DailyForecast
 import orinasa.njarasoa.maripanatokana.domain.model.HourlyForecast
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
@@ -322,7 +323,7 @@ private fun WeatherContent(
                     primarySize = 48.sp,
                 )
                 Text(
-                    text = data.description,
+                    text = "${wmoEmoji(data.weatherCode)} ${data.description}",
                     fontSize = 20.sp,
                     color = Color.White.copy(alpha = 0.9f)
                 )
@@ -433,9 +434,8 @@ private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Bo
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = wmoDescription(item.weatherCode),
-                        fontSize = 11.sp,
-                        color = Color.White.copy(alpha = 0.6f),
+                        text = wmoEmoji(item.weatherCode),
+                        fontSize = 20.sp,
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     val (tempP, tempS) = item.temperature.displayDual(metricPrimary)
@@ -482,7 +482,7 @@ private fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Boo
                     modifier = Modifier.width(100.dp),
                 )
                 Text(
-                    text = wmoDescription(item.weatherCode),
+                    text = "${wmoEmoji(item.weatherCode)} ${wmoDescription(item.weatherCode)}",
                     fontSize = 12.sp,
                     color = Color.White.copy(alpha = 0.7f),
                     modifier = Modifier.weight(1f),

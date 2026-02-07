@@ -54,6 +54,7 @@ fun OpenMeteoResponse.toDomain(locationName: String): WeatherData {
         feelsLike = Temperature.fromCelsius(c.apparentTemperature),
         tempMin = Temperature.fromCelsius(daily.temperatureMin.firstOrNull() ?: c.temperature),
         tempMax = Temperature.fromCelsius(daily.temperatureMax.firstOrNull() ?: c.temperature),
+        weatherCode = c.weatherCode,
         description = wmoDescription(c.weatherCode),
         iconCode = wmoIconCode(c.weatherCode, isDay),
         locationName = locationName,

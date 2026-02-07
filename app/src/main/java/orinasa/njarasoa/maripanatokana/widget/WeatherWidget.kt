@@ -30,6 +30,7 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import orinasa.njarasoa.maripanatokana.MainActivity
 import orinasa.njarasoa.maripanatokana.R
+import orinasa.njarasoa.maripanatokana.data.remote.wmoEmoji
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.widget.theme.WidgetColorProviders
 import java.text.SimpleDateFormat
@@ -144,7 +145,7 @@ private fun WeatherWidgetContent(data: WeatherData, metricPrimary: Boolean) {
                 Spacer(modifier = GlanceModifier.width(12.dp))
                 Column(modifier = GlanceModifier.defaultWeight()) {
                     Text(
-                        text = data.description,
+                        text = "${wmoEmoji(data.weatherCode)} ${data.description}",
                         style = TextStyle(
                             color = WidgetColorProviders.onSurfaceVariant,
                             fontSize = 12.sp,

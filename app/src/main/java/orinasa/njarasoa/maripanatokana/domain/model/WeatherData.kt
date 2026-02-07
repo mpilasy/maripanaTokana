@@ -5,6 +5,7 @@ data class WeatherData(
     val feelsLike: Temperature,
     val tempMin: Temperature,
     val tempMax: Temperature,
+    val weatherCode: Int,
     val description: String,
     val iconCode: String,
     val locationName: String,

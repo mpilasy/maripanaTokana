@@ -36,6 +36,25 @@ fun wmoDescription(code: Int): String = when (code) {
     else -> "Unknown"
 }
 
+fun wmoEmoji(code: Int): String = when (code) {
+    0 -> "\u2600\uFE0F"       // ☀️
+    1 -> "\uD83C\uDF24\uFE0F" // 🌤️
+    2 -> "\u26C5"              // ⛅
+    3 -> "\u2601\uFE0F"       // ☁️
+    45, 48 -> "\uD83C\uDF2B\uFE0F" // 🌫️
+    51, 53, 55 -> "\uD83C\uDF26\uFE0F" // 🌦️
+    56, 57 -> "\uD83C\uDF28\uFE0F" // 🌨️
+    61, 63 -> "\uD83C\uDF27\uFE0F" // 🌧️
+    65 -> "\uD83C\uDF27\uFE0F" // 🌧️
+    66, 67 -> "\uD83C\uDF28\uFE0F" // 🌨️
+    71, 73, 75, 77 -> "\u2744\uFE0F" // ❄️
+    80, 81, 82 -> "\uD83C\uDF26\uFE0F" // 🌦️
+    85, 86 -> "\uD83C\uDF28\uFE0F" // 🌨️
+    95 -> "\u26C8\uFE0F"      // ⛈️
+    96, 99 -> "\u26C8\uFE0F"  // ⛈️
+    else -> "\uD83C\uDF10"    // 🌐
+}
+
 /**
  * Maps WMO weather code + is_day to an OWM-style icon code for backward compatibility.
  */
