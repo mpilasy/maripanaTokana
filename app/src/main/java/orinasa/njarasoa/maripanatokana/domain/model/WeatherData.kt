@@ -18,5 +18,7 @@ data class WeatherData(
     val visibility: Int, // meters
     val sunrise: Long, // epoch seconds
     val sunset: Long, // epoch seconds
+    val hourlyForecast: List<HourlyForecast> = emptyList(),
+    val dailyForecast: List<DailyForecast> = emptyList(),
     val timestamp: Long = System.currentTimeMillis(),
 )

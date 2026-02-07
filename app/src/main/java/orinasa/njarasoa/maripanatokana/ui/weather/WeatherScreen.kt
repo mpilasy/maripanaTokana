@@ -1,10 +1,17 @@
 package orinasa.njarasoa.maripanatokana.ui.weather
 
 import android.Manifest
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,15 +19,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -28,17 +40,35 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import orinasa.njarasoa.maripanatokana.R
+import orinasa.njarasoa.maripanatokana.data.remote.wmoDescription
+import orinasa.njarasoa.maripanatokana.domain.model.DailyForecast
+import orinasa.njarasoa.maripanatokana.domain.model.HourlyForecast
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -78,6 +108,16 @@ fun WeatherScreen(
                 )
             )
     ) {
+        // Blue Marble background
+        Image(
+            painter = painterResource(R.drawable.bg_blue_marble),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .fillMaxSize()
+                .alpha(0.12f),
+        )
+
         when (val state = uiState) {
             is WeatherUiState.Loading -> {
                 CircularProgressIndicator(
@@ -180,6 +220,47 @@ private fun DualUnitText(
 }
 
 @Composable
+private fun CollapsibleSection(
+    title: String,
+    initialExpanded: Boolean = false,
+    content: @Composable () -> Unit,
+) {
+    var expanded by rememberSaveable { mutableStateOf(initialExpanded) }
+    val rotation by animateFloatAsState(if (expanded) 180f else 0f, label = "chevron")
+
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = !expanded }
+                .padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = title,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                modifier = Modifier.weight(1f),
+            )
+            Icon(
+                imageVector = Icons.Default.KeyboardArrowDown,
+                contentDescription = if (expanded) "Collapse" else "Expand",
+                tint = Color.White.copy(alpha = 0.7f),
+                modifier = Modifier.rotate(rotation),
+            )
+        }
+        AnimatedVisibility(
+            visible = expanded,
+            enter = expandVertically(),
+            exit = shrinkVertically(),
+        ) {
+            content()
+        }
+    }
+}
+
+@Composable
 private fun WeatherContent(
     data: WeatherData,
     metricPrimary: Boolean,
@@ -278,15 +359,158 @@ private fun WeatherContent(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Details Grid
+        // Hourly Forecast
+        if (data.hourlyForecast.isNotEmpty()) {
+            CollapsibleSection(title = "Hourly") {
+                HourlyForecastRow(data.hourlyForecast, metricPrimary)
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+
+        // Weekly Forecast
+        if (data.dailyForecast.isNotEmpty()) {
+            CollapsibleSection(title = "This Week") {
+                DailyForecastList(data.dailyForecast, metricPrimary)
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+
+        // Details (collapsible)
+        CollapsibleSection(title = "Details") {
+            DetailsContent(data, metricPrimary, timeFormat)
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Credits
+        val linkStyle = SpanStyle(color = Color.White.copy(alpha = 0.5f), textDecoration = TextDecoration.Underline)
+        val creditText = buildAnnotatedString {
+            withStyle(SpanStyle(color = Color.White.copy(alpha = 0.3f))) {
+                append("Weather data by ")
+            }
+            withLink(LinkAnnotation.Url("https://open-meteo.com")) {
+                withStyle(linkStyle) { append("Open-Meteo") }
+            }
+            withStyle(SpanStyle(color = Color.White.copy(alpha = 0.3f))) {
+                append("\nBuilt with ")
+            }
+            withLink(LinkAnnotation.Url("https://claude.ai")) {
+                withStyle(linkStyle) { append("Claude") }
+            }
+        }
         Text(
-            text = "Details",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.White
+            text = creditText,
+            fontSize = 11.sp,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center,
         )
 
         Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+@Composable
+private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Boolean) {
+    val hourFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(vertical = 8.dp),
+    ) {
+        items(forecasts) { item ->
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF2A1FA5).copy(alpha = 0.6f)),
+            ) {
+                Column(
+                    modifier = Modifier.padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        text = hourFormat.format(Date(item.time)),
+                        fontSize = 12.sp,
+                        color = Color.White.copy(alpha = 0.7f),
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = wmoDescription(item.weatherCode),
+                        fontSize = 11.sp,
+                        color = Color.White.copy(alpha = 0.6f),
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    val (tempP, tempS) = item.temperature.displayDual(metricPrimary)
+                    DualUnitText(
+                        primary = tempP,
+                        secondary = tempS,
+                        primarySize = 14.sp,
+                    )
+                    if (item.precipProbability > 0) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "${item.precipProbability}%",
+                            fontSize = 11.sp,
+                            color = Color(0xFF64B5F6),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Boolean) {
+    val dayFormat = SimpleDateFormat("EEEE", Locale.getDefault())
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        forecasts.forEach { item ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        Color(0xFF2A1FA5).copy(alpha = 0.3f),
+                        RoundedCornerShape(12.dp),
+                    )
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = dayFormat.format(Date(item.date)),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.White,
+                    modifier = Modifier.width(100.dp),
+                )
+                Text(
+                    text = wmoDescription(item.weatherCode),
+                    fontSize = 12.sp,
+                    color = Color.White.copy(alpha = 0.7f),
+                    modifier = Modifier.weight(1f),
+                )
+                if (item.precipProbability > 0) {
+                    Text(
+                        text = "${item.precipProbability}%",
+                        fontSize = 11.sp,
+                        color = Color(0xFF64B5F6),
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+                val (minP, minS) = item.tempMin.displayDual(metricPrimary)
+                val (maxP, maxS) = item.tempMax.displayDual(metricPrimary)
+                DualUnitText(
+                    primary = "$minP / $maxP",
+                    secondary = "$minS / $maxS",
+                    primarySize = 13.sp,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat: SimpleDateFormat) {
+    Column {
+        Spacer(modifier = Modifier.height(8.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -382,8 +606,6 @@ private fun WeatherContent(
                 modifier = Modifier.weight(1f)
             )
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 

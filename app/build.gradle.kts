@@ -63,6 +63,9 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.retrofit.kotlinx.serialization)
 
+    // WorkManager
+    implementation(libs.androidx.work.runtime.ktx)
+
     // Location
     implementation(libs.play.services.location)
     implementation(libs.accompanist.permissions)

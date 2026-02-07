@@ -19,6 +19,7 @@ hiltNavigationCompose = "1.2.0"
 playServicesLocation = "21.3.0"
 accompanistPermissions = "0.36.0"
 kotlinxCoroutines = "1.9.0"
+workRuntime = "2.10.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -47,6 +48,7 @@ retrofit-kotlinx-serialization = { group = "com.jakewharton.retrofit", name = "r
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanistPermissions" }
 kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "kotlinxCoroutines" }
+androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workRuntime" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
