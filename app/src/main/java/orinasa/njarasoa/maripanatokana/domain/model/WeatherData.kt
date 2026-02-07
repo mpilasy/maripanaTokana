@@ -8,5 +8,15 @@ data class WeatherData(
     val description: String,
     val iconCode: String,
     val locationName: String,
+    val pressure: Pressure,
+    val humidity: Int, // percentage
+    val windSpeed: WindSpeed,
+    val windDeg: Int, // degrees
+    val windGust: WindSpeed?,
+    val rain: Precipitation?,
+    val snow: Precipitation?,
+    val visibility: Int, // meters
+    val sunrise: Long, // epoch seconds
+    val sunset: Long, // epoch seconds
     val timestamp: Long = System.currentTimeMillis(),
 )

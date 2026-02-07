@@ -23,6 +23,7 @@ import androidx.glance.layout.padding
 import androidx.glance.layout.width
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
+import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
@@ -31,7 +32,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class WeatherWidget : GlanceAppWidget() {
+class WeatherWidgetLarge : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val data = WidgetWeatherFetcher.fetch(context)
@@ -39,7 +40,7 @@ class WeatherWidget : GlanceAppWidget() {
         provideContent {
             GlanceTheme {
                 if (data != null) {
-                    WeatherWidgetContent(data)
+                    WeatherWidgetLargeContent(data)
                 } else {
                     WidgetError()
                 }
@@ -49,26 +50,7 @@ class WeatherWidget : GlanceAppWidget() {
 }
 
 @Composable
-internal fun WidgetError() {
-    Box(
-        modifier = GlanceModifier
-            .fillMaxSize()
-            .background(ImageProvider(R.drawable.widget_background))
-            .padding(16.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = "Open app to enable location",
-            style = TextStyle(
-                color = WidgetColorProviders.onSurfaceVariant,
-                fontSize = 12.sp,
-            ),
-        )
-    }
-}
-
-@Composable
-private fun WeatherWidgetContent(data: WeatherData) {
+private fun WeatherWidgetLargeContent(data: WeatherData) {
     val dateFormat = SimpleDateFormat("d MMMM yyyy", Locale.getDefault())
     val today = dateFormat.format(Date(data.timestamp))
 
@@ -80,9 +62,8 @@ private fun WeatherWidgetContent(data: WeatherData) {
     ) {
         Column(
             modifier = GlanceModifier.fillMaxSize(),
-            verticalAlignment = Alignment.CenterVertically,
         ) {
-            // -- Top row: "Today" label + date --
+            // -- Top row: "Today" + date --
             Row(
                 modifier = GlanceModifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -107,7 +88,7 @@ private fun WeatherWidgetContent(data: WeatherData) {
 
             Spacer(modifier = GlanceModifier.height(4.dp))
 
-            // -- Bottom row: dual-unit temp + description + location --
+            // -- Temperature + description + location --
             Row(
                 modifier = GlanceModifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -138,6 +119,71 @@ private fun WeatherWidgetContent(data: WeatherData) {
                     )
                 }
             }
+
+            Spacer(modifier = GlanceModifier.height(8.dp))
+
+            // -- Detail row: Feels Like / Humidity / Wind --
+            Row(
+                modifier = GlanceModifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                DetailCell(
+                    label = "Feels Like",
+                    value = data.feelsLike.displayDual(),
+                    modifier = GlanceModifier.defaultWeight(),
+                )
+                DetailCell(
+                    label = "Humidity",
+                    value = "${data.humidity}%",
+                    modifier = GlanceModifier.defaultWeight(),
+                )
+                DetailCell(
+                    label = "Wind",
+                    value = data.windSpeed.displayMetric(),
+                    modifier = GlanceModifier.defaultWeight(),
+                )
+            }
+
+            Spacer(modifier = GlanceModifier.height(4.dp))
+
+            // -- Min / Max row --
+            Text(
+                text = "Min ${data.tempMin.displayCelsius()} · Max ${data.tempMax.displayCelsius()}",
+                modifier = GlanceModifier.fillMaxWidth(),
+                style = TextStyle(
+                    color = WidgetColorProviders.onSurfaceVariant,
+                    fontSize = 11.sp,
+                    textAlign = TextAlign.Center,
+                ),
+            )
         }
+    }
+}
+
+@Composable
+private fun DetailCell(
+    label: String,
+    value: String,
+    modifier: GlanceModifier = GlanceModifier,
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = label,
+            style = TextStyle(
+                color = WidgetColorProviders.accent,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+            ),
+        )
+        Text(
+            text = value,
+            style = TextStyle(
+                color = WidgetColorProviders.onSurface,
+                fontSize = 12.sp,
+            ),
+        )
     }
 }
