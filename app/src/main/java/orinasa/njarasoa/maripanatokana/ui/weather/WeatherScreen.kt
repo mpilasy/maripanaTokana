@@ -69,6 +69,7 @@ import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.data.remote.wmoDescription
 import orinasa.njarasoa.maripanatokana.data.remote.wmoEmoji
 import orinasa.njarasoa.maripanatokana.domain.model.DailyForecast
+import orinasa.njarasoa.maripanatokana.domain.model.Precipitation
 import orinasa.njarasoa.maripanatokana.domain.model.HourlyForecast
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import java.text.SimpleDateFormat
@@ -559,23 +560,29 @@ private fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            data.rain?.let { rain ->
-                val (rainP, rainS) = rain.displayDual(metricPrimary)
-                DetailCard(
-                    title = "Rain (1h)",
-                    value = rainP,
-                    secondaryValue = rainS,
-                    modifier = Modifier.weight(1f)
-                )
-            } ?: data.snow?.let { snow ->
-                val (snowP, snowS) = snow.displayDual(metricPrimary)
+            if (data.snow != null) {
+                val (snowP, snowS) = data.snow.displayDual(metricPrimary)
                 DetailCard(
                     title = "Snow (1h)",
                     value = snowP,
                     secondaryValue = snowS,
                     modifier = Modifier.weight(1f)
                 )
-            } ?: Spacer(modifier = Modifier.weight(1f))
+            } else if (data.rain != null) {
+                val (rainP, rainS) = data.rain.displayDual(metricPrimary)
+                DetailCard(
+                    title = "Rain (1h)",
+                    value = rainP,
+                    secondaryValue = rainS,
+                    modifier = Modifier.weight(1f)
+                )
+            } else {
+                DetailCard(
+                    title = "Precipitation",
+                    value = "None",
+                    modifier = Modifier.weight(1f)
+                )
+            }
 
             DetailCard(
                 title = "Visibility",
