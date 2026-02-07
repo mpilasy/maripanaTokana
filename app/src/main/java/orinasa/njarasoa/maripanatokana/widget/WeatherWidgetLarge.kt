@@ -1,6 +1,7 @@
 package orinasa.njarasoa.maripanatokana.widget
 
 import android.content.Context
+import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -8,7 +9,10 @@ import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.ImageProvider
+import androidx.glance.LocalContext
+import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
 import androidx.glance.layout.Alignment
@@ -25,6 +29,7 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
+import orinasa.njarasoa.maripanatokana.MainActivity
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.widget.theme.WidgetColorProviders
@@ -36,11 +41,14 @@ class WeatherWidgetLarge : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val data = WidgetWeatherFetcher.fetch(context)
+        val metricPrimary = context
+            .getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
+            .getBoolean("metric_primary", true)
 
         provideContent {
             GlanceTheme {
                 if (data != null) {
-                    WeatherWidgetLargeContent(data)
+                    WeatherWidgetLargeContent(data, metricPrimary)
                 } else {
                     WidgetError()
                 }
@@ -50,14 +58,17 @@ class WeatherWidgetLarge : GlanceAppWidget() {
 }
 
 @Composable
-private fun WeatherWidgetLargeContent(data: WeatherData) {
+private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean) {
+    val context = LocalContext.current
     val dateFormat = SimpleDateFormat("d MMMM yyyy", Locale.getDefault())
     val today = dateFormat.format(Date(data.timestamp))
+    val (tempPrimary, tempSecondary) = data.temperature.displayDual(metricPrimary)
 
     Box(
         modifier = GlanceModifier
             .fillMaxSize()
             .background(ImageProvider(R.drawable.widget_background))
+            .clickable(actionStartActivity(Intent(context, MainActivity::class.java)))
             .padding(horizontal = 16.dp, vertical = 12.dp),
     ) {
         Column(
@@ -94,11 +105,19 @@ private fun WeatherWidgetLargeContent(data: WeatherData) {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = data.temperature.displayDual(),
+                    text = tempPrimary,
                     style = TextStyle(
                         color = WidgetColorProviders.onSurface,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
+                    ),
+                )
+                Spacer(modifier = GlanceModifier.width(4.dp))
+                Text(
+                    text = tempSecondary,
+                    style = TextStyle(
+                        color = WidgetColorProviders.onSurfaceVariant,
+                        fontSize = 14.sp,
                     ),
                 )
                 Spacer(modifier = GlanceModifier.width(12.dp))
@@ -122,14 +141,14 @@ private fun WeatherWidgetLargeContent(data: WeatherData) {
 
             Spacer(modifier = GlanceModifier.height(8.dp))
 
-            // -- Detail row: Feels Like / Humidity / Wind --
+            // -- Detail row: Feels Like / Humidity / Wind (primary unit only) --
             Row(
                 modifier = GlanceModifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 DetailCell(
                     label = "Feels Like",
-                    value = data.feelsLike.displayDual(),
+                    value = data.feelsLike.displayDual(metricPrimary).first,
                     modifier = GlanceModifier.defaultWeight(),
                 )
                 DetailCell(
@@ -139,16 +158,16 @@ private fun WeatherWidgetLargeContent(data: WeatherData) {
                 )
                 DetailCell(
                     label = "Wind",
-                    value = data.windSpeed.displayMetric(),
+                    value = data.windSpeed.displayDual(metricPrimary).first,
                     modifier = GlanceModifier.defaultWeight(),
                 )
             }
 
             Spacer(modifier = GlanceModifier.height(4.dp))
 
-            // -- Min / Max row --
+            // -- Min / Max row (primary unit only) --
             Text(
-                text = "Min ${data.tempMin.displayCelsius()} · Max ${data.tempMax.displayCelsius()}",
+                text = "Min ${data.tempMin.displayDual(metricPrimary).first} \u00B7 Max ${data.tempMax.displayDual(metricPrimary).first}",
                 modifier = GlanceModifier.fillMaxWidth(),
                 style = TextStyle(
                     color = WidgetColorProviders.onSurfaceVariant,

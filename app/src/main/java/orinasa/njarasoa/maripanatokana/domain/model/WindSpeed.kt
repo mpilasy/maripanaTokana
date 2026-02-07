@@ -17,6 +17,11 @@ value class WindSpeed private constructor(val metersPerSecond: Double) {
     /** Dual-unit display: "5.2 m/s / 11.6 mph" */
     fun displayDual(): String = "${displayMetric()} / ${displayImperial()}"
 
+    /** Returns (primary, secondary) based on preferred unit system. */
+    fun displayDual(metricPrimary: Boolean): Pair<String, String> =
+        if (metricPrimary) displayMetric() to displayImperial()
+        else displayImperial() to displayMetric()
+
     companion object {
         fun fromMetersPerSecond(ms: Double): WindSpeed = WindSpeed(ms)
 

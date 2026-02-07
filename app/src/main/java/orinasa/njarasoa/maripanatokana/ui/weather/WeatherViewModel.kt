@@ -20,11 +20,22 @@ class WeatherViewModel @Inject constructor(
     @ApplicationContext private val appContext: Context,
 ) : ViewModel() {
 
+    private val prefs = appContext.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
+
     private val _uiState = MutableStateFlow<WeatherUiState>(WeatherUiState.PermissionRequired)
     val uiState: StateFlow<WeatherUiState> = _uiState.asStateFlow()
 
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
+    private val _metricPrimary = MutableStateFlow(prefs.getBoolean("metric_primary", true))
+    val metricPrimary: StateFlow<Boolean> = _metricPrimary.asStateFlow()
+
+    fun toggleUnits() {
+        val newValue = !_metricPrimary.value
+        _metricPrimary.value = newValue
+        prefs.edit().putBoolean("metric_primary", newValue).apply()
+    }
 
     fun fetchWeather() {
         viewModelScope.launch {
@@ -63,8 +74,7 @@ class WeatherViewModel @Inject constructor(
     }
 
     private fun saveLocation(lat: Double, lon: Double) {
-        appContext.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
-            .edit()
+        prefs.edit()
             .putFloat("lat", lat.toFloat())
             .putFloat("lon", lon.toFloat())
             .apply()

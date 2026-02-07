@@ -11,7 +11,7 @@
 - **Weather Source:** OpenWeatherMap API
 
 ## Core Requirements
-- **Simultaneous Units:** Every temperature display MUST show both °C and °F (e.g., "2°C / 36°F"). 
+- **Dual Units with Toggle:** Every measurement shows both metric and imperial. A °C/°F toggle button swaps which is primary (bold/large) vs secondary (smaller/dimmer). Preference stored in `SharedPreferences("widget_prefs", "metric_primary")`.
 - **Widget Focus:** High-priority 4x1 and 4x2 widgets.
 - **Visual Style:** Dark theme, translucent cards, modern gradients (matching references).
 - **Environment:** Development on Ubuntu Linux, targeting Android devices.

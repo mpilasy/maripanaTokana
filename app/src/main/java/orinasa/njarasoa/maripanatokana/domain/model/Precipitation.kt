@@ -17,6 +17,11 @@ value class Precipitation private constructor(val mm: Double) {
     /** Dual-unit display: "2.5 mm / 0.10 in" */
     fun displayDual(): String = "${displayMetric()} / ${displayImperial()}"
 
+    /** Returns (primary, secondary) based on preferred unit system. */
+    fun displayDual(metricPrimary: Boolean): Pair<String, String> =
+        if (metricPrimary) displayMetric() to displayImperial()
+        else displayImperial() to displayMetric()
+
     companion object {
         fun fromMm(mm: Double): Precipitation = Precipitation(mm)
 

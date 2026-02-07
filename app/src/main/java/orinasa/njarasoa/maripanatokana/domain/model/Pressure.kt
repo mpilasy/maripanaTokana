@@ -19,6 +19,11 @@ value class Pressure private constructor(val hPa: Double) {
     /** Dual-unit display: "1013 hPa / 29.92 inHg" */
     fun displayDual(): String = "${displayHPa()} / ${displayInHg()}"
 
+    /** Returns (primary, secondary) based on preferred unit system. */
+    fun displayDual(metricPrimary: Boolean): Pair<String, String> =
+        if (metricPrimary) displayHPa() to displayInHg()
+        else displayInHg() to displayHPa()
+
     companion object {
         fun fromHPa(hPa: Double): Pressure = Pressure(hPa)
 

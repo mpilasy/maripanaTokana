@@ -4,15 +4,21 @@ Android weather app displaying current weather with dual metric/imperial units.
 
 ## Features
 
-- Real-time weather data from OpenWeatherMap API
+- Real-time weather data from Open-Meteo API (no key required)
 - GPS location detection
 - Dual-unit display (Metric / Imperial) for all measurements
+- **Unit toggle**: tap the °C/°F button to swap which unit system is emphasized; both units always visible
+- Primary unit shown bold/large, secondary shown smaller/dimmer underneath
+- Unit preference persisted across app and widgets via SharedPreferences
+- Cardinal wind direction display (e.g. "NNW (340°)")
+- "Last refreshed" timestamp below the date
+- Custom app icon: Blue Marble with thermometer overlay
 - Dark gradient UI optimized for readability
 - Detailed weather information:
   - Temperature (current, feels like, min/max)
   - Pressure (hPa / inHg)
   - Humidity (%)
-  - Wind speed and direction (m/s / mph)
+  - Wind speed and direction with cardinal compass (m/s / mph)
   - Wind gusts (when available)
   - Precipitation (rain/snow in mm / inches)
   - Visibility (km / mi)
@@ -41,20 +47,7 @@ Android weather app displaying current weather with dual metric/imperial units.
 
 ## Setup
 
-### 1. Get OpenWeatherMap API Key
-
-1. Sign up at [OpenWeatherMap](https://openweathermap.org/api)
-2. Get a free API key from your account dashboard
-
-### 2. Configure API Key
-
-Add your API key to `local.properties` (this file is gitignored):
-
-```properties
-WEATHER_API_KEY=your_api_key_here
-```
-
-### 3. Build and Run
+### Build and Run
 
 ```bash
 ./gradlew :app:installDebug
@@ -87,7 +80,7 @@ All measurements are stored in canonical metric units and converted to imperial 
 - `WindSpeed`: m/s → mph
 - `Precipitation`: mm → inches
 
-Each provides a `displayDual()` method for showing both units.
+Each provides `displayDual()` for a combined string and `displayDual(metricPrimary: Boolean)` returning a `Pair<String, String>` of (primary, secondary) for emphasis-styled rendering.
 
 ## Permissions
 

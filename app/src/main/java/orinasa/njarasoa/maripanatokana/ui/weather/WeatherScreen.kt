@@ -20,6 +20,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -32,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -49,6 +51,7 @@ fun WeatherScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
+    val metricPrimary by viewModel.metricPrimary.collectAsState()
 
     val locationPermissionsState = rememberMultiplePermissionsState(
         listOf(
@@ -116,7 +119,11 @@ fun WeatherScreen(
                     onRefresh = { viewModel.refresh() },
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    WeatherContent(data = state.data)
+                    WeatherContent(
+                        data = state.data,
+                        metricPrimary = metricPrimary,
+                        onToggleUnits = { viewModel.toggleUnits() },
+                    )
                 }
             }
 
@@ -150,7 +157,34 @@ fun WeatherScreen(
 }
 
 @Composable
-private fun WeatherContent(data: WeatherData) {
+private fun DualUnitText(
+    primary: String,
+    secondary: String,
+    primarySize: TextUnit = 16.sp,
+    color: Color = Color.White,
+) {
+    Column {
+        Text(
+            text = primary,
+            fontSize = primarySize,
+            fontWeight = FontWeight.Bold,
+            color = color,
+        )
+        Text(
+            text = secondary,
+            fontSize = primarySize * 0.75f,
+            fontWeight = FontWeight.Normal,
+            color = color.copy(alpha = 0.45f),
+        )
+    }
+}
+
+@Composable
+private fun WeatherContent(
+    data: WeatherData,
+    metricPrimary: Boolean,
+    onToggleUnits: () -> Unit,
+) {
     val dateFormat = SimpleDateFormat("EEEE, d MMMM yyyy", Locale.getDefault())
     val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
 
@@ -160,18 +194,34 @@ private fun WeatherContent(data: WeatherData) {
             .verticalScroll(rememberScrollState())
             .padding(24.dp)
     ) {
-        // Header
-        Text(
-            text = data.locationName,
-            fontSize = 32.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.White
-        )
-        Text(
-            text = dateFormat.format(Date(data.timestamp)),
-            fontSize = 16.sp,
-            color = Color.White.copy(alpha = 0.7f)
-        )
+        // Header with toggle
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = data.locationName,
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+                Text(
+                    text = dateFormat.format(Date(data.timestamp)),
+                    fontSize = 16.sp,
+                    color = Color.White.copy(alpha = 0.7f)
+                )
+                Text(
+                    text = "Updated ${timeFormat.format(Date(data.timestamp))}",
+                    fontSize = 12.sp,
+                    color = Color.White.copy(alpha = 0.4f)
+                )
+            }
+            FilledTonalButton(onClick = onToggleUnits) {
+                Text(if (metricPrimary) "\u00B0C" else "\u00B0F")
+            }
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -184,11 +234,11 @@ private fun WeatherContent(data: WeatherData) {
             Column(
                 modifier = Modifier.padding(24.dp)
             ) {
-                Text(
-                    text = data.temperature.displayDual(),
-                    fontSize = 48.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
+                val (tempPrimary, tempSecondary) = data.temperature.displayDual(metricPrimary)
+                DualUnitText(
+                    primary = tempPrimary,
+                    secondary = tempSecondary,
+                    primarySize = 48.sp,
                 )
                 Text(
                     text = data.description,
@@ -206,12 +256,8 @@ private fun WeatherContent(data: WeatherData) {
                             fontSize = 14.sp,
                             color = Color.White.copy(alpha = 0.7f)
                         )
-                        Text(
-                            text = data.feelsLike.displayDual(),
-                            fontSize = 16.sp,
-                            color = Color.White,
-                            fontWeight = FontWeight.Medium
-                        )
+                        val (flPrimary, flSecondary) = data.feelsLike.displayDual(metricPrimary)
+                        DualUnitText(primary = flPrimary, secondary = flSecondary)
                     }
                     Column {
                         Text(
@@ -219,11 +265,11 @@ private fun WeatherContent(data: WeatherData) {
                             fontSize = 14.sp,
                             color = Color.White.copy(alpha = 0.7f)
                         )
-                        Text(
-                            text = "${data.tempMin.displayCelsius()} / ${data.tempMax.displayCelsius()}",
-                            fontSize = 16.sp,
-                            color = Color.White,
-                            fontWeight = FontWeight.Medium
+                        val (minP, minS) = data.tempMin.displayDual(metricPrimary)
+                        val (maxP, maxS) = data.tempMax.displayDual(metricPrimary)
+                        DualUnitText(
+                            primary = "$minP / $maxP",
+                            secondary = "$minS / $maxS",
                         )
                     }
                 }
@@ -246,9 +292,11 @@ private fun WeatherContent(data: WeatherData) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            val (pressP, pressS) = data.pressure.displayDual(metricPrimary)
             DetailCard(
                 title = "Pressure",
-                value = data.pressure.displayDual(),
+                value = pressP,
+                secondaryValue = pressS,
                 modifier = Modifier.weight(1f)
             )
             DetailCard(
@@ -264,16 +312,20 @@ private fun WeatherContent(data: WeatherData) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            val (windP, windS) = data.windSpeed.displayDual(metricPrimary)
             DetailCard(
                 title = "Wind",
-                value = data.windSpeed.displayDual(),
-                subtitle = "${data.windDeg}°",
+                value = windP,
+                secondaryValue = windS,
+                subtitle = "${cardinalDirection(data.windDeg)} (${data.windDeg}\u00B0)",
                 modifier = Modifier.weight(1f)
             )
             data.windGust?.let { gust ->
+                val (gustP, gustS) = gust.displayDual(metricPrimary)
                 DetailCard(
                     title = "Wind Gust",
-                    value = gust.displayDual(),
+                    value = gustP,
+                    secondaryValue = gustS,
                     modifier = Modifier.weight(1f)
                 )
             } ?: Spacer(modifier = Modifier.weight(1f))
@@ -286,23 +338,29 @@ private fun WeatherContent(data: WeatherData) {
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             data.rain?.let { rain ->
+                val (rainP, rainS) = rain.displayDual(metricPrimary)
                 DetailCard(
                     title = "Rain (1h)",
-                    value = rain.displayDual(),
+                    value = rainP,
+                    secondaryValue = rainS,
                     modifier = Modifier.weight(1f)
                 )
             } ?: data.snow?.let { snow ->
+                val (snowP, snowS) = snow.displayDual(metricPrimary)
                 DetailCard(
                     title = "Snow (1h)",
-                    value = snow.displayDual(),
+                    value = snowP,
+                    secondaryValue = snowS,
                     modifier = Modifier.weight(1f)
                 )
             } ?: Spacer(modifier = Modifier.weight(1f))
 
             DetailCard(
                 title = "Visibility",
-                value = "${data.visibility / 1000.0} km",
-                subtitle = "%.2f mi".format(data.visibility / 1609.34),
+                value = if (metricPrimary) "%.1f km".format(data.visibility / 1000.0)
+                        else "%.2f mi".format(data.visibility / 1609.34),
+                secondaryValue = if (metricPrimary) "%.2f mi".format(data.visibility / 1609.34)
+                                 else "%.1f km".format(data.visibility / 1000.0),
                 modifier = Modifier.weight(1f)
             )
         }
@@ -334,7 +392,8 @@ private fun DetailCard(
     title: String,
     value: String,
     modifier: Modifier = Modifier,
-    subtitle: String? = null
+    secondaryValue: String? = null,
+    subtitle: String? = null,
 ) {
     Card(
         modifier = modifier,
@@ -350,12 +409,16 @@ private fun DetailCard(
                 color = Color.White.copy(alpha = 0.7f)
             )
             Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = value,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
+            if (secondaryValue != null) {
+                DualUnitText(primary = value, secondary = secondaryValue)
+            } else {
+                Text(
+                    text = value,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            }
             subtitle?.let {
                 Text(
                     text = it,
@@ -365,4 +428,10 @@ private fun DetailCard(
             }
         }
     }
+}
+
+private fun cardinalDirection(degrees: Int): String {
+    val directions = arrayOf("N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
+        "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW")
+    return directions[((degrees % 360 + 360) % 360 * 16 / 360) % 16]
 }

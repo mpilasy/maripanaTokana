@@ -19,6 +19,11 @@ value class Temperature private constructor(val celsius: Double) {
     /** Dual-unit display as required by spec: "2°C / 36°F" */
     fun displayDual(): String = "${displayCelsius()} / ${displayFahrenheit()}"
 
+    /** Returns (primary, secondary) based on preferred unit system. */
+    fun displayDual(metricPrimary: Boolean): Pair<String, String> =
+        if (metricPrimary) displayCelsius() to displayFahrenheit()
+        else displayFahrenheit() to displayCelsius()
+
     companion object {
         fun fromCelsius(c: Double): Temperature = Temperature(c)
 
