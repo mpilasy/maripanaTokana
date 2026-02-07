@@ -360,9 +360,16 @@ private fun WeatherContent(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Current Conditions (collapsible)
+        CollapsibleSection(title = "Current Conditions") {
+            DetailsContent(data, metricPrimary, timeFormat)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
         // Hourly Forecast
         if (data.hourlyForecast.isNotEmpty()) {
-            CollapsibleSection(title = "Hourly") {
+            CollapsibleSection(title = "Hourly Forecast") {
                 HourlyForecastRow(data.hourlyForecast, metricPrimary)
             }
             Spacer(modifier = Modifier.height(24.dp))
@@ -374,11 +381,6 @@ private fun WeatherContent(
                 DailyForecastList(data.dailyForecast, metricPrimary)
             }
             Spacer(modifier = Modifier.height(24.dp))
-        }
-
-        // Details (collapsible)
-        CollapsibleSection(title = "Details") {
-            DetailsContent(data, metricPrimary, timeFormat)
         }
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -444,14 +446,12 @@ private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Bo
                         secondary = tempS,
                         primarySize = 14.sp,
                     )
-                    if (item.precipProbability > 0) {
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "${item.precipProbability}%",
-                            fontSize = 11.sp,
-                            color = Color(0xFF64B5F6),
-                        )
-                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "${item.precipProbability}%",
+                        fontSize = 11.sp,
+                        color = Color(0xFF64B5F6),
+                    )
                 }
             }
         }
@@ -487,14 +487,12 @@ private fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Boo
                     color = Color.White.copy(alpha = 0.7f),
                     modifier = Modifier.weight(1f),
                 )
-                if (item.precipProbability > 0) {
-                    Text(
-                        text = "${item.precipProbability}%",
-                        fontSize = 11.sp,
-                        color = Color(0xFF64B5F6),
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                }
+                Text(
+                    text = "${item.precipProbability}%",
+                    fontSize = 11.sp,
+                    color = Color(0xFF64B5F6),
+                )
+                Spacer(modifier = Modifier.width(8.dp))
                 val (minP, minS) = item.tempMin.displayDual(metricPrimary)
                 val (maxP, maxS) = item.tempMax.displayDual(metricPrimary)
                 DualUnitText(
