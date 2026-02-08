@@ -168,6 +168,19 @@ fun WeatherScreen(
                 }
 
                 is WeatherUiState.PermissionRequired -> {
+                    // System-locale context (phone language, not app language)
+                    val systemContext = remember(baseContext) {
+                        val cfg = android.content.res.Configuration(baseContext.resources.configuration)
+                        cfg.setLocale(java.util.Locale.getDefault())
+                        baseContext.createConfigurationContext(cfg)
+                    }
+                    val sysTitle = systemContext.getString(R.string.permission_title)
+                    val sysMessage = systemContext.getString(R.string.permission_message)
+                    val sysGrant = systemContext.getString(R.string.grant_permission)
+                    val appTitle = stringResource(R.string.permission_title)
+                    val appMessage = stringResource(R.string.permission_message)
+                    val appGrant = stringResource(R.string.grant_permission)
+
                     Column(
                         modifier = Modifier
                             .align(Alignment.Center)
@@ -175,21 +188,48 @@ fun WeatherScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = stringResource(R.string.permission_title),
+                            text = appTitle,
                             style = MaterialTheme.typography.titleLarge,
                             color = Color.White,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
                         )
+                        if (sysTitle != appTitle) {
+                            Text(
+                                text = sysTitle,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.White.copy(alpha = 0.5f),
+                                textAlign = TextAlign.Center,
+                            )
+                        }
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = stringResource(R.string.permission_message),
+                            text = appMessage,
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.White.copy(alpha = 0.7f),
+                            textAlign = TextAlign.Center,
                             modifier = Modifier.padding(horizontal = 16.dp)
                         )
+                        if (sysMessage != appMessage) {
+                            Text(
+                                text = sysMessage,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.White.copy(alpha = 0.4f),
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+                        }
                         Spacer(modifier = Modifier.height(24.dp))
                         Button(onClick = { locationPermissionsState.launchMultiplePermissionRequest() }) {
-                            Text(stringResource(R.string.grant_permission))
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(appGrant)
+                                if (sysGrant != appGrant) {
+                                    Text(
+                                        text = sysGrant,
+                                        style = MaterialTheme.typography.labelSmall,
+                                    )
+                                }
+                            }
                         }
                     }
                 }
