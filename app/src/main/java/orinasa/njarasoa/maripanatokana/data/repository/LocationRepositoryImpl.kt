@@ -11,12 +11,26 @@ class LocationRepositoryImpl @Inject constructor(
     private val fusedLocationClient: FusedLocationProviderClient,
 ) : LocationRepository {
 
-    override suspend fun getLocation(): Result<Pair<Double, Double>> {
+    override suspend fun getLastLocation(): Result<Pair<Double, Double>> {
         return try {
-            val cancellationTokenSource = CancellationTokenSource()
+            val location = fusedLocationClient.lastLocation.await()
+            if (location != null) {
+                Result.success(Pair(location.latitude, location.longitude))
+            } else {
+                Result.failure(Exception("No cached location"))
+            }
+        } catch (e: SecurityException) {
+            Result.failure(Exception("Location permission not granted"))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getFreshLocation(): Result<Pair<Double, Double>> {
+        return try {
             val location = fusedLocationClient.getCurrentLocation(
-                Priority.PRIORITY_HIGH_ACCURACY,
-                cancellationTokenSource.token
+                Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+                CancellationTokenSource().token
             ).await()
 
             if (location != null) {

@@ -16,6 +16,7 @@ data class WeatherData(
     val windGust: WindSpeed?,
     val rain: Precipitation?,
     val snow: Precipitation?,
+    val uvIndex: Double,
     val visibility: Int, // meters
     val sunrise: Long, // epoch seconds
     val sunset: Long, // epoch seconds

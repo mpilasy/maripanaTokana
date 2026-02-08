@@ -379,17 +379,52 @@ private fun WeatherContent(
             Column(
                 modifier = Modifier.padding(24.dp)
             ) {
-                // Top row: temperature (left) + precipitation (right)
+                // Top row: emoji+description (left) + temperature (right)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            text = wmoEmoji(data.weatherCode),
+                            fontSize = 48.sp,
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = data.description,
+                            fontSize = 16.sp,
+                            fontFamily = bodyFont,
+                            color = Color.White.copy(alpha = 0.9f),
+                        )
+                    }
                     val (tempPrimary, tempSecondary) = data.temperature.displayDual(metricPrimary)
                     DualUnitText(
                         primary = tempPrimary,
                         secondary = tempSecondary,
                         primarySize = 48.sp,
                     )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Bottom row: feels like (left) + precipitation (right)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Column {
+                        Text(
+                            text = "Feels Like",
+                            fontSize = 14.sp,
+                            fontFamily = bodyFont,
+                            color = Color.White.copy(alpha = 0.7f)
+                        )
+                        val (flPrimary, flSecondary) = data.feelsLike.displayDual(metricPrimary)
+                        DualUnitText(primary = flPrimary, secondary = flSecondary)
+                    }
                     Column(horizontalAlignment = Alignment.End) {
                         if (data.snow != null) {
                             val (snowP, snowS) = data.snow.displayDual(metricPrimary)
@@ -411,48 +446,6 @@ private fun WeatherContent(
                                 color = Color.White.copy(alpha = 0.5f),
                             )
                         }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Description
-                Text(
-                    text = "${wmoEmoji(data.weatherCode)} ${data.description}",
-                    fontSize = 20.sp,
-                    fontFamily = bodyFont,
-                    color = Color.White.copy(alpha = 0.9f)
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Bottom row: feels like (left) + wind (right)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Column {
-                        Text(
-                            text = "Feels Like",
-                            fontSize = 14.sp,
-                            fontFamily = bodyFont,
-                            color = Color.White.copy(alpha = 0.7f)
-                        )
-                        val (flPrimary, flSecondary) = data.feelsLike.displayDual(metricPrimary)
-                        DualUnitText(primary = flPrimary, secondary = flSecondary)
-                    }
-                    Column(horizontalAlignment = Alignment.End) {
-                        val (windP, windS) = data.windSpeed.displayDual(metricPrimary)
-                        DualUnitText(
-                            primary = "\uD83D\uDCA8 $windP",
-                            secondary = windS,
-                        )
-                        Text(
-                            text = "${cardinalDirection(data.windDeg)} (${data.windDeg}\u00B0)",
-                            fontSize = 12.sp,
-                            fontFamily = bodyFont,
-                            color = Color.White.copy(alpha = 0.6f),
-                        )
                     }
                 }
             }
@@ -643,6 +636,31 @@ private fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat
             modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            val (windP, windS) = data.windSpeed.displayDual(metricPrimary)
+            DetailCard(
+                title = "Wind",
+                value = windP,
+                secondaryValue = windS,
+                subtitle = "${cardinalDirection(data.windDeg)} (${data.windDeg}\u00B0)",
+                modifier = Modifier.weight(1f).fillMaxHeight()
+            )
+            data.windGust?.let { gust ->
+                val (gustP, gustS) = gust.displayDual(metricPrimary)
+                DetailCard(
+                    title = "Wind Gust",
+                    value = gustP,
+                    secondaryValue = gustS,
+                    modifier = Modifier.weight(1f).fillMaxHeight()
+                )
+            } ?: Spacer(modifier = Modifier.weight(1f))
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
             val (pressP, pressS) = data.pressure.displayDual(metricPrimary)
             DetailCard(
                 title = "Pressure",
@@ -663,16 +681,12 @@ private fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat
             modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            data.windGust?.let { gust ->
-                val (gustP, gustS) = gust.displayDual(metricPrimary)
-                DetailCard(
-                    title = "Wind Gust",
-                    value = gustP,
-                    secondaryValue = gustS,
-                    modifier = Modifier.weight(1f).fillMaxHeight()
-                )
-            } ?: Spacer(modifier = Modifier.weight(1f))
-
+            DetailCard(
+                title = "UV Index",
+                value = "%.1f".format(data.uvIndex),
+                subtitle = uvLabel(data.uvIndex),
+                modifier = Modifier.weight(1f).fillMaxHeight()
+            )
             DetailCard(
                 title = "Visibility",
                 value = if (metricPrimary) "%.1f km".format(data.visibility / 1000.0)
@@ -754,4 +768,12 @@ private fun cardinalDirection(degrees: Int): String {
     val directions = arrayOf("N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
         "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW")
     return directions[((degrees % 360 + 360) % 360 * 16 / 360) % 16]
+}
+
+private fun uvLabel(uv: Double): String = when {
+    uv < 3 -> "Low"
+    uv < 6 -> "Moderate"
+    uv < 8 -> "High"
+    uv < 11 -> "Very High"
+    else -> "Extreme"
 }

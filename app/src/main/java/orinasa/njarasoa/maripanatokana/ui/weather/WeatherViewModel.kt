@@ -63,31 +63,61 @@ class WeatherViewModel @Inject constructor(
     }
 
     private suspend fun doFetch() {
-        locationRepository.getLocation()
+        // Step 1: try cached location for instant render
+        var usedCached = false
+        locationRepository.getLastLocation().onSuccess { (lat, lon) ->
+            usedCached = true
+            saveLocation(lat, lon)
+            weatherRepository.getWeather(lat, lon).onSuccess { data ->
+                prefs.edit().putString("location_name", data.locationName).apply()
+                _uiState.value = WeatherUiState.Success(data)
+            }
+        }
+
+        // Step 2: get fresh location, re-fetch if moved significantly
+        locationRepository.getFreshLocation()
             .onSuccess { (lat, lon) ->
                 saveLocation(lat, lon)
-                weatherRepository.getWeather(lat, lon)
-                    .onSuccess { data ->
-                        prefs.edit().putString("location_name", data.locationName).apply()
-                        _uiState.value = WeatherUiState.Success(data)
-                    }
-                    .onFailure { error ->
-                        _uiState.value = WeatherUiState.Error(
-                            error.message ?: "Failed to fetch weather"
-                        )
-                    }
+                if (!usedCached || movedSignificantly(lat, lon)) {
+                    weatherRepository.getWeather(lat, lon)
+                        .onSuccess { data ->
+                            prefs.edit().putString("location_name", data.locationName).apply()
+                            _uiState.value = WeatherUiState.Success(data)
+                        }
+                        .onFailure { error ->
+                            if (!usedCached) {
+                                _uiState.value = WeatherUiState.Error(
+                                    error.message ?: "Failed to fetch weather"
+                                )
+                            }
+                        }
+                }
             }
             .onFailure { error ->
-                _uiState.value = WeatherUiState.Error(
-                    error.message ?: "Failed to get location"
-                )
+                if (!usedCached) {
+                    _uiState.value = WeatherUiState.Error(
+                        error.message ?: "Failed to get location"
+                    )
+                }
             }
+    }
+
+    private fun movedSignificantly(lat: Double, lon: Double): Boolean {
+        val oldLat = prefs.getFloat("last_render_lat", Float.MIN_VALUE)
+        val oldLon = prefs.getFloat("last_render_lon", Float.MIN_VALUE)
+        if (oldLat == Float.MIN_VALUE) return true
+        val dlat = lat - oldLat
+        val dlon = lon - oldLon
+        // ~5 km threshold (0.045 degrees latitude ≈ 5 km)
+        return dlat * dlat + dlon * dlon > 0.045 * 0.045
     }
 
     private fun saveLocation(lat: Double, lon: Double) {
         prefs.edit()
             .putFloat("lat", lat.toFloat())
             .putFloat("lon", lon.toFloat())
+            .putFloat("last_render_lat", lat.toFloat())
+            .putFloat("last_render_lon", lon.toFloat())
             .apply()
     }
 }
