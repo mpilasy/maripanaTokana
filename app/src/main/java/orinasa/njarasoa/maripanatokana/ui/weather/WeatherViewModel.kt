@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import orinasa.njarasoa.maripanatokana.domain.repository.LocationRepository
 import orinasa.njarasoa.maripanatokana.domain.repository.WeatherRepository
+import orinasa.njarasoa.maripanatokana.ui.theme.fontPairings
 import javax.inject.Inject
 
 @HiltViewModel
@@ -31,10 +32,19 @@ class WeatherViewModel @Inject constructor(
     private val _metricPrimary = MutableStateFlow(prefs.getBoolean("metric_primary", true))
     val metricPrimary: StateFlow<Boolean> = _metricPrimary.asStateFlow()
 
+    private val _fontIndex = MutableStateFlow(prefs.getInt("font_index", 0).coerceIn(0, fontPairings.lastIndex))
+    val fontIndex: StateFlow<Int> = _fontIndex.asStateFlow()
+
     fun toggleUnits() {
         val newValue = !_metricPrimary.value
         _metricPrimary.value = newValue
         prefs.edit().putBoolean("metric_primary", newValue).apply()
+    }
+
+    fun cycleFont() {
+        val newIndex = (_fontIndex.value + 1) % fontPairings.size
+        _fontIndex.value = newIndex
+        prefs.edit().putInt("font_index", newIndex).apply()
     }
 
     fun fetchWeather() {
