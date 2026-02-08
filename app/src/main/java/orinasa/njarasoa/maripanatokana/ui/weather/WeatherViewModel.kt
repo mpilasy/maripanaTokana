@@ -49,7 +49,7 @@ class WeatherViewModel @Inject constructor(
     private val _fontIndex = MutableStateFlow(prefs.getInt("font_index", 0).coerceIn(0, fontPairings.lastIndex))
     val fontIndex: StateFlow<Int> = _fontIndex.asStateFlow()
 
-    private val _localeIndex = MutableStateFlow(prefs.getInt("locale_index", 0).coerceIn(0, supportedLocales.lastIndex))
+    private val _localeIndex = MutableStateFlow(prefs.getInt("locale_index", 6).coerceIn(0, supportedLocales.lastIndex))
     val localeIndex: StateFlow<Int> = _localeIndex.asStateFlow()
 
     fun toggleUnits() {
