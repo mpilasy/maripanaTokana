@@ -25,14 +25,14 @@
     <string name="wmo_moderate_snowfall">Oram-panala</string>
     <string name="wmo_heavy_snowfall">Oram-panala mahery</string>
     <string name="wmo_snow_grains">Voan-danitra</string>
-    <string name="wmo_slight_rain_showers">Oram-baratra kely</string>
-    <string name="wmo_moderate_rain_showers">Oram-baratra</string>
-    <string name="wmo_violent_rain_showers">Oram-baratra mahery vaika</string>
+    <string name="wmo_slight_rain_showers">Orana kely</string>
+    <string name="wmo_moderate_rain_showers">Orana</string>
+    <string name="wmo_violent_rain_showers">Orana mahery vaika</string>
     <string name="wmo_slight_snow_showers">Ranomandry malefaka</string>
     <string name="wmo_heavy_snow_showers">Ranomandry matevina</string>
-    <string name="wmo_thunderstorm">Rivo-doza</string>
-    <string name="wmo_thunderstorm_slight_hail">Rivo-doza misy havandra</string>
-    <string name="wmo_thunderstorm_heavy_hail">Rivo-doza misy havandra mahery</string>
+    <string name="wmo_thunderstorm">Orambaratra</string>
+    <string name="wmo_thunderstorm_slight_hail">Orambaratra misy havandra</string>
+    <string name="wmo_thunderstorm_heavy_hail">Orambaratra misy havandra mahery</string>
     <string name="wmo_unknown">Tsy fantatra</string>
 
     <!-- Permission screen -->
