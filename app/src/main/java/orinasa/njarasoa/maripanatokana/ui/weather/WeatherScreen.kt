@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -41,6 +42,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -49,6 +51,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
@@ -56,6 +59,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -70,8 +75,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import orinasa.njarasoa.maripanatokana.BuildConfig
 import orinasa.njarasoa.maripanatokana.R
-import orinasa.njarasoa.maripanatokana.data.remote.wmoDescription
+import orinasa.njarasoa.maripanatokana.data.remote.wmoDescriptionRes
 import orinasa.njarasoa.maripanatokana.data.remote.wmoEmoji
 import orinasa.njarasoa.maripanatokana.domain.model.DailyForecast
 import orinasa.njarasoa.maripanatokana.domain.model.HourlyForecast
@@ -92,8 +98,20 @@ fun WeatherScreen(
     val isRefreshing by viewModel.isRefreshing.collectAsState()
     val metricPrimary by viewModel.metricPrimary.collectAsState()
     val fontIndex by viewModel.fontIndex.collectAsState()
+    val localeIndex by viewModel.localeIndex.collectAsState()
 
     val pairing = fontPairings[fontIndex]
+    val localeTag = supportedLocales[localeIndex].tag
+    val baseContext = LocalContext.current
+    val localizedContext = remember(localeTag, baseContext) {
+        val locale = java.util.Locale.forLanguageTag(localeTag)
+        val config = android.content.res.Configuration(baseContext.resources.configuration)
+        config.setLocale(locale)
+        val resContext = baseContext.createConfigurationContext(config)
+        object : android.content.ContextWrapper(baseContext) {
+            override fun getResources() = resContext.resources
+        }
+    }
 
     val locationPermissionsState = rememberMultiplePermissionsState(
         listOf(
@@ -109,6 +127,7 @@ fun WeatherScreen(
     }
 
     CompositionLocalProvider(
+        LocalContext provides localizedContext,
         LocalDisplayFont provides pairing.display,
         LocalBodyFont provides pairing.body,
     ) {
@@ -150,21 +169,21 @@ fun WeatherScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Location Permission Required",
+                            text = stringResource(R.string.permission_title),
                             style = MaterialTheme.typography.titleLarge,
                             color = Color.White,
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "This app needs location access to show weather for your area.",
+                            text = stringResource(R.string.permission_message),
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.White.copy(alpha = 0.7f),
                             modifier = Modifier.padding(horizontal = 16.dp)
                         )
                         Spacer(modifier = Modifier.height(24.dp))
                         Button(onClick = { locationPermissionsState.launchMultiplePermissionRequest() }) {
-                            Text("Grant Permission")
+                            Text(stringResource(R.string.grant_permission))
                         }
                     }
                 }
@@ -179,8 +198,10 @@ fun WeatherScreen(
                             data = state.data,
                             metricPrimary = metricPrimary,
                             fontName = pairing.name,
+                            currentFlag = supportedLocales[localeIndex].flag,
                             onToggleUnits = { viewModel.toggleUnits() },
                             onCycleFont = { viewModel.cycleFont() },
+                            onCycleLanguage = { viewModel.cycleLanguage() },
                         )
                     }
                 }
@@ -193,20 +214,20 @@ fun WeatherScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Error",
+                            text = stringResource(R.string.error_title),
                             style = MaterialTheme.typography.titleLarge,
                             color = Color.White,
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = state.message,
+                            text = stringResource(state.messageResId),
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.White.copy(alpha = 0.7f)
                         )
                         Spacer(modifier = Modifier.height(24.dp))
                         Button(onClick = { viewModel.fetchWeather() }) {
-                            Text("Retry")
+                            Text(stringResource(R.string.error_retry))
                         }
                     }
                 }
@@ -269,7 +290,8 @@ private fun CollapsibleSection(
             )
             Icon(
                 imageVector = Icons.Default.KeyboardArrowDown,
-                contentDescription = if (expanded) "Collapse" else "Expand",
+                contentDescription = if (expanded) stringResource(R.string.cd_collapse)
+                                     else stringResource(R.string.cd_expand),
                 tint = Color.White.copy(alpha = 0.7f),
                 modifier = Modifier.rotate(rotation),
             )
@@ -289,17 +311,21 @@ private fun WeatherContent(
     data: WeatherData,
     metricPrimary: Boolean,
     fontName: String,
+    currentFlag: String,
     onToggleUnits: () -> Unit,
     onCycleFont: () -> Unit,
+    onCycleLanguage: () -> Unit,
 ) {
-    val dateFormat = SimpleDateFormat("EEEE, d MMMM yyyy", Locale.getDefault())
-    val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+    val appLocale = LocalContext.current.resources.configuration.locales[0]
+    val dateFormat = SimpleDateFormat("EEEE, d MMMM yyyy", appLocale)
+    val timeFormat = SimpleDateFormat("HH:mm", Locale.US)
     val displayFont = LocalDisplayFont.current
     val bodyFont = LocalBodyFont.current
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .statusBarsPadding()
             .verticalScroll(rememberScrollState())
             .padding(24.dp)
     ) {
@@ -324,13 +350,13 @@ private fun WeatherContent(
                     color = Color.White.copy(alpha = 0.7f)
                 )
                 Text(
-                    text = "Updated ${timeFormat.format(Date(data.timestamp))}",
+                    text = stringResource(R.string.updated_time, timeFormat.format(Date(data.timestamp))),
                     fontSize = 12.sp,
                     fontFamily = bodyFont,
                     color = Color.White.copy(alpha = 0.4f)
                 )
             }
-            // Font cycle button + Units button
+            // Font, Language, Units buttons
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(
@@ -340,8 +366,19 @@ private fun WeatherContent(
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_font),
-                            contentDescription = "Change font",
+                            contentDescription = stringResource(R.string.cd_change_font),
                             modifier = Modifier.size(20.dp),
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    IconButton(
+                        onClick = onCycleLanguage,
+                        colors = IconButtonDefaults.filledTonalIconButtonColors(),
+                        modifier = Modifier.size(40.dp),
+                    ) {
+                        Text(
+                            text = currentFlag,
+                            fontSize = 20.sp,
                         )
                     }
                     Spacer(modifier = Modifier.width(8.dp))
@@ -352,7 +389,7 @@ private fun WeatherContent(
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_ruler),
-                            contentDescription = "Toggle units",
+                            contentDescription = stringResource(R.string.cd_toggle_units),
                             modifier = Modifier.size(20.dp),
                         )
                     }
@@ -394,7 +431,7 @@ private fun WeatherContent(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = data.description,
+                            text = stringResource(wmoDescriptionRes(data.weatherCode)),
                             fontSize = 16.sp,
                             fontFamily = bodyFont,
                             color = Color.White.copy(alpha = 0.9f),
@@ -417,7 +454,7 @@ private fun WeatherContent(
                 ) {
                     Column {
                         Text(
-                            text = "Feels Like",
+                            text = stringResource(R.string.feels_like),
                             fontSize = 14.sp,
                             fontFamily = bodyFont,
                             color = Color.White.copy(alpha = 0.7f)
@@ -440,7 +477,7 @@ private fun WeatherContent(
                             )
                         } else {
                             Text(
-                                text = "No precip",
+                                text = stringResource(R.string.no_precip),
                                 fontSize = 14.sp,
                                 fontFamily = bodyFont,
                                 color = Color.White.copy(alpha = 0.5f),
@@ -454,7 +491,7 @@ private fun WeatherContent(
         Spacer(modifier = Modifier.height(24.dp))
 
         // Current Conditions (collapsible)
-        CollapsibleSection(title = "Current Conditions") {
+        CollapsibleSection(title = stringResource(R.string.section_current_conditions)) {
             DetailsContent(data, metricPrimary, timeFormat)
         }
 
@@ -462,7 +499,7 @@ private fun WeatherContent(
 
         // Hourly Forecast
         if (data.hourlyForecast.isNotEmpty()) {
-            CollapsibleSection(title = "Hourly Forecast") {
+            CollapsibleSection(title = stringResource(R.string.section_hourly_forecast)) {
                 HourlyForecastRow(data.hourlyForecast, metricPrimary)
             }
             Spacer(modifier = Modifier.height(24.dp))
@@ -470,7 +507,7 @@ private fun WeatherContent(
 
         // Weekly Forecast
         if (data.dailyForecast.isNotEmpty()) {
-            CollapsibleSection(title = "This Week") {
+            CollapsibleSection(title = stringResource(R.string.section_this_week)) {
                 DailyForecastList(data.dailyForecast, metricPrimary)
             }
             Spacer(modifier = Modifier.height(24.dp))
@@ -478,25 +515,27 @@ private fun WeatherContent(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Credits
+        // Footer
         val linkStyle = SpanStyle(color = Color.White.copy(alpha = 0.5f), textDecoration = TextDecoration.Underline)
         val creditText = buildAnnotatedString {
             withStyle(SpanStyle(color = Color.White.copy(alpha = 0.3f))) {
-                append("Weather data by ")
+                append(stringResource(R.string.credits_weather_data))
             }
             withLink(LinkAnnotation.Url("https://open-meteo.com")) {
                 withStyle(linkStyle) { append("Open-Meteo") }
-            }
-            withStyle(SpanStyle(color = Color.White.copy(alpha = 0.3f))) {
-                append("\nBuilt with ")
-            }
-            withLink(LinkAnnotation.Url("https://claude.ai")) {
-                withStyle(linkStyle) { append("Claude") }
             }
         }
         Text(
             text = creditText,
             fontSize = 11.sp,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center,
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = stringResource(R.string.hash_version, BuildConfig.GIT_HASH),
+            fontSize = 11.sp,
+            color = Color.White.copy(alpha = 0.3f),
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
         )
@@ -507,7 +546,7 @@ private fun WeatherContent(
 
 @Composable
 private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Boolean) {
-    val hourFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+    val hourFormat = SimpleDateFormat("HH:mm", Locale.US)
     val bodyFont = LocalBodyFont.current
 
     LazyRow(
@@ -556,7 +595,8 @@ private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Bo
 
 @Composable
 private fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Boolean) {
-    val dayFormat = SimpleDateFormat("EEEE", Locale.getDefault())
+    val appLocale = LocalContext.current.resources.configuration.locales[0]
+    val dayFormat = SimpleDateFormat("EEEE", appLocale)
     val bodyFont = LocalBodyFont.current
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -580,7 +620,7 @@ private fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Boo
                     modifier = Modifier.width(100.dp),
                 )
                 Text(
-                    text = "${wmoEmoji(item.weatherCode)} ${wmoDescription(item.weatherCode)}",
+                    text = "${wmoEmoji(item.weatherCode)} ${stringResource(wmoDescriptionRes(item.weatherCode))}",
                     fontSize = 12.sp,
                     fontFamily = bodyFont,
                     color = Color.White.copy(alpha = 0.7f),
@@ -607,6 +647,9 @@ private fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Boo
 
 @Composable
 private fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat: SimpleDateFormat) {
+    val directions = stringArrayResource(R.array.cardinal_directions)
+    val uvLabels = stringArrayResource(R.array.uv_labels)
+
     Column {
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -616,14 +659,14 @@ private fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat
         ) {
             val (minP, minS) = data.tempMin.displayDual(metricPrimary)
             DetailCard(
-                title = "Min Temp",
+                title = stringResource(R.string.detail_min_temp),
                 value = minP,
                 secondaryValue = minS,
                 modifier = Modifier.weight(1f).fillMaxHeight()
             )
             val (maxP, maxS) = data.tempMax.displayDual(metricPrimary)
             DetailCard(
-                title = "Max Temp",
+                title = stringResource(R.string.detail_max_temp),
                 value = maxP,
                 secondaryValue = maxS,
                 modifier = Modifier.weight(1f).fillMaxHeight()
@@ -637,17 +680,18 @@ private fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             val (windP, windS) = data.windSpeed.displayDual(metricPrimary)
+            val dirIndex = ((data.windDeg % 360 + 360) % 360 * 16 / 360) % 16
             DetailCard(
-                title = "Wind",
+                title = stringResource(R.string.detail_wind),
                 value = windP,
                 secondaryValue = windS,
-                subtitle = "${cardinalDirection(data.windDeg)} (${data.windDeg}\u00B0)",
+                subtitle = "${directions[dirIndex]} (${data.windDeg}\u00B0)",
                 modifier = Modifier.weight(1f).fillMaxHeight()
             )
             data.windGust?.let { gust ->
                 val (gustP, gustS) = gust.displayDual(metricPrimary)
                 DetailCard(
-                    title = "Wind Gust",
+                    title = stringResource(R.string.detail_wind_gust),
                     value = gustP,
                     secondaryValue = gustS,
                     modifier = Modifier.weight(1f).fillMaxHeight()
@@ -663,13 +707,13 @@ private fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat
         ) {
             val (pressP, pressS) = data.pressure.displayDual(metricPrimary)
             DetailCard(
-                title = "Pressure",
+                title = stringResource(R.string.detail_pressure),
                 value = pressP,
                 secondaryValue = pressS,
                 modifier = Modifier.weight(1f).fillMaxHeight()
             )
             DetailCard(
-                title = "Humidity",
+                title = stringResource(R.string.detail_humidity),
                 value = "${data.humidity}%",
                 modifier = Modifier.weight(1f).fillMaxHeight()
             )
@@ -681,18 +725,25 @@ private fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat
             modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            val uvLabelText = when {
+                data.uvIndex < 3 -> uvLabels[0]
+                data.uvIndex < 6 -> uvLabels[1]
+                data.uvIndex < 8 -> uvLabels[2]
+                data.uvIndex < 11 -> uvLabels[3]
+                else -> uvLabels[4]
+            }
             DetailCard(
-                title = "UV Index",
-                value = "%.1f".format(data.uvIndex),
-                subtitle = uvLabel(data.uvIndex),
+                title = stringResource(R.string.detail_uv_index),
+                value = "%.1f".format(Locale.US, data.uvIndex),
+                subtitle = uvLabelText,
                 modifier = Modifier.weight(1f).fillMaxHeight()
             )
             DetailCard(
-                title = "Visibility",
-                value = if (metricPrimary) "%.1f km".format(data.visibility / 1000.0)
-                        else "%.2f mi".format(data.visibility / 1609.34),
-                secondaryValue = if (metricPrimary) "%.2f mi".format(data.visibility / 1609.34)
-                                 else "%.1f km".format(data.visibility / 1000.0),
+                title = stringResource(R.string.detail_visibility),
+                value = if (metricPrimary) stringResource(R.string.visibility_km).format(Locale.US, data.visibility / 1000.0)
+                        else stringResource(R.string.visibility_mi).format(Locale.US, data.visibility / 1609.34),
+                secondaryValue = if (metricPrimary) stringResource(R.string.visibility_mi).format(Locale.US, data.visibility / 1609.34)
+                                 else stringResource(R.string.visibility_km).format(Locale.US, data.visibility / 1000.0),
                 modifier = Modifier.weight(1f).fillMaxHeight()
             )
         }
@@ -704,12 +755,12 @@ private fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             DetailCard(
-                title = "Sunrise",
+                title = stringResource(R.string.detail_sunrise),
                 value = timeFormat.format(Date(data.sunrise * 1000)),
                 modifier = Modifier.weight(1f).fillMaxHeight()
             )
             DetailCard(
-                title = "Sunset",
+                title = stringResource(R.string.detail_sunset),
                 value = timeFormat.format(Date(data.sunset * 1000)),
                 modifier = Modifier.weight(1f).fillMaxHeight()
             )
@@ -762,18 +813,4 @@ private fun DetailCard(
             }
         }
     }
-}
-
-private fun cardinalDirection(degrees: Int): String {
-    val directions = arrayOf("N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
-        "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW")
-    return directions[((degrees % 360 + 360) % 360 * 16 / 360) % 16]
-}
-
-private fun uvLabel(uv: Double): String = when {
-    uv < 3 -> "Low"
-    uv < 6 -> "Moderate"
-    uv < 8 -> "High"
-    uv < 11 -> "Very High"
-    else -> "Extreme"
 }

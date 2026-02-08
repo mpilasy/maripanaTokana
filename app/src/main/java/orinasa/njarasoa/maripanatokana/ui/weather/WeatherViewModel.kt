@@ -9,10 +9,24 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.domain.repository.LocationRepository
 import orinasa.njarasoa.maripanatokana.domain.repository.WeatherRepository
 import orinasa.njarasoa.maripanatokana.ui.theme.fontPairings
 import javax.inject.Inject
+
+data class SupportedLocale(val tag: String, val flag: String)
+
+val supportedLocales = listOf(
+    SupportedLocale("en", "\uD83C\uDDEC\uD83C\uDDE7"),
+    SupportedLocale("zh", "\uD83C\uDDE8\uD83C\uDDF3"),
+    SupportedLocale("hi", "\uD83C\uDDEE\uD83C\uDDF3"),
+    SupportedLocale("es", "\uD83C\uDDEA\uD83C\uDDF8"),
+    SupportedLocale("fr", "\uD83C\uDDEB\uD83C\uDDF7"),
+    SupportedLocale("ar", "\uD83C\uDDF8\uD83C\uDDE6"),
+    SupportedLocale("mg", "\uD83C\uDDF2\uD83C\uDDEC"),
+    SupportedLocale("ne", "\uD83C\uDDF3\uD83C\uDDF5"),
+)
 
 @HiltViewModel
 class WeatherViewModel @Inject constructor(
@@ -35,6 +49,9 @@ class WeatherViewModel @Inject constructor(
     private val _fontIndex = MutableStateFlow(prefs.getInt("font_index", 0).coerceIn(0, fontPairings.lastIndex))
     val fontIndex: StateFlow<Int> = _fontIndex.asStateFlow()
 
+    private val _localeIndex = MutableStateFlow(prefs.getInt("locale_index", 0).coerceIn(0, supportedLocales.lastIndex))
+    val localeIndex: StateFlow<Int> = _localeIndex.asStateFlow()
+
     fun toggleUnits() {
         val newValue = !_metricPrimary.value
         _metricPrimary.value = newValue
@@ -45,6 +62,12 @@ class WeatherViewModel @Inject constructor(
         val newIndex = (_fontIndex.value + 1) % fontPairings.size
         _fontIndex.value = newIndex
         prefs.edit().putInt("font_index", newIndex).apply()
+    }
+
+    fun cycleLanguage() {
+        val newIndex = (_localeIndex.value + 1) % supportedLocales.size
+        _localeIndex.value = newIndex
+        prefs.edit().putInt("locale_index", newIndex).apply()
     }
 
     fun fetchWeather() {
@@ -84,20 +107,16 @@ class WeatherViewModel @Inject constructor(
                             prefs.edit().putString("location_name", data.locationName).apply()
                             _uiState.value = WeatherUiState.Success(data)
                         }
-                        .onFailure { error ->
+                        .onFailure {
                             if (!usedCached) {
-                                _uiState.value = WeatherUiState.Error(
-                                    error.message ?: "Failed to fetch weather"
-                                )
+                                _uiState.value = WeatherUiState.Error(R.string.error_fetch_weather)
                             }
                         }
                 }
             }
-            .onFailure { error ->
+            .onFailure {
                 if (!usedCached) {
-                    _uiState.value = WeatherUiState.Error(
-                        error.message ?: "Failed to get location"
-                    )
+                    _uiState.value = WeatherUiState.Error(R.string.error_get_location)
                 }
             }
     }

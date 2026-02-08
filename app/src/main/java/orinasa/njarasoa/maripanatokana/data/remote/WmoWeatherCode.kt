@@ -1,39 +1,43 @@
 package orinasa.njarasoa.maripanatokana.data.remote
 
+import androidx.annotation.StringRes
+import orinasa.njarasoa.maripanatokana.R
+
 /**
- * Maps WMO weather interpretation codes to human-readable descriptions.
+ * Maps WMO weather interpretation codes to string resource IDs.
  * https://open-meteo.com/en/docs#weathervariables
  */
-fun wmoDescription(code: Int): String = when (code) {
-    0 -> "Clear sky"
-    1 -> "Mainly clear"
-    2 -> "Partly cloudy"
-    3 -> "Overcast"
-    45 -> "Fog"
-    48 -> "Depositing rime fog"
-    51 -> "Light drizzle"
-    53 -> "Moderate drizzle"
-    55 -> "Dense drizzle"
-    56 -> "Light freezing drizzle"
-    57 -> "Dense freezing drizzle"
-    61 -> "Slight rain"
-    63 -> "Moderate rain"
-    65 -> "Heavy rain"
-    66 -> "Light freezing rain"
-    67 -> "Heavy freezing rain"
-    71 -> "Slight snowfall"
-    73 -> "Moderate snowfall"
-    75 -> "Heavy snowfall"
-    77 -> "Snow grains"
-    80 -> "Slight rain showers"
-    81 -> "Moderate rain showers"
-    82 -> "Violent rain showers"
-    85 -> "Slight snow showers"
-    86 -> "Heavy snow showers"
-    95 -> "Thunderstorm"
-    96 -> "Thunderstorm with slight hail"
-    99 -> "Thunderstorm with heavy hail"
-    else -> "Unknown"
+@StringRes
+fun wmoDescriptionRes(code: Int): Int = when (code) {
+    0 -> R.string.wmo_clear_sky
+    1 -> R.string.wmo_mainly_clear
+    2 -> R.string.wmo_partly_cloudy
+    3 -> R.string.wmo_overcast
+    45 -> R.string.wmo_fog
+    48 -> R.string.wmo_rime_fog
+    51 -> R.string.wmo_light_drizzle
+    53 -> R.string.wmo_moderate_drizzle
+    55 -> R.string.wmo_dense_drizzle
+    56 -> R.string.wmo_light_freezing_drizzle
+    57 -> R.string.wmo_dense_freezing_drizzle
+    61 -> R.string.wmo_slight_rain
+    63 -> R.string.wmo_moderate_rain
+    65 -> R.string.wmo_heavy_rain
+    66 -> R.string.wmo_light_freezing_rain
+    67 -> R.string.wmo_heavy_freezing_rain
+    71 -> R.string.wmo_slight_snowfall
+    73 -> R.string.wmo_moderate_snowfall
+    75 -> R.string.wmo_heavy_snowfall
+    77 -> R.string.wmo_snow_grains
+    80 -> R.string.wmo_slight_rain_showers
+    81 -> R.string.wmo_moderate_rain_showers
+    82 -> R.string.wmo_violent_rain_showers
+    85 -> R.string.wmo_slight_snow_showers
+    86 -> R.string.wmo_heavy_snow_showers
+    95 -> R.string.wmo_thunderstorm
+    96 -> R.string.wmo_thunderstorm_slight_hail
+    99 -> R.string.wmo_thunderstorm_heavy_hail
+    else -> R.string.wmo_unknown
 }
 
 fun wmoEmoji(code: Int): String = when (code) {

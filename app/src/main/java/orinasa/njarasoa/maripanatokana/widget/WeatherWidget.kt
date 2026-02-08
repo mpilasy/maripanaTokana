@@ -30,6 +30,7 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import orinasa.njarasoa.maripanatokana.MainActivity
 import orinasa.njarasoa.maripanatokana.R
+import orinasa.njarasoa.maripanatokana.data.remote.wmoDescriptionRes
 import orinasa.njarasoa.maripanatokana.data.remote.wmoEmoji
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.widget.theme.WidgetColorProviders
@@ -69,8 +70,10 @@ internal fun WidgetError(hasCachedLocation: Boolean = false) {
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = if (hasCachedLocation) "Tap to refresh weather"
-                   else "Open app to enable location",
+            text = context.getString(
+                if (hasCachedLocation) R.string.widget_tap_to_refresh
+                else R.string.widget_open_app
+            ),
             style = TextStyle(
                 color = WidgetColorProviders.onSurfaceVariant,
                 fontSize = 12.sp,
@@ -103,7 +106,7 @@ private fun WeatherWidgetContent(data: WeatherData, metricPrimary: Boolean) {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = "Today in ${data.locationName}",
+                    text = context.getString(R.string.widget_now_in, data.locationName),
                     style = TextStyle(
                         color = WidgetColorProviders.accent,
                         fontSize = 14.sp,
@@ -145,7 +148,7 @@ private fun WeatherWidgetContent(data: WeatherData, metricPrimary: Boolean) {
                 )
                 Spacer(modifier = GlanceModifier.width(12.dp))
                 Text(
-                    text = "${wmoEmoji(data.weatherCode)} ${data.description}",
+                    text = "${wmoEmoji(data.weatherCode)} ${context.getString(wmoDescriptionRes(data.weatherCode))}",
                     style = TextStyle(
                         color = WidgetColorProviders.onSurfaceVariant,
                         fontSize = 12.sp,

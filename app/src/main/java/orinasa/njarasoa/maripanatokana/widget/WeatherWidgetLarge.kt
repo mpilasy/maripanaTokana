@@ -31,6 +31,7 @@ import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import orinasa.njarasoa.maripanatokana.MainActivity
 import orinasa.njarasoa.maripanatokana.R
+import orinasa.njarasoa.maripanatokana.data.remote.wmoDescriptionRes
 import orinasa.njarasoa.maripanatokana.data.remote.wmoEmoji
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.widget.theme.WidgetColorProviders
@@ -81,7 +82,7 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = "Today in ${data.locationName}",
+                    text = context.getString(R.string.widget_today_in, data.locationName),
                     style = TextStyle(
                         color = WidgetColorProviders.accent,
                         fontSize = 14.sp,
@@ -123,7 +124,7 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
                 )
                 Spacer(modifier = GlanceModifier.width(12.dp))
                 Text(
-                    text = "${wmoEmoji(data.weatherCode)} ${data.description}",
+                    text = "${wmoEmoji(data.weatherCode)} ${context.getString(wmoDescriptionRes(data.weatherCode))}",
                     style = TextStyle(
                         color = WidgetColorProviders.onSurfaceVariant,
                         fontSize = 12.sp,
@@ -140,19 +141,19 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
             ) {
                 val (flP, flS) = data.feelsLike.displayDual(metricPrimary)
                 DetailCell(
-                    label = "Feels Like",
+                    label = context.getString(R.string.widget_feels_like),
                     value = flP,
                     secondaryValue = flS,
                     modifier = GlanceModifier.defaultWeight(),
                 )
                 DetailCell(
-                    label = "Humidity",
+                    label = context.getString(R.string.widget_humidity),
                     value = "${data.humidity}%",
                     modifier = GlanceModifier.defaultWeight(),
                 )
                 val (windP, windS) = data.windSpeed.displayDual(metricPrimary)
                 DetailCell(
-                    label = "Wind",
+                    label = context.getString(R.string.widget_wind),
                     value = windP,
                     secondaryValue = windS,
                     modifier = GlanceModifier.defaultWeight(),
@@ -165,7 +166,7 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
             val (minP, minS) = data.tempMin.displayDual(metricPrimary)
             val (maxP, maxS) = data.tempMax.displayDual(metricPrimary)
             Text(
-                text = "Min $minP ($minS) \u00B7 Max $maxP ($maxS)",
+                text = context.getString(R.string.widget_min_max, minP, minS, maxP, maxS),
                 modifier = GlanceModifier.fillMaxWidth(),
                 style = TextStyle(
                     color = WidgetColorProviders.onSurfaceVariant,

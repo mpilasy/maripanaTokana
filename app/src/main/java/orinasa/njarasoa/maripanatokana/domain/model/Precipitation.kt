@@ -10,9 +10,9 @@ value class Precipitation private constructor(val mm: Double) {
     val inches: Double
         get() = mm * 0.03937
 
-    fun displayMetric(): String = "%.1f mm".format(mm)
+    fun displayMetric(): String = "%.1f mm".format(java.util.Locale.US, mm)
 
-    fun displayImperial(): String = "%.2f in".format(inches)
+    fun displayImperial(): String = "%.2f in".format(java.util.Locale.US, inches)
 
     /** Dual-unit display: "2.5 mm / 0.10 in" */
     fun displayDual(): String = "${displayMetric()} / ${displayImperial()}"

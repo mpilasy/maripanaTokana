@@ -6,7 +6,6 @@ data class WeatherData(
     val tempMin: Temperature,
     val tempMax: Temperature,
     val weatherCode: Int,
-    val description: String,
     val iconCode: String,
     val locationName: String,
     val pressure: Pressure,

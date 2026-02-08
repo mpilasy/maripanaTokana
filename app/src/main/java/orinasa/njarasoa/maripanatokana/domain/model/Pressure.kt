@@ -14,7 +14,7 @@ value class Pressure private constructor(val hPa: Double) {
 
     fun displayHPa(): String = "${hPa.roundToInt()} hPa"
 
-    fun displayInHg(): String = "%.2f inHg".format(inHg)
+    fun displayInHg(): String = "%.2f inHg".format(java.util.Locale.US, inHg)
 
     /** Dual-unit display: "1013 hPa / 29.92 inHg" */
     fun displayDual(): String = "${displayHPa()} / ${displayInHg()}"
