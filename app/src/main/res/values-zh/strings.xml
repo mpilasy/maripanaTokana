@@ -41,7 +41,6 @@
     <string name="error_get_location">获取位置失败</string>
     <string name="updated_time">更新于 %1$s</string>
     <string name="cd_change_font">更换字体</string>
-    <string name="cd_toggle_units">切换单位</string>
     <string name="cd_change_language">更改语言</string>
     <string name="feels_like">体感温度</string>
     <string name="no_precip">无降水</string>

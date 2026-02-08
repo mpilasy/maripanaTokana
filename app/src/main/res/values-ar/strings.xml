@@ -49,7 +49,6 @@
     <!-- Header -->
     <string name="updated_time">تم التحديث %1$s</string>
     <string name="cd_change_font">تغيير الخط</string>
-    <string name="cd_toggle_units">تبديل الوحدات</string>
     <string name="cd_change_language">تغيير اللغة</string>
 
     <!-- Hero card -->

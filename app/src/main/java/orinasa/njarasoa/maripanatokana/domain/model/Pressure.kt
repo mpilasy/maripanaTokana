@@ -1,6 +1,6 @@
 package orinasa.njarasoa.maripanatokana.domain.model
 
-import kotlin.math.roundToInt
+import java.util.Locale
 
 /**
  * Value object encapsulating atmospheric pressure. Stores the canonical value in hPa;
@@ -12,9 +12,9 @@ value class Pressure private constructor(val hPa: Double) {
     val inHg: Double
         get() = hPa * 0.02953
 
-    fun displayHPa(): String = "${hPa.roundToInt()} hPa"
+    fun displayHPa(): String = "%.0f hPa".format(Locale.US, hPa)
 
-    fun displayInHg(): String = "%.2f inHg".format(java.util.Locale.US, inHg)
+    fun displayInHg(): String = "%.2f inHg".format(Locale.US, inHg)
 
     /** Dual-unit display: "1013 hPa / 29.92 inHg" */
     fun displayDual(): String = "${displayHPa()} / ${displayInHg()}"

@@ -41,7 +41,6 @@
     <string name="error_get_location">स्थान प्राप्त करने में विफल</string>
     <string name="updated_time">अपडेट किया %1$s</string>
     <string name="cd_change_font">फ़ॉन्ट बदलें</string>
-    <string name="cd_toggle_units">इकाइयाँ बदलें</string>
     <string name="cd_change_language">भाषा बदलें</string>
     <string name="feels_like">अनुभव</string>
     <string name="no_precip">वर्षा नहीं</string>

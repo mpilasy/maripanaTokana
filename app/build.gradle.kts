@@ -1,3 +1,6 @@
+import java.text.SimpleDateFormat
+import java.util.Date
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.compose")
@@ -5,6 +8,8 @@ plugins {
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
 }
+
+val buildTime: String = SimpleDateFormat("yyyy-MM-dd HH:mm").format(Date())
 
 android {
     namespace = "orinasa.njarasoa.maripanatokana"
@@ -40,7 +45,9 @@ android {
         buildConfig = true
     }
     defaultConfig {
-        buildConfigField("String", "GIT_HASH", "\"${providers.exec { commandLine("git", "rev-parse", "--short", "HEAD") }.standardOutput.asText.get().trim()}\"")
+        val gitHash = providers.exec { commandLine("git", "rev-parse", "--short", "HEAD") }.standardOutput.asText.get().trim()
+        buildConfigField("String", "GIT_HASH", "\"$gitHash\"")
+        buildConfigField("String", "BUILD_TIME", "\"$buildTime\"")
     }
 }
 

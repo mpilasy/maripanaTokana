@@ -20,7 +20,7 @@ class MainActivity : ComponentActivity() {
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(newBase)
         val prefs = newBase.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
-        val localeIndex = prefs.getInt("locale_index", 6)
+        val localeIndex = prefs.getInt("locale_index", 0)
             .coerceIn(supportedLocales.indices)
         val locale = java.util.Locale.forLanguageTag(supportedLocales[localeIndex].tag)
         val config = android.content.res.Configuration(newBase.resources.configuration)

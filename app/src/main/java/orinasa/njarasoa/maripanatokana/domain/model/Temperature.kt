@@ -1,6 +1,6 @@
 package orinasa.njarasoa.maripanatokana.domain.model
 
-import kotlin.math.roundToInt
+import java.util.Locale
 
 /**
  * Value object encapsulating a temperature. Stores the canonical value in Celsius;
@@ -12,9 +12,9 @@ value class Temperature private constructor(val celsius: Double) {
     val fahrenheit: Double
         get() = celsius * 9.0 / 5.0 + 32.0
 
-    fun displayCelsius(): String = "${celsius.roundToInt()}°C"
+    fun displayCelsius(): String = "%.0f°C".format(Locale.US, celsius)
 
-    fun displayFahrenheit(): String = "${fahrenheit.roundToInt()}°F"
+    fun displayFahrenheit(): String = "%.0f°F".format(Locale.US, fahrenheit)
 
     /** Dual-unit display as required by spec: "2°C / 36°F" */
     fun displayDual(): String = "${displayCelsius()} / ${displayFahrenheit()}"

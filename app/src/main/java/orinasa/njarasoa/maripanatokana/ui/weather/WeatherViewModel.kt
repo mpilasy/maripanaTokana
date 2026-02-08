@@ -15,17 +15,27 @@ import orinasa.njarasoa.maripanatokana.domain.repository.WeatherRepository
 import orinasa.njarasoa.maripanatokana.ui.theme.fontPairings
 import javax.inject.Inject
 
-data class SupportedLocale(val tag: String, val flag: String)
+data class SupportedLocale(val tag: String, val flag: String, val nativeZero: Char? = null) {
+    /** Replace ASCII digits 0-9 with native script digits, if this locale has them. */
+    fun localizeDigits(s: String): String {
+        val z = nativeZero ?: return s
+        return buildString(s.length) {
+            for (c in s) {
+                append(if (c in '0'..'9') z + (c - '0') else c)
+            }
+        }
+    }
+}
 
 val supportedLocales = listOf(
+    SupportedLocale("mg", "\uD83C\uDDF2\uD83C\uDDEC"),
+    SupportedLocale("ar", "\uD83C\uDDF8\uD83C\uDDE6", '\u0660'),  // ٠
     SupportedLocale("en", "\uD83C\uDDEC\uD83C\uDDE7"),
-    SupportedLocale("zh", "\uD83C\uDDE8\uD83C\uDDF3"),
-    SupportedLocale("hi", "\uD83C\uDDEE\uD83C\uDDF3"),
     SupportedLocale("es", "\uD83C\uDDEA\uD83C\uDDF8"),
     SupportedLocale("fr", "\uD83C\uDDEB\uD83C\uDDF7"),
-    SupportedLocale("ar", "\uD83C\uDDF8\uD83C\uDDE6"),
-    SupportedLocale("mg", "\uD83C\uDDF2\uD83C\uDDEC"),
-    SupportedLocale("ne", "\uD83C\uDDF3\uD83C\uDDF5"),
+    SupportedLocale("hi", "\uD83C\uDDEE\uD83C\uDDF3", '\u0966'),  // ०
+    SupportedLocale("ne", "\uD83C\uDDF3\uD83C\uDDF5", '\u0966'),  // ०
+    SupportedLocale("zh", "\uD83C\uDDE8\uD83C\uDDF3"),
 )
 
 @HiltViewModel
@@ -49,7 +59,7 @@ class WeatherViewModel @Inject constructor(
     private val _fontIndex = MutableStateFlow(prefs.getInt("font_index", 0).coerceIn(0, fontPairings.lastIndex))
     val fontIndex: StateFlow<Int> = _fontIndex.asStateFlow()
 
-    private val _localeIndex = MutableStateFlow(prefs.getInt("locale_index", 6).coerceIn(0, supportedLocales.lastIndex))
+    private val _localeIndex = MutableStateFlow(prefs.getInt("locale_index", 0).coerceIn(0, supportedLocales.lastIndex))
     val localeIndex: StateFlow<Int> = _localeIndex.asStateFlow()
 
     fun toggleUnits() {

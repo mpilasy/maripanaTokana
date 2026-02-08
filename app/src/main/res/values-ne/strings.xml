@@ -49,7 +49,6 @@
     <!-- Header -->
     <string name="updated_time">अद्यावधिक %1$s</string>
     <string name="cd_change_font">फन्ट परिवर्तन गर्नुहोस्</string>
-    <string name="cd_toggle_units">एकाइ परिवर्तन गर्नुहोस्</string>
     <string name="cd_change_language">भाषा परिवर्तन गर्नुहोस्</string>
 
     <!-- Hero card -->

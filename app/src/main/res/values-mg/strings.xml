@@ -49,7 +49,6 @@
     <!-- Header -->
     <string name="updated_time">Nalaina tamin\'ny %1$s</string>
     <string name="cd_change_font">Ovay ny endri-tsoratra</string>
-    <string name="cd_toggle_units">Ovay ny venty</string>
     <string name="cd_change_language">Hanova ny fiteny</string>
 
     <!-- Hero card -->
@@ -69,27 +68,27 @@
     <string name="detail_min_temp">Avo</string>
     <string name="detail_max_temp">Iva</string>
     <string name="detail_wind">Rivotra</string>
-    <string name="detail_wind_gust">Rivotra tadio</string>
+    <string name="detail_wind_gust">Rivotra Tadio</string>
     <string name="detail_pressure">Tsindry Atmosferika</string>
     <string name="detail_humidity">Hamandoana</string>
     <string name="detail_uv_index">Tahan\'ny UV</string>
-    <string name="detail_visibility">Fahitana</string>
-    <string name="detail_sunrise">Miposaka Masoandro</string>
-    <string name="detail_sunset">Mody Masoandro</string>
+    <string name="detail_visibility">Tazana</string>
+    <string name="detail_sunrise">Masoandro Miposaka</string>
+    <string name="detail_sunset">Masoandro Mody</string>
 
     <!-- Visibility format strings -->
     <string name="visibility_km" formatted="false">%.1f km</string>
     <string name="visibility_mi" formatted="false">%.2f mi</string>
 
     <!-- Credits -->
-    <string name="credits_weather_data">"Angon-drakitra mikasika ny toetrandro avy amin'ny "</string>
+    <string name="credits_weather_data">Fankasitrahana:</string>
     <string name="hash_version">Hash Version: %1$s</string>
 
     <!-- Widget strings -->
     <string name="widget_today_in">Anio ao %1$s</string>
     <string name="widget_now_in">Izao ao %1$s</string>
-    <string name="widget_tap_to_refresh">Tsindrio hanavao ny toetrandro</string>
-    <string name="widget_open_app">Sokafy ny rindranasa hanomezana toerana</string>
+    <string name="widget_tap_to_refresh">Tsindrio hakana ny GPS</string>
+    <string name="widget_open_app">Sokafy ny programa hakana ny GPS</string>
     <string name="widget_feels_like">Ohatry ny</string>
     <string name="widget_humidity">Hamandoana</string>
     <string name="widget_wind">Rivotra</string>
