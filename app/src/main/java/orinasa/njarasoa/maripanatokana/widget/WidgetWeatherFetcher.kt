@@ -42,16 +42,18 @@ object WidgetWeatherFetcher {
 
             val response = api.getForecast(latitude = lat, longitude = lon)
 
-            val locationName = try {
-                @Suppress("DEPRECATION")
-                Geocoder(context, Locale.getDefault())
-                    .getFromLocation(lat, lon, 1)
-                    ?.firstOrNull()
-                    ?.locality
-                    ?: "%.2f, %.2f".format(Locale.US, lat, lon)
-            } catch (_: Exception) {
-                "%.2f, %.2f".format(Locale.US, lat, lon)
-            }
+            val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
+            val locationName = prefs.getString("location_name", null)
+                ?: try {
+                    @Suppress("DEPRECATION")
+                    Geocoder(context, Locale.getDefault())
+                        .getFromLocation(lat, lon, 1)
+                        ?.firstOrNull()
+                        ?.locality
+                        ?: "%.2f, %.2f".format(Locale.US, lat, lon)
+                } catch (_: Exception) {
+                    "%.2f, %.2f".format(Locale.US, lat, lon)
+                }
 
             response.toDomain(locationName)
         } catch (_: Exception) {
@@ -61,15 +63,19 @@ object WidgetWeatherFetcher {
 
     @SuppressLint("MissingPermission")
     private suspend fun getCoordinates(context: Context): Pair<Double, Double>? {
-        val fusedClient = LocationServices.getFusedLocationProviderClient(context)
-        val location = fusedClient.lastLocation.await()
-            ?: fusedClient.getCurrentLocation(
-                Priority.PRIORITY_HIGH_ACCURACY,
-                CancellationTokenSource().token,
-            ).await()
+        try {
+            val fusedClient = LocationServices.getFusedLocationProviderClient(context)
+            val location = fusedClient.lastLocation.await()
+                ?: fusedClient.getCurrentLocation(
+                    Priority.PRIORITY_HIGH_ACCURACY,
+                    CancellationTokenSource().token,
+                ).await()
 
-        if (location != null) {
-            return Pair(location.latitude, location.longitude)
+            if (location != null) {
+                return Pair(location.latitude, location.longitude)
+            }
+        } catch (_: SecurityException) {
+            // Background context lacks location permission — fall through to SharedPreferences
         }
 
         // Fall back to last coordinates saved by the main app

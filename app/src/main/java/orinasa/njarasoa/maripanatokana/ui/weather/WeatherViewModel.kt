@@ -58,6 +58,7 @@ class WeatherViewModel @Inject constructor(
                 saveLocation(lat, lon)
                 weatherRepository.getWeather(lat, lon)
                     .onSuccess { data ->
+                        prefs.edit().putString("location_name", data.locationName).apply()
                         _uiState.value = WeatherUiState.Success(data)
                     }
                     .onFailure { error ->

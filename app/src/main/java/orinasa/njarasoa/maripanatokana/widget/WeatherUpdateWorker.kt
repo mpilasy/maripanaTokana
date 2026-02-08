@@ -11,8 +11,16 @@ class WeatherUpdateWorker(
 ) : CoroutineWorker(appContext, params) {
 
     override suspend fun doWork(): Result {
-        // Fetch fresh weather (also warms the SharedPreferences cache for widgets)
-        WidgetWeatherFetcher.fetch(applicationContext)
+        val data = WidgetWeatherFetcher.fetch(applicationContext)
+
+        if (data == null) return Result.retry()
+
+        // Save refresh timestamp
+        applicationContext
+            .getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
+            .edit()
+            .putLong("last_refresh", System.currentTimeMillis())
+            .apply()
 
         // Trigger all widget re-renders
         WeatherWidget().updateAll(applicationContext)

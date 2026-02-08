@@ -69,7 +69,6 @@ import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.data.remote.wmoDescription
 import orinasa.njarasoa.maripanatokana.data.remote.wmoEmoji
 import orinasa.njarasoa.maripanatokana.domain.model.DailyForecast
-import orinasa.njarasoa.maripanatokana.domain.model.Precipitation
 import orinasa.njarasoa.maripanatokana.domain.model.HourlyForecast
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import java.text.SimpleDateFormat
@@ -317,21 +316,55 @@ private fun WeatherContent(
             Column(
                 modifier = Modifier.padding(24.dp)
             ) {
-                val (tempPrimary, tempSecondary) = data.temperature.displayDual(metricPrimary)
-                DualUnitText(
-                    primary = tempPrimary,
-                    secondary = tempSecondary,
-                    primarySize = 48.sp,
-                )
+                // Top row: temperature (left) + precipitation (right)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    val (tempPrimary, tempSecondary) = data.temperature.displayDual(metricPrimary)
+                    DualUnitText(
+                        primary = tempPrimary,
+                        secondary = tempSecondary,
+                        primarySize = 48.sp,
+                    )
+                    Column(horizontalAlignment = Alignment.End) {
+                        if (data.snow != null) {
+                            val (snowP, snowS) = data.snow.displayDual(metricPrimary)
+                            DualUnitText(
+                                primary = "\u2744\uFE0F $snowP",
+                                secondary = snowS,
+                            )
+                        } else if (data.rain != null) {
+                            val (rainP, rainS) = data.rain.displayDual(metricPrimary)
+                            DualUnitText(
+                                primary = "\uD83C\uDF27\uFE0F $rainP",
+                                secondary = rainS,
+                            )
+                        } else {
+                            Text(
+                                text = "No precip",
+                                fontSize = 14.sp,
+                                color = Color.White.copy(alpha = 0.5f),
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Description
                 Text(
                     text = "${wmoEmoji(data.weatherCode)} ${data.description}",
                     fontSize = 20.sp,
                     color = Color.White.copy(alpha = 0.9f)
                 )
+
                 Spacer(modifier = Modifier.height(16.dp))
+
+                // Bottom row: feels like (left) + wind (right)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Column {
                         Text(
@@ -342,21 +375,40 @@ private fun WeatherContent(
                         val (flPrimary, flSecondary) = data.feelsLike.displayDual(metricPrimary)
                         DualUnitText(primary = flPrimary, secondary = flSecondary)
                     }
-                    Column {
-                        Text(
-                            text = "Min / Max",
-                            fontSize = 14.sp,
-                            color = Color.White.copy(alpha = 0.7f)
-                        )
-                        val (minP, minS) = data.tempMin.displayDual(metricPrimary)
-                        val (maxP, maxS) = data.tempMax.displayDual(metricPrimary)
+                    Column(horizontalAlignment = Alignment.End) {
+                        val (windP, windS) = data.windSpeed.displayDual(metricPrimary)
                         DualUnitText(
-                            primary = "$minP / $maxP",
-                            secondary = "$minS / $maxS",
+                            primary = "\uD83D\uDCA8 $windP",
+                            secondary = windS,
+                        )
+                        Text(
+                            text = "${cardinalDirection(data.windDeg)} (${data.windDeg}\u00B0)",
+                            fontSize = 12.sp,
+                            color = Color.White.copy(alpha = 0.6f),
                         )
                     }
                 }
             }
+        }
+
+        // Secondary panel: Min / Max
+        Spacer(modifier = Modifier.height(8.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Color(0xFF2A1FA5).copy(alpha = 0.4f),
+                    RoundedCornerShape(12.dp),
+                )
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            val (minP, minS) = data.tempMin.displayDual(metricPrimary)
+            val (maxP, maxS) = data.tempMax.displayDual(metricPrimary)
+            DualUnitText(
+                primary = "Min $minP  \u00B7  Max $maxP",
+                secondary = "Min $minS  \u00B7  Max $maxS",
+            )
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -535,14 +587,6 @@ private fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            val (windP, windS) = data.windSpeed.displayDual(metricPrimary)
-            DetailCard(
-                title = "Wind",
-                value = windP,
-                secondaryValue = windS,
-                subtitle = "${cardinalDirection(data.windDeg)} (${data.windDeg}\u00B0)",
-                modifier = Modifier.weight(1f)
-            )
             data.windGust?.let { gust ->
                 val (gustP, gustS) = gust.displayDual(metricPrimary)
                 DetailCard(
@@ -552,37 +596,6 @@ private fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat
                     modifier = Modifier.weight(1f)
                 )
             } ?: Spacer(modifier = Modifier.weight(1f))
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            if (data.snow != null) {
-                val (snowP, snowS) = data.snow.displayDual(metricPrimary)
-                DetailCard(
-                    title = "Snow (1h)",
-                    value = snowP,
-                    secondaryValue = snowS,
-                    modifier = Modifier.weight(1f)
-                )
-            } else if (data.rain != null) {
-                val (rainP, rainS) = data.rain.displayDual(metricPrimary)
-                DetailCard(
-                    title = "Rain (1h)",
-                    value = rainP,
-                    secondaryValue = rainS,
-                    modifier = Modifier.weight(1f)
-                )
-            } else {
-                DetailCard(
-                    title = "Precipitation",
-                    value = "None",
-                    modifier = Modifier.weight(1f)
-                )
-            }
 
             DetailCard(
                 title = "Visibility",

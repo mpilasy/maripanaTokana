@@ -42,16 +42,16 @@ class WeatherWidgetLarge : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val data = WidgetWeatherFetcher.fetch(context)
-        val metricPrimary = context
-            .getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
-            .getBoolean("metric_primary", true)
+        val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
+        val metricPrimary = prefs.getBoolean("metric_primary", true)
+        val hasCachedLocation = prefs.getFloat("lat", Float.MIN_VALUE) != Float.MIN_VALUE
 
         provideContent {
             GlanceTheme {
                 if (data != null) {
                     WeatherWidgetLargeContent(data, metricPrimary)
                 } else {
-                    WidgetError()
+                    WidgetError(hasCachedLocation)
                 }
             }
         }
@@ -61,8 +61,8 @@ class WeatherWidgetLarge : GlanceAppWidget() {
 @Composable
 private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean) {
     val context = LocalContext.current
-    val dateFormat = SimpleDateFormat("d MMMM yyyy", Locale.getDefault())
-    val today = dateFormat.format(Date(data.timestamp))
+    val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+    val refreshTime = timeFormat.format(Date(data.timestamp))
     val (tempPrimary, tempSecondary) = data.temperature.displayDual(metricPrimary)
 
     Box(
@@ -75,13 +75,13 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
         Column(
             modifier = GlanceModifier.fillMaxSize(),
         ) {
-            // -- Top row: "Today" + date --
+            // -- Top row: "Today in {city}" + refresh time --
             Row(
                 modifier = GlanceModifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = "Today",
+                    text = "Today in ${data.locationName}",
                     style = TextStyle(
                         color = WidgetColorProviders.accent,
                         fontSize = 14.sp,
@@ -90,17 +90,17 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
                 )
                 Spacer(modifier = GlanceModifier.defaultWeight())
                 Text(
-                    text = today,
+                    text = refreshTime,
                     style = TextStyle(
                         color = WidgetColorProviders.onSurfaceVariant,
-                        fontSize = 12.sp,
+                        fontSize = 10.sp,
                     ),
                 )
             }
 
             Spacer(modifier = GlanceModifier.height(4.dp))
 
-            // -- Temperature + description + location --
+            // -- Temperature + description --
             Row(
                 modifier = GlanceModifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -122,22 +122,13 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
                     ),
                 )
                 Spacer(modifier = GlanceModifier.width(12.dp))
-                Column(modifier = GlanceModifier.defaultWeight()) {
-                    Text(
-                        text = "${wmoEmoji(data.weatherCode)} ${data.description}",
-                        style = TextStyle(
-                            color = WidgetColorProviders.onSurfaceVariant,
-                            fontSize = 12.sp,
-                        ),
-                    )
-                    Text(
-                        text = data.locationName,
-                        style = TextStyle(
-                            color = WidgetColorProviders.onSurfaceVariant,
-                            fontSize = 11.sp,
-                        ),
-                    )
-                }
+                Text(
+                    text = "${wmoEmoji(data.weatherCode)} ${data.description}",
+                    style = TextStyle(
+                        color = WidgetColorProviders.onSurfaceVariant,
+                        fontSize = 12.sp,
+                    ),
+                )
             }
 
             Spacer(modifier = GlanceModifier.height(8.dp))
