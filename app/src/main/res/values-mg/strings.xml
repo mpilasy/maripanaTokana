@@ -1,37 +1,37 @@
 <resources>
     <string name="app_name">maripanaTokana</string>
-    <string name="loading">Mahandry kely…</string>
+    <string name="loading">Mahareta…</string>
     <string name="widget_description">Toetrandro ankehitriny miaraka amin\'ny mari-pana roa sosony</string>
     <string name="widget_description_large">Antsipiriany momba ny toetrandro: tsapa, hamandoana, rivotra ary ambany/ambony</string>
 
     <!-- WMO weather descriptions -->
-    <string name="wmo_clear_sky">Lanitra mangatsiatsiaka</string>
-    <string name="wmo_mainly_clear">Mazava ny ankamaroany</string>
+    <string name="wmo_clear_sky">Lanitra manga</string>
+    <string name="wmo_mainly_clear">Mazavaza ny lanitra</string>
     <string name="wmo_partly_cloudy">Misy rahona</string>
     <string name="wmo_overcast">Mandrahona</string>
     <string name="wmo_fog">Zavona</string>
     <string name="wmo_rime_fog">Zavona misy fanala</string>
-    <string name="wmo_light_drizzle">Erika maivana</string>
-    <string name="wmo_moderate_drizzle">Erika antonony</string>
-    <string name="wmo_dense_drizzle">Erika matevina</string>
-    <string name="wmo_light_freezing_drizzle">Erika mangatsiaka maivana</string>
-    <string name="wmo_dense_freezing_drizzle">Erika mangatsiaka matevina</string>
-    <string name="wmo_slight_rain">Orana kely</string>
-    <string name="wmo_moderate_rain">Orana antonony</string>
-    <string name="wmo_heavy_rain">Orana mahery</string>
+    <string name="wmo_light_drizzle">Erika malefaka</string>
+    <string name="wmo_moderate_drizzle">Erikarikerika</string>
+    <string name="wmo_dense_drizzle">Erika</string>
+    <string name="wmo_light_freezing_drizzle">Erika mangatsiaka malefaka</string>
+    <string name="wmo_dense_freezing_drizzle">Erika mangatsiaka</string>
+    <string name="wmo_slight_rain">Orana malefaka</string>
+    <string name="wmo_moderate_rain">Orana</string>
+    <string name="wmo_heavy_rain">Orambe</string>
     <string name="wmo_light_freezing_rain">Orana mangatsiaka maivana</string>
     <string name="wmo_heavy_freezing_rain">Orana mangatsiaka mahery</string>
     <string name="wmo_slight_snowfall">Oram-panala kely</string>
-    <string name="wmo_moderate_snowfall">Oram-panala antonony</string>
+    <string name="wmo_moderate_snowfall">Oram-panala</string>
     <string name="wmo_heavy_snowfall">Oram-panala mahery</string>
     <string name="wmo_snow_grains">Voan-danitra</string>
     <string name="wmo_slight_rain_showers">Oram-baratra kely</string>
-    <string name="wmo_moderate_rain_showers">Oram-baratra antonony</string>
+    <string name="wmo_moderate_rain_showers">Oram-baratra</string>
     <string name="wmo_violent_rain_showers">Oram-baratra mahery vaika</string>
     <string name="wmo_slight_snow_showers">Fandatsahan-danitra kely</string>
     <string name="wmo_heavy_snow_showers">Fandatsahan-danitra mahery</string>
     <string name="wmo_thunderstorm">Rivo-doza</string>
-    <string name="wmo_thunderstorm_slight_hail">Rivo-doza misy havandra kely</string>
+    <string name="wmo_thunderstorm_slight_hail">Rivo-doza misy havandra</string>
     <string name="wmo_thunderstorm_heavy_hail">Rivo-doza misy havandra mahery</string>
     <string name="wmo_unknown">Tsy fantatra</string>
 
@@ -47,35 +47,35 @@
     <string name="error_get_location">Tsy nahomby ny fakana ny toerana</string>
 
     <!-- Header -->
-    <string name="updated_time">Nohavaozina %1$s</string>
-    <string name="cd_change_font">Hanova endri-tsoratra</string>
-    <string name="cd_toggle_units">Hanova sosony</string>
+    <string name="updated_time">Nalaina tamin\'ny %1$s</string>
+    <string name="cd_change_font">Ovay ny endri-tsoratra</string>
+    <string name="cd_toggle_units">Ovay ny refy</string>
     <string name="cd_change_language">Hanova ny fiteny</string>
 
     <!-- Hero card -->
-    <string name="feels_like">Tsapa ho</string>
+    <string name="feels_like">Ohatry ny</string>
     <string name="no_precip">Tsy misy orana</string>
 
     <!-- Collapsible section content descriptions -->
-    <string name="cd_collapse">Ahitsio</string>
+    <string name="cd_collapse">Akatony</string>
     <string name="cd_expand">Velaro</string>
 
     <!-- Section titles -->
-    <string name="section_current_conditions">Toetrandro ankehitriny</string>
-    <string name="section_hourly_forecast">Isaky ny ora</string>
-    <string name="section_this_week">Ity herinandro ity</string>
+    <string name="section_current_conditions">Izao</string>
+    <string name="section_hourly_forecast">Isan\'ora</string>
+    <string name="section_this_week">Ny andro fito manaraka</string>
 
     <!-- Detail card titles -->
     <string name="detail_min_temp">Avo</string>
     <string name="detail_max_temp">Iva</string>
     <string name="detail_wind">Rivotra</string>
-    <string name="detail_wind_gust">Rivotra mifofofofo</string>
+    <string name="detail_wind_gust">Rivotra tadio</string>
     <string name="detail_pressure">Tsindry</string>
     <string name="detail_humidity">Hamandoana</string>
     <string name="detail_uv_index">Tahan\'ny UV</string>
     <string name="detail_visibility">Fahitana</string>
-    <string name="detail_sunrise">Miposaka</string>
-    <string name="detail_sunset">Mody</string>
+    <string name="detail_sunrise">Miposaka Masoandro</string>
+    <string name="detail_sunset">Mody Masoandro</string>
 
     <!-- Visibility format strings -->
     <string name="visibility_km" formatted="false">%.1f km</string>
@@ -90,7 +90,7 @@
     <string name="widget_now_in">Izao ao %1$s</string>
     <string name="widget_tap_to_refresh">Tsindrio hanavao ny toetrandro</string>
     <string name="widget_open_app">Sokafy ny rindranasa hanomezana toerana</string>
-    <string name="widget_feels_like">Tsapa ho</string>
+    <string name="widget_feels_like">Ohatry ny</string>
     <string name="widget_humidity">Hamandoana</string>
     <string name="widget_wind">Rivotra</string>
     <string name="widget_min_max">Ambany %1$s (%2$s) · Ambony %3$s (%4$s)</string>

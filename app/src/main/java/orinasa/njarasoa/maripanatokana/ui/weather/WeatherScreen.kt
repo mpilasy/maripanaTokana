@@ -519,7 +519,10 @@ private fun WeatherContent(
         val linkStyle = SpanStyle(color = Color.White.copy(alpha = 0.5f), textDecoration = TextDecoration.Underline)
         val creditText = buildAnnotatedString {
             withStyle(SpanStyle(color = Color.White.copy(alpha = 0.3f))) {
-                append(stringResource(R.string.credits_weather_data))
+                append(buildString {
+                    append(stringResource(R.string.credits_weather_data))
+                    append(" ")
+                })
             }
             withLink(LinkAnnotation.Url("https://open-meteo.com")) {
                 withStyle(linkStyle) { append("Open-Meteo") }
