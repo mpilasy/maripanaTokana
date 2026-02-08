@@ -82,7 +82,7 @@
     <string name="visibility_mi" formatted="false">%.2f mi</string>
 
     <!-- Credits -->
-    <string name="credits_weather_data">Angon-toetrandro avy amin\'ny </string>
+    <string name="credits_weather_data">"Angon-drakitra mikasika ny toetrandro avy amin'ny "</string>
     <string name="hash_version">Hash Version: %1$s</string>
 
     <!-- Widget strings -->
