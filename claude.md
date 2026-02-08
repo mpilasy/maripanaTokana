@@ -21,7 +21,7 @@
 - **Current Conditions:** Collapsible section with detail cards: Min/Max Temp, Wind/Wind Gust, Pressure/Humidity, UV Index/Visibility, Sunrise/Sunset. Cards in each row are equally sized via `IntrinsicSize.Min` + `fillMaxHeight()`.
 - **Forecasts:** Hourly (24h horizontal LazyRow) and weekly (7-day vertical list), both collapsible.
 - **Two-Step Location:** `lastLocation` (instant cached) renders immediately; `getFreshLocation(BALANCED_POWER_ACCURACY)` silently re-fetches weather if user moved >5 km.
-- **Widgets:** 4x1 and 4x2, both via `WidgetWeatherFetcher` (standalone Retrofit, no Hilt). Show "Today in {city}" + refresh time. WorkManager updates with network constraint.
+- **Widgets:** 4x1 and 4x2, both via `WidgetWeatherFetcher` (standalone Retrofit, no Hilt). Show "Today in {city}" + refresh time. WorkManager updates with network constraint. 4x2 widget shows dual units for feels like, wind, and min/max.
 - **Back Button:** `singleTop` launch mode + `moveTaskToBack(true)` — hides app instead of destroying.
 - **Phone-only:** NOT compatible with TV, Wear, Auto (enforced via manifest features).
 - **Visual Style:** Dark theme, Blue Marble background at 0.12 alpha, translucent cards (`Color(0xFF2A1FA5)`).
