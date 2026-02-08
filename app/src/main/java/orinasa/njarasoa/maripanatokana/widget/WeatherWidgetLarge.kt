@@ -133,14 +133,16 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
 
             Spacer(modifier = GlanceModifier.height(8.dp))
 
-            // -- Detail row: Feels Like / Humidity / Wind (primary unit only) --
+            // -- Detail row: Feels Like / Humidity / Wind --
             Row(
                 modifier = GlanceModifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                val (flP, flS) = data.feelsLike.displayDual(metricPrimary)
                 DetailCell(
                     label = "Feels Like",
-                    value = data.feelsLike.displayDual(metricPrimary).first,
+                    value = flP,
+                    secondaryValue = flS,
                     modifier = GlanceModifier.defaultWeight(),
                 )
                 DetailCell(
@@ -148,18 +150,22 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
                     value = "${data.humidity}%",
                     modifier = GlanceModifier.defaultWeight(),
                 )
+                val (windP, windS) = data.windSpeed.displayDual(metricPrimary)
                 DetailCell(
                     label = "Wind",
-                    value = data.windSpeed.displayDual(metricPrimary).first,
+                    value = windP,
+                    secondaryValue = windS,
                     modifier = GlanceModifier.defaultWeight(),
                 )
             }
 
             Spacer(modifier = GlanceModifier.height(4.dp))
 
-            // -- Min / Max row (primary unit only) --
+            // -- Min / Max row --
+            val (minP, minS) = data.tempMin.displayDual(metricPrimary)
+            val (maxP, maxS) = data.tempMax.displayDual(metricPrimary)
             Text(
-                text = "Min ${data.tempMin.displayDual(metricPrimary).first} \u00B7 Max ${data.tempMax.displayDual(metricPrimary).first}",
+                text = "Min $minP ($minS) \u00B7 Max $maxP ($maxS)",
                 modifier = GlanceModifier.fillMaxWidth(),
                 style = TextStyle(
                     color = WidgetColorProviders.onSurfaceVariant,
@@ -176,6 +182,7 @@ private fun DetailCell(
     label: String,
     value: String,
     modifier: GlanceModifier = GlanceModifier,
+    secondaryValue: String? = null,
 ) {
     Column(
         modifier = modifier,
@@ -196,5 +203,14 @@ private fun DetailCell(
                 fontSize = 12.sp,
             ),
         )
+        if (secondaryValue != null) {
+            Text(
+                text = secondaryValue,
+                style = TextStyle(
+                    color = WidgetColorProviders.onSurfaceVariant,
+                    fontSize = 10.sp,
+                ),
+            )
+        }
     }
 }
