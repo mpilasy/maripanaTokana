@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">maripanaTokana</string>
+    <string name="app_name">maripànaTokana</string>
     <string name="loading">加载中…</string>
     <string name="widget_description">当前天气与双单位温度</string>
     <string name="widget_description_large">天气详情，包含体感温度、湿度、风速和最低/最高温</string>

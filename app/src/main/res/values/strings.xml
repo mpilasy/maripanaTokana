@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">maripanaTokana</string>
+    <string name="app_name">maripànaTokana</string>
     <string name="loading">Loading…</string>
     <string name="widget_description">Current weather with dual-unit temperature</string>
     <string name="widget_description_large">Weather details with feels-like, humidity, wind and min/max</string>

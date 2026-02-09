@@ -1,6 +1,7 @@
-# maripanaTokana - Design & Implementation Guide
+# maripànaTokana - Design & Implementation Guide
 
-**maripanaTokana** (Malagasy for "weather forecast") is a phone-only Android weather app that shows current conditions, hourly forecasts, and a 7-day outlook. It supports 8 languages, 16 font pairings, metric/imperial units, and two home screen widgets.
+**maripànaTokana** (Malagasy for "a single thermometer") is a phone-only Android weather app that shows current conditions, hourly forecasts, and a 7-day outlook. What makes it standout is that it shows both standard units at all times. 
+It can be surfaced to the homescreen via one of two home screen widget options.
 
 ---
 

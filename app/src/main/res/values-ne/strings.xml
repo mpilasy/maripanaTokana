@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">maripanaTokana</string>
+    <string name="app_name">maripànaTokana</string>
     <string name="loading">लोड हुँदैछ…</string>
     <string name="widget_description">दुई एकाइमा हालको मौसम तापक्रम</string>
     <string name="widget_description_large">मौसम विवरण: अनुभूत तापक्रम, आर्द्रता, हावा र न्यूनतम/अधिकतम</string>

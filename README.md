@@ -1,4 +1,4 @@
-# maripanaTokana
+# maripànaTokana
 
 Android weather app displaying current weather with dual metric/imperial units.
 

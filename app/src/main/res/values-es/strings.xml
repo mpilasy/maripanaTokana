@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">maripanaTokana</string>
+    <string name="app_name">maripànaTokana</string>
     <string name="loading">Cargando…</string>
     <string name="widget_description">Clima actual con temperatura en doble unidad</string>
     <string name="widget_description_large">Detalles del clima con sensacion termica, humedad, viento y min/max</string>

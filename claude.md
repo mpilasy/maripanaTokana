@@ -1,4 +1,4 @@
-# Project: maripanaTokana (Weather App)
+# Project: maripànaTokana (Weather App)
 **Goal:** Android weather app and widgets featuring simultaneous Metric/Imperial display.
 
 **Package:** `orinasa.njarasoa.maripanatokana`

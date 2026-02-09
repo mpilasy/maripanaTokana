@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">maripanaTokana</string>
+    <string name="app_name">maripànaTokana</string>
     <string name="loading">جارٍ التحميل…</string>
     <string name="widget_description">الطقس الحالي مع درجة الحرارة بوحدتين</string>
     <string name="widget_description_large">تفاصيل الطقس مع الإحساس بالحرارة والرطوبة والرياح والحد الأدنى/الأقصى</string>
