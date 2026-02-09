@@ -3,6 +3,7 @@ package orinasa.njarasoa.maripanatokana.ui.weather
 import android.Manifest
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.Canvas
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
@@ -344,6 +345,7 @@ private fun DualUnitText(
 @Composable
 private fun CollapsibleSection(
     title: String,
+    headerGraphicsLayer: GraphicsLayer,
     initialExpanded: Boolean = false,
     content: @Composable () -> Unit,
 ) {
@@ -382,8 +384,9 @@ private fun CollapsibleSection(
                 IconButton(
                     onClick = {
                         coroutineScope.launch {
-                            val bitmap = graphicsLayer.toImageBitmap()
-                            shareCardBitmap(context, bitmap.asAndroidBitmap())
+                            val header = headerGraphicsLayer.toImageBitmap().asAndroidBitmap()
+                            val content = graphicsLayer.toImageBitmap().asAndroidBitmap()
+                            shareCardBitmap(context, combineBitmaps(header, content))
                         }
                     },
                     modifier = Modifier.size(32.dp),
@@ -442,7 +445,17 @@ private fun WeatherContent(
             .padding(horizontal = 24.dp)
     ) {
         // Fixed header
-        Column(modifier = Modifier.padding(top = 24.dp)) {
+        val headerGraphicsLayer = rememberGraphicsLayer()
+        Column(
+            modifier = Modifier
+                .padding(top = 24.dp)
+                .drawWithContent {
+                    headerGraphicsLayer.record {
+                        this@drawWithContent.drawContent()
+                    }
+                    drawLayer(headerGraphicsLayer)
+                },
+        ) {
             Text(
                 text = data.locationName,
                 fontSize = 32.sp,
@@ -580,8 +593,9 @@ private fun WeatherContent(
                 IconButton(
                     onClick = {
                         coroutineScope.launch {
-                            val bitmap = graphicsLayer.toImageBitmap()
-                            shareCardBitmap(context, bitmap.asAndroidBitmap())
+                            val header = headerGraphicsLayer.toImageBitmap().asAndroidBitmap()
+                            val content = graphicsLayer.toImageBitmap().asAndroidBitmap()
+                            shareCardBitmap(context, combineBitmaps(header, content))
                         }
                     },
                     modifier = Modifier
@@ -604,7 +618,7 @@ private fun WeatherContent(
 
             // Hourly Forecast
             if (data.hourlyForecast.isNotEmpty()) {
-                CollapsibleSection(title = stringResource(R.string.section_hourly_forecast), initialExpanded = true) {
+                CollapsibleSection(title = stringResource(R.string.section_hourly_forecast), headerGraphicsLayer = headerGraphicsLayer, initialExpanded = true) {
                     HourlyForecastRow(data.hourlyForecast, metricPrimary, data.sunrise, data.sunset, localizeDigits, onToggleUnits)
                 }
                 Spacer(modifier = Modifier.height(24.dp))
@@ -612,14 +626,14 @@ private fun WeatherContent(
 
             // Weekly Forecast
             if (data.dailyForecast.isNotEmpty()) {
-                CollapsibleSection(title = stringResource(R.string.section_this_week)) {
+                CollapsibleSection(title = stringResource(R.string.section_this_week), headerGraphicsLayer = headerGraphicsLayer) {
                     DailyForecastList(data.dailyForecast, metricPrimary, localizeDigits, onToggleUnits)
                 }
                 Spacer(modifier = Modifier.height(24.dp))
             }
 
             // Current Conditions (collapsible)
-            CollapsibleSection(title = stringResource(R.string.section_current_conditions)) {
+            CollapsibleSection(title = stringResource(R.string.section_current_conditions), headerGraphicsLayer = headerGraphicsLayer) {
                 DetailsContent(data, metricPrimary, timeFormat, localizeDigits, onToggleUnits)
             }
         }
@@ -672,7 +686,7 @@ private fun WeatherContent(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(text = creditText, fontSize = 9.sp, lineHeight = 11.sp)
                     Text(
-                        text = "${stringResource(R.string.hash_version, BuildConfig.GIT_HASH)} \u2022 ${BuildConfig.BUILD_TIME}",
+                        text = "${stringResource(R.string.hash_version, BuildConfig.GIT_HASH)}${if (BuildConfig.DEBUG) "-d" else ""} \u2022 ${BuildConfig.BUILD_TIME}",
                         fontSize = 9.sp,
                         lineHeight = 11.sp,
                         color = Color.White.copy(alpha = 0.25f),
@@ -1007,6 +1021,20 @@ private fun DetailCard(
             }
         }
     }
+}
+
+private fun combineBitmaps(header: Bitmap, content: Bitmap): Bitmap {
+    val h = header.copy(Bitmap.Config.ARGB_8888, false)
+    val c = content.copy(Bitmap.Config.ARGB_8888, false)
+    val padding = 24
+    val width = maxOf(h.width, c.width) + padding * 2
+    val height = h.height + padding + c.height + padding * 2
+    val result = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(result)
+    canvas.drawColor(android.graphics.Color.parseColor("#0E0B3D"))
+    canvas.drawBitmap(h, padding.toFloat(), padding.toFloat(), null)
+    canvas.drawBitmap(c, padding.toFloat(), (h.height + padding * 2).toFloat(), null)
+    return result
 }
 
 private suspend fun shareCardBitmap(context: android.content.Context, bitmap: Bitmap) {

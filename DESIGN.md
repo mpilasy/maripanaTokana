@@ -559,7 +559,7 @@ All dependency versions are centralized here. Dependencies are referenced in `bu
 Key aspects:
 - **AGP 9 syntax**: `compileSdk { version = release(36) }` instead of `compileSdk = 36`
 - **Kotlin plugin is implicit**: AGP 9 auto-applies kotlin-android, so it's not listed explicitly
-- **BuildConfig fields**: `GIT_HASH` (from `git rev-parse --short HEAD`) and `BUILD_TIME` (formatted timestamp) are injected at compile time
+- **BuildConfig fields**: `GIT_HASH` (from `git rev-parse --short HEAD`) and `BUILD_TIME` (formatted timestamp) are injected at compile time. Footer appends `-d` suffix to the hash on debug builds via `BuildConfig.DEBUG`.
 - **Build features**: Compose and BuildConfig generation enabled
 
 ### 12.3 Gradle Properties
