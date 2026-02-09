@@ -101,7 +101,7 @@ maripanaTokana/
 |       |       +-- theme/WidgetTheme.kt         # Widget color palette
 |       +-- res/
 |           +-- drawable/                    # Background images, icons
-|           +-- font/                        # 48 TTF files (24 families x 2 weights)
+|           +-- font/                        # TTF files (font families x 2 weights)
 |           +-- layout/                      # widget_loading.xml (placeholder)
 |           +-- mipmap-*/                    # App launcher icons
 |           +-- values/                      # strings.xml, colors.xml, themes.xml
@@ -228,13 +228,14 @@ Stores Celsius. Derives Fahrenheit via `celsius * 9/5 + 32`.
 
 ```kotlin
 val t = Temperature.fromCelsius(20.0)
-t.displayCelsius()     // "20 C"
-t.displayFahrenheit()  // "68 F"
-t.displayDual(true)    // ("20 C", "68 F") -- metric primary
-t.displayDual(false)   // ("68 F", "20 C") -- imperial primary
+t.displayCelsius()              // "20°C"
+t.displayFahrenheit()           // "68°F"
+t.displayCelsius(decimals = 1)  // "20.0°C"
+t.displayDual(true)             // ("20°C", "68°F") -- metric primary
+t.displayDual(true, decimals=1) // ("20.0°C", "68.0°F") -- with decimals
 ```
 
-All formatting uses `Locale.US` to prevent digit script conversion (see [i18n section](#9-internationalization-i18n)).
+Integer display uses `roundToInt()` to avoid negative zero (`-0`). The `decimals` parameter is used on the hero card (1 decimal) while all other locations use the default (integer). All formatting uses `Locale.US` to prevent digit script conversion (see [i18n section](#9-internationalization-i18n)).
 
 ### `WindSpeed.kt`, `Pressure.kt`, `Precipitation.kt`
 
@@ -364,7 +365,7 @@ User actions (toggle units, cycle font, cycle language, refresh) are ViewModel m
 
 ### 8.2 Main Screen (`WeatherScreen.kt`)
 
-This is the largest file (~900 lines). It contains all the composable functions:
+This is the largest file (~885 lines). It contains all the composable functions:
 
 **Top-level: `WeatherScreen()`**
 - Collects all ViewModel state
@@ -385,7 +386,7 @@ This is the largest file (~900 lines). It contains all the composable functions:
 - **Scrollable middle** (`.weight(1f).verticalScroll()`):
   - Hero card: weather icon, temperature, feels-like, description, precipitation
   - Three collapsible sections: Current Conditions, Hourly Forecast, This Week
-- **Fixed footer**: Font icon + name (left), credits/hash (center), language flag (right)
+- **Fixed footer**: Font icon + name (left), credits/hash/copyright (center), language flag (right)
 
 **Key sub-composables:**
 - `DualUnitText` -- Shows primary value bold + secondary value dimmer. Clickable to toggle units.

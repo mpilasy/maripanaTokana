@@ -1,100 +1,87 @@
 # maripànaTokana
 
-Android weather app displaying current weather with dual metric/imperial units.
+**maripànaTokana** (Malagasy for "a single thermometer") is a phone-only Android weather app that shows current conditions, hourly forecasts, and a 7-day outlook. It always displays both metric and imperial units side by side, and supports 8 languages with 16 font pairings.
 
 ## Features
 
-- Real-time weather data from Open-Meteo API (no key required)
-- GPS location detection
-- Dual-unit display (Metric / Imperial) for all measurements
-- **Unit toggle**: tap the °C/°F button to swap which unit system is emphasized; both units always visible
-- Primary unit shown bold/large, secondary shown smaller/dimmer underneath
-- Unit preference persisted across app and widgets via SharedPreferences
-- Cardinal wind direction display (e.g. "NNW (340°)")
-- "Last refreshed" timestamp below the date
-- Custom app icon: Blue Marble with thermometer overlay
-- Dark gradient UI optimized for readability
+- Real-time weather data from [Open-Meteo](https://open-meteo.com) API (no key required)
+- GPS location with two-step strategy (instant cached + fresh background)
+- **Dual-unit display**: every measurement shows both metric and imperial simultaneously
+- **Tap to toggle**: tap any value to swap which unit is primary (bold/large) vs secondary (dimmer)
+- **8 languages**: Malagasy, Arabic, English, Spanish, French, Hindi, Nepali, Chinese — cycled via flag button in footer
+- **16 font pairings**: cycled via font icon in footer
+- Native digit rendering for Hindi, Arabic, and Nepali
+- RTL support (Arabic)
+- Two home screen widgets (4x1 compact, 4x2 with 3-day forecast)
+- Auto-refresh on resume (if data >30 min old)
+- Pull-to-refresh
+- Edge-to-edge Blue Marble background
 - Detailed weather information:
-  - Temperature (current, feels like, min/max)
+  - Temperature with 1 decimal on hero card (current, feels like, min/max)
   - Pressure (hPa / inHg)
   - Humidity (%)
   - Wind speed and direction with cardinal compass (m/s / mph)
   - Wind gusts (when available)
+  - UV index
   - Precipitation (rain/snow in mm / inches)
   - Visibility (km / mi)
   - Sunrise/sunset times
 
 ## Platform Support
 
-**Phone Only** - This app is designed exclusively for Android phones with touchscreens. It is NOT compatible with:
-- Android TV
-- Wear OS
-- Android Auto
-- Tablets (not optimized)
+**Phone Only** — designed exclusively for Android phones with touchscreens. NOT compatible with Android TV, Wear OS, Android Auto, or tablets.
 
 ## Technical Stack
 
-- **AGP**: 9.0.0
-- **Kotlin**: 2.0.21
-- **Compose BOM**: 2024.09.00
-- **Hilt**: 2.59
-- **Retrofit**: 2.11.0
-- **Kotlinx Serialization**: 1.7.3
-- **Glance**: 1.1.1 (for widget support)
-- **Play Services Location**: 21.3.0
-- **Min SDK**: 24 (Android 7.0)
-- **Target SDK**: 36
+| Component | Version |
+|-----------|---------|
+| AGP | 9.0.0 |
+| Kotlin | 2.0.21 |
+| Compose BOM | 2024.09.00 |
+| Glance | 1.1.1 |
+| Hilt | 2.59 |
+| Retrofit | 2.11.0 |
+| Kotlinx Serialization | 1.7.3 |
+| Play Services Location | 21.3.0 |
+| WorkManager | 2.10.0 |
+| Min SDK | 24 (Android 7.0) |
+| Target SDK | 36 |
 
-## Setup
-
-### Build and Run
+## Build and Run
 
 ```bash
-./gradlew :app:installDebug
+./gradlew assembleDebug        # Debug APK
+./gradlew assembleRelease       # Release APK (requires keystore)
+./gradlew bundleRelease         # Release AAB for Play Store
 ```
 
 ## Architecture
 
-The app follows Clean Architecture principles with clear separation of concerns:
+MVVM with Clean Architecture. Package: `orinasa.njarasoa.maripanatokana`
 
 ```
 app/
 ├── data/
-│   ├── remote/          # API DTOs and services
+│   ├── remote/          # API DTOs, Retrofit service, WMO code mapping
 │   └── repository/      # Repository implementations
-├── di/                  # Hilt dependency injection modules
+├── di/                  # Hilt modules (Network, Location, Repository)
 ├── domain/
-│   ├── model/           # Value objects (Temperature, Pressure, etc.)
+│   ├── model/           # Inline value classes (Temperature, Pressure, WindSpeed, Precipitation)
 │   └── repository/      # Repository interfaces
 ├── ui/
-│   ├── theme/           # Compose theme
-│   └── weather/         # Weather screen + ViewModel
-└── widget/              # Glance app widget
+│   ├── theme/           # Compose theme, 16 font pairings, CompositionLocals
+│   └── weather/         # WeatherScreen, WeatherViewModel, WeatherUiState
+└── widget/              # Glance widgets (4x1, 4x2), WorkManager updater
 ```
-
-### Value Objects
-
-All measurements are stored in canonical metric units and converted to imperial on demand:
-- `Temperature`: Celsius → Fahrenheit
-- `Pressure`: hPa → inHg
-- `WindSpeed`: m/s → mph
-- `Precipitation`: mm → inches
-
-Each provides `displayDual()` for a combined string and `displayDual(metricPrimary: Boolean)` returning a `Pair<String, String>` of (primary, secondary) for emphasis-styled rendering.
 
 ## Permissions
 
-The app requires:
-- `INTERNET` - To fetch weather data from OpenWeatherMap API
-- `ACCESS_FINE_LOCATION` - To get precise GPS coordinates
-- `ACCESS_COARSE_LOCATION` - Fallback location method
+- `INTERNET` — fetch weather data from Open-Meteo API
+- `ACCESS_FINE_LOCATION` — precise GPS coordinates
+- `ACCESS_COARSE_LOCATION` — fallback location
 
-Location permissions are requested at runtime when the app launches.
-
-## Known Issues
-
-- Hilt 2.59 with AGP 9.0.0 requires `android.disallowKotlinSourceSets=false` in gradle.properties (experimental setting)
+Location permissions are requested at runtime with a dual-language permission screen (app locale + system locale).
 
 ## License
 
-[Your license here]
+(c) Orinasa Njarasoa
