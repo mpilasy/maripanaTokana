@@ -29,6 +29,11 @@ value class Temperature private constructor(val celsius: Double) {
         if (metricPrimary) displayCelsius(decimals) to displayFahrenheit(decimals)
         else displayFahrenheit(decimals) to displayCelsius(decimals)
 
+    /** Celsius with [cDecimals] decimals, Fahrenheit always integer. */
+    fun displayDualMixed(metricPrimary: Boolean, cDecimals: Int = 1): Pair<String, String> =
+        if (metricPrimary) displayCelsius(cDecimals) to displayFahrenheit(0)
+        else displayFahrenheit(0) to displayCelsius(cDecimals)
+
     companion object {
         fun fromCelsius(c: Double): Temperature = Temperature(c)
 

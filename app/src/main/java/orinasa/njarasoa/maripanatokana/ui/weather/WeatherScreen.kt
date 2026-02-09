@@ -303,10 +303,12 @@ private fun DualUnitText(
     secondary: String,
     primarySize: TextUnit = 16.sp,
     color: Color = Color.White,
+    horizontalAlignment: Alignment.Horizontal = Alignment.Start,
     onClick: (() -> Unit)? = null,
 ) {
     val displayFont = LocalDisplayFont.current
     Column(
+        horizontalAlignment = horizontalAlignment,
         modifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
     ) {
         Text(
@@ -442,7 +444,7 @@ private fun WeatherContent(
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
                             Text(
-                                text = wmoEmoji(data.weatherCode),
+                                text = wmoEmoji(data.weatherCode, isNight = data.timestamp !in data.sunrise..data.sunset),
                                 fontSize = 48.sp,
                             )
                             Spacer(modifier = Modifier.height(4.dp))
@@ -453,11 +455,12 @@ private fun WeatherContent(
                                 color = Color.White.copy(alpha = 0.9f),
                             )
                         }
-                        val (tempPrimary, tempSecondary) = data.temperature.displayDual(metricPrimary, decimals = 1)
+                        val (tempPrimary, tempSecondary) = data.temperature.displayDualMixed(metricPrimary)
                         DualUnitText(
                             primary = localizeDigits(tempPrimary),
                             secondary = localizeDigits(tempSecondary),
                             primarySize = 48.sp,
+                            horizontalAlignment = Alignment.End,
                             onClick = onToggleUnits,
                         )
                     }
@@ -512,7 +515,7 @@ private fun WeatherContent(
             // Hourly Forecast
             if (data.hourlyForecast.isNotEmpty()) {
                 CollapsibleSection(title = stringResource(R.string.section_hourly_forecast), initialExpanded = true) {
-                    HourlyForecastRow(data.hourlyForecast, metricPrimary, localizeDigits, onToggleUnits)
+                    HourlyForecastRow(data.hourlyForecast, metricPrimary, data.sunrise, data.sunset, localizeDigits, onToggleUnits)
                 }
                 Spacer(modifier = Modifier.height(24.dp))
             }
@@ -604,7 +607,7 @@ private fun WeatherContent(
 }
 
 @Composable
-private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
+private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Boolean, sunrise: Long, sunset: Long, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
     val hourFormat = SimpleDateFormat("HH:mm", Locale.US)
     val bodyFont = LocalBodyFont.current
 
@@ -629,7 +632,7 @@ private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Bo
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = wmoEmoji(item.weatherCode),
+                        text = wmoEmoji(item.weatherCode, isNight = item.time !in sunrise..sunset),
                         fontSize = 20.sp,
                     )
                     Spacer(modifier = Modifier.height(4.dp))

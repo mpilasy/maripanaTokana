@@ -40,10 +40,13 @@ fun wmoDescriptionRes(code: Int): Int = when (code) {
     else -> R.string.wmo_unknown
 }
 
-fun wmoEmoji(code: Int): String = when (code) {
-    0 -> "\u2600\uFE0F"       // ☀️
-    1 -> "\uD83C\uDF24\uFE0F" // 🌤️
-    2 -> "\u26C5"              // ⛅
+fun wmoEmoji(code: Int, isNight: Boolean = false): String = when (code) {
+    0 -> if (isNight) "\uD83C\uDF11"  // 🌑
+         else "\u2600\uFE0F"           // ☀️
+    1 -> if (isNight) "\uD83C\uDF14"  // 🌔
+         else "\uD83C\uDF24\uFE0F"    // 🌤️
+    2 -> if (isNight) "\uD83C\uDF13"  // 🌓
+         else "\u26C5"                 // ⛅
     3 -> "\u2601\uFE0F"       // ☁️
     45, 48 -> "\uD83C\uDF2B\uFE0F" // 🌫️
     51, 53, 55 -> "\uD83C\uDF26\uFE0F" // 🌦️
