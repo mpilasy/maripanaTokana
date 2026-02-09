@@ -385,7 +385,7 @@ This is the largest file (~885 lines). It contains all the composable functions:
 - **Fixed header**: City name, date, "Updated" time
 - **Scrollable middle** (`.weight(1f).verticalScroll()`):
   - Hero card: weather icon, temperature, feels-like, description, precipitation
-  - Three collapsible sections: Current Conditions, Hourly Forecast, This Week
+  - Three collapsible sections: Hourly Forecast (expanded by default), This Week, Current Conditions
 - **Fixed footer**: Font icon + name (left), credits/hash/copyright (center), language flag (right)
 
 **Key sub-composables:**

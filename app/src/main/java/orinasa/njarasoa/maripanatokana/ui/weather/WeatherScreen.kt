@@ -509,16 +509,9 @@ private fun WeatherContent(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Current Conditions (collapsible)
-            CollapsibleSection(title = stringResource(R.string.section_current_conditions)) {
-                DetailsContent(data, metricPrimary, timeFormat, localizeDigits, onToggleUnits)
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
             // Hourly Forecast
             if (data.hourlyForecast.isNotEmpty()) {
-                CollapsibleSection(title = stringResource(R.string.section_hourly_forecast)) {
+                CollapsibleSection(title = stringResource(R.string.section_hourly_forecast), initialExpanded = true) {
                     HourlyForecastRow(data.hourlyForecast, metricPrimary, localizeDigits, onToggleUnits)
                 }
                 Spacer(modifier = Modifier.height(24.dp))
@@ -529,6 +522,12 @@ private fun WeatherContent(
                 CollapsibleSection(title = stringResource(R.string.section_this_week)) {
                     DailyForecastList(data.dailyForecast, metricPrimary, localizeDigits, onToggleUnits)
                 }
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+
+            // Current Conditions (collapsible)
+            CollapsibleSection(title = stringResource(R.string.section_current_conditions)) {
+                DetailsContent(data, metricPrimary, timeFormat, localizeDigits, onToggleUnits)
             }
         }
 
