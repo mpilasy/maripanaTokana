@@ -24,7 +24,7 @@ i thought ired)
 - **Forecasts:** Hourly (24h horizontal LazyRow) and weekly (7-day vertical list), both collapsible.
 - **Two-Step Location:** `lastLocation` (instant cached) renders immediately; `getFreshLocation(BALANCED_POWER_ACCURACY)` silently re-fetches weather if user moved >5 km.
 - **Widgets:** 4x1 ("Now in {city}") and 4x2 ("Today in {city}"), both via `WidgetWeatherFetcher` (standalone Retrofit, no Hilt). WorkManager updates with network constraint. 4x2 widget shows dual units for feels like, wind, and min/max.
-- **Footer:** "Weather data by Open-Meteo" link + "Hash Version: {commit}" via `BuildConfig.GIT_HASH`.
+- **Footer:** "Weather data by Open-Meteo" link + "Hash: {commit}" via `BuildConfig.GIT_HASH`.
 - **Back Button:** `singleTop` launch mode + `moveTaskToBack(true)` — hides app instead of destroying.
 - **Phone-only:** NOT compatible with TV, Wear, Auto (enforced via manifest features).
 - **Visual Style:** Dark theme, Blue Marble background at 0.12 alpha, translucent cards (`Color(0xFF2A1FA5)`). Edge-to-edge with `statusBarsPadding()`.

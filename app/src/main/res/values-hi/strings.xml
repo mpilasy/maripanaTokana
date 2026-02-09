@@ -62,7 +62,7 @@
     <string name="visibility_km" formatted="false">%.1f km</string>
     <string name="visibility_mi" formatted="false">%.2f mi</string>
     <string name="credits_weather_data">मौसम डेटा प्रदाता </string>
-    <string name="hash_version">हैश संस्करण: %1$s</string>
+    <string name="hash_version">Hash: %1$s</string>
     <string name="widget_today_in">आज %1$s में</string>
     <string name="widget_now_in">अभी %1$s में</string>
     <string name="widget_tap_to_refresh">मौसम अपडेट करने के लिए टैप करें</string>

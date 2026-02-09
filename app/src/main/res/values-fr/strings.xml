@@ -82,7 +82,7 @@
 
     <!-- Credits -->
     <string name="credits_weather_data">Donn\u00e9es m\u00e9t\u00e9o par </string>
-    <string name="hash_version">Hash Version: %1$s</string>
+    <string name="hash_version">Hash: %1$s</string>
 
     <!-- Widget strings -->
     <string name="widget_today_in">Aujourd\'hui \u00e0 %1$s</string>

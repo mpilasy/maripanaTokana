@@ -82,7 +82,7 @@
 
     <!-- Footer -->
     <string name="credits_weather_data">Weather data by </string>
-    <string name="hash_version">Hash Version: %1$s</string>
+    <string name="hash_version">Hash: %1$s</string>
 
     <!-- Widget strings -->
     <string name="widget_today_in">Today in %1$s</string>

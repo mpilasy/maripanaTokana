@@ -62,7 +62,7 @@
     <string name="visibility_km" formatted="false">%.1f km</string>
     <string name="visibility_mi" formatted="false">%.2f mi</string>
     <string name="credits_weather_data">天气数据来自 </string>
-    <string name="hash_version">哈希版本: %1$s</string>
+    <string name="hash_version">Hash: %1$s</string>
     <string name="widget_today_in">今日 %1$s</string>
     <string name="widget_now_in">现在 %1$s</string>
     <string name="widget_tap_to_refresh">点击刷新天气</string>

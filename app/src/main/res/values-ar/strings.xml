@@ -82,7 +82,7 @@
 
     <!-- Credits -->
     <string name="credits_weather_data">بيانات الطقس من </string>
-    <string name="hash_version">إصدار التجزئة: %1$s</string>
+    <string name="hash_version">Hash: %1$s</string>
 
     <!-- Widget strings -->
     <string name="widget_today_in">اليوم في %1$s</string>

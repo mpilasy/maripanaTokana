@@ -82,7 +82,7 @@
 
     <!-- Credits -->
     <string name="credits_weather_data">Datos meteorologicos de </string>
-    <string name="hash_version">Hash Version: %1$s</string>
+    <string name="hash_version">Hash: %1$s</string>
 
     <!-- Widget strings -->
     <string name="widget_today_in">Hoy en %1$s</string>
