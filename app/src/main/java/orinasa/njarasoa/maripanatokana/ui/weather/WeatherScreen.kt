@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -43,6 +44,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.collectAsState
@@ -124,6 +126,18 @@ fun WeatherScreen(
         if (locationPermissionsState.allPermissionsGranted) {
             viewModel.fetchWeather()
         }
+    }
+
+    // Refresh when app comes to foreground if data is >30 min old
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                viewModel.refreshIfStale()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     val layoutDirection = if (androidx.core.text.TextUtilsCompat.getLayoutDirectionFromLocale(
@@ -307,7 +321,7 @@ private fun DualUnitText(
             fontSize = primarySize * 0.75f,
             fontWeight = FontWeight.Normal,
             fontFamily = displayFont,
-            color = color.copy(alpha = 0.45f),
+            color = color.copy(alpha = 0.55f),
         )
     }
 }
@@ -531,58 +545,53 @@ private fun WeatherContent(
                 withStyle(linkStyle) { append("Open-Meteo") }
             }
         }
-        Column(modifier = Modifier.padding(bottom = 16.dp)) {
-            CompositionLocalProvider(
-                androidx.compose.ui.platform.LocalLayoutDirection provides androidx.compose.ui.unit.LayoutDirection.Ltr,
-            ) { Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top,
+        CompositionLocalProvider(
+            androidx.compose.ui.platform.LocalLayoutDirection provides androidx.compose.ui.unit.LayoutDirection.Ltr,
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(bottom = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(
-                        onClick = onCycleFont,
-                        colors = IconButtonDefaults.filledTonalIconButtonColors(),
-                        modifier = Modifier.size(32.dp),
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_font),
-                            contentDescription = stringResource(R.string.cd_change_font),
-                            modifier = Modifier.size(16.dp),
-                        )
-                    }
+                // Font icon + name
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.clickable(onClick = onCycleFont),
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_font),
+                        contentDescription = stringResource(R.string.cd_change_font),
+                        modifier = Modifier.size(14.dp),
+                        tint = Color.White.copy(alpha = 0.4f),
+                    )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = fontName,
-                        fontSize = 10.sp,
+                        text = fontName.replace(" + ", "\n"),
+                        fontSize = 9.sp,
+                        lineHeight = 11.sp,
                         fontFamily = bodyFont,
-                        color = Color.White.copy(alpha = 0.5f),
+                        color = Color.White.copy(alpha = 0.4f),
                     )
                 }
-                IconButton(
-                    onClick = onCycleLanguage,
-                    colors = IconButtonDefaults.filledTonalIconButtonColors(),
-                    modifier = Modifier.size(32.dp),
-                ) {
+                Spacer(modifier = Modifier.weight(1f))
+                // Credits + hash centered
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(text = creditText, fontSize = 9.sp, lineHeight = 11.sp)
                     Text(
-                        text = currentFlag,
-                        fontSize = 16.sp,
+                        text = "${stringResource(R.string.hash_version, BuildConfig.GIT_HASH)} \u2022 ${BuildConfig.BUILD_TIME}",
+                        fontSize = 9.sp,
+                        lineHeight = 11.sp,
+                        color = Color.White.copy(alpha = 0.25f),
                     )
                 }
-            } }
-            Spacer(modifier = Modifier.height(8.dp))
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
+                Spacer(modifier = Modifier.weight(1f))
+                // Language flag
                 Text(
-                    text = creditText,
-                    fontSize = 11.sp,
-                )
-                Text(
-                    text = "${stringResource(R.string.hash_version, BuildConfig.GIT_HASH)} \u2022 ${BuildConfig.BUILD_TIME}",
-                    fontSize = 11.sp,
-                    color = Color.White.copy(alpha = 0.3f),
+                    text = currentFlag,
+                    fontSize = 16.sp,
+                    modifier = Modifier.clickable(onClick = onCycleLanguage),
                 )
             }
         }
@@ -679,11 +688,11 @@ private fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Boo
                     color = Color(0xFF64B5F6),
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                val (minP, minS) = item.tempMin.displayDual(metricPrimary)
                 val (maxP, maxS) = item.tempMax.displayDual(metricPrimary)
+                val (minP, minS) = item.tempMin.displayDual(metricPrimary)
                 DualUnitText(
-                    primary = localizeDigits("$minP / $maxP"),
-                    secondary = localizeDigits("$minS / $maxS"),
+                    primary = localizeDigits("\u2191$maxP \u2193$minP"),
+                    secondary = localizeDigits("\u2191$maxS \u2193$minS"),
                     primarySize = 13.sp,
                     onClick = onToggleUnits,
                 )
@@ -847,11 +856,11 @@ private fun DetailCard(
             )
             Spacer(modifier = Modifier.height(8.dp))
             if (secondaryValue != null) {
-                DualUnitText(primary = value, secondary = secondaryValue, onClick = onToggleUnits)
+                DualUnitText(primary = value, secondary = secondaryValue, primarySize = 20.sp, onClick = onToggleUnits)
             } else {
                 Text(
                     text = value,
-                    fontSize = 16.sp,
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = LocalDisplayFont.current,
                     color = Color.White

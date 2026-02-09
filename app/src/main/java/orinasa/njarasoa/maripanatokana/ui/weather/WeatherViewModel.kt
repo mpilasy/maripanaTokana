@@ -95,6 +95,14 @@ class WeatherViewModel @Inject constructor(
         }
     }
 
+    fun refreshIfStale() {
+        val current = _uiState.value
+        if (current is WeatherUiState.Success) {
+            val age = System.currentTimeMillis() - current.data.timestamp
+            if (age > 30 * 60 * 1000L) refresh()
+        }
+    }
+
     private suspend fun doFetch() {
         // Step 1: try cached location for instant render
         var usedCached = false
