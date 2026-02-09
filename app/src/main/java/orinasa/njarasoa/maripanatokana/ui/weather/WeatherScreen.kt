@@ -350,6 +350,9 @@ private fun CollapsibleSection(
     var expanded by rememberSaveable { mutableStateOf(initialExpanded) }
     val rotation by animateFloatAsState(if (expanded) 180f else 0f, label = "chevron")
     val bodyFont = LocalBodyFont.current
+    val graphicsLayer = rememberGraphicsLayer()
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     Column {
         Row(
@@ -374,13 +377,43 @@ private fun CollapsibleSection(
                 tint = Color.White.copy(alpha = 0.7f),
                 modifier = Modifier.rotate(rotation),
             )
+            if (expanded) {
+                Spacer(modifier = Modifier.width(4.dp))
+                IconButton(
+                    onClick = {
+                        coroutineScope.launch {
+                            val bitmap = graphicsLayer.toImageBitmap()
+                            shareCardBitmap(context, bitmap.asAndroidBitmap())
+                        }
+                    },
+                    modifier = Modifier.size(32.dp),
+                    colors = IconButtonDefaults.iconButtonColors(
+                        contentColor = Color.White.copy(alpha = 0.4f),
+                    ),
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_share),
+                        contentDescription = stringResource(R.string.cd_share),
+                        modifier = Modifier.size(14.dp),
+                    )
+                }
+            }
         }
         AnimatedVisibility(
             visible = expanded,
             enter = expandVertically(),
             exit = shrinkVertically(),
         ) {
-            content()
+            Box(
+                modifier = Modifier.drawWithContent {
+                    graphicsLayer.record {
+                        this@drawWithContent.drawContent()
+                    }
+                    drawLayer(graphicsLayer)
+                }
+            ) {
+                content()
+            }
         }
     }
 }

@@ -391,7 +391,7 @@ This is the largest file (~885 lines). It contains all the composable functions:
 
 **Key sub-composables:**
 - `DualUnitText` -- Shows primary value bold + secondary value dimmer. Clickable to toggle units.
-- `CollapsibleSection` -- Animated expand/collapse with arrow icon.
+- `CollapsibleSection` -- Animated expand/collapse with arrow icon. Share button appears when expanded, captures section content as PNG via `rememberGraphicsLayer()`.
 - `HourlyForecastRow` -- Horizontal scrolling row of hourly cards.
 - `DailyForecastList` -- Vertical list of daily forecast rows with up/down arrows for hi/lo.
 - `DetailsContent` -- Grid of detail cards (wind, pressure, humidity, UV, visibility, sunrise/sunset).
