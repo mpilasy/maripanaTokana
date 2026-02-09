@@ -52,6 +52,7 @@
     <string name="cd_change_language">Change language</string>
 
     <!-- Hero card -->
+    <string name="cd_share">Share</string>
     <string name="feels_like">Feels Like</string>
     <string name="no_precip">No precip</string>
 

@@ -1,6 +1,8 @@
 package orinasa.njarasoa.maripanatokana.ui.weather
 
 import android.Manifest
+import android.content.Intent
+import android.graphics.Bitmap
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
@@ -50,15 +52,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.layer.GraphicsLayer
+import androidx.compose.ui.graphics.layer.drawLayer
+import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringArrayResource
@@ -87,6 +95,11 @@ import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFont
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 import orinasa.njarasoa.maripanatokana.ui.theme.fontPairings
+import androidx.core.content.FileProvider
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -426,87 +439,120 @@ private fun WeatherContent(
                 .padding(vertical = 24.dp)
         ) {
             // Hero Card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF2A1FA5))
-            ) {
-                Column(
-                    modifier = Modifier.padding(24.dp)
+            val graphicsLayer = rememberGraphicsLayer()
+            val coroutineScope = rememberCoroutineScope()
+            val context = LocalContext.current
+            Box {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .drawWithContent {
+                            graphicsLayer.record {
+                                this@drawWithContent.drawContent()
+                            }
+                            drawLayer(graphicsLayer)
+                        },
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF2A1FA5))
                 ) {
-                    // Top row: emoji+description (left) + temperature (right)
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
+                    Column(
+                        modifier = Modifier.padding(24.dp)
                     ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
+                        // Top row: emoji+description (left) + temperature (right)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text(
-                                text = wmoEmoji(data.weatherCode, isNight = data.timestamp !in data.sunrise..data.sunset),
-                                fontSize = 48.sp,
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = stringResource(wmoDescriptionRes(data.weatherCode)),
-                                fontSize = 16.sp,
-                                fontFamily = bodyFont,
-                                color = Color.White.copy(alpha = 0.9f),
-                            )
-                        }
-                        val (tempPrimary, tempSecondary) = data.temperature.displayDualMixed(metricPrimary)
-                        DualUnitText(
-                            primary = localizeDigits(tempPrimary),
-                            secondary = localizeDigits(tempSecondary),
-                            primarySize = 48.sp,
-                            horizontalAlignment = Alignment.End,
-                            onClick = onToggleUnits,
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Bottom row: feels like (left) + precipitation (right)
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Column {
-                            Text(
-                                text = stringResource(R.string.feels_like),
-                                fontSize = 14.sp,
-                                fontFamily = bodyFont,
-                                color = Color.White.copy(alpha = 0.7f)
-                            )
-                            val (flPrimary, flSecondary) = data.feelsLike.displayDual(metricPrimary)
-                            DualUnitText(primary = localizeDigits(flPrimary), secondary = localizeDigits(flSecondary), onClick = onToggleUnits)
-                        }
-                        Column(horizontalAlignment = Alignment.End) {
-                            if (data.snow != null) {
-                                val (snowP, snowS) = data.snow.displayDual(metricPrimary)
-                                DualUnitText(
-                                    primary = "\u2744\uFE0F ${localizeDigits(snowP)}",
-                                    secondary = localizeDigits(snowS),
-                                    onClick = onToggleUnits,
-                                )
-                            } else if (data.rain != null) {
-                                val (rainP, rainS) = data.rain.displayDual(metricPrimary)
-                                DualUnitText(
-                                    primary = "\uD83C\uDF27\uFE0F ${localizeDigits(rainP)}",
-                                    secondary = localizeDigits(rainS),
-                                    onClick = onToggleUnits,
-                                )
-                            } else {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                            ) {
                                 Text(
-                                    text = stringResource(R.string.no_precip),
+                                    text = wmoEmoji(data.weatherCode, isNight = data.timestamp !in data.sunrise..data.sunset),
+                                    fontSize = 48.sp,
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = stringResource(wmoDescriptionRes(data.weatherCode)),
+                                    fontSize = 16.sp,
+                                    fontFamily = bodyFont,
+                                    color = Color.White.copy(alpha = 0.9f),
+                                )
+                            }
+                            val (tempPrimary, tempSecondary) = data.temperature.displayDualMixed(metricPrimary)
+                            DualUnitText(
+                                primary = localizeDigits(tempPrimary),
+                                secondary = localizeDigits(tempSecondary),
+                                primarySize = 48.sp,
+                                horizontalAlignment = Alignment.End,
+                                onClick = onToggleUnits,
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Bottom row: feels like (left) + precipitation (right)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            Column {
+                                Text(
+                                    text = stringResource(R.string.feels_like),
                                     fontSize = 14.sp,
                                     fontFamily = bodyFont,
-                                    color = Color.White.copy(alpha = 0.5f),
+                                    color = Color.White.copy(alpha = 0.7f)
                                 )
+                                val (flPrimary, flSecondary) = data.feelsLike.displayDual(metricPrimary)
+                                DualUnitText(primary = localizeDigits(flPrimary), secondary = localizeDigits(flSecondary), onClick = onToggleUnits)
+                            }
+                            Column(horizontalAlignment = Alignment.End) {
+                                if (data.snow != null) {
+                                    val (snowP, snowS) = data.snow.displayDual(metricPrimary)
+                                    DualUnitText(
+                                        primary = "\u2744\uFE0F ${localizeDigits(snowP)}",
+                                        secondary = localizeDigits(snowS),
+                                        onClick = onToggleUnits,
+                                    )
+                                } else if (data.rain != null) {
+                                    val (rainP, rainS) = data.rain.displayDual(metricPrimary)
+                                    DualUnitText(
+                                        primary = "\uD83C\uDF27\uFE0F ${localizeDigits(rainP)}",
+                                        secondary = localizeDigits(rainS),
+                                        onClick = onToggleUnits,
+                                    )
+                                } else {
+                                    Text(
+                                        text = stringResource(R.string.no_precip),
+                                        fontSize = 14.sp,
+                                        fontFamily = bodyFont,
+                                        color = Color.White.copy(alpha = 0.5f),
+                                    )
+                                }
                             }
                         }
                     }
+                }
+                IconButton(
+                    onClick = {
+                        coroutineScope.launch {
+                            val bitmap = graphicsLayer.toImageBitmap()
+                            shareCardBitmap(context, bitmap.asAndroidBitmap())
+                        }
+                    },
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(4.dp)
+                        .size(32.dp),
+                    colors = IconButtonDefaults.iconButtonColors(
+                        contentColor = Color.White.copy(alpha = 0.6f),
+                    ),
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_share),
+                        contentDescription = stringResource(R.string.cd_share),
+                        modifier = Modifier.size(16.dp),
+                    )
                 }
             }
 
@@ -884,4 +930,19 @@ private fun DetailCard(
             }
         }
     }
+}
+
+private suspend fun shareCardBitmap(context: android.content.Context, bitmap: Bitmap) {
+    val uri = withContext(Dispatchers.IO) {
+        val dir = File(context.cacheDir, "shared_images").also { it.mkdirs() }
+        val file = File(dir, "weather.png")
+        file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+        FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+    }
+    val intent = Intent(Intent.ACTION_SEND).apply {
+        type = "image/png"
+        putExtra(Intent.EXTRA_STREAM, uri)
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+    context.startActivity(Intent.createChooser(intent, null))
 }
