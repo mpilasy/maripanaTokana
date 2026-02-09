@@ -20,7 +20,7 @@
   - Temperature with 1 decimal on hero card (current, feels like, min/max)
   - Share button on hero card (captures card as PNG, shares via Android share sheet)
   - Pressure (hPa / inHg)
-  - Humidity (%)
+  - Humidity (%) with dew point (°C / °F)
   - Wind speed and direction with cardinal compass (m/s / mph)
   - Wind gusts (when available)
   - UV index

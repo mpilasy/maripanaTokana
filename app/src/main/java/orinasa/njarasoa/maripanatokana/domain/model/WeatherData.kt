@@ -10,6 +10,7 @@ data class WeatherData(
     val locationName: String,
     val pressure: Pressure,
     val humidity: Int, // percentage
+    val dewPoint: Temperature,
     val windSpeed: WindSpeed,
     val windDeg: Int, // degrees
     val windGust: WindSpeed?,

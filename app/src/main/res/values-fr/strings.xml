@@ -71,6 +71,7 @@
     <string name="detail_wind_gust">Rafale</string>
     <string name="detail_pressure">Pression</string>
     <string name="detail_humidity">Humidit\u00e9</string>
+    <string name="detail_dewpoint">Point de rosée</string>
     <string name="detail_uv_index">Indice UV</string>
     <string name="detail_visibility">Visibilit\u00e9</string>
     <string name="detail_sunrise">Lever du soleil</string>

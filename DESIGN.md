@@ -255,6 +255,7 @@ data class WeatherData(
     val locationName: String,      // Reverse-geocoded city name
     val pressure: Pressure,
     val humidity: Int,             // Percentage
+    val dewPoint: Temperature,     // Dew point temperature
     val windSpeed: WindSpeed,
     val windDeg: Int,              // Degrees (0-360)
     val windGust: WindSpeed?,

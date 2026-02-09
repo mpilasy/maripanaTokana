@@ -71,6 +71,7 @@
     <string name="detail_wind_gust">هبّات الرياح</string>
     <string name="detail_pressure">الضغط الجوي</string>
     <string name="detail_humidity">الرطوبة</string>
+    <string name="detail_dewpoint">نقطة الندى</string>
     <string name="detail_uv_index">مؤشر الأشعة فوق البنفسجية</string>
     <string name="detail_visibility">الرؤية</string>
     <string name="detail_sunrise">شروق الشمس</string>

@@ -15,6 +15,7 @@ data class OpenMeteoCurrent(
     @SerialName("temperature_2m") val temperature: Double,
     @SerialName("apparent_temperature") val apparentTemperature: Double,
     @SerialName("relative_humidity_2m") val relativeHumidity: Int,
+    @SerialName("dew_point_2m") val dewPoint: Double,
     @SerialName("wind_speed_10m") val windSpeed: Double,
     @SerialName("wind_direction_10m") val windDirection: Int,
     @SerialName("wind_gusts_10m") val windGusts: Double,

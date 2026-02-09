@@ -71,6 +71,7 @@
     <string name="detail_wind_gust">Rafaga de viento</string>
     <string name="detail_pressure">Presion</string>
     <string name="detail_humidity">Humedad</string>
+    <string name="detail_dewpoint">Punto de rocío</string>
     <string name="detail_uv_index">Indice UV</string>
     <string name="detail_visibility">Visibilidad</string>
     <string name="detail_sunrise">Amanecer</string>

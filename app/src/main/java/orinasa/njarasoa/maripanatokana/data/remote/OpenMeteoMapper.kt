@@ -59,6 +59,7 @@ fun OpenMeteoResponse.toDomain(locationName: String): WeatherData {
         locationName = locationName,
         pressure = Pressure.fromHPa(c.pressureMsl),
         humidity = c.relativeHumidity,
+        dewPoint = Temperature.fromCelsius(c.dewPoint),
         windSpeed = WindSpeed.fromMetersPerSecond(c.windSpeed),
         windDeg = c.windDirection,
         windGust = if (c.windGusts > 0) WindSpeed.fromMetersPerSecond(c.windGusts) else null,

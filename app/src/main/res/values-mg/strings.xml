@@ -71,6 +71,7 @@
     <string name="detail_wind_gust">Rivotra Tadio</string>
     <string name="detail_pressure">Tsindry Atmosferika</string>
     <string name="detail_humidity">Hamandoana</string>
+    <string name="detail_dewpoint">Marimando</string>
     <string name="detail_uv_index">Tahan\'ny UV</string>
     <string name="detail_visibility">Tazana</string>
     <string name="detail_sunrise">Masoandro Miposaka</string>

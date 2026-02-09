@@ -55,6 +55,7 @@
     <string name="detail_wind_gust">阵风</string>
     <string name="detail_pressure">气压</string>
     <string name="detail_humidity">湿度</string>
+    <string name="detail_dewpoint">露点</string>
     <string name="detail_uv_index">紫外线指数</string>
     <string name="detail_visibility">能见度</string>
     <string name="detail_sunrise">日出</string>

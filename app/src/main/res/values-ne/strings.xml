@@ -71,6 +71,7 @@
     <string name="detail_wind_gust">हावाको झोक्का</string>
     <string name="detail_pressure">वायुमण्डलीय चाप</string>
     <string name="detail_humidity">आर्द्रता</string>
+    <string name="detail_dewpoint">शीतबिन्दु</string>
     <string name="detail_uv_index">UV सूचकाङ्क</string>
     <string name="detail_visibility">दृश्यता</string>
     <string name="detail_sunrise">सूर्योदय</string>

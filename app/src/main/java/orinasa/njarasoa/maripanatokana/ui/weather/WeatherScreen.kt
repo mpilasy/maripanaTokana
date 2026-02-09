@@ -764,6 +764,7 @@ private fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Boo
 private fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat: SimpleDateFormat, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
     val directions = stringArrayResource(R.array.cardinal_directions)
     val uvLabels = stringArrayResource(R.array.uv_labels)
+    val bodyFont = LocalBodyFont.current
 
     Column {
         Spacer(modifier = Modifier.height(8.dp))
@@ -832,11 +833,49 @@ private fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat
                 modifier = Modifier.weight(1f).fillMaxHeight(),
                 onToggleUnits = onToggleUnits,
             )
-            DetailCard(
-                title = stringResource(R.string.detail_humidity),
-                value = localizeDigits("%d%%".format(Locale.US, data.humidity)),
-                modifier = Modifier.weight(1f).fillMaxHeight()
-            )
+            val (dewP, dewS) = data.dewPoint.displayDual(metricPrimary)
+            Card(
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF2A1FA5).copy(alpha = 0.6f))
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = stringResource(R.string.detail_humidity),
+                        fontSize = 14.sp,
+                        fontFamily = bodyFont,
+                        color = Color.White.copy(alpha = 0.7f)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = localizeDigits("%d%%".format(Locale.US, data.humidity)),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = LocalDisplayFont.current,
+                        color = Color.White
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    val displayFont = LocalDisplayFont.current
+                    Text(
+                        text = stringResource(R.string.detail_dewpoint),
+                        fontSize = 12.sp,
+                        fontFamily = bodyFont,
+                        color = Color.White.copy(alpha = 0.5f),
+                    )
+                    val dewText = buildAnnotatedString {
+                        withStyle(SpanStyle(fontSize = 13.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont, color = Color.White)) {
+                            append(localizeDigits(dewP))
+                        }
+                        withStyle(SpanStyle(fontSize = 12.sp, fontFamily = displayFont, color = Color.White.copy(alpha = 0.55f))) {
+                            append(" ${localizeDigits(dewS)}")
+                        }
+                    }
+                    Text(
+                        text = dewText,
+                        modifier = if (onToggleUnits != null) Modifier.clickable(onClick = onToggleUnits) else Modifier,
+                    )
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
