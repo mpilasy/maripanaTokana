@@ -273,7 +273,7 @@ data class WeatherData(
 
 ### `HourlyForecast.kt` / `DailyForecast.kt`
 
-Slim data classes for forecast entries with temperature, weather code, and precipitation probability.
+Slim data classes for forecast entries with temperature, weather code, and precipitation probability. Precipitation probability is hidden in the UI when 0% (empty text preserves layout consistency).
 
 ---
 

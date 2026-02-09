@@ -696,7 +696,7 @@ private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Bo
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = localizeDigits("%d%%".format(Locale.US, item.precipProbability)),
+                        text = if (item.precipProbability > 0) localizeDigits("%d%%".format(Locale.US, item.precipProbability)) else "",
                         fontSize = 11.sp,
                         fontFamily = bodyFont,
                         color = Color(0xFF64B5F6),
@@ -741,7 +741,7 @@ private fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Boo
                     modifier = Modifier.weight(1f),
                 )
                 Text(
-                    text = localizeDigits("%d%%".format(Locale.US, item.precipProbability)),
+                    text = if (item.precipProbability > 0) localizeDigits("%d%%".format(Locale.US, item.precipProbability)) else "",
                     fontSize = 11.sp,
                     fontFamily = bodyFont,
                     color = Color(0xFF64B5F6),
