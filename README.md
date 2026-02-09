@@ -18,6 +18,7 @@
 - Edge-to-edge Blue Marble background
 - Detailed weather information:
   - Temperature with 1 decimal on hero card (current, feels like, min/max)
+  - Share button on hero card (captures card as PNG, shares via Android share sheet)
   - Pressure (hPa / inHg)
   - Humidity (%)
   - Wind speed and direction with cardinal compass (m/s / mph)

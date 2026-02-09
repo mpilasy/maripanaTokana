@@ -532,6 +532,17 @@ private fun WeatherContent(
                             }
                         }
                     }
+                    Text(
+                        text = "\u00A9 Orinasa Njarasoa",
+                        fontSize = 9.sp,
+                        lineHeight = 11.sp,
+                        fontFamily = bodyFont,
+                        color = Color.White.copy(alpha = 0.2f),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 7.dp),
+                        textAlign = TextAlign.Center,
+                    )
                 }
                 IconButton(
                     onClick = {
@@ -629,12 +640,6 @@ private fun WeatherContent(
                     Text(text = creditText, fontSize = 9.sp, lineHeight = 11.sp)
                     Text(
                         text = "${stringResource(R.string.hash_version, BuildConfig.GIT_HASH)} \u2022 ${BuildConfig.BUILD_TIME}",
-                        fontSize = 9.sp,
-                        lineHeight = 11.sp,
-                        color = Color.White.copy(alpha = 0.25f),
-                    )
-                    Text(
-                        text = "\u00A9 Orinasa Njarasoa",
                         fontSize = 9.sp,
                         lineHeight = 11.sp,
                         color = Color.White.copy(alpha = 0.25f),

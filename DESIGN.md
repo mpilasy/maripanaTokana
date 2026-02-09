@@ -384,9 +384,9 @@ This is the largest file (~885 lines). It contains all the composable functions:
 **WeatherContent composable** (the main scrollable UI):
 - **Fixed header**: City name, date, "Updated" time
 - **Scrollable middle** (`.weight(1f).verticalScroll()`):
-  - Hero card: weather icon, temperature, feels-like, description, precipitation
+  - Hero card: weather icon, temperature, feels-like, description, precipitation, "© Orinasa Njarasoa" watermark, share button (top-left) that captures the card as PNG and opens Android share sheet via FileProvider
   - Three collapsible sections: Hourly Forecast (expanded by default), This Week, Current Conditions
-- **Fixed footer**: Font icon + name (left), credits/hash/copyright (center), language flag (right)
+- **Fixed footer**: Font icon + name (left), credits/hash (center), language flag (right)
 
 **Key sub-composables:**
 - `DualUnitText` -- Shows primary value bold + secondary value dimmer. Clickable to toggle units.

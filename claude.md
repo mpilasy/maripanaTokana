@@ -18,12 +18,12 @@
 - **Font Cycling:** 16 bundled font pairings (Default + 15 custom) cycled via font icon in footer. Uses `CompositionLocal` (`LocalDisplayFont`, `LocalBodyFont`). Glance widgets cannot use custom fonts.
 - **In-App Language Cycling:** 8 languages (mg, ar, en, es, fr, hi, ne, zh) cycled via flag emoji button in footer. Uses `ContextWrapper` overriding only `getResources()` to swap locale without activity recreation or keyboard toasts. Locale index stored in `SharedPreferences("widget_prefs", "locale_index")`. Default: Malagasy (mg, index 0).
 - **i18n:** All strings extracted to `res/values/strings.xml` (~73 strings + 2 string-arrays). Translations in `res/values-{locale}/strings.xml`. `wmoDescriptionRes()` returns `@StringRes Int`. `WeatherUiState.Error` holds `@StringRes Int`. All numeric `.format()` calls use `Locale.US` to prevent Devanagari/Arabic digit rendering. Native digits applied via `SupportedLocale.localizeDigits()` character replacement at display time.
-- **Hero Card:** Emoji+description (upper-left), temperature with 1 decimal (upper-right), feels like (lower-left), precipitation (lower-right).
+- **Hero Card:** Emoji+description (upper-left), temperature with 1 decimal (upper-right), feels like (lower-left), precipitation (lower-right), "© Orinasa Njarasoa" watermark (bottom-center). Share icon (top-left) captures card via `rememberGraphicsLayer()` and shares PNG through FileProvider.
 - **Current Conditions:** Collapsible section with detail cards: Min/Max Temp, Wind/Wind Gust, Pressure/Humidity, UV Index/Visibility, Sunrise/Sunset. Cards in each row are equally sized via `IntrinsicSize.Min` + `fillMaxHeight()`.
 - **Forecasts:** Hourly (24h horizontal LazyRow) and weekly (7-day vertical list), both collapsible.
 - **Two-Step Location:** `lastLocation` (instant cached) renders immediately; `getFreshLocation(BALANCED_POWER_ACCURACY)` silently re-fetches weather if user moved >5 km.
 - **Widgets:** 4x1 ("Now in {city}") and 4x2 ("Today in {city}"), both via `WidgetWeatherFetcher` (standalone Retrofit, no Hilt). WorkManager updates with network constraint. 4x2 widget shows dual units for feels like, wind, and min/max, plus 3-day forecast.
-- **Footer:** "Weather data by Open-Meteo" link + "Hash: {commit} • {build time}" + "© Orinasa Njarasoa" via `BuildConfig.GIT_HASH` and `BuildConfig.BUILD_TIME`.
+- **Footer:** "Weather data by Open-Meteo" link + "Hash: {commit} • {build time}" via `BuildConfig.GIT_HASH` and `BuildConfig.BUILD_TIME`.
 - **Back Button:** `singleTop` launch mode + `moveTaskToBack(true)` — hides app instead of destroying.
 - **Auto-refresh:** `refreshIfStale()` on `ON_RESUME` if data >30 min old.
 - **Phone-only:** NOT compatible with TV, Wear, Auto (enforced via manifest features).
