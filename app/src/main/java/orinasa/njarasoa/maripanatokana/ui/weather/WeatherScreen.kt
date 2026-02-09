@@ -453,7 +453,7 @@ private fun WeatherContent(
                                 color = Color.White.copy(alpha = 0.9f),
                             )
                         }
-                        val (tempPrimary, tempSecondary) = data.temperature.displayDual(metricPrimary)
+                        val (tempPrimary, tempSecondary) = data.temperature.displayDual(metricPrimary, decimals = 1)
                         DualUnitText(
                             primary = localizeDigits(tempPrimary),
                             secondary = localizeDigits(tempSecondary),
@@ -581,6 +581,12 @@ private fun WeatherContent(
                     Text(text = creditText, fontSize = 9.sp, lineHeight = 11.sp)
                     Text(
                         text = "${stringResource(R.string.hash_version, BuildConfig.GIT_HASH)} \u2022 ${BuildConfig.BUILD_TIME}",
+                        fontSize = 9.sp,
+                        lineHeight = 11.sp,
+                        color = Color.White.copy(alpha = 0.25f),
+                    )
+                    Text(
+                        text = "\u00A9 Orinasa Njarasoa",
                         fontSize = 9.sp,
                         lineHeight = 11.sp,
                         color = Color.White.copy(alpha = 0.25f),
