@@ -9,7 +9,7 @@
 - **Build:** AGP 9.0.0 (Kotlin Android plugin is implicit — do NOT add explicitly)
 - **DI:** Hilt 2.59 + KSP 2.0.21-1.0.28
 - **Network:** Retrofit 2.11.0 + Kotlinx Serialization
-- **Weather Source:** Open-Meteo API (no key required)
+i thought ired)
 - **Location:** Google Play Services FusedLocationProvider
 - **Background:** WorkManager for periodic widget updates (30 min)
 - **Architecture:** MVVM, Clean Architecture

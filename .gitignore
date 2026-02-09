@@ -16,3 +16,5 @@ local.properties
 gradle.properties
 **/build/
 .idea
+release.keystore
+keystore.properties

@@ -36,6 +36,7 @@ import orinasa.njarasoa.maripanatokana.data.remote.wmoEmoji
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.widget.theme.WidgetColorProviders
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -71,7 +72,7 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
             .fillMaxSize()
             .background(ImageProvider(R.drawable.widget_background))
             .clickable(actionStartActivity(Intent(context, MainActivity::class.java)))
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
     ) {
         Column(
             modifier = GlanceModifier.fillMaxSize(),
@@ -99,7 +100,7 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
                 )
             }
 
-            Spacer(modifier = GlanceModifier.height(4.dp))
+            Spacer(modifier = GlanceModifier.height(2.dp))
 
             // -- Temperature + description --
             Row(
@@ -132,7 +133,7 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
                 )
             }
 
-            Spacer(modifier = GlanceModifier.height(8.dp))
+            Spacer(modifier = GlanceModifier.height(4.dp))
 
             // -- Detail row: Feels Like / Humidity / Wind --
             Row(
@@ -162,18 +163,47 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
 
             Spacer(modifier = GlanceModifier.height(4.dp))
 
-            // -- Min / Max row --
-            val (minP, minS) = data.tempMin.displayDual(metricPrimary)
-            val (maxP, maxS) = data.tempMax.displayDual(metricPrimary)
-            Text(
-                text = context.getString(R.string.widget_min_max, minP, minS, maxP, maxS),
-                modifier = GlanceModifier.fillMaxWidth(),
-                style = TextStyle(
-                    color = WidgetColorProviders.onSurfaceVariant,
-                    fontSize = 11.sp,
-                    textAlign = TextAlign.Center,
-                ),
-            )
+            // -- 3-day forecast row --
+            val forecasts = data.dailyForecast.drop(1).take(3) // skip today, next 3 days
+            if (forecasts.isNotEmpty()) {
+                val dayFormat = SimpleDateFormat("EEE", Locale.getDefault())
+                Row(
+                    modifier = GlanceModifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    for (day in forecasts) {
+                        val cal = Calendar.getInstance().apply { timeInMillis = day.date * 1000 }
+                        val dayName = dayFormat.format(cal.time)
+                        val emoji = wmoEmoji(day.weatherCode)
+                        val hi = day.tempMax.displayDual(metricPrimary).first
+                        val lo = day.tempMin.displayDual(metricPrimary).first
+                        Column(
+                            modifier = GlanceModifier.defaultWeight(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            Text(
+                                text = dayName,
+                                style = TextStyle(
+                                    color = WidgetColorProviders.accent,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                ),
+                            )
+                            Text(
+                                text = emoji,
+                                style = TextStyle(fontSize = 14.sp),
+                            )
+                            Text(
+                                text = "$hi / $lo",
+                                style = TextStyle(
+                                    color = WidgetColorProviders.onSurface,
+                                    fontSize = 10.sp,
+                                ),
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
