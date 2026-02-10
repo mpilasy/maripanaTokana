@@ -16,12 +16,22 @@ import orinasa.njarasoa.maripanatokana.ui.theme.fontPairings
 import javax.inject.Inject
 
 data class SupportedLocale(val tag: String, val flag: String, val nativeZero: Char? = null) {
-    /** Replace ASCII digits 0-9 with native script digits, if this locale has them. */
+    // Java lacks CLDR data for "mg" — fall back to French (same convention)
+    private val decimalSep: Char = java.text.DecimalFormatSymbols(
+        java.util.Locale.forLanguageTag(if (tag == "mg") "fr" else tag)
+    ).decimalSeparator
+
+    /** Replace ASCII digits 0-9 with native script digits and '.' with locale decimal separator. */
     fun localizeDigits(s: String): String {
-        val z = nativeZero ?: return s
+        if (nativeZero == null && decimalSep == '.') return s
+        val z = nativeZero
         return buildString(s.length) {
             for (c in s) {
-                append(if (c in '0'..'9') z + (c - '0') else c)
+                append(when {
+                    z != null && c in '0'..'9' -> z + (c - '0')
+                    c == '.' && decimalSep != '.' -> decimalSep
+                    else -> c
+                })
             }
         }
     }
