@@ -525,11 +525,11 @@ private fun WeatherContent(
                         // Top row: emoji+description (left) + temperature (right)
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.weight(1f),
                             ) {
                                 Text(
                                     text = wmoEmoji(data.weatherCode, isNight = data.timestamp !in (data.sunrise * 1000)..(data.sunset * 1000)),
@@ -541,16 +541,22 @@ private fun WeatherContent(
                                     fontSize = 16f.s(scale),
                                     fontFamily = bodyFont,
                                     color = Color.White.copy(alpha = 0.9f),
+                                    textAlign = TextAlign.Center,
                                 )
                             }
                             val (tempPrimary, tempSecondary) = data.temperature.displayDualMixed(metricPrimary)
-                            DualUnitText(
-                                primary = localizeDigits(tempPrimary),
-                                secondary = localizeDigits(tempSecondary),
-                                primarySize = 48f.s(scale),
+                            Column(
                                 horizontalAlignment = Alignment.End,
-                                onClick = onToggleUnits,
-                            )
+                                modifier = Modifier.weight(1f),
+                            ) {
+                                DualUnitText(
+                                    primary = localizeDigits(tempPrimary),
+                                    secondary = localizeDigits(tempSecondary),
+                                    primarySize = 48f.s(scale),
+                                    horizontalAlignment = Alignment.End,
+                                    onClick = onToggleUnits,
+                                )
+                            }
                         }
 
                         Spacer(modifier = Modifier.height(16.dp))
@@ -558,9 +564,8 @@ private fun WeatherContent(
                         // Bottom row: feels like (left) + precipitation (right)
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
                         ) {
-                            Column {
+                            Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = stringResource(R.string.feels_like),
                                     fontSize = 14f.s(scale),
@@ -570,7 +575,7 @@ private fun WeatherContent(
                                 val (flPrimary, flSecondary) = data.feelsLike.displayDual(metricPrimary)
                                 DualUnitText(primary = localizeDigits(flPrimary), secondary = localizeDigits(flSecondary), onClick = onToggleUnits)
                             }
-                            Column(horizontalAlignment = Alignment.End) {
+                            Column(horizontalAlignment = Alignment.End, modifier = Modifier.weight(1f)) {
                                 if (data.snow != null) {
                                     val (snowP, snowS) = data.snow.displayDual(metricPrimary)
                                     DualUnitText(
