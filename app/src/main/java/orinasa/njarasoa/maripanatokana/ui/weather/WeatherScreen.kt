@@ -379,14 +379,6 @@ private fun CollapsibleSection(
                 fontWeight = FontWeight.Bold,
                 fontFamily = bodyFont,
                 color = Color.White,
-                modifier = Modifier.weight(1f),
-            )
-            Icon(
-                imageVector = Icons.Default.KeyboardArrowDown,
-                contentDescription = if (expanded) stringResource(R.string.cd_collapse)
-                                     else stringResource(R.string.cd_expand),
-                tint = Color.White.copy(alpha = 0.7f),
-                modifier = Modifier.rotate(rotation),
             )
             if (expanded) {
                 Spacer(modifier = Modifier.width(4.dp))
@@ -410,6 +402,14 @@ private fun CollapsibleSection(
                     )
                 }
             }
+            Spacer(modifier = Modifier.weight(1f))
+            Icon(
+                imageVector = Icons.Default.KeyboardArrowDown,
+                contentDescription = if (expanded) stringResource(R.string.cd_collapse)
+                                     else stringResource(R.string.cd_expand),
+                tint = Color.White.copy(alpha = 0.7f),
+                modifier = Modifier.rotate(rotation),
+            )
         }
         AnimatedVisibility(
             visible = expanded,
