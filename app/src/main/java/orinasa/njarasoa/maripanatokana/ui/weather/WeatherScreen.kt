@@ -97,6 +97,7 @@ import orinasa.njarasoa.maripanatokana.domain.model.DailyForecast
 import orinasa.njarasoa.maripanatokana.domain.model.HourlyForecast
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFont
+import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFontFeatures
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 import orinasa.njarasoa.maripanatokana.ui.theme.fontPairings
 import androidx.core.content.FileProvider
@@ -170,6 +171,7 @@ fun WeatherScreen(
         LocalContext provides localizedContext,
         LocalDisplayFont provides pairing.display,
         LocalBodyFont provides pairing.body,
+        LocalBodyFontFeatures provides pairing.bodyFontFeatures,
         androidx.compose.ui.platform.LocalLayoutDirection provides layoutDirection,
     ) {
         Box(
@@ -329,6 +331,7 @@ private fun DualUnitText(
     onClick: (() -> Unit)? = null,
 ) {
     val displayFont = LocalDisplayFont.current
+    val fontFeatures = LocalBodyFontFeatures.current
     Column(
         horizontalAlignment = horizontalAlignment,
         modifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
@@ -338,6 +341,7 @@ private fun DualUnitText(
             fontSize = primarySize,
             fontWeight = FontWeight.Bold,
             fontFamily = displayFont,
+            fontFeatureSettings = fontFeatures,
             color = color,
         )
         Text(
@@ -345,6 +349,7 @@ private fun DualUnitText(
             fontSize = primarySize * 0.75f,
             fontWeight = FontWeight.Normal,
             fontFamily = displayFont,
+            fontFeatureSettings = fontFeatures,
             color = color.copy(alpha = 0.55f),
         )
     }
@@ -727,6 +732,7 @@ private fun WeatherContent(
 private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Boolean, dailySunrise: List<Long>, dailySunset: List<Long>, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
     val hourFormat = SimpleDateFormat("HH:mm", Locale.US)
     val bodyFont = LocalBodyFont.current
+    val fontFeatures = LocalBodyFontFeatures.current
     val scale = LocalScale.current
 
     LazyRow(
@@ -746,6 +752,7 @@ private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Bo
                         text = localizeDigits(hourFormat.format(Date(item.time))),
                         fontSize = 12f.s(scale),
                         fontFamily = bodyFont,
+                        fontFeatureSettings = fontFeatures,
                         color = Color.White.copy(alpha = 0.7f),
                     )
                     Spacer(modifier = Modifier.height(4.dp))
@@ -771,6 +778,7 @@ private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Bo
                         text = if (item.precipProbability > 0) localizeDigits("%d%%".format(Locale.US, item.precipProbability)) else "",
                         fontSize = 11f.s(scale),
                         fontFamily = bodyFont,
+                        fontFeatureSettings = fontFeatures,
                         color = Color(0xFF64B5F6),
                     )
                 }
@@ -785,6 +793,7 @@ private fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Boo
     val dayFormat = SimpleDateFormat("EEEE", appLocale)
     val dayMonthFormat = SimpleDateFormat("d MMM", appLocale)
     val bodyFont = LocalBodyFont.current
+    val fontFeatures = LocalBodyFontFeatures.current
     val scale = LocalScale.current
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -825,6 +834,7 @@ private fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Boo
                     text = if (item.precipProbability > 0) localizeDigits("%d%%".format(Locale.US, item.precipProbability)) else "",
                     fontSize = 11f.s(scale),
                     fontFamily = bodyFont,
+                    fontFeatureSettings = fontFeatures,
                     color = Color(0xFF64B5F6),
                 )
                 Spacer(modifier = Modifier.width(8.dp))
@@ -846,6 +856,7 @@ private fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat
     val directions = stringArrayResource(R.array.cardinal_directions)
     val uvLabels = stringArrayResource(R.array.uv_labels)
     val bodyFont = LocalBodyFont.current
+    val fontFeatures = LocalBodyFontFeatures.current
     val scale = LocalScale.current
 
     Column {
@@ -934,6 +945,7 @@ private fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat
                         fontSize = 20f.s(scale),
                         fontWeight = FontWeight.Bold,
                         fontFamily = LocalDisplayFont.current,
+                        fontFeatureSettings = fontFeatures,
                         color = Color.White
                     )
                     Spacer(modifier = Modifier.height(8.dp))
@@ -1020,6 +1032,7 @@ private fun DetailCard(
     onToggleUnits: (() -> Unit)? = null,
 ) {
     val bodyFont = LocalBodyFont.current
+    val fontFeatures = LocalBodyFontFeatures.current
     val scale = LocalScale.current
     Card(
         modifier = modifier,
@@ -1044,6 +1057,7 @@ private fun DetailCard(
                     fontSize = 20f.s(scale),
                     fontWeight = FontWeight.Bold,
                     fontFamily = LocalDisplayFont.current,
+                    fontFeatureSettings = fontFeatures,
                     color = Color.White
                 )
             }

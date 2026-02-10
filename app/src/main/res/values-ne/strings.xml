@@ -62,7 +62,7 @@
     <!-- Section titles -->
     <string name="section_current_conditions">हालको अवस्था</string>
     <string name="section_hourly_forecast">प्रति घण्टा पूर्वानुमान</string>
-    <string name="section_this_week">१६ दिनको पूर्वानुमान</string>
+    <string name="section_this_week">१० दिनको पूर्वानुमान</string>
 
     <!-- Detail card titles -->
     <string name="detail_min_temp">न्यूनतम तापक्रम</string>

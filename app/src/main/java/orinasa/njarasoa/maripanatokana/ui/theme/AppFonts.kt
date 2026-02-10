@@ -129,10 +129,42 @@ private val AtkinsonHyperlegible = FontFamily(
     Font(R.font.atkinson_hyperlegible_bold, FontWeight.Bold),
 )
 
+// New pairings fonts
+private val FiraCode = FontFamily(
+    Font(R.font.fira_code, FontWeight.Normal),
+    Font(R.font.fira_code, FontWeight.Bold),
+)
+private val Montserrat = FontFamily(
+    Font(R.font.montserrat, FontWeight.Normal),
+    Font(R.font.montserrat, FontWeight.Bold),
+)
+private val OpenSans = FontFamily(
+    Font(R.font.open_sans, FontWeight.Normal),
+    Font(R.font.open_sans, FontWeight.Bold),
+)
+private val SpaceMono = FontFamily(
+    Font(R.font.space_mono_regular, FontWeight.Normal),
+    Font(R.font.space_mono_bold, FontWeight.Bold),
+)
+private val PlusJakartaSans = FontFamily(
+    Font(R.font.plus_jakarta_sans, FontWeight.Normal),
+    Font(R.font.plus_jakarta_sans, FontWeight.Bold),
+)
+private val Archivo = FontFamily(
+    Font(R.font.archivo, FontWeight.Normal),
+    Font(R.font.archivo, FontWeight.Bold),
+)
+private val ArchivoNarrow = FontFamily(
+    Font(R.font.archivo_narrow, FontWeight.Normal),
+    Font(R.font.archivo_narrow, FontWeight.Bold),
+)
+
 data class FontPairing(
     val name: String,
     val display: FontFamily,
     val body: FontFamily,
+    /** OpenType font feature settings for the body font (e.g. "tnum" for tabular numerals). */
+    val bodyFontFeatures: String? = null,
 )
 
 val fontPairings = listOf(
@@ -157,7 +189,14 @@ val fontPairings = listOf(
     FontPairing("Exo 2 + Barlow", Exo2, Barlow),
     FontPairing("Michroma + Saira", Michroma, Saira),
     FontPairing("Jost + Atkinson", Jost, AtkinsonHyperlegible),
+    // New pairings – data fonts configured with tabular numerals (tnum)
+    FontPairing("Roboto + Fira Code", FontFamily.Default, FiraCode, bodyFontFeatures = "tnum"),
+    FontPairing("Montserrat + Open Sans", Montserrat, OpenSans, bodyFontFeatures = "tnum"),
+    FontPairing("Space Grotesk + Space Mono", SpaceGrotesk, SpaceMono, bodyFontFeatures = "tnum"),
+    FontPairing("Plus Jakarta Sans + Inter", PlusJakartaSans, Inter, bodyFontFeatures = "tnum"),
+    FontPairing("Archivo + Archivo Narrow", Archivo, ArchivoNarrow, bodyFontFeatures = "tnum"),
 )
 
 val LocalDisplayFont = compositionLocalOf<FontFamily> { FontFamily.Default }
 val LocalBodyFont = compositionLocalOf<FontFamily> { FontFamily.Default }
+val LocalBodyFontFeatures = compositionLocalOf<String?> { null }

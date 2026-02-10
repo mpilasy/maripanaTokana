@@ -62,7 +62,7 @@
     <!-- Section titles -->
     <string name="section_current_conditions">Izao</string>
     <string name="section_hourly_forecast">Isan\'ora</string>
-    <string name="section_this_week">Ny tapa-bolana hoavy io</string>
+    <string name="section_this_week">Ny folo andro manaraka</string>
 
     <!-- Detail card titles -->
     <string name="detail_min_temp">Iva Indrindra</string>
