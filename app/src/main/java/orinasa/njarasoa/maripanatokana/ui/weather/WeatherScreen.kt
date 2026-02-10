@@ -545,18 +545,13 @@ private fun WeatherContent(
                                 )
                             }
                             val (tempPrimary, tempSecondary) = data.temperature.displayDualMixed(metricPrimary)
-                            Column(
+                            DualUnitText(
+                                primary = localizeDigits(tempPrimary),
+                                secondary = localizeDigits(tempSecondary),
+                                primarySize = 48f.s(scale),
                                 horizontalAlignment = Alignment.End,
-                                modifier = Modifier.weight(1f),
-                            ) {
-                                DualUnitText(
-                                    primary = localizeDigits(tempPrimary),
-                                    secondary = localizeDigits(tempSecondary),
-                                    primarySize = 48f.s(scale),
-                                    horizontalAlignment = Alignment.End,
-                                    onClick = onToggleUnits,
-                                )
-                            }
+                                onClick = onToggleUnits,
+                            )
                         }
 
                         Spacer(modifier = Modifier.height(16.dp))
@@ -575,7 +570,7 @@ private fun WeatherContent(
                                 val (flPrimary, flSecondary) = data.feelsLike.displayDual(metricPrimary)
                                 DualUnitText(primary = localizeDigits(flPrimary), secondary = localizeDigits(flSecondary), onClick = onToggleUnits)
                             }
-                            Column(horizontalAlignment = Alignment.End, modifier = Modifier.weight(1f)) {
+                            Column(horizontalAlignment = Alignment.End) {
                                 if (data.snow != null) {
                                     val (snowP, snowS) = data.snow.displayDual(metricPrimary)
                                     DualUnitText(
