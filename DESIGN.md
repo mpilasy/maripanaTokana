@@ -306,7 +306,7 @@ No API key. The default parameter strings request all the fields the app needs.
 
 Maps WMO integer codes (0-99) to:
 - `wmoDescriptionRes(code)` -- returns a `@StringRes Int` (resolved to localized text at display time)
-- `wmoEmoji(code)` -- returns a Unicode emoji string
+- `wmoEmoji(code, isNight)` -- returns a Unicode emoji string (day/night variants for sun/moon). Hourly forecast uses per-day sunrise/sunset from `dailySunrise`/`dailySunset` lists to correctly determine day/night for hours spanning multiple days.
 
 ### 6.4 Weather Repository (`WeatherRepositoryImpl.kt`)
 

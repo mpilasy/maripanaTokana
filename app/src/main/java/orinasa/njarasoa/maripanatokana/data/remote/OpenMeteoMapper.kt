@@ -23,6 +23,9 @@ fun OpenMeteoResponse.toDomain(locationName: String): WeatherData {
         dateFormat.parse(it)?.time?.div(1000) ?: 0L
     } ?: 0L
 
+    val dailySunriseMillis = daily.sunrise.map { dateFormat.parse(it)?.time ?: 0L }
+    val dailySunsetMillis = daily.sunset.map { dateFormat.parse(it)?.time ?: 0L }
+
     val nowMillis = System.currentTimeMillis()
 
     val hourlyForecast = hourly.time.indices
@@ -69,6 +72,8 @@ fun OpenMeteoResponse.toDomain(locationName: String): WeatherData {
         visibility = c.visibility.toInt(),
         sunrise = sunriseEpoch,
         sunset = sunsetEpoch,
+        dailySunrise = dailySunriseMillis,
+        dailySunset = dailySunsetMillis,
         hourlyForecast = hourlyForecast,
         dailyForecast = dailyForecast,
     )

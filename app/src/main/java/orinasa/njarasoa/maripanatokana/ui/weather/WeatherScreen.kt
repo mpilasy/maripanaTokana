@@ -514,7 +514,7 @@ private fun WeatherContent(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                             ) {
                                 Text(
-                                    text = wmoEmoji(data.weatherCode, isNight = data.timestamp !in data.sunrise..data.sunset),
+                                    text = wmoEmoji(data.weatherCode, isNight = data.timestamp !in (data.sunrise * 1000)..(data.sunset * 1000)),
                                     fontSize = 48.sp,
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
@@ -619,7 +619,7 @@ private fun WeatherContent(
             // Hourly Forecast
             if (data.hourlyForecast.isNotEmpty()) {
                 CollapsibleSection(title = stringResource(R.string.section_hourly_forecast), headerGraphicsLayer = headerGraphicsLayer, initialExpanded = true) {
-                    HourlyForecastRow(data.hourlyForecast, metricPrimary, data.sunrise, data.sunset, localizeDigits, onToggleUnits)
+                    HourlyForecastRow(data.hourlyForecast, metricPrimary, data.dailySunrise, data.dailySunset, localizeDigits, onToggleUnits)
                 }
                 Spacer(modifier = Modifier.height(24.dp))
             }
@@ -705,7 +705,7 @@ private fun WeatherContent(
 }
 
 @Composable
-private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Boolean, sunrise: Long, sunset: Long, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
+private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Boolean, dailySunrise: List<Long>, dailySunset: List<Long>, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
     val hourFormat = SimpleDateFormat("HH:mm", Locale.US)
     val bodyFont = LocalBodyFont.current
 
@@ -730,7 +730,12 @@ private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Bo
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = wmoEmoji(item.weatherCode, isNight = item.time !in sunrise..sunset),
+                        text = run {
+                            val dayIdx = dailySunrise.indexOfLast { it <= item.time }.coerceAtLeast(0)
+                            val sr = dailySunrise.getOrElse(dayIdx) { 0L }
+                            val ss = dailySunset.getOrElse(dayIdx) { 0L }
+                            wmoEmoji(item.weatherCode, isNight = item.time !in sr..ss)
+                        },
                         fontSize = 20.sp,
                     )
                     Spacer(modifier = Modifier.height(4.dp))
