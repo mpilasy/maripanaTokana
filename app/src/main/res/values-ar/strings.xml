@@ -62,7 +62,7 @@
     <!-- Section titles -->
     <string name="section_current_conditions">الأحوال الحالية</string>
     <string name="section_hourly_forecast">التوقعات بالساعة</string>
-    <string name="section_this_week">هذا الأسبوع</string>
+    <string name="section_this_week">توقعات ١٦ يومًا</string>
 
     <!-- Detail card titles -->
     <string name="detail_min_temp">الحرارة الدنيا</string>

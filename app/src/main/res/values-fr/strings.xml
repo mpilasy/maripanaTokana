@@ -62,7 +62,7 @@
     <!-- Section titles -->
     <string name="section_current_conditions">Conditions actuelles</string>
     <string name="section_hourly_forecast">Pr\u00e9visions horaires</string>
-    <string name="section_this_week">Cette semaine</string>
+    <string name="section_this_week">Prévisions à 16 jours</string>
 
     <!-- Detail card titles -->
     <string name="detail_min_temp">Temp. min</string>

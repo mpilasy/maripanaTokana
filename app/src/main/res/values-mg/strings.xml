@@ -38,7 +38,7 @@
     <!-- Permission screen -->
     <string name="permission_title">Mila avela maka GPS</string>
     <string name="permission_message">Mila mahalala ny toerana misy anao mba hahalalana ny toetrandro.</string>
-    <string name="grant_permission">Avelao</string>
+    <string name="grant_permission">Ekena</string>
 
     <!-- Error screen -->
     <string name="error_title">Nisy olana</string>
@@ -62,11 +62,11 @@
     <!-- Section titles -->
     <string name="section_current_conditions">Izao</string>
     <string name="section_hourly_forecast">Isan\'ora</string>
-    <string name="section_this_week">Ny andro fito manaraka</string>
+    <string name="section_this_week">Ny tapa-bolana hoavy io</string>
 
     <!-- Detail card titles -->
-    <string name="detail_min_temp">Avo</string>
-    <string name="detail_max_temp">Iva</string>
+    <string name="detail_min_temp">Iva Indrindra</string>
+    <string name="detail_max_temp">Avo Indrindra</string>
     <string name="detail_wind">Rivotra</string>
     <string name="detail_wind_gust">Rivotra Tadio</string>
     <string name="detail_pressure">Tsindry Atmosferika</string>
@@ -74,8 +74,8 @@
     <string name="detail_dewpoint">Marimando</string>
     <string name="detail_uv_index">Tahan\'ny UV</string>
     <string name="detail_visibility">Tazana</string>
-    <string name="detail_sunrise">Masoandro Miposaka</string>
-    <string name="detail_sunset">Masoandro Mody</string>
+    <string name="detail_sunrise">&#x1f31e; Miposaka</string>
+    <string name="detail_sunset">&#x1f31e; Mody</string>
 
     <!-- Visibility format strings -->
     <string name="visibility_km" formatted="false">%.1f km</string>

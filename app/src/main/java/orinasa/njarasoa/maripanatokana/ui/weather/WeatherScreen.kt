@@ -56,11 +56,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -80,6 +82,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -104,6 +107,10 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
+private val LocalScale = staticCompositionLocalOf { 1f }
+private fun Float.s(scale: Float) = (this * scale).sp
+private fun Int.sd(scale: Float) = (this * scale).dp
 
 @OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -274,6 +281,7 @@ fun WeatherScreen(
                             fontName = pairing.name,
                             currentFlag = supportedLocales[localeIndex].flag,
                             localizeDigits = supportedLocales[localeIndex]::localizeDigits,
+                            osTimeFormat = android.text.format.DateFormat.getTimeFormat(baseContext),
                             onToggleUnits = { viewModel.toggleUnits() },
                             onCycleFont = { viewModel.cycleFont() },
                             onCycleLanguage = { viewModel.cycleLanguage() },
@@ -315,7 +323,7 @@ fun WeatherScreen(
 private fun DualUnitText(
     primary: String,
     secondary: String,
-    primarySize: TextUnit = 16.sp,
+    primarySize: TextUnit = 16f.s(LocalScale.current),
     color: Color = Color.White,
     horizontalAlignment: Alignment.Horizontal = Alignment.Start,
     onClick: (() -> Unit)? = null,
@@ -355,6 +363,7 @@ private fun CollapsibleSection(
     val graphicsLayer = rememberGraphicsLayer()
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
+    val scale = LocalScale.current
 
     Column {
         Row(
@@ -366,7 +375,7 @@ private fun CollapsibleSection(
         ) {
             Text(
                 text = title,
-                fontSize = 20.sp,
+                fontSize = 20f.s(scale),
                 fontWeight = FontWeight.Bold,
                 fontFamily = bodyFont,
                 color = Color.White,
@@ -428,27 +437,37 @@ private fun WeatherContent(
     fontName: String,
     currentFlag: String,
     localizeDigits: (String) -> String,
+    osTimeFormat: java.text.DateFormat,
     onToggleUnits: () -> Unit,
     onCycleFont: () -> Unit,
     onCycleLanguage: () -> Unit,
 ) {
-    val appLocale = LocalContext.current.resources.configuration.locales[0]
+    val context = LocalContext.current
+    val appLocale = context.resources.configuration.locales[0]
     val dateFormat = SimpleDateFormat("EEEE, d MMMM yyyy", appLocale)
     val timeFormat = SimpleDateFormat("HH:mm", Locale.US)
     val displayFont = LocalDisplayFont.current
     val bodyFont = LocalBodyFont.current
 
+    val screenWidthDp = LocalConfiguration.current.screenWidthDp
+    val scale = when {
+        screenWidthDp >= 400 -> 1f
+        screenWidthDp >= 320 -> 0.8f
+        else -> 0.7f
+    }
+
+    CompositionLocalProvider(LocalScale provides scale) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .statusBarsPadding()
-            .padding(horizontal = 24.dp)
+            .padding(horizontal = 24.sd(scale))
     ) {
         // Fixed header
         val headerGraphicsLayer = rememberGraphicsLayer()
         Column(
             modifier = Modifier
-                .padding(top = 24.dp)
+                .padding(top = 24.sd(scale))
                 .drawWithContent {
                     headerGraphicsLayer.record {
                         this@drawWithContent.drawContent()
@@ -458,20 +477,20 @@ private fun WeatherContent(
         ) {
             Text(
                 text = data.locationName,
-                fontSize = 32.sp,
+                fontSize = 32f.s(scale),
                 fontWeight = FontWeight.Bold,
                 fontFamily = displayFont,
                 color = Color.White
             )
             Text(
                 text = localizeDigits(dateFormat.format(Date(data.timestamp))),
-                fontSize = 16.sp,
+                fontSize = 16f.s(scale),
                 fontFamily = bodyFont,
                 color = Color.White.copy(alpha = 0.7f)
             )
             Text(
-                text = localizeDigits(stringResource(R.string.updated_time, timeFormat.format(Date(data.timestamp)))),
-                fontSize = 12.sp,
+                text = localizeDigits(stringResource(R.string.updated_time, osTimeFormat.format(Date(data.timestamp)))),
+                fontSize = 12f.s(scale),
                 fontFamily = bodyFont,
                 color = Color.White.copy(alpha = 0.4f)
             )
@@ -482,12 +501,11 @@ private fun WeatherContent(
             modifier = Modifier
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
-                .padding(vertical = 24.dp)
+                .padding(vertical = 24.sd(scale))
         ) {
             // Hero Card
             val graphicsLayer = rememberGraphicsLayer()
             val coroutineScope = rememberCoroutineScope()
-            val context = LocalContext.current
             Box {
                 Card(
                     modifier = Modifier
@@ -502,7 +520,7 @@ private fun WeatherContent(
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF2A1FA5))
                 ) {
                     Column(
-                        modifier = Modifier.padding(24.dp)
+                        modifier = Modifier.padding(24.sd(scale))
                     ) {
                         // Top row: emoji+description (left) + temperature (right)
                         Row(
@@ -515,12 +533,12 @@ private fun WeatherContent(
                             ) {
                                 Text(
                                     text = wmoEmoji(data.weatherCode, isNight = data.timestamp !in (data.sunrise * 1000)..(data.sunset * 1000)),
-                                    fontSize = 48.sp,
+                                    fontSize = 48f.s(scale),
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = stringResource(wmoDescriptionRes(data.weatherCode)),
-                                    fontSize = 16.sp,
+                                    fontSize = 16f.s(scale),
                                     fontFamily = bodyFont,
                                     color = Color.White.copy(alpha = 0.9f),
                                 )
@@ -529,7 +547,7 @@ private fun WeatherContent(
                             DualUnitText(
                                 primary = localizeDigits(tempPrimary),
                                 secondary = localizeDigits(tempSecondary),
-                                primarySize = 48.sp,
+                                primarySize = 48f.s(scale),
                                 horizontalAlignment = Alignment.End,
                                 onClick = onToggleUnits,
                             )
@@ -545,7 +563,7 @@ private fun WeatherContent(
                             Column {
                                 Text(
                                     text = stringResource(R.string.feels_like),
-                                    fontSize = 14.sp,
+                                    fontSize = 14f.s(scale),
                                     fontFamily = bodyFont,
                                     color = Color.White.copy(alpha = 0.7f)
                                 )
@@ -570,7 +588,7 @@ private fun WeatherContent(
                                 } else {
                                     Text(
                                         text = stringResource(R.string.no_precip),
-                                        fontSize = 14.sp,
+                                        fontSize = 14f.s(scale),
                                         fontFamily = bodyFont,
                                         color = Color.White.copy(alpha = 0.5f),
                                     )
@@ -580,8 +598,8 @@ private fun WeatherContent(
                     }
                     Text(
                         text = "\u00A9 Orinasa Njarasoa",
-                        fontSize = 9.sp,
-                        lineHeight = 11.sp,
+                        fontSize = 9f.s(scale),
+                        lineHeight = 11f.s(scale),
                         fontFamily = bodyFont,
                         color = Color.White.copy(alpha = 0.2f),
                         modifier = Modifier
@@ -614,14 +632,14 @@ private fun WeatherContent(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(24.sd(scale)))
 
             // Hourly Forecast
             if (data.hourlyForecast.isNotEmpty()) {
                 CollapsibleSection(title = stringResource(R.string.section_hourly_forecast), headerGraphicsLayer = headerGraphicsLayer, initialExpanded = true) {
                     HourlyForecastRow(data.hourlyForecast, metricPrimary, data.dailySunrise, data.dailySunset, localizeDigits, onToggleUnits)
                 }
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(24.sd(scale)))
             }
 
             // Weekly Forecast
@@ -629,7 +647,7 @@ private fun WeatherContent(
                 CollapsibleSection(title = stringResource(R.string.section_this_week), headerGraphicsLayer = headerGraphicsLayer) {
                     DailyForecastList(data.dailyForecast, metricPrimary, localizeDigits, onToggleUnits)
                 }
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(24.sd(scale)))
             }
 
             // Current Conditions (collapsible)
@@ -675,8 +693,8 @@ private fun WeatherContent(
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = fontName.replace(" + ", "\n"),
-                        fontSize = 9.sp,
-                        lineHeight = 11.sp,
+                        fontSize = 9f.s(scale),
+                        lineHeight = 11f.s(scale),
                         fontFamily = bodyFont,
                         color = Color.White.copy(alpha = 0.4f),
                     )
@@ -684,11 +702,11 @@ private fun WeatherContent(
                 Spacer(modifier = Modifier.weight(1f))
                 // Credits + hash centered
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = creditText, fontSize = 9.sp, lineHeight = 11.sp)
+                    Text(text = creditText, fontSize = 9f.s(scale), lineHeight = 11f.s(scale))
                     Text(
                         text = "${stringResource(R.string.hash_version, BuildConfig.GIT_HASH)}${if (BuildConfig.DEBUG) "-d" else ""} \u2022 ${BuildConfig.BUILD_TIME}",
-                        fontSize = 9.sp,
-                        lineHeight = 11.sp,
+                        fontSize = 9f.s(scale),
+                        lineHeight = 11f.s(scale),
                         color = Color.White.copy(alpha = 0.25f),
                     )
                 }
@@ -696,21 +714,23 @@ private fun WeatherContent(
                 // Language flag
                 Text(
                     text = currentFlag,
-                    fontSize = 16.sp,
+                    fontSize = 16f.s(scale),
                     modifier = Modifier.clickable(onClick = onCycleLanguage),
                 )
             }
         }
     }
+    } // end CompositionLocalProvider(LocalScale)
 }
 
 @Composable
 private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Boolean, dailySunrise: List<Long>, dailySunset: List<Long>, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
     val hourFormat = SimpleDateFormat("HH:mm", Locale.US)
     val bodyFont = LocalBodyFont.current
+    val scale = LocalScale.current
 
     LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.sd(scale)),
         contentPadding = PaddingValues(vertical = 8.dp),
     ) {
         items(forecasts) { item ->
@@ -719,12 +739,12 @@ private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Bo
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF2A1FA5).copy(alpha = 0.6f)),
             ) {
                 Column(
-                    modifier = Modifier.padding(12.dp),
+                    modifier = Modifier.padding(12.sd(scale)),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(
                         text = localizeDigits(hourFormat.format(Date(item.time))),
-                        fontSize = 12.sp,
+                        fontSize = 12f.s(scale),
                         fontFamily = bodyFont,
                         color = Color.White.copy(alpha = 0.7f),
                     )
@@ -736,20 +756,20 @@ private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Bo
                             val ss = dailySunset.getOrElse(dayIdx) { 0L }
                             wmoEmoji(item.weatherCode, isNight = item.time !in sr..ss)
                         },
-                        fontSize = 20.sp,
+                        fontSize = 20f.s(scale),
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     val (tempP, tempS) = item.temperature.displayDual(metricPrimary)
                     DualUnitText(
                         primary = localizeDigits(tempP),
                         secondary = localizeDigits(tempS),
-                        primarySize = 14.sp,
+                        primarySize = 14f.s(scale),
                         onClick = onToggleUnits,
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = if (item.precipProbability > 0) localizeDigits("%d%%".format(Locale.US, item.precipProbability)) else "",
-                        fontSize = 11.sp,
+                        fontSize = 11f.s(scale),
                         fontFamily = bodyFont,
                         color = Color(0xFF64B5F6),
                     )
@@ -763,7 +783,9 @@ private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Bo
 private fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
     val appLocale = LocalContext.current.resources.configuration.locales[0]
     val dayFormat = SimpleDateFormat("EEEE", appLocale)
+    val dayMonthFormat = SimpleDateFormat("d MMM", appLocale)
     val bodyFont = LocalBodyFont.current
+    val scale = LocalScale.current
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         forecasts.forEach { item ->
@@ -774,27 +796,34 @@ private fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Boo
                         Color(0xFF2A1FA5).copy(alpha = 0.3f),
                         RoundedCornerShape(12.dp),
                     )
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                    .padding(horizontal = 16.sd(scale), vertical = 12.sd(scale)),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(
-                    text = dayFormat.format(Date(item.date)),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    fontFamily = bodyFont,
-                    color = Color.White,
-                    modifier = Modifier.width(100.dp),
-                )
+                Column(modifier = Modifier.width(100.sd(scale))) {
+                    Text(
+                        text = dayFormat.format(Date(item.date)),
+                        fontSize = 14f.s(scale),
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = bodyFont,
+                        color = Color.White,
+                    )
+                    Text(
+                        text = localizeDigits(dayMonthFormat.format(Date(item.date))),
+                        fontSize = 10f.s(scale),
+                        fontFamily = bodyFont,
+                        color = Color.White.copy(alpha = 0.4f),
+                    )
+                }
                 Text(
                     text = "${wmoEmoji(item.weatherCode)} ${stringResource(wmoDescriptionRes(item.weatherCode))}",
-                    fontSize = 12.sp,
+                    fontSize = 12f.s(scale),
                     fontFamily = bodyFont,
                     color = Color.White.copy(alpha = 0.7f),
                     modifier = Modifier.weight(1f),
                 )
                 Text(
                     text = if (item.precipProbability > 0) localizeDigits("%d%%".format(Locale.US, item.precipProbability)) else "",
-                    fontSize = 11.sp,
+                    fontSize = 11f.s(scale),
                     fontFamily = bodyFont,
                     color = Color(0xFF64B5F6),
                 )
@@ -804,7 +833,7 @@ private fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Boo
                 DualUnitText(
                     primary = localizeDigits("\u2191$maxP \u2193$minP"),
                     secondary = localizeDigits("\u2191$maxS \u2193$minS"),
-                    primarySize = 13.sp,
+                    primarySize = 13f.s(scale),
                     onClick = onToggleUnits,
                 )
             }
@@ -817,17 +846,18 @@ private fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat
     val directions = stringArrayResource(R.array.cardinal_directions)
     val uvLabels = stringArrayResource(R.array.uv_labels)
     val bodyFont = LocalBodyFont.current
+    val scale = LocalScale.current
 
     Column {
         Spacer(modifier = Modifier.height(8.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(16.sd(scale))
         ) {
             val (minP, minS) = data.tempMin.displayDual(metricPrimary)
             DetailCard(
-                title = stringResource(R.string.detail_min_temp),
+                title = "\u2193 ${stringResource(R.string.detail_min_temp)}",
                 value = localizeDigits(minP),
                 secondaryValue = localizeDigits(minS),
                 modifier = Modifier.weight(1f).fillMaxHeight(),
@@ -835,7 +865,7 @@ private fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat
             )
             val (maxP, maxS) = data.tempMax.displayDual(metricPrimary)
             DetailCard(
-                title = stringResource(R.string.detail_max_temp),
+                title = "\u2191 ${stringResource(R.string.detail_max_temp)}",
                 value = localizeDigits(maxP),
                 secondaryValue = localizeDigits(maxS),
                 modifier = Modifier.weight(1f).fillMaxHeight(),
@@ -843,11 +873,11 @@ private fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(16.sd(scale)))
 
         Row(
             modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(16.sd(scale))
         ) {
             val (windP, windS) = data.windSpeed.displayDual(metricPrimary)
             val dirIndex = ((data.windDeg % 360 + 360) % 360 * 16 / 360) % 16
@@ -871,11 +901,11 @@ private fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat
             } ?: Spacer(modifier = Modifier.weight(1f))
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(16.sd(scale)))
 
         Row(
             modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(16.sd(scale))
         ) {
             val (pressP, pressS) = data.pressure.displayDual(metricPrimary)
             DetailCard(
@@ -891,17 +921,17 @@ private fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF2A1FA5).copy(alpha = 0.6f))
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.padding(16.sd(scale))) {
                     Text(
                         text = stringResource(R.string.detail_humidity),
-                        fontSize = 14.sp,
+                        fontSize = 14f.s(scale),
                         fontFamily = bodyFont,
                         color = Color.White.copy(alpha = 0.7f)
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = localizeDigits("%d%%".format(Locale.US, data.humidity)),
-                        fontSize = 20.sp,
+                        fontSize = 20f.s(scale),
                         fontWeight = FontWeight.Bold,
                         fontFamily = LocalDisplayFont.current,
                         color = Color.White
@@ -910,15 +940,15 @@ private fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat
                     val displayFont = LocalDisplayFont.current
                     Text(
                         text = stringResource(R.string.detail_dewpoint),
-                        fontSize = 12.sp,
+                        fontSize = 12f.s(scale),
                         fontFamily = bodyFont,
                         color = Color.White.copy(alpha = 0.5f),
                     )
                     val dewText = buildAnnotatedString {
-                        withStyle(SpanStyle(fontSize = 13.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont, color = Color.White)) {
+                        withStyle(SpanStyle(fontSize = 13f.s(scale), fontWeight = FontWeight.Bold, fontFamily = displayFont, color = Color.White)) {
                             append(localizeDigits(dewP))
                         }
-                        withStyle(SpanStyle(fontSize = 12.sp, fontFamily = displayFont, color = Color.White.copy(alpha = 0.55f))) {
+                        withStyle(SpanStyle(fontSize = 12f.s(scale), fontFamily = displayFont, color = Color.White.copy(alpha = 0.55f))) {
                             append(" ${localizeDigits(dewS)}")
                         }
                     }
@@ -930,11 +960,11 @@ private fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(16.sd(scale)))
 
         Row(
             modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(16.sd(scale))
         ) {
             val uvLabelText = when {
                 data.uvIndex < 3 -> uvLabels[0]
@@ -960,11 +990,11 @@ private fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(16.sd(scale)))
 
         Row(
             modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(16.sd(scale))
         ) {
             DetailCard(
                 title = stringResource(R.string.detail_sunrise),
@@ -990,27 +1020,28 @@ private fun DetailCard(
     onToggleUnits: (() -> Unit)? = null,
 ) {
     val bodyFont = LocalBodyFont.current
+    val scale = LocalScale.current
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF2A1FA5).copy(alpha = 0.6f))
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(16.sd(scale))
         ) {
             Text(
                 text = title,
-                fontSize = 14.sp,
+                fontSize = 14f.s(scale),
                 fontFamily = bodyFont,
                 color = Color.White.copy(alpha = 0.7f)
             )
             Spacer(modifier = Modifier.height(8.dp))
             if (secondaryValue != null) {
-                DualUnitText(primary = value, secondary = secondaryValue, primarySize = 20.sp, onClick = onToggleUnits)
+                DualUnitText(primary = value, secondary = secondaryValue, primarySize = 20f.s(scale), onClick = onToggleUnits)
             } else {
                 Text(
                     text = value,
-                    fontSize = 20.sp,
+                    fontSize = 20f.s(scale),
                     fontWeight = FontWeight.Bold,
                     fontFamily = LocalDisplayFont.current,
                     color = Color.White
@@ -1019,7 +1050,7 @@ private fun DetailCard(
             subtitle?.let {
                 Text(
                     text = it,
-                    fontSize = 12.sp,
+                    fontSize = 12f.s(scale),
                     fontFamily = bodyFont,
                     color = Color.White.copy(alpha = 0.6f)
                 )
