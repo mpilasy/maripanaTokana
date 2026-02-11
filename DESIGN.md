@@ -1,6 +1,6 @@
 # maripànaTokana - Design & Implementation Guide
 
-**maripànaTokana** (Malagasy for "a single thermometer") is a phone-only Android weather app that shows current conditions, hourly forecasts, and a 7-day outlook. What makes it standout is that it shows both standard units at all times. 
+**maripànaTokana** (Malagasy for "a single thermometer") is a phone-only Android weather app that shows current conditions, hourly forecasts, and a 10-day outlook. What makes it standout is that it shows both standard units at all times. 
 It can be surfaced to the homescreen via one of two home screen widget options.
 
 ---
@@ -266,7 +266,7 @@ data class WeatherData(
     val sunrise: Long,             // Epoch seconds
     val sunset: Long,              // Epoch seconds
     val hourlyForecast: List<HourlyForecast>,  // Next 24 hours
-    val dailyForecast: List<DailyForecast>,    // Next 7 days
+    val dailyForecast: List<DailyForecast>,    // Next 10 days
     val timestamp: Long,           // When this data was fetched
 )
 ```
@@ -310,7 +310,7 @@ Maps WMO integer codes (0-99) to:
 
 ### 6.4 Weather Repository (`WeatherRepositoryImpl.kt`)
 
-Calls the API and reverse-geocodes the city name using Android's built-in `Geocoder`. Falls back to formatted coordinates ("12.34, 56.78") if geocoding fails. Returns `Result<WeatherData>`.
+Calls the API and reverse-geocodes the city name using Android's built-in `Geocoder`. Tries `locality`, then `subAdminArea`, then `adminArea` as fallbacks. Falls back to formatted coordinates ("12.34, 56.78") if all geocoding fields are null or an exception is thrown. Returns `Result<WeatherData>`.
 
 ### 6.5 Location Repository (`LocationRepositoryImpl.kt`)
 
@@ -386,7 +386,7 @@ This is the largest file (~885 lines). It contains all the composable functions:
 - **Fixed header**: City name, date, "Updated" time
 - **Scrollable middle** (`.weight(1f).verticalScroll()`):
   - Hero card: weather icon, temperature, feels-like, description, precipitation, "© Orinasa Njarasoa" watermark, share button (top-left) that captures the card as PNG and opens Android share sheet via FileProvider
-  - Three collapsible sections: Hourly Forecast (expanded by default), This Week, Current Conditions
+  - Three collapsible sections: Hourly Forecast (expanded by default), 10-Day Forecast, Current Conditions
 - **Fixed footer**: Font icon + name (left), credits/hash (center), language flag (right)
 
 **Key sub-composables:**
@@ -439,7 +439,7 @@ When the user taps the flag to change language, a `ContextWrapper` with the new 
 
 Hindi, Arabic, and Nepali have their own digit characters. The approach:
 
-1. **All formatting uses `Locale.US`** -- `"%.0f".format(Locale.US, value)` always produces ASCII digits (0-9). This prevents inconsistent rendering where some APIs honor locale digit scripts and others don't.
+1. **All formatting uses `Locale.US`** -- `"%.0f".format(Locale.US, value)` always produces ASCII digits (0-9). This prevents inconsistent rendering where some APIs honor locale digit scripts and others don't. The "Updated" time also uses `SimpleDateFormat` with `Locale.US` (not `DateFormat.getTimeFormat(baseContext)`) because `attachBaseContext` overrides the activity locale — if the app locale is Hindi, `baseContext` produces Devanagari digits that `localizeDigits()` can't normalize back to ASCII.
 
 2. **Character replacement at display time** -- `SupportedLocale.localizeDigits(s)` replaces ASCII 0-9 with native digits when the locale has them:
 
@@ -565,7 +565,8 @@ Key aspects:
 ### 12.3 Gradle Properties
 
 ```properties
-android.disallowKotlinSourceSets=false  # Required for Hilt 2.59 + AGP 9
+android.disallowKotlinSourceSets=false  # Required for KSP + AGP 9 (built-in Kotlin)
+org.gradle.jvmargs=-Xmx4096m -XX:+HeapDumpOnOutOfMemoryError  # Prevent OOM during DEX merging
 ```
 
 ---

@@ -36,11 +36,13 @@
 - Hilt 2.59 + AGP 9 requires `android.disallowKotlinSourceSets=false` in gradle.properties
 - `BuildConfig.GIT_HASH` set via `providers.exec` in build.gradle.kts
 - `BuildConfig.BUILD_TIME` set via `SimpleDateFormat` at top of build.gradle.kts
+- Geocoder reverse geocoding falls back through `locality` -> `subAdminArea` -> `adminArea` -> formatted coordinates.
 - Widget location uses SharedPreferences fallback (background context lacks location permission)
 - Widgets must be removed and re-added from home screen to trigger `provideGlance()` after install
 - Do NOT use `AppCompatActivity` just for locale switching — causes `Theme.AppCompat` requirement. Use `ContextWrapper` approach instead.
 - Do NOT use `createConfigurationContext()` directly as `LocalContext` — triggers Gboard keyboard toast.
-- Always use `Locale.US` for numeric/time formatting to avoid locale-sensitive digit rendering.
+- Always use `Locale.US` for numeric/time formatting to avoid locale-sensitive digit rendering. The "Updated" time uses `SimpleDateFormat(pattern, Locale.US)` — never `DateFormat.getTimeFormat(baseContext)` because `attachBaseContext` overrides the activity locale.
+- `fontFeatureSettings` is not a direct parameter on Material 3 `Text()` in Compose BOM 2024.09.00 — pass it via `style = TextStyle(fontFeatureSettings = ...)` instead.
 - Temperature uses `roundToInt()` for integer display to avoid `-0`. Hero card uses `decimals = 1`.
 
 ## Developer Context

@@ -18,9 +18,10 @@ class WeatherRepositoryImpl @Inject constructor(
             val response = apiService.getForecast(latitude = lat, longitude = lon)
             val locationName = try {
                 @Suppress("DEPRECATION")
-                geocoder.getFromLocation(lat, lon, 1)
-                    ?.firstOrNull()
-                    ?.locality
+                val addr = geocoder.getFromLocation(lat, lon, 1)?.firstOrNull()
+                addr?.locality
+                    ?: addr?.subAdminArea
+                    ?: addr?.adminArea
                     ?: "%.2f, %.2f".format(Locale.US, lat, lon)
             } catch (_: Exception) {
                 "%.2f, %.2f".format(Locale.US, lat, lon)

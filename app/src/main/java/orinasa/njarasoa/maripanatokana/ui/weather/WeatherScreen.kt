@@ -77,6 +77,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -283,7 +284,10 @@ fun WeatherScreen(
                             fontName = pairing.name,
                             currentFlag = supportedLocales[localeIndex].flag,
                             localizeDigits = supportedLocales[localeIndex]::localizeDigits,
-                            osTimeFormat = android.text.format.DateFormat.getTimeFormat(baseContext),
+                            osTimeFormat = SimpleDateFormat(
+                                if (android.text.format.DateFormat.is24HourFormat(baseContext)) "HH:mm" else "h:mm a",
+                                Locale.US
+                            ),
                             onToggleUnits = { viewModel.toggleUnits() },
                             onCycleFont = { viewModel.cycleFont() },
                             onCycleLanguage = { viewModel.cycleLanguage() },
@@ -341,16 +345,16 @@ private fun DualUnitText(
             fontSize = primarySize,
             fontWeight = FontWeight.Bold,
             fontFamily = displayFont,
-            fontFeatureSettings = fontFeatures,
             color = color,
+            style = TextStyle(fontFeatureSettings = fontFeatures),
         )
         Text(
             text = secondary,
             fontSize = primarySize * 0.75f,
             fontWeight = FontWeight.Normal,
             fontFamily = displayFont,
-            fontFeatureSettings = fontFeatures,
             color = color.copy(alpha = 0.55f),
+            style = TextStyle(fontFeatureSettings = fontFeatures),
         )
     }
 }
@@ -752,8 +756,8 @@ private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Bo
                         text = localizeDigits(hourFormat.format(Date(item.time))),
                         fontSize = 12f.s(scale),
                         fontFamily = bodyFont,
-                        fontFeatureSettings = fontFeatures,
                         color = Color.White.copy(alpha = 0.7f),
+                        style = TextStyle(fontFeatureSettings = fontFeatures),
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
@@ -778,8 +782,8 @@ private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Bo
                         text = if (item.precipProbability > 0) localizeDigits("%d%%".format(Locale.US, item.precipProbability)) else "",
                         fontSize = 11f.s(scale),
                         fontFamily = bodyFont,
-                        fontFeatureSettings = fontFeatures,
                         color = Color(0xFF64B5F6),
+                        style = TextStyle(fontFeatureSettings = fontFeatures),
                     )
                 }
             }
@@ -834,8 +838,8 @@ private fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Boo
                     text = if (item.precipProbability > 0) localizeDigits("%d%%".format(Locale.US, item.precipProbability)) else "",
                     fontSize = 11f.s(scale),
                     fontFamily = bodyFont,
-                    fontFeatureSettings = fontFeatures,
                     color = Color(0xFF64B5F6),
+                    style = TextStyle(fontFeatureSettings = fontFeatures),
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 val (maxP, maxS) = item.tempMax.displayDual(metricPrimary)
@@ -945,8 +949,8 @@ private fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat
                         fontSize = 20f.s(scale),
                         fontWeight = FontWeight.Bold,
                         fontFamily = LocalDisplayFont.current,
-                        fontFeatureSettings = fontFeatures,
-                        color = Color.White
+                        color = Color.White,
+                        style = TextStyle(fontFeatureSettings = fontFeatures),
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     val displayFont = LocalDisplayFont.current
@@ -1057,8 +1061,8 @@ private fun DetailCard(
                     fontSize = 20f.s(scale),
                     fontWeight = FontWeight.Bold,
                     fontFamily = LocalDisplayFont.current,
-                    fontFeatureSettings = fontFeatures,
-                    color = Color.White
+                    color = Color.White,
+                    style = TextStyle(fontFeatureSettings = fontFeatures),
                 )
             }
             subtitle?.let {

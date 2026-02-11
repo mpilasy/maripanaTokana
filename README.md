@@ -1,6 +1,6 @@
 # maripànaTokana
 
-**maripànaTokana** (Malagasy for "a single thermometer") is a phone-only Android weather app that shows current conditions, hourly forecasts, and a 7-day outlook. It always displays both metric and imperial units side by side, and supports 8 languages with 16 font pairings.
+**maripànaTokana** (Malagasy for "a single thermometer") is a phone-only Android weather app that shows current conditions, hourly forecasts, and a 10-day outlook. It always displays both metric and imperial units side by side, and supports 8 languages with 16 font pairings.
 
 ## Features
 
@@ -9,7 +9,7 @@
 - **Dual-unit display**: every measurement shows both metric and imperial simultaneously
 - **Tap to toggle**: tap any value to swap which unit is primary (bold/large) vs secondary (dimmer)
 - **8 languages**: Malagasy, Arabic, English, Spanish, French, Hindi, Nepali, Chinese — cycled via flag button in footer
-- **16 font pairings**: cycled via font icon in footer
+- **16 font pairings** including Roboto + Lora: cycled via font icon in footer
 - Native digit rendering for Hindi, Arabic, and Nepali
 - RTL support (Arabic)
 - Two home screen widgets (4x1 compact, 4x2 with 3-day forecast)
