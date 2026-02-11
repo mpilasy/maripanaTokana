@@ -158,6 +158,10 @@ private val ArchivoNarrow = FontFamily(
     Font(R.font.archivo_narrow, FontWeight.Normal),
     Font(R.font.archivo_narrow, FontWeight.Bold),
 )
+private val Lora = FontFamily(
+    Font(R.font.lora, FontWeight.Normal),
+    Font(R.font.lora, FontWeight.Bold),
+)
 
 data class FontPairing(
     val name: String,
@@ -195,6 +199,7 @@ val fontPairings = listOf(
     FontPairing("Space Grotesk + Space Mono", SpaceGrotesk, SpaceMono, bodyFontFeatures = "tnum"),
     FontPairing("Plus Jakarta Sans + Inter", PlusJakartaSans, Inter, bodyFontFeatures = "tnum"),
     FontPairing("Archivo + Archivo Narrow", Archivo, ArchivoNarrow, bodyFontFeatures = "tnum"),
+    FontPairing("Roboto + Lora", FontFamily.Default, Lora),
 )
 
 val LocalDisplayFont = compositionLocalOf<FontFamily> { FontFamily.Default }
