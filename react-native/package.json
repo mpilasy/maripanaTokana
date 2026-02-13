@@ -1,0 +1,33 @@
+{
+  "name": "maripanatokana",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "android": "react-native run-android",
+    "ios": "react-native run-ios",
+    "start": "react-native start",
+    "lint": "eslint .",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "^2.1.0",
+    "@react-native-community/geolocation": "^3.4.0",
+    "react": "19.0.0",
+    "react-native": "0.77.1",
+    "react-native-share": "^11.0.4",
+    "react-native-view-shot": "^4.0.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.26.0",
+    "@babel/preset-env": "^7.26.0",
+    "@babel/runtime": "^7.26.0",
+    "@react-native/babel-preset": "0.77.1",
+    "@react-native/metro-config": "0.77.1",
+    "@react-native/typescript-config": "0.77.1",
+    "@types/react": "^19.0.0",
+    "typescript": "~5.7.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
