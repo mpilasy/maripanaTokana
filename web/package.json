@@ -2,10 +2,12 @@
 	"name": "maripanatokana-web",
 	"private": true,
 	"version": "1.0.0",
+	"type": "module",
 	"scripts": {
-		"build:all": "cd svelte && npm run build && cd ../react && npm run build && cd ../angular && npm run build",
-		"build:svelte": "cd svelte && npm run build",
-		"build:react": "cd react && npm run build",
-		"build:angular": "cd angular && npm run build"
+		"copy-assets": "node scripts/copy-shared-assets.js",
+		"build:all": "npm run copy-assets && cd svelte && npm run build && cd ../react && npm run build && cd ../angular && npm run build",
+		"build:svelte": "npm run copy-assets && cd svelte && npm run build",
+		"build:react": "npm run copy-assets && cd react && npm run build",
+		"build:angular": "npm run copy-assets && cd angular && npm run build"
 	}
 }

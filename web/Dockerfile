@@ -26,6 +26,9 @@ COPY . .
 # Make html2canvas resolvable from shared/ (outside any app's node_modules)
 RUN mkdir -p node_modules && ln -s /app/svelte/node_modules/html2canvas node_modules/html2canvas
 
+# Copy shared assets into each framework's static dir
+RUN node scripts/copy-shared-assets.js
+
 # Build all three apps
 RUN cd svelte && npm run build
 RUN cd react && npm run build

@@ -1,16 +1,29 @@
 import { Injectable, signal, computed, effect } from '@angular/core';
 import { SUPPORTED_LOCALES, localizeDigits, type SupportedLocale } from '$lib/i18n/locales';
 
-import en from '$lib/i18n/locales/en.json';
-import mg from '$lib/i18n/locales/mg.json';
-import ar from '$lib/i18n/locales/ar.json';
-import es from '$lib/i18n/locales/es.json';
-import fr from '$lib/i18n/locales/fr.json';
-import hi from '$lib/i18n/locales/hi.json';
-import ne from '$lib/i18n/locales/ne.json';
-import zh from '$lib/i18n/locales/zh.json';
+import enRaw from '$lib/i18n/locales/en.json';
+import mgRaw from '$lib/i18n/locales/mg.json';
+import arRaw from '$lib/i18n/locales/ar.json';
+import esRaw from '$lib/i18n/locales/es.json';
+import frRaw from '$lib/i18n/locales/fr.json';
+import hiRaw from '$lib/i18n/locales/hi.json';
+import neRaw from '$lib/i18n/locales/ne.json';
+import zhRaw from '$lib/i18n/locales/zh.json';
 
-const allTranslations: Record<string, Record<string, any>> = { en, mg, ar, es, fr, hi, ne, zh };
+/** Flatten canonical JSON: merge web_only into top-level, drop android_only. */
+function flattenForWeb(raw: Record<string, any>): Record<string, any> {
+	const { web_only, android_only, ...shared } = raw;
+	return { ...shared, ...web_only };
+}
+
+const en = flattenForWeb(enRaw);
+const mg = flattenForWeb(mgRaw);
+const allTranslations: Record<string, Record<string, any>> = {
+	en, mg,
+	ar: flattenForWeb(arRaw), es: flattenForWeb(esRaw),
+	fr: flattenForWeb(frRaw), hi: flattenForWeb(hiRaw),
+	ne: flattenForWeb(neRaw), zh: flattenForWeb(zhRaw),
+};
 
 @Injectable({ providedIn: 'root' })
 export class I18nService {

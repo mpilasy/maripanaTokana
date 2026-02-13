@@ -33,12 +33,6 @@
 	"permission_title": "स्थान अनुमति आवश्यक छ",
 	"permission_message": "तपाईंको क्षेत्रको मौसम देखाउन यो एपलाई स्थान पहुँच चाहिन्छ।",
 	"grant_permission": "अनुमति दिनुहोस्",
-	"copy_link": "लिंक कपी गर्नुहोस्",
-	"link_copied": "लिंक कपी भयो!",
-	"copy_link_hint": "एप प्रयोग गर्न आफ्नो ब्राउजरमा पेस्ट गर्नुहोस्",
-	"permission_denied": "स्थान अनुमति अस्वीकार गरियो। ब्राउजरमा खोल्ने प्रयास गर्नुहोस्।",
-	"position_unavailable": "तपाईंको स्थान पत्ता लगाउन सकिएन। ब्राउजरमा खोल्ने प्रयास गर्नुहोस्।",
-	"geo_timeout": "स्थान अनुरोध समय सकियो। कृपया फेरि प्रयास गर्नुहोस्।",
 	"error_title": "त्रुटि",
 	"error_retry": "पुन: प्रयास",
 	"error_fetch_weather": "मौसम प्राप्त गर्न असफल",
@@ -61,10 +55,40 @@
 	"detail_sunrise": "सूर्योदय",
 	"detail_temperature": "तापक्रम",
 	"detail_precipitation": "वर्षा",
-	"detail_high_low": "उच्च / न्यून",
 	"detail_cloud_cover": "बादल आवरण",
 	"detail_sunset": "सूर्यास्त",
 	"credits_weather_data": "मौसम डाटा प्रदायक: ",
 	"cardinal_directions": ["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"],
-	"uv_labels": ["कम","मध्यम","उच्च","अति उच्च","चरम"]
+	"uv_labels": ["कम","मध्यम","उच्च","अति उच्च","चरम"],
+
+	"web_only": {
+		"copy_link": "लिंक कपी गर्नुहोस्",
+		"link_copied": "लिंक कपी भयो!",
+		"copy_link_hint": "एप प्रयोग गर्न आफ्नो ब्राउजरमा पेस्ट गर्नुहोस्",
+		"permission_denied": "स्थान अनुमति अस्वीकार गरियो। ब्राउजरमा खोल्ने प्रयास गर्नुहोस्।",
+		"position_unavailable": "तपाईंको स्थान पत्ता लगाउन सकिएन। ब्राउजरमा खोल्ने प्रयास गर्नुहोस्।",
+		"geo_timeout": "स्थान अनुरोध समय सकियो। कृपया फेरि प्रयास गर्नुहोस्।",
+		"detail_high_low": "उच्च / न्यून"
+	},
+
+	"android_only": {
+		"widget_description": "दुई एकाइमा हालको मौसम तापक्रम",
+		"widget_description_large": "मौसम विवरण: अनुभूत तापक्रम, आर्द्रता, हावा र न्यूनतम/अधिकतम",
+		"cd_change_font": "फन्ट परिवर्तन गर्नुहोस्",
+		"cd_change_language": "भाषा परिवर्तन गर्नुहोस्",
+		"cd_collapse": "सानो बनाउनुहोस्",
+		"cd_expand": "विस्तार गर्नुहोस्",
+		"detail_no_precip": "छैन",
+		"visibility_km": "%.1f km",
+		"visibility_mi": "%.2f mi",
+		"hash_version": "Hash: {hash}",
+		"widget_today_in": "आज {location} मा",
+		"widget_now_in": "अहिले {location} मा",
+		"widget_tap_to_refresh": "मौसम ताजा गर्न थिच्नुहोस्",
+		"widget_open_app": "स्थान सक्षम गर्न एप खोल्नुहोस्",
+		"widget_feels_like": "अनुभूत तापक्रम",
+		"widget_humidity": "आर्द्रता",
+		"widget_wind": "हावा",
+		"widget_min_max": "न्यू. {min_val} ({min_unit}) · अधि. {max_val} ({max_unit})"
+	}
 }

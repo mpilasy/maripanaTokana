@@ -35,7 +35,10 @@
 			ne: () => import('$shared/i18n/locales/ne.json'),
 			zh: () => import('$shared/i18n/locales/zh.json'),
 		};
-		loaders[browserLocaleTag]?.().then(mod => browserStrings = mod.default);
+		loaders[browserLocaleTag]?.().then(mod => {
+			const { web_only, android_only, ...shared } = mod.default;
+			browserStrings = { ...shared, ...web_only };
+		});
 	}
 
 	let showSecondary = $derived(

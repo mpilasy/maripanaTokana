@@ -3,14 +3,21 @@ export { SUPPORTED_LOCALES, localizeDigits } from '$shared/i18n/locales';
 export type { SupportedLocale } from '$shared/i18n/locales';
 import { SUPPORTED_LOCALES } from '$shared/i18n/locales';
 
-register('en', () => import('$shared/i18n/locales/en.json'));
-register('mg', () => import('$shared/i18n/locales/mg.json'));
-register('ar', () => import('$shared/i18n/locales/ar.json'));
-register('es', () => import('$shared/i18n/locales/es.json'));
-register('fr', () => import('$shared/i18n/locales/fr.json'));
-register('hi', () => import('$shared/i18n/locales/hi.json'));
-register('ne', () => import('$shared/i18n/locales/ne.json'));
-register('zh', () => import('$shared/i18n/locales/zh.json'));
+/** Flatten canonical JSON: merge web_only into top-level, drop android_only. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function flattenForWeb(mod: { default: any }) {
+	const { web_only, android_only, ...shared } = mod.default;
+	return { ...shared, ...web_only };
+}
+
+register('en', () => import('$shared/i18n/locales/en.json').then(flattenForWeb));
+register('mg', () => import('$shared/i18n/locales/mg.json').then(flattenForWeb));
+register('ar', () => import('$shared/i18n/locales/ar.json').then(flattenForWeb));
+register('es', () => import('$shared/i18n/locales/es.json').then(flattenForWeb));
+register('fr', () => import('$shared/i18n/locales/fr.json').then(flattenForWeb));
+register('hi', () => import('$shared/i18n/locales/hi.json').then(flattenForWeb));
+register('ne', () => import('$shared/i18n/locales/ne.json').then(flattenForWeb));
+register('zh', () => import('$shared/i18n/locales/zh.json').then(flattenForWeb));
 
 export function initI18n(savedLocaleTag?: string) {
 	const fallback = 'mg';

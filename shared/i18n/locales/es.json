@@ -33,12 +33,6 @@
 	"permission_title": "Permiso de ubicacion requerido",
 	"permission_message": "Esta aplicacion necesita acceso a la ubicacion para mostrar el clima de tu zona.",
 	"grant_permission": "Conceder permiso",
-	"copy_link": "Copiar enlace",
-	"link_copied": "¡Enlace copiado!",
-	"copy_link_hint": "Pega en tu navegador para usar la aplicación",
-	"permission_denied": "Se denegó el permiso de ubicación. Intenta abrir en tu navegador.",
-	"position_unavailable": "No se pudo determinar tu ubicación. Intenta abrir en tu navegador.",
-	"geo_timeout": "La solicitud de ubicación expiró. Inténtalo de nuevo.",
 	"error_title": "Error",
 	"error_retry": "Reintentar",
 	"error_fetch_weather": "No se pudo obtener el clima",
@@ -61,10 +55,40 @@
 	"detail_sunrise": "Amanecer",
 	"detail_temperature": "Temperatura",
 	"detail_precipitation": "Precipitación",
-	"detail_high_low": "Máx / Mín",
 	"detail_cloud_cover": "Nubosidad",
 	"detail_sunset": "Atardecer",
 	"credits_weather_data": "Datos meteorologicos de ",
 	"cardinal_directions": ["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSO","SO","OSO","O","ONO","NO","NNO"],
-	"uv_labels": ["Bajo","Moderado","Alto","Muy alto","Extremo"]
+	"uv_labels": ["Bajo","Moderado","Alto","Muy alto","Extremo"],
+
+	"web_only": {
+		"copy_link": "Copiar enlace",
+		"link_copied": "¡Enlace copiado!",
+		"copy_link_hint": "Pega en tu navegador para usar la aplicación",
+		"permission_denied": "Se denegó el permiso de ubicación. Intenta abrir en tu navegador.",
+		"position_unavailable": "No se pudo determinar tu ubicación. Intenta abrir en tu navegador.",
+		"geo_timeout": "La solicitud de ubicación expiró. Inténtalo de nuevo.",
+		"detail_high_low": "Máx / Mín"
+	},
+
+	"android_only": {
+		"widget_description": "Clima actual con temperatura en doble unidad",
+		"widget_description_large": "Detalles del clima con sensacion termica, humedad, viento y min/max",
+		"cd_change_font": "Cambiar fuente",
+		"cd_change_language": "Cambiar idioma",
+		"cd_collapse": "Contraer",
+		"cd_expand": "Expandir",
+		"detail_no_precip": "Ninguna",
+		"visibility_km": "%.1f km",
+		"visibility_mi": "%.2f mi",
+		"hash_version": "Hash: {hash}",
+		"widget_today_in": "Hoy en {location}",
+		"widget_now_in": "Ahora en {location}",
+		"widget_tap_to_refresh": "Toca para actualizar el clima",
+		"widget_open_app": "Abre la app para activar la ubicacion",
+		"widget_feels_like": "Sensacion termica",
+		"widget_humidity": "Humedad",
+		"widget_wind": "Viento",
+		"widget_min_max": "Min {min_val} ({min_unit}) · Max {max_val} ({max_unit})"
+	}
 }

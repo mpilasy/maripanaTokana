@@ -33,12 +33,6 @@
 	"permission_title": "Mila avela maka GPS",
 	"permission_message": "Mila mahalala ny toerana misy anao mba hahalalana ny toetrandro.",
 	"grant_permission": "Ekena",
-	"copy_link": "Adikao ny rohy",
-	"link_copied": "Voatahiry ny rohy!",
-	"copy_link_hint": "Apetaho ao amin'ny navigateur mba hampiasana ny rindranasa",
-	"permission_denied": "Nolavina ny fahazoan-dàlana. Andramo sokafy amin'ny navigateur.",
-	"position_unavailable": "Tsy hita ny toerana misy anao. Andramo sokafy amin'ny navigateur.",
-	"geo_timeout": "Lany fotoana ny fikarohana toerana. Andramo indray azafady.",
 	"error_title": "Nisy olana",
 	"error_retry": "Andramo indray",
 	"error_fetch_weather": "Tsy nahomby ny fakana ny toetrandro",
@@ -61,10 +55,40 @@
 	"detail_uv_index": "Tahan'ny UV",
 	"detail_visibility": "Tazana",
 	"detail_sunrise": "\uD83C\uDF1E Miposaka",
-	"detail_high_low": "Avo / Iva",
-	"detail_cloud_cover": "Rahona",
 	"detail_sunset": "\uD83C\uDF1E Mody",
+	"detail_cloud_cover": "Rahona",
 	"credits_weather_data": "Fankasitrahana:",
 	"cardinal_directions": ["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"],
-	"uv_labels": ["Ambany","Antonony","Avo","Avo dia avo","Faran'izay avo"]
+	"uv_labels": ["Ambany","Antonony","Avo","Avo dia avo","Faran'izay avo"],
+
+	"web_only": {
+		"copy_link": "Adikao ny rohy",
+		"link_copied": "Voatahiry ny rohy!",
+		"copy_link_hint": "Apetaho ao amin'ny navigateur mba hampiasana ny rindranasa",
+		"permission_denied": "Nolavina ny fahazoan-dàlana. Andramo sokafy amin'ny navigateur.",
+		"position_unavailable": "Tsy hita ny toerana misy anao. Andramo sokafy amin'ny navigateur.",
+		"geo_timeout": "Lany fotoana ny fikarohana toerana. Andramo indray azafady.",
+		"detail_high_low": "Avo / Iva"
+	},
+
+	"android_only": {
+		"widget_description": "Toetrandro ankehitriny miaraka amin'ny mari-pana roa sosony",
+		"widget_description_large": "Antsipiriany momba ny toetrandro: tsapa, hamandoana, rivotra ary ambany/ambony",
+		"cd_change_font": "Ovay ny endri-tsoratra",
+		"cd_change_language": "Hanova ny fiteny",
+		"cd_collapse": "Akatony",
+		"cd_expand": "Velaro",
+		"detail_no_precip": "Tsy misy",
+		"visibility_km": "%.1f km",
+		"visibility_mi": "%.2f mi",
+		"hash_version": "Hash: {hash}",
+		"widget_today_in": "Anio ao {location}",
+		"widget_now_in": "Izao ao {location}",
+		"widget_tap_to_refresh": "Tsindrio hakana ny GPS",
+		"widget_open_app": "Sokafy ny programa hakana ny GPS",
+		"widget_feels_like": "Ohatry ny",
+		"widget_humidity": "Hamandoana",
+		"widget_wind": "Rivotra",
+		"widget_min_max": "Ambany {min_val} ({min_unit}) · Ambony {max_val} ({max_unit})"
+	}
 }

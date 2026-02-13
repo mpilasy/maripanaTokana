@@ -2,24 +2,30 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import { SUPPORTED_LOCALES } from '$lib/i18n/locales';
 
-import en from '$lib/i18n/locales/en.json';
-import mg from '$lib/i18n/locales/mg.json';
-import ar from '$lib/i18n/locales/ar.json';
-import es from '$lib/i18n/locales/es.json';
-import fr from '$lib/i18n/locales/fr.json';
-import hi from '$lib/i18n/locales/hi.json';
-import ne from '$lib/i18n/locales/ne.json';
-import zh from '$lib/i18n/locales/zh.json';
+import enRaw from '$lib/i18n/locales/en.json';
+import mgRaw from '$lib/i18n/locales/mg.json';
+import arRaw from '$lib/i18n/locales/ar.json';
+import esRaw from '$lib/i18n/locales/es.json';
+import frRaw from '$lib/i18n/locales/fr.json';
+import hiRaw from '$lib/i18n/locales/hi.json';
+import neRaw from '$lib/i18n/locales/ne.json';
+import zhRaw from '$lib/i18n/locales/zh.json';
+
+/** Flatten canonical JSON: merge web_only into top-level, drop android_only. */
+function flattenForWeb(raw: Record<string, any>): Record<string, any> {
+	const { web_only, android_only, ...shared } = raw;
+	return { ...shared, ...web_only };
+}
 
 const resources = {
-	en: { translation: en },
-	mg: { translation: mg },
-	ar: { translation: ar },
-	es: { translation: es },
-	fr: { translation: fr },
-	hi: { translation: hi },
-	ne: { translation: ne },
-	zh: { translation: zh },
+	en: { translation: flattenForWeb(enRaw) },
+	mg: { translation: flattenForWeb(mgRaw) },
+	ar: { translation: flattenForWeb(arRaw) },
+	es: { translation: flattenForWeb(esRaw) },
+	fr: { translation: flattenForWeb(frRaw) },
+	hi: { translation: flattenForWeb(hiRaw) },
+	ne: { translation: flattenForWeb(neRaw) },
+	zh: { translation: flattenForWeb(zhRaw) },
 };
 
 const savedIndex = (() => {

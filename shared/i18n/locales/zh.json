@@ -33,12 +33,6 @@
 	"permission_title": "需要位置权限",
 	"permission_message": "此应用需要位置权限以显示您所在地区的天气。",
 	"grant_permission": "授予权限",
-	"copy_link": "复制链接",
-	"link_copied": "链接已复制！",
-	"copy_link_hint": "粘贴到浏览器中使用应用",
-	"permission_denied": "位置权限被拒绝。请尝试在浏览器中打开。",
-	"position_unavailable": "无法确定您的位置。请尝试在浏览器中打开。",
-	"geo_timeout": "位置请求超时。请重试。",
 	"error_title": "错误",
 	"error_retry": "重试",
 	"error_fetch_weather": "获取天气失败",
@@ -61,10 +55,40 @@
 	"detail_sunrise": "日出",
 	"detail_temperature": "温度",
 	"detail_precipitation": "降水",
-	"detail_high_low": "最高 / 最低",
 	"detail_cloud_cover": "云量",
 	"detail_sunset": "日落",
 	"credits_weather_data": "天气数据来自 ",
 	"cardinal_directions": ["北","北北东","北东","东北东","东","东南东","南东","南南东","南","南南西","南西","西南西","西","西北西","北西","北北西"],
-	"uv_labels": ["低","中等","高","很高","极高"]
+	"uv_labels": ["低","中等","高","很高","极高"],
+
+	"web_only": {
+		"copy_link": "复制链接",
+		"link_copied": "链接已复制！",
+		"copy_link_hint": "粘贴到浏览器中使用应用",
+		"permission_denied": "位置权限被拒绝。请尝试在浏览器中打开。",
+		"position_unavailable": "无法确定您的位置。请尝试在浏览器中打开。",
+		"geo_timeout": "位置请求超时。请重试。",
+		"detail_high_low": "最高 / 最低"
+	},
+
+	"android_only": {
+		"widget_description": "当前天气与双单位温度",
+		"widget_description_large": "天气详情，包含体感温度、湿度、风速和最低/最高温",
+		"cd_change_font": "更换字体",
+		"cd_change_language": "更改语言",
+		"cd_collapse": "收起",
+		"cd_expand": "展开",
+		"detail_no_precip": "无",
+		"visibility_km": "%.1f km",
+		"visibility_mi": "%.2f mi",
+		"hash_version": "Hash: {hash}",
+		"widget_today_in": "今日 {location}",
+		"widget_now_in": "现在 {location}",
+		"widget_tap_to_refresh": "点击刷新天气",
+		"widget_open_app": "打开应用以启用位置",
+		"widget_feels_like": "体感温度",
+		"widget_humidity": "湿度",
+		"widget_wind": "风速",
+		"widget_min_max": "最低 {min_val} ({min_unit}) · 最高 {max_val} ({max_unit})"
+	}
 }

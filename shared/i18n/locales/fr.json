@@ -33,12 +33,6 @@
 	"permission_title": "Autorisation de localisation requise",
 	"permission_message": "Cette application a besoin de la localisation pour afficher la météo de votre zone.",
 	"grant_permission": "Autoriser",
-	"copy_link": "Copier le lien",
-	"link_copied": "Lien copié !",
-	"copy_link_hint": "Collez dans votre navigateur pour utiliser l'application",
-	"permission_denied": "L'accès à la position a été refusé. Essayez d'ouvrir dans votre navigateur.",
-	"position_unavailable": "Impossible de déterminer votre position. Essayez d'ouvrir dans votre navigateur.",
-	"geo_timeout": "La demande de position a expiré. Veuillez réessayer.",
 	"error_title": "Erreur",
 	"error_retry": "Réessayer",
 	"error_fetch_weather": "Échec de récupération de la météo",
@@ -61,10 +55,40 @@
 	"detail_sunrise": "Lever du soleil",
 	"detail_temperature": "Température",
 	"detail_precipitation": "Précipitations",
-	"detail_high_low": "Max / Min",
 	"detail_cloud_cover": "Couverture nuageuse",
 	"detail_sunset": "Coucher du soleil",
 	"credits_weather_data": "Données météo par ",
 	"cardinal_directions": ["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSO","SO","OSO","O","ONO","NO","NNO"],
-	"uv_labels": ["Faible","Modéré","Élevé","Très élevé","Extrême"]
+	"uv_labels": ["Faible","Modéré","Élevé","Très élevé","Extrême"],
+
+	"web_only": {
+		"copy_link": "Copier le lien",
+		"link_copied": "Lien copié !",
+		"copy_link_hint": "Collez dans votre navigateur pour utiliser l'application",
+		"permission_denied": "L'accès à la position a été refusé. Essayez d'ouvrir dans votre navigateur.",
+		"position_unavailable": "Impossible de déterminer votre position. Essayez d'ouvrir dans votre navigateur.",
+		"geo_timeout": "La demande de position a expiré. Veuillez réessayer.",
+		"detail_high_low": "Max / Min"
+	},
+
+	"android_only": {
+		"widget_description": "Temps actuel avec temperature en double unite",
+		"widget_description_large": "Details meteo avec ressenti, humidite, vent et min/max",
+		"cd_change_font": "Changer la police",
+		"cd_change_language": "Changer la langue",
+		"cd_collapse": "Réduire",
+		"cd_expand": "Développer",
+		"detail_no_precip": "Aucune",
+		"visibility_km": "%.1f km",
+		"visibility_mi": "%.2f mi",
+		"hash_version": "Hash: {hash}",
+		"widget_today_in": "Aujourd'hui à {location}",
+		"widget_now_in": "Maintenant à {location}",
+		"widget_tap_to_refresh": "Appuyez pour actualiser la météo",
+		"widget_open_app": "Ouvrez l'appli pour activer la localisation",
+		"widget_feels_like": "Ressenti",
+		"widget_humidity": "Humidité",
+		"widget_wind": "Vent",
+		"widget_min_max": "Min {min_val} ({min_unit}) · Max {max_val} ({max_unit})"
+	}
 }

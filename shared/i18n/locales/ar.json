@@ -33,12 +33,6 @@
 	"permission_title": "إذن الموقع مطلوب",
 	"permission_message": "يحتاج هذا التطبيق إلى الوصول إلى الموقع لعرض حالة الطقس في منطقتك.",
 	"grant_permission": "منح الإذن",
-	"copy_link": "نسخ الرابط",
-	"link_copied": "تم نسخ الرابط!",
-	"copy_link_hint": "الصقه في متصفحك لاستخدام التطبيق",
-	"permission_denied": "تم رفض إذن الموقع. حاول الفتح في متصفحك.",
-	"position_unavailable": "تعذر تحديد موقعك. حاول الفتح في متصفحك.",
-	"geo_timeout": "انتهت مهلة طلب الموقع. يرجى المحاولة مرة أخرى.",
 	"error_title": "خطأ",
 	"error_retry": "إعادة المحاولة",
 	"error_fetch_weather": "فشل في جلب بيانات الطقس",
@@ -61,10 +55,40 @@
 	"detail_sunrise": "شروق الشمس",
 	"detail_temperature": "درجة الحرارة",
 	"detail_precipitation": "الهطول",
-	"detail_high_low": "القصوى / الدنيا",
 	"detail_cloud_cover": "الغطاء السحابي",
 	"detail_sunset": "غروب الشمس",
 	"credits_weather_data": "بيانات الطقس من ",
 	"cardinal_directions": ["ش","ش ش ق","ش ق","ق ش ق","ق","ق ج ق","ج ق","ج ج ق","ج","ج ج غ","ج غ","غ ج غ","غ","غ ش غ","ش غ","ش ش غ"],
-	"uv_labels": ["منخفض","معتدل","مرتفع","مرتفع جدًا","شديد"]
+	"uv_labels": ["منخفض","معتدل","مرتفع","مرتفع جدًا","شديد"],
+
+	"web_only": {
+		"copy_link": "نسخ الرابط",
+		"link_copied": "تم نسخ الرابط!",
+		"copy_link_hint": "الصقه في متصفحك لاستخدام التطبيق",
+		"permission_denied": "تم رفض إذن الموقع. حاول الفتح في متصفحك.",
+		"position_unavailable": "تعذر تحديد موقعك. حاول الفتح في متصفحك.",
+		"geo_timeout": "انتهت مهلة طلب الموقع. يرجى المحاولة مرة أخرى.",
+		"detail_high_low": "القصوى / الدنيا"
+	},
+
+	"android_only": {
+		"widget_description": "الطقس الحالي مع درجة الحرارة بوحدتين",
+		"widget_description_large": "تفاصيل الطقس مع الإحساس بالحرارة والرطوبة والرياح والحد الأدنى/الأقصى",
+		"cd_change_font": "تغيير الخط",
+		"cd_change_language": "تغيير اللغة",
+		"cd_collapse": "طي",
+		"cd_expand": "توسيع",
+		"detail_no_precip": "لا يوجد",
+		"visibility_km": "%.1f km",
+		"visibility_mi": "%.2f mi",
+		"hash_version": "Hash: {hash}",
+		"widget_today_in": "اليوم في {location}",
+		"widget_now_in": "الآن في {location}",
+		"widget_tap_to_refresh": "انقر لتحديث الطقس",
+		"widget_open_app": "افتح التطبيق لتفعيل الموقع",
+		"widget_feels_like": "الإحساس بالحرارة",
+		"widget_humidity": "الرطوبة",
+		"widget_wind": "الرياح",
+		"widget_min_max": "الأدنى {min_val} ({min_unit}) · الأقصى {max_val} ({max_unit})"
+	}
 }

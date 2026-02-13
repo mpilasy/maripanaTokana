@@ -33,12 +33,6 @@
 	"permission_title": "Location Permission Required",
 	"permission_message": "This app needs location access to show weather for your area.",
 	"grant_permission": "Grant Permission",
-	"copy_link": "Copy link",
-	"link_copied": "Link copied!",
-	"copy_link_hint": "Paste in your browser to use the app",
-	"permission_denied": "Location permission was denied. Try opening in your browser.",
-	"position_unavailable": "Could not determine your location. Try opening in your browser.",
-	"geo_timeout": "Location request timed out. Please try again.",
 	"error_title": "Error",
 	"error_retry": "Retry",
 	"error_fetch_weather": "Failed to fetch weather",
@@ -61,10 +55,41 @@
 	"detail_uv_index": "UV Index",
 	"detail_visibility": "Visibility",
 	"detail_sunrise": "Sunrise",
-	"detail_high_low": "High / Low",
-	"detail_cloud_cover": "Cloud Cover",
 	"detail_sunset": "Sunset",
+	"detail_cloud_cover": "Cloud Cover",
 	"credits_weather_data": "Weather data by ",
 	"cardinal_directions": ["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"],
-	"uv_labels": ["Low","Moderate","High","Very High","Extreme"]
+	"uv_labels": ["Low","Moderate","High","Very High","Extreme"],
+
+	"web_only": {
+		"copy_link": "Copy link",
+		"link_copied": "Link copied!",
+		"copy_link_hint": "Paste in your browser to use the app",
+		"permission_denied": "Location permission was denied. Try opening in your browser.",
+		"position_unavailable": "Could not determine your location. Try opening in your browser.",
+		"geo_timeout": "Location request timed out. Please try again.",
+		"detail_high_low": "High / Low"
+	},
+
+	"android_only": {
+		"widget_description": "Current weather with dual-unit temperature",
+		"widget_description_large": "Weather details with feels-like, humidity, wind and min/max",
+		"cd_change_font": "Change font",
+		"cd_change_language": "Change language",
+		"cd_share": "Share",
+		"cd_collapse": "Collapse",
+		"cd_expand": "Expand",
+		"detail_no_precip": "None",
+		"visibility_km": "%.1f km",
+		"visibility_mi": "%.2f mi",
+		"hash_version": "Hash: {hash}",
+		"widget_today_in": "Today in {location}",
+		"widget_now_in": "Now in {location}",
+		"widget_tap_to_refresh": "Tap to refresh weather",
+		"widget_open_app": "Open app to enable location",
+		"widget_feels_like": "Feels Like",
+		"widget_humidity": "Humidity",
+		"widget_wind": "Wind",
+		"widget_min_max": "Min {min_val} ({min_unit}) · Max {max_val} ({max_unit})"
+	}
 }
