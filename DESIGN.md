@@ -366,7 +366,7 @@ User actions (toggle units, cycle font, cycle language, refresh) are ViewModel m
 
 ### 8.2 Main Screen (`WeatherScreen.kt`)
 
-This is the largest file (~885 lines). It contains all the composable functions:
+This is the largest file (~1249 lines). It contains all the composable functions:
 
 **Top-level: `WeatherScreen()`**
 - Collects all ViewModel state
@@ -385,7 +385,7 @@ This is the largest file (~885 lines). It contains all the composable functions:
 **WeatherContent composable** (the main scrollable UI):
 - **Fixed header**: City name, date, "Updated" time
 - **Scrollable middle** (`.weight(1f).verticalScroll()`):
-  - Hero card: weather icon, temperature, feels-like, description, precipitation, "© Orinasa Njarasoa" watermark, share button (top-left) that captures the card as PNG and opens Android share sheet via FileProvider
+  - Hero card: weather icon, temperature, feels-like, description, precipitation, high/low temps, wind with cardinal direction, "© Orinasa Njarasoa" watermark, share button (top-left) that captures the card as PNG and opens Android share sheet via FileProvider
   - Three collapsible sections: Hourly Forecast (expanded by default), 10-Day Forecast, Current Conditions
 - **Fixed footer**: Font icon + name (left), credits/hash (center), language flag (right)
 
@@ -394,7 +394,7 @@ This is the largest file (~885 lines). It contains all the composable functions:
 - `CollapsibleSection` -- Animated expand/collapse with arrow icon. Share button appears when expanded, captures section content as PNG via `rememberGraphicsLayer()`.
 - `HourlyForecastRow` -- Horizontal scrolling row of hourly cards.
 - `DailyForecastList` -- Vertical list of daily forecast rows with up/down arrows for hi/lo.
-- `DetailsContent` -- Grid of detail cards (wind, pressure, humidity, UV, visibility, sunrise/sunset).
+- `DetailsContent` -- Full-width cards for high/low temp, wind/gust, sunrise/sunset, plus paired detail cards for temperature/precipitation, pressure/humidity, UV/visibility. Detail card rows use fixed height.
 - `DetailCard` -- Single stat card with title, value, optional secondary value and subtitle.
 
 ### 8.3 Theming (`ui/theme/`)
@@ -425,7 +425,7 @@ Default on first run: Malagasy (index 0).
 
 ### 9.2 String Resources
 
-All user-facing text is in `res/values/strings.xml` (English) with translations in `res/values-{locale}/strings.xml`. This includes weather descriptions, UI labels, error messages, and widget text. About 73 strings and 2 string-arrays (cardinal directions, UV labels).
+All user-facing text is in `res/values/strings.xml` (English) with translations in `res/values-{locale}/strings.xml`. This includes weather descriptions, UI labels, error messages, and widget text. About 77 strings and 2 string-arrays (cardinal directions, UV labels).
 
 ### 9.3 Locale Switching (Two Layers)
 

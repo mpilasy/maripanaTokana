@@ -14,7 +14,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -604,6 +603,33 @@ private fun WeatherContent(
                                 }
                             }
                         }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Third row: high/low (left) + wind (right)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                val (maxP, maxS) = data.tempMax.displayDual(metricPrimary)
+                                val (minP, minS) = data.tempMin.displayDual(metricPrimary)
+                                DualUnitText(
+                                    primary = localizeDigits("\u2191$maxP / \u2193$minP"),
+                                    secondary = localizeDigits("\u2191$maxS / \u2193$minS"),
+                                    onClick = onToggleUnits,
+                                )
+                            }
+                            Column(horizontalAlignment = Alignment.End) {
+                                val (windP, windS) = data.windSpeed.displayDual(metricPrimary)
+                                val directions = stringArrayResource(R.array.cardinal_directions)
+                                val dirIndex = ((data.windDeg % 360 + 360) % 360 * 16 / 360) % 16
+                                DualUnitText(
+                                    primary = localizeDigits("$windP ${directions[dirIndex]}"),
+                                    secondary = localizeDigits(windS),
+                                    onClick = onToggleUnits,
+                                )
+                            }
+                        }
                     }
                     Text(
                         text = "\u00A9 Orinasa Njarasoa",
@@ -862,64 +888,197 @@ private fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat
     val bodyFont = LocalBodyFont.current
     val fontFeatures = LocalBodyFontFeatures.current
     val scale = LocalScale.current
+    val detailRowHeight = 130.sd(scale)
 
     Column {
         Spacer(modifier = Modifier.height(8.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
-            horizontalArrangement = Arrangement.spacedBy(16.sd(scale))
+        // High / Low
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF2A1FA5).copy(alpha = 0.6f))
         ) {
             val (minP, minS) = data.tempMin.displayDual(metricPrimary)
-            DetailCard(
-                title = "\u2193 ${stringResource(R.string.detail_min_temp)}",
-                value = localizeDigits(minP),
-                secondaryValue = localizeDigits(minS),
-                modifier = Modifier.weight(1f).fillMaxHeight(),
-                onToggleUnits = onToggleUnits,
-            )
             val (maxP, maxS) = data.tempMax.displayDual(metricPrimary)
-            DetailCard(
-                title = "\u2191 ${stringResource(R.string.detail_max_temp)}",
-                value = localizeDigits(maxP),
-                secondaryValue = localizeDigits(maxS),
-                modifier = Modifier.weight(1f).fillMaxHeight(),
-                onToggleUnits = onToggleUnits,
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(16.sd(scale)),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "\u2193",
+                    fontSize = 28f.s(scale),
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White.copy(alpha = 0.7f),
+                )
+                Spacer(modifier = Modifier.width(8.sd(scale)))
+                DualUnitText(primary = localizeDigits(minP), secondary = localizeDigits(minS), primarySize = 20f.s(scale), onClick = onToggleUnits)
+                Spacer(modifier = Modifier.weight(1f))
+                DualUnitText(primary = localizeDigits(maxP), secondary = localizeDigits(maxS), primarySize = 20f.s(scale), horizontalAlignment = Alignment.End, onClick = onToggleUnits)
+                Spacer(modifier = Modifier.width(8.sd(scale)))
+                Text(
+                    text = "\u2191",
+                    fontSize = 28f.s(scale),
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White.copy(alpha = 0.7f),
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(16.sd(scale)))
 
-        Row(
-            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
-            horizontalArrangement = Arrangement.spacedBy(16.sd(scale))
+        // Wind / Wind Gust
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF2A1FA5).copy(alpha = 0.6f))
         ) {
             val (windP, windS) = data.windSpeed.displayDual(metricPrimary)
             val dirIndex = ((data.windDeg % 360 + 360) % 360 * 16 / 360) % 16
-            DetailCard(
-                title = stringResource(R.string.detail_wind),
-                value = localizeDigits(windP),
-                secondaryValue = localizeDigits(windS),
-                subtitle = localizeDigits("${directions[dirIndex]} (%d\u00B0)".format(Locale.US, data.windDeg)),
-                modifier = Modifier.weight(1f).fillMaxHeight(),
-                onToggleUnits = onToggleUnits,
-            )
-            data.windGust?.let { gust ->
-                val (gustP, gustS) = gust.displayDual(metricPrimary)
-                DetailCard(
-                    title = stringResource(R.string.detail_wind_gust),
-                    value = localizeDigits(gustP),
-                    secondaryValue = localizeDigits(gustS),
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
-                    onToggleUnits = onToggleUnits,
-                )
-            } ?: Spacer(modifier = Modifier.weight(1f))
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(16.sd(scale)),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.Start) {
+                    DualUnitText(primary = localizeDigits(windP), secondary = localizeDigits(windS), primarySize = 20f.s(scale), onClick = onToggleUnits)
+                    Text(
+                        text = localizeDigits("${directions[dirIndex]} (%d\u00B0)".format(Locale.US, data.windDeg)),
+                        fontSize = 12f.s(scale),
+                        fontFamily = bodyFont,
+                        color = Color.White.copy(alpha = 0.6f),
+                    )
+                }
+                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = stringResource(R.string.detail_wind),
+                        fontSize = 14f.s(scale),
+                        fontFamily = bodyFont,
+                        color = Color.White.copy(alpha = 0.7f),
+                    )
+                }
+                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
+                    data.windGust?.let { gust ->
+                        val (gustP, gustS) = gust.displayDual(metricPrimary)
+                        DualUnitText(primary = localizeDigits(gustP), secondary = localizeDigits(gustS), primarySize = 20f.s(scale), horizontalAlignment = Alignment.End, onClick = onToggleUnits)
+                        Text(
+                            text = stringResource(R.string.detail_wind_gust),
+                            fontSize = 12f.s(scale),
+                            fontFamily = bodyFont,
+                            color = Color.White.copy(alpha = 0.6f),
+                            textAlign = TextAlign.End,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(16.sd(scale)))
 
+        // Sunrise / Sunset
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF2A1FA5).copy(alpha = 0.6f))
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(16.sd(scale)),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.Start) {
+                    Text(
+                        text = localizeDigits(timeFormat.format(Date(data.sunrise * 1000))),
+                        fontSize = 20f.s(scale),
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = LocalDisplayFont.current,
+                        color = Color.White,
+                        style = TextStyle(fontFeatureSettings = fontFeatures),
+                    )
+                    Text(
+                        text = stringResource(R.string.detail_sunrise),
+                        fontSize = 12f.s(scale),
+                        fontFamily = bodyFont,
+                        color = Color.White.copy(alpha = 0.6f),
+                    )
+                }
+                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "\u2600\uFE0F",
+                        fontSize = 24f.s(scale),
+                    )
+                }
+                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = localizeDigits(timeFormat.format(Date(data.sunset * 1000))),
+                        fontSize = 20f.s(scale),
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = LocalDisplayFont.current,
+                        color = Color.White,
+                        style = TextStyle(fontFeatureSettings = fontFeatures),
+                        textAlign = TextAlign.End,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Text(
+                        text = stringResource(R.string.detail_sunset),
+                        fontSize = 12f.s(scale),
+                        fontFamily = bodyFont,
+                        color = Color.White.copy(alpha = 0.6f),
+                        textAlign = TextAlign.End,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.sd(scale)))
+
+        // Temperature / Precipitation
         Row(
-            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+            modifier = Modifier.fillMaxWidth().height(detailRowHeight),
+            horizontalArrangement = Arrangement.spacedBy(16.sd(scale))
+        ) {
+            val (tempP, tempS) = data.temperature.displayDual(metricPrimary)
+            val (flP, flS) = data.feelsLike.displayDual(metricPrimary)
+            DetailCard(
+                title = stringResource(R.string.detail_temperature),
+                value = localizeDigits(tempP),
+                secondaryValue = localizeDigits(tempS),
+                subtitle = "${stringResource(R.string.feels_like)} ${localizeDigits(flP)}",
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+                onToggleUnits = onToggleUnits,
+            )
+            if (data.snow != null) {
+                val (snowP, snowS) = data.snow.displayDual(metricPrimary)
+                DetailCard(
+                    title = stringResource(R.string.detail_precipitation),
+                    value = localizeDigits("\u2744\uFE0F $snowP"),
+                    secondaryValue = localizeDigits(snowS),
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    onToggleUnits = onToggleUnits,
+                )
+            } else if (data.rain != null) {
+                val (rainP, rainS) = data.rain.displayDual(metricPrimary)
+                DetailCard(
+                    title = stringResource(R.string.detail_precipitation),
+                    value = localizeDigits("\uD83C\uDF27\uFE0F $rainP"),
+                    secondaryValue = localizeDigits(rainS),
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    onToggleUnits = onToggleUnits,
+                )
+            } else {
+                DetailCard(
+                    title = stringResource(R.string.detail_precipitation),
+                    value = stringResource(R.string.detail_no_precip),
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.sd(scale)))
+
+        // Pressure / Humidity
+        Row(
+            modifier = Modifier.fillMaxWidth().height(detailRowHeight),
             horizontalArrangement = Arrangement.spacedBy(16.sd(scale))
         ) {
             val (pressP, pressS) = data.pressure.displayDual(metricPrimary)
@@ -970,7 +1129,7 @@ private fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat
                     }
                     Text(
                         text = dewText,
-                        modifier = if (onToggleUnits != null) Modifier.clickable(onClick = onToggleUnits) else Modifier,
+                        modifier = Modifier.clickable(onClick = onToggleUnits),
                     )
                 }
             }
@@ -978,8 +1137,9 @@ private fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat
 
         Spacer(modifier = Modifier.height(16.sd(scale)))
 
+        // UV Index / Visibility
         Row(
-            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+            modifier = Modifier.fillMaxWidth().height(detailRowHeight),
             horizontalArrangement = Arrangement.spacedBy(16.sd(scale))
         ) {
             val uvLabelText = when {
@@ -1003,24 +1163,6 @@ private fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat
                                  else stringResource(R.string.visibility_km).format(Locale.US, data.visibility / 1000.0)),
                 modifier = Modifier.weight(1f).fillMaxHeight(),
                 onToggleUnits = onToggleUnits,
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.sd(scale)))
-
-        Row(
-            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
-            horizontalArrangement = Arrangement.spacedBy(16.sd(scale))
-        ) {
-            DetailCard(
-                title = stringResource(R.string.detail_sunrise),
-                value = localizeDigits(timeFormat.format(Date(data.sunrise * 1000))),
-                modifier = Modifier.weight(1f).fillMaxHeight()
-            )
-            DetailCard(
-                title = stringResource(R.string.detail_sunset),
-                value = localizeDigits(timeFormat.format(Date(data.sunset * 1000))),
-                modifier = Modifier.weight(1f).fillMaxHeight()
             )
         }
     }

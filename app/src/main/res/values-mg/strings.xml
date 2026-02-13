@@ -5,7 +5,7 @@
     <string name="widget_description_large">Antsipiriany momba ny toetrandro: tsapa, hamandoana, rivotra ary ambany/ambony</string>
 
     <!-- WMO weather descriptions -->
-    <string name="wmo_clear_sky">Lanitra manga</string>
+    <string name="wmo_clear_sky">Manga ny lanitra</string>
     <string name="wmo_mainly_clear">Mazavazava ny lanitra</string>
     <string name="wmo_partly_cloudy">Misy rahona</string>
     <string name="wmo_overcast">Sembanindrahona</string>
@@ -76,6 +76,9 @@
     <string name="detail_visibility">Tazana</string>
     <string name="detail_sunrise">&#x1f31e; Miposaka</string>
     <string name="detail_sunset">&#x1f31e; Mody</string>
+    <string name="detail_temperature">Maripàna</string>
+    <string name="detail_precipitation">Orana</string>
+    <string name="detail_no_precip">Tsy misy</string>
 
     <!-- Visibility format strings -->
     <string name="visibility_km" formatted="false">%.1f km</string>

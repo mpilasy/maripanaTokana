@@ -76,6 +76,9 @@
     <string name="detail_visibility">الرؤية</string>
     <string name="detail_sunrise">شروق الشمس</string>
     <string name="detail_sunset">غروب الشمس</string>
+    <string name="detail_temperature">درجة الحرارة</string>
+    <string name="detail_precipitation">هطول الأمطار</string>
+    <string name="detail_no_precip">لا يوجد</string>
 
     <!-- Visibility format strings -->
     <string name="visibility_km" formatted="false">%.1f km</string>

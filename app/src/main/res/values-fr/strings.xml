@@ -76,6 +76,9 @@
     <string name="detail_visibility">Visibilit\u00e9</string>
     <string name="detail_sunrise">Lever du soleil</string>
     <string name="detail_sunset">Coucher du soleil</string>
+    <string name="detail_temperature">Temp\u00e9rature</string>
+    <string name="detail_precipitation">Pr\u00e9cipitations</string>
+    <string name="detail_no_precip">Aucune</string>
 
     <!-- Visibility format strings -->
     <string name="visibility_km" formatted="false">%.1f km</string>

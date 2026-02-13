@@ -60,6 +60,9 @@
     <string name="detail_visibility">दृश्यता</string>
     <string name="detail_sunrise">सूर्योदय</string>
     <string name="detail_sunset">सूर्यास्त</string>
+    <string name="detail_temperature">तापमान</string>
+    <string name="detail_precipitation">वर्षा</string>
+    <string name="detail_no_precip">कोई नहीं</string>
     <string name="visibility_km" formatted="false">%.1f km</string>
     <string name="visibility_mi" formatted="false">%.2f mi</string>
     <string name="credits_weather_data">मौसम डेटा प्रदाता </string>

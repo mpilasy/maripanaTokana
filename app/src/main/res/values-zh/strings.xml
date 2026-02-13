@@ -60,6 +60,9 @@
     <string name="detail_visibility">能见度</string>
     <string name="detail_sunrise">日出</string>
     <string name="detail_sunset">日落</string>
+    <string name="detail_temperature">温度</string>
+    <string name="detail_precipitation">降水</string>
+    <string name="detail_no_precip">无</string>
     <string name="visibility_km" formatted="false">%.1f km</string>
     <string name="visibility_mi" formatted="false">%.2f mi</string>
     <string name="credits_weather_data">天气数据来自 </string>

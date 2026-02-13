@@ -77,6 +77,9 @@
     <string name="detail_visibility">Visibility</string>
     <string name="detail_sunrise">Sunrise</string>
     <string name="detail_sunset">Sunset</string>
+    <string name="detail_temperature">Temperature</string>
+    <string name="detail_precipitation">Precipitation</string>
+    <string name="detail_no_precip">None</string>
 
     <!-- Visibility format strings -->
     <string name="visibility_km" formatted="false">%.1f km</string>
