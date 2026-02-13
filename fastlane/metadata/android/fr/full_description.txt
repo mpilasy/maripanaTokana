@@ -1,0 +1,14 @@
+maripànaTokana (Malgache pour "un thermomètre") est une application météo affichant les conditions actuelles, les prévisions horaires et les perspectives de 10 jours.
+
+• Données météorologiques en temps réel d'Open-Meteo (aucune clé API requise)
+• Affichage à double unité : métrique et impérial simultanément
+• 8 langues supportées
+• 16 combinaisons de polices pour la personnalisation
+• Rendu de chiffres natifs (arabe, hindi, népalais)
+• Support RTL pour l'arabe
+• Deux widgets d'écran d'accueil
+• Localisation GPS avec stratégies multiples
+• Actualisation automatique
+• Geste de glissement vers le bas pour actualiser
+• Pas de publicités, pas de suivi
+• Code source ouvert (Licence MIT)

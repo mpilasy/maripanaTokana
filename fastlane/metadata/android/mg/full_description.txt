@@ -1,0 +1,29 @@
+maripànaTokana (= "thermometer tokana" amin'ny malagasy) dia fampiharana toetr'andro iray manondro ny toetry ny andro ankehitriny, ny fipanarahan'ny ora, ary ny fisailanan-toetr'andro 10 andro.
+
+<b>Ny mampiavaka:</b>
+• Toetr'andro mpaham-po avy amin'ny Open-Meteo (tsy ilaina ny API key)
+• Fampisehoana sakamisy roa: metrika sy amerikana aseho miaraka
+• Ampitaho ny sanda iray hanerana ny vahaolana amin'ny sakamisy
+• Teny 8: Malagasy, Araba, Anglisy, Espaniola, Frantsay, Hindi, Nepali, Sinoa
+• Safidy folo amin'ny fonts
+• Fampisehoana isa tena izy (Araba, Hindi, Nepali)
+• Fanohanana RTL ho an'ny Araba
+• Widgets roa amin'ny tranon'olona (kely sy lehibe)
+• Toeran-gavina miaraka amin'ny vatosoa sy faty
+• Fanavaozana atsinana rehay tonga ny faharoa
+• Fanohanana Pull-to-Refresh
+
+<b>Fampahalalana ny toetr'andro:</b>
+• Hamehana miaraka amin'ny "feels-like" sy ambany-ambony
+• Tsindry, rano aman'ny tau-tsiron'rano
+• Hafanana sy lalana miaraka amin'ny tondro
+• Indicateur UV
+• Ranonorana (ranonorana na maranitra)
+• Hita izay azo
+• Oran'ny fiamboham-po sy fitongilanan'ny akohotrin'ny masoandro
+
+<b>Fahasahirana:</b>
+• Tsy misy fampahalalantaratasy na fizahan-tandrifitra
+• Toeran-gavina ampiasaina fotsiny ho an'ny toetr'andro
+• Tsy misy ny maha-izy azy ny tahiry
+• Loharanon-drefotra (MIT License)

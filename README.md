@@ -48,13 +48,31 @@
 | Min SDK | 24 (Android 7.0) |
 | Target SDK | 36 |
 
+## Distribution
+
+**F-Droid**: Download from F-Droid, the free and open-source Android app repository.
+
+[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
+     alt="Get it on F-Droid"
+     height="80">](https://f-droid.org/packages/orinasa.njarasoa.maripanatokana/)
+
+The app is distributed in two flavors:
+- **F-Droid**: Uses native Android LocationManager (no Google Play Services dependency)
+- **Standard**: Uses Google Play Services for enhanced location performance (Google Play, side-load)
+
 ## Build and Run
 
 ```bash
-./gradlew assembleDebug        # Debug APK
-./gradlew assembleRelease       # Release APK (requires keystore)
-./gradlew bundleRelease         # Release AAB for Play Store
+# F-Droid flavor (no Google Play Services dependency)
+./gradlew assembleFdroidDebug      # Debug APK
+./gradlew assembleFdroidRelease    # Release APK for F-Droid (requires keystore)
+
+# Standard flavor (with Google Play Services)
+./gradlew assembleStandardDebug    # Debug APK
+./gradlew assembleStandardRelease  # Release APK (requires keystore)
 ```
+
+For detailed information about F-Droid deployment, location providers, and build configuration, see [docs/FDROID.md](docs/FDROID.md).
 
 ## Architecture
 

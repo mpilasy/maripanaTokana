@@ -1,0 +1,8 @@
+Version initiale de l'application météo maripànaTokana.
+
+• Conditions météorologiques actuelles avec unités doubles
+• Prévisions horaires et décadaires
+• Support de 8 langues
+• 16 combinaisons de polices
+• Deux widgets d'écran d'accueil
+• Code source ouvert avec licence MIT

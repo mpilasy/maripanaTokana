@@ -20,7 +20,7 @@ val keystoreProperties = Properties().apply {
 // Generate Android strings.xml from canonical JSON before resource merging
 val generateStrings by tasks.registering(Exec::class) {
     workingDir = rootProject.projectDir
-    commandLine("node", "shared/i18n/generate-android-strings.js")
+    commandLine("sh", "-c", "node shared/i18n/generate-android-strings.js")
 }
 tasks.configureEach {
     if (name.startsWith("merge") && name.endsWith("Resources")) {
@@ -55,6 +55,20 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    flavorDimensions.add("distribution")
+    productFlavors {
+        create("standard") {
+            dimension = "distribution"
+            buildConfigField("String", "BUILD_TIME", "\"${SimpleDateFormat("yyyy-MM-dd HH:mm").format(Date())}\"")
+        }
+
+        create("fdroid") {
+            dimension = "distribution"
+            buildConfigField("String", "DISTRIBUTION", "\"fdroid\"")
+            buildConfigField("String", "BUILD_TIME", "\"reproducible\"")
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -78,7 +92,6 @@ android {
     defaultConfig {
         val gitHash = providers.exec { commandLine("git", "rev-parse", "--short", "HEAD") }.standardOutput.asText.get().trim()
         buildConfigField("String", "GIT_HASH", "\"$gitHash\"")
-        buildConfigField("String", "BUILD_TIME", "\"$buildTime\"")
     }
 }
 
@@ -108,10 +121,12 @@ dependencies {
     // WorkManager
     implementation(libs.androidx.work.runtime.ktx)
 
-    // Location
-    implementation(libs.play.services.location)
-    implementation(libs.accompanist.permissions)
-    implementation(libs.kotlinx.coroutines.play.services)
+    // Location - standard flavor only
+    "standardImplementation"(libs.play.services.location)
+    "standardImplementation"(libs.accompanist.permissions)
+    "standardImplementation"(libs.kotlinx.coroutines.play.services)
+
+    // F-Droid uses native Android LocationManager (no extra dependencies)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

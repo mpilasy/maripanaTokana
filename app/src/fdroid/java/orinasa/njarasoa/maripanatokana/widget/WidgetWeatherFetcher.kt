@@ -3,11 +3,8 @@ package orinasa.njarasoa.maripanatokana.widget
 import android.annotation.SuppressLint
 import android.content.Context
 import android.location.Geocoder
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
-import com.google.android.gms.tasks.CancellationTokenSource
+import android.location.LocationManager
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
-import kotlinx.coroutines.tasks.await
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoApiService
@@ -18,7 +15,7 @@ import java.util.Locale
 
 /**
  * Standalone weather fetcher for Glance widgets (no Hilt).
- * Builds its own Retrofit client and uses lastLocation for speed.
+ * F-Droid flavor using native LocationManager (no Google Play Services).
  */
 object WidgetWeatherFetcher {
 
@@ -62,14 +59,22 @@ object WidgetWeatherFetcher {
     }
 
     @SuppressLint("MissingPermission")
-    private suspend fun getCoordinates(context: Context): Pair<Double, Double>? {
+    private fun getCoordinates(context: Context): Pair<Double, Double>? {
         try {
-            val fusedClient = LocationServices.getFusedLocationProviderClient(context)
-            val location = fusedClient.lastLocation.await()
-                ?: fusedClient.getCurrentLocation(
-                    Priority.PRIORITY_HIGH_ACCURACY,
-                    CancellationTokenSource().token,
-                ).await()
+            val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
+            // Try GPS first, then network
+            val gpsLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+            val networkLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+
+            val location = when {
+                gpsLocation != null && networkLocation != null -> {
+                    if (gpsLocation.time >= networkLocation.time) gpsLocation else networkLocation
+                }
+                gpsLocation != null -> gpsLocation
+                networkLocation != null -> networkLocation
+                else -> null
+            }
 
             if (location != null) {
                 return Pair(location.latitude, location.longitude)

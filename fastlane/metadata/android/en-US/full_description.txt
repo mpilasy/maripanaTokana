@@ -1,0 +1,29 @@
+maripànaTokana (Malagasy for "a single thermometer") is a phone-only weather app that displays current conditions, hourly forecasts, and a 10-day outlook.
+
+<b>Key Features:</b>
+• Real-time weather from Open-Meteo (no API key needed)
+• Dual-unit display: metric and imperial shown simultaneously
+• Tap any value to swap primary/secondary units
+• 8 languages: Malagasy, Arabic, English, Spanish, French, Hindi, Nepali, Chinese
+• 16 font pairings for customization
+• Native digit rendering (Arabic, Hindi, Nepali)
+• RTL support for Arabic
+• Two home screen widgets (compact 4x1, detailed 4x2)
+• GPS location with cached and fresh strategies
+• Auto-refresh when data is stale
+• Pull-to-refresh support
+
+<b>Weather Information:</b>
+• Temperature with feels-like and min/max
+• Pressure, humidity with dew point
+• Wind speed and direction with cardinal compass
+• UV index
+• Precipitation (rain/snow)
+• Visibility
+• Sunrise/sunset times
+
+<b>Privacy:</b>
+• No ads, no tracking
+• Location used only for weather data
+• No personal data collected
+• Open source (MIT License)

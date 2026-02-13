@@ -1,0 +1,32 @@
+Categories:
+  - Science & Education
+License: MIT
+AuthorName: Orinasa Njarasoa
+AuthorWebSite: https://github.com/mpilasy
+SourceCode: https://github.com/mpilasy/maripanaTokana
+IssueTracker: https://github.com/mpilasy/maripanaTokana/issues
+
+AutoName: maripànaTokana
+
+RepoType: git
+Repo: https://github.com/mpilasy/maripanaTokana.git
+
+Builds:
+  - versionName: '1.0'
+    versionCode: 1
+    commit: v1.0
+    subdir: app
+    gradle:
+      - fdroid
+    prebuild: cd .. && node shared/i18n/generate-android-strings.js
+    scandelete:
+      - web/node_modules
+
+MaintainerNotes: |
+  The app uses shared i18n resources that are generated from JSON to Android
+  strings.xml via Node.js script before build. The prebuild step handles this.
+
+AutoUpdateMode: Version v%v
+UpdateCheckMode: Tags
+CurrentVersion: '1.0'
+CurrentVersionCode: 1

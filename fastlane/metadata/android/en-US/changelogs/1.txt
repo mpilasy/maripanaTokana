@@ -1,0 +1,8 @@
+Initial release of maripànaTokana weather app.
+
+• Current weather conditions with dual units
+• Hourly and 10-day forecasts
+• 8 language support
+• 16 font pairings
+• Two home screen widgets
+• Open-source with MIT License

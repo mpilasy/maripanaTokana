@@ -1,0 +1,8 @@
+Ranova voalohany amin'ny fampiharana toetr'andro maripànaTokana.
+
+• Toetr'andro ankehitriny miaraka amin'ny sakamisy roa
+• Fipanarahan'ny ora ary fisailanan-toetr'andro 10 andro
+• Fanohanana teny 8
+• Safidy fonts 16
+• Widgets roa amin'ny tranon'olona
+• Loharanon-drefotra miaraka amin'ny MIT License
