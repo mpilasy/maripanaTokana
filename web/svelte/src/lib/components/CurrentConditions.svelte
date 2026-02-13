@@ -54,6 +54,44 @@
 </script>
 
 <div class="conditions-grid">
+	<!-- Temperature + Precipitation merged card -->
+	<!-- svelte-ignore a11y_click_events_have_key_events -->
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div class="merged-card temp-precip-card" onclick={onToggleUnits}>
+		<div class="tp-side">
+			<span class="card-title">{$_('detail_temperature')}</span>
+			<span class="tp-values">
+				<span class="tp-primary">{loc(tempDual[0])}</span>
+				<span class="tp-secondary">{loc(tempDual[1])}</span>
+			</span>
+			<span class="feels-label">{$_('feels_like')}</span>
+			<span class="tp-values">
+				<span class="feels-primary">{loc(feelsLikeDual[0])}</span>
+				<span class="feels-secondary">{loc(feelsLikeDual[1])}</span>
+			</span>
+		</div>
+		<div class="tp-side tp-side-end">
+			<span class="card-title">{$_('detail_precipitation')}</span>
+			{#if data.snow}
+				{@const [snowP, snowS] = data.snow.displayDual(metricPrimary)}
+				<span class="tp-values tp-values-end">
+					<span class="tp-primary">{"\u2744\uFE0F " + loc(snowP)}</span>
+					<span class="tp-secondary">{loc(snowS)}</span>
+				</span>
+			{:else if data.rain}
+				{@const [rainP, rainS] = data.rain.displayDual(metricPrimary)}
+				<span class="tp-values tp-values-end">
+					<span class="tp-primary">{"\uD83C\uDF27\uFE0F " + loc(rainP)}</span>
+					<span class="tp-secondary">{loc(rainS)}</span>
+				</span>
+			{:else}
+				<span class="tp-primary">{$_('no_precip')}</span>
+			{/if}
+			<span class="feels-label">{$_('detail_cloud_cover')}</span>
+			<span class="feels-primary">{loc(`${data.cloudCover}%`)}</span>
+		</div>
+	</div>
+
 	<!-- High / Low merged card -->
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -104,44 +142,6 @@
 		<div class="sun-side sun-side-end">
 			<span class="sun-time">{loc(formatTime(data.sunset))}</span>
 			<span class="sun-label">{$_('detail_sunset')}</span>
-		</div>
-	</div>
-
-	<!-- Temperature + Precipitation merged card -->
-	<!-- svelte-ignore a11y_click_events_have_key_events -->
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="merged-card temp-precip-card" onclick={onToggleUnits}>
-		<div class="tp-side">
-			<span class="card-title">{$_('detail_temperature')}</span>
-			<span class="tp-values">
-				<span class="tp-primary">{loc(tempDual[0])}</span>
-				<span class="tp-secondary">{loc(tempDual[1])}</span>
-			</span>
-			<span class="feels-label">{$_('feels_like')}</span>
-			<span class="tp-values">
-				<span class="feels-primary">{loc(feelsLikeDual[0])}</span>
-				<span class="feels-secondary">{loc(feelsLikeDual[1])}</span>
-			</span>
-		</div>
-		<div class="tp-side tp-side-end">
-			<span class="card-title">{$_('detail_precipitation')}</span>
-			{#if data.snow}
-				{@const [snowP, snowS] = data.snow.displayDual(metricPrimary)}
-				<span class="tp-values tp-values-end">
-					<span class="tp-primary">{"\u2744\uFE0F " + loc(snowP)}</span>
-					<span class="tp-secondary">{loc(snowS)}</span>
-				</span>
-			{:else if data.rain}
-				{@const [rainP, rainS] = data.rain.displayDual(metricPrimary)}
-				<span class="tp-values tp-values-end">
-					<span class="tp-primary">{"\uD83C\uDF27\uFE0F " + loc(rainP)}</span>
-					<span class="tp-secondary">{loc(rainS)}</span>
-				</span>
-			{:else}
-				<span class="tp-primary">{$_('no_precip')}</span>
-			{/if}
-			<span class="feels-label">{$_('detail_cloud_cover')}</span>
-			<span class="feels-primary">{loc(`${data.cloudCover}%`)}</span>
 		</div>
 	</div>
 

@@ -9,55 +9,6 @@ import { DetailCardComponent } from './detail-card.component';
 	imports: [DetailCardComponent],
 	template: `
 		<div class="conditions-grid">
-			<!-- High / Low merged card -->
-			<div class="merged-card" (click)="onToggleUnits.emit()">
-				<span class="highlow-arrow">↓</span>
-				<span class="merged-values">
-					<span class="merged-primary">{{ minDual()[0] }}</span>
-					<span class="merged-secondary">{{ minDual()[1] }}</span>
-				</span>
-				<span class="merged-label">{{ i18n.t('detail_high_low') }}</span>
-				<span class="merged-values merged-values-end">
-					<span class="merged-primary">{{ maxDual()[0] }}</span>
-					<span class="merged-secondary">{{ maxDual()[1] }}</span>
-				</span>
-				<span class="highlow-arrow">↑</span>
-			</div>
-
-			<!-- Wind merged card -->
-			<div class="merged-card" (click)="onToggleUnits.emit()">
-				<div class="wind-side">
-					<span class="merged-values">
-						<span class="merged-primary">{{ windDual()[0] }}</span>
-						<span class="merged-secondary">{{ windDual()[1] }}</span>
-					</span>
-					<span class="wind-subtitle">{{ windSubtitle() }}</span>
-				</div>
-				<span class="merged-label">{{ i18n.t('detail_wind') }}</span>
-				<div class="wind-side wind-side-end">
-					@if (gustDual()) {
-						<span class="merged-values merged-values-end">
-							<span class="merged-primary">{{ gustDual()![0] }}</span>
-							<span class="merged-secondary">{{ gustDual()![1] }}</span>
-						</span>
-						<span class="wind-subtitle">{{ i18n.t('detail_wind_gust') }}</span>
-					}
-				</div>
-			</div>
-
-			<!-- Sunrise / Sunset merged card -->
-			<div class="merged-card sun-card">
-				<div class="sun-side">
-					<span class="sun-time">{{ loc()(formatTime(data().sunrise)) }}</span>
-					<span class="sun-label">{{ i18n.t('detail_sunrise') }}</span>
-				</div>
-				<span class="sun-icon">☀️</span>
-				<div class="sun-side sun-side-end">
-					<span class="sun-time">{{ loc()(formatTime(data().sunset)) }}</span>
-					<span class="sun-label">{{ i18n.t('detail_sunset') }}</span>
-				</div>
-			</div>
-
 			<!-- Temperature + Precipitation merged card -->
 			<div class="merged-card temp-precip-card" (click)="onToggleUnits.emit()">
 				<div class="tp-side">
@@ -89,6 +40,55 @@ import { DetailCardComponent } from './detail-card.component';
 					}
 					<span class="feels-label">{{ i18n.t('detail_cloud_cover') }}</span>
 					<span class="feels-primary">{{ loc()(data().cloudCover + '%') }}</span>
+				</div>
+			</div>
+
+			<!-- High / Low merged card -->
+			<div class="merged-card highlow-card" (click)="onToggleUnits.emit()">
+				<span class="highlow-arrow">↓</span>
+				<span class="merged-values">
+					<span class="merged-primary">{{ minDual()[0] }}</span>
+					<span class="merged-secondary">{{ minDual()[1] }}</span>
+				</span>
+				<span class="merged-label">{{ i18n.t('detail_high_low') }}</span>
+				<span class="merged-values merged-values-end">
+					<span class="merged-primary">{{ maxDual()[0] }}</span>
+					<span class="merged-secondary">{{ maxDual()[1] }}</span>
+				</span>
+				<span class="highlow-arrow">↑</span>
+			</div>
+
+			<!-- Wind merged card -->
+			<div class="merged-card wind-merged-card" (click)="onToggleUnits.emit()">
+				<div class="wind-side">
+					<span class="merged-values">
+						<span class="merged-primary">{{ windDual()[0] }}</span>
+						<span class="merged-secondary">{{ windDual()[1] }}</span>
+					</span>
+					<span class="wind-subtitle">{{ windSubtitle() }}</span>
+				</div>
+				<span class="merged-label">{{ i18n.t('detail_wind') }}</span>
+				<div class="wind-side wind-side-end">
+					@if (gustDual()) {
+						<span class="merged-values merged-values-end">
+							<span class="merged-primary">{{ gustDual()![0] }}</span>
+							<span class="merged-secondary">{{ gustDual()![1] }}</span>
+						</span>
+						<span class="wind-subtitle">{{ i18n.t('detail_wind_gust') }}</span>
+					}
+				</div>
+			</div>
+
+			<!-- Sunrise / Sunset merged card -->
+			<div class="merged-card sun-card">
+				<div class="sun-side">
+					<span class="sun-time">{{ loc()(formatTime(data().sunrise)) }}</span>
+					<span class="sun-label">{{ i18n.t('detail_sunrise') }}</span>
+				</div>
+				<span class="sun-icon">☀️</span>
+				<div class="sun-side sun-side-end">
+					<span class="sun-time">{{ loc()(formatTime(data().sunset)) }}</span>
+					<span class="sun-label">{{ i18n.t('detail_sunset') }}</span>
 				</div>
 			</div>
 
