@@ -1,0 +1,52 @@
+{
+	"$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+	"version": 1,
+	"projects": {
+		"maripanatokana": {
+			"projectType": "application",
+			"root": "",
+			"sourceRoot": "src",
+			"architect": {
+				"build": {
+					"builder": "@angular-devkit/build-angular:application",
+					"options": {
+						"baseHref": "/ng/",
+						"outputPath": "dist",
+						"index": "src/index.html",
+						"browser": "src/main.ts",
+						"tsConfig": "tsconfig.app.json",
+						"assets": [{ "glob": "**/*", "input": "public" }],
+						"polyfills": ["zone.js"],
+						"styles": ["src/styles.css"],
+						"scripts": [],
+						"sourceMap": false,
+						"optimization": true
+					},
+					"configurations": {
+						"production": {
+							"budgets": [
+								{ "type": "initial", "maximumWarning": "750kB", "maximumError": "2MB" }
+							],
+							"outputHashing": "all",
+							"sourceMap": false
+						},
+						"development": {
+							"optimization": false,
+							"extractLicenses": false,
+							"sourceMap": true
+						}
+					},
+					"defaultConfiguration": "production"
+				},
+				"serve": {
+					"builder": "@angular-devkit/build-angular:dev-server",
+					"configurations": {
+						"production": { "buildTarget": "maripanatokana:build:production" },
+						"development": { "buildTarget": "maripanatokana:build:development" }
+					},
+					"defaultConfiguration": "development"
+				}
+			}
+		}
+	}
+}

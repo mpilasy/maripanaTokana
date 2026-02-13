@@ -1,0 +1,40 @@
+# Stage 1: Build
+FROM node:22-alpine AS build
+WORKDIR /app
+
+# Copy all package files
+COPY svelte/package.json svelte/package-lock.json ./svelte/
+COPY react/package.json react/package-lock.json ./react/
+COPY angular/package.json angular/package-lock.json ./angular/
+
+# Install Svelte dependencies
+WORKDIR /app/svelte
+RUN npm ci
+
+# Install React dependencies
+WORKDIR /app/react
+RUN npm ci
+
+# Install Angular dependencies
+WORKDIR /app/angular
+RUN npm ci
+
+# Copy source code
+WORKDIR /app
+COPY . .
+
+# Make html2canvas resolvable from shared/ (outside any app's node_modules)
+RUN mkdir -p node_modules && ln -s /app/svelte/node_modules/html2canvas node_modules/html2canvas
+
+# Build all three apps
+RUN cd svelte && npm run build
+RUN cd react && npm run build
+RUN cd angular && npm run build
+
+# Stage 2: Serve
+FROM caddy:alpine
+COPY Caddyfile /etc/caddy/Caddyfile
+COPY --from=build /app/svelte/build /srv/svelte
+COPY --from=build /app/react/dist /srv/react
+COPY --from=build /app/angular/dist/browser /srv/ng
+EXPOSE 80

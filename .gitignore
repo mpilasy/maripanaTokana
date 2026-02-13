@@ -18,3 +18,17 @@ gradle.properties
 .idea
 release.keystore
 keystore.properties
+
+# Web
+node_modules/
+web/build/
+web/**/dist/
+web/**/.svelte-kit/
+web/**/.angular/
+web/**/.output/
+web/**/.env
+web/**/.env.*
+!web/**/.env.example
+web/**/vite.config.js.timestamp-*
+web/**/vite.config.ts.timestamp-*
+web/**/tsconfig.tsbuildinfo

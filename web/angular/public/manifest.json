@@ -1,0 +1,22 @@
+{
+	"name": "maripànaTokana",
+	"short_name": "maripànaTokana",
+	"description": "Weather dashboard with dual metric/imperial units",
+	"start_url": "/ng/",
+	"scope": "/ng/",
+	"display": "standalone",
+	"theme_color": "#0E0B3D",
+	"background_color": "#0E0B3D",
+	"icons": [
+		{
+			"src": "icons/icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png"
+		},
+		{
+			"src": "icons/icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png"
+		}
+	]
+}

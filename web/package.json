@@ -1,0 +1,11 @@
+{
+	"name": "maripanatokana-web",
+	"private": true,
+	"version": "1.0.0",
+	"scripts": {
+		"build:all": "cd svelte && npm run build && cd ../react && npm run build && cd ../angular && npm run build",
+		"build:svelte": "cd svelte && npm run build",
+		"build:react": "cd react && npm run build",
+		"build:angular": "cd angular && npm run build"
+	}
+}
