@@ -4,8 +4,10 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
-    }
+      "@/*": ["src/*"],
+      "shared/*": ["../shared/*"]
+    },
+    "resolveJsonModule": true
   },
-  "include": ["src/**/*", "App.tsx", "index.js"]
+  "include": ["src/**/*", "App.tsx", "index.js", "../shared/i18n/**/*"]
 }

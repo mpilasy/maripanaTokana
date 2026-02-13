@@ -80,11 +80,12 @@ export function WeatherScreen() {
     return () => sub.remove();
   }, [refreshIfStale]);
 
-  // Handle RTL for Arabic
+  // Handle RTL for Arabic (the only RTL locale in the supported set)
+  const isRtl = localeTag === 'ar';
   useEffect(() => {
     I18nManager.allowRTL(true);
-    I18nManager.forceRTL(locale.rtl);
-  }, [locale.rtl]);
+    I18nManager.forceRTL(isRtl);
+  }, [isRtl]);
 
   const handleGrantPermission = async () => {
     const granted = await requestLocationPermission();
