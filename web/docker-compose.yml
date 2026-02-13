@@ -1,7 +1,8 @@
 services:
   web:
     build:
-      context: .
+      context: ..
+      dockerfile: web/Dockerfile
       network: host
     container_name: maripanaTokana.web
     restart: unless-stopped

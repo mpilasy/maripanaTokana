@@ -1,0 +1,12 @@
+# Only send web/ and shared/i18n/ to the Docker daemon
+*
+!web/
+!shared/i18n/
+
+# Exclude build artifacts and dependencies within web/
+web/**/node_modules
+web/**/build
+web/**/dist
+web/**/.svelte-kit
+web/**/.angular
+web/.idea
