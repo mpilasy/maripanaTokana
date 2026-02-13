@@ -1,0 +1,79 @@
+name: F-Droid Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate i18n strings
+        run: node shared/i18n/generate-android-strings.js
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build F-Droid flavor (Debug)
+        run: ./gradlew assembleFdroidDebug
+
+      - name: Build F-Droid flavor (Release)
+        run: ./gradlew assembleFdroidRelease
+
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: maripanatokana-fdroid-debug-${{ github.ref_name }}.apk
+          path: app/build/outputs/apk/fdroid/debug/*.apk
+          if-no-files-found: ignore
+
+      - name: Upload Release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: maripanatokana-fdroid-release-${{ github.ref_name }}.apk
+          path: app/build/outputs/apk/fdroid/release/*.apk
+          if-no-files-found: ignore
+
+      - name: Create Release Notes
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          body: |
+            # maripànaTokana ${{ github.ref_name }}
+
+            F-Droid compatible release build.
+
+            ## Changes
+            - F-Droid flavor build (no Google Play Services)
+            - Native Android LocationManager
+            - 8 language support
+            - Dual-unit weather display
+
+            ## Files
+            - `maripanatokana-fdroid-release-*.apk` - Release APK for F-Droid submission
+
+            ## Testing
+            See [FDROID_IMPLEMENTATION_SUMMARY.md](https://github.com/mpilasy/maripanaTokana/blob/main/FDROID_IMPLEMENTATION_SUMMARY.md) for testing instructions.
+          draft: false
+          prerelease: false
