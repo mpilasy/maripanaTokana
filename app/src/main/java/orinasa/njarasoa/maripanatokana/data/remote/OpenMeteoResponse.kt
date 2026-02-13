@@ -27,6 +27,7 @@ data class OpenMeteoCurrent(
     @SerialName("weather_code") val weatherCode: Int,
     @SerialName("is_day") val isDay: Int,
     @SerialName("uv_index") val uvIndex: Double,
+    @SerialName("cloud_cover") val cloudCover: Int,
 )
 
 @Serializable

@@ -68,6 +68,7 @@ fun OpenMeteoResponse.toDomain(locationName: String): WeatherData {
         windGust = if (c.windGusts > 0) WindSpeed.fromMetersPerSecond(c.windGusts) else null,
         rain = if (c.rain > 0) Precipitation.fromMm(c.rain) else null,
         snow = if (c.snowfall > 0) Precipitation.fromMm(c.snowfall) else null,
+        cloudCover = c.cloudCover,
         uvIndex = c.uvIndex,
         visibility = c.visibility.toInt(),
         sunrise = sunriseEpoch,

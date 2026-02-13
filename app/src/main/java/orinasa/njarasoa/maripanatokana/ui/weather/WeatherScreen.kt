@@ -14,6 +14,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -888,10 +889,80 @@ private fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat
     val bodyFont = LocalBodyFont.current
     val fontFeatures = LocalBodyFontFeatures.current
     val scale = LocalScale.current
-    val detailRowHeight = 130.sd(scale)
-
     Column {
         Spacer(modifier = Modifier.height(8.dp))
+
+        // Temperature / Precipitation / Cloud Cover (merged full-width card)
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF2A1FA5).copy(alpha = 0.6f))
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(16.sd(scale)),
+            ) {
+                // Temperature (left)
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.detail_temperature),
+                        fontSize = 14f.s(scale),
+                        fontFamily = bodyFont,
+                        color = Color.White.copy(alpha = 0.7f),
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    val (tempP, tempS) = data.temperature.displayDual(metricPrimary)
+                    DualUnitText(primary = localizeDigits(tempP), secondary = localizeDigits(tempS), primarySize = 20f.s(scale), onClick = onToggleUnits)
+                    val (flP, _) = data.feelsLike.displayDual(metricPrimary)
+                    Text(
+                        text = "${stringResource(R.string.feels_like)} ${localizeDigits(flP)}",
+                        fontSize = 12f.s(scale),
+                        fontFamily = bodyFont,
+                        color = Color.White.copy(alpha = 0.6f),
+                    )
+                }
+                // Precipitation + Cloud Cover (right)
+                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = stringResource(R.string.detail_precipitation),
+                        fontSize = 14f.s(scale),
+                        fontFamily = bodyFont,
+                        color = Color.White.copy(alpha = 0.7f),
+                        textAlign = TextAlign.End,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    if (data.snow != null) {
+                        val (snowP, snowS) = data.snow.displayDual(metricPrimary)
+                        DualUnitText(primary = localizeDigits("\u2744\uFE0F $snowP"), secondary = localizeDigits(snowS), primarySize = 20f.s(scale), horizontalAlignment = Alignment.End, onClick = onToggleUnits)
+                    } else if (data.rain != null) {
+                        val (rainP, rainS) = data.rain.displayDual(metricPrimary)
+                        DualUnitText(primary = localizeDigits("\uD83C\uDF27\uFE0F $rainP"), secondary = localizeDigits(rainS), primarySize = 20f.s(scale), horizontalAlignment = Alignment.End, onClick = onToggleUnits)
+                    } else {
+                        Text(
+                            text = stringResource(R.string.detail_no_precip),
+                            fontSize = 20f.s(scale),
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = LocalDisplayFont.current,
+                            color = Color.White,
+                            style = TextStyle(fontFeatureSettings = fontFeatures),
+                            textAlign = TextAlign.End,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "${stringResource(R.string.detail_cloud_cover)}: ${localizeDigits("%d%%".format(Locale.US, data.cloudCover))}",
+                        fontSize = 12f.s(scale),
+                        fontFamily = bodyFont,
+                        color = Color.White.copy(alpha = 0.5f),
+                        textAlign = TextAlign.End,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.sd(scale)))
 
         // High / Low
         Card(
@@ -1032,53 +1103,9 @@ private fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat
 
         Spacer(modifier = Modifier.height(16.sd(scale)))
 
-        // Temperature / Precipitation
-        Row(
-            modifier = Modifier.fillMaxWidth().height(detailRowHeight),
-            horizontalArrangement = Arrangement.spacedBy(16.sd(scale))
-        ) {
-            val (tempP, tempS) = data.temperature.displayDual(metricPrimary)
-            val (flP, flS) = data.feelsLike.displayDual(metricPrimary)
-            DetailCard(
-                title = stringResource(R.string.detail_temperature),
-                value = localizeDigits(tempP),
-                secondaryValue = localizeDigits(tempS),
-                subtitle = "${stringResource(R.string.feels_like)} ${localizeDigits(flP)}",
-                modifier = Modifier.weight(1f).fillMaxHeight(),
-                onToggleUnits = onToggleUnits,
-            )
-            if (data.snow != null) {
-                val (snowP, snowS) = data.snow.displayDual(metricPrimary)
-                DetailCard(
-                    title = stringResource(R.string.detail_precipitation),
-                    value = localizeDigits("\u2744\uFE0F $snowP"),
-                    secondaryValue = localizeDigits(snowS),
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
-                    onToggleUnits = onToggleUnits,
-                )
-            } else if (data.rain != null) {
-                val (rainP, rainS) = data.rain.displayDual(metricPrimary)
-                DetailCard(
-                    title = stringResource(R.string.detail_precipitation),
-                    value = localizeDigits("\uD83C\uDF27\uFE0F $rainP"),
-                    secondaryValue = localizeDigits(rainS),
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
-                    onToggleUnits = onToggleUnits,
-                )
-            } else {
-                DetailCard(
-                    title = stringResource(R.string.detail_precipitation),
-                    value = stringResource(R.string.detail_no_precip),
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.sd(scale)))
-
         // Pressure / Humidity
         Row(
-            modifier = Modifier.fillMaxWidth().height(detailRowHeight),
+            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
             horizontalArrangement = Arrangement.spacedBy(16.sd(scale))
         ) {
             val (pressP, pressS) = data.pressure.displayDual(metricPrimary)
@@ -1139,7 +1166,7 @@ private fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat
 
         // UV Index / Visibility
         Row(
-            modifier = Modifier.fillMaxWidth().height(detailRowHeight),
+            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
             horizontalArrangement = Arrangement.spacedBy(16.sd(scale))
         ) {
             val uvLabelText = when {
