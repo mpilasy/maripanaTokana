@@ -45,16 +45,20 @@ import { DetailCardComponent } from './detail-card.component';
 
 			<!-- High / Low merged card -->
 			<div class="merged-card highlow-card" (click)="onToggleUnits.emit()">
-				<span class="highlow-arrow">↓</span>
-				<span class="merged-values">
-					<span class="merged-primary">{{ minDual()[0] }}</span>
-					<span class="merged-secondary">{{ minDual()[1] }}</span>
+				<span class="highlow-group">
+					<span class="highlow-arrow">↓</span>
+					<span class="merged-values">
+						<span class="merged-primary">{{ minDual()[0] }}</span>
+						<span class="merged-secondary">{{ minDual()[1] }}</span>
+					</span>
 				</span>
-				<span class="merged-values merged-values-end">
-					<span class="merged-primary">{{ maxDual()[0] }}</span>
-					<span class="merged-secondary">{{ maxDual()[1] }}</span>
+				<span class="highlow-group">
+					<span class="merged-values merged-values-end">
+						<span class="merged-primary">{{ maxDual()[0] }}</span>
+						<span class="merged-secondary">{{ maxDual()[1] }}</span>
+					</span>
+					<span class="highlow-arrow">↑</span>
 				</span>
-				<span class="highlow-arrow">↑</span>
 			</div>
 
 			<!-- Wind merged card -->
@@ -114,6 +118,7 @@ import { DetailCardComponent } from './detail-card.component';
 		.merged-values-end { justify-content: flex-end; }
 		.merged-primary { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: white; font-feature-settings: var(--font-features); }
 		.merged-secondary { font-family: var(--font-display); font-size: 12px; color: rgba(255,255,255,0.55); font-feature-settings: var(--font-features); }
+		.highlow-group { display: flex; align-items: center; gap: 4px; }
 		.highlow-arrow { font-size: 32px; color: rgba(255,255,255,0.7); }
 		.wind-label { font-weight: 700; }
 		.wind-side { display: flex; flex-direction: column; gap: 2px; min-width: 0; }

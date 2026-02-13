@@ -96,16 +96,20 @@
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div class="merged-card highlow-card" onclick={onToggleUnits}>
-		<span class="highlow-arrow">↓</span>
-		<span class="merged-values">
-			<span class="merged-primary">{loc(minDual[0])}</span>
-			<span class="merged-secondary">{loc(minDual[1])}</span>
+		<span class="highlow-group">
+			<span class="highlow-arrow">↓</span>
+			<span class="merged-values">
+				<span class="merged-primary">{loc(minDual[0])}</span>
+				<span class="merged-secondary">{loc(minDual[1])}</span>
+			</span>
 		</span>
-		<span class="merged-values merged-values-end">
-			<span class="merged-primary">{loc(maxDual[0])}</span>
-			<span class="merged-secondary">{loc(maxDual[1])}</span>
+		<span class="highlow-group">
+			<span class="merged-values merged-values-end">
+				<span class="merged-primary">{loc(maxDual[0])}</span>
+				<span class="merged-secondary">{loc(maxDual[1])}</span>
+			</span>
+			<span class="highlow-arrow">↑</span>
 		</span>
-		<span class="highlow-arrow">↑</span>
 	</div>
 
 	<!-- Wind merged card -->
@@ -226,6 +230,12 @@
 		font-size: 12px;
 		color: rgba(255,255,255,0.55);
 		font-feature-settings: var(--font-features);
+	}
+
+	.highlow-group {
+		display: flex;
+		align-items: center;
+		gap: 4px;
 	}
 
 	.highlow-arrow {

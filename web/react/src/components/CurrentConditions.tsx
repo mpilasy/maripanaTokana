@@ -92,16 +92,20 @@ export default function CurrentConditions({ data, metricPrimary, loc, onToggleUn
 
 			{/* High / Low merged card */}
 			<div className="merged-card highlow-card" onClick={onToggleUnits}>
-				<span className="highlow-arrow">↓</span>
-				<span className="merged-values">
-					<span className="merged-primary">{loc(minDual[0])}</span>
-					<span className="merged-secondary">{loc(minDual[1])}</span>
+				<span className="highlow-group">
+					<span className="highlow-arrow">↓</span>
+					<span className="merged-values">
+						<span className="merged-primary">{loc(minDual[0])}</span>
+						<span className="merged-secondary">{loc(minDual[1])}</span>
+					</span>
 				</span>
-				<span className="merged-values merged-values-end">
-					<span className="merged-primary">{loc(maxDual[0])}</span>
-					<span className="merged-secondary">{loc(maxDual[1])}</span>
+				<span className="highlow-group">
+					<span className="merged-values merged-values-end">
+						<span className="merged-primary">{loc(maxDual[0])}</span>
+						<span className="merged-secondary">{loc(maxDual[1])}</span>
+					</span>
+					<span className="highlow-arrow">↑</span>
 				</span>
-				<span className="highlow-arrow">↑</span>
 			</div>
 
 			{/* Wind merged card */}

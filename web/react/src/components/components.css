@@ -448,6 +448,12 @@
 	font-feature-settings: var(--font-features);
 }
 
+.highlow-group {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
 .highlow-arrow {
 	font-size: 32px;
 	color: rgba(255,255,255,0.7);
