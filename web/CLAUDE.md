@@ -9,7 +9,7 @@
 
 ## Project Layout
 ```
-maripanaTokana.web/
+web/
 ├── shared/             # Framework-agnostic code (api, domain, i18n, fonts, share)
 ├── svelte/             # Svelte app (primary implementation)
 ├── react/              # React app (separate package.json, vite.config.ts)
@@ -97,4 +97,4 @@ All three implementations share the same feature set:
 - Owner is an experienced C#, Java, C++ developer.
 - Prefer concise, technically accurate code.
 - Avoid redundant explanations; focus on implementation details and logic.
-- Port from Android source at `../maripanaTokana/` — same logic, different platform APIs.
+- Port from Android source at `../` — same logic, different platform APIs.

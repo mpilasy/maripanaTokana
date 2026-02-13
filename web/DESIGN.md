@@ -79,7 +79,7 @@ SvelteKit is to Svelte what Next.js is to React — a full application framework
 ## 2. Project Structure
 
 ```
-maripanaTokana.web/
+web/
 ├── shared/                               # Framework-agnostic code (used by all 3 apps)
 │   ├── api/                              # Network layer
 │   │   ├── openMeteo.ts                  # API client: fetchWeather(lat, lon)

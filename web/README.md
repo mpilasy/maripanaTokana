@@ -2,7 +2,7 @@
 
 **maripána Tokana** (Malagasy for "a single thermometer") is a Progressive Web App weather dashboard that shows current conditions, hourly forecasts, and a 10-day outlook. It always displays both metric and imperial units side by side, and supports 8 languages with 22 font pairings.
 
-This is the web port of the [Android app](../maripanaTokana/), built with SvelteKit.
+This is the web port of the [Android app](../), built with SvelteKit.
 
 ## Features
 
@@ -109,7 +109,7 @@ docker-compose.yml  # Container config (port, DEFAULT_APP)
 Three parallel implementations sharing framework-agnostic code from `shared/`.
 
 ```
-maripanaTokana.web/
+web/
 ├── shared/                   # Framework-agnostic code (used by all 3 apps)
 │   ├── api/                  # Open-Meteo fetch client, types, mapper, WMO codes
 │   ├── domain/               # Value classes: Temperature, Pressure, WindSpeed, Precipitation
