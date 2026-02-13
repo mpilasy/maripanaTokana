@@ -1,0 +1,104 @@
+<resources>
+    <string name="app_name">maripànaTokana</string>
+    <string name="loading">लोड हुँदैछ…</string>
+    <string name="wmo_clear_sky">खुला आकाश</string>
+    <string name="wmo_mainly_clear">प्रायः खुला</string>
+    <string name="wmo_partly_cloudy">आंशिक बादलाम</string>
+    <string name="wmo_overcast">बादलाम</string>
+    <string name="wmo_fog">कुहिरो</string>
+    <string name="wmo_rime_fog">तुसारो कुहिरो</string>
+    <string name="wmo_light_drizzle">हल्का झरी</string>
+    <string name="wmo_moderate_drizzle">मध्यम झरी</string>
+    <string name="wmo_dense_drizzle">घना झरी</string>
+    <string name="wmo_light_freezing_drizzle">हल्का जमाउने झरी</string>
+    <string name="wmo_dense_freezing_drizzle">घना जमाउने झरी</string>
+    <string name="wmo_slight_rain">हल्का वर्षा</string>
+    <string name="wmo_moderate_rain">मध्यम वर्षा</string>
+    <string name="wmo_heavy_rain">भारी वर्षा</string>
+    <string name="wmo_light_freezing_rain">हल्का जमाउने वर्षा</string>
+    <string name="wmo_heavy_freezing_rain">भारी जमाउने वर्षा</string>
+    <string name="wmo_slight_snowfall">हल्का हिमपात</string>
+    <string name="wmo_moderate_snowfall">मध्यम हिमपात</string>
+    <string name="wmo_heavy_snowfall">भारी हिमपात</string>
+    <string name="wmo_snow_grains">हिउँका दाना</string>
+    <string name="wmo_slight_rain_showers">हल्का वर्षाको झडी</string>
+    <string name="wmo_moderate_rain_showers">मध्यम वर्षाको झडी</string>
+    <string name="wmo_violent_rain_showers">प्रचण्ड वर्षाको झडी</string>
+    <string name="wmo_slight_snow_showers">हल्का हिउँको झडी</string>
+    <string name="wmo_heavy_snow_showers">भारी हिउँको झडी</string>
+    <string name="wmo_thunderstorm">गडगडाहट/चट्याङ</string>
+    <string name="wmo_thunderstorm_slight_hail">हल्का असिनासहित गडगडाहट</string>
+    <string name="wmo_thunderstorm_heavy_hail">भारी असिनासहित गडगडाहट</string>
+    <string name="wmo_unknown">अज्ञात</string>
+    <string name="permission_title">स्थान अनुमति आवश्यक छ</string>
+    <string name="permission_message">तपाईंको क्षेत्रको मौसम देखाउन यो एपलाई स्थान पहुँच चाहिन्छ।</string>
+    <string name="grant_permission">अनुमति दिनुहोस्</string>
+    <string name="error_title">त्रुटि</string>
+    <string name="error_retry">पुन: प्रयास</string>
+    <string name="error_fetch_weather">मौसम प्राप्त गर्न असफल</string>
+    <string name="error_get_location">स्थान प्राप्त गर्न असफल</string>
+    <string name="updated_time">अद्यावधिक %1$s</string>
+    <string name="feels_like">अनुभूत तापक्रम</string>
+    <string name="no_precip">वर्षा छैन</string>
+    <string name="section_current_conditions">हालको अवस्था</string>
+    <string name="section_hourly_forecast">प्रति घण्टा पूर्वानुमान</string>
+    <string name="section_this_week">१० दिनको पूर्वानुमान</string>
+    <string name="detail_min_temp">न्यूनतम तापक्रम</string>
+    <string name="detail_max_temp">अधिकतम तापक्रम</string>
+    <string name="detail_wind">हावा</string>
+    <string name="detail_wind_gust">हावाको झोक्का</string>
+    <string name="detail_pressure">वायुमण्डलीय चाप</string>
+    <string name="detail_humidity">आर्द्रता</string>
+    <string name="detail_dewpoint">शीतबिन्दु</string>
+    <string name="detail_uv_index">UV सूचकाङ्क</string>
+    <string name="detail_visibility">दृश्यता</string>
+    <string name="detail_sunrise">सूर्योदय</string>
+    <string name="detail_temperature">तापक्रम</string>
+    <string name="detail_precipitation">वर्षा</string>
+    <string name="detail_cloud_cover">बादल आवरण</string>
+    <string name="detail_sunset">सूर्यास्त</string>
+    <string name="credits_weather_data">मौसम डाटा प्रदायक: </string>
+    <string name="widget_description">दुई एकाइमा हालको मौसम तापक्रम</string>
+    <string name="widget_description_large">मौसम विवरण: अनुभूत तापक्रम, आर्द्रता, हावा र न्यूनतम/अधिकतम</string>
+    <string name="cd_change_font">फन्ट परिवर्तन गर्नुहोस्</string>
+    <string name="cd_change_language">भाषा परिवर्तन गर्नुहोस्</string>
+    <string name="cd_collapse">सानो बनाउनुहोस्</string>
+    <string name="cd_expand">विस्तार गर्नुहोस्</string>
+    <string name="detail_no_precip">छैन</string>
+    <string name="visibility_km" formatted="false">%.1f km</string>
+    <string name="visibility_mi" formatted="false">%.2f mi</string>
+    <string name="hash_version">Hash: %1$s</string>
+    <string name="widget_today_in">आज %1$s मा</string>
+    <string name="widget_now_in">अहिले %1$s मा</string>
+    <string name="widget_tap_to_refresh">मौसम ताजा गर्न थिच्नुहोस्</string>
+    <string name="widget_open_app">स्थान सक्षम गर्न एप खोल्नुहोस्</string>
+    <string name="widget_feels_like">अनुभूत तापक्रम</string>
+    <string name="widget_humidity">आर्द्रता</string>
+    <string name="widget_wind">हावा</string>
+    <string name="widget_min_max">न्यू. %1$s (%2$s) · अधि. %3$s (%4$s)</string>
+    <string-array name="cardinal_directions">
+        <item>N</item>
+        <item>NNE</item>
+        <item>NE</item>
+        <item>ENE</item>
+        <item>E</item>
+        <item>ESE</item>
+        <item>SE</item>
+        <item>SSE</item>
+        <item>S</item>
+        <item>SSW</item>
+        <item>SW</item>
+        <item>WSW</item>
+        <item>W</item>
+        <item>WNW</item>
+        <item>NW</item>
+        <item>NNW</item>
+    </string-array>
+    <string-array name="uv_labels">
+        <item>कम</item>
+        <item>मध्यम</item>
+        <item>उच्च</item>
+        <item>अति उच्च</item>
+        <item>चरम</item>
+    </string-array>
+</resources>

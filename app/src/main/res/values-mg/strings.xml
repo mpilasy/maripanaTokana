@@ -1,0 +1,104 @@
+<resources>
+    <string name="app_name">maripànaTokana</string>
+    <string name="loading">Mahareta…</string>
+    <string name="wmo_clear_sky">Manga ny lanitra</string>
+    <string name="wmo_mainly_clear">Mazavazava ny lanitra</string>
+    <string name="wmo_partly_cloudy">Misy rahona</string>
+    <string name="wmo_overcast">Sembanindrahona</string>
+    <string name="wmo_fog">Zavona</string>
+    <string name="wmo_rime_fog">Zavona misy fanala</string>
+    <string name="wmo_light_drizzle">Erika malefaka</string>
+    <string name="wmo_moderate_drizzle">Erikerika</string>
+    <string name="wmo_dense_drizzle">Erika</string>
+    <string name="wmo_light_freezing_drizzle">Erika mangatsiaka malefaka</string>
+    <string name="wmo_dense_freezing_drizzle">Erika mangatsiaka</string>
+    <string name="wmo_slight_rain">Orana malefaka</string>
+    <string name="wmo_moderate_rain">Orana</string>
+    <string name="wmo_heavy_rain">Orambe</string>
+    <string name="wmo_light_freezing_rain">Orana mangatsiaka maivana</string>
+    <string name="wmo_heavy_freezing_rain">Orana mangatsiaka mahery</string>
+    <string name="wmo_slight_snowfall">Oram-panala kely</string>
+    <string name="wmo_moderate_snowfall">Oram-panala</string>
+    <string name="wmo_heavy_snowfall">Oram-panala mahery</string>
+    <string name="wmo_snow_grains">Voan-danitra</string>
+    <string name="wmo_slight_rain_showers">Orana kely</string>
+    <string name="wmo_moderate_rain_showers">Orana</string>
+    <string name="wmo_violent_rain_showers">Orana mahery vaika</string>
+    <string name="wmo_slight_snow_showers">Ranomandry malefaka</string>
+    <string name="wmo_heavy_snow_showers">Ranomandry matevina</string>
+    <string name="wmo_thunderstorm">Orambaratra</string>
+    <string name="wmo_thunderstorm_slight_hail">Orambaratra misy havandra</string>
+    <string name="wmo_thunderstorm_heavy_hail">Orambaratra misy havandra mahery</string>
+    <string name="wmo_unknown">Tsy fantatra</string>
+    <string name="permission_title">Mila avela maka GPS</string>
+    <string name="permission_message">Mila mahalala ny toerana misy anao mba hahalalana ny toetrandro.</string>
+    <string name="grant_permission">Ekena</string>
+    <string name="error_title">Nisy olana</string>
+    <string name="error_retry">Andramo indray</string>
+    <string name="error_fetch_weather">Tsy nahomby ny fakana ny toetrandro</string>
+    <string name="error_get_location">Tsy nahomby ny fakana ny toerana</string>
+    <string name="updated_time">Nalaina tamin\'ny %1$s</string>
+    <string name="feels_like">Ohatry ny</string>
+    <string name="no_precip">Tsisy orana</string>
+    <string name="section_current_conditions">Izao</string>
+    <string name="section_hourly_forecast">Isan\'ora</string>
+    <string name="section_this_week">Ny folo andro manaraka</string>
+    <string name="detail_temperature">Maripàna</string>
+    <string name="detail_precipitation">Orana</string>
+    <string name="detail_min_temp">Iva Indrindra</string>
+    <string name="detail_max_temp">Avo Indrindra</string>
+    <string name="detail_wind">Rivotra</string>
+    <string name="detail_wind_gust">Tadio</string>
+    <string name="detail_pressure">Tsindry Atmosferika</string>
+    <string name="detail_humidity">Hamandoana</string>
+    <string name="detail_dewpoint">Marimando</string>
+    <string name="detail_uv_index">Tahan\'ny UV</string>
+    <string name="detail_visibility">Tazana</string>
+    <string name="detail_sunrise">&#x1f31e; Miposaka</string>
+    <string name="detail_sunset">&#x1f31e; Mody</string>
+    <string name="detail_cloud_cover">Rahona</string>
+    <string name="credits_weather_data">Fankasitrahana:</string>
+    <string name="widget_description">Toetrandro ankehitriny miaraka amin\'ny mari-pana roa sosony</string>
+    <string name="widget_description_large">Antsipiriany momba ny toetrandro: tsapa, hamandoana, rivotra ary ambany/ambony</string>
+    <string name="cd_change_font">Ovay ny endri-tsoratra</string>
+    <string name="cd_change_language">Hanova ny fiteny</string>
+    <string name="cd_collapse">Akatony</string>
+    <string name="cd_expand">Velaro</string>
+    <string name="detail_no_precip">Tsy misy</string>
+    <string name="visibility_km" formatted="false">%.1f km</string>
+    <string name="visibility_mi" formatted="false">%.2f mi</string>
+    <string name="hash_version">Hash: %1$s</string>
+    <string name="widget_today_in">Anio ao %1$s</string>
+    <string name="widget_now_in">Izao ao %1$s</string>
+    <string name="widget_tap_to_refresh">Tsindrio hakana ny GPS</string>
+    <string name="widget_open_app">Sokafy ny programa hakana ny GPS</string>
+    <string name="widget_feels_like">Ohatry ny</string>
+    <string name="widget_humidity">Hamandoana</string>
+    <string name="widget_wind">Rivotra</string>
+    <string name="widget_min_max">Ambany %1$s (%2$s) · Ambony %3$s (%4$s)</string>
+    <string-array name="cardinal_directions">
+        <item>N</item>
+        <item>NNE</item>
+        <item>NE</item>
+        <item>ENE</item>
+        <item>E</item>
+        <item>ESE</item>
+        <item>SE</item>
+        <item>SSE</item>
+        <item>S</item>
+        <item>SSW</item>
+        <item>SW</item>
+        <item>WSW</item>
+        <item>W</item>
+        <item>WNW</item>
+        <item>NW</item>
+        <item>NNW</item>
+    </string-array>
+    <string-array name="uv_labels">
+        <item>Ambany</item>
+        <item>Antonony</item>
+        <item>Avo</item>
+        <item>Avo dia avo</item>
+        <item>Faran\'izay avo</item>
+    </string-array>
+</resources>

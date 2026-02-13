@@ -1,0 +1,104 @@
+<resources>
+    <string name="app_name">maripànaTokana</string>
+    <string name="loading">Cargando…</string>
+    <string name="wmo_clear_sky">Cielo despejado</string>
+    <string name="wmo_mainly_clear">Mayormente despejado</string>
+    <string name="wmo_partly_cloudy">Parcialmente nublado</string>
+    <string name="wmo_overcast">Nublado</string>
+    <string name="wmo_fog">Niebla</string>
+    <string name="wmo_rime_fog">Niebla con escarcha</string>
+    <string name="wmo_light_drizzle">Llovizna ligera</string>
+    <string name="wmo_moderate_drizzle">Llovizna moderada</string>
+    <string name="wmo_dense_drizzle">Llovizna densa</string>
+    <string name="wmo_light_freezing_drizzle">Llovizna helada ligera</string>
+    <string name="wmo_dense_freezing_drizzle">Llovizna helada densa</string>
+    <string name="wmo_slight_rain">Lluvia ligera</string>
+    <string name="wmo_moderate_rain">Lluvia moderada</string>
+    <string name="wmo_heavy_rain">Lluvia fuerte</string>
+    <string name="wmo_light_freezing_rain">Lluvia helada ligera</string>
+    <string name="wmo_heavy_freezing_rain">Lluvia helada fuerte</string>
+    <string name="wmo_slight_snowfall">Nevada ligera</string>
+    <string name="wmo_moderate_snowfall">Nevada moderada</string>
+    <string name="wmo_heavy_snowfall">Nevada fuerte</string>
+    <string name="wmo_snow_grains">Granos de nieve</string>
+    <string name="wmo_slight_rain_showers">Chubascos ligeros</string>
+    <string name="wmo_moderate_rain_showers">Chubascos moderados</string>
+    <string name="wmo_violent_rain_showers">Chubascos violentos</string>
+    <string name="wmo_slight_snow_showers">Chubascos de nieve ligeros</string>
+    <string name="wmo_heavy_snow_showers">Chubascos de nieve fuertes</string>
+    <string name="wmo_thunderstorm">Tormenta</string>
+    <string name="wmo_thunderstorm_slight_hail">Tormenta con granizo ligero</string>
+    <string name="wmo_thunderstorm_heavy_hail">Tormenta con granizo fuerte</string>
+    <string name="wmo_unknown">Desconocido</string>
+    <string name="permission_title">Permiso de ubicacion requerido</string>
+    <string name="permission_message">Esta aplicacion necesita acceso a la ubicacion para mostrar el clima de tu zona.</string>
+    <string name="grant_permission">Conceder permiso</string>
+    <string name="error_title">Error</string>
+    <string name="error_retry">Reintentar</string>
+    <string name="error_fetch_weather">No se pudo obtener el clima</string>
+    <string name="error_get_location">No se pudo obtener la ubicacion</string>
+    <string name="updated_time">Actualizado %1$s</string>
+    <string name="feels_like">Sensacion termica</string>
+    <string name="no_precip">Sin precipitacion</string>
+    <string name="section_current_conditions">Condiciones actuales</string>
+    <string name="section_hourly_forecast">Pronostico por hora</string>
+    <string name="section_this_week">Pronóstico de 10 días</string>
+    <string name="detail_min_temp">Temp min</string>
+    <string name="detail_max_temp">Temp max</string>
+    <string name="detail_wind">Viento</string>
+    <string name="detail_wind_gust">Rafaga de viento</string>
+    <string name="detail_pressure">Presion</string>
+    <string name="detail_humidity">Humedad</string>
+    <string name="detail_dewpoint">Punto de rocío</string>
+    <string name="detail_uv_index">Indice UV</string>
+    <string name="detail_visibility">Visibilidad</string>
+    <string name="detail_sunrise">Amanecer</string>
+    <string name="detail_temperature">Temperatura</string>
+    <string name="detail_precipitation">Precipitación</string>
+    <string name="detail_cloud_cover">Nubosidad</string>
+    <string name="detail_sunset">Atardecer</string>
+    <string name="credits_weather_data">Datos meteorologicos de </string>
+    <string name="widget_description">Clima actual con temperatura en doble unidad</string>
+    <string name="widget_description_large">Detalles del clima con sensacion termica, humedad, viento y min/max</string>
+    <string name="cd_change_font">Cambiar fuente</string>
+    <string name="cd_change_language">Cambiar idioma</string>
+    <string name="cd_collapse">Contraer</string>
+    <string name="cd_expand">Expandir</string>
+    <string name="detail_no_precip">Ninguna</string>
+    <string name="visibility_km" formatted="false">%.1f km</string>
+    <string name="visibility_mi" formatted="false">%.2f mi</string>
+    <string name="hash_version">Hash: %1$s</string>
+    <string name="widget_today_in">Hoy en %1$s</string>
+    <string name="widget_now_in">Ahora en %1$s</string>
+    <string name="widget_tap_to_refresh">Toca para actualizar el clima</string>
+    <string name="widget_open_app">Abre la app para activar la ubicacion</string>
+    <string name="widget_feels_like">Sensacion termica</string>
+    <string name="widget_humidity">Humedad</string>
+    <string name="widget_wind">Viento</string>
+    <string name="widget_min_max">Min %1$s (%2$s) · Max %3$s (%4$s)</string>
+    <string-array name="cardinal_directions">
+        <item>N</item>
+        <item>NNE</item>
+        <item>NE</item>
+        <item>ENE</item>
+        <item>E</item>
+        <item>ESE</item>
+        <item>SE</item>
+        <item>SSE</item>
+        <item>S</item>
+        <item>SSO</item>
+        <item>SO</item>
+        <item>OSO</item>
+        <item>O</item>
+        <item>ONO</item>
+        <item>NO</item>
+        <item>NNO</item>
+    </string-array>
+    <string-array name="uv_labels">
+        <item>Bajo</item>
+        <item>Moderado</item>
+        <item>Alto</item>
+        <item>Muy alto</item>
+        <item>Extremo</item>
+    </string-array>
+</resources>

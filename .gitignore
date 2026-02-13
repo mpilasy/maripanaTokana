@@ -33,6 +33,3 @@ web/**/vite.config.js.timestamp-*
 web/**/vite.config.ts.timestamp-*
 web/**/tsconfig.tsbuildinfo
 
-# Generated Android strings (source of truth: shared/i18n/locales/*.json)
-app/src/main/res/values/strings.xml
-app/src/main/res/values-*/strings.xml

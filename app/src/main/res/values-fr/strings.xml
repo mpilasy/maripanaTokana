@@ -1,0 +1,104 @@
+<resources>
+    <string name="app_name">maripànaTokana</string>
+    <string name="loading">Chargement…</string>
+    <string name="wmo_clear_sky">Ciel dégagé</string>
+    <string name="wmo_mainly_clear">Majoritairement dégagé</string>
+    <string name="wmo_partly_cloudy">Partiellement nuageux</string>
+    <string name="wmo_overcast">Couvert</string>
+    <string name="wmo_fog">Brouillard</string>
+    <string name="wmo_rime_fog">Brouillard givrant</string>
+    <string name="wmo_light_drizzle">Bruine légère</string>
+    <string name="wmo_moderate_drizzle">Bruine modérée</string>
+    <string name="wmo_dense_drizzle">Bruine dense</string>
+    <string name="wmo_light_freezing_drizzle">Bruine verglaçante légère</string>
+    <string name="wmo_dense_freezing_drizzle">Bruine verglaçante dense</string>
+    <string name="wmo_slight_rain">Pluie faible</string>
+    <string name="wmo_moderate_rain">Pluie modérée</string>
+    <string name="wmo_heavy_rain">Pluie forte</string>
+    <string name="wmo_light_freezing_rain">Pluie verglaçante légère</string>
+    <string name="wmo_heavy_freezing_rain">Pluie verglaçante forte</string>
+    <string name="wmo_slight_snowfall">Chute de neige faible</string>
+    <string name="wmo_moderate_snowfall">Chute de neige modérée</string>
+    <string name="wmo_heavy_snowfall">Chute de neige forte</string>
+    <string name="wmo_snow_grains">Grains de neige</string>
+    <string name="wmo_slight_rain_showers">Averses de pluie faibles</string>
+    <string name="wmo_moderate_rain_showers">Averses de pluie modérées</string>
+    <string name="wmo_violent_rain_showers">Averses de pluie violentes</string>
+    <string name="wmo_slight_snow_showers">Averses de neige faibles</string>
+    <string name="wmo_heavy_snow_showers">Averses de neige fortes</string>
+    <string name="wmo_thunderstorm">Orage</string>
+    <string name="wmo_thunderstorm_slight_hail">Orage avec grêle faible</string>
+    <string name="wmo_thunderstorm_heavy_hail">Orage avec forte grêle</string>
+    <string name="wmo_unknown">Inconnu</string>
+    <string name="permission_title">Autorisation de localisation requise</string>
+    <string name="permission_message">Cette application a besoin de la localisation pour afficher la météo de votre zone.</string>
+    <string name="grant_permission">Autoriser</string>
+    <string name="error_title">Erreur</string>
+    <string name="error_retry">Réessayer</string>
+    <string name="error_fetch_weather">Échec de récupération de la météo</string>
+    <string name="error_get_location">Échec de la localisation</string>
+    <string name="updated_time">Mis à jour %1$s</string>
+    <string name="feels_like">Ressenti</string>
+    <string name="no_precip">Pas de précipitations</string>
+    <string name="section_current_conditions">Conditions actuelles</string>
+    <string name="section_hourly_forecast">Prévisions horaires</string>
+    <string name="section_this_week">Prévisions à 10 jours</string>
+    <string name="detail_min_temp">Temp. min</string>
+    <string name="detail_max_temp">Temp. max</string>
+    <string name="detail_wind">Vent</string>
+    <string name="detail_wind_gust">Rafale</string>
+    <string name="detail_pressure">Pression</string>
+    <string name="detail_humidity">Humidité</string>
+    <string name="detail_dewpoint">Point de rosée</string>
+    <string name="detail_uv_index">Indice UV</string>
+    <string name="detail_visibility">Visibilité</string>
+    <string name="detail_sunrise">Lever du soleil</string>
+    <string name="detail_temperature">Température</string>
+    <string name="detail_precipitation">Précipitations</string>
+    <string name="detail_cloud_cover">Couverture nuageuse</string>
+    <string name="detail_sunset">Coucher du soleil</string>
+    <string name="credits_weather_data">Données météo par </string>
+    <string name="widget_description">Temps actuel avec temperature en double unite</string>
+    <string name="widget_description_large">Details meteo avec ressenti, humidite, vent et min/max</string>
+    <string name="cd_change_font">Changer la police</string>
+    <string name="cd_change_language">Changer la langue</string>
+    <string name="cd_collapse">Réduire</string>
+    <string name="cd_expand">Développer</string>
+    <string name="detail_no_precip">Aucune</string>
+    <string name="visibility_km" formatted="false">%.1f km</string>
+    <string name="visibility_mi" formatted="false">%.2f mi</string>
+    <string name="hash_version">Hash: %1$s</string>
+    <string name="widget_today_in">Aujourd\'hui à %1$s</string>
+    <string name="widget_now_in">Maintenant à %1$s</string>
+    <string name="widget_tap_to_refresh">Appuyez pour actualiser la météo</string>
+    <string name="widget_open_app">Ouvrez l\'appli pour activer la localisation</string>
+    <string name="widget_feels_like">Ressenti</string>
+    <string name="widget_humidity">Humidité</string>
+    <string name="widget_wind">Vent</string>
+    <string name="widget_min_max">Min %1$s (%2$s) · Max %3$s (%4$s)</string>
+    <string-array name="cardinal_directions">
+        <item>N</item>
+        <item>NNE</item>
+        <item>NE</item>
+        <item>ENE</item>
+        <item>E</item>
+        <item>ESE</item>
+        <item>SE</item>
+        <item>SSE</item>
+        <item>S</item>
+        <item>SSO</item>
+        <item>SO</item>
+        <item>OSO</item>
+        <item>O</item>
+        <item>ONO</item>
+        <item>NO</item>
+        <item>NNO</item>
+    </string-array>
+    <string-array name="uv_labels">
+        <item>Faible</item>
+        <item>Modéré</item>
+        <item>Élevé</item>
+        <item>Très élevé</item>
+        <item>Extrême</item>
+    </string-array>
+</resources>
