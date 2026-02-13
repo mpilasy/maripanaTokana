@@ -66,7 +66,7 @@ import { DualUnitTextComponent } from './dual-unit-text.component';
 		.hero-precip { text-align: end; }
 		.no-precip { font-size: 14px; color: rgba(255,255,255,0.5); }
 		.hero-extra { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 12px; }
-		.hero-highlow { display: flex; flex-direction: column; gap: 2px; }
+		.hero-highlow { display: flex; flex-direction: row; align-items: baseline; gap: 12px; }
 		.hero-wind { text-align: end; }
 		.wind-direction { font-size: 12px; color: rgba(255,255,255,0.6); }
 		.copyright { text-align: center; font-size: 9px; color: rgba(255,255,255,0.2); margin-top: 7px; }

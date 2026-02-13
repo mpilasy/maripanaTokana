@@ -217,8 +217,9 @@
 
 	.hero-highlow {
 		display: flex;
-		flex-direction: column;
-		gap: 2px;
+		flex-direction: row;
+		align-items: baseline;
+		gap: 12px;
 	}
 
 	.hero-wind {
