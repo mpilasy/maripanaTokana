@@ -449,8 +449,12 @@
 }
 
 .highlow-arrow {
-	font-size: 24px;
+	font-size: 32px;
 	color: rgba(255,255,255,0.7);
+}
+
+.wind-label {
+	font-weight: 700;
 }
 
 .wind-side {

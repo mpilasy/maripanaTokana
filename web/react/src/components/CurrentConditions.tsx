@@ -97,7 +97,6 @@ export default function CurrentConditions({ data, metricPrimary, loc, onToggleUn
 					<span className="merged-primary">{loc(minDual[0])}</span>
 					<span className="merged-secondary">{loc(minDual[1])}</span>
 				</span>
-				<span className="merged-label">{t('detail_high_low')}</span>
 				<span className="merged-values merged-values-end">
 					<span className="merged-primary">{loc(maxDual[0])}</span>
 					<span className="merged-secondary">{loc(maxDual[1])}</span>
@@ -114,7 +113,7 @@ export default function CurrentConditions({ data, metricPrimary, loc, onToggleUn
 					</span>
 					<span className="wind-subtitle">{loc(`${getCardinalDirection(data.windDeg, t)} (${data.windDeg}°)`)}</span>
 				</div>
-				<span className="merged-label">{t('detail_wind')}</span>
+				<span className="merged-label wind-label">{t('detail_wind')}</span>
 				<div className="wind-side wind-side-end">
 					{gustDual && (
 						<>

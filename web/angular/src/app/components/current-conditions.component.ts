@@ -50,7 +50,6 @@ import { DetailCardComponent } from './detail-card.component';
 					<span class="merged-primary">{{ minDual()[0] }}</span>
 					<span class="merged-secondary">{{ minDual()[1] }}</span>
 				</span>
-				<span class="merged-label">{{ i18n.t('detail_high_low') }}</span>
 				<span class="merged-values merged-values-end">
 					<span class="merged-primary">{{ maxDual()[0] }}</span>
 					<span class="merged-secondary">{{ maxDual()[1] }}</span>
@@ -67,7 +66,7 @@ import { DetailCardComponent } from './detail-card.component';
 					</span>
 					<span class="wind-subtitle">{{ windSubtitle() }}</span>
 				</div>
-				<span class="merged-label">{{ i18n.t('detail_wind') }}</span>
+				<span class="merged-label wind-label">{{ i18n.t('detail_wind') }}</span>
 				<div class="wind-side wind-side-end">
 					@if (gustDual()) {
 						<span class="merged-values merged-values-end">
@@ -115,7 +114,8 @@ import { DetailCardComponent } from './detail-card.component';
 		.merged-values-end { justify-content: flex-end; }
 		.merged-primary { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: white; font-feature-settings: var(--font-features); }
 		.merged-secondary { font-family: var(--font-display); font-size: 12px; color: rgba(255,255,255,0.55); font-feature-settings: var(--font-features); }
-		.highlow-arrow { font-size: 24px; color: rgba(255,255,255,0.7); }
+		.highlow-arrow { font-size: 32px; color: rgba(255,255,255,0.7); }
+		.wind-label { font-weight: 700; }
 		.wind-side { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 		.wind-side-end { align-items: flex-end; }
 		.wind-subtitle { font-size: 12px; color: rgba(255,255,255,0.6); }

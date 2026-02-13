@@ -101,7 +101,6 @@
 			<span class="merged-primary">{loc(minDual[0])}</span>
 			<span class="merged-secondary">{loc(minDual[1])}</span>
 		</span>
-		<span class="merged-label">{$_('detail_high_low')}</span>
 		<span class="merged-values merged-values-end">
 			<span class="merged-primary">{loc(maxDual[0])}</span>
 			<span class="merged-secondary">{loc(maxDual[1])}</span>
@@ -120,7 +119,7 @@
 			</span>
 			<span class="wind-subtitle">{loc(`${getCardinalDirection(data.windDeg)} (${data.windDeg}°)`)}</span>
 		</div>
-		<span class="merged-label">{$_('detail_wind')}</span>
+		<span class="merged-label wind-label">{$_('detail_wind')}</span>
 		<div class="wind-side wind-side-end">
 			{#if gustDual}
 				<span class="merged-values merged-values-end">
@@ -230,8 +229,12 @@
 	}
 
 	.highlow-arrow {
-		font-size: 24px;
+		font-size: 32px;
 		color: rgba(255,255,255,0.7);
+	}
+
+	.wind-label {
+		font-weight: 700;
 	}
 
 	.wind-merged-card {
