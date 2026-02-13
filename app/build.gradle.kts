@@ -17,16 +17,6 @@ val keystoreProperties = Properties().apply {
     if (keystorePropertiesFile.exists()) load(keystorePropertiesFile.inputStream())
 }
 
-// Generate Android strings.xml from canonical JSON before resource merging
-val generateStrings by tasks.registering(Exec::class) {
-    workingDir = rootProject.projectDir
-    commandLine("sh", "-c", "node shared/i18n/generate-android-strings.js")
-}
-tasks.configureEach {
-    if (name.startsWith("merge") && name.endsWith("Resources")) {
-        dependsOn(generateStrings)
-    }
-}
 
 android {
     namespace = "orinasa.njarasoa.maripanatokana"
