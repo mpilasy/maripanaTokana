@@ -39,14 +39,14 @@ This document explains the architecture, data flow, and key patterns of the **ma
 
 ### Why Svelte?
 
-Svelte compiles components to efficient vanilla JavaScript at build time — there's no virtual DOM diffing at runtime (unlike React or Vue). This results in:
-- Smaller bundles (~15-25 KB vs 60-75 KB for React)
+Svelte compiles components to efficient vanilla JavaScript at build time — there's no virtual DOM diffing at runtime. This results in:
+- Smaller bundles (~15-25 KB)
 - Faster runtime performance (direct DOM updates)
 - Less boilerplate (reactivity is built into the language)
 
 ### Svelte Concepts for Non-Svelte Developers
 
-| Svelte Concept | React/Vue Equivalent | What It Does |
+| Svelte Concept | Equivalent In Other Frameworks | What It Does |
 |----------------|---------------------|--------------|
 | `.svelte` file | `.jsx` / `.vue` file | Single-file component with `<script>`, HTML template, and `<style>` |
 | `$state(value)` | `useState(value)` | Declares reactive state that triggers re-renders when changed |
@@ -63,7 +63,7 @@ Svelte compiles components to efficient vanilla JavaScript at build time — the
 
 ### SvelteKit Concepts
 
-SvelteKit is to Svelte what Next.js is to React — a full application framework:
+SvelteKit is a full application framework built on top of Svelte:
 
 | SvelteKit Concept | Next.js Equivalent | What It Does |
 |-------------------|-------------------|--------------|
@@ -80,7 +80,7 @@ SvelteKit is to Svelte what Next.js is to React — a full application framework
 
 ```
 web/
-├── shared/                               # Framework-agnostic code (used by all 3 apps)
+├── shared/                               # Framework-agnostic code
 │   ├── api/                              # Network layer
 │   │   ├── openMeteo.ts                  # API client: fetchWeather(lat, lon)
 │   │   ├── openMeteoTypes.ts             # Response type definitions
@@ -104,7 +104,7 @@ web/
 │   ├── fonts.ts                          # 22 FontPairing definitions + Google Fonts URLs
 │   └── share.ts                          # html2canvas capture + Web Share API / download
 │
-├── svelte/                               # Svelte app (primary implementation)
+├── svelte/                               # SvelteKit app
 │   ├── src/
 │   │   ├── app.html                      # HTML shell (viewport, PWA meta, fonts preconnect)
 │   │   ├── app.d.ts                      # Global TypeScript declarations
@@ -125,12 +125,10 @@ web/
 │   ├── package.json                      # Svelte dependencies
 │   └── tsconfig.json
 │
-├── react/                                # React app (port)
-├── angular/                              # Angular app (port)
 ├── Dockerfile                            # Multi-stage: node build → caddy serve
 ├── Caddyfile                             # SPA routing + service worker headers
 ├── docker-compose.yml                    # Container config (port 3080)
-└── package.json                          # Root orchestration scripts
+└── package.json                          # Root build scripts
 ```
 
 **Total**: ~42 source files, ~2,900 lines of code.
@@ -652,41 +650,28 @@ Share buttons appear on the HeroCard and on each CollapsibleSection header (only
 
 ## 13. Deployment
 
-### Docker (Production) — Multi-App
+### Docker (Production)
 
-The Docker setup builds and serves three separate applications from a single container:
+The Docker setup builds and serves the Svelte app:
 
 ```dockerfile
-# Stage 1: Build all apps
+# Stage 1: Build
 FROM node:22-alpine
 WORKDIR /app
 
-# Install dependencies for each app
 COPY svelte/package.json svelte/package-lock.json ./svelte/
-COPY react/package.json react/package-lock.json ./react/
-COPY angular/package.json angular/package-lock.json ./angular/
-
 WORKDIR /app/svelte
-RUN npm ci
-WORKDIR /app/react
-RUN npm ci
-WORKDIR /app/angular
 RUN npm ci
 
 WORKDIR /app
 COPY . .
 
-# Build all three apps
 RUN cd svelte && npm run build
-RUN cd react && npm run build
-RUN cd angular && npm run build
 
-# Stage 2: Serve all apps
+# Stage 2: Serve
 FROM caddy:alpine
 COPY Caddyfile /etc/caddy/Caddyfile
-COPY --from=build /app/svelte/build /srv/svelte   # Svelte at /svelte/*
-COPY --from=build /app/react/dist /srv/react      # React at /react/*
-COPY --from=build /app/angular/dist /srv/ng       # Angular at /ng/*
+COPY --from=build /app/svelte/build /srv/svelte
 EXPOSE 80
 ```
 
@@ -697,43 +682,25 @@ The Caddyfile implements path-based routing with optimization:
 **Compression**: Gzip enabled for all text assets (JS, CSS, fonts)
 
 **Routing** (using `handle_path` for automatic prefix stripping):
-- `/` → redirects to `/${DEFAULT_APP:-svelte}/` (configurable via env var)
+- `/` → redirects to `/svelte/`
 - `/svelte/*` → Svelte app (base path `/svelte/`, SPA fallback)
-- `/react/*` → React app (base path `/react/`, SPA fallback)
-- `/ng/*` → Angular app (base href `/ng/`, SPA fallback)
 
 **Caching**:
 - **Versioned assets** (regex: `.*\.[a-f0-9]{8}\.(js|css|woff2|ttf)$`): `max-age=31536000, immutable` (1 year)
-  - Build tools (Vite, Angular) hash filenames; unchanged assets stay cached
+  - Vite hashes filenames; unchanged assets stay cached
 - **HTML files**: `no-cache, public, must-revalidate` (browser always checks, serves cached if unchanged)
 - **Service worker**: `no-cache, no-store, must-revalidate` (always fetch fresh)
 
 **Result**: On repeat visits, browser only downloads HTML (metadata check), reuses all cached JS/CSS/fonts if unchanged.
 
-### Build Optimizations
-
-**React**:
-- `minify: 'terser'` — aggressive minification
-- `sourcemap: false` — no development maps in production
-- `cssCodeSplit: false` — CSS consolidated with JS
-- Single bundle via `manualChunks: () => 'app'`
-
-**Angular**:
-- `aot: true` — ahead-of-time compilation (default in v19)
-- `buildOptimizer: true` — remove unused code
-- `sourceMap: false` — no development maps
-- `vendorChunk: false` — smaller vendor bundle
-
 ### Docker Compose
 
 ```bash
-docker compose up -d --build                       # Default port 3080, root → /svelte/
+docker compose up -d --build                       # Default port 3080
 PORT=8080 docker compose up -d --build             # Custom port
-DEFAULT_APP=react docker compose up -d --build     # Root → /react/
-DEFAULT_APP=ng docker compose up -d --build        # Root → /ng/
 ```
 
-The container runs Caddy on port 80, mapped to the host port. All three apps are served from a single Docker instance. The `DEFAULT_APP` environment variable controls which app `/` redirects to (default: `svelte`).
+The container runs Caddy on port 80, mapped to the host port.
 
 ---
 

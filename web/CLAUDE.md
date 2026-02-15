@@ -1,5 +1,5 @@
-# Project: maripána Tokana PWA (Weather App)
-**Goal:** Multi-framework weather app with three parallel implementations (SvelteKit, React, Angular) — ports of the Android app with simultaneous Metric/Imperial display.
+# Project: maripana Tokana PWA (Weather App)
+**Goal:** SvelteKit weather PWA — port of the Android app with simultaneous Metric/Imperial display.
 
 ## Shared Tech
 - **Weather API:** [Open-Meteo](https://open-meteo.com) — free, no API key
@@ -11,18 +11,16 @@
 ```
 web/
 ├── shared/             # Framework-agnostic code (api, domain, i18n, fonts, share)
-├── svelte/             # Svelte app (primary implementation)
-├── react/              # React app (separate package.json, vite.config.ts)
-├── angular/            # Angular app (separate package.json, angular.json)
-├── Dockerfile          # Multi-stage build (all three apps)
+├── svelte/             # SvelteKit app
+├── Dockerfile          # Multi-stage build
 ├── Caddyfile           # Path-based routing + gzip + caching
 ├── docker-compose.yml  # Container configuration
-├── package.json        # Root scripts (build:all, build:svelte, build:react, build:angular)
+├── package.json        # Root scripts (build)
 └── CLAUDE.md           # This file
 ```
 
 ### Shared Code (`shared/`)
-Framework-agnostic TypeScript used by all three apps:
+Framework-agnostic TypeScript used by the Svelte app:
 - **`api/`** — Open-Meteo fetch client, response types, mapper, WMO weather codes
 - **`domain/`** — Value classes: Temperature, Pressure, WindSpeed, Precipitation, WeatherData
 - **`i18n/`** — Locale definitions (`locales.ts`), `localizeDigits()`, 8 JSON translation files
@@ -30,11 +28,11 @@ Framework-agnostic TypeScript used by all three apps:
 - **`fonts.ts`** — 22 FontPairing definitions + Google Fonts URLs
 - **`share.ts`** — html2canvas capture + Web Share API / download fallback
 
-Svelte imports shared code via `$shared/...` alias. React and Angular import via `$lib/...` alias (resolved to `shared/` in their configs).
+Svelte imports shared code via `$shared/...` alias.
 
-## Build All / Docker
+## Build / Docker
 ```bash
-npm run build:all    # Builds Svelte, React, and Angular
+npm run build          # Builds Svelte app
 docker compose up -d --build
 ```
 
@@ -43,14 +41,11 @@ docker compose up -d --build
 docker compose up -d --build          # Default port 3080
 PORT=8080 docker compose up -d --build  # Custom port via env
 ```
-- **Dockerfile:** Multi-stage — builds all three apps in `node:22-alpine`, serves via `caddy:alpine`. Uses root-level `html2canvas` symlink for shared code resolution.
-- **Caddyfile:** Path-based routing with SPA fallback for each app (`/svelte/*`, `/react/*`, `/ng/*`), gzip compression, smart caching headers
-- **docker-compose.yml:** Container `maripanaTokana.web`, port `${PORT:-3080}:80`, `DEFAULT_APP` env var, `restart: unless-stopped`
-- Three apps served from single instance:
-  - `/svelte` → Svelte app (CSS inlined, single JS bundle)
-  - `/react` → React app (base path `/react/`, single bundle, terser minification)
-  - `/ng` → Angular app (base href `/ng/`, esbuild application builder)
-  - `/` → redirects to `/${DEFAULT_APP:-svelte}/` (configurable via env)
+- **Dockerfile:** Multi-stage — builds Svelte app in `node:22-alpine`, serves via `caddy:alpine`. Uses root-level `html2canvas` symlink for shared code resolution.
+- **Caddyfile:** Path-based routing with SPA fallback (`/svelte/*`), gzip compression, smart caching headers
+- **docker-compose.yml:** Container `maripanaTokana.web`, port `${PORT:-3080}:80`, `restart: unless-stopped`
+- App served at `/svelte` (CSS inlined, single JS bundle)
+- `/` → redirects to `/svelte/`
 - Designed to sit behind a reverse proxy (e.g., Nginx Proxy Manager) that handles TLS
 
 ### Performance Features
@@ -58,14 +53,13 @@ PORT=8080 docker compose up -d --build  # Custom port via env
 - **Aggressive caching**: Versioned assets (hash in filename) cached for 1 year; HTML/service-worker always revalidated
 
 ## Core Features
-All three implementations share the same feature set:
 
 - **Dual Units with Toggle:** Every measurement shows both metric and imperial. Tap any value to swap primary (bold/large) vs secondary (smaller/dimmer). Preference stored in `localStorage`.
 - **Font Cycling:** 22 font pairings loaded from Google Fonts. Cycled via font icon in footer. Default (index 0) uses system-ui.
 - **In-App Language Cycling:** 8 languages cycled via flag button in footer. Locale index stored in `localStorage`.
 - **Native Digit Rendering:** `localizeDigits(s, locale)` replaces ASCII 0-9 with native digits for ar (U+0660), hi/ne (U+0966). Also replaces decimal separator for mg/es/fr (`,`) and ar (`٫`). No `toLocaleString()` used.
 - **RTL Support:** `document.documentElement.dir = 'rtl'` when locale is `ar`, `ltr` otherwise. Footer forced LTR via `dir="ltr"`.
-- **Two-Step Location:** Cached coords from localStorage → fresh `navigator.geolocation` → re-fetch if moved >0.045° (~5 km).
+- **Two-Step Location:** Cached coords from localStorage -> fresh `navigator.geolocation` -> re-fetch if moved >0.045 deg (~5 km).
 - **Auto-refresh:** `visibilitychange` event triggers refresh if data >30 min old.
 - **Pull-to-Refresh:** Touch event handling on scroll container (touchstart/touchmove/touchend). Also click "Last updated" timestamp to refresh.
 - **Current Conditions Grid:** 3 full-width merged cards at top (High/Low, Wind/Gust, Sunrise/Sunset) followed by 2-column detail cards (Temperature, Precipitation, Pressure, Humidity, UV, Visibility).
@@ -80,7 +74,7 @@ All three implementations share the same feature set:
 - Theme color: `#0E0B3D`
 - Edge-to-edge with safe area padding (`env(safe-area-inset-top)`)
 
-## Key Android→Web Mappings
+## Key Android->Web Mappings
 | Android | Web |
 |---------|-----|
 | `SharedPreferences` | `localStorage` |

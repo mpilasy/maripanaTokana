@@ -5,9 +5,6 @@
 	"type": "module",
 	"scripts": {
 		"copy-assets": "node scripts/copy-shared-assets.js",
-		"build:all": "npm run copy-assets && cd svelte && npm run build && cd ../react && npm run build && cd ../angular && npm run build",
-		"build:svelte": "npm run copy-assets && cd svelte && npm run build",
-		"build:react": "npm run copy-assets && cd react && npm run build",
-		"build:angular": "npm run copy-assets && cd angular && npm run build"
+		"build": "npm run copy-assets && cd svelte && npm run build"
 	}
 }

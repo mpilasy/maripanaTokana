@@ -24,7 +24,6 @@ node_modules/
 web/build/
 web/**/dist/
 web/**/.svelte-kit/
-web/**/.angular/
 web/**/.output/
 web/**/.env
 web/**/.env.*

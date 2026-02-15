@@ -2,13 +2,11 @@
 	# Enable gzip compression for text assets
 	encode gzip
 
-	# Root redirect → default app (configurable via DEFAULT_APP env var)
-	redir / /{$DEFAULT_APP:svelte}/ 302
+	# Root redirect -> Svelte app
+	redir / /svelte/ 302
 
-	# Bare paths → add trailing slash
+	# Bare path -> add trailing slash
 	redir /svelte /svelte/ 301
-	redir /react /react/ 301
-	redir /ng /ng/ 301
 
 	# Svelte app (/svelte/*)
 	handle_path /svelte/* {
@@ -26,30 +24,6 @@
 		# Manifest and other assets: moderate caching
 		@manifest path /manifest.json
 		header @manifest Cache-Control "public, max-age=3600"
-		header Cache-Control "public, max-age=3600"
-	}
-
-	# React app (/react/*)
-	handle_path /react/* {
-		root * /srv/react
-		try_files {path} /index.html
-		file_server
-		@versioned path_regexp .*\.[a-f0-9]{8}\.(js|css|woff2|ttf)$
-		header @versioned Cache-Control "public, max-age=31536000, immutable"
-		@html path /index.html
-		header @html Cache-Control "no-cache, public, must-revalidate"
-		header Cache-Control "public, max-age=3600"
-	}
-
-	# Angular app (/ng/*)
-	handle_path /ng/* {
-		root * /srv/ng
-		try_files {path} /index.html
-		file_server
-		@versioned path_regexp .*\.[a-f0-9]{8}\.(js|css|woff2|ttf)$
-		header @versioned Cache-Control "public, max-age=31536000, immutable"
-		@html path /index.html
-		header @html Cache-Control "no-cache, public, must-revalidate"
 		header Cache-Control "public, max-age=3600"
 	}
 }

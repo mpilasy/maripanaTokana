@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Copies shared static assets into each framework's public/static directory.
- * Run before building any framework.
+ * Copies shared static assets into the Svelte app's static directory.
+ * Run before building.
  *
  * Usage: node scripts/copy-shared-assets.js
  */
@@ -16,8 +16,6 @@ const SHARED_ASSETS = join(WEB_ROOT, 'shared', 'assets');
 
 const targets = [
 	join(WEB_ROOT, 'svelte', 'static'),
-	join(WEB_ROOT, 'react', 'public'),
-	join(WEB_ROOT, 'angular', 'public'),
 ];
 
 for (const target of targets) {
@@ -25,4 +23,4 @@ for (const target of targets) {
 	cpSync(SHARED_ASSETS, target, { recursive: true });
 }
 
-console.log('Shared assets copied to all frameworks.');
+console.log('Shared assets copied to Svelte app.');

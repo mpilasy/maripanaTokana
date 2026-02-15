@@ -212,16 +212,14 @@ cd svelte && npm run build && npm run preview
 ```
 Open `http://localhost:4173` in Chrome.
 
-### Via Docker (all three apps):
+### Via Docker:
 ```bash
 docker compose up -d --build
 ```
 
-Three apps are now available:
+App is available at:
 - `http://localhost:3080/svelte` — Svelte app (maripána Tokana)
-- `http://localhost:3080/react` — React port
-- `http://localhost:3080/ng` — Angular port
-- `http://localhost:3080/` — Redirects to default app (Svelte by default, configurable via `DEFAULT_APP` env var)
+- `http://localhost:3080/` — Redirects to `/svelte/`
 
 ### Svelte App (`/svelte`) — PWA Features:
 - [ ] Service worker registers (check DevTools → Application → Service Workers)
@@ -229,24 +227,6 @@ Three apps are now available:
 - [ ] Chrome shows "Install app" option
 - [ ] Theme color `#0E0B3D` applies to title bar
 - [ ] All standard Svelte app tests pass (see sections 1-12 above)
-
-### React App (`/react`):
-- [ ] Page loads with weather data for current location
-- [ ] Layout matches Svelte design (hero card, hourly, daily, conditions)
-- [ ] Dual units display and toggle functionality works
-- [ ] Language switching works (flag in footer)
-- [ ] Font cycling works (Aa button in footer)
-- [ ] Service worker registers and caches assets
-- [ ] Pull-to-refresh works on scroll container
-
-### Angular App (`/ng`):
-- [ ] Page loads with weather data for current location
-- [ ] Layout matches Svelte design
-- [ ] Dual units display and toggle functionality works
-- [ ] Language switching works
-- [ ] Font cycling works
-- [ ] Service worker registers and caches assets
-- [ ] Share buttons work correctly
 
 ### Performance Checks:
 - [ ] Network tab shows gzip compression on JS/CSS/fonts
