@@ -1,11 +1,11 @@
 import { writable, get } from 'svelte/store';
-import type { WeatherData } from '$shared/domain/weatherData';
-import { fetchWeather } from '$shared/api/openMeteo';
-import { mapToWeatherData } from '$shared/api/openMeteoMapper';
+import type { WeatherData } from '$lib/domain/weatherData';
+import { fetchWeather } from '$lib/api/openMeteo';
+import { mapToWeatherData } from '$lib/api/openMeteoMapper';
 import {
 	getCachedLocation, cacheLocation, movedSignificantly,
 	getPosition, reverseGeocode
-} from '$shared/stores/location';
+} from '$lib/stores/location';
 
 export type WeatherState =
 	| { kind: 'loading' }

@@ -1,6 +1,6 @@
 import { writable } from 'svelte/store';
-import { fontPairings } from '$shared/fonts';
-import { SUPPORTED_LOCALES } from '$shared/i18n/locales';
+import { fontPairings } from '$lib/fonts';
+import { SUPPORTED_LOCALES } from '$lib/i18n/locales';
 
 function persistedWritable<T>(key: string, defaultValue: T) {
 	let initial = defaultValue;

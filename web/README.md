@@ -93,22 +93,21 @@ SvelteKit app with framework-agnostic shared code.
 
 ```
 web/
-├── shared/                   # Framework-agnostic code
-│   ├── api/                  # Open-Meteo fetch client, types, mapper, WMO codes
-│   ├── domain/               # Value classes: Temperature, Pressure, WindSpeed, Precipitation
-│   ├── i18n/                 # Locale config, localizeDigits(), 8 JSON translation files
-│   ├── stores/location.ts    # Geolocation + Nominatim reverse geocoding
-│   ├── fonts.ts              # 22 FontPairing definitions + Google Fonts URLs
-│   └── share.ts              # html2canvas capture + Web Share API / download fallback
-│
-├── src/                      # SvelteKit app source
-│   ├── lib/                  # Svelte-specific code (stores, i18n setup, components)
+├── src/
+│   ├── lib/
+│   │   ├── api/              # Open-Meteo fetch client, types, mapper, WMO codes
+│   │   ├── domain/           # Value classes: Temperature, Pressure, WindSpeed, Precipitation
+│   │   ├── i18n/             # Locale config, localizeDigits(), 8 JSON translations (symlinked)
+│   │   ├── stores/           # Svelte stores (weather, preferences, location)
+│   │   ├── components/       # 9 Svelte UI components
+│   │   ├── fonts.ts          # 22 FontPairing definitions + Google Fonts URLs
+│   │   └── share.ts          # html2canvas capture + Web Share API / download fallback
 │   ├── routes/               # +page.svelte, +layout.svelte
 │   ├── service-worker.ts
 │   └── app.html
 ├── static/                   # PWA manifest, icons, background
-├── scripts/                  # Build scripts (copy-shared-assets, inline-assets)
-├── svelte.config.js          # base: '/svelte', $shared alias
+├── scripts/                  # Post-build CSS inlining
+├── svelte.config.js          # base: '/svelte'
 ├── vite.config.ts            # Vite config (single-chunk bundling)
 └── package.json              # Dependencies + build scripts
 ```

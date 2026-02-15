@@ -10,33 +10,30 @@
 ## Project Layout
 ```
 web/
-├── src/                # SvelteKit app source
-│   ├── lib/            # Svelte-specific code (stores, i18n, components)
-│   ├── routes/         # +page.svelte, +layout.svelte
+├── src/
+│   ├── lib/
+│   │   ├── api/            # Open-Meteo client, types, mapper, WMO codes
+│   │   ├── domain/         # Value classes: Temperature, Pressure, WindSpeed, Precipitation
+│   │   ├── i18n/           # svelte-i18n setup, locale config, 8 JSON translations (symlinked)
+│   │   ├── stores/         # Svelte stores (weather, preferences, location)
+│   │   ├── components/     # 9 Svelte UI components
+│   │   ├── fonts.ts        # 22 FontPairing definitions + Google Fonts URLs
+│   │   └── share.ts        # html2canvas capture + Web Share API / download fallback
+│   ├── routes/             # +page.svelte, +layout.svelte
 │   ├── service-worker.ts
 │   └── app.html
-├── shared/             # Framework-agnostic code (api, domain, i18n, fonts, share)
-├── static/             # PWA manifest, icons, background
-├── scripts/            # Build scripts (copy-shared-assets, inline-assets)
-├── svelte.config.js    # SvelteKit config (static adapter, $shared alias)
-├── vite.config.ts      # Vite config (single-chunk bundling)
-├── Dockerfile          # Multi-stage build
-├── Caddyfile           # Path-based routing + gzip + caching
-├── docker-compose.yml  # Container configuration
-├── package.json        # Dependencies + build scripts
-└── CLAUDE.md           # This file
+├── static/                 # PWA manifest, icons, background
+├── scripts/                # Post-build CSS inlining (inline-assets.js)
+├── svelte.config.js        # SvelteKit config (static adapter, base: /svelte)
+├── vite.config.ts          # Vite config (single-chunk bundling)
+├── Dockerfile              # Multi-stage build
+├── Caddyfile               # Path-based routing + gzip + caching
+├── docker-compose.yml      # Container configuration
+├── package.json            # Dependencies + build scripts
+└── CLAUDE.md               # This file
 ```
 
-### Shared Code (`shared/`)
-Framework-agnostic TypeScript used by the Svelte app:
-- **`api/`** — Open-Meteo fetch client, response types, mapper, WMO weather codes
-- **`domain/`** — Value classes: Temperature, Pressure, WindSpeed, Precipitation, WeatherData
-- **`i18n/`** — Locale definitions (`locales.ts`), `localizeDigits()`, 8 JSON translation files
-- **`stores/location.ts`** — Geolocation utilities + Nominatim reverse geocoding
-- **`fonts.ts`** — 22 FontPairing definitions + Google Fonts URLs
-- **`share.ts`** — html2canvas capture + Web Share API / download fallback
-
-Svelte imports shared code via the `$shared/...` alias (configured in `svelte.config.js`).
+All code lives under `src/lib/` and is imported via SvelteKit's built-in `$lib` alias. The i18n JSON locale files (`src/lib/i18n/locales/`) are symlinked to `shared/i18n/locales/` at the repo root (canonical source shared with Android).
 
 ## Build / Docker
 ```bash

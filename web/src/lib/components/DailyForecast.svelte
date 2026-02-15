@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import type { DailyForecast as DailyForecastType } from '$shared/domain/weatherData';
-	import { wmoEmoji, wmoDescriptionKey } from '$shared/api/wmoWeatherCode';
+	import type { DailyForecast as DailyForecastType } from '$lib/domain/weatherData';
+	import { wmoEmoji, wmoDescriptionKey } from '$lib/api/wmoWeatherCode';
 	import DualUnitText from './DualUnitText.svelte';
 
 	interface Props {

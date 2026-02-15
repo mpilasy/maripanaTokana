@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { locale } from 'svelte-i18n';
 	import { initI18n, SUPPORTED_LOCALES } from '$lib/i18n/index';
-	import { fontPairings } from '$shared/fonts';
+	import { fontPairings } from '$lib/fonts';
 	import { fontIndex, localeIndex } from '$lib/stores/preferences';
 	import { refreshIfStale } from '$lib/stores/weather';
 

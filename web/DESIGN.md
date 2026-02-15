@@ -71,7 +71,7 @@ SvelteKit is a full application framework built on top of Svelte:
 | `src/routes/+layout.svelte` | `app/layout.tsx` | Shared layout wrapping all pages |
 | `adapter-static` | `output: 'export'` | Generates static HTML (no server needed) |
 | `$lib/` alias | `@/lib/` | Import alias for `src/lib/` directory (Svelte-specific code) |
-| `$shared/` alias | — | Import alias for `shared/` directory (framework-agnostic code) |
+| `$lib/` sub-paths | — | All app code under `src/lib/` (api, domain, i18n, stores, etc.) |
 | `src/service-worker.ts` | Custom setup | Built-in service worker support with build manifest |
 
 ---
@@ -80,48 +80,40 @@ SvelteKit is a full application framework built on top of Svelte:
 
 ```
 web/
-├── shared/                               # Framework-agnostic code
-│   ├── api/                              # Network layer
-│   │   ├── openMeteo.ts                  # API client: fetchWeather(lat, lon)
-│   │   ├── openMeteoTypes.ts             # Response type definitions
-│   │   ├── openMeteoMapper.ts            # API response → domain model conversion
-│   │   └── wmoWeatherCode.ts             # WMO code → emoji + i18n key lookup
-│   ├── domain/                           # Business logic / value objects
-│   │   ├── weatherData.ts                # WeatherData, HourlyForecast, DailyForecast
-│   │   ├── temperature.ts                # Temperature (°C ↔ °F) with displayDual()
-│   │   ├── pressure.ts                   # Pressure (hPa ↔ inHg) with displayDual()
-│   │   ├── windSpeed.ts                  # WindSpeed (m/s ↔ mph) with displayDual()
-│   │   └── precipitation.ts              # Precipitation (mm ↔ in) with displayDual()
-│   ├── i18n/                             # Internationalization
-│   │   ├── locales.ts                    # Locale config + localizeDigits()
-│   │   └── locales/                      # 8 JSON translation files
-│   │       ├── mg.json (Malagasy)    ├── ar.json (Arabic)
-│   │       ├── en.json (English)     ├── es.json (Spanish)
-│   │       ├── fr.json (French)      ├── hi.json (Hindi)
-│   │       ├── ne.json (Nepali)      └── zh.json (Chinese)
-│   ├── stores/
-│   │   └── location.ts                   # Geolocation + Nominatim reverse geocoding
-│   ├── fonts.ts                          # 22 FontPairing definitions + Google Fonts URLs
-│   └── share.ts                          # html2canvas capture + Web Share API / download
-│
-├── src/                                  # SvelteKit app source
+├── src/
 │   ├── app.html                          # HTML shell (viewport, PWA meta, fonts preconnect)
 │   ├── app.d.ts                          # Global TypeScript declarations
 │   ├── service-worker.ts                 # PWA offline caching (3 cache strategies)
 │   ├── routes/                           # URL-mapped pages
 │   │   ├── +layout.svelte                # Root layout: fonts, RTL, i18n init, auto-refresh
 │   │   └── +page.svelte                  # Home page: mounts WeatherScreen
-│   └── lib/                              # Svelte-specific code
-│       ├── i18n/index.ts                 # svelte-i18n setup (re-exports from $shared)
-│       ├── stores/                       # Svelte writable stores
+│   └── lib/                              # All app code (imported via $lib)
+│       ├── api/                          # Network layer
+│       │   ├── openMeteo.ts              # API client: fetchWeather(lat, lon)
+│       │   ├── openMeteoTypes.ts         # Response type definitions
+│       │   ├── openMeteoMapper.ts        # API response → domain model conversion
+│       │   └── wmoWeatherCode.ts         # WMO code → emoji + i18n key lookup
+│       ├── domain/                       # Business logic / value objects
+│       │   ├── weatherData.ts            # WeatherData, HourlyForecast, DailyForecast
+│       │   ├── temperature.ts            # Temperature (°C ↔ °F) with displayDual()
+│       │   ├── pressure.ts              # Pressure (hPa ↔ inHg) with displayDual()
+│       │   ├── windSpeed.ts             # WindSpeed (m/s ↔ mph) with displayDual()
+│       │   └── precipitation.ts          # Precipitation (mm ↔ in) with displayDual()
+│       ├── i18n/                         # Internationalization
+│       │   ├── index.ts                  # svelte-i18n setup + locale registration
+│       │   ├── locales.ts                # Locale config + localizeDigits()
+│       │   └── locales/                  # 8 JSON files (symlinked to shared/i18n/locales)
+│       ├── stores/
 │       │   ├── weather.ts                # Weather state machine + fetch orchestration
-│       │   └── preferences.ts            # Persisted user preferences (units, font, language)
-│       └── components/                   # UI components (9 .svelte files)
+│       │   ├── preferences.ts            # Persisted user preferences (units, font, language)
+│       │   └── location.ts              # Geolocation + Nominatim reverse geocoding
+│       ├── components/                   # UI components (9 .svelte files)
+│       ├── fonts.ts                      # 22 FontPairing definitions + Google Fonts URLs
+│       └── share.ts                      # html2canvas capture + Web Share API / download
 ├── static/                               # Files copied as-is to build output
 ├── scripts/
-│   ├── copy-shared-assets.js             # Pre-build: copies shared assets into static/
 │   └── inline-assets.js                  # Post-build: inlines CSS into HTML
-├── svelte.config.js                      # SvelteKit config (static adapter, $shared alias)
+├── svelte.config.js                      # SvelteKit config (static adapter, base: /svelte)
 ├── vite.config.ts                        # Vite config (single-chunk bundling)
 ├── package.json                          # Dependencies + build scripts
 ├── tsconfig.json
@@ -146,14 +138,12 @@ npm run dev  →  Vite dev server at localhost:5173
 ### Production
 
 ```
-npm run build  →  Step 1: copy shared assets into static/
-                          ↓
-                  Step 2: vite build
+npm run build  →  Step 1: vite build
                           ↓
                   Compiles .svelte → JS, bundles into single chunk,
                   generates service-worker.js, copies static/
                           ↓
-                  Step 3: node scripts/inline-assets.js
+                  Step 2: node scripts/inline-assets.js
                           ↓
                   Finds <link href="*.css"> in index.html,
                   reads CSS file contents, replaces with <style> tag,
@@ -419,9 +409,9 @@ Three values, all persisted to `localStorage`:
 
 The `persistedWritable<T>(key, default)` helper creates a Svelte writable store that reads its initial value from `localStorage` and writes back on every change.
 
-### Shared: `shared/stores/location.ts` — Geolocation Utilities
+### `stores/location.ts` — Geolocation Utilities
 
-Framework-agnostic utility functions (not a Svelte store):
+Utility functions (not a Svelte store):
 
 - `getPosition()`: Wraps `navigator.geolocation.getCurrentPosition()` in a Promise with 15-second timeout.
 - `reverseGeocode(lat, lon)`: Calls the Nominatim API to convert coordinates to a human-readable place name. Falls back through `city → town → village → county → state → "lat, lon"`.
@@ -572,7 +562,7 @@ When Arabic is selected:
 
 ## 10. Font System
 
-22 font pairings are defined in `shared/fonts.ts`. Each pairing specifies:
+22 font pairings are defined in `src/lib/fonts.ts`. Each pairing specifies:
 
 ```typescript
 interface FontPairing {
@@ -629,7 +619,7 @@ If the app shell request fails and there's no cache hit, the service worker trie
 
 ## 12. Screenshot Sharing
 
-`shared/share.ts` implements branded screenshot capture:
+`src/lib/share.ts` implements branded screenshot capture:
 
 1. **Capture**: Uses `html2canvas` (dynamically imported to avoid SSR issues) to render the header element and content element to separate canvases at 2x resolution.
 

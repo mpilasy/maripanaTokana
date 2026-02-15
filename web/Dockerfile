@@ -9,12 +9,9 @@ RUN npm ci
 # Copy web source code (symlinks copied as-is, resolved below)
 COPY web/ .
 
-# Replace i18n symlink with actual canonical files from top-level shared/
-RUN rm -f shared/i18n
-COPY shared/i18n/ ./shared/i18n/
-
-# Copy shared assets into static dir
-RUN node scripts/copy-shared-assets.js
+# Replace i18n locales symlink with actual canonical files
+RUN rm -f src/lib/i18n/locales
+COPY shared/i18n/locales/ ./src/lib/i18n/locales/
 
 # Build
 RUN npm run build

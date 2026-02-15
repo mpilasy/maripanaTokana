@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import type { WeatherData } from '$shared/domain/weatherData';
+	import type { WeatherData } from '$lib/domain/weatherData';
 	import DetailCard from './DetailCard.svelte';
 
 	interface Props {

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { HourlyForecast as HourlyForecastType } from '$shared/domain/weatherData';
-	import { wmoEmoji } from '$shared/api/wmoWeatherCode';
+	import type { HourlyForecast as HourlyForecastType } from '$lib/domain/weatherData';
+	import { wmoEmoji } from '$lib/api/wmoWeatherCode';
 	import DualUnitText from './DualUnitText.svelte';
 
 	interface Props {
