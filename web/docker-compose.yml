@@ -8,6 +8,3 @@ services:
     restart: unless-stopped
     ports:
       - "${PORT:-3080}:80"
-    environment:
-      # Which app to serve at / (svelte, react, or ng)
-      - DEFAULT_APP=${DEFAULT_APP:-svelte}

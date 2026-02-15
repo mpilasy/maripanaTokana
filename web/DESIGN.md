@@ -39,14 +39,14 @@ This document explains the architecture, data flow, and key patterns of the **ma
 
 ### Why Svelte?
 
-Svelte compiles components to efficient vanilla JavaScript at build time — there's no virtual DOM diffing at runtime (unlike React or Vue). This results in:
-- Smaller bundles (~15-25 KB vs 60-75 KB for React)
+Svelte compiles components to efficient vanilla JavaScript at build time — there's no virtual DOM diffing at runtime. This results in:
+- Smaller bundles (~15-25 KB)
 - Faster runtime performance (direct DOM updates)
 - Less boilerplate (reactivity is built into the language)
 
 ### Svelte Concepts for Non-Svelte Developers
 
-| Svelte Concept | React/Vue Equivalent | What It Does |
+| Svelte Concept | Equivalent In Other Frameworks | What It Does |
 |----------------|---------------------|--------------|
 | `.svelte` file | `.jsx` / `.vue` file | Single-file component with `<script>`, HTML template, and `<style>` |
 | `$state(value)` | `useState(value)` | Declares reactive state that triggers re-renders when changed |
@@ -63,15 +63,15 @@ Svelte compiles components to efficient vanilla JavaScript at build time — the
 
 ### SvelteKit Concepts
 
-SvelteKit is to Svelte what Next.js is to React — a full application framework:
+SvelteKit is a full application framework built on top of Svelte:
 
 | SvelteKit Concept | Next.js Equivalent | What It Does |
 |-------------------|-------------------|--------------|
 | `src/routes/+page.svelte` | `app/page.tsx` | Page component for a URL route |
 | `src/routes/+layout.svelte` | `app/layout.tsx` | Shared layout wrapping all pages |
 | `adapter-static` | `output: 'export'` | Generates static HTML (no server needed) |
-| `$lib/` alias | `@/lib/` | Import alias for `svelte/src/lib/` directory (Svelte-specific code) |
-| `$shared/` alias | — | Import alias for `shared/` directory (framework-agnostic code) |
+| `$lib/` alias | `@/lib/` | Import alias for `src/lib/` directory (Svelte-specific code) |
+| `$lib/` sub-paths | — | All app code under `src/lib/` (api, domain, i18n, stores, etc.) |
 | `src/service-worker.ts` | Custom setup | Built-in service worker support with build manifest |
 
 ---
@@ -80,57 +80,46 @@ SvelteKit is to Svelte what Next.js is to React — a full application framework
 
 ```
 web/
-├── shared/                               # Framework-agnostic code (used by all 3 apps)
-│   ├── api/                              # Network layer
-│   │   ├── openMeteo.ts                  # API client: fetchWeather(lat, lon)
-│   │   ├── openMeteoTypes.ts             # Response type definitions
-│   │   ├── openMeteoMapper.ts            # API response → domain model conversion
-│   │   └── wmoWeatherCode.ts             # WMO code → emoji + i18n key lookup
-│   ├── domain/                           # Business logic / value objects
-│   │   ├── weatherData.ts                # WeatherData, HourlyForecast, DailyForecast
-│   │   ├── temperature.ts                # Temperature (°C ↔ °F) with displayDual()
-│   │   ├── pressure.ts                   # Pressure (hPa ↔ inHg) with displayDual()
-│   │   ├── windSpeed.ts                  # WindSpeed (m/s ↔ mph) with displayDual()
-│   │   └── precipitation.ts              # Precipitation (mm ↔ in) with displayDual()
-│   ├── i18n/                             # Internationalization
-│   │   ├── locales.ts                    # Locale config + localizeDigits()
-│   │   └── locales/                      # 8 JSON translation files
-│   │       ├── mg.json (Malagasy)    ├── ar.json (Arabic)
-│   │       ├── en.json (English)     ├── es.json (Spanish)
-│   │       ├── fr.json (French)      ├── hi.json (Hindi)
-│   │       ├── ne.json (Nepali)      └── zh.json (Chinese)
-│   ├── stores/
-│   │   └── location.ts                   # Geolocation + Nominatim reverse geocoding
-│   ├── fonts.ts                          # 22 FontPairing definitions + Google Fonts URLs
-│   └── share.ts                          # html2canvas capture + Web Share API / download
-│
-├── svelte/                               # Svelte app (primary implementation)
-│   ├── src/
-│   │   ├── app.html                      # HTML shell (viewport, PWA meta, fonts preconnect)
-│   │   ├── app.d.ts                      # Global TypeScript declarations
-│   │   ├── service-worker.ts             # PWA offline caching (3 cache strategies)
-│   │   ├── routes/                       # URL-mapped pages
-│   │   │   ├── +layout.svelte            # Root layout: fonts, RTL, i18n init, auto-refresh
-│   │   │   └── +page.svelte              # Home page: mounts WeatherScreen
-│   │   └── lib/                          # Svelte-specific code
-│   │       ├── i18n/index.ts             # svelte-i18n setup (re-exports from $shared)
-│   │       ├── stores/                   # Svelte writable stores
-│   │       │   ├── weather.ts            # Weather state machine + fetch orchestration
-│   │       │   └── preferences.ts        # Persisted user preferences (units, font, language)
-│   │       └── components/               # UI components (9 .svelte files)
-│   ├── static/                           # Files copied as-is to build output
-│   ├── scripts/inline-assets.js          # Post-build: inlines CSS into HTML
-│   ├── svelte.config.js                  # SvelteKit config (static adapter, $shared alias)
-│   ├── vite.config.ts                    # Vite config (single-chunk bundling)
-│   ├── package.json                      # Svelte dependencies
-│   └── tsconfig.json
-│
-├── react/                                # React app (port)
-├── angular/                              # Angular app (port)
+├── src/
+│   ├── app.html                          # HTML shell (viewport, PWA meta, fonts preconnect)
+│   ├── app.d.ts                          # Global TypeScript declarations
+│   ├── service-worker.ts                 # PWA offline caching (3 cache strategies)
+│   ├── routes/                           # URL-mapped pages
+│   │   ├── +layout.svelte                # Root layout: fonts, RTL, i18n init, auto-refresh
+│   │   └── +page.svelte                  # Home page: mounts WeatherScreen
+│   └── lib/                              # All app code (imported via $lib)
+│       ├── api/                          # Network layer
+│       │   ├── openMeteo.ts              # API client: fetchWeather(lat, lon)
+│       │   ├── openMeteoTypes.ts         # Response type definitions
+│       │   ├── openMeteoMapper.ts        # API response → domain model conversion
+│       │   └── wmoWeatherCode.ts         # WMO code → emoji + i18n key lookup
+│       ├── domain/                       # Business logic / value objects
+│       │   ├── weatherData.ts            # WeatherData, HourlyForecast, DailyForecast
+│       │   ├── temperature.ts            # Temperature (°C ↔ °F) with displayDual()
+│       │   ├── pressure.ts              # Pressure (hPa ↔ inHg) with displayDual()
+│       │   ├── windSpeed.ts             # WindSpeed (m/s ↔ mph) with displayDual()
+│       │   └── precipitation.ts          # Precipitation (mm ↔ in) with displayDual()
+│       ├── i18n/                         # Internationalization
+│       │   ├── index.ts                  # svelte-i18n setup + locale registration
+│       │   ├── locales.ts                # Locale config + localizeDigits()
+│       │   └── locales/                  # 8 JSON files (symlinked to shared/i18n/locales)
+│       ├── stores/
+│       │   ├── weather.ts                # Weather state machine + fetch orchestration
+│       │   ├── preferences.ts            # Persisted user preferences (units, font, language)
+│       │   └── location.ts              # Geolocation + Nominatim reverse geocoding
+│       ├── components/                   # UI components (9 .svelte files)
+│       ├── fonts.ts                      # 22 FontPairing definitions + Google Fonts URLs
+│       └── share.ts                      # html2canvas capture + Web Share API / download
+├── static/                               # Files copied as-is to build output
+├── scripts/
+│   └── inline-assets.js                  # Post-build: inlines CSS into HTML
+├── svelte.config.js                      # SvelteKit config (static adapter, base: /svelte)
+├── vite.config.ts                        # Vite config (single-chunk bundling)
+├── package.json                          # Dependencies + build scripts
+├── tsconfig.json
 ├── Dockerfile                            # Multi-stage: node build → caddy serve
 ├── Caddyfile                             # SPA routing + service worker headers
-├── docker-compose.yml                    # Container config (port 3080)
-└── package.json                          # Root orchestration scripts
+└── docker-compose.yml                    # Container config (port 3080)
 ```
 
 **Total**: ~42 source files, ~2,900 lines of code.
@@ -142,29 +131,29 @@ web/
 ### Development
 
 ```
-cd svelte && npm run dev  →  Vite dev server at localhost:5173
-                             (hot module replacement, no service worker)
+npm run dev  →  Vite dev server at localhost:5173
+                (hot module replacement, no service worker)
 ```
 
 ### Production
 
 ```
-cd svelte && npm run build  →  Step 1: vite build
-                                       ↓
-                               Compiles .svelte → JS, bundles into single chunk,
-                               generates service-worker.js, copies static/
-                                       ↓
-                               Step 2: node scripts/inline-assets.js
-                                       ↓
-                               Finds <link href="*.css"> in index.html,
-                               reads CSS file contents, replaces with <style> tag,
-                               deletes the now-unused CSS file
-                                       ↓
-                               Output: svelte/build/ directory
-                               - index.html (CSS inlined, JS referenced)
-                               - _app/immutable/entry/*.js (single app bundle)
-                               - service-worker.js
-                               - manifest.json, icons, background image
+npm run build  →  Step 1: vite build
+                          ↓
+                  Compiles .svelte → JS, bundles into single chunk,
+                  generates service-worker.js, copies static/
+                          ↓
+                  Step 2: node scripts/inline-assets.js
+                          ↓
+                  Finds <link href="*.css"> in index.html,
+                  reads CSS file contents, replaces with <style> tag,
+                  deletes the now-unused CSS file
+                          ↓
+                  Output: build/ directory
+                  - index.html (CSS inlined, JS referenced)
+                  - _app/immutable/entry/*.js (single app bundle)
+                  - service-worker.js
+                  - manifest.json, icons, background image
 ```
 
 ### Why CSS Inlining?
@@ -420,9 +409,9 @@ Three values, all persisted to `localStorage`:
 
 The `persistedWritable<T>(key, default)` helper creates a Svelte writable store that reads its initial value from `localStorage` and writes back on every change.
 
-### Shared: `shared/stores/location.ts` — Geolocation Utilities
+### `stores/location.ts` — Geolocation Utilities
 
-Framework-agnostic utility functions (not a Svelte store):
+Utility functions (not a Svelte store):
 
 - `getPosition()`: Wraps `navigator.geolocation.getCurrentPosition()` in a Promise with 15-second timeout.
 - `reverseGeocode(lat, lon)`: Calls the Nominatim API to convert coordinates to a human-readable place name. Falls back through `city → town → village → county → state → "lat, lon"`.
@@ -573,7 +562,7 @@ When Arabic is selected:
 
 ## 10. Font System
 
-22 font pairings are defined in `shared/fonts.ts`. Each pairing specifies:
+22 font pairings are defined in `src/lib/fonts.ts`. Each pairing specifies:
 
 ```typescript
 interface FontPairing {
@@ -600,7 +589,7 @@ Font loading happens in `+layout.svelte` via a `<link>` tag injected into `<head
 
 ### Caching Strategies
 
-The service worker (`svelte/src/service-worker.ts`) uses three named caches with different strategies:
+The service worker (`src/service-worker.ts`) uses three named caches with different strategies:
 
 | Cache Name | Strategy | Used For | Rationale |
 |-----------|----------|----------|-----------|
@@ -630,7 +619,7 @@ If the app shell request fails and there's no cache hit, the service worker trie
 
 ## 12. Screenshot Sharing
 
-`shared/share.ts` implements branded screenshot capture:
+`src/lib/share.ts` implements branded screenshot capture:
 
 1. **Capture**: Uses `html2canvas` (dynamically imported to avoid SSR issues) to render the header element and content element to separate canvases at 2x resolution.
 
@@ -652,41 +641,26 @@ Share buttons appear on the HeroCard and on each CollapsibleSection header (only
 
 ## 13. Deployment
 
-### Docker (Production) — Multi-App
+### Docker (Production)
 
-The Docker setup builds and serves three separate applications from a single container:
+The Docker setup builds and serves the Svelte app:
 
 ```dockerfile
-# Stage 1: Build all apps
+# Stage 1: Build
 FROM node:22-alpine
 WORKDIR /app
 
-# Install dependencies for each app
-COPY svelte/package.json svelte/package-lock.json ./svelte/
-COPY react/package.json react/package-lock.json ./react/
-COPY angular/package.json angular/package-lock.json ./angular/
-
-WORKDIR /app/svelte
-RUN npm ci
-WORKDIR /app/react
-RUN npm ci
-WORKDIR /app/angular
+COPY package.json package-lock.json ./
 RUN npm ci
 
-WORKDIR /app
 COPY . .
 
-# Build all three apps
-RUN cd svelte && npm run build
-RUN cd react && npm run build
-RUN cd angular && npm run build
+RUN npm run build
 
-# Stage 2: Serve all apps
+# Stage 2: Serve
 FROM caddy:alpine
 COPY Caddyfile /etc/caddy/Caddyfile
-COPY --from=build /app/svelte/build /srv/svelte   # Svelte at /svelte/*
-COPY --from=build /app/react/dist /srv/react      # React at /react/*
-COPY --from=build /app/angular/dist /srv/ng       # Angular at /ng/*
+COPY --from=build /app/build /srv/svelte
 EXPOSE 80
 ```
 
@@ -697,43 +671,25 @@ The Caddyfile implements path-based routing with optimization:
 **Compression**: Gzip enabled for all text assets (JS, CSS, fonts)
 
 **Routing** (using `handle_path` for automatic prefix stripping):
-- `/` → redirects to `/${DEFAULT_APP:-svelte}/` (configurable via env var)
+- `/` → redirects to `/svelte/`
 - `/svelte/*` → Svelte app (base path `/svelte/`, SPA fallback)
-- `/react/*` → React app (base path `/react/`, SPA fallback)
-- `/ng/*` → Angular app (base href `/ng/`, SPA fallback)
 
 **Caching**:
 - **Versioned assets** (regex: `.*\.[a-f0-9]{8}\.(js|css|woff2|ttf)$`): `max-age=31536000, immutable` (1 year)
-  - Build tools (Vite, Angular) hash filenames; unchanged assets stay cached
+  - Vite hashes filenames; unchanged assets stay cached
 - **HTML files**: `no-cache, public, must-revalidate` (browser always checks, serves cached if unchanged)
 - **Service worker**: `no-cache, no-store, must-revalidate` (always fetch fresh)
 
 **Result**: On repeat visits, browser only downloads HTML (metadata check), reuses all cached JS/CSS/fonts if unchanged.
 
-### Build Optimizations
-
-**React**:
-- `minify: 'terser'` — aggressive minification
-- `sourcemap: false` — no development maps in production
-- `cssCodeSplit: false` — CSS consolidated with JS
-- Single bundle via `manualChunks: () => 'app'`
-
-**Angular**:
-- `aot: true` — ahead-of-time compilation (default in v19)
-- `buildOptimizer: true` — remove unused code
-- `sourceMap: false` — no development maps
-- `vendorChunk: false` — smaller vendor bundle
-
 ### Docker Compose
 
 ```bash
-docker compose up -d --build                       # Default port 3080, root → /svelte/
+docker compose up -d --build                       # Default port 3080
 PORT=8080 docker compose up -d --build             # Custom port
-DEFAULT_APP=react docker compose up -d --build     # Root → /react/
-DEFAULT_APP=ng docker compose up -d --build        # Root → /ng/
 ```
 
-The container runs Caddy on port 80, mapped to the host port. All three apps are served from a single Docker instance. The `DEFAULT_APP` environment variable controls which app `/` redirects to (default: `svelte`).
+The container runs Caddy on port 80, mapped to the host port.
 
 ---
 
@@ -766,7 +722,7 @@ Vite normally splits code into many small chunks for lazy loading. For this app 
 
 ### CSS Inlining
 
-A post-build script (`svelte/scripts/inline-assets.js`) reads the generated CSS file and inlines it as a `<style>` tag in `index.html`. This eliminates one HTTP request. JS is not inlined because ES modules loaded from `data:` URIs cannot resolve relative imports (a browser security restriction).
+A post-build script (`scripts/inline-assets.js`) reads the generated CSS file and inlines it as a `<style>` tag in `index.html`. This eliminates one HTTP request. JS is not inlined because ES modules loaded from `data:` URIs cannot resolve relative imports (a browser security restriction).
 
 ### No Precaching
 

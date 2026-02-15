@@ -50,7 +50,6 @@ This is the web port of the [Android app](../), built with SvelteKit.
 ## Build & Run
 
 ```bash
-cd svelte
 npm install          # Install dependencies
 npm run dev          # Dev server at localhost:5173
 npm run build        # Production build to build/ (includes CSS inlining)
@@ -62,7 +61,7 @@ The build step runs `vite build` followed by `scripts/inline-assets.js`, which i
 
 ## Deployment (Docker)
 
-Multi-stage Docker build: node builds all three apps (Svelte, React, Angular), Caddy serves them at different paths.
+Multi-stage Docker build: node builds the Svelte app, Caddy serves it.
 
 ```bash
 docker compose up -d --build    # Build and run on port 3080 (default)
@@ -74,26 +73,12 @@ To use a custom port, create a `.env` file or pass it inline:
 PORT=8080 docker compose up -d --build
 ```
 
-The container (`maripanaTokana.web`) exposes port 80, mapped to host port `$PORT` (default 3080). Three apps are available:
-
-| URL | App | Framework |
-|-----|-----|-----------|
-| `/svelte` | maripána Tokana | SvelteKit |
-| `/react` | React Port | React + Vite |
-| `/ng` | Angular Port | Angular |
-| `/` | Redirect | `→ /${DEFAULT_APP:-svelte}/` |
-
-To change which app `/` points to:
-
-```bash
-DEFAULT_APP=react docker compose up -d --build   # Root → React
-DEFAULT_APP=ng docker compose up -d --build       # Root → Angular
-```
+The container (`maripanaTokana.web`) exposes port 80, mapped to host port `$PORT` (default 3080). The app is available at `/svelte`, and `/` redirects to `/svelte/`.
 
 ```
-Dockerfile          # Multi-stage: builds all three apps → caddy serves at different paths
+Dockerfile          # Multi-stage: node build → caddy serve
 Caddyfile           # Path-based routing + SPA fallback + gzip compression
-docker-compose.yml  # Container config (port, DEFAULT_APP)
+docker-compose.yml  # Container config (port)
 .dockerignore       # Excludes node_modules, .git, build, .svelte-kit
 ```
 
@@ -101,40 +86,30 @@ docker-compose.yml  # Container config (port, DEFAULT_APP)
 - **Gzip compression**: All text assets (JS, CSS, fonts) automatically compressed
 - **Smart caching**: Versioned assets (hash in filename) cached for 1 year; HTML/service-worker always revalidated
 - **Minimal repeat visits**: Only HTML/SW checked on return; JS/CSS served from cache if unchanged
-- **React optimizations**: Terser minification, no sourcemaps, single bundle
-- **Angular optimizations**: AOT compilation, build optimizer enabled
 
 ## Architecture
 
-Three parallel implementations sharing framework-agnostic code from `shared/`.
+SvelteKit app with framework-agnostic shared code.
 
 ```
 web/
-├── shared/                   # Framework-agnostic code (used by all 3 apps)
-│   ├── api/                  # Open-Meteo fetch client, types, mapper, WMO codes
-│   ├── domain/               # Value classes: Temperature, Pressure, WindSpeed, Precipitation
-│   ├── i18n/                 # Locale config, localizeDigits(), 8 JSON translation files
-│   ├── stores/location.ts    # Geolocation + Nominatim reverse geocoding
-│   ├── fonts.ts              # 22 FontPairing definitions + Google Fonts URLs
-│   └── share.ts              # html2canvas capture + Web Share API / download fallback
-│
-├── svelte/                   # Svelte app (primary implementation)
-│   ├── src/
-│   │   ├── lib/              # Svelte-specific code (stores, i18n setup, components)
-│   │   ├── routes/           # +page.svelte, +layout.svelte
-│   │   ├── service-worker.ts
-│   │   └── app.html
-│   ├── scripts/              # Post-build CSS inlining
-│   ├── static/               # PWA manifest, icons, background
-│   └── svelte.config.js      # base: '/svelte', $shared alias
-│
-├── react/                    # React app (port)
-│   ├── src/                  # React components, hooks, i18n
-│   └── vite.config.ts        # base: '/react/', $lib alias → ../shared
-│
-├── angular/                  # Angular app (port)
-│   ├── src/                  # Angular components, services, pipes
-│   └── angular.json          # baseHref: '/ng/', $lib alias → ../shared
+├── src/
+│   ├── lib/
+│   │   ├── api/              # Open-Meteo fetch client, types, mapper, WMO codes
+│   │   ├── domain/           # Value classes: Temperature, Pressure, WindSpeed, Precipitation
+│   │   ├── i18n/             # Locale config, localizeDigits(), 8 JSON translations (symlinked)
+│   │   ├── stores/           # Svelte stores (weather, preferences, location)
+│   │   ├── components/       # 9 Svelte UI components
+│   │   ├── fonts.ts          # 22 FontPairing definitions + Google Fonts URLs
+│   │   └── share.ts          # html2canvas capture + Web Share API / download fallback
+│   ├── routes/               # +page.svelte, +layout.svelte
+│   ├── service-worker.ts
+│   └── app.html
+├── static/                   # PWA manifest, icons, background
+├── scripts/                  # Post-build CSS inlining
+├── svelte.config.js          # base: '/svelte'
+├── vite.config.ts            # Vite config (single-chunk bundling)
+└── package.json              # Dependencies + build scripts
 ```
 
 ## Internationalization
