@@ -10,12 +10,20 @@
 ## Project Layout
 ```
 web/
+├── src/                # SvelteKit app source
+│   ├── lib/            # Svelte-specific code (stores, i18n, components)
+│   ├── routes/         # +page.svelte, +layout.svelte
+│   ├── service-worker.ts
+│   └── app.html
 ├── shared/             # Framework-agnostic code (api, domain, i18n, fonts, share)
-├── svelte/             # SvelteKit app
+├── static/             # PWA manifest, icons, background
+├── scripts/            # Build scripts (copy-shared-assets, inline-assets)
+├── svelte.config.js    # SvelteKit config (static adapter, $shared alias)
+├── vite.config.ts      # Vite config (single-chunk bundling)
 ├── Dockerfile          # Multi-stage build
 ├── Caddyfile           # Path-based routing + gzip + caching
 ├── docker-compose.yml  # Container configuration
-├── package.json        # Root scripts (build)
+├── package.json        # Dependencies + build scripts
 └── CLAUDE.md           # This file
 ```
 
@@ -28,7 +36,7 @@ Framework-agnostic TypeScript used by the Svelte app:
 - **`fonts.ts`** — 22 FontPairing definitions + Google Fonts URLs
 - **`share.ts`** — html2canvas capture + Web Share API / download fallback
 
-Svelte imports shared code via `$shared/...` alias.
+Svelte imports shared code via the `$shared/...` alias (configured in `svelte.config.js`).
 
 ## Build / Docker
 ```bash
@@ -41,7 +49,7 @@ docker compose up -d --build
 docker compose up -d --build          # Default port 3080
 PORT=8080 docker compose up -d --build  # Custom port via env
 ```
-- **Dockerfile:** Multi-stage — builds Svelte app in `node:22-alpine`, serves via `caddy:alpine`. Uses root-level `html2canvas` symlink for shared code resolution.
+- **Dockerfile:** Multi-stage — builds in `node:22-alpine`, serves via `caddy:alpine`.
 - **Caddyfile:** Path-based routing with SPA fallback (`/svelte/*`), gzip compression, smart caching headers
 - **docker-compose.yml:** Container `maripanaTokana.web`, port `${PORT:-3080}:80`, `restart: unless-stopped`
 - App served at `/svelte` (CSS inlined, single JS bundle)
@@ -86,6 +94,30 @@ PORT=8080 docker compose up -d --build  # Custom port via env
 | `android.location.Geocoder` | Nominatim reverse geocoding API |
 | `Lifecycle.ON_RESUME` | `document.visibilitychange` |
 | `R.string.xxx` | i18n key lookup (framework-specific) |
+
+## Component Details
+- **WeatherScreen.svelte:** State machine switch (`loading | success | error`), pull-to-refresh, `loc()` for digit localization, dual-language error screen with browser locale detection, auto-fetch on mount.
+- **HeroCard.svelte:** Emoji+description (left), temperature with `DualUnitText` (right), feels-like (bottom-left), precipitation (bottom-right), share button (top-right), copyright watermark.
+- **HourlyForecast.svelte:** Horizontal flex scroll with `scroll-snap-type`. `isNightForHour()` uses `dailySunrise`/`dailySunset` arrays for day/night emoji selection.
+- **DailyForecast.svelte:** Vertical list with `Intl.DateTimeFormat` for localized day names. Precip probability shown only when >0%.
+- **CurrentConditions.svelte:** CSS Grid (`1fr 1fr` columns, `1fr` auto-rows) of DetailCard pairs. Special humidity+dewpoint combined card. Cardinal direction from `$_('cardinal_directions')` array. UV label from `$_('uv_labels')` array.
+- **CollapsibleSection.svelte:** Uses Svelte 5 `Snippet` for children. Share button next to title (visible when expanded). `let isExpanded = $state(expanded)` captures initial prop (intentional `state_referenced_locally` warning).
+
+## Svelte 5 Specifics
+- **`{@const}` placement:** Must be immediate child of block constructs (`{#each}`, `{#if}`, etc.), NOT nested inside elements. Use `$derived()` in script block as alternative.
+- **`bind:this`:** Variable must be declared with `$state()` (e.g., `let el = $state<HTMLElement | null>(null)`).
+- **Props:** Use `interface Props` + `$props()` (not `export let`).
+- **Children:** Use `Snippet` type + `{@render children()}` (not `<slot />`).
+- **Effects:** `$effect()` replaces `afterUpdate`/reactive statements.
+
+## State Management
+- `StateFlow` + `collectAsState()` → Svelte writable stores + `$store`
+- `$_('key')` via svelte-i18n for all i18n lookups
+- CSS custom properties for fonts set via `$effect` in `+layout.svelte`
+- Collapsible sections use `transition:slide`
+
+## Known Issues
+- **CollapsibleSection warning:** `state_referenced_locally` — intentional, captures initial prop value.
 
 ## Developer Context
 - Owner is an experienced C#, Java, C++ developer.

@@ -5,6 +5,24 @@
 	"type": "module",
 	"scripts": {
 		"copy-assets": "node scripts/copy-shared-assets.js",
-		"build": "npm run copy-assets && cd svelte && npm run build"
+		"dev": "vite dev",
+		"build": "npm run copy-assets && vite build && node scripts/inline-assets.js",
+		"preview": "vite preview",
+		"prepare": "svelte-kit sync || echo ''",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
+	},
+	"dependencies": {
+		"html2canvas": "^1.4.1",
+		"svelte-i18n": "^4.0.0"
+	},
+	"devDependencies": {
+		"@sveltejs/adapter-static": "^3.0.0",
+		"@sveltejs/kit": "^2.50.2",
+		"@sveltejs/vite-plugin-svelte": "^6.2.4",
+		"svelte": "^5.49.2",
+		"svelte-check": "^4.3.6",
+		"typescript": "^5.9.3",
+		"vite": "^7.3.1"
 	}
 }

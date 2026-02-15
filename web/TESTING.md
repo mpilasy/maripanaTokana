@@ -3,7 +3,6 @@
 ## Prerequisites
 
 ```bash
-cd svelte
 npm install
 npm run build    # Verify clean build (no errors)
 ```
@@ -16,22 +15,20 @@ The build should complete with zero errors. One non-blocking warning is expected
 ## 1. Build Verification
 
 ```bash
-cd svelte
 npm run build
 npm run check
 ```
 
-- `npm run build` produces output in `svelte/build/` directory (runs vite build + CSS inlining)
+- `npm run build` produces output in `build/` directory (runs vite build + CSS inlining)
 - `npm run check` runs `svelte-check` with no type errors
-- The `svelte/build/` directory should contain `index.html` (with CSS inlined), JS bundles, and static assets
-- `index.html` should contain a `<style>` tag (CSS inlined by `svelte/scripts/inline-assets.js`)
+- The `build/` directory should contain `index.html` (with CSS inlined), JS bundles, and static assets
+- `index.html` should contain a `<style>` tag (CSS inlined by `scripts/inline-assets.js`)
 
 ---
 
 ## 2. Dev Server
 
 ```bash
-cd svelte
 npm run dev
 ```
 
@@ -208,7 +205,7 @@ Tap the font icon (Aa) in the footer to cycle through 22 font pairings.
 
 ### Via npm preview (Svelte app only):
 ```bash
-cd svelte && npm run build && npm run preview
+npm run build && npm run preview
 ```
 Open `http://localhost:4173` in Chrome.
 

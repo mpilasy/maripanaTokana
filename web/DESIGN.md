@@ -70,7 +70,7 @@ SvelteKit is a full application framework built on top of Svelte:
 | `src/routes/+page.svelte` | `app/page.tsx` | Page component for a URL route |
 | `src/routes/+layout.svelte` | `app/layout.tsx` | Shared layout wrapping all pages |
 | `adapter-static` | `output: 'export'` | Generates static HTML (no server needed) |
-| `$lib/` alias | `@/lib/` | Import alias for `svelte/src/lib/` directory (Svelte-specific code) |
+| `$lib/` alias | `@/lib/` | Import alias for `src/lib/` directory (Svelte-specific code) |
 | `$shared/` alias | — | Import alias for `shared/` directory (framework-agnostic code) |
 | `src/service-worker.ts` | Custom setup | Built-in service worker support with build manifest |
 
@@ -104,31 +104,30 @@ web/
 │   ├── fonts.ts                          # 22 FontPairing definitions + Google Fonts URLs
 │   └── share.ts                          # html2canvas capture + Web Share API / download
 │
-├── svelte/                               # SvelteKit app
-│   ├── src/
-│   │   ├── app.html                      # HTML shell (viewport, PWA meta, fonts preconnect)
-│   │   ├── app.d.ts                      # Global TypeScript declarations
-│   │   ├── service-worker.ts             # PWA offline caching (3 cache strategies)
-│   │   ├── routes/                       # URL-mapped pages
-│   │   │   ├── +layout.svelte            # Root layout: fonts, RTL, i18n init, auto-refresh
-│   │   │   └── +page.svelte              # Home page: mounts WeatherScreen
-│   │   └── lib/                          # Svelte-specific code
-│   │       ├── i18n/index.ts             # svelte-i18n setup (re-exports from $shared)
-│   │       ├── stores/                   # Svelte writable stores
-│   │       │   ├── weather.ts            # Weather state machine + fetch orchestration
-│   │       │   └── preferences.ts        # Persisted user preferences (units, font, language)
-│   │       └── components/               # UI components (9 .svelte files)
-│   ├── static/                           # Files copied as-is to build output
-│   ├── scripts/inline-assets.js          # Post-build: inlines CSS into HTML
-│   ├── svelte.config.js                  # SvelteKit config (static adapter, $shared alias)
-│   ├── vite.config.ts                    # Vite config (single-chunk bundling)
-│   ├── package.json                      # Svelte dependencies
-│   └── tsconfig.json
-│
+├── src/                                  # SvelteKit app source
+│   ├── app.html                          # HTML shell (viewport, PWA meta, fonts preconnect)
+│   ├── app.d.ts                          # Global TypeScript declarations
+│   ├── service-worker.ts                 # PWA offline caching (3 cache strategies)
+│   ├── routes/                           # URL-mapped pages
+│   │   ├── +layout.svelte                # Root layout: fonts, RTL, i18n init, auto-refresh
+│   │   └── +page.svelte                  # Home page: mounts WeatherScreen
+│   └── lib/                              # Svelte-specific code
+│       ├── i18n/index.ts                 # svelte-i18n setup (re-exports from $shared)
+│       ├── stores/                       # Svelte writable stores
+│       │   ├── weather.ts                # Weather state machine + fetch orchestration
+│       │   └── preferences.ts            # Persisted user preferences (units, font, language)
+│       └── components/                   # UI components (9 .svelte files)
+├── static/                               # Files copied as-is to build output
+├── scripts/
+│   ├── copy-shared-assets.js             # Pre-build: copies shared assets into static/
+│   └── inline-assets.js                  # Post-build: inlines CSS into HTML
+├── svelte.config.js                      # SvelteKit config (static adapter, $shared alias)
+├── vite.config.ts                        # Vite config (single-chunk bundling)
+├── package.json                          # Dependencies + build scripts
+├── tsconfig.json
 ├── Dockerfile                            # Multi-stage: node build → caddy serve
 ├── Caddyfile                             # SPA routing + service worker headers
-├── docker-compose.yml                    # Container config (port 3080)
-└── package.json                          # Root build scripts
+└── docker-compose.yml                    # Container config (port 3080)
 ```
 
 **Total**: ~42 source files, ~2,900 lines of code.
@@ -140,29 +139,31 @@ web/
 ### Development
 
 ```
-cd svelte && npm run dev  →  Vite dev server at localhost:5173
-                             (hot module replacement, no service worker)
+npm run dev  →  Vite dev server at localhost:5173
+                (hot module replacement, no service worker)
 ```
 
 ### Production
 
 ```
-cd svelte && npm run build  →  Step 1: vite build
-                                       ↓
-                               Compiles .svelte → JS, bundles into single chunk,
-                               generates service-worker.js, copies static/
-                                       ↓
-                               Step 2: node scripts/inline-assets.js
-                                       ↓
-                               Finds <link href="*.css"> in index.html,
-                               reads CSS file contents, replaces with <style> tag,
-                               deletes the now-unused CSS file
-                                       ↓
-                               Output: svelte/build/ directory
-                               - index.html (CSS inlined, JS referenced)
-                               - _app/immutable/entry/*.js (single app bundle)
-                               - service-worker.js
-                               - manifest.json, icons, background image
+npm run build  →  Step 1: copy shared assets into static/
+                          ↓
+                  Step 2: vite build
+                          ↓
+                  Compiles .svelte → JS, bundles into single chunk,
+                  generates service-worker.js, copies static/
+                          ↓
+                  Step 3: node scripts/inline-assets.js
+                          ↓
+                  Finds <link href="*.css"> in index.html,
+                  reads CSS file contents, replaces with <style> tag,
+                  deletes the now-unused CSS file
+                          ↓
+                  Output: build/ directory
+                  - index.html (CSS inlined, JS referenced)
+                  - _app/immutable/entry/*.js (single app bundle)
+                  - service-worker.js
+                  - manifest.json, icons, background image
 ```
 
 ### Why CSS Inlining?
@@ -598,7 +599,7 @@ Font loading happens in `+layout.svelte` via a `<link>` tag injected into `<head
 
 ### Caching Strategies
 
-The service worker (`svelte/src/service-worker.ts`) uses three named caches with different strategies:
+The service worker (`src/service-worker.ts`) uses three named caches with different strategies:
 
 | Cache Name | Strategy | Used For | Rationale |
 |-----------|----------|----------|-----------|
@@ -659,19 +660,17 @@ The Docker setup builds and serves the Svelte app:
 FROM node:22-alpine
 WORKDIR /app
 
-COPY svelte/package.json svelte/package-lock.json ./svelte/
-WORKDIR /app/svelte
+COPY package.json package-lock.json ./
 RUN npm ci
 
-WORKDIR /app
 COPY . .
 
-RUN cd svelte && npm run build
+RUN npm run build
 
 # Stage 2: Serve
 FROM caddy:alpine
 COPY Caddyfile /etc/caddy/Caddyfile
-COPY --from=build /app/svelte/build /srv/svelte
+COPY --from=build /app/build /srv/svelte
 EXPOSE 80
 ```
 
@@ -733,7 +732,7 @@ Vite normally splits code into many small chunks for lazy loading. For this app 
 
 ### CSS Inlining
 
-A post-build script (`svelte/scripts/inline-assets.js`) reads the generated CSS file and inlines it as a `<style>` tag in `index.html`. This eliminates one HTTP request. JS is not inlined because ES modules loaded from `data:` URIs cannot resolve relative imports (a browser security restriction).
+A post-build script (`scripts/inline-assets.js`) reads the generated CSS file and inlines it as a `<style>` tag in `index.html`. This eliminates one HTTP request. JS is not inlined because ES modules loaded from `data:` URIs cannot resolve relative imports (a browser security restriction).
 
 ### No Precaching
 

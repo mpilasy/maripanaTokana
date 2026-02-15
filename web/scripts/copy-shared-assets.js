@@ -15,7 +15,7 @@ const WEB_ROOT = join(__dirname, '..');
 const SHARED_ASSETS = join(WEB_ROOT, 'shared', 'assets');
 
 const targets = [
-	join(WEB_ROOT, 'svelte', 'static'),
+	join(WEB_ROOT, 'static'),
 ];
 
 for (const target of targets) {

@@ -14,7 +14,7 @@ const config = {
 			base: '/svelte'
 		},
 		alias: {
-			'$shared': '../shared'
+			'$shared': './shared'
 		}
 	}
 };

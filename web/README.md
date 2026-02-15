@@ -50,7 +50,6 @@ This is the web port of the [Android app](../), built with SvelteKit.
 ## Build & Run
 
 ```bash
-cd svelte
 npm install          # Install dependencies
 npm run dev          # Dev server at localhost:5173
 npm run build        # Production build to build/ (includes CSS inlining)
@@ -102,15 +101,16 @@ web/
 │   ├── fonts.ts              # 22 FontPairing definitions + Google Fonts URLs
 │   └── share.ts              # html2canvas capture + Web Share API / download fallback
 │
-├── svelte/                   # SvelteKit app
-│   ├── src/
-│   │   ├── lib/              # Svelte-specific code (stores, i18n setup, components)
-│   │   ├── routes/           # +page.svelte, +layout.svelte
-│   │   ├── service-worker.ts
-│   │   └── app.html
-│   ├── scripts/              # Post-build CSS inlining
-│   ├── static/               # PWA manifest, icons, background
-│   └── svelte.config.js      # base: '/svelte', $shared alias
+├── src/                      # SvelteKit app source
+│   ├── lib/                  # Svelte-specific code (stores, i18n setup, components)
+│   ├── routes/               # +page.svelte, +layout.svelte
+│   ├── service-worker.ts
+│   └── app.html
+├── static/                   # PWA manifest, icons, background
+├── scripts/                  # Build scripts (copy-shared-assets, inline-assets)
+├── svelte.config.js          # base: '/svelte', $shared alias
+├── vite.config.ts            # Vite config (single-chunk bundling)
+└── package.json              # Dependencies + build scripts
 ```
 
 ## Internationalization
