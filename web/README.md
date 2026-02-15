@@ -73,7 +73,7 @@ To use a custom port, create a `.env` file or pass it inline:
 PORT=8080 docker compose up -d --build
 ```
 
-The container (`maripanaTokana.web`) exposes port 80, mapped to host port `$PORT` (default 3080). The app is available at `/svelte`, and `/` redirects to `/svelte/`.
+The container (`maripanaTokana.web`) exposes port 80, mapped to host port `$PORT` (default 3080). The app is served at `/`.
 
 ```
 Dockerfile          # Multi-stage: node build → caddy serve
@@ -107,7 +107,7 @@ web/
 │   └── app.html
 ├── static/                   # PWA manifest, icons, background
 ├── scripts/                  # Post-build CSS inlining
-├── svelte.config.js          # base: '/svelte'
+├── svelte.config.js          # SvelteKit config (static adapter)
 ├── vite.config.ts            # Vite config (single-chunk bundling)
 └── package.json              # Dependencies + build scripts
 ```

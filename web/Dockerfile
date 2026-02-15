@@ -19,5 +19,5 @@ RUN npm run build
 # Stage 2: Serve
 FROM caddy:alpine
 COPY web/Caddyfile /etc/caddy/Caddyfile
-COPY --from=build /app/build /srv/svelte
+COPY --from=build /app/build /srv/app
 EXPOSE 80

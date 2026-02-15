@@ -113,7 +113,7 @@ web/
 ├── static/                               # Files copied as-is to build output
 ├── scripts/
 │   └── inline-assets.js                  # Post-build: inlines CSS into HTML
-├── svelte.config.js                      # SvelteKit config (static adapter, base: /svelte)
+├── svelte.config.js                      # SvelteKit config (static adapter)
 ├── vite.config.ts                        # Vite config (single-chunk bundling)
 ├── package.json                          # Dependencies + build scripts
 ├── tsconfig.json
@@ -660,7 +660,7 @@ RUN npm run build
 # Stage 2: Serve
 FROM caddy:alpine
 COPY Caddyfile /etc/caddy/Caddyfile
-COPY --from=build /app/build /srv/svelte
+COPY --from=build /app/build /srv/app
 EXPOSE 80
 ```
 
@@ -670,9 +670,9 @@ The Caddyfile implements path-based routing with optimization:
 
 **Compression**: Gzip enabled for all text assets (JS, CSS, fonts)
 
-**Routing** (using `handle_path` for automatic prefix stripping):
-- `/` → redirects to `/svelte/`
-- `/svelte/*` → Svelte app (base path `/svelte/`, SPA fallback)
+**Routing**:
+- `/` → Svelte app (SPA fallback)
+- `/svelte` → 301 redirect to `/` (backwards compatibility)
 
 **Caching**:
 - **Versioned assets** (regex: `.*\.[a-f0-9]{8}\.(js|css|woff2|ttf)$`): `max-age=31536000, immutable` (1 year)

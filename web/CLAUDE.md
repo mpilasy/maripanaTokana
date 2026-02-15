@@ -24,11 +24,12 @@ web/
 │   └── app.html
 ├── static/                 # PWA manifest, icons, background
 ├── scripts/                # Post-build CSS inlining (inline-assets.js)
-├── svelte.config.js        # SvelteKit config (static adapter, base: /svelte)
+├── svelte.config.js        # SvelteKit config (static adapter)
 ├── vite.config.ts          # Vite config (single-chunk bundling)
 ├── Dockerfile              # Multi-stage build
 ├── Caddyfile               # Path-based routing + gzip + caching
 ├── docker-compose.yml      # Container configuration
+├── docs/                   # DESIGN.md, TESTING.md
 ├── package.json            # Dependencies + build scripts
 └── CLAUDE.md               # This file
 ```
@@ -47,10 +48,10 @@ docker compose up -d --build          # Default port 3080
 PORT=8080 docker compose up -d --build  # Custom port via env
 ```
 - **Dockerfile:** Multi-stage — builds in `node:22-alpine`, serves via `caddy:alpine`.
-- **Caddyfile:** Path-based routing with SPA fallback (`/svelte/*`), gzip compression, smart caching headers
+- **Caddyfile:** SPA fallback, gzip compression, smart caching headers
 - **docker-compose.yml:** Container `maripanaTokana.web`, port `${PORT:-3080}:80`, `restart: unless-stopped`
-- App served at `/svelte` (CSS inlined, single JS bundle)
-- `/` → redirects to `/svelte/`
+- App served at `/` (CSS inlined, single JS bundle)
+- `/svelte` → 301 redirect to `/` (backwards compatibility)
 - Designed to sit behind a reverse proxy (e.g., Nginx Proxy Manager) that handles TLS
 
 ### Performance Features

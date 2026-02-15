@@ -215,10 +215,10 @@ docker compose up -d --build
 ```
 
 App is available at:
-- `http://localhost:3080/svelte` — Svelte app (maripána Tokana)
-- `http://localhost:3080/` — Redirects to `/svelte/`
+- `http://localhost:3080/` — maripána Tokana
+- `http://localhost:3080/svelte` — Redirects to `/` (backwards compatibility)
 
-### Svelte App (`/svelte`) — PWA Features:
+### PWA Features:
 - [ ] Service worker registers (check DevTools → Application → Service Workers)
 - [ ] Manifest is detected (check DevTools → Application → Manifest)
 - [ ] Chrome shows "Install app" option

@@ -1,29 +1,26 @@
 :80 {
-	# Enable gzip compression for text assets
 	encode gzip
 
-	# Root redirect -> Svelte app
-	redir / /svelte/ 302
+	# Backwards compatibility: redirect old /svelte path to /
+	redir /svelte / 301
+	redir /svelte/ / 301
 
-	# Bare path -> add trailing slash
-	redir /svelte /svelte/ 301
+	root * /srv/app
+	try_files {path} /index.html
+	file_server
 
-	# Svelte app (/svelte/*)
-	handle_path /svelte/* {
-		root * /srv/svelte
-		try_files {path} /index.html
-		file_server
-		# Versioned assets (with hash in filename) can be cached long-term
-		@versioned path_regexp .*\.[a-f0-9]{8}\.(js|css|woff2|ttf)$
-		header @versioned Cache-Control "public, max-age=31536000, immutable"
-		# HTML and service worker: no cache
-		@html path /index.html
-		header @html Cache-Control "no-cache, public, must-revalidate"
-		@sw path /service-worker.js
-		header @sw Cache-Control "no-cache, no-store, must-revalidate"
-		# Manifest and other assets: moderate caching
-		@manifest path /manifest.json
-		header @manifest Cache-Control "public, max-age=3600"
-		header Cache-Control "public, max-age=3600"
-	}
+	# Versioned assets (with hash in filename) can be cached long-term
+	@versioned path_regexp .*\.[a-f0-9]{8}\.(js|css|woff2|ttf)$
+	header @versioned Cache-Control "public, max-age=31536000, immutable"
+
+	# HTML and service worker: no cache
+	@html path /index.html
+	header @html Cache-Control "no-cache, public, must-revalidate"
+	@sw path /service-worker.js
+	header @sw Cache-Control "no-cache, no-store, must-revalidate"
+
+	# Manifest and other assets: moderate caching
+	@manifest path /manifest.json
+	header @manifest Cache-Control "public, max-age=3600"
+	header Cache-Control "public, max-age=3600"
 }
