@@ -81,8 +81,8 @@ git push origin add-maripanatokana
 ## Troubleshooting
 - Screenshot capture fails? Check device connection: `adb devices`
 - Build fails? Run: `./gradlew clean assembleFdroidRelease`
-- Tests fail? See: `docs/TESTING_GUIDE.md`
-- Submission help? See: `docs/FDROID_SUBMISSION_GUIDE.md`
+- Tests fail? See: `TESTING_GUIDE.md`
+- Submission help? See: `FDROID_SUBMISSION_GUIDE.md`
 
 ## Next: Run These Commands
 ```bash

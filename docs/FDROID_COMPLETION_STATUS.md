@@ -66,10 +66,10 @@ All development work is complete. The app is ready for real screenshot capture a
   - Supports manual trigger
 
 ### Phase 6: Comprehensive Documentation ✅
-- `docs/GETTING_STARTED_FDROID.md` - Quick start guide
-- `docs/FDROID.md` - Architecture and technical details
-- `docs/TESTING_GUIDE.md` - 40+ test cases and procedures
-- `docs/FDROID_SUBMISSION_GUIDE.md` - Step-by-step submission instructions
+- `GETTING_STARTED_FDROID.md` - Quick start guide
+- `FDROID.md` - Architecture and technical details
+- `TESTING_GUIDE.md` - 40+ test cases and procedures
+- `FDROID_SUBMISSION_GUIDE.md` - Step-by-step submission instructions
 - `FDROID_IMPLEMENTATION_SUMMARY.md` - Implementation details
 - `SCREENSHOTS_README.md` - Screenshot capture guide
 - `README.md` - Updated with F-Droid badge
@@ -100,8 +100,8 @@ All development work is complete. The app is ready for real screenshot capture a
 
 ### Phase 8: Submission Preparation ✅
 - **Placeholder Screenshots**: 40 files (8 languages × 5 screenshots)
-- **Submission Checklist**: `FDROID_SUBMISSION_CHECKLIST.md`
-- **Quick Guide**: `FDROID_SUBMIT_NOW.md`
+- **Submission Checklist**: `FDROID_SUBMISSION_CHECKLIST.md` (in docs/)
+- **Quick Guide**: `FDROID_SUBMIT_NOW.md` (in docs/)
 - **Convenience Script**: `submit-to-fdroid.sh`
 
 ---
@@ -151,7 +151,7 @@ bash scripts/test_fdroid_build.sh
 - GitHub repository structure valid
 
 ### Step 3: Submit to F-Droid (30 minutes)
-Follow the guide in `FDROID_SUBMIT_NOW.md`:
+Follow the guide in `FDROID_SUBMIT_NOW.md` (in docs/):
 
 ```bash
 # 1. Fork F-Droid Data repository
@@ -217,22 +217,24 @@ maripanaTokana/
 │   (each with title.txt, descriptions, changelogs, screenshots/)
 │
 ├── docs/
+│   ├── DESIGN.md ✅
 │   ├── FDROID.md ✅
-│   ├── TESTING_GUIDE.md ✅
+│   ├── FDROID_COMPLETION_STATUS.md ✅
+│   ├── FDROID_IMPLEMENTATION_SUMMARY.md ✅
+│   ├── FDROID_SUBMISSION_CHECKLIST.md ✅
 │   ├── FDROID_SUBMISSION_GUIDE.md ✅
-│   └── GETTING_STARTED_FDROID.md ✅
+│   ├── FDROID_SUBMIT_NOW.md ✅
+│   ├── GETTING_STARTED_FDROID.md ✅
+│   ├── SCREENSHOTS_README.md ✅
+│   └── TESTING_GUIDE.md ✅
 │
 ├── scripts/
 │   ├── capture_screenshots.sh ✅
 │   ├── test_fdroid_build.sh ✅
 │   └── prepare_fdroid_submission.sh ✅
 │
-├── FDROID_IMPLEMENTATION_SUMMARY.md ✅
-├── SCREENSHOTS_README.md ✅
-├── FDROID_SUBMISSION_CHECKLIST.md ✅
-├── FDROID_SUBMIT_NOW.md ✅
 ├── submit-to-fdroid.sh ✅
-└── README.md (updated) ✅
+└── README.md ✅
 ```
 
 ---
@@ -375,10 +377,10 @@ When your app is approved by F-Droid:
 
 | Need | File | Details |
 |------|------|---------|
-| Quick Start | `docs/GETTING_STARTED_FDROID.md` | 5-minute overview |
-| Architecture | `docs/FDROID.md` | Technical design details |
-| Testing | `docs/TESTING_GUIDE.md` | 40+ test cases |
-| Submission | `docs/FDROID_SUBMISSION_GUIDE.md` | Step-by-step instructions |
+| Quick Start | `GETTING_STARTED_FDROID.md` | 5-minute overview |
+| Architecture | `FDROID.md` | Technical design details |
+| Testing | `TESTING_GUIDE.md` | 40+ test cases |
+| Submission | `FDROID_SUBMISSION_GUIDE.md` | Step-by-step instructions |
 | Screenshots | `SCREENSHOTS_README.md` | Device setup and capture guide |
 | Checklist | `FDROID_SUBMISSION_CHECKLIST.md` | Pre-submission verification |
 
@@ -393,7 +395,7 @@ All infrastructure, documentation, automation, and metadata are in place.
 **The next steps are:**
 1. Capture real screenshots with `bash scripts/capture_screenshots.sh`
 2. Verify everything works with `bash scripts/test_fdroid_build.sh`
-3. Submit to F-Droid following `FDROID_SUBMIT_NOW.md`
+3. Submit to F-Droid following `FDROID_SUBMIT_NOW.md` (in docs/)
 4. Wait for F-Droid team approval (1-4 weeks)
 5. 🎉 Your app goes live on F-Droid!
 

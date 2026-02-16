@@ -86,7 +86,7 @@ fastlane/metadata/android/
 ### Phase 5: Documentation ✅
 
 **Files Created:**
-- `docs/FDROID.md` - Comprehensive F-Droid deployment guide
+- `FDROID.md` - Comprehensive F-Droid deployment guide
   - Build flavor explanation
   - Location provider architecture details
   - DI configuration overview
@@ -217,7 +217,7 @@ ls -lh app/build/outputs/apk/fdroid/release/app-fdroid-release.apk
 ### Metadata
 - F-Droid YAML: `metadata/orinasa.njarasoa.maripanatokana.yml`
 - Fastlane: `fastlane/metadata/android/` (8 language directories)
-- Documentation: `docs/FDROID.md`
+- Documentation: `FDROID.md`
 
 ## Key Architecture Decisions
 
@@ -260,4 +260,4 @@ ls -lh app/build/outputs/apk/fdroid/release/app-fdroid-release.apk
 
 ## Questions?
 
-See `docs/FDROID.md` for detailed information about any aspect of the F-Droid deployment.
+See `FDROID.md` for detailed information about any aspect of the F-Droid deployment.

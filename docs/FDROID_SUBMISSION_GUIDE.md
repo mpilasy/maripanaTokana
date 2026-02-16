@@ -47,9 +47,9 @@ Before submitting, complete all these items:
 
 - [x] **Documentation**
   - [x] README.md comprehensive
-  - [x] docs/FDROID.md included
-  - [x] FDROID_IMPLEMENTATION_SUMMARY.md included
-  - [x] docs/TESTING_GUIDE.md included
+  - [x] FDROID.md included (in docs/)
+  - [x] FDROID_IMPLEMENTATION_SUMMARY.md included (in docs/)
+  - [x] TESTING_GUIDE.md included (in docs/)
 
 - [x] **.gitignore Proper**
   - [x] Excludes keystore files

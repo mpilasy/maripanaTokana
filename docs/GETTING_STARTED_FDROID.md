@@ -15,7 +15,7 @@ Welcome! This guide will get you from here to F-Droid listing.
 ## What You Need to Do 📋
 
 ### 1. Capture Screenshots (1-2 hours)
-**File:** `SCREENSHOTS_README.md`
+**File:** `SCREENSHOTS_README.md` (in docs/)
 
 ```bash
 # Install the app on device/emulator
@@ -29,7 +29,7 @@ adb install app/build/outputs/apk/fdroid/debug/*.apk
 **Estimated effort:** 1-2 hours to capture all 40 screenshots
 
 ### 2. Test the F-Droid Flavor (1-2 hours)
-**File:** `docs/TESTING_GUIDE.md`
+**File:** `TESTING_GUIDE.md` (in docs/)
 
 Test on device/emulator:
 - Location permission works
@@ -41,7 +41,7 @@ Test on device/emulator:
 **Estimated effort:** 1-2 hours for thorough testing
 
 ### 3. Submit to F-Droid (30 minutes)
-**File:** `docs/FDROID_SUBMISSION_GUIDE.md`
+**File:** `FDROID_SUBMISSION_GUIDE.md` (in docs/)
 
 Step-by-step instructions:
 1. Fork F-Droid Data repository
@@ -56,12 +56,12 @@ Step-by-step instructions:
 | Document | Purpose |
 |----------|---------|
 | `README.md` | Main project README (updated) |
-| `docs/FDROID.md` | Detailed F-Droid architecture guide |
-| `docs/TESTING_GUIDE.md` | Complete testing procedures |
-| `docs/FDROID_SUBMISSION_GUIDE.md` | Step-by-step submission instructions |
+| `FDROID.md` | Detailed F-Droid architecture guide |
+| `TESTING_GUIDE.md` | Complete testing procedures |
+| `FDROID_SUBMISSION_GUIDE.md` | Step-by-step submission instructions |
 | `FDROID_IMPLEMENTATION_SUMMARY.md` | What was implemented |
 | `SCREENSHOTS_README.md` | How to capture screenshots |
-| `docs/GETTING_STARTED_FDROID.md` | This file |
+| `GETTING_STARTED_FDROID.md` | This file |
 
 ## Directory Structure
 
@@ -84,13 +84,17 @@ maripanaTokana/
 │   ├── mg/, ar/, es/, fr/, hi/, ne/, zh-CN/
 │   └── ... (each with title, description, changelog, screenshots/)
 ├── docs/
+│   ├── DESIGN.md                          # Design & implementation guide
 │   ├── FDROID.md                          # Architecture guide
-│   ├── TESTING_GUIDE.md                   # Test procedures
+│   ├── FDROID_COMPLETION_STATUS.md        # Completion status
+│   ├── FDROID_IMPLEMENTATION_SUMMARY.md   # Implementation details
+│   ├── FDROID_SUBMISSION_CHECKLIST.md     # Submission checklist
 │   ├── FDROID_SUBMISSION_GUIDE.md         # Submission steps
-│   └── GETTING_STARTED_FDROID.md          # This file
-├── SCREENSHOTS_README.md                  # Screenshot guide
-├── FDROID_IMPLEMENTATION_SUMMARY.md       # Implementation details
-└── README.md                              # Main README (updated)
+│   ├── FDROID_SUBMIT_NOW.md              # Quick submission guide
+│   ├── GETTING_STARTED_FDROID.md          # This file
+│   ├── SCREENSHOTS_README.md             # Screenshot guide
+│   └── TESTING_GUIDE.md                   # Test procedures
+└── README.md                              # Main README
 ```
 
 ## Build Commands
@@ -195,7 +199,7 @@ diff /tmp/build1.sha /tmp/build2.sha
 ## Next Steps
 
 ### Immediate (This Session)
-1. Review `docs/TESTING_GUIDE.md`
+1. Review `TESTING_GUIDE.md`
 2. Install F-Droid APK on device
 3. Perform quick functionality test
 4. Verify app works without crashes
@@ -207,7 +211,7 @@ diff /tmp/build1.sha /tmp/build2.sha
 4. Complete comprehensive testing
 
 ### Medium Term (This Week)
-1. Review `docs/FDROID_SUBMISSION_GUIDE.md`
+1. Review `FDROID_SUBMISSION_GUIDE.md`
 2. Fork F-Droid Data repository
 3. Create merge request
 4. Respond to any F-Droid team feedback
@@ -238,9 +242,9 @@ diff /tmp/build1.sha /tmp/build2.sha
 ## Resources
 
 ### Documentation
-- **Architecture:** `docs/FDROID.md`
-- **Testing:** `docs/TESTING_GUIDE.md`
-- **Submission:** `docs/FDROID_SUBMISSION_GUIDE.md`
+- **Architecture:** `FDROID.md`
+- **Testing:** `TESTING_GUIDE.md`
+- **Submission:** `FDROID_SUBMISSION_GUIDE.md`
 - **Screenshots:** `SCREENSHOTS_README.md`
 
 ### External References
@@ -267,9 +271,9 @@ When complete, you'll have:
 
 ## Questions?
 
-1. **About F-Droid?** See `docs/FDROID_SUBMISSION_GUIDE.md`
-2. **About testing?** See `docs/TESTING_GUIDE.md`
-3. **About architecture?** See `docs/FDROID.md`
+1. **About F-Droid?** See `FDROID_SUBMISSION_GUIDE.md`
+2. **About testing?** See `TESTING_GUIDE.md`
+3. **About architecture?** See `FDROID.md`
 4. **About screenshots?** See `SCREENSHOTS_README.md`
 5. **About implementation?** See `FDROID_IMPLEMENTATION_SUMMARY.md`
 
