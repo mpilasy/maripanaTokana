@@ -2,6 +2,8 @@
 
 This document explains the architecture, data flow, and key patterns of the **maripana Tokana** weather PWA for developers who may not be familiar with Svelte or SvelteKit. It maps concepts to more widely known frameworks where helpful.
 
+For the Android app's design documentation, see [`docs/DESIGN.md`](../../docs/DESIGN.md).
+
 ---
 
 ## Table of Contents
