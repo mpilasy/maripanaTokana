@@ -1,7 +1,9 @@
 # maripànaTokana - Design & Implementation Guide
 
-**maripànaTokana** (Malagasy for "a single thermometer") is a phone-only Android weather app that shows current conditions, hourly forecasts, and a 10-day outlook. What makes it standout is that it shows both standard units at all times. 
+**maripànaTokana** (Malagasy for "a single thermometer") is a phone-only Android weather app that shows current conditions, hourly forecasts, and a 10-day outlook. What makes it standout is that it shows both standard units at all times.
 It can be surfaced to the homescreen via one of two home screen widget options.
+
+There is also a web version of the app built with SvelteKit. See [`web/docs/DESIGN.md`](../web/docs/DESIGN.md) for its design documentation.
 
 ---
 
