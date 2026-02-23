@@ -21,8 +21,10 @@ accompanistPermissions = "0.36.0"
 kotlinxCoroutines = "1.9.0"
 workRuntime = "2.10.0"
 appcompat = "1.7.0"
+carApp = "1.7.0"
 
 [libraries]
+androidx-car-app = { group = "androidx.car.app", name = "app", version.ref = "carApp" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }

@@ -111,6 +111,9 @@ dependencies {
     // WorkManager
     implementation(libs.androidx.work.runtime.ktx)
 
+    // Android Auto
+    implementation(libs.androidx.car.app)
+
     // Location - standard flavor only
     "standardImplementation"(libs.play.services.location)
     "standardImplementation"(libs.accompanist.permissions)

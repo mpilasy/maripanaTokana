@@ -62,6 +62,9 @@
     <string name="widget_description_large">Weather details with feels-like, humidity, wind and min/max</string>
     <string name="cd_change_font">Change font</string>
     <string name="cd_change_language">Change language</string>
+    <string name="settings_title">Settings</string>
+    <string name="font_settings">Font</string>
+    <string name="language_settings">Language</string>
     <string name="cd_share">Share</string>
     <string name="cd_collapse">Collapse</string>
     <string name="cd_expand">Expand</string>
