@@ -820,6 +820,7 @@ private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Bo
                                 primary = localizeDigits(tempP),
                                 secondary = localizeDigits(tempS),
                                 primarySize = 14f.s(scale),
+                                horizontalAlignment = Alignment.CenterHorizontally,
                                 onClick = onToggleUnits,
                             )
                         }
@@ -831,6 +832,7 @@ private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Bo
                                 primary = localizeDigits("$windP ${directions[dirIndex]}"),
                                 secondary = localizeDigits(windS),
                                 primarySize = 14f.s(scale),
+                                horizontalAlignment = Alignment.CenterHorizontally,
                                 onClick = onToggleUnits,
                             )
                         }
@@ -840,6 +842,7 @@ private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Bo
                                 primary = localizeDigits(rainP),
                                 secondary = localizeDigits(rainS),
                                 primarySize = 14f.s(scale),
+                                horizontalAlignment = Alignment.CenterHorizontally,
                                 onClick = onToggleUnits,
                             )
                         }
@@ -849,6 +852,7 @@ private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Bo
                                 primary = localizeDigits(pressP),
                                 secondary = localizeDigits(pressS),
                                 primarySize = 14f.s(scale),
+                                horizontalAlignment = Alignment.CenterHorizontally,
                                 onClick = onToggleUnits,
                             )
                         }
