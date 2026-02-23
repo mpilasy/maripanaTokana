@@ -957,6 +957,7 @@ private fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Boo
                             onClick = onToggleUnits,
                         )
                     }
+                    else -> {}
                 }
             }
         }
