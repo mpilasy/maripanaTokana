@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { HourlyForecast as HourlyForecastType } from '$lib/domain/weatherData';
 	import { wmoEmoji } from '$lib/api/wmoWeatherCode';
-	import DualUnitText from './DualUnitText.svelte';
 
 	const CARDINAL = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
 	const DISPLAY_MODES = 4; // 0=temp, 1=wind, 2=precip, 3=pressure
@@ -45,15 +44,13 @@
 
 <div class="hourly-row">
 	{#each forecasts as item}
-		{@const [tempP, tempS] = item.temperature.displayDual(metricPrimary)}
 		<div class="hourly-card">
 			<span class="hour">{loc(formatHour(item.time))}</span>
 			<span class="emoji">{wmoEmoji(item.weatherCode, isNightForHour(item.time))}</span>
-			<!-- svelte-ignore a11y_click_events_have_key_events -->
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<span class="value-area" onclick={cycleMode}>
+			<button class="value-area" type="button" onclick={cycleMode}>
 				{#if displayMode === 0}
-					<span class="data-value">{loc(tempP)}</span>
+					{@const [tp] = item.temperature.displayDual(metricPrimary)}
+					<span class="data-value">{loc(tp)}</span>
 				{:else if displayMode === 1}
 					{@const [windP] = item.windSpeed.displayDual(metricPrimary)}
 					<span class="data-value data-small">{loc(windP)}</span>
@@ -65,7 +62,7 @@
 					{@const [pressP] = item.pressure.displayDual(metricPrimary)}
 					<span class="data-value data-small">{loc(pressP)}</span>
 				{/if}
-			</span>
+			</button>
 			<span class="precip-prob">
 				{item.precipProbability > 0 ? loc(`${item.precipProbability}%`) : ''}
 			</span>
@@ -117,10 +114,16 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		min-height: 28px;
+		width: 100%;
+		min-height: 32px;
 		cursor: pointer;
 		user-select: none;
 		-webkit-tap-highlight-color: transparent;
+		background: none;
+		border: none;
+		padding: 0;
+		color: inherit;
+		font: inherit;
 	}
 
 	.data-value {
