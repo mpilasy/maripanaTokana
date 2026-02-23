@@ -51,9 +51,7 @@
 		{@const [pressP, pressS] = item.pressure.displayDual(metricPrimary)}
 		<div class="hourly-card">
 			<span class="hour">{loc(formatHour(item.time))}</span>
-			<!-- svelte-ignore a11y_click_events_have_key_events -->
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<span class="emoji" onclick={cycleMode}>{wmoEmoji(item.weatherCode, isNightForHour(item.time))}</span>
+			<button class="emoji-btn" type="button" onclick={cycleMode}>{wmoEmoji(item.weatherCode, isNightForHour(item.time))}</button>
 			{#if displayMode === 0}
 				<DualUnitText primary={loc(tempP)} secondary={loc(tempS)} onClick={onToggleUnits} />
 			{:else if displayMode === 1}
@@ -105,10 +103,15 @@
 		font-feature-settings: var(--font-features);
 	}
 
-	.emoji {
+	.emoji-btn {
 		font-size: 20px;
 		cursor: pointer;
 		padding: 4px 0;
+		background: none;
+		border: none;
+		color: inherit;
+		user-select: none;
+		-webkit-tap-highlight-color: transparent;
 	}
 
 	.precip-prob {

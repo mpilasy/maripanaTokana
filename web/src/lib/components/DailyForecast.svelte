@@ -45,12 +45,8 @@
 				<span class="day-name">{formatDayName(item.date)}</span>
 				<span class="day-date">{loc(formatDayMonth(item.date))}</span>
 			</div>
-			<!-- svelte-ignore a11y_click_events_have_key_events -->
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<span class="daily-emoji" onclick={cycleMode}>{wmoEmoji(item.weatherCode)}</span>
-			<!-- svelte-ignore a11y_click_events_have_key_events -->
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<span class="daily-weather" onclick={cycleMode}>
+			<button class="daily-emoji" type="button" onclick={cycleMode}>{wmoEmoji(item.weatherCode)}</button>
+			<button class="daily-weather" type="button" onclick={cycleMode}>
 				{#if displayMode === 0}
 					{$_(wmoDescriptionKey(item.weatherCode))}
 				{:else if displayMode === 1}
@@ -62,7 +58,7 @@
 					{@const [precipP] = item.precipitationSum.displayDual(metricPrimary)}
 					{loc(precipP)}
 				{/if}
-			</span>
+			</button>
 			<span class="daily-precip">
 				{item.precipProbability > 0 ? loc(`${item.precipProbability}%`) : ''}
 			</span>
@@ -115,6 +111,11 @@
 		flex-shrink: 0;
 		cursor: pointer;
 		padding: 4px;
+		background: none;
+		border: none;
+		color: inherit;
+		user-select: none;
+		-webkit-tap-highlight-color: transparent;
 	}
 
 	.daily-weather {
@@ -125,10 +126,15 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+		text-align: start;
 		cursor: pointer;
 		user-select: none;
 		-webkit-tap-highlight-color: transparent;
 		font-feature-settings: var(--font-features);
+		background: none;
+		border: none;
+		padding: 0;
+		font: inherit;
 	}
 
 	.daily-precip {
