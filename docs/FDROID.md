@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes how maripànaTokana is configured for F-Droid deployment, including the build process, flavors, and submission requirements.
+This document describes how maripànaTokana is configured for F-Droid deployment, including the build process, flavors, and maintenance requirements. The app is currently listed on F-Droid as [`orinasa.njarasoa.maripanatokana`](https://f-droid.org/packages/orinasa.njarasoa.maripanatokana/).
 
 ## Build Flavors
 

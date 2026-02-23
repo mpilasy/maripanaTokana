@@ -45,7 +45,7 @@
 - `fontFeatureSettings` is not a direct parameter on Material 3 `Text()` in Compose BOM 2024.09.00 — pass it via `style = TextStyle(fontFeatureSettings = ...)` instead.
 - Temperature uses `roundToInt()` for integer display to avoid `-0`. Hero card uses `decimals = 1`.
 
-## Developer Context
+## Agent Directives
 - Owner is an experienced C#, Java, C++ developer.
 - Prefer concise, technically accurate code.
 - Avoid redundant explanations; focus on implementation details and logic.
