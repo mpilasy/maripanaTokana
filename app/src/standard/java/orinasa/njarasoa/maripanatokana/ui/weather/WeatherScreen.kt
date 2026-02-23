@@ -790,36 +790,36 @@ private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Bo
                         style = TextStyle(fontFeatureSettings = fontFeatures),
                     )
                     Spacer(modifier = Modifier.height(4.dp))
-                    // Tappable emoji area that cycles through display modes
+                    // Weather emoji — always visible
+                    Text(
+                        text = run {
+                            val dayIdx = dailySunrise.indexOfLast { it <= item.time }.coerceAtLeast(0)
+                            val sr = dailySunrise.getOrElse(dayIdx) { 0L }
+                            val ss = dailySunset.getOrElse(dayIdx) { 0L }
+                            wmoEmoji(item.weatherCode, isNight = item.time !in sr..ss)
+                        },
+                        fontSize = 20f.s(scale),
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    // Tappable value area that cycles through display modes
                     Column(
                         modifier = Modifier
-                            .clickable { displayMode = (displayMode + 1) % 5 }
+                            .clickable { displayMode = (displayMode + 1) % 4 }
                             .height(32.sd(scale)),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center,
                     ) {
                         when (displayMode) {
-                            0 -> Text(
-                                text = run {
-                                    val dayIdx = dailySunrise.indexOfLast { it <= item.time }.coerceAtLeast(0)
-                                    val sr = dailySunrise.getOrElse(dayIdx) { 0L }
-                                    val ss = dailySunset.getOrElse(dayIdx) { 0L }
-                                    wmoEmoji(item.weatherCode, isNight = item.time !in sr..ss)
-                                },
-                                fontSize = 20f.s(scale),
-                            )
-                            1 -> {
-                                val (tempP, _) = item.temperature.displayDual(metricPrimary)
-                                Text(
-                                    text = localizeDigits(tempP),
-                                    fontSize = 13f.s(scale),
-                                    fontWeight = FontWeight.Bold,
-                                    fontFamily = displayFont,
-                                    color = Color.White,
-                                    style = TextStyle(fontFeatureSettings = fontFeatures),
+                            0 -> {
+                                val (tempP, tempS) = item.temperature.displayDual(metricPrimary)
+                                DualUnitText(
+                                    primary = localizeDigits(tempP),
+                                    secondary = localizeDigits(tempS),
+                                    primarySize = 14f.s(scale),
+                                    onClick = onToggleUnits,
                                 )
                             }
-                            2 -> {
+                            1 -> {
                                 val (windP, _) = item.windSpeed.displayDual(metricPrimary)
                                 val dirIndex = ((item.windDeg % 360 + 360) % 360 * 16 / 360) % 16
                                 Text(
@@ -838,7 +838,7 @@ private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Bo
                                     style = TextStyle(fontFeatureSettings = fontFeatures),
                                 )
                             }
-                            3 -> {
+                            2 -> {
                                 val (precipP, _) = item.precipitation.displayDual(metricPrimary)
                                 Text(
                                     text = localizeDigits(precipP),
@@ -849,7 +849,7 @@ private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Bo
                                     style = TextStyle(fontFeatureSettings = fontFeatures),
                                 )
                             }
-                            4 -> {
+                            3 -> {
                                 val (pressP, _) = item.pressure.displayDual(metricPrimary)
                                 Text(
                                     text = localizeDigits(pressP),
@@ -862,14 +862,6 @@ private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Bo
                             }
                         }
                     }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    val (tempP, tempS) = item.temperature.displayDual(metricPrimary)
-                    DualUnitText(
-                        primary = localizeDigits(tempP),
-                        secondary = localizeDigits(tempS),
-                        primarySize = 14f.s(scale),
-                        onClick = onToggleUnits,
-                    )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = if (item.precipProbability > 0) localizeDigits("%d%%".format(Locale.US, item.precipProbability)) else "",
@@ -923,6 +915,12 @@ private fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Boo
                         color = Color.White.copy(alpha = 0.4f),
                     )
                 }
+                // Weather emoji — always visible
+                Text(
+                    text = wmoEmoji(item.weatherCode),
+                    fontSize = 16f.s(scale),
+                )
+                Spacer(modifier = Modifier.width(4.dp))
                 // Tappable weather area that cycles through display modes
                 Text(
                     text = when (displayMode) {
@@ -940,8 +938,7 @@ private fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Boo
                             val (precipP, _) = item.precipitationSum.displayDual(metricPrimary)
                             localizeDigits(precipP)
                         }
-                        4 -> "\u2014" // em dash — no daily pressure available
-                        else -> "${wmoEmoji(item.weatherCode)} ${stringResource(wmoDescriptionRes(item.weatherCode))}"
+                        else -> stringResource(wmoDescriptionRes(item.weatherCode))
                     },
                     fontSize = 12f.s(scale),
                     fontFamily = if (displayMode == 0) bodyFont else displayFont,
@@ -949,7 +946,7 @@ private fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Boo
                     color = Color.White.copy(alpha = 0.7f),
                     modifier = Modifier
                         .weight(1f)
-                        .clickable { displayMode = (displayMode + 1) % 5 },
+                        .clickable { displayMode = (displayMode + 1) % 4 },
                     style = TextStyle(fontFeatureSettings = fontFeatures),
                 )
                 Text(

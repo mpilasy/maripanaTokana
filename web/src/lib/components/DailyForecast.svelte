@@ -5,7 +5,7 @@
 	import DualUnitText from './DualUnitText.svelte';
 
 	const CARDINAL = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
-	const DISPLAY_MODES = 5; // 0=emoji+desc, 1=hi-lo, 2=wind, 3=precip, 4=pressure
+	const DISPLAY_MODES = 4; // 0=desc, 1=hi-lo, 2=wind, 3=precip
 
 	interface Props {
 		forecasts: DailyForecastType[];
@@ -45,21 +45,20 @@
 				<span class="day-name">{formatDayName(item.date)}</span>
 				<span class="day-date">{loc(formatDayMonth(item.date))}</span>
 			</div>
+			<span class="daily-emoji">{wmoEmoji(item.weatherCode)}</span>
 			<!-- svelte-ignore a11y_click_events_have_key_events -->
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<span class="daily-weather" onclick={cycleMode}>
 				{#if displayMode === 0}
-					{wmoEmoji(item.weatherCode)} {$_(wmoDescriptionKey(item.weatherCode))}
+					{$_(wmoDescriptionKey(item.weatherCode))}
 				{:else if displayMode === 1}
 					{loc(`\u2191${maxP} \u2193${minP}`)}
 				{:else if displayMode === 2}
 					{@const [windP] = item.windSpeedMax.displayDual(metricPrimary)}
 					{loc(windP)} {cardinalDir(item.windDeg)}
-				{:else if displayMode === 3}
+				{:else}
 					{@const [precipP] = item.precipitationSum.displayDual(metricPrimary)}
 					{loc(precipP)}
-				{:else}
-					—
 				{/if}
 			</span>
 			<span class="daily-precip">
@@ -107,6 +106,11 @@
 	.day-date {
 		font-size: 10px;
 		color: rgba(255,255,255,0.4);
+	}
+
+	.daily-emoji {
+		font-size: 16px;
+		flex-shrink: 0;
 	}
 
 	.daily-weather {
