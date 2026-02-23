@@ -31,7 +31,7 @@ web/
 ├── docker-compose.yml      # Container configuration
 ├── docs/                   # DESIGN.md, TESTING.md
 ├── package.json            # Dependencies + build scripts
-└── CLAUDE.md               # This file
+└── agents.md               # This file
 ```
 
 All code lives under `src/lib/` and is imported via SvelteKit's built-in `$lib` alias. The i18n JSON locale files (`src/lib/i18n/locales/`) are symlinked to `shared/i18n/locales/` at the repo root (canonical source shared with Android).
@@ -117,7 +117,7 @@ PORT=8080 docker compose up -d --build  # Custom port via env
 ## Known Issues
 - **CollapsibleSection warning:** `state_referenced_locally` — intentional, captures initial prop value.
 
-## Developer Context
+## Agent Directives
 - Owner is an experienced C#, Java, C++ developer.
 - Prefer concise, technically accurate code.
 - Avoid redundant explanations; focus on implementation details and logic.

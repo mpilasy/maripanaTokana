@@ -504,4 +504,4 @@ Check workflow status: https://github.com/mpilasy/maripanaTokana/actions
    - Create merge request
 5. ✅ Respond to F-Droid team feedback
 
-See [FDROID_SUBMISSION_GUIDE.md](FDROID_SUBMISSION_GUIDE.md) for submission instructions.
+See [FDROID_PUBLISHING.md](FDROID_PUBLISHING.md) for publishing instructions.
