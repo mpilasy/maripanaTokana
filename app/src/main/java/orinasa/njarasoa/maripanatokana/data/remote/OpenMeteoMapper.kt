@@ -36,19 +36,34 @@ fun OpenMeteoResponse.toDomain(locationName: String): WeatherData {
                 temperature = Temperature.fromCelsius(hourly.temperature2m[i]),
                 weatherCode = hourly.weatherCode[i],
                 precipProbability = hourly.precipitationProbability[i],
+                windSpeed = WindSpeed.fromMetersPerSecond(hourly.windSpeed10m.getOrElse(i) { 0.0 }),
+                windDirection = hourly.windDirection10m.getOrElse(i) { 0 },
+                pressure = Pressure.fromHPa(hourly.pressureMsl.getOrElse(i) { 1013.0 }),
+                precipitation = Precipitation.fromMm(hourly.precipitation.getOrElse(i) { 0.0 }),
             )
         }
         .filter { it.time >= nowMillis }
         .take(24)
 
+    val dailyPressureMap = hourly.time.zip(hourly.pressureMsl)
+        .groupBy { it.first.substringBefore('T') }
+        .mapValues { entry -> entry.value.map { it.second }.average() }
+
     val dailyForecast = daily.time.indices.map { i ->
         val epoch = dayFormat.parse(daily.time[i])?.time ?: 0L
+        val dateString = daily.time[i]
+        val avgPressure = dailyPressureMap[dateString] ?: 1013.0
+
         DailyForecast(
             date = epoch,
             tempMax = Temperature.fromCelsius(daily.temperatureMax[i]),
             tempMin = Temperature.fromCelsius(daily.temperatureMin[i]),
             weatherCode = daily.weatherCode[i],
             precipProbability = daily.precipitationProbabilityMax[i],
+            windSpeed = WindSpeed.fromMetersPerSecond(daily.windSpeed10mMax.getOrElse(i) { 0.0 }),
+            windDirection = daily.windDirection10mDominant.getOrElse(i) { 0 },
+            precipitation = Precipitation.fromMm(daily.precipitationSum.getOrElse(i) { 0.0 }),
+            pressure = Pressure.fromHPa(avgPressure),
         )
     }
 

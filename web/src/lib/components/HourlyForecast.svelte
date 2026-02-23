@@ -14,6 +14,15 @@
 
 	let { forecasts, metricPrimary, dailySunrise, dailySunset, loc, onToggleUnits }: Props = $props();
 
+	let displayMode = $state('Temperature'); // Temperature, Wind, Precipitation, Pressure
+
+	function toggleMode() {
+		if (displayMode === 'Temperature') displayMode = 'Wind';
+		else if (displayMode === 'Wind') displayMode = 'Precipitation';
+		else if (displayMode === 'Precipitation') displayMode = 'Pressure';
+		else displayMode = 'Temperature';
+	}
+
 	function formatHour(millis: number): string {
 		const d = new Date(millis);
 		return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
@@ -35,14 +44,46 @@
 		{@const [tempP, tempS] = item.temperature.displayDual(metricPrimary)}
 		<div class="hourly-card">
 			<span class="hour">{loc(formatHour(item.time))}</span>
-			<span class="emoji">{wmoEmoji(item.weatherCode, isNightForHour(item.time))}</span>
-			<DualUnitText
-				primary={loc(tempP)}
-				secondary={loc(tempS)}
-				primarySize="14px"
-				align="center"
-				onClick={onToggleUnits}
-			/>
+			<button class="emoji-btn" onclick={toggleMode}>
+				{wmoEmoji(item.weatherCode, isNightForHour(item.time))}
+			</button>
+			{#if displayMode === 'Temperature'}
+				{@const [tempP, tempS] = item.temperature.displayDual(metricPrimary)}
+				<DualUnitText
+					primary={loc(tempP)}
+					secondary={loc(tempS)}
+					primarySize="14px"
+					align="center"
+					onClick={onToggleUnits}
+				/>
+			{:else if displayMode === 'Wind'}
+				{@const [windP, windS] = item.windSpeed.displayDual(metricPrimary)}
+				<DualUnitText
+					primary={loc(windP)}
+					secondary={loc(windS)}
+					primarySize="14px"
+					align="center"
+					onClick={onToggleUnits}
+				/>
+			{:else if displayMode === 'Precipitation'}
+				{@const [rainP, rainS] = item.precipitation.displayDual(metricPrimary)}
+				<DualUnitText
+					primary={loc(rainP)}
+					secondary={loc(rainS)}
+					primarySize="14px"
+					align="center"
+					onClick={onToggleUnits}
+				/>
+			{:else if displayMode === 'Pressure'}
+				{@const [pressP, pressS] = item.pressure.displayDual(metricPrimary)}
+				<DualUnitText
+					primary={loc(pressP)}
+					secondary={loc(pressS)}
+					primarySize="14px"
+					align="center"
+					onClick={onToggleUnits}
+				/>
+			{/if}
 			<span class="precip-prob">
 				{item.precipProbability > 0 ? loc(`${item.precipProbability}%`) : ''}
 			</span>
@@ -85,8 +126,14 @@
 		font-feature-settings: var(--font-features);
 	}
 
-	.emoji {
+	.emoji-btn {
 		font-size: 20px;
+		background: none;
+		border: none;
+		color: inherit;
+		cursor: pointer;
+		padding: 0;
+		font-family: inherit;
 	}
 
 	.precip-prob {

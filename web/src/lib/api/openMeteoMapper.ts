@@ -32,17 +32,39 @@ export function mapToWeatherData(response: OpenMeteoResponse, locationName: stri
 			temperature: Temperature.fromCelsius(h.temperature_2m[i]),
 			weatherCode: h.weather_code[i],
 			precipProbability: h.precipitation_probability[i],
+			windSpeed: WindSpeed.fromMetersPerSecond(h.wind_speed_10m[i]),
+			windDeg: h.wind_direction_10m[i],
+			pressure: Pressure.fromHPa(h.pressure_msl[i]),
+			precipitation: Precipitation.fromMm(h.precipitation[i]),
 		}))
 		.filter((f) => f.time >= nowMillis)
 		.slice(0, 24);
 
-	const dailyForecast: DailyForecast[] = d.time.map((time, i) => ({
-		date: parseIsoDate(time),
-		tempMax: Temperature.fromCelsius(d.temperature_2m_max[i]),
-		tempMin: Temperature.fromCelsius(d.temperature_2m_min[i]),
-		weatherCode: d.weather_code[i],
-		precipProbability: d.precipitation_probability_max[i],
-	}));
+	const dailyPressure: Record<string, number[]> = {};
+	h.time.forEach((timeStr, i) => {
+		const dateStr = timeStr.split('T')[0];
+		if (!dailyPressure[dateStr]) dailyPressure[dateStr] = [];
+		dailyPressure[dateStr].push(h.pressure_msl[i]);
+	});
+
+	const dailyForecast: DailyForecast[] = d.time.map((time, i) => {
+		const pressures = dailyPressure[time] || [];
+		const avgPressure = pressures.length > 0
+			? pressures.reduce((a, b) => a + b, 0) / pressures.length
+			: 1013;
+
+		return {
+			date: parseIsoDate(time),
+			tempMax: Temperature.fromCelsius(d.temperature_2m_max[i]),
+			tempMin: Temperature.fromCelsius(d.temperature_2m_min[i]),
+			weatherCode: d.weather_code[i],
+			precipProbability: d.precipitation_probability_max[i],
+			windSpeed: WindSpeed.fromMetersPerSecond(d.wind_speed_10m_max[i]),
+			windDeg: d.wind_direction_10m_dominant[i],
+			precipitation: Precipitation.fromMm(d.precipitation_sum[i]),
+			pressure: Pressure.fromHPa(avgPressure),
+		};
+	});
 
 	return {
 		temperature: Temperature.fromCelsius(c.temperature_2m),

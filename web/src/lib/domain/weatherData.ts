@@ -8,6 +8,10 @@ export interface HourlyForecast {
 	temperature: Temperature;
 	weatherCode: number;
 	precipProbability: number;
+	windSpeed: WindSpeed;
+	windDeg: number;
+	pressure: Pressure;
+	precipitation: Precipitation;
 }
 
 export interface DailyForecast {
@@ -16,6 +20,10 @@ export interface DailyForecast {
 	tempMin: Temperature;
 	weatherCode: number;
 	precipProbability: number;
+	windSpeed: WindSpeed;
+	windDeg: number;
+	precipitation: Precipitation;
+	pressure: Pressure;
 }
 
 export interface WeatherData {
