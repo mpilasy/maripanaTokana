@@ -117,7 +117,7 @@
 				align="end"
 				onClick={onToggleUnits}
 			/>
-			<span class="wind-direction">{loc(getCardinalDirection(data.windDeg))}</span>
+			<span class="wind-direction">{data.windDeg != null && !isNaN(data.windDeg) ? loc(getCardinalDirection(data.windDeg)) : ''}</span>
 		</div>
 	</div>
 

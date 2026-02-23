@@ -32,7 +32,8 @@
 	}
 
 	function cardinalDir(deg: number): string {
-		return CARDINAL[((deg % 360 + 360) % 360 * 16 / 360) % 16];
+		if (deg == null || isNaN(deg)) return '';
+		return CARDINAL[Math.round(((deg % 360 + 360) % 360 * 16 / 360) % 16)] ?? '';
 	}
 </script>
 

@@ -132,7 +132,7 @@
 			<!-- Fixed header (location + date captured for share screenshots) -->
 			<div class="header">
 				<div bind:this={headerEl}>
-					<h1 class="location-name">{data.locationName} (beta)</h1>
+					<h1 class="location-name">{data.locationName}</h1>
 					<p class="date">{formatDate(data.timestamp)}</p>
 				</div>
 				<!-- svelte-ignore a11y_click_events_have_key_events -->

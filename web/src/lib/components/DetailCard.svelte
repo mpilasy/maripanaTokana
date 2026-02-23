@@ -19,6 +19,7 @@
 			primary={value}
 			secondary={secondaryValue}
 			primarySize="20px"
+			align="center"
 			onClick={onToggleUnits}
 		/>
 	{:else}
@@ -36,6 +37,8 @@
 		padding: 16px;
 		display: flex;
 		flex-direction: column;
+		align-items: center;
+		text-align: center;
 		gap: 8px;
 		flex: 1;
 	}

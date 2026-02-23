@@ -121,7 +121,7 @@
 				<span class="merged-primary">{loc(windDual[0])}</span>
 				<span class="merged-secondary">{loc(windDual[1])}</span>
 			</span>
-			<span class="wind-subtitle">{loc(`${getCardinalDirection(data.windDeg)} (${data.windDeg}°)`)}</span>
+			<span class="wind-subtitle">{data.windDeg != null && !isNaN(data.windDeg) ? loc(`${getCardinalDirection(data.windDeg)} (${data.windDeg}°)`) : ''}</span>
 		</div>
 		<span class="merged-label wind-label">{$_('detail_wind')}</span>
 		<div class="wind-side wind-side-end">
@@ -362,6 +362,8 @@
 		padding: 16px;
 		display: flex;
 		flex-direction: column;
+		align-items: center;
+		text-align: center;
 		gap: 8px;
 		flex: 1;
 	}
