@@ -53,13 +53,7 @@
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<span class="value-area" onclick={cycleMode}>
 				{#if displayMode === 0}
-					<DualUnitText
-						primary={loc(tempP)}
-						secondary={loc(tempS)}
-						primarySize="14px"
-						align="center"
-						onClick={onToggleUnits}
-					/>
+					<span class="data-value">{loc(tempP)}</span>
 				{:else if displayMode === 1}
 					{@const [windP] = item.windSpeed.displayDual(metricPrimary)}
 					<span class="data-value data-small">{loc(windP)}</span>

@@ -811,12 +811,14 @@ private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Bo
                     ) {
                         when (displayMode) {
                             0 -> {
-                                val (tempP, tempS) = item.temperature.displayDual(metricPrimary)
-                                DualUnitText(
-                                    primary = localizeDigits(tempP),
-                                    secondary = localizeDigits(tempS),
-                                    primarySize = 14f.s(scale),
-                                    onClick = onToggleUnits,
+                                val (tempP, _) = item.temperature.displayDual(metricPrimary)
+                                Text(
+                                    text = localizeDigits(tempP),
+                                    fontSize = 13f.s(scale),
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = displayFont,
+                                    color = Color.White,
+                                    style = TextStyle(fontFeatureSettings = fontFeatures),
                                 )
                             }
                             1 -> {
