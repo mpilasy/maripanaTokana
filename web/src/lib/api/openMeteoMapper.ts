@@ -32,6 +32,10 @@ export function mapToWeatherData(response: OpenMeteoResponse, locationName: stri
 			temperature: Temperature.fromCelsius(h.temperature_2m[i]),
 			weatherCode: h.weather_code[i],
 			precipProbability: h.precipitation_probability[i],
+			windSpeed: WindSpeed.fromMetersPerSecond(h.wind_speed_10m[i]),
+			windDeg: h.wind_direction_10m[i],
+			precipitation: Precipitation.fromMm(h.precipitation[i]),
+			pressure: Pressure.fromHPa(h.pressure_msl[i]),
 		}))
 		.filter((f) => f.time >= nowMillis)
 		.slice(0, 24);
@@ -42,6 +46,9 @@ export function mapToWeatherData(response: OpenMeteoResponse, locationName: stri
 		tempMin: Temperature.fromCelsius(d.temperature_2m_min[i]),
 		weatherCode: d.weather_code[i],
 		precipProbability: d.precipitation_probability_max[i],
+		windSpeedMax: WindSpeed.fromMetersPerSecond(d.wind_speed_10m_max[i]),
+		windDeg: d.wind_direction_10m_dominant[i],
+		precipitationSum: Precipitation.fromMm(d.precipitation_sum[i]),
 	}));
 
 	return {

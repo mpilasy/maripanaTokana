@@ -3,6 +3,9 @@
 	import { wmoEmoji } from '$lib/api/wmoWeatherCode';
 	import DualUnitText from './DualUnitText.svelte';
 
+	const CARDINAL = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+	const DISPLAY_MODES = 5; // 0=emoji, 1=temp, 2=wind, 3=precip, 4=pressure
+
 	interface Props {
 		forecasts: HourlyForecastType[];
 		metricPrimary: boolean;
@@ -13,6 +16,12 @@
 	}
 
 	let { forecasts, metricPrimary, dailySunrise, dailySunset, loc, onToggleUnits }: Props = $props();
+
+	let displayMode = $state(0);
+
+	function cycleMode() {
+		displayMode = (displayMode + 1) % DISPLAY_MODES;
+	}
 
 	function formatHour(millis: number): string {
 		const d = new Date(millis);
@@ -28,6 +37,10 @@
 		const ss = dailySunset[dayIdx] ?? 0;
 		return time < sr || time > ss;
 	}
+
+	function cardinalDir(deg: number): string {
+		return CARDINAL[((deg % 360 + 360) % 360 * 16 / 360) % 16];
+	}
 </script>
 
 <div class="hourly-row">
@@ -35,7 +48,25 @@
 		{@const [tempP, tempS] = item.temperature.displayDual(metricPrimary)}
 		<div class="hourly-card">
 			<span class="hour">{loc(formatHour(item.time))}</span>
-			<span class="emoji">{wmoEmoji(item.weatherCode, isNightForHour(item.time))}</span>
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<span class="emoji-area" onclick={cycleMode}>
+				{#if displayMode === 0}
+					<span class="emoji">{wmoEmoji(item.weatherCode, isNightForHour(item.time))}</span>
+				{:else if displayMode === 1}
+					<span class="data-value">{loc(tempP)}</span>
+				{:else if displayMode === 2}
+					{@const [windP] = item.windSpeed.displayDual(metricPrimary)}
+					<span class="data-value data-small">{loc(windP)}</span>
+					<span class="data-sub">{cardinalDir(item.windDeg)}</span>
+				{:else if displayMode === 3}
+					{@const [precipP] = item.precipitation.displayDual(metricPrimary)}
+					<span class="data-value">{loc(precipP)}</span>
+				{:else}
+					{@const [pressP] = item.pressure.displayDual(metricPrimary)}
+					<span class="data-value data-small">{loc(pressP)}</span>
+				{/if}
+			</span>
 			<DualUnitText
 				primary={loc(tempP)}
 				secondary={loc(tempS)}
@@ -85,8 +116,39 @@
 		font-feature-settings: var(--font-features);
 	}
 
+	.emoji-area {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		min-height: 28px;
+		cursor: pointer;
+		user-select: none;
+		-webkit-tap-highlight-color: transparent;
+	}
+
 	.emoji {
 		font-size: 20px;
+	}
+
+	.data-value {
+		font-family: var(--font-display);
+		font-size: 13px;
+		font-weight: 700;
+		color: white;
+		white-space: nowrap;
+		font-feature-settings: var(--font-features);
+	}
+
+	.data-small {
+		font-size: 11px;
+	}
+
+	.data-sub {
+		font-family: var(--font-display);
+		font-size: 10px;
+		color: rgba(255,255,255,0.55);
+		font-feature-settings: var(--font-features);
 	}
 
 	.precip-prob {

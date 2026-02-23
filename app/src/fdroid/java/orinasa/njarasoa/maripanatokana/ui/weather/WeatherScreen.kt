@@ -713,8 +713,11 @@ private fun WeatherContent(
 private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Boolean, dailySunrise: List<Long>, dailySunset: List<Long>, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
     val hourFormat = SimpleDateFormat("HH:mm", Locale.US)
     val bodyFont = LocalBodyFont.current
+    val displayFont = LocalDisplayFont.current
     val fontFeatures = LocalBodyFontFeatures.current
     val scale = LocalScale.current
+    val directions = stringArrayResource(R.array.cardinal_directions)
+    var displayMode by rememberSaveable { mutableStateOf(0) }
 
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(12.sd(scale)),
@@ -737,15 +740,78 @@ private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Bo
                         style = TextStyle(fontFeatureSettings = fontFeatures),
                     )
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = run {
-                            val dayIdx = dailySunrise.indexOfLast { it <= item.time }.coerceAtLeast(0)
-                            val sr = dailySunrise.getOrElse(dayIdx) { 0L }
-                            val ss = dailySunset.getOrElse(dayIdx) { 0L }
-                            wmoEmoji(item.weatherCode, isNight = item.time !in sr..ss)
-                        },
-                        fontSize = 20f.s(scale),
-                    )
+                    // Tappable emoji area that cycles through display modes
+                    Column(
+                        modifier = Modifier
+                            .clickable { displayMode = (displayMode + 1) % 5 }
+                            .height(32.sd(scale)),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                    ) {
+                        when (displayMode) {
+                            0 -> Text(
+                                text = run {
+                                    val dayIdx = dailySunrise.indexOfLast { it <= item.time }.coerceAtLeast(0)
+                                    val sr = dailySunrise.getOrElse(dayIdx) { 0L }
+                                    val ss = dailySunset.getOrElse(dayIdx) { 0L }
+                                    wmoEmoji(item.weatherCode, isNight = item.time !in sr..ss)
+                                },
+                                fontSize = 20f.s(scale),
+                            )
+                            1 -> {
+                                val (tempP, _) = item.temperature.displayDual(metricPrimary)
+                                Text(
+                                    text = localizeDigits(tempP),
+                                    fontSize = 13f.s(scale),
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = displayFont,
+                                    color = Color.White,
+                                    style = TextStyle(fontFeatureSettings = fontFeatures),
+                                )
+                            }
+                            2 -> {
+                                val (windP, _) = item.windSpeed.displayDual(metricPrimary)
+                                val dirIndex = ((item.windDeg % 360 + 360) % 360 * 16 / 360) % 16
+                                Text(
+                                    text = localizeDigits(windP),
+                                    fontSize = 11f.s(scale),
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = displayFont,
+                                    color = Color.White,
+                                    style = TextStyle(fontFeatureSettings = fontFeatures),
+                                )
+                                Text(
+                                    text = directions[dirIndex],
+                                    fontSize = 10f.s(scale),
+                                    fontFamily = displayFont,
+                                    color = Color.White.copy(alpha = 0.55f),
+                                    style = TextStyle(fontFeatureSettings = fontFeatures),
+                                )
+                            }
+                            3 -> {
+                                val (precipP, _) = item.precipitation.displayDual(metricPrimary)
+                                Text(
+                                    text = localizeDigits(precipP),
+                                    fontSize = 13f.s(scale),
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = displayFont,
+                                    color = Color.White,
+                                    style = TextStyle(fontFeatureSettings = fontFeatures),
+                                )
+                            }
+                            4 -> {
+                                val (pressP, _) = item.pressure.displayDual(metricPrimary)
+                                Text(
+                                    text = localizeDigits(pressP),
+                                    fontSize = 11f.s(scale),
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = displayFont,
+                                    color = Color.White,
+                                    style = TextStyle(fontFeatureSettings = fontFeatures),
+                                )
+                            }
+                        }
+                    }
                     Spacer(modifier = Modifier.height(4.dp))
                     val (tempP, tempS) = item.temperature.displayDual(metricPrimary)
                     DualUnitText(
@@ -774,8 +840,11 @@ private fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Boo
     val dayFormat = SimpleDateFormat("EEEE", appLocale)
     val dayMonthFormat = SimpleDateFormat("d MMM", appLocale)
     val bodyFont = LocalBodyFont.current
+    val displayFont = LocalDisplayFont.current
     val fontFeatures = LocalBodyFontFeatures.current
     val scale = LocalScale.current
+    val directions = stringArrayResource(R.array.cardinal_directions)
+    var displayMode by rememberSaveable { mutableStateOf(0) }
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         forecasts.forEach { item ->
@@ -804,12 +873,34 @@ private fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Boo
                         color = Color.White.copy(alpha = 0.4f),
                     )
                 }
+                // Tappable weather area that cycles through display modes
                 Text(
-                    text = "${wmoEmoji(item.weatherCode)} ${stringResource(wmoDescriptionRes(item.weatherCode))}",
+                    text = when (displayMode) {
+                        1 -> {
+                            val (maxP, _) = item.tempMax.displayDual(metricPrimary)
+                            val (minP, _) = item.tempMin.displayDual(metricPrimary)
+                            localizeDigits("\u2191$maxP \u2193$minP")
+                        }
+                        2 -> {
+                            val (windP, _) = item.windSpeedMax.displayDual(metricPrimary)
+                            val dirIndex = ((item.windDeg % 360 + 360) % 360 * 16 / 360) % 16
+                            localizeDigits("$windP ${directions[dirIndex]}")
+                        }
+                        3 -> {
+                            val (precipP, _) = item.precipitationSum.displayDual(metricPrimary)
+                            localizeDigits(precipP)
+                        }
+                        4 -> "\u2014" // em dash — no daily pressure available
+                        else -> "${wmoEmoji(item.weatherCode)} ${stringResource(wmoDescriptionRes(item.weatherCode))}"
+                    },
                     fontSize = 12f.s(scale),
-                    fontFamily = bodyFont,
+                    fontFamily = if (displayMode == 0) bodyFont else displayFont,
+                    fontWeight = if (displayMode != 0) FontWeight.Bold else FontWeight.Normal,
                     color = Color.White.copy(alpha = 0.7f),
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { displayMode = (displayMode + 1) % 5 },
+                    style = TextStyle(fontFeatureSettings = fontFeatures),
                 )
                 Text(
                     text = if (item.precipProbability > 0) localizeDigits("%d%%".format(Locale.US, item.precipProbability)) else "",

@@ -4,6 +4,9 @@
 	import { wmoEmoji, wmoDescriptionKey } from '$lib/api/wmoWeatherCode';
 	import DualUnitText from './DualUnitText.svelte';
 
+	const CARDINAL = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+	const DISPLAY_MODES = 5; // 0=emoji+desc, 1=hi-lo, 2=wind, 3=precip, 4=pressure
+
 	interface Props {
 		forecasts: DailyForecastType[];
 		metricPrimary: boolean;
@@ -14,12 +17,22 @@
 
 	let { forecasts, metricPrimary, localeTag, loc, onToggleUnits }: Props = $props();
 
+	let displayMode = $state(0);
+
+	function cycleMode() {
+		displayMode = (displayMode + 1) % DISPLAY_MODES;
+	}
+
 	function formatDayName(millis: number): string {
 		return new Intl.DateTimeFormat(localeTag, { weekday: 'long' }).format(new Date(millis));
 	}
 
 	function formatDayMonth(millis: number): string {
 		return new Intl.DateTimeFormat(localeTag, { day: 'numeric', month: 'short' }).format(new Date(millis));
+	}
+
+	function cardinalDir(deg: number): string {
+		return CARDINAL[((deg % 360 + 360) % 360 * 16 / 360) % 16];
 	}
 </script>
 
@@ -32,8 +45,22 @@
 				<span class="day-name">{formatDayName(item.date)}</span>
 				<span class="day-date">{loc(formatDayMonth(item.date))}</span>
 			</div>
-			<span class="daily-weather">
-				{wmoEmoji(item.weatherCode)} {$_(wmoDescriptionKey(item.weatherCode))}
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<span class="daily-weather" onclick={cycleMode}>
+				{#if displayMode === 0}
+					{wmoEmoji(item.weatherCode)} {$_(wmoDescriptionKey(item.weatherCode))}
+				{:else if displayMode === 1}
+					{loc(`\u2191${maxP} \u2193${minP}`)}
+				{:else if displayMode === 2}
+					{@const [windP] = item.windSpeedMax.displayDual(metricPrimary)}
+					{loc(windP)} {cardinalDir(item.windDeg)}
+				{:else if displayMode === 3}
+					{@const [precipP] = item.precipitationSum.displayDual(metricPrimary)}
+					{loc(precipP)}
+				{:else}
+					—
+				{/if}
 			</span>
 			<span class="daily-precip">
 				{item.precipProbability > 0 ? loc(`${item.precipProbability}%`) : ''}
@@ -90,6 +117,10 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+		cursor: pointer;
+		user-select: none;
+		-webkit-tap-highlight-color: transparent;
+		font-feature-settings: var(--font-features);
 	}
 
 	.daily-precip {
