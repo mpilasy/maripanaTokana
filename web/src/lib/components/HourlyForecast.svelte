@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { HourlyForecast as HourlyForecastType } from '$lib/domain/weatherData';
 	import { wmoEmoji } from '$lib/api/wmoWeatherCode';
+	import DualUnitText from './DualUnitText.svelte';
 
 	const CARDINAL = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
 	const DISPLAY_MODES = 4; // 0=temp, 1=wind, 2=precip, 3=pressure
@@ -44,25 +45,24 @@
 
 <div class="hourly-row">
 	{#each forecasts as item}
+		{@const [tempP, tempS] = item.temperature.displayDual(metricPrimary)}
+		{@const [windP, windS] = item.windSpeed.displayDual(metricPrimary)}
+		{@const [precipP, precipS] = item.precipitation.displayDual(metricPrimary)}
+		{@const [pressP, pressS] = item.pressure.displayDual(metricPrimary)}
 		<div class="hourly-card">
 			<span class="hour">{loc(formatHour(item.time))}</span>
-			<span class="emoji">{wmoEmoji(item.weatherCode, isNightForHour(item.time))}</span>
-			<button class="value-area" type="button" onclick={cycleMode}>
-				{#if displayMode === 0}
-					{@const [tp] = item.temperature.displayDual(metricPrimary)}
-					<span class="data-value">{loc(tp)}</span>
-				{:else if displayMode === 1}
-					{@const [windP] = item.windSpeed.displayDual(metricPrimary)}
-					<span class="data-value data-small">{loc(windP)}</span>
-					<span class="data-sub">{cardinalDir(item.windDeg)}</span>
-				{:else if displayMode === 2}
-					{@const [precipP] = item.precipitation.displayDual(metricPrimary)}
-					<span class="data-value">{loc(precipP)}</span>
-				{:else}
-					{@const [pressP] = item.pressure.displayDual(metricPrimary)}
-					<span class="data-value data-small">{loc(pressP)}</span>
-				{/if}
-			</button>
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<span class="emoji" onclick={cycleMode}>{wmoEmoji(item.weatherCode, isNightForHour(item.time))}</span>
+			{#if displayMode === 0}
+				<DualUnitText primary={loc(tempP)} secondary={loc(tempS)} onClick={onToggleUnits} />
+			{:else if displayMode === 1}
+				<DualUnitText primary={loc(`${windP} ${cardinalDir(item.windDeg)}`)} secondary={loc(`${windS} ${cardinalDir(item.windDeg)}`)} onClick={onToggleUnits} />
+			{:else if displayMode === 2}
+				<DualUnitText primary={loc(precipP)} secondary={loc(precipS)} onClick={onToggleUnits} />
+			{:else}
+				<DualUnitText primary={loc(pressP)} secondary={loc(pressS)} onClick={onToggleUnits} />
+			{/if}
 			<span class="precip-prob">
 				{item.precipProbability > 0 ? loc(`${item.precipProbability}%`) : ''}
 			</span>
@@ -107,43 +107,8 @@
 
 	.emoji {
 		font-size: 20px;
-	}
-
-	.value-area {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		width: 100%;
-		min-height: 32px;
 		cursor: pointer;
-		user-select: none;
-		-webkit-tap-highlight-color: transparent;
-		background: none;
-		border: none;
-		padding: 0;
-		color: inherit;
-		font: inherit;
-	}
-
-	.data-value {
-		font-family: var(--font-display);
-		font-size: 13px;
-		font-weight: 700;
-		color: white;
-		white-space: nowrap;
-		font-feature-settings: var(--font-features);
-	}
-
-	.data-small {
-		font-size: 11px;
-	}
-
-	.data-sub {
-		font-family: var(--font-display);
-		font-size: 10px;
-		color: rgba(255,255,255,0.55);
-		font-feature-settings: var(--font-features);
+		padding: 4px 0;
 	}
 
 	.precip-prob {
