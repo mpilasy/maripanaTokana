@@ -45,15 +45,8 @@ fun OpenMeteoResponse.toDomain(locationName: String): WeatherData {
         .filter { it.time >= nowMillis }
         .take(24)
 
-    val dailyPressureMap = hourly.time.zip(hourly.pressureMsl)
-        .groupBy { it.first.substringBefore('T') }
-        .mapValues { entry -> entry.value.map { it.second }.average() }
-
     val dailyForecast = daily.time.indices.map { i ->
         val epoch = dayFormat.parse(daily.time[i])?.time ?: 0L
-        val dateString = daily.time[i]
-        val avgPressure = dailyPressureMap[dateString] ?: 1013.0
-
         DailyForecast(
             date = epoch,
             tempMax = Temperature.fromCelsius(daily.temperatureMax[i]),
@@ -63,7 +56,6 @@ fun OpenMeteoResponse.toDomain(locationName: String): WeatherData {
             windSpeed = WindSpeed.fromMetersPerSecond(daily.windSpeed10mMax.getOrElse(i) { 0.0 }),
             windDirection = daily.windDirection10mDominant.getOrElse(i) { 0 },
             precipitation = Precipitation.fromMm(daily.precipitationSum.getOrElse(i) { 0.0 }),
-            pressure = Pressure.fromHPa(avgPressure),
         )
     }
 

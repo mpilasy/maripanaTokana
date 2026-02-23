@@ -14,12 +14,11 @@
 
 	let { forecasts, metricPrimary, localeTag, loc, onToggleUnits }: Props = $props();
 
-	let displayMode = $state('Temperature'); // Temperature, Wind, Precipitation, Pressure
+	let displayMode = $state('Temperature'); // Temperature, Wind, Precipitation
 
 	function toggleMode() {
 		if (displayMode === 'Temperature') displayMode = 'Wind';
 		else if (displayMode === 'Wind') displayMode = 'Precipitation';
-		else if (displayMode === 'Precipitation') displayMode = 'Pressure';
 		else displayMode = 'Temperature';
 	}
 
@@ -70,14 +69,6 @@
 				<DualUnitText
 					primary={loc(rainP)}
 					secondary={loc(rainS)}
-					primarySize="13px"
-					onClick={onToggleUnits}
-				/>
-			{:else if displayMode === 'Pressure'}
-				{@const [pressP, pressS] = item.pressure.displayDual(metricPrimary)}
-				<DualUnitText
-					primary={loc(pressP)}
-					secondary={loc(pressS)}
 					primarySize="13px"
 					onClick={onToggleUnits}
 				/>

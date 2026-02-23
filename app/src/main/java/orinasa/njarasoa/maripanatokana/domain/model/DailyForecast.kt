@@ -9,5 +9,4 @@ data class DailyForecast(
     val windSpeed: WindSpeed,
     val windDirection: Int,
     val precipitation: Precipitation,
-    val pressure: Pressure,
 )

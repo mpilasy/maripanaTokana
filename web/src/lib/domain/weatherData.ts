@@ -23,7 +23,6 @@ export interface DailyForecast {
 	windSpeed: WindSpeed;
 	windDeg: number;
 	precipitation: Precipitation;
-	pressure: Pressure;
 }
 
 export interface WeatherData {

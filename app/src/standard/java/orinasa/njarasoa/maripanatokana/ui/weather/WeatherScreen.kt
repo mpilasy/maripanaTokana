@@ -825,8 +825,10 @@ private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Bo
                         }
                         ForecastDisplayMode.Wind -> {
                             val (windP, windS) = item.windSpeed.displayDual(metricPrimary)
+                            val directions = stringArrayResource(R.array.cardinal_directions)
+                            val dirIndex = (((item.windDirection % 360 + 360) / 22.5 + 0.5).toInt() % 16)
                             DualUnitText(
-                                primary = localizeDigits(windP),
+                                primary = localizeDigits("$windP ${directions[dirIndex]}"),
                                 secondary = localizeDigits(windS),
                                 primarySize = 14f.s(scale),
                                 onClick = onToggleUnits,
@@ -911,8 +913,8 @@ private fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Boo
                         displayMode = when(displayMode) {
                             ForecastDisplayMode.Temperature -> ForecastDisplayMode.Wind
                             ForecastDisplayMode.Wind -> ForecastDisplayMode.Precipitation
-                            ForecastDisplayMode.Precipitation -> ForecastDisplayMode.Pressure
-                            ForecastDisplayMode.Pressure -> ForecastDisplayMode.Temperature
+                            ForecastDisplayMode.Precipitation -> ForecastDisplayMode.Temperature
+                            else -> ForecastDisplayMode.Temperature
                         }
                     },
                 )
@@ -951,15 +953,6 @@ private fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Boo
                         DualUnitText(
                             primary = localizeDigits(rainP),
                             secondary = localizeDigits(rainS),
-                            primarySize = 13f.s(scale),
-                            onClick = onToggleUnits,
-                        )
-                    }
-                    ForecastDisplayMode.Pressure -> {
-                        val (pressP, pressS) = item.pressure.displayDual(metricPrimary)
-                        DualUnitText(
-                            primary = localizeDigits(pressP),
-                            secondary = localizeDigits(pressS),
                             primarySize = 13f.s(scale),
                             onClick = onToggleUnits,
                         )

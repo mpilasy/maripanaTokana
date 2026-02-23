@@ -40,19 +40,7 @@ export function mapToWeatherData(response: OpenMeteoResponse, locationName: stri
 		.filter((f) => f.time >= nowMillis)
 		.slice(0, 24);
 
-	const dailyPressure: Record<string, number[]> = {};
-	h.time.forEach((timeStr, i) => {
-		const dateStr = timeStr.split('T')[0];
-		if (!dailyPressure[dateStr]) dailyPressure[dateStr] = [];
-		dailyPressure[dateStr].push(h.pressure_msl[i]);
-	});
-
 	const dailyForecast: DailyForecast[] = d.time.map((time, i) => {
-		const pressures = dailyPressure[time] || [];
-		const avgPressure = pressures.length > 0
-			? pressures.reduce((a, b) => a + b, 0) / pressures.length
-			: 1013;
-
 		return {
 			date: parseIsoDate(time),
 			tempMax: Temperature.fromCelsius(d.temperature_2m_max[i]),
@@ -62,7 +50,6 @@ export function mapToWeatherData(response: OpenMeteoResponse, locationName: stri
 			windSpeed: WindSpeed.fromMetersPerSecond(d.wind_speed_10m_max[i]),
 			windDeg: d.wind_direction_10m_dominant[i],
 			precipitation: Precipitation.fromMm(d.precipitation_sum[i]),
-			pressure: Pressure.fromHPa(avgPressure),
 		};
 	});
 

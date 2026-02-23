@@ -1,0 +1,46 @@
+
+> Configure project :app
+WARNING: The option setting 'android.disallowKotlinSourceSets=false' is experimental.
+The current default is 'true'.
+
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preFdroidDebugBuild UP-TO-DATE
+> Task :app:generateFdroidDebugBuildConfig UP-TO-DATE
+> Task :app:generateFdroidDebugResources UP-TO-DATE
+> Task :app:packageFdroidDebugResources UP-TO-DATE
+> Task :app:processFdroidDebugNavigationResources UP-TO-DATE
+> Task :app:parseFdroidDebugLocalResources UP-TO-DATE
+> Task :app:generateFdroidDebugRFile UP-TO-DATE
+> Task :app:javaPreCompileFdroidDebug UP-TO-DATE
+> Task :app:checkFdroidDebugAarMetadata UP-TO-DATE
+> Task :app:compileFdroidDebugNavigationResources UP-TO-DATE
+> Task :app:mapFdroidDebugSourceSetPaths UP-TO-DATE
+> Task :app:mergeFdroidDebugResources UP-TO-DATE
+> Task :app:createFdroidDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksFdroidDebug UP-TO-DATE
+> Task :app:processFdroidDebugMainManifest UP-TO-DATE
+> Task :app:processFdroidDebugManifest UP-TO-DATE
+> Task :app:processFdroidDebugManifestForPackage UP-TO-DATE
+> Task :app:processFdroidDebugResources UP-TO-DATE
+> Task :app:preFdroidDebugUnitTestBuild UP-TO-DATE
+> Task :app:javaPreCompileFdroidDebugUnitTest UP-TO-DATE
+> Task :app:kspFdroidDebugKotlin
+
+> Task :app:compileFdroidDebugKotlin FAILED
+e: file:///app/app/src/fdroid/java/orinasa/njarasoa/maripanatokana/ui/weather/WeatherScreen.kt:879:17 'when' expression must be exhaustive. Add the 'Pressure' branch or an 'else' branch.
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileFdroidDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 20s
+20 actionable tasks: 2 executed, 18 up-to-date

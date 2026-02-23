@@ -28,6 +28,8 @@
 		return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 	}
 
+	const DIRECTIONS = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+
 	function isNightForHour(time: number): boolean {
 		let dayIdx = 0;
 		for (let i = dailySunrise.length - 1; i >= 0; i--) {
@@ -58,8 +60,9 @@
 				/>
 			{:else if displayMode === 'Wind'}
 				{@const [windP, windS] = item.windSpeed.displayDual(metricPrimary)}
+				{@const dir = DIRECTIONS[Math.round(((item.windDeg % 360) / 22.5)) % 16]}
 				<DualUnitText
-					primary={loc(windP)}
+					primary={loc(`${windP} ${dir}`)}
 					secondary={loc(windS)}
 					primarySize="14px"
 					align="center"
