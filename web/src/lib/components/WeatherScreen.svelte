@@ -166,7 +166,7 @@
 				{/if}
 
 				{#if data.dailyForecast.length > 0}
-					<CollapsibleSection title={$_('section_this_week')} onShare={handleShare}>
+					<CollapsibleSection title={$_('section_this_week')} expanded={true} onShare={handleShare}>
 						<DailyForecast
 							forecasts={data.dailyForecast}
 							metricPrimary={$metricPrimary}

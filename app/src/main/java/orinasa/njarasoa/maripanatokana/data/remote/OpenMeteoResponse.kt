@@ -39,6 +39,9 @@ data class OpenMeteoDaily(
     @SerialName("precipitation_probability_max") val precipitationProbabilityMax: List<Int>,
     @SerialName("sunrise") val sunrise: List<String>,
     @SerialName("sunset") val sunset: List<String>,
+    @SerialName("wind_speed_10m_max") val windSpeed10mMax: List<Double>,
+    @SerialName("wind_direction_10m_dominant") val windDirection10mDominant: List<Int>,
+    @SerialName("precipitation_sum") val precipitationSum: List<Double>,
 )
 
 @Serializable
@@ -47,4 +50,8 @@ data class OpenMeteoHourly(
     @SerialName("temperature_2m") val temperature2m: List<Double>,
     @SerialName("weather_code") val weatherCode: List<Int>,
     @SerialName("precipitation_probability") val precipitationProbability: List<Int>,
+    @SerialName("wind_speed_10m") val windSpeed10m: List<Double>,
+    @SerialName("wind_direction_10m") val windDirection10m: List<Int>,
+    @SerialName("pressure_msl") val pressureMsl: List<Double>,
+    @SerialName("precipitation") val precipitation: List<Double>,
 )

@@ -6,4 +6,7 @@ data class DailyForecast(
     val tempMin: Temperature,
     val weatherCode: Int,
     val precipProbability: Int,
+    val windSpeed: WindSpeed,
+    val windDirection: Int,
+    val precipitation: Precipitation,
 )

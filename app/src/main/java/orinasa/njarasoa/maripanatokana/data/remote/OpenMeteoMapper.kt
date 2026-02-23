@@ -36,6 +36,10 @@ fun OpenMeteoResponse.toDomain(locationName: String): WeatherData {
                 temperature = Temperature.fromCelsius(hourly.temperature2m[i]),
                 weatherCode = hourly.weatherCode[i],
                 precipProbability = hourly.precipitationProbability[i],
+                windSpeed = WindSpeed.fromMetersPerSecond(hourly.windSpeed10m.getOrElse(i) { 0.0 }),
+                windDirection = hourly.windDirection10m.getOrElse(i) { 0 },
+                pressure = Pressure.fromHPa(hourly.pressureMsl.getOrElse(i) { 1013.0 }),
+                precipitation = Precipitation.fromMm(hourly.precipitation.getOrElse(i) { 0.0 }),
             )
         }
         .filter { it.time >= nowMillis }
@@ -49,6 +53,9 @@ fun OpenMeteoResponse.toDomain(locationName: String): WeatherData {
             tempMin = Temperature.fromCelsius(daily.temperatureMin[i]),
             weatherCode = daily.weatherCode[i],
             precipProbability = daily.precipitationProbabilityMax[i],
+            windSpeed = WindSpeed.fromMetersPerSecond(daily.windSpeed10mMax.getOrElse(i) { 0.0 }),
+            windDirection = daily.windDirection10mDominant.getOrElse(i) { 0 },
+            precipitation = Precipitation.fromMm(daily.precipitationSum.getOrElse(i) { 0.0 }),
         )
     }
 

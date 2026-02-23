@@ -107,6 +107,13 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+private enum class ForecastDisplayMode {
+    Temperature,
+    Wind,
+    Precipitation,
+    Pressure
+}
+
 private val LocalScale = staticCompositionLocalOf { 1f }
 private fun Float.s(scale: Float) = (this * scale).sp
 private fun Int.sd(scale: Float) = (this * scale).dp
@@ -715,6 +722,7 @@ private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Bo
     val bodyFont = LocalBodyFont.current
     val fontFeatures = LocalBodyFontFeatures.current
     val scale = LocalScale.current
+    var displayMode by remember { mutableStateOf(ForecastDisplayMode.Temperature) }
 
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(12.sd(scale)),
@@ -745,15 +753,60 @@ private fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Bo
                             wmoEmoji(item.weatherCode, isNight = item.time !in sr..ss)
                         },
                         fontSize = 20f.s(scale),
+                        modifier = Modifier.clickable {
+                            displayMode = when(displayMode) {
+                                ForecastDisplayMode.Temperature -> ForecastDisplayMode.Wind
+                                ForecastDisplayMode.Wind -> ForecastDisplayMode.Precipitation
+                                ForecastDisplayMode.Precipitation -> ForecastDisplayMode.Pressure
+                                ForecastDisplayMode.Pressure -> ForecastDisplayMode.Temperature
+                            }
+                        }
                     )
                     Spacer(modifier = Modifier.height(4.dp))
-                    val (tempP, tempS) = item.temperature.displayDual(metricPrimary)
-                    DualUnitText(
-                        primary = localizeDigits(tempP),
-                        secondary = localizeDigits(tempS),
-                        primarySize = 14f.s(scale),
-                        onClick = onToggleUnits,
-                    )
+                    when(displayMode) {
+                        ForecastDisplayMode.Temperature -> {
+                            val (tempP, tempS) = item.temperature.displayDual(metricPrimary)
+                            DualUnitText(
+                                primary = localizeDigits(tempP),
+                                secondary = localizeDigits(tempS),
+                                primarySize = 14f.s(scale),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                onClick = onToggleUnits,
+                            )
+                        }
+                        ForecastDisplayMode.Wind -> {
+                            val (windP, windS) = item.windSpeed.displayDual(metricPrimary)
+                            val directions = stringArrayResource(R.array.cardinal_directions)
+                            val dirIndex = (((item.windDirection % 360 + 360) / 22.5 + 0.5).toInt() % 16)
+                            DualUnitText(
+                                primary = localizeDigits("$windP ${directions[dirIndex]}"),
+                                secondary = localizeDigits(windS),
+                                primarySize = 14f.s(scale),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                onClick = onToggleUnits,
+                            )
+                        }
+                        ForecastDisplayMode.Precipitation -> {
+                            val (rainP, rainS) = item.precipitation.displayDual(metricPrimary)
+                            DualUnitText(
+                                primary = localizeDigits(rainP),
+                                secondary = localizeDigits(rainS),
+                                primarySize = 14f.s(scale),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                onClick = onToggleUnits,
+                            )
+                        }
+                        ForecastDisplayMode.Pressure -> {
+                            val (pressP, pressS) = item.pressure.displayDual(metricPrimary)
+                            DualUnitText(
+                                primary = localizeDigits(pressP),
+                                secondary = localizeDigits(pressS),
+                                primarySize = 14f.s(scale),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                onClick = onToggleUnits,
+                            )
+                        }
+                    }
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = if (item.precipProbability > 0) localizeDigits("%d%%".format(Locale.US, item.precipProbability)) else "",
@@ -776,6 +829,7 @@ private fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Boo
     val bodyFont = LocalBodyFont.current
     val fontFeatures = LocalBodyFontFeatures.current
     val scale = LocalScale.current
+    var displayMode by remember { mutableStateOf(ForecastDisplayMode.Temperature) }
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         forecasts.forEach { item ->
@@ -809,7 +863,14 @@ private fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Boo
                     fontSize = 12f.s(scale),
                     fontFamily = bodyFont,
                     color = Color.White.copy(alpha = 0.7f),
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).clickable {
+                        displayMode = when(displayMode) {
+                            ForecastDisplayMode.Temperature -> ForecastDisplayMode.Wind
+                            ForecastDisplayMode.Wind -> ForecastDisplayMode.Precipitation
+                            ForecastDisplayMode.Precipitation -> ForecastDisplayMode.Temperature
+                            else -> ForecastDisplayMode.Temperature
+                        }
+                    },
                 )
                 Text(
                     text = if (item.precipProbability > 0) localizeDigits("%d%%".format(Locale.US, item.precipProbability)) else "",
@@ -819,14 +880,39 @@ private fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Boo
                     style = TextStyle(fontFeatureSettings = fontFeatures),
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                val (maxP, maxS) = item.tempMax.displayDual(metricPrimary)
-                val (minP, minS) = item.tempMin.displayDual(metricPrimary)
-                DualUnitText(
-                    primary = localizeDigits("\u2191$maxP \u2193$minP"),
-                    secondary = localizeDigits("\u2191$maxS \u2193$minS"),
-                    primarySize = 13f.s(scale),
-                    onClick = onToggleUnits,
-                )
+                when(displayMode) {
+                    ForecastDisplayMode.Temperature -> {
+                        val (maxP, maxS) = item.tempMax.displayDual(metricPrimary)
+                        val (minP, minS) = item.tempMin.displayDual(metricPrimary)
+                        DualUnitText(
+                            primary = localizeDigits("\u2191$maxP \u2193$minP"),
+                            secondary = localizeDigits("\u2191$maxS \u2193$minS"),
+                            primarySize = 13f.s(scale),
+                            onClick = onToggleUnits,
+                        )
+                    }
+                    ForecastDisplayMode.Wind -> {
+                        val (windP, windS) = item.windSpeed.displayDual(metricPrimary)
+                        val directions = stringArrayResource(R.array.cardinal_directions)
+                        val dirIndex = (((item.windDirection % 360 + 360) / 22.5 + 0.5).toInt() % 16)
+                        DualUnitText(
+                            primary = localizeDigits("$windP ${directions[dirIndex]}"),
+                            secondary = localizeDigits(windS),
+                            primarySize = 13f.s(scale),
+                            onClick = onToggleUnits,
+                        )
+                    }
+                    ForecastDisplayMode.Precipitation -> {
+                        val (rainP, rainS) = item.precipitation.displayDual(metricPrimary)
+                        DualUnitText(
+                            primary = localizeDigits(rainP),
+                            secondary = localizeDigits(rainS),
+                            primarySize = 13f.s(scale),
+                            onClick = onToggleUnits,
+                        )
+                    }
+                    else -> {}
+                }
             }
         }
     }

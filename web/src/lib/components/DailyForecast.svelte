@@ -14,6 +14,14 @@
 
 	let { forecasts, metricPrimary, localeTag, loc, onToggleUnits }: Props = $props();
 
+	let displayMode = $state('Temperature'); // Temperature, Wind, Precipitation
+
+	function toggleMode() {
+		if (displayMode === 'Temperature') displayMode = 'Wind';
+		else if (displayMode === 'Wind') displayMode = 'Precipitation';
+		else displayMode = 'Temperature';
+	}
+
 	function formatDayName(millis: number): string {
 		return new Intl.DateTimeFormat(localeTag, { weekday: 'long' }).format(new Date(millis));
 	}
@@ -21,29 +29,50 @@
 	function formatDayMonth(millis: number): string {
 		return new Intl.DateTimeFormat(localeTag, { day: 'numeric', month: 'short' }).format(new Date(millis));
 	}
+
+	const DIRECTIONS = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
 </script>
 
 <div class="daily-list">
 	{#each forecasts as item}
-		{@const [maxP, maxS] = item.tempMax.displayDual(metricPrimary)}
-		{@const [minP, minS] = item.tempMin.displayDual(metricPrimary)}
 		<div class="daily-row">
 			<div class="day-info">
 				<span class="day-name">{formatDayName(item.date)}</span>
 				<span class="day-date">{loc(formatDayMonth(item.date))}</span>
 			</div>
-			<span class="daily-weather">
+			<button class="daily-weather-btn" onclick={toggleMode}>
 				{wmoEmoji(item.weatherCode)} {$_(wmoDescriptionKey(item.weatherCode))}
-			</span>
+			</button>
 			<span class="daily-precip">
 				{item.precipProbability > 0 ? loc(`${item.precipProbability}%`) : ''}
 			</span>
-			<DualUnitText
-				primary={loc(`\u2191${maxP} \u2193${minP}`)}
-				secondary={loc(`\u2191${maxS} \u2193${minS}`)}
-				primarySize="13px"
-				onClick={onToggleUnits}
-			/>
+			{#if displayMode === 'Temperature'}
+				{@const [maxP, maxS] = item.tempMax.displayDual(metricPrimary)}
+				{@const [minP, minS] = item.tempMin.displayDual(metricPrimary)}
+				<DualUnitText
+					primary={loc(`\u2191${maxP} \u2193${minP}`)}
+					secondary={loc(`\u2191${maxS} \u2193${minS}`)}
+					primarySize="13px"
+					onClick={onToggleUnits}
+				/>
+			{:else if displayMode === 'Wind'}
+				{@const [windP, windS] = item.windSpeed.displayDual(metricPrimary)}
+				{@const dir = DIRECTIONS[Math.round(((item.windDeg % 360) / 22.5)) % 16]}
+				<DualUnitText
+					primary={loc(`${windP} ${dir}`)}
+					secondary={loc(windS)}
+					primarySize="13px"
+					onClick={onToggleUnits}
+				/>
+			{:else if displayMode === 'Precipitation'}
+				{@const [rainP, rainS] = item.precipitation.displayDual(metricPrimary)}
+				<DualUnitText
+					primary={loc(rainP)}
+					secondary={loc(rainS)}
+					primarySize="13px"
+					onClick={onToggleUnits}
+				/>
+			{/if}
 		</div>
 	{/each}
 </div>
@@ -82,7 +111,7 @@
 		color: rgba(255,255,255,0.4);
 	}
 
-	.daily-weather {
+	.daily-weather-btn {
 		font-size: 12px;
 		color: rgba(255,255,255,0.7);
 		flex: 1;
@@ -90,6 +119,12 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+		background: none;
+		border: none;
+		cursor: pointer;
+		text-align: left;
+		padding: 0;
+		font-family: inherit;
 	}
 
 	.daily-precip {

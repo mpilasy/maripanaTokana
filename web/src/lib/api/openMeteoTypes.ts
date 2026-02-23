@@ -31,6 +31,9 @@ export interface OpenMeteoDaily {
 	precipitation_probability_max: number[];
 	sunrise: string[];
 	sunset: string[];
+	wind_speed_10m_max: number[];
+	wind_direction_10m_dominant: number[];
+	precipitation_sum: number[];
 }
 
 export interface OpenMeteoHourly {
@@ -38,4 +41,8 @@ export interface OpenMeteoHourly {
 	temperature_2m: number[];
 	weather_code: number[];
 	precipitation_probability: number[];
+	wind_speed_10m: number[];
+	wind_direction_10m: number[];
+	pressure_msl: number[];
+	precipitation: number[];
 }
