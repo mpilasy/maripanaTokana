@@ -9,6 +9,7 @@ import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import orinasa.njarasoa.maripanatokana.BuildConfig
 import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoApiService
 import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit
@@ -28,15 +29,19 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideOkHttpClient(): OkHttpClient {
-        return OkHttpClient.Builder()
-            .addInterceptor(
+        val okHttpClientBuilder = OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+
+        if (BuildConfig.DEBUG) {
+            okHttpClientBuilder.addInterceptor(
                 HttpLoggingInterceptor().apply {
                     level = HttpLoggingInterceptor.Level.BODY
                 }
             )
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .build()
+        }
+
+        return okHttpClientBuilder.build()
     }
 
     @Provides
