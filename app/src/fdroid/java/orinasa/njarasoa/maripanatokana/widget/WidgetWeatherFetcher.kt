@@ -5,6 +5,8 @@ import android.content.Context
 import android.location.Geocoder
 import android.location.LocationManager
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoApiService
@@ -42,12 +44,13 @@ object WidgetWeatherFetcher {
             val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
             val locationName = prefs.getString("location_name", null)
                 ?: try {
-                    @Suppress("DEPRECATION")
-                    Geocoder(context, Locale.getDefault())
-                        .getFromLocation(lat, lon, 1)
-                        ?.firstOrNull()
-                        ?.locality
-                        ?: "%.2f, %.2f".format(Locale.US, lat, lon)
+                    withContext(Dispatchers.IO) {
+                        @Suppress("DEPRECATION")
+                        Geocoder(context, Locale.getDefault())
+                            .getFromLocation(lat, lon, 1)
+                            ?.firstOrNull()
+                            ?.locality
+                    } ?: "%.2f, %.2f".format(Locale.US, lat, lon)
                 } catch (_: Exception) {
                     "%.2f, %.2f".format(Locale.US, lat, lon)
                 }
