@@ -84,9 +84,12 @@ import orinasa.njarasoa.maripanatokana.data.remote.wmoEmoji
 import orinasa.njarasoa.maripanatokana.domain.model.DailyForecast
 import orinasa.njarasoa.maripanatokana.domain.model.HourlyForecast
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
+import orinasa.njarasoa.maripanatokana.ui.theme.CardBlue
+import orinasa.njarasoa.maripanatokana.ui.theme.DarkNavyColorInt
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFont
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFontFeatures
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
+import orinasa.njarasoa.maripanatokana.ui.theme.SkyBlue
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -190,7 +193,7 @@ internal fun WeatherContent(
                             drawLayer(graphicsLayer)
                         },
                     shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF2A1FA5))
+                    colors = CardDefaults.cardColors(containerColor = CardBlue)
                 ) {
                     Column(
                         modifier = Modifier.padding(24.sd(scale))
@@ -552,7 +555,7 @@ internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: B
         items(forecasts) { item ->
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF2A1FA5).copy(alpha = 0.6f)),
+                colors = CardDefaults.cardColors(containerColor = CardBlue.copy(alpha = 0.6f)),
             ) {
                 Column(
                     modifier = Modifier.padding(12.sd(scale)),
@@ -633,7 +636,7 @@ internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: B
                         text = if (item.precipProbability > 0) localizeDigits("%d%%".format(Locale.US, item.precipProbability)) else "",
                         fontSize = 11f.s(scale),
                         fontFamily = bodyFont,
-                        color = Color(0xFF64B5F6),
+                        color = SkyBlue,
                         style = TextStyle(fontFeatureSettings = fontFeatures),
                     )
                 }
@@ -658,7 +661,7 @@ internal fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Bo
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(
-                        Color(0xFF2A1FA5).copy(alpha = 0.3f),
+                        CardBlue.copy(alpha = 0.3f),
                         RoundedCornerShape(12.dp),
                     )
                     .padding(horizontal = 16.sd(scale), vertical = 12.sd(scale)),
@@ -697,7 +700,7 @@ internal fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Bo
                     text = if (item.precipProbability > 0) localizeDigits("%d%%".format(Locale.US, item.precipProbability)) else "",
                     fontSize = 11f.s(scale),
                     fontFamily = bodyFont,
-                    color = Color(0xFF64B5F6),
+                    color = SkyBlue,
                     style = TextStyle(fontFeatureSettings = fontFeatures),
                 )
                 Spacer(modifier = Modifier.width(8.dp))
@@ -753,7 +756,7 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF2A1FA5).copy(alpha = 0.6f))
+            colors = CardDefaults.cardColors(containerColor = CardBlue.copy(alpha = 0.6f))
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(16.sd(scale)),
@@ -825,7 +828,7 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF2A1FA5).copy(alpha = 0.6f))
+            colors = CardDefaults.cardColors(containerColor = CardBlue.copy(alpha = 0.6f))
         ) {
             val (minP, minS) = data.tempMin.displayDual(metricPrimary)
             val (maxP, maxS) = data.tempMax.displayDual(metricPrimary)
@@ -859,7 +862,7 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF2A1FA5).copy(alpha = 0.6f))
+            colors = CardDefaults.cardColors(containerColor = CardBlue.copy(alpha = 0.6f))
         ) {
             val (windP, windS) = data.windSpeed.displayDual(metricPrimary)
             val dirIndex = ((data.windDeg % 360 + 360) % 360 * 16 / 360) % 16
@@ -907,7 +910,7 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF2A1FA5).copy(alpha = 0.6f))
+            colors = CardDefaults.cardColors(containerColor = CardBlue.copy(alpha = 0.6f))
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(16.sd(scale)),
@@ -977,7 +980,7 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
             Card(
                 modifier = Modifier.weight(1f).fillMaxHeight(),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF2A1FA5).copy(alpha = 0.6f))
+                colors = CardDefaults.cardColors(containerColor = CardBlue.copy(alpha = 0.6f))
             ) {
                 Column(modifier = Modifier.padding(16.sd(scale))) {
                     Text(
@@ -1067,7 +1070,7 @@ internal fun DetailCard(
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF2A1FA5).copy(alpha = 0.6f))
+        colors = CardDefaults.cardColors(containerColor = CardBlue.copy(alpha = 0.6f))
     ) {
         Column(
             modifier = Modifier.padding(16.sd(scale))
@@ -1111,7 +1114,7 @@ internal fun combineBitmaps(header: Bitmap, content: Bitmap): Bitmap {
     val height = h.height + padding + c.height + padding * 2
     val result = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(result)
-    canvas.drawColor(android.graphics.Color.parseColor("#0E0B3D"))
+    canvas.drawColor(DarkNavyColorInt)
     canvas.drawBitmap(h, padding.toFloat(), padding.toFloat(), null)
     canvas.drawBitmap(c, padding.toFloat(), (h.height + padding * 2).toFloat(), null)
     return result
