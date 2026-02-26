@@ -3,6 +3,7 @@ package orinasa.njarasoa.maripanatokana.widget
 import android.content.Context
 import android.content.Intent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
@@ -85,7 +86,7 @@ internal fun WidgetError(hasCachedLocation: Boolean = false) {
 @Composable
 private fun WeatherWidgetContent(data: WeatherData, metricPrimary: Boolean) {
     val context = LocalContext.current
-    val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+    val timeFormat = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
     val refreshTime = timeFormat.format(Date(data.timestamp))
     val (tempPrimary, tempSecondary) = data.temperature.displayDual(metricPrimary)
 
