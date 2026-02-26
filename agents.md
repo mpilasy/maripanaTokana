@@ -4,10 +4,10 @@
 **Package:** `orinasa.njarasoa.maripanatokana`
 
 ## Tech Stack
-- **Language:** Kotlin 2.0.21
+- **Language:** Kotlin 2.2.10
 - **UI:** Jetpack Compose (BOM 2024.09.00) for app, Jetpack Glance 1.1.1 for widgets
-- **Build:** AGP 9.0.0 (Kotlin Android plugin is implicit — do NOT add explicitly)
-- **DI:** Hilt 2.59 + KSP 2.0.21-1.0.28
+- **Build:** AGP 9.0.1 (Kotlin Android plugin is implicit — do NOT add explicitly)
+- **DI:** Hilt 2.59 + KSP 2.3.2
 - **Network:** Retrofit 2.11.0 + Kotlinx Serialization (no API key required)
 - **Location:** Google Play Services FusedLocationProvider
 - **Background:** WorkManager for periodic widget updates (30 min)
@@ -15,7 +15,7 @@
 
 ## Core Features
 - **Dual Units with Toggle:** Every measurement shows both metric and imperial. Tap any value (`DualUnitText`) to swap which is primary (bold/large) vs secondary (smaller/dimmer). Preference stored in `SharedPreferences("widget_prefs", "metric_primary")`.
-- **Font Cycling:** 16 bundled font pairings (Default + 15 custom) cycled via font icon in footer. Uses `CompositionLocal` (`LocalDisplayFont`, `LocalBodyFont`). Glance widgets cannot use custom fonts.
+- **Font Cycling:** 22 bundled font pairings (Default + 21 custom) cycled via font icon in footer. Uses `CompositionLocal` (`LocalDisplayFont`, `LocalBodyFont`). Glance widgets cannot use custom fonts.
 - **In-App Language Cycling:** 8 languages (mg, ar, en, es, fr, hi, ne, zh) cycled via flag emoji button in footer. Uses `ContextWrapper` overriding only `getResources()` to swap locale without activity recreation or keyboard toasts. Locale index stored in `SharedPreferences("widget_prefs", "locale_index")`. Default: Malagasy (mg, index 0).
 - **i18n:** All strings extracted to `res/values/strings.xml` (~77 strings + 2 string-arrays). Translations in `res/values-{locale}/strings.xml`. `wmoDescriptionRes()` returns `@StringRes Int`. `WeatherUiState.Error` holds `@StringRes Int`. All numeric `.format()` calls use `Locale.US` to prevent Devanagari/Arabic digit rendering. Native digits applied via `SupportedLocale.localizeDigits()` character replacement at display time.
 - **Hero Card:** Emoji+description (upper-left), temperature with 1 decimal (upper-right), feels like (lower-left), precipitation (lower-right), high/low temps (lower-left) + wind with cardinal direction (lower-right), "© Orinasa Njarasoa" watermark (bottom-center). Share icon (top-left) captures card via `rememberGraphicsLayer()` and shares PNG through FileProvider.

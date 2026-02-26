@@ -247,7 +247,7 @@ adb install app/build/outputs/apk/fdroid/release/*.apk
 - [ ] 10-day forecast displays all days
 - [ ] Unit toggle works (primary/secondary swap)
 - [ ] Language cycling works (8 languages)
-- [ ] Font cycling works (16 pairings)
+- [ ] Font cycling works (22 pairings)
 - [ ] Pull-to-refresh updates weather
 - [ ] Widgets appear on home screen
 - [ ] Widgets update automatically

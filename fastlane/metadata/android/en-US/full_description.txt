@@ -5,7 +5,7 @@ maripànaTokana (Malagasy for "a single thermometer") is a phone-only weather ap
 • Dual-unit display: metric and imperial shown simultaneously
 • Tap any value to swap primary/secondary units
 • 8 languages: Malagasy, Arabic, English, Spanish, French, Hindi, Nepali, Chinese
-• 16 font pairings for customization
+• 22 font pairings for customization
 • Native digit rendering (Arabic, Hindi, Nepali)
 • RTL support for Arabic
 • Two home screen widgets (compact 4x1, detailed 4x2)

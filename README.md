@@ -1,6 +1,6 @@
 # maripànaTokana
 
-**maripànaTokana** (Malagasy for "a single thermometer") is a phone-only Android weather app that shows current conditions, hourly forecasts, and a 10-day outlook. It always displays both metric and imperial units side by side, and supports 8 languages with 16 font pairings.
+**maripànaTokana** (Malagasy for "a single thermometer") is a phone-only Android weather app that shows current conditions, hourly forecasts, and a 10-day outlook. It always displays both metric and imperial units side by side, and supports 8 languages with 22 font pairings.
 
 ## Features
 
@@ -9,7 +9,7 @@
 - **Dual-unit display**: every measurement shows both metric and imperial simultaneously
 - **Tap to toggle**: tap any value to swap which unit is primary (bold/large) vs secondary (dimmer)
 - **8 languages**: Malagasy, Arabic, English, Spanish, French, Hindi, Nepali, Chinese — cycled via flag button in footer
-- **16 font pairings** including Roboto + Lora: cycled via font icon in footer
+- **22 font pairings** including Roboto + Lora: cycled via font icon in footer
 - Native digit rendering for Hindi, Arabic, and Nepali
 - RTL support (Arabic)
 - Two home screen widgets (4x1 compact, 4x2 with 3-day forecast)
@@ -36,8 +36,8 @@
 
 | Component | Version |
 |-----------|---------|
-| AGP | 9.0.0 |
-| Kotlin | 2.0.21 |
+| AGP | 9.0.1 |
+| Kotlin | 2.2.10 |
 | Compose BOM | 2024.09.00 |
 | Glance | 1.1.1 |
 | Hilt | 2.59 |
@@ -88,7 +88,7 @@ app/
 │   ├── model/           # Inline value classes (Temperature, Pressure, WindSpeed, Precipitation)
 │   └── repository/      # Repository interfaces
 ├── ui/
-│   ├── theme/           # Compose theme, 16 font pairings, CompositionLocals
+│   ├── theme/           # Compose theme, 22 font pairings, CompositionLocals
 │   └── weather/         # WeatherScreen, WeatherViewModel, WeatherUiState
 └── widget/              # Glance widgets (4x1, 4x2), WorkManager updater
 ```
