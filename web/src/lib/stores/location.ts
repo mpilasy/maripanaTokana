@@ -4,6 +4,7 @@ const MOVE_THRESHOLD = 0.045; // ~5 km in degrees
 interface CachedLocation {
 	lat: number;
 	lon: number;
+	name?: string;
 }
 
 export function getCachedLocation(): CachedLocation | null {
@@ -17,9 +18,9 @@ export function getCachedLocation(): CachedLocation | null {
 	}
 }
 
-export function cacheLocation(lat: number, lon: number) {
+export function cacheLocation(lat: number, lon: number, name?: string) {
 	if (typeof localStorage !== 'undefined') {
-		localStorage.setItem(LOCATION_KEY, JSON.stringify({ lat, lon }));
+		localStorage.setItem(LOCATION_KEY, JSON.stringify({ lat, lon, name }));
 	}
 }
 
@@ -45,6 +46,11 @@ export function getPosition(): Promise<{ lat: number; lon: number }> {
 }
 
 export async function reverseGeocode(lat: number, lon: number): Promise<string> {
+	const cached = getCachedLocation();
+	if (cached && cached.lat === lat && cached.lon === lon && cached.name) {
+		return cached.name;
+	}
+
 	try {
 		const res = await fetch(
 			`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,

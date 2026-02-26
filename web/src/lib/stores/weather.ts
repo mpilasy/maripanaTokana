@@ -45,12 +45,15 @@ export async function doFetchWeather() {
 
 		// Step 2: get fresh location
 		const fresh = await getPosition();
-		cacheLocation(fresh.lat, fresh.lon);
 
 		// Re-fetch if moved significantly or if we had no cached location
 		if (!cached || movedSignificantly(cached.lat, cached.lon, fresh.lat, fresh.lon)) {
 			data = await fetchAtLocation(fresh.lat, fresh.lon);
 			weatherState.set({ kind: 'success', data });
+		}
+
+		if (data) {
+			cacheLocation(fresh.lat, fresh.lon, data.locationName);
 		}
 	} catch (err) {
 		const current = get(weatherState);
