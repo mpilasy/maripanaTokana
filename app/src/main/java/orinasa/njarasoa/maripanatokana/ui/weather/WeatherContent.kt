@@ -61,6 +61,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -386,7 +387,11 @@ internal fun WeatherContent(
                 // Font icon + name
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable(onClick = onCycleFont),
+                    modifier = Modifier.clickable(
+                        onClick = onCycleFont,
+                        role = Role.Button,
+                        onClickLabel = stringResource(R.string.cd_change_font)
+                    ),
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_font),
@@ -419,7 +424,11 @@ internal fun WeatherContent(
                 Text(
                     text = currentFlag,
                     fontSize = 16f.s(scale),
-                    modifier = Modifier.clickable(onClick = onCycleLanguage),
+                    modifier = Modifier.clickable(
+                        onClick = onCycleLanguage,
+                        role = Role.Button,
+                        onClickLabel = stringResource(R.string.cd_change_language)
+                    ),
                 )
             }
         }
@@ -440,7 +449,11 @@ internal fun DualUnitText(
     val fontFeatures = LocalBodyFontFeatures.current
     Column(
         horizontalAlignment = horizontalAlignment,
-        modifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
+        modifier = if (onClick != null) Modifier.clickable(
+            onClick = onClick,
+            role = Role.Button,
+            onClickLabel = stringResource(R.string.cd_toggle_units)
+        ) else Modifier
     ) {
         Text(
             text = primary,
@@ -580,14 +593,18 @@ internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: B
                             wmoEmoji(item.weatherCode, isNight = item.time !in sr..ss)
                         },
                         fontSize = 20f.s(scale),
-                        modifier = Modifier.clickable {
-                            displayMode = when(displayMode) {
-                                ForecastDisplayMode.Temperature -> ForecastDisplayMode.Wind
-                                ForecastDisplayMode.Wind -> ForecastDisplayMode.Precipitation
-                                ForecastDisplayMode.Precipitation -> ForecastDisplayMode.Pressure
-                                ForecastDisplayMode.Pressure -> ForecastDisplayMode.Temperature
+                        modifier = Modifier.clickable(
+                            role = Role.Button,
+                            onClickLabel = stringResource(R.string.cd_cycle_mode),
+                            onClick = {
+                                displayMode = when(displayMode) {
+                                    ForecastDisplayMode.Temperature -> ForecastDisplayMode.Wind
+                                    ForecastDisplayMode.Wind -> ForecastDisplayMode.Precipitation
+                                    ForecastDisplayMode.Precipitation -> ForecastDisplayMode.Pressure
+                                    ForecastDisplayMode.Pressure -> ForecastDisplayMode.Temperature
+                                }
                             }
-                        }
+                        )
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     when(displayMode) {
@@ -693,14 +710,18 @@ internal fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Bo
                     fontSize = 12f.s(scale),
                     fontFamily = bodyFont,
                     color = Color.White.copy(alpha = 0.7f),
-                    modifier = Modifier.weight(1f).clickable {
-                        displayMode = when(displayMode) {
-                            ForecastDisplayMode.Temperature -> ForecastDisplayMode.Wind
-                            ForecastDisplayMode.Wind -> ForecastDisplayMode.Precipitation
-                            ForecastDisplayMode.Precipitation -> ForecastDisplayMode.Temperature
-                            else -> ForecastDisplayMode.Temperature
+                    modifier = Modifier.weight(1f).clickable(
+                        role = Role.Button,
+                        onClickLabel = stringResource(R.string.cd_cycle_mode),
+                        onClick = {
+                            displayMode = when(displayMode) {
+                                ForecastDisplayMode.Temperature -> ForecastDisplayMode.Wind
+                                ForecastDisplayMode.Wind -> ForecastDisplayMode.Precipitation
+                                ForecastDisplayMode.Precipitation -> ForecastDisplayMode.Temperature
+                                else -> ForecastDisplayMode.Temperature
+                            }
                         }
-                    },
+                    ),
                 )
                 Text(
                     text = if (item.precipProbability > 0) localizeDigits("%d%%".format(Locale.US, item.precipProbability)) else "",
