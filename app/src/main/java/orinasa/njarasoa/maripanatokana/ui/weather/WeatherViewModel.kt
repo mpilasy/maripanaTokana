@@ -114,39 +114,50 @@ class WeatherViewModel @Inject constructor(
     }
 
     private suspend fun doFetch() {
-        // Step 1: try cached location for instant render
-        var usedCached = false
-        locationRepository.getLastLocation().onSuccess { (lat, lon) ->
-            usedCached = true
-            saveLocation(lat, lon)
-            weatherRepository.getWeather(lat, lon).onSuccess { data ->
-                prefs.edit().putString("location_name", data.locationName).apply()
-                _uiState.value = WeatherUiState.Success(data)
-            }
-        }
+        kotlinx.coroutines.coroutineScope {
+            // Step 1: try cached location for instant render
+            var usedCached = false
+            var freshWeatherDisplayed = false
 
-        // Step 2: get fresh location, re-fetch if moved significantly
-        locationRepository.getFreshLocation()
-            .onSuccess { (lat, lon) ->
-                saveLocation(lat, lon)
-                if (!usedCached || movedSignificantly(lat, lon)) {
-                    weatherRepository.getWeather(lat, lon)
-                        .onSuccess { data ->
+            launch {
+                locationRepository.getLastLocation().onSuccess { (lat, lon) ->
+                    usedCached = true
+                    saveLocation(lat, lon)
+                    weatherRepository.getWeather(lat, lon).onSuccess { data ->
+                        if (!freshWeatherDisplayed) {
                             prefs.edit().putString("location_name", data.locationName).apply()
                             _uiState.value = WeatherUiState.Success(data)
                         }
-                        .onFailure {
-                            if (!usedCached) {
-                                _uiState.value = WeatherUiState.Error(R.string.error_fetch_weather)
-                            }
+                    }
+                }
+            }
+
+            // Step 2: get fresh location, re-fetch if moved significantly
+            launch {
+                locationRepository.getFreshLocation()
+                    .onSuccess { (lat, lon) ->
+                        saveLocation(lat, lon)
+                        if (!usedCached || movedSignificantly(lat, lon)) {
+                            weatherRepository.getWeather(lat, lon)
+                                .onSuccess { data ->
+                                    freshWeatherDisplayed = true
+                                    prefs.edit().putString("location_name", data.locationName).apply()
+                                    _uiState.value = WeatherUiState.Success(data)
+                                }
+                                .onFailure {
+                                    if (!usedCached) {
+                                        _uiState.value = WeatherUiState.Error(R.string.error_fetch_weather)
+                                    }
+                                }
                         }
-                }
+                    }
+                    .onFailure {
+                        if (!usedCached) {
+                            _uiState.value = WeatherUiState.Error(R.string.error_get_location)
+                        }
+                    }
             }
-            .onFailure {
-                if (!usedCached) {
-                    _uiState.value = WeatherUiState.Error(R.string.error_get_location)
-                }
-            }
+        }
     }
 
     private fun movedSignificantly(lat: Double, lon: Double): Boolean {

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import type { DailyForecast as DailyForecastType } from '$lib/domain/weatherData';
+	import { getCardinalDirection } from '$lib/domain/windSpeed';
 	import { wmoEmoji, wmoDescriptionKey } from '$lib/api/wmoWeatherCode';
 	import DualUnitText from './DualUnitText.svelte';
 
@@ -29,8 +30,6 @@
 	function formatDayMonth(millis: number): string {
 		return new Intl.DateTimeFormat(localeTag, { day: 'numeric', month: 'short' }).format(new Date(millis));
 	}
-
-	const DIRECTIONS = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
 </script>
 
 <div class="daily-list">
@@ -57,7 +56,7 @@
 				/>
 			{:else if displayMode === 'Wind'}
 				{@const [windP, windS] = item.windSpeed.displayDual(metricPrimary)}
-				{@const dir = DIRECTIONS[Math.round(((item.windDeg % 360) / 22.5)) % 16]}
+				{@const dir = getCardinalDirection(item.windDeg, $_('cardinal_directions'))}
 				<DualUnitText
 					primary={loc(`${windP} ${dir}`)}
 					secondary={loc(windS)}

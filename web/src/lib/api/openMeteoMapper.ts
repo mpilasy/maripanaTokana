@@ -26,19 +26,23 @@ export function mapToWeatherData(response: OpenMeteoResponse, locationName: stri
 
 	const nowMillis = Date.now();
 
-	const hourlyForecast: HourlyForecast[] = h.time
-		.map((time, i) => ({
-			time: parseIsoDateTime(time),
-			temperature: Temperature.fromCelsius(h.temperature_2m[i]),
-			weatherCode: h.weather_code[i],
-			precipProbability: h.precipitation_probability[i],
-			windSpeed: WindSpeed.fromMetersPerSecond(h.wind_speed_10m[i]),
-			windDeg: h.wind_direction_10m[i],
-			pressure: Pressure.fromHPa(h.pressure_msl[i]),
-			precipitation: Precipitation.fromMm(h.precipitation[i]),
-		}))
-		.filter((f) => f.time >= nowMillis)
-		.slice(0, 24);
+	const startIndex = h.time.findIndex((time) => parseIsoDateTime(time) >= nowMillis);
+	const hourlyForecast: HourlyForecast[] =
+		startIndex === -1
+			? []
+			: h.time.slice(startIndex, startIndex + 24).map((time, i) => {
+					const actualIndex = startIndex + i;
+					return {
+						time: parseIsoDateTime(time),
+						temperature: Temperature.fromCelsius(h.temperature_2m[actualIndex]),
+						weatherCode: h.weather_code[actualIndex],
+						precipProbability: h.precipitation_probability[actualIndex],
+						windSpeed: WindSpeed.fromMetersPerSecond(h.wind_speed_10m[actualIndex]),
+						windDeg: h.wind_direction_10m[actualIndex],
+						pressure: Pressure.fromHPa(h.pressure_msl[actualIndex]),
+						precipitation: Precipitation.fromMm(h.precipitation[actualIndex]),
+					};
+				});
 
 	const dailyForecast: DailyForecast[] = d.time.map((time, i) => {
 		return {

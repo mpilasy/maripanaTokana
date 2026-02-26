@@ -3,6 +3,7 @@ package orinasa.njarasoa.maripanatokana.widget
 import android.content.Context
 import android.content.Intent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
@@ -63,7 +64,7 @@ class WeatherWidgetLarge : GlanceAppWidget() {
 @Composable
 private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean) {
     val context = LocalContext.current
-    val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+    val timeFormat = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
     val refreshTime = timeFormat.format(Date(data.timestamp))
     val (tempPrimary, tempSecondary) = data.temperature.displayDual(metricPrimary)
 
@@ -166,7 +167,7 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
             // -- 3-day forecast row --
             val forecasts = data.dailyForecast.drop(1).take(3) // skip today, next 3 days
             if (forecasts.isNotEmpty()) {
-                val dayFormat = SimpleDateFormat("EEE", Locale.getDefault())
+                val dayFormat = remember { SimpleDateFormat("EEE", Locale.getDefault()) }
                 val cal = Calendar.getInstance()
                 Row(
                     modifier = GlanceModifier.fillMaxWidth(),
