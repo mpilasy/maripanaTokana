@@ -167,12 +167,13 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
             val forecasts = data.dailyForecast.drop(1).take(3) // skip today, next 3 days
             if (forecasts.isNotEmpty()) {
                 val dayFormat = SimpleDateFormat("EEE", Locale.getDefault())
+                val cal = Calendar.getInstance()
                 Row(
                     modifier = GlanceModifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     for (day in forecasts) {
-                        val cal = Calendar.getInstance().apply { timeInMillis = day.date * 1000 }
+                        cal.timeInMillis = day.date * 1000
                         val dayName = dayFormat.format(cal.time)
                         val emoji = wmoEmoji(day.weatherCode)
                         val hi = day.tempMax.displayDual(metricPrimary).first
