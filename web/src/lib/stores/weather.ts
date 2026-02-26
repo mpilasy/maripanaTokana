@@ -38,13 +38,19 @@ export async function doFetchWeather() {
 		const cached = getCachedLocation();
 		let data: WeatherData | null = null;
 
-		if (cached) {
-			data = await fetchAtLocation(cached.lat, cached.lon);
+		// Start fetching weather for cached location immediately if available
+		const cachedFetchPromise = cached ? fetchAtLocation(cached.lat, cached.lon) : null;
+
+		// Start getting fresh location concurrently
+		const freshLocationPromise = getPosition();
+
+		if (cachedFetchPromise) {
+			data = await cachedFetchPromise;
 			weatherState.set({ kind: 'success', data });
 		}
 
 		// Step 2: get fresh location
-		const fresh = await getPosition();
+		const fresh = await freshLocationPromise;
 		cacheLocation(fresh.lat, fresh.lon);
 
 		// Re-fetch if moved significantly or if we had no cached location
