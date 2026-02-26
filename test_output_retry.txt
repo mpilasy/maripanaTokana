@@ -1,0 +1,50 @@
+
+> Configure project :app
+WARNING: The option setting 'android.disallowKotlinSourceSets=false' is experimental.
+The current default is 'true'.
+
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preFdroidDebugBuild UP-TO-DATE
+> Task :app:generateFdroidDebugBuildConfig
+> Task :app:generateFdroidDebugResources UP-TO-DATE
+> Task :app:packageFdroidDebugResources UP-TO-DATE
+> Task :app:processFdroidDebugNavigationResources UP-TO-DATE
+> Task :app:parseFdroidDebugLocalResources UP-TO-DATE
+> Task :app:generateFdroidDebugRFile UP-TO-DATE
+> Task :app:javaPreCompileFdroidDebug UP-TO-DATE
+> Task :app:checkFdroidDebugAarMetadata UP-TO-DATE
+> Task :app:compileFdroidDebugNavigationResources UP-TO-DATE
+> Task :app:mapFdroidDebugSourceSetPaths UP-TO-DATE
+> Task :app:mergeFdroidDebugResources UP-TO-DATE
+> Task :app:createFdroidDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksFdroidDebug UP-TO-DATE
+> Task :app:processFdroidDebugMainManifest UP-TO-DATE
+> Task :app:processFdroidDebugManifest UP-TO-DATE
+> Task :app:processFdroidDebugManifestForPackage UP-TO-DATE
+> Task :app:processFdroidDebugResources UP-TO-DATE
+> Task :app:preFdroidDebugUnitTestBuild UP-TO-DATE
+> Task :app:javaPreCompileFdroidDebugUnitTest UP-TO-DATE
+> Task :app:kspFdroidDebugKotlin
+> Task :app:compileFdroidDebugKotlin
+> Task :app:compileFdroidDebugJavaWithJavac
+> Task :app:hiltSyncFdroidDebug
+> Task :app:hiltAggregateDepsFdroidDebug UP-TO-DATE
+> Task :app:hiltJavaCompileFdroidDebug UP-TO-DATE
+> Task :app:processFdroidDebugJavaRes UP-TO-DATE
+> Task :app:bundleFdroidDebugClassesToCompileJar
+> Task :app:transformFdroidDebugClassesWithAsm
+> Task :app:bundleFdroidDebugClassesToRuntimeJar
+> Task :app:kspFdroidDebugUnitTestKotlin
+> Task :app:compileFdroidDebugUnitTestKotlin
+> Task :app:processFdroidDebugUnitTestJavaRes UP-TO-DATE
+> Task :app:compileFdroidDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:hiltSyncFdroidDebugUnitTest
+> Task :app:hiltAggregateDepsFdroidDebugUnitTest UP-TO-DATE
+> Task :app:hiltJavaCompileFdroidDebugUnitTest NO-SOURCE
+> Task :app:transformFdroidDebugUnitTestClassesWithAsm
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+> Task :app:testFdroidDebugUnitTest
+
+BUILD SUCCESSFUL in 53s
+35 actionable tasks: 13 executed, 22 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.2.1/userguide/configuration_cache_enabling.html
