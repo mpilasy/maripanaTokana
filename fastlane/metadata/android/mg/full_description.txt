@@ -4,7 +4,7 @@ maripànaTokana (= "thermometer tokana" amin'ny malagasy) dia fampiharana toetr'
 • Tarehimarika toetr'andro avy amin'ny Open-Meteo (tsy ilaina ny API key)
 • Fampisehoana marirefy roa: metrika sy mpanjanaka aseho miaraka
 • Teny 8: Malagasy, Arabo, Anglisy, Espaniola, Frantsay, Hindi, Nepali, Sinoa
-• Safidy folo amin'ny fonts
+• Safidy fonts 22
 • Fampisehoana isa tena izy (Araba, Hindi, Nepali)
 • Fanohanana RTL ho an'ny Arabo
 • Widgets roa amin'ny fidirana (kely sy lehibe)

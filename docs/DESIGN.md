@@ -30,8 +30,8 @@ There is also a web version of the app built with SvelteKit. See [`web/docs/DESI
 
 | Component | Technology | Version |
 |-----------|-----------|---------|
-| Language | Kotlin | 2.0.21 |
-| Build system | Gradle + AGP | 9.1.0 / 9.0.0 |
+| Language | Kotlin | 2.2.10 |
+| Build system | Gradle + AGP | 9.0.1 |
 | UI framework | Jetpack Compose | BOM 2024.09.00 |
 | Widget framework | Glance | 1.1.1 |
 | Dependency injection | Hilt | 2.59 |
@@ -41,7 +41,7 @@ There is also a web version of the app built with SvelteKit. See [`web/docs/DESI
 | Background work | WorkManager | 2.10.0 |
 | Permissions | Accompanist Permissions | 0.36.0 |
 | Min SDK | Android 7.0 (API 24) | |
-| Target SDK | Android 15 (API 36) | |
+| Target SDK | Android 16 (API 36) | |
 
 **Weather API:** [Open-Meteo](https://open-meteo.com) -- free, no API key required.
 
@@ -89,7 +89,7 @@ maripanaTokana/
 |       |   |   |   +-- WeatherViewModel.kt  # State management, user actions
 |       |   |   |   +-- WeatherUiState.kt    # Sealed UI state
 |       |   |   +-- theme/
-|       |   |       +-- AppFonts.kt          # 16 font pairings + CompositionLocals
+|       |   |       +-- AppFonts.kt          # 22 font pairings + CompositionLocals
 |       |   |       +-- Theme.kt             # Material3 theme
 |       |   |       +-- Color.kt             # Color definitions
 |       |   |       +-- Type.kt              # Typography
@@ -361,7 +361,7 @@ The ViewModel exposes several `StateFlow`s that the UI observes:
 | `uiState` | `WeatherUiState` | PermissionRequired, Loading, Success(data), Error(resId) |
 | `isRefreshing` | `Boolean` | Pull-to-refresh indicator |
 | `metricPrimary` | `Boolean` | Which unit system is shown first |
-| `fontIndex` | `Int` | Selected font pairing (0-15) |
+| `fontIndex` | `Int` | Selected font pairing (0-21) |
 | `localeIndex` | `Int` | Selected language (0-7) |
 
 User actions (toggle units, cycle font, cycle language, refresh) are ViewModel methods that update state and persist preferences to `SharedPreferences("widget_prefs")`.

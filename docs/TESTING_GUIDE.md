@@ -190,14 +190,14 @@ Test each of the 8 languages:
 
 ### Font Support
 
-Test each of the 16 font pairings:
+Test each of the 22 font pairings:
 
 - [ ] **Font Icon Visible**
   - [ ] Font icon in footer is clickable
   - [ ] Font name displays next to icon
 
 - [ ] **Font Cycling**
-  - [ ] Tapping cycles through all 16 font pairings
+  - [ ] Tapping cycles through all 22 font pairings
   - [ ] All fonts render clearly
   - [ ] Display font (headlines) changes
   - [ ] Body font (text) changes
@@ -205,8 +205,9 @@ Test each of the 16 font pairings:
 
 **Font Pairings to Test:**
 1. Roboto + Lora
-2. Inter + Merriweather
-3. (and 14 more...)
+2. Orbitron + Outfit
+3. Rajdhani + Inter
+4. (and 19 more...)
 
 ### Refresh & Pull-to-Refresh
 
@@ -437,7 +438,7 @@ After testing, fill out this report:
 ## Test Results Summary
 - Functional Tests: [X/Y] passed
 - Language Tests: [X/8] passed
-- Font Tests: [X/16] passed
+- Font Tests: [X/22] passed
 - UI Tests: [X/Y] passed
 
 ## Issues Found
