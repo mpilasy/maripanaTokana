@@ -120,8 +120,9 @@ internal fun WeatherContent(
 ) {
     val context = LocalContext.current
     val appLocale = context.resources.configuration.locales[0]
-    val dateFormat = SimpleDateFormat("EEEE, d MMMM yyyy", appLocale)
-    val timeFormat = SimpleDateFormat("HH:mm", Locale.US)
+    // Bolt: Memoize SimpleDateFormat to avoid expensive recreation on recomposition
+    val dateFormat = remember(appLocale) { SimpleDateFormat("EEEE, d MMMM yyyy", appLocale) }
+    val timeFormat = remember { SimpleDateFormat("HH:mm", Locale.US) }
     val displayFont = LocalDisplayFont.current
     val bodyFont = LocalBodyFont.current
 
@@ -542,7 +543,8 @@ internal fun CollapsibleSection(
 
 @Composable
 internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Boolean, dailySunrise: List<Long>, dailySunset: List<Long>, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
-    val hourFormat = SimpleDateFormat("HH:mm", Locale.US)
+    // Bolt: Memoize SimpleDateFormat
+    val hourFormat = remember { SimpleDateFormat("HH:mm", Locale.US) }
     val bodyFont = LocalBodyFont.current
     val fontFeatures = LocalBodyFontFeatures.current
     val scale = LocalScale.current
@@ -552,7 +554,8 @@ internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: B
         horizontalArrangement = Arrangement.spacedBy(12.sd(scale)),
         contentPadding = PaddingValues(vertical = 8.dp),
     ) {
-        items(forecasts) { item ->
+        // Bolt: Add key to avoid unnecessary recomposition of unchanged items
+        items(items = forecasts, key = { it.time }) { item ->
             Card(
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = CardBlue.copy(alpha = 0.6f)),
@@ -648,8 +651,9 @@ internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: B
 @Composable
 internal fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
     val appLocale = LocalContext.current.resources.configuration.locales[0]
-    val dayFormat = SimpleDateFormat("EEEE", appLocale)
-    val dayMonthFormat = SimpleDateFormat("d MMM", appLocale)
+    // Bolt: Memoize SimpleDateFormat
+    val dayFormat = remember(appLocale) { SimpleDateFormat("EEEE", appLocale) }
+    val dayMonthFormat = remember(appLocale) { SimpleDateFormat("d MMM", appLocale) }
     val bodyFont = LocalBodyFont.current
     val fontFeatures = LocalBodyFontFeatures.current
     val scale = LocalScale.current
@@ -657,9 +661,11 @@ internal fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Bo
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         forecasts.forEach { item ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
+            // Bolt: Add key to enable smart recomposition
+            androidx.compose.runtime.key(item.date) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
                     .background(
                         CardBlue.copy(alpha = 0.3f),
                         RoundedCornerShape(12.dp),
@@ -738,6 +744,7 @@ internal fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Bo
                     else -> {}
                 }
             }
+            } // End key
         }
     }
 }
