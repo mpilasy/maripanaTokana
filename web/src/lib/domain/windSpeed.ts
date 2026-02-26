@@ -27,3 +27,11 @@ export class WindSpeed {
 		return new WindSpeed(mph / 2.23694);
 	}
 }
+
+export const DIRECTIONS = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+
+export function getCardinalDirection(deg: number, directions: any = DIRECTIONS): string {
+	if (!Array.isArray(directions) || directions.length === 0) return '';
+	const idx = Math.round(((deg % 360 + 360) % 360) / (360 / directions.length)) % directions.length;
+	return directions[idx] ?? '';
+}
