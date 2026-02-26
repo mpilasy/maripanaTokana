@@ -1,5 +1,7 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import type { HourlyForecast as HourlyForecastType } from '$lib/domain/weatherData';
+	import { getCardinalDirection } from '$lib/domain/windSpeed';
 	import { wmoEmoji } from '$lib/api/wmoWeatherCode';
 	import DualUnitText from './DualUnitText.svelte';
 
@@ -27,8 +29,6 @@
 		const d = new Date(millis);
 		return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 	}
-
-	const DIRECTIONS = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
 
 	function isNightForHour(time: number): boolean {
 		let dayIdx = 0;
@@ -60,7 +60,7 @@
 				/>
 			{:else if displayMode === 'Wind'}
 				{@const [windP, windS] = item.windSpeed.displayDual(metricPrimary)}
-				{@const dir = DIRECTIONS[Math.round(((item.windDeg % 360) / 22.5)) % 16]}
+				{@const dir = getCardinalDirection(item.windDeg, $_('cardinal_directions'))}
 				<DualUnitText
 					primary={loc(`${windP} ${dir}`)}
 					secondary={loc(windS)}

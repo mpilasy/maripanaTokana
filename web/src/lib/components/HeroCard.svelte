@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import type { WeatherData } from '$lib/domain/weatherData';
+	import { getCardinalDirection } from '$lib/domain/windSpeed';
 	import { wmoEmoji, wmoDescriptionKey } from '$lib/api/wmoWeatherCode';
 	import DualUnitText from './DualUnitText.svelte';
 
@@ -25,12 +26,6 @@
 	let minDual = $derived(data.tempMin.displayDual(metricPrimary));
 	let windDual = $derived(data.windSpeed.displayDual(metricPrimary));
 
-	function getCardinalDirection(deg: number): string {
-		const dirs: string[] = $_('cardinal_directions') as unknown as string[];
-		if (!Array.isArray(dirs)) return '';
-		const idx = ((deg % 360 + 360) % 360 * 16 / 360) % 16;
-		return dirs[Math.round(idx)] ?? '';
-	}
 
 	function handleShare(e: MouseEvent) {
 		e.stopPropagation();
@@ -117,7 +112,7 @@
 				align="end"
 				onClick={onToggleUnits}
 			/>
-			<span class="wind-direction">{loc(getCardinalDirection(data.windDeg))}</span>
+			<span class="wind-direction">{loc(getCardinalDirection(data.windDeg, $_('cardinal_directions')))}</span>
 		</div>
 	</div>
 

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import type { WeatherData } from '$lib/domain/weatherData';
+	import { getCardinalDirection } from '$lib/domain/windSpeed';
 	import DetailCard from './DetailCard.svelte';
 
 	interface Props {
@@ -17,12 +18,6 @@
 		return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 	}
 
-	function getCardinalDirection(deg: number): string {
-		const dirs: string[] = $_('cardinal_directions') as unknown as string[];
-		if (!Array.isArray(dirs)) return '';
-		const idx = ((deg % 360 + 360) % 360 * 16 / 360) % 16;
-		return dirs[Math.round(idx)] ?? '';
-	}
 
 	function getUvLabel(uv: number): string {
 		const labels: string[] = $_('uv_labels') as unknown as string[];
@@ -121,7 +116,7 @@
 				<span class="merged-primary">{loc(windDual[0])}</span>
 				<span class="merged-secondary">{loc(windDual[1])}</span>
 			</span>
-			<span class="wind-subtitle">{loc(`${getCardinalDirection(data.windDeg)} (${data.windDeg}°)`)}</span>
+			<span class="wind-subtitle">{loc(`${getCardinalDirection(data.windDeg, $_('cardinal_directions'))} (${data.windDeg}°)`)}</span>
 		</div>
 		<span class="merged-label wind-label">{$_('detail_wind')}</span>
 		<div class="wind-side wind-side-end">
