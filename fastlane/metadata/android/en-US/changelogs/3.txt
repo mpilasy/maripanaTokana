@@ -1,0 +1,7 @@
+Performance and accessibility improvements.
+
+• Faster weather data loading with parallel fetching
+• Cached reverse geocoding for quicker startup
+• Optimized widget performance
+• Added accessibility labels to interactive elements
+• Code obfuscation enabled for release builds

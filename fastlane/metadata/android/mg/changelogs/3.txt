@@ -1,0 +1,7 @@
+Fanatsarana ny fahombiazana sy ny fahazoana.
+
+• Faingana kokoa ny fakana angon-drakitra toetr'andro amin'ny alalan'ny fikatsahana mifanindran-dalana
+• Tahiry ny géocodage miverina ho fanafainganana ny fanombohana
+• Nohatsaraina ny fahombiazan'ny widgets
+• Nanampy anarana fahazoana amin'ny singa azo tsindrina
+• Nampiharina ny fanarontsaronana kaody ho an'ny dikan-teny release

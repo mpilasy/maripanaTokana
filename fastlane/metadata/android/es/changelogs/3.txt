@@ -1,0 +1,7 @@
+Mejoras de rendimiento y accesibilidad.
+
+• Carga más rápida de datos meteorológicos con obtención paralela
+• Geocodificación inversa en caché para un inicio más rápido
+• Rendimiento de widgets optimizado
+• Etiquetas de accesibilidad añadidas a elementos interactivos
+• Ofuscación de código habilitada para versiones release
