@@ -112,13 +112,13 @@
 		overflow: hidden;
 	}
 
-	/* Desktop: cap at 1920×1080 with shadow */
+	/* Desktop: cap at 786×1024 portrait with shadow */
 	@media (min-width: 1024px) {
 		.stage {
-			width: 1920px;
-			max-width: 1920px;
-			height: 1080px;
-			max-height: 1080px;
+			width: 786px;
+			max-width: 786px;
+			height: 1024px;
+			max-height: 1024px;
 			border-radius: 12px;
 			box-shadow:
 				0 0 0 1px rgba(255, 255, 255, 0.06),
