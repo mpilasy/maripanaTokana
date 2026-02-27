@@ -4,6 +4,7 @@ const MOVE_THRESHOLD = 0.045; // ~5 km in degrees
 interface CachedLocation {
 	lat: number;
 	lon: number;
+	name?: string;
 }
 
 export function getCachedLocation(): CachedLocation | null {
@@ -17,9 +18,11 @@ export function getCachedLocation(): CachedLocation | null {
 	}
 }
 
-export function cacheLocation(lat: number, lon: number) {
+export function cacheLocation(lat: number, lon: number, name?: string) {
 	if (typeof localStorage !== 'undefined') {
-		localStorage.setItem(LOCATION_KEY, JSON.stringify({ lat, lon }));
+		const data: CachedLocation = { lat, lon };
+		if (name) data.name = name;
+		localStorage.setItem(LOCATION_KEY, JSON.stringify(data));
 	}
 }
 
