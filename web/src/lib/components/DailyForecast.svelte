@@ -23,12 +23,18 @@
 		else displayMode = 'Temperature';
 	}
 
+	// Perf: cache Intl.DateTimeFormat instances. Construction is ~10-100x more expensive
+	// than .format(), and these were being recreated for each of the 10 daily items per render.
+	// Now they're only recreated when localeTag changes.
+	let dayNameFmt = $derived(new Intl.DateTimeFormat(localeTag, { weekday: 'long' }));
+	let dayMonthFmt = $derived(new Intl.DateTimeFormat(localeTag, { day: 'numeric', month: 'short' }));
+
 	function formatDayName(millis: number): string {
-		return new Intl.DateTimeFormat(localeTag, { weekday: 'long' }).format(new Date(millis));
+		return dayNameFmt.format(new Date(millis));
 	}
 
 	function formatDayMonth(millis: number): string {
-		return new Intl.DateTimeFormat(localeTag, { day: 'numeric', month: 'short' }).format(new Date(millis));
+		return dayMonthFmt.format(new Date(millis));
 	}
 </script>
 
