@@ -23,7 +23,21 @@ Builds:
     gradle:
       - fdroid
 
+  - versionName: '1.0.2'
+    versionCode: 3
+    commit: v1.0.2
+    subdir: app
+    gradle:
+      - fdroid
+
+  - versionName: '1.0.3'
+    versionCode: 4
+    commit: v1.0.3
+    subdir: app
+    gradle:
+      - fdroid
+
 AutoUpdateMode: None
 UpdateCheckMode: None
-CurrentVersion: '1.0.1'
-CurrentVersionCode: 2
+CurrentVersion: '1.0.3'
+CurrentVersionCode: 4

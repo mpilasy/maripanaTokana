@@ -1,0 +1,2 @@
+Se corrigió un error por el cual el pronóstico de hoy siempre se mostraba como niebla.
+Actualización a la versión 1.0.3.

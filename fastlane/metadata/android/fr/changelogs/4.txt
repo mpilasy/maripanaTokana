@@ -1,0 +1,2 @@
+Correction d'un bug où les prévisions d'aujourd'hui s'affichaient toujours comme du brouillard.
+Mise à jour vers la version 1.0.3.

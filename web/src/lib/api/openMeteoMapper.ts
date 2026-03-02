@@ -49,7 +49,7 @@ export function mapToWeatherData(response: OpenMeteoResponse, locationName: stri
 			date: parseIsoDate(time),
 			tempMax: Temperature.fromCelsius(d.temperature_2m_max[i]),
 			tempMin: Temperature.fromCelsius(d.temperature_2m_min[i]),
-			weatherCode: d.weather_code[i],
+			weatherCode: i === 0 ? c.weather_code : d.weather_code[i],
 			precipProbability: d.precipitation_probability_max[i],
 			windSpeed: WindSpeed.fromMetersPerSecond(d.wind_speed_10m_max[i]),
 			windDeg: d.wind_direction_10m_dominant[i],

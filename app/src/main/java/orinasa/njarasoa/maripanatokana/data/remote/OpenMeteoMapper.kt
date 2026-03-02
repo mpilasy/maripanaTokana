@@ -51,7 +51,7 @@ fun OpenMeteoResponse.toDomain(locationName: String): WeatherData {
             date = epoch,
             tempMax = Temperature.fromCelsius(daily.temperatureMax[i]),
             tempMin = Temperature.fromCelsius(daily.temperatureMin[i]),
-            weatherCode = daily.weatherCode[i],
+            weatherCode = if (i == 0) c.weatherCode else daily.weatherCode[i],
             precipProbability = daily.precipitationProbabilityMax[i],
             windSpeed = WindSpeed.fromMetersPerSecond(daily.windSpeed10mMax.getOrElse(i) { 0.0 }),
             windDirection = daily.windDirection10mDominant.getOrElse(i) { 0 },
