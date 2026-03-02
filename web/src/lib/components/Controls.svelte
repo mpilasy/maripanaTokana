@@ -14,8 +14,7 @@
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div class="control-item" onclick={onCycleFont}>
 		<span class="icon">Aa</span>
-		<span class="name">{fontName.replace(' + ', '
-')}</span>
+		<span class="name">{fontName.replace(' + ', '\n')}</span>
 	</div>
 
 	<div class="spacer"></div>
