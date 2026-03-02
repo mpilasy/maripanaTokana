@@ -9,6 +9,7 @@
 	import DailyForecast from './DailyForecast.svelte';
 	import CurrentConditions from './CurrentConditions.svelte';
 	import CollapsibleSection from './CollapsibleSection.svelte';
+	import Controls from './Controls.svelte';
 	import Footer from './Footer.svelte';
 	import { captureAndShare } from '$lib/share';
 	import { onMount } from 'svelte';
@@ -129,6 +130,13 @@
 		{/if}
 
 		<div class="content-wrapper">
+			<Controls
+				fontName={fontPairings[$fontIndex].name}
+				currentFlag={SUPPORTED_LOCALES[$localeIndex].flag}
+				onCycleFont={cycleFont}
+				onCycleLanguage={cycleLanguage}
+			/>
+
 			<!-- Fixed header (location + date captured for share screenshots) -->
 			<div class="header">
 				<div bind:this={headerEl}>
@@ -185,12 +193,7 @@
 			</div>
 
 			<!-- Fixed footer -->
-			<Footer
-				fontName={fontPairings[$fontIndex].name}
-				currentFlag={SUPPORTED_LOCALES[$localeIndex].flag}
-				onCycleFont={cycleFont}
-				onCycleLanguage={cycleLanguage}
-			/>
+			<Footer />
 		</div>
 
 	{:else if $weatherState.kind === 'error'}
@@ -259,7 +262,7 @@
 	}
 
 	.header {
-		padding-top: 24px;
+		padding-top: 8px;
 		flex-shrink: 0;
 	}
 
