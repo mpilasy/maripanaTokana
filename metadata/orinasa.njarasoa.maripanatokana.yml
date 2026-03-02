@@ -40,7 +40,7 @@ Builds:
       - fdroid
     prebuild: sed -i -e '/foojay/d' ../settings.gradle.kts
 
-AutoUpdateMode: Version v%v
+AutoUpdateMode: Version
 UpdateCheckMode: Tags
 CurrentVersion: 1.0.3
 CurrentVersionCode: 4
