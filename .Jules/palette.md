@@ -1,0 +1,3 @@
+## 2023-10-27 - [Semantic Elements Remove Need for a11y Suppressions]
+**Learning:** This SvelteKit app heavily utilizes `<!-- svelte-ignore a11y_... -->` comments on `<div>` and `<p>` elements that are acting as buttons. By simply swapping these out for semantic `<button type="button">` elements, the accessibility warnings naturally resolve, and native keyboard support (focus, space/enter activation) is instantly restored.
+**Action:** When seeing `svelte-ignore a11y_*` around click handlers on non-interactive tags (like `<p>` or `<div>`), immediately check if the element can be converted to a `<button type="button">`. Additionally, explicitly style `:focus-visible` to enhance keyboard accessibility.

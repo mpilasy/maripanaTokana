@@ -10,20 +10,16 @@
 </script>
 
 <div class="controls" dir="ltr">
-	<!-- svelte-ignore a11y_click_events_have_key_events -->
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="control-item" onclick={onCycleFont}>
+	<button type="button" class="control-item" onclick={onCycleFont}>
 		<span class="icon">Aa</span>
 		<span class="name">{fontName.replace(' + ', '\n')}</span>
-	</div>
+	</button>
 
 	<div class="spacer"></div>
 
-	<!-- svelte-ignore a11y_click_events_have_key_events -->
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="control-item" onclick={onCycleLanguage}>
+	<button type="button" class="control-item" onclick={onCycleLanguage}>
 		<span class="flag">{currentFlag}</span>
-	</div>
+	</button>
 </div>
 
 <style>
@@ -40,13 +36,20 @@
 		gap: 6px;
 		cursor: pointer;
 		background: rgba(255, 255, 255, 0.1);
+		border: none;
 		padding: 4px 10px;
 		border-radius: 20px;
-		transition: background 0.2s;
+		transition: background 0.2s, transform 0.1s;
+		font-family: inherit;
 	}
 
 	.control-item:hover {
 		background: rgba(255, 255, 255, 0.15);
+	}
+
+	.control-item:focus-visible {
+		outline: 2px solid rgba(255, 255, 255, 0.5);
+		outline-offset: 2px;
 	}
 
 	.control-item:active {
