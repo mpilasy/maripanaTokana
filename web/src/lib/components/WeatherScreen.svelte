@@ -143,9 +143,9 @@
 					<h1 class="location-name">{data.locationName}</h1>
 					<p class="date">{formatDate(data.timestamp)}</p>
 				</div>
-				<!-- svelte-ignore a11y_click_events_have_key_events -->
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<p class="updated" onclick={doFetchWeather}>{$_('updated_time', { values: { time: loc(formatTime(data.timestamp)) } })}</p>
+				<button type="button" class="updated" onclick={doFetchWeather}>
+					{$_('updated_time', { values: { time: loc(formatTime(data.timestamp)) } })}
+				</button>
 			</div>
 
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -282,6 +282,27 @@
 		font-size: 12px;
 		color: rgba(255,255,255,0.4);
 		cursor: pointer;
+		background: transparent;
+		border: none;
+		padding: 4px 8px;
+		margin: -4px -8px;
+		border-radius: 4px;
+		transition: color 0.2s, background 0.2s;
+		font-family: inherit;
+	}
+
+	.updated:hover {
+		color: rgba(255,255,255,0.7);
+		background: rgba(255,255,255,0.05);
+	}
+
+	.updated:focus-visible {
+		outline: 2px solid rgba(255, 255, 255, 0.5);
+		outline-offset: 2px;
+	}
+
+	.updated:active {
+		transform: scale(0.98);
 	}
 
 	.scroll-area {

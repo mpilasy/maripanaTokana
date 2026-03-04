@@ -150,6 +150,11 @@
 		color: rgba(255,255,255,0.8);
 	}
 
+	.share-btn:focus-visible {
+		outline: 2px solid rgba(255, 255, 255, 0.5);
+		outline-offset: 2px;
+	}
+
 	.hero-top {
 		display: flex;
 		align-items: center;

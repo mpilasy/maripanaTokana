@@ -88,6 +88,11 @@
 		color: rgba(255,255,255,0.7);
 	}
 
+	.share-btn:focus-visible {
+		outline: 2px solid rgba(255, 255, 255, 0.5);
+		outline-offset: 2px;
+	}
+
 	.chevron {
 		color: rgba(255,255,255,0.7);
 		font-size: 12px;
