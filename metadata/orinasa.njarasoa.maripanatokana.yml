@@ -32,7 +32,15 @@ Builds:
       - fdroid
     prebuild: sed -i -e '/foojay/d' ../settings.gradle.kts
 
+  - versionName: 1.0.5
+    versionCode: 6
+    commit: v1.0.5
+    subdir: app
+    gradle:
+      - fdroid
+    prebuild: sed -i -e '/foojay/d' ../settings.gradle.kts
+
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 1.0.4
-CurrentVersionCode: 5
+CurrentVersion: 1.0.5
+CurrentVersionCode: 6
