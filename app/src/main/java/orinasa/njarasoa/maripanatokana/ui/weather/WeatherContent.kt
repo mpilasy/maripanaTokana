@@ -1134,7 +1134,7 @@ internal fun DetailCard(
     }
 }
 
-internal fun combineBitmaps(header: Bitmap, content: Bitmap): Bitmap {
+internal suspend fun combineBitmaps(header: Bitmap, content: Bitmap): Bitmap = withContext(Dispatchers.Default) {
     val h = header.copy(Bitmap.Config.ARGB_8888, false)
     val c = content.copy(Bitmap.Config.ARGB_8888, false)
     val padding = 24
@@ -1145,7 +1145,7 @@ internal fun combineBitmaps(header: Bitmap, content: Bitmap): Bitmap {
     canvas.drawColor(DarkNavyColorInt)
     canvas.drawBitmap(h, padding.toFloat(), padding.toFloat(), null)
     canvas.drawBitmap(c, padding.toFloat(), (h.height + padding * 2).toFloat(), null)
-    return result
+    result
 }
 
 internal suspend fun shareCardBitmap(context: android.content.Context, bitmap: Bitmap) {
