@@ -23,12 +23,16 @@
 		else displayMode = 'Temperature';
 	}
 
+	// Memoize Intl.DateTimeFormat to avoid expensive instantiations during rendering
+	let dayNameFormatter = $derived(new Intl.DateTimeFormat(localeTag, { weekday: 'long' }));
+	let dayMonthFormatter = $derived(new Intl.DateTimeFormat(localeTag, { day: 'numeric', month: 'short' }));
+
 	function formatDayName(millis: number): string {
-		return new Intl.DateTimeFormat(localeTag, { weekday: 'long' }).format(new Date(millis));
+		return dayNameFormatter.format(new Date(millis));
 	}
 
 	function formatDayMonth(millis: number): string {
-		return new Intl.DateTimeFormat(localeTag, { day: 'numeric', month: 'short' }).format(new Date(millis));
+		return dayMonthFormatter.format(new Date(millis));
 	}
 </script>
 

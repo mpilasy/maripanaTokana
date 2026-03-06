@@ -58,14 +58,15 @@
 		return localizeDigits(s, SUPPORTED_LOCALES[$localeIndex]);
 	}
 
+	// Memoize Intl.DateTimeFormat
+	let headerDateFormatter = $derived(new Intl.DateTimeFormat(SUPPORTED_LOCALES[$localeIndex].tag, {
+		weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+	}));
+
 	function formatDate(timestamp: number): string {
-		const locale = SUPPORTED_LOCALES[$localeIndex];
 		const d = new Date(timestamp);
 		// Use Intl for day/month names in correct locale, but localize digits ourselves
-		const formatted = new Intl.DateTimeFormat(locale.tag, {
-			weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
-		}).format(d);
-		return formatted;
+		return headerDateFormatter.format(d);
 	}
 
 	function formatTime(timestamp: number): string {
