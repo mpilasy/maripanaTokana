@@ -1,0 +1,2 @@
+Corrección del fallo en las listas de pronóstico causado por claves duplicadas.
+Actualización de Gradle.
