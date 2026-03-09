@@ -1,0 +1,3 @@
+Nafindra ho any ambony ny fisafidianana fiteny sy endri-tsoratra mba ho mora kokoa ny fampiasana azy.
+Voalamina ny olana momba ny Docker build.
+Nampiakarina ho 1.0.4 ny version.

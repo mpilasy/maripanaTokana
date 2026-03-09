@@ -43,6 +43,7 @@ fun OpenMeteoResponse.toDomain(locationName: String): WeatherData {
             )
         }
         .filter { it.time >= nowMillis }
+        .distinctBy { it.time }
         .take(24)
 
     val dailyForecast = daily.time.indices.map { i ->
@@ -51,13 +52,13 @@ fun OpenMeteoResponse.toDomain(locationName: String): WeatherData {
             date = epoch,
             tempMax = Temperature.fromCelsius(daily.temperatureMax[i]),
             tempMin = Temperature.fromCelsius(daily.temperatureMin[i]),
-            weatherCode = daily.weatherCode[i],
+            weatherCode = if (i == 0) c.weatherCode else daily.weatherCode[i],
             precipProbability = daily.precipitationProbabilityMax[i],
             windSpeed = WindSpeed.fromMetersPerSecond(daily.windSpeed10mMax.getOrElse(i) { 0.0 }),
             windDirection = daily.windDirection10mDominant.getOrElse(i) { 0 },
             precipitation = Precipitation.fromMm(daily.precipitationSum.getOrElse(i) { 0.0 }),
         )
-    }
+    }.distinctBy { it.date }
 
     return WeatherData(
         temperature = Temperature.fromCelsius(c.temperature),

@@ -1,9 +1,3 @@
-# Bolt's Journal
-
-## 2026-02-27 - Intl.DateTimeFormat caching pattern in SvelteKit
-**Learning:** This codebase creates `Intl.DateTimeFormat` instances inside format helper functions that are called in `{#each}` loops. With 10 daily forecast items, that's 20 constructor calls per render. Svelte 5's `$derived` rune is the perfect tool to cache these — it automatically re-creates when the tracked dependency (localeTag) changes.
-**Action:** When profiling Svelte components, always check for `new Intl.DateTimeFormat()` or `new Intl.NumberFormat()` inside functions called from `{#each}` blocks. Cache them with `$derived` tied to the locale prop.
-
-## 2026-02-27 - Environment: no GitHub API access for PR creation
-**Learning:** The git proxy at `127.0.0.1:33272` only supports git operations (push/fetch/clone). GitHub API calls for PR creation require separate authentication that isn't available in this environment.
-**Action:** Push the branch and note the PR must be created manually or via a different flow.
+## 2026-03-06 - [Intl.DateTimeFormat Instantiation Cost]
+**Learning:** Instantiating `Intl.DateTimeFormat` is extremely slow in JavaScript (e.g. taking 4+ seconds for 10000 instantiations versus 10ms when cached and reused). In Svelte components like `DailyForecast.svelte`, doing this inside an `#each` block or utility function called per-item causes unnecessary overhead on every render.
+**Action:** Always memoize `Intl.DateTimeFormat` instances using `$derived` or storing them outside the render loop if locale is static, so they are only recreated when the locale actually changes.

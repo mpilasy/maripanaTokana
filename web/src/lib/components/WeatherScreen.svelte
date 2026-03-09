@@ -9,6 +9,7 @@
 	import DailyForecast from './DailyForecast.svelte';
 	import CurrentConditions from './CurrentConditions.svelte';
 	import CollapsibleSection from './CollapsibleSection.svelte';
+	import Controls from './Controls.svelte';
 	import Footer from './Footer.svelte';
 	import { captureAndShare } from '$lib/share';
 	import { onMount } from 'svelte';
@@ -57,14 +58,15 @@
 		return localizeDigits(s, SUPPORTED_LOCALES[$localeIndex]);
 	}
 
+	// Memoize Intl.DateTimeFormat
+	let headerDateFormatter = $derived(new Intl.DateTimeFormat(SUPPORTED_LOCALES[$localeIndex].tag, {
+		weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+	}));
+
 	function formatDate(timestamp: number): string {
-		const locale = SUPPORTED_LOCALES[$localeIndex];
 		const d = new Date(timestamp);
 		// Use Intl for day/month names in correct locale, but localize digits ourselves
-		const formatted = new Intl.DateTimeFormat(locale.tag, {
-			weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
-		}).format(d);
-		return formatted;
+		return headerDateFormatter.format(d);
 	}
 
 	function formatTime(timestamp: number): string {
@@ -129,15 +131,22 @@
 		{/if}
 
 		<div class="content-wrapper">
+			<Controls
+				fontName={fontPairings[$fontIndex].name}
+				currentFlag={SUPPORTED_LOCALES[$localeIndex].flag}
+				onCycleFont={cycleFont}
+				onCycleLanguage={cycleLanguage}
+			/>
+
 			<!-- Fixed header (location + date captured for share screenshots) -->
 			<div class="header">
 				<div bind:this={headerEl}>
 					<h1 class="location-name">{data.locationName}</h1>
 					<p class="date">{formatDate(data.timestamp)}</p>
 				</div>
-				<!-- svelte-ignore a11y_click_events_have_key_events -->
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<p class="updated" onclick={doFetchWeather}>{$_('updated_time', { values: { time: loc(formatTime(data.timestamp)) } })}</p>
+				<button type="button" class="updated" onclick={doFetchWeather}>
+					{$_('updated_time', { values: { time: loc(formatTime(data.timestamp)) } })}
+				</button>
 			</div>
 
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -185,12 +194,7 @@
 			</div>
 
 			<!-- Fixed footer -->
-			<Footer
-				fontName={fontPairings[$fontIndex].name}
-				currentFlag={SUPPORTED_LOCALES[$localeIndex].flag}
-				onCycleFont={cycleFont}
-				onCycleLanguage={cycleLanguage}
-			/>
+			<Footer />
 		</div>
 
 	{:else if $weatherState.kind === 'error'}
@@ -259,7 +263,7 @@
 	}
 
 	.header {
-		padding-top: 24px;
+		padding-top: 8px;
 		flex-shrink: 0;
 	}
 
@@ -279,6 +283,27 @@
 		font-size: 12px;
 		color: rgba(255,255,255,0.4);
 		cursor: pointer;
+		background: transparent;
+		border: none;
+		padding: 4px 8px;
+		margin: -4px -8px;
+		border-radius: 4px;
+		transition: color 0.2s, background 0.2s;
+		font-family: inherit;
+	}
+
+	.updated:hover {
+		color: rgba(255,255,255,0.7);
+		background: rgba(255,255,255,0.05);
+	}
+
+	.updated:focus-visible {
+		outline: 2px solid rgba(255, 255, 255, 0.5);
+		outline-offset: 2px;
+	}
+
+	.updated:active {
+		transform: scale(0.98);
 	}
 
 	.scroll-area {

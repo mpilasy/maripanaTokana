@@ -6,8 +6,10 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Looper
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlin.coroutines.resume
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Location provider using Android's built-in LocationManager.
@@ -76,22 +78,14 @@ class NativeLocationProvider(
     }
 
     @SuppressLint("MissingPermission")
-    private suspend fun requestLocationUpdate(): Location? =
-        suspendCancellableCoroutine { continuation ->
-            val providers = listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)
-            var bestLocation: Location? = null
-            var updateCount = 0
-            val maxUpdates = 2
+    private suspend fun requestLocationUpdate(): Location? {
+        var bestLocation: Location? = null
+        val providers = listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)
 
+        val locationFlow = callbackFlow<Location> {
             val locationListener = object : LocationListener {
                 override fun onLocationChanged(location: Location) {
-                    updateCount++
-                    if (bestLocation == null || location.accuracy < bestLocation!!.accuracy) {
-                        bestLocation = location
-                    }
-                    if (updateCount >= maxUpdates) {
-                        continuation.resume(bestLocation)
-                    }
+                    trySend(location)
                 }
 
                 override fun onProviderEnabled(provider: String) {}
@@ -111,22 +105,29 @@ class NativeLocationProvider(
                         )
                     }
                 }
-
-                // Timeout after 30 seconds
-                continuation.invokeOnCancellation {
-                    locationManager.removeUpdates(locationListener)
-                }
-
-                val timeoutThread = Thread {
-                    Thread.sleep(30000)
-                    if (continuation.isActive) {
-                        continuation.resume(bestLocation)
-                    }
-                }
-                timeoutThread.isDaemon = true
-                timeoutThread.start()
             } catch (e: Exception) {
-                continuation.resume(null)
+                close(e)
+            }
+
+            awaitClose {
+                locationManager.removeUpdates(locationListener)
             }
         }
+
+        try {
+            withTimeoutOrNull(30_000L) {
+                locationFlow.take(2).collect { location ->
+                    if (bestLocation == null || location.accuracy < bestLocation!!.accuracy) {
+                        bestLocation = location
+                    }
+                }
+            }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // Flow might be closed
+        }
+
+        return bestLocation
+    }
 }

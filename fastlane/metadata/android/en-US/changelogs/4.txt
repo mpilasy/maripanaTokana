@@ -1,0 +1,2 @@
+Fixed bug where today's forecast was always showing as fog.
+Bump version to 1.0.3.

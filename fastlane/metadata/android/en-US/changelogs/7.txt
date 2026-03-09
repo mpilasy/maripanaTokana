@@ -1,0 +1,2 @@
+Fixed crash in forecast lists caused by duplicate keys.
+Gradle upgrade.

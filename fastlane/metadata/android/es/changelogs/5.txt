@@ -1,0 +1,3 @@
+Se movieron los selectores de idioma y fuente a la parte superior para una mejor accesibilidad.
+Se corrigieron problemas de compilación de Docker.
+Actualización a la versión 1.0.4.

@@ -1,0 +1,2 @@
+Correction du crash dans les listes de prévisions causé par des clés dupliquées.
+Mise à jour de Gradle.
