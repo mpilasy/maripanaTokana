@@ -50,8 +50,6 @@
 
 <div class="conditions-grid">
 	<!-- Temperature + Precipitation merged card -->
-	<!-- svelte-ignore a11y_click_events_have_key_events -->
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div class="merged-card temp-precip-card" onclick={onToggleUnits}>
 		<div class="tp-side">
 			<span class="card-title">{$_('detail_temperature')}</span>
@@ -88,8 +86,6 @@
 	</div>
 
 	<!-- High / Low merged card -->
-	<!-- svelte-ignore a11y_click_events_have_key_events -->
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div class="merged-card highlow-card" onclick={onToggleUnits}>
 		<span class="highlow-group">
 			<span class="highlow-arrow">↓</span>
@@ -108,8 +104,6 @@
 	</div>
 
 	<!-- Wind merged card -->
-	<!-- svelte-ignore a11y_click_events_have_key_events -->
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div class="merged-card wind-merged-card" onclick={onToggleUnits}>
 		<div class="wind-side">
 			<span class="merged-values">
@@ -154,8 +148,6 @@
 		<span class="card-title">{$_('detail_humidity')}</span>
 		<span class="card-value">{loc(`${data.humidity}%`)}</span>
 		<span class="dew-label">{$_('detail_dewpoint')}</span>
-		<!-- svelte-ignore a11y_click_events_have_key_events -->
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<span class="dew-values" onclick={onToggleUnits}>
 			<span class="dew-primary">{loc(dewDual[0])}</span>
 			<span class="dew-secondary">{loc(dewDual[1])}</span>
