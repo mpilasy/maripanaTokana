@@ -20,8 +20,6 @@
 </script>
 
 <div class="collapsible-section">
-	<!-- svelte-ignore a11y_click_events_have_key_events -->
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div class="section-header" onclick={() => isExpanded = !isExpanded}>
 		<span class="section-title">{title}</span>
 		{#if isExpanded && onShare}
