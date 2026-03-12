@@ -28,23 +28,28 @@ fun OpenMeteoResponse.toDomain(locationName: String): WeatherData {
 
     val nowMillis = System.currentTimeMillis()
 
-    val hourlyForecast = hourly.time.indices
-        .map { i ->
-            val epoch = dateFormat.parse(hourly.time[i])?.time ?: 0L
-            HourlyForecast(
-                time = epoch,
-                temperature = Temperature.fromCelsius(hourly.temperature2m[i]),
-                weatherCode = hourly.weatherCode[i],
-                precipProbability = hourly.precipitationProbability[i],
-                windSpeed = WindSpeed.fromMetersPerSecond(hourly.windSpeed10m.getOrElse(i) { 0.0 }),
-                windDirection = hourly.windDirection10m.getOrElse(i) { 0 },
-                pressure = Pressure.fromHPa(hourly.pressureMsl.getOrElse(i) { 1013.0 }),
-                precipitation = Precipitation.fromMm(hourly.precipitation.getOrElse(i) { 0.0 }),
-            )
-        }
-        .filter { it.time >= nowMillis }
-        .distinctBy { it.time }
-        .take(24)
+    // Find the first index where the time is >= nowMillis to avoid mapping all 168 hours
+    val startIndex = hourly.time.indexOfFirst { time ->
+        (dateFormat.parse(time)?.time ?: 0L) >= nowMillis
+    }.takeIf { it != -1 } ?: 0
+
+    val endIndex = minOf(startIndex + 24, hourly.time.size)
+
+    val hourlyForecast = (startIndex until endIndex).mapNotNull { i ->
+        val epoch = dateFormat.parse(hourly.time[i])?.time ?: 0L
+        if (epoch < nowMillis) return@mapNotNull null // Extra safety in case startIndex logic failed
+
+        HourlyForecast(
+            time = epoch,
+            temperature = Temperature.fromCelsius(hourly.temperature2m.getOrElse(i) { 0.0 }),
+            weatherCode = hourly.weatherCode.getOrElse(i) { 0 },
+            precipProbability = hourly.precipitationProbability.getOrElse(i) { 0 },
+            windSpeed = WindSpeed.fromMetersPerSecond(hourly.windSpeed10m.getOrElse(i) { 0.0 }),
+            windDirection = hourly.windDirection10m.getOrElse(i) { 0 },
+            pressure = Pressure.fromHPa(hourly.pressureMsl.getOrElse(i) { 1013.0 }),
+            precipitation = Precipitation.fromMm(hourly.precipitation.getOrElse(i) { 0.0 }),
+        )
+    }.distinctBy { it.time }
 
     val dailyForecast = daily.time.indices.map { i ->
         val epoch = dayFormat.parse(daily.time[i])?.time ?: 0L
