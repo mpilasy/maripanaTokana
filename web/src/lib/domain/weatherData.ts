@@ -9,6 +9,7 @@ export interface WeatherAlert {
 	level: AlertLevel;
 	title: string;
 	description: string;
+	source: 'official' | 'derived' | 'gdacs';
 }
 
 export interface HourlyForecast {

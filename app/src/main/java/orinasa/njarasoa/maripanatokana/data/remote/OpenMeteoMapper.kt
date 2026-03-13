@@ -12,42 +12,61 @@ import orinasa.njarasoa.maripanatokana.domain.model.WindSpeed
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-fun deriveAlerts(c: OpenMeteoCurrent, d: OpenMeteoDaily): List<WeatherAlert> {
+fun deriveAlerts(c: OpenMeteoCurrent, h: OpenMeteoHourly, d: OpenMeteoDaily): List<WeatherAlert> {
     val alerts = mutableListOf<WeatherAlert>()
+    val nowMillis = System.currentTimeMillis()
+    val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm", Locale.US)
+
+    // Scan next 24 hours of hourly forecast
+    val startIndex = h.time.indexOfFirst {
+        (dateFormat.parse(it)?.time ?: 0L) >= nowMillis
+    }.coerceAtLeast(0)
+    
+    val forecastWindow = h.time.indices.filter { it in startIndex until (startIndex + 24) && it < h.time.size }
+        .map { idx ->
+            Triple(h.weatherCode[idx], h.temperature2m[idx], h.windSpeed10m.getOrElse(idx) { 0.0 })
+        }
+
+    val codes = listOf(c.weatherCode) + forecastWindow.map { it.first }
+    val maxWind = (listOf(c.windSpeed, c.windGusts) + forecastWindow.map { it.third }).maxOrNull() ?: 0.0
+    val maxTemp = (listOf(c.temperature) + d.temperatureMax.take(2)).maxOrNull() ?: 0.0
+    val minTemp = (listOf(c.temperature) + d.temperatureMin.take(2)).minOrNull() ?: 0.0
+
+    fun hasCode(targetCodes: List<Int>) = codes.any { it in targetCodes }
 
     // Thunderstorm: 95, 96, 99
-    if (c.weatherCode in listOf(95, 96, 99)) {
-        alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_thunderstorm", "alert_desc_thunderstorm"))
+    if (hasCode(listOf(95, 96, 99))) {
+        alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_thunderstorm", "alert_desc_thunderstorm", "derived"))
     }
 
     // Heavy Rain: 65, 82
-    if (c.weatherCode in listOf(65, 82)) {
-        alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_heavy_rain", "alert_desc_heavy_rain"))
+    if (hasCode(listOf(65, 82))) {
+        alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_heavy_rain", "alert_desc_heavy_rain", "derived"))
     }
 
     // Heavy Snow: 75, 86
-    if (c.weatherCode in listOf(75, 86)) {
-        alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_heavy_snow", "alert_desc_heavy_snow"))
+    if (hasCode(listOf(75, 86))) {
+        alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_heavy_snow", "alert_desc_heavy_snow", "derived"))
     }
 
     // High Wind
-    if (c.windSpeed > 15.0 || c.windGusts > 25.0) {
-        alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_high_wind", "alert_desc_high_wind"))
+    if (maxWind > 15.0) {
+        alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_high_wind", "alert_desc_high_wind", "derived"))
     }
 
     // Extreme Heat
-    if (c.temperature > 35.0) {
-        alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_extreme_heat", "alert_desc_extreme_heat"))
+    if (maxTemp > 35.0) {
+        alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_extreme_heat", "alert_desc_extreme_heat", "derived"))
     }
 
     // Extreme Cold
-    if (c.temperature < -15.0) {
-        alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_extreme_cold", "alert_desc_extreme_cold"))
+    if (minTemp < -15.0) {
+        alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_extreme_cold", "alert_desc_extreme_cold", "derived"))
     }
 
     // High UV
     if (c.uvIndex > 8.0) {
-        alerts.add(WeatherAlert(AlertLevel.WATCH, "alert_title_high_uv", "alert_desc_high_uv"))
+        alerts.add(WeatherAlert(AlertLevel.WATCH, "alert_title_high_uv", "alert_desc_high_uv", "derived"))
     }
 
     return alerts
@@ -128,6 +147,6 @@ fun OpenMeteoResponse.toDomain(locationName: String): WeatherData {
         dailySunset = dailySunsetMillis,
         hourlyForecast = hourlyForecast,
         dailyForecast = dailyForecast,
-        alerts = deriveAlerts(c, daily),
+        alerts = deriveAlerts(c, hourly, daily),
     )
 }

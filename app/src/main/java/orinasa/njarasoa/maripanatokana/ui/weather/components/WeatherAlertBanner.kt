@@ -22,6 +22,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -69,11 +70,6 @@ fun WeatherAlertBanner(
         else -> Color(0xFFFF4444).copy(alpha = 0.15f)
     }
 
-    val borderColor = when (topLevel) {
-        AlertLevel.WATCH -> Color(0xFFFFA500)
-        else -> Color(0xFFFF4444)
-    }
-
     val topAlert = alerts.find { it.level == topLevel } ?: alerts.first()
 
     Card(
@@ -102,13 +98,35 @@ fun WeatherAlertBanner(
                         fontSize = 18f.s(scale)
                     )
                     Spacer(modifier = Modifier.width(8.sd(scale)))
-                    Text(
-                        text = stringResource(context.resources.getIdentifier(topAlert.titleKey, "string", context.packageName)),
-                        fontSize = 16f.s(scale),
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = displayFont,
-                        color = Color.White
-                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            val title = context.resources.getIdentifier(topAlert.titleKey, "string", context.packageName).let { id ->
+                                if (id != 0) stringResource(id) else topAlert.titleKey
+                            }
+                            Text(
+                                text = title,
+                                fontSize = 16f.s(scale),
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = displayFont,
+                                color = Color.White
+                            )
+                            if (topAlert.source != "derived") {
+                                Spacer(modifier = Modifier.width(6.sd(scale)))
+                                Surface(
+                                    color = Color.White.copy(alpha = 0.2f),
+                                    shape = RoundedCornerShape(4.dp)
+                                ) {
+                                    Text(
+                                        text = topAlert.source.uppercase(),
+                                        fontSize = 10f.s(scale),
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = Color.White,
+                                        modifier = Modifier.padding(horizontal = 4.sd(scale), vertical = 2.sd(scale))
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
                 
                 Row(
@@ -150,16 +168,40 @@ fun WeatherAlertBanner(
                             HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
                         }
                         Column {
-                            Text(
-                                text = stringResource(context.resources.getIdentifier(alert.titleKey, "string", context.packageName)),
-                                fontSize = 14f.s(scale),
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = bodyFont,
-                                color = Color.White
-                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                val title = context.resources.getIdentifier(alert.titleKey, "string", context.packageName).let { id ->
+                                    if (id != 0) stringResource(id) else alert.titleKey
+                                }
+                                Text(
+                                    text = title,
+                                    fontSize = 14f.s(scale),
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = bodyFont,
+                                    color = Color.White,
+                                    modifier = Modifier.weight(1f, fill = false)
+                                )
+                                if (alert.source != "derived") {
+                                    Spacer(modifier = Modifier.width(6.sd(scale)))
+                                    Surface(
+                                        color = Color.White.copy(alpha = 0.2f),
+                                        shape = RoundedCornerShape(4.dp)
+                                    ) {
+                                        Text(
+                                            text = alert.source.uppercase(),
+                                            fontSize = 9f.s(scale),
+                                            fontWeight = FontWeight.ExtraBold,
+                                            color = Color.White,
+                                            modifier = Modifier.padding(horizontal = 4.sd(scale), vertical = 1.sd(scale))
+                                        )
+                                    }
+                                }
+                            }
                             Spacer(modifier = Modifier.height(4.sd(scale)))
+                            val desc = context.resources.getIdentifier(alert.descKey, "string", context.packageName).let { id ->
+                                if (id != 0) stringResource(id) else alert.descKey
+                            }
                             Text(
-                                text = stringResource(context.resources.getIdentifier(alert.descKey, "string", context.packageName)),
+                                text = desc,
                                 fontSize = 13f.s(scale),
                                 fontFamily = bodyFont,
                                 color = Color.White.copy(alpha = 0.8f),

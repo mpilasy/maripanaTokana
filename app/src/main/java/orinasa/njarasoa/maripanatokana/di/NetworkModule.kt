@@ -10,6 +10,8 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import orinasa.njarasoa.maripanatokana.BuildConfig
+import orinasa.njarasoa.maripanatokana.data.remote.GdacsApiService
+import orinasa.njarasoa.maripanatokana.data.remote.NwsApiService
 import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoApiService
 import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit
@@ -46,18 +48,37 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideRetrofit(okHttpClient: OkHttpClient, json: Json): Retrofit {
+    fun provideOpenMeteoApiService(okHttpClient: OkHttpClient, json: Json): OpenMeteoApiService {
         val contentType = "application/json".toMediaType()
         return Retrofit.Builder()
             .baseUrl("https://api.open-meteo.com/")
             .client(okHttpClient)
             .addConverterFactory(json.asConverterFactory(contentType))
             .build()
+            .create(OpenMeteoApiService::class.java)
     }
 
     @Provides
     @Singleton
-    fun provideOpenMeteoApiService(retrofit: Retrofit): OpenMeteoApiService {
-        return retrofit.create(OpenMeteoApiService::class.java)
+    fun provideNwsApiService(okHttpClient: OkHttpClient, json: Json): NwsApiService {
+        val contentType = "application/json".toMediaType()
+        return Retrofit.Builder()
+            .baseUrl("https://api.weather.gov/")
+            .client(okHttpClient)
+            .addConverterFactory(json.asConverterFactory(contentType))
+            .build()
+            .create(NwsApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGdacsApiService(okHttpClient: OkHttpClient, json: Json): GdacsApiService {
+        val contentType = "application/json".toMediaType()
+        return Retrofit.Builder()
+            .baseUrl("https://www.gdacs.org/")
+            .client(okHttpClient)
+            .addConverterFactory(json.asConverterFactory(contentType))
+            .build()
+            .create(GdacsApiService::class.java)
     }
 }

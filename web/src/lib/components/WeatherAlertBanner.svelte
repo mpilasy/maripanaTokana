@@ -30,7 +30,10 @@
 						&#10071;
 					{/if}
 				</span>
-				<span class="alert-title">{$_(topAlert.title)}</span>
+				<span class="alert-title">{$_(topAlert.title) || topAlert.title}</span>
+				{#if topAlert.source !== 'derived'}
+					<span class="source-badge">{topAlert.source.toUpperCase()}</span>
+				{/if}
 			</div>
 			<button class="toggle-btn" onclick={() => isExpanded = !isExpanded}>
 				{isExpanded ? $_('alert_hide_details') : $_('alert_show_details')}
@@ -42,8 +45,13 @@
 			<div class="alert-details" transition:slide={{ duration: 300 }}>
 				{#each alerts as alert}
 					<div class="alert-item">
-						<div class="item-title">{$_(alert.title)}</div>
-						<div class="item-desc">{$_(alert.description)}</div>
+						<div class="item-title-row">
+							<div class="item-title">{$_(alert.title) || alert.title}</div>
+							{#if alert.source !== 'derived'}
+								<span class="source-badge">{alert.source.toUpperCase()}</span>
+							{/if}
+						</div>
+						<div class="item-desc">{$_(alert.description) || alert.description}</div>
 					</div>
 				{/each}
 			</div>
@@ -96,6 +104,17 @@
 		color: white;
 	}
 
+	.source-badge {
+		background: rgba(255, 255, 255, 0.2);
+		padding: 2px 6px;
+		border-radius: 4px;
+		font-size: 10px;
+		font-weight: 800;
+		color: white;
+		margin-left: 4px;
+		letter-spacing: 0.5px;
+	}
+
 	.toggle-btn {
 		background: rgba(255, 255, 255, 0.1);
 		border: none;
@@ -134,6 +153,13 @@
 	.alert-item {
 		padding-top: 12px;
 		border-top: 1px solid rgba(255, 255, 255, 0.1);
+	}
+
+	.item-title-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 4px;
 	}
 
 	.alert-item:first-child {

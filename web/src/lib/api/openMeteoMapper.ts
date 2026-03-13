@@ -13,42 +13,59 @@ function parseIsoDate(iso: string): number {
 	return new Date(iso + 'T00:00:00').getTime();
 }
 
-function deriveAlerts(c: OpenMeteoCurrent, d: OpenMeteoDaily): WeatherAlert[] {
+function deriveAlerts(c: OpenMeteoCurrent, h: OpenMeteoHourly, d: OpenMeteoDaily): WeatherAlert[] {
 	const alerts: WeatherAlert[] = [];
+	const nowMillis = Date.now();
+	
+	// Scan next 24 hours of hourly forecast
+	const startIndex = h.time.findIndex(t => new Date(t).getTime() >= nowMillis);
+	const forecastWindow = h.time.slice(startIndex, startIndex + 24).map((_, i) => {
+		const idx = startIndex + i;
+		return {
+			code: h.weather_code[idx],
+			temp: h.temperature_2m[idx],
+			wind: h.wind_speed_10m[idx]
+		};
+	});
+
+	const hasCode = (codes: number[]) => [c.weather_code, ...forecastWindow.map(f => f.code)].some(code => codes.includes(code));
+	const maxWind = Math.max(c.wind_speed_10m, c.wind_gusts_10m ?? 0, ...forecastWindow.map(f => f.wind));
+	const maxTemp = Math.max(c.temperature_2m, ...d.temperature_2m_max.slice(0, 2));
+	const minTemp = Math.min(c.temperature_2m, ...d.temperature_2m_min.slice(0, 2));
 
 	// Thunderstorm: 95, 96, 99
-	if ([95, 96, 99].includes(c.weather_code)) {
-		alerts.push({ level: 'warning', title: 'alert_title_thunderstorm', description: 'alert_desc_thunderstorm' });
+	if (hasCode([95, 96, 99])) {
+		alerts.push({ level: 'warning', title: 'alert_title_thunderstorm', description: 'alert_desc_thunderstorm', source: 'derived' });
 	}
 
 	// Heavy Rain: 65, 82
-	if ([65, 82].includes(c.weather_code)) {
-		alerts.push({ level: 'warning', title: 'alert_title_heavy_rain', description: 'alert_desc_heavy_rain' });
+	if (hasCode([65, 82])) {
+		alerts.push({ level: 'warning', title: 'alert_title_heavy_rain', description: 'alert_desc_heavy_rain', source: 'derived' });
 	}
 
 	// Heavy Snow: 75, 86
-	if ([75, 86].includes(c.weather_code)) {
-		alerts.push({ level: 'warning', title: 'alert_title_heavy_snow', description: 'alert_desc_heavy_snow' });
+	if (hasCode([75, 86])) {
+		alerts.push({ level: 'warning', title: 'alert_title_heavy_snow', description: 'alert_desc_heavy_snow', source: 'derived' });
 	}
 
 	// High Wind
-	if (c.wind_speed_10m > 15 || (c.wind_gusts_10m ?? 0) > 25) {
-		alerts.push({ level: 'warning', title: 'alert_title_high_wind', description: 'alert_desc_high_wind' });
+	if (maxWind > 15) {
+		alerts.push({ level: 'warning', title: 'alert_title_high_wind', description: 'alert_desc_high_wind', source: 'derived' });
 	}
 
 	// Extreme Heat
-	if (c.temperature_2m > 35) {
-		alerts.push({ level: 'warning', title: 'alert_title_extreme_heat', description: 'alert_desc_extreme_heat' });
+	if (maxTemp > 35) {
+		alerts.push({ level: 'warning', title: 'alert_title_extreme_heat', description: 'alert_desc_extreme_heat', source: 'derived' });
 	}
 
 	// Extreme Cold
-	if (c.temperature_2m < -15) {
-		alerts.push({ level: 'warning', title: 'alert_title_extreme_cold', description: 'alert_desc_extreme_cold' });
+	if (minTemp < -15) {
+		alerts.push({ level: 'warning', title: 'alert_title_extreme_cold', description: 'alert_desc_extreme_cold', source: 'derived' });
 	}
 
 	// High UV
 	if (c.uv_index > 8) {
-		alerts.push({ level: 'watch', title: 'alert_title_high_uv', description: 'alert_desc_high_uv' });
+		alerts.push({ level: 'watch', title: 'alert_title_high_uv', description: 'alert_desc_high_uv', source: 'derived' });
 	}
 
 	return alerts;
@@ -122,7 +139,7 @@ export function mapToWeatherData(response: OpenMeteoResponse, locationName: stri
 		dailySunset: dailySunsetMillis,
 		hourlyForecast,
 		dailyForecast,
-		alerts: deriveAlerts(c, d),
+		alerts: deriveAlerts(c, h, d),
 		timestamp: Date.now(),
 	};
 }
