@@ -1,5 +1,6 @@
 package orinasa.njarasoa.maripanatokana.data.remote
 
+import kotlinx.serialization.Serializable
 import retrofit2.http.GET
 import retrofit2.http.Query
 
@@ -12,15 +13,18 @@ interface GdacsApiService {
     ): GdacsAlertResponse
 }
 
+@Serializable
 data class GdacsAlertResponse(
     val features: List<GdacsFeature>
 )
 
+@Serializable
 data class GdacsFeature(
     val properties: GdacsProperties,
     val geometry: GdacsGeometry
 )
 
+@Serializable
 data class GdacsProperties(
     val name: String,
     val eventtype: String,
@@ -28,6 +32,7 @@ data class GdacsProperties(
     val description: String
 )
 
+@Serializable
 data class GdacsGeometry(
     val coordinates: List<Double> // [lon, lat]
 )

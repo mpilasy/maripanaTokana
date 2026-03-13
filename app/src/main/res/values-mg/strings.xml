@@ -71,7 +71,7 @@
     <string name="alert_desc_extreme_cold">Mety hiteraka loza hatsiaka ambany be.</string>
     <string name="alert_title_high_uv">Fampitandremana UV</string>
     <string name="alert_desc_high_uv">Avo ny tahan\'ny UV anio. Mampiasà fiarovana amin\'ny masoandro.</string>
-    <string name="alert_show_details">Asehoy ny antsipiriany</string>
+    <string name="alert_show_details">Asehoy</string>
     <string name="alert_hide_details">Afeno</string>
     <string name="credits_weather_data">Fankasitrahana:</string>
     <string name="widget_description">Toetrandro ankehitriny miaraka amin\'ny mari-pana roa sosony</string>

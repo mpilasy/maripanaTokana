@@ -1,5 +1,6 @@
 package orinasa.njarasoa.maripanatokana.data.remote
 
+import kotlinx.serialization.Serializable
 import retrofit2.http.GET
 import retrofit2.http.Headers
 import retrofit2.http.Query
@@ -12,17 +13,20 @@ interface NwsApiService {
     ): NwsAlertResponse
 }
 
+@Serializable
 data class NwsAlertResponse(
     val features: List<NwsFeature>
 )
 
+@Serializable
 data class NwsFeature(
     val properties: NwsProperties
 )
 
+@Serializable
 data class NwsProperties(
     val severity: String,
     val event: String,
     val description: String,
-    val instruction: String?
+    val instruction: String? = null
 )

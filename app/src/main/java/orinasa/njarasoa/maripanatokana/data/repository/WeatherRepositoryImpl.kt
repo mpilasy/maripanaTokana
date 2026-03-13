@@ -30,7 +30,9 @@ class WeatherRepositoryImpl @Inject constructor(
             val weatherDeferred = async { apiService.getForecast(latitude = lat, longitude = lon) }
             val nwsDeferred = async { 
                 try {
-                    nwsApiService.getActiveAlerts("$lat,$lon").features.map { f ->
+                    // Use Locale.US to ensure dot decimal separator for NWS API
+                    val point = String.format(Locale.US, "%.4f,%.4f", lat, lon)
+                    nwsApiService.getActiveAlerts(point).features.map { f ->
                         val p = f.properties
                         val level = if (p.severity == "Extreme" || p.severity == "Severe") AlertLevel.WARNING else AlertLevel.WATCH
                         WeatherAlert(level, p.event, p.description + (p.instruction?.let { "\n\n$it" } ?: ""), "official")
@@ -76,8 +78,9 @@ class WeatherRepositoryImpl @Inject constructor(
             }
             
             val weatherData = response.toDomain(locationName)
+            // Combine all alerts and remove exact duplicates based on title and source
             val combinedAlerts = (nwsAlerts + gdacsAlerts + weatherData.alerts)
-                .distinctBy { it.titleKey }
+                .distinctBy { it.titleKey + it.source }
             
             Result.success(weatherData.copy(alerts = combinedAlerts))
         } catch (e: Exception) {
