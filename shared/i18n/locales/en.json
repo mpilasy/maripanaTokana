@@ -92,6 +92,8 @@
 		"widget_description_large": "Weather details with feels-like, humidity, wind and min/max",
 		"cd_change_font": "Change font",
 		"cd_change_language": "Change language",
+		"cd_toggle_units": "Toggle units",
+		"cd_cycle_mode": "Cycle display mode",
 		"cd_share": "Share",
 		"cd_collapse": "Collapse",
 		"cd_expand": "Expand",

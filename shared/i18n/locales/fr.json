@@ -113,6 +113,8 @@
 		"widget_description_large": "Details meteo avec ressenti, humidite, vent et min/max",
 		"cd_change_font": "Changer la police",
 		"cd_change_language": "Changer la langue",
+		"cd_toggle_units": "Toggle units",
+		"cd_cycle_mode": "Cycle display mode",
 		"cd_collapse": "Réduire",
 		"cd_expand": "Développer",
 		"detail_no_precip": "Aucune",

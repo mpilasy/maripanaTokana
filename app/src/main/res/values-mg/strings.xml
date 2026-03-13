@@ -77,7 +77,9 @@
     <string name="widget_description">Toetrandro ankehitriny miaraka amin\'ny mari-pana roa sosony</string>
     <string name="widget_description_large">Antsipiriany momba ny toetrandro: tsapa, hamandoana, rivotra ary ambany/ambony</string>
     <string name="cd_change_font">Ovay ny endri-tsoratra</string>
-    <string name="cd_change_language">Hanova ny fiteny</string>
+    <string name="cd_change_language">Ovay ny fiteny</string>
+    <string name="cd_toggle_units">Ovay ny mari-drefy</string>
+    <string name="cd_cycle_mode">Ovay ny fomba fampiseho</string>
     <string name="cd_collapse">Akatony</string>
     <string name="cd_expand">Velaro</string>
     <string name="detail_no_precip">Tsy misy</string>

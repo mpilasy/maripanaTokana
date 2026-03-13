@@ -78,6 +78,8 @@
     <string name="widget_description_large">تفاصيل الطقس مع الإحساس بالحرارة والرطوبة والرياح والحد الأدنى/الأقصى</string>
     <string name="cd_change_font">تغيير الخط</string>
     <string name="cd_change_language">تغيير اللغة</string>
+    <string name="cd_toggle_units">Toggle units</string>
+    <string name="cd_cycle_mode">Cycle display mode</string>
     <string name="cd_collapse">طي</string>
     <string name="cd_expand">توسيع</string>
     <string name="detail_no_precip">لا يوجد</string>

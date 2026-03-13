@@ -113,6 +113,8 @@
 		"widget_description_large": "Detalles del clima con sensacion termica, humedad, viento y min/max",
 		"cd_change_font": "Cambiar fuente",
 		"cd_change_language": "Cambiar idioma",
+		"cd_toggle_units": "Toggle units",
+		"cd_cycle_mode": "Cycle display mode",
 		"cd_collapse": "Contraer",
 		"cd_expand": "Expandir",
 		"detail_no_precip": "Ninguna",

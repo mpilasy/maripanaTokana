@@ -113,6 +113,8 @@
 		"widget_description_large": "天气详情，包含体感温度、湿度、风速和最低/最高温",
 		"cd_change_font": "更换字体",
 		"cd_change_language": "更改语言",
+		"cd_toggle_units": "Toggle units",
+		"cd_cycle_mode": "Cycle display mode",
 		"cd_collapse": "收起",
 		"cd_expand": "展开",
 		"detail_no_precip": "无",

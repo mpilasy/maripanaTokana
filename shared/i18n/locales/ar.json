@@ -113,6 +113,8 @@
 		"widget_description_large": "تفاصيل الطقس مع الإحساس بالحرارة والرطوبة والرياح والحد الأدنى/الأقصى",
 		"cd_change_font": "تغيير الخط",
 		"cd_change_language": "تغيير اللغة",
+		"cd_toggle_units": "Toggle units",
+		"cd_cycle_mode": "Cycle display mode",
 		"cd_collapse": "طي",
 		"cd_expand": "توسيع",
 		"detail_no_precip": "لا يوجد",
