@@ -91,6 +91,7 @@ import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFont
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFontFeatures
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 import orinasa.njarasoa.maripanatokana.ui.theme.SkyBlue
+import orinasa.njarasoa.maripanatokana.ui.weather.components.WeatherAlertBanner
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -181,6 +182,9 @@ internal fun WeatherContent(
                 .verticalScroll(rememberScrollState())
                 .padding(vertical = 24.sd(scale))
         ) {
+            // Weather Alert Banner
+            WeatherAlertBanner(alerts = data.alerts, localizeDigits = localizeDigits)
+
             // Hero Card
             val graphicsLayer = rememberGraphicsLayer()
             val coroutineScope = rememberCoroutineScope()

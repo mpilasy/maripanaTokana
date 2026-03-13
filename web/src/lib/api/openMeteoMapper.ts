@@ -1,5 +1,5 @@
-import type { OpenMeteoResponse } from './openMeteoTypes';
-import type { WeatherData, HourlyForecast, DailyForecast } from '../domain/weatherData';
+import type { OpenMeteoResponse, OpenMeteoCurrent, OpenMeteoDaily } from './openMeteoTypes';
+import type { WeatherData, HourlyForecast, DailyForecast, WeatherAlert } from '../domain/weatherData';
 import { Temperature } from '../domain/temperature';
 import { Pressure } from '../domain/pressure';
 import { WindSpeed } from '../domain/windSpeed';
@@ -11,6 +11,47 @@ function parseIsoDateTime(iso: string): number {
 
 function parseIsoDate(iso: string): number {
 	return new Date(iso + 'T00:00:00').getTime();
+}
+
+function deriveAlerts(c: OpenMeteoCurrent, d: OpenMeteoDaily): WeatherAlert[] {
+	const alerts: WeatherAlert[] = [];
+
+	// Thunderstorm: 95, 96, 99
+	if ([95, 96, 99].includes(c.weather_code)) {
+		alerts.push({ level: 'warning', title: 'alert_title_thunderstorm', description: 'alert_desc_thunderstorm' });
+	}
+
+	// Heavy Rain: 65, 82
+	if ([65, 82].includes(c.weather_code)) {
+		alerts.push({ level: 'warning', title: 'alert_title_heavy_rain', description: 'alert_desc_heavy_rain' });
+	}
+
+	// Heavy Snow: 75, 86
+	if ([75, 86].includes(c.weather_code)) {
+		alerts.push({ level: 'warning', title: 'alert_title_heavy_snow', description: 'alert_desc_heavy_snow' });
+	}
+
+	// High Wind
+	if (c.wind_speed_10m > 15 || (c.wind_gusts_10m ?? 0) > 25) {
+		alerts.push({ level: 'warning', title: 'alert_title_high_wind', description: 'alert_desc_high_wind' });
+	}
+
+	// Extreme Heat
+	if (c.temperature_2m > 35) {
+		alerts.push({ level: 'warning', title: 'alert_title_extreme_heat', description: 'alert_desc_extreme_heat' });
+	}
+
+	// Extreme Cold
+	if (c.temperature_2m < -15) {
+		alerts.push({ level: 'warning', title: 'alert_title_extreme_cold', description: 'alert_desc_extreme_cold' });
+	}
+
+	// High UV
+	if (c.uv_index > 8) {
+		alerts.push({ level: 'watch', title: 'alert_title_high_uv', description: 'alert_desc_high_uv' });
+	}
+
+	return alerts;
 }
 
 export function mapToWeatherData(response: OpenMeteoResponse, locationName: string): WeatherData {
@@ -81,6 +122,7 @@ export function mapToWeatherData(response: OpenMeteoResponse, locationName: stri
 		dailySunset: dailySunsetMillis,
 		hourlyForecast,
 		dailyForecast,
+		alerts: deriveAlerts(c, d),
 		timestamp: Date.now(),
 	};
 }

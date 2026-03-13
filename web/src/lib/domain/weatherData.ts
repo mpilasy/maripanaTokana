@@ -3,6 +3,14 @@ import type { Pressure } from './pressure';
 import type { WindSpeed } from './windSpeed';
 import type { Precipitation } from './precipitation';
 
+export type AlertLevel = 'watch' | 'warning' | 'emergency';
+
+export interface WeatherAlert {
+	level: AlertLevel;
+	title: string;
+	description: string;
+}
+
 export interface HourlyForecast {
 	time: number; // epoch millis
 	temperature: Temperature;
@@ -49,5 +57,6 @@ export interface WeatherData {
 	dailySunset: number[]; // epoch millis per day
 	hourlyForecast: HourlyForecast[];
 	dailyForecast: DailyForecast[];
+	alerts: WeatherAlert[];
 	timestamp: number; // epoch millis
 }

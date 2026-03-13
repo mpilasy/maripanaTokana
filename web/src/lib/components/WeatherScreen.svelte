@@ -5,6 +5,7 @@
 	import { SUPPORTED_LOCALES, localizeDigits } from '$lib/i18n/index';
 	import { fontPairings } from '$lib/fonts';
 	import HeroCard from './HeroCard.svelte';
+	import WeatherAlertBanner from './WeatherAlertBanner.svelte';
 	import HourlyForecast from './HourlyForecast.svelte';
 	import DailyForecast from './DailyForecast.svelte';
 	import CurrentConditions from './CurrentConditions.svelte';
@@ -159,6 +160,7 @@
 				ontouchmove={handleTouchMove}
 				ontouchend={handleTouchEnd}
 			>
+				<WeatherAlertBanner alerts={data.alerts} />
 				<HeroCard {data} metricPrimary={$metricPrimary} {loc} onToggleUnits={toggleUnits} onShare={handleShare} />
 
 				{#if data.hourlyForecast.length > 0}

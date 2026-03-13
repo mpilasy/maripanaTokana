@@ -1,14 +1,57 @@
 package orinasa.njarasoa.maripanatokana.data.remote
 
+import orinasa.njarasoa.maripanatokana.domain.model.AlertLevel
 import orinasa.njarasoa.maripanatokana.domain.model.DailyForecast
 import orinasa.njarasoa.maripanatokana.domain.model.HourlyForecast
 import orinasa.njarasoa.maripanatokana.domain.model.Precipitation
 import orinasa.njarasoa.maripanatokana.domain.model.Pressure
 import orinasa.njarasoa.maripanatokana.domain.model.Temperature
+import orinasa.njarasoa.maripanatokana.domain.model.WeatherAlert
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.model.WindSpeed
 import java.text.SimpleDateFormat
 import java.util.Locale
+
+fun deriveAlerts(c: OpenMeteoCurrent, d: OpenMeteoDaily): List<WeatherAlert> {
+    val alerts = mutableListOf<WeatherAlert>()
+
+    // Thunderstorm: 95, 96, 99
+    if (c.weatherCode in listOf(95, 96, 99)) {
+        alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_thunderstorm", "alert_desc_thunderstorm"))
+    }
+
+    // Heavy Rain: 65, 82
+    if (c.weatherCode in listOf(65, 82)) {
+        alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_heavy_rain", "alert_desc_heavy_rain"))
+    }
+
+    // Heavy Snow: 75, 86
+    if (c.weatherCode in listOf(75, 86)) {
+        alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_heavy_snow", "alert_desc_heavy_snow"))
+    }
+
+    // High Wind
+    if (c.windSpeed > 15.0 || c.windGusts > 25.0) {
+        alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_high_wind", "alert_desc_high_wind"))
+    }
+
+    // Extreme Heat
+    if (c.temperature > 35.0) {
+        alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_extreme_heat", "alert_desc_extreme_heat"))
+    }
+
+    // Extreme Cold
+    if (c.temperature < -15.0) {
+        alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_extreme_cold", "alert_desc_extreme_cold"))
+    }
+
+    // High UV
+    if (c.uvIndex > 8.0) {
+        alerts.add(WeatherAlert(AlertLevel.WATCH, "alert_title_high_uv", "alert_desc_high_uv"))
+    }
+
+    return alerts
+}
 
 fun OpenMeteoResponse.toDomain(locationName: String): WeatherData {
     val c = current
@@ -85,5 +128,6 @@ fun OpenMeteoResponse.toDomain(locationName: String): WeatherData {
         dailySunset = dailySunsetMillis,
         hourlyForecast = hourlyForecast,
         dailyForecast = dailyForecast,
+        alerts = deriveAlerts(c, daily),
     )
 }
