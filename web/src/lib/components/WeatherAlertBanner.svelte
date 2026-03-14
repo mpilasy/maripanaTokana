@@ -11,17 +11,19 @@
 	let isExpanded = $state(false);
 
 	// Determine the most severe level present
-	const levels = alerts.map(a => a.level);
-	const topLevel = levels.includes('emergency') ? 'emergency'
+	let levels = $derived(alerts.map(a => a.level));
+	let topLevel = $derived(levels.includes('emergency') ? 'emergency'
 		: levels.includes('warning') ? 'warning'
-		: 'watch';
+		: 'watch');
 
-	const topAlert = alerts.find(a => a.level === topLevel) || alerts[0];
+	let topAlert = $derived(alerts.find(a => a.level === topLevel) || alerts[0]);
 </script>
 
-{#if alerts.length > 0}
+{#if alerts.length > 0 && topAlert}
 	<div class="alert-banner" class:watch={topLevel === 'watch'} class:warning={topLevel === 'warning' || topLevel === 'emergency'}>
-		<div class="banner-header">
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div class="banner-header" onclick={() => isExpanded = !isExpanded}>
 			<div class="icon-text">
 				<span class="alert-icon">
 					{#if topLevel === 'watch'}
@@ -35,10 +37,8 @@
 					<span class="source-badge">{topAlert.source.toUpperCase()}</span>
 				{/if}
 			</div>
-			<button class="toggle-btn" onclick={() => isExpanded = !isExpanded}>
-				{isExpanded ? $_('alert_hide_details') : $_('alert_show_details')}
-				<span class="chevron" class:expanded={isExpanded}>&#9660;</span>
-			</button>
+			<span class="spacer"></span>
+			<span class="chevron" class:expanded={isExpanded}>&#9660;</span>
 		</div>
 
 		{#if isExpanded}
@@ -85,12 +85,17 @@
 		justify-content: space-between;
 		padding: 12px 16px;
 		gap: 12px;
+		cursor: pointer;
+		user-select: none;
 	}
 
 	.icon-text {
 		display: flex;
 		align-items: center;
 		gap: 8px;
+	}
+
+	.spacer {
 		flex: 1;
 	}
 
@@ -115,32 +120,15 @@
 		letter-spacing: 0.5px;
 	}
 
-	.toggle-btn {
-		background: rgba(255, 255, 255, 0.1);
-		border: none;
-		border-radius: 20px;
-		padding: 4px 12px;
-		color: rgba(255, 255, 255, 0.9);
-		font-size: 12px;
-		font-weight: 600;
-		cursor: pointer;
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		transition: background 0.2s;
-	}
-
-	.toggle-btn:hover {
-		background: rgba(255, 255, 255, 0.2);
-	}
-
 	.chevron {
-		font-size: 10px;
+		color: rgba(255, 255, 255, 0.7);
+		font-size: 12px;
 		transition: transform 0.3s ease;
+		transform: rotate(-90deg);
 	}
 
 	.chevron.expanded {
-		transform: rotate(180deg);
+		transform: rotate(0deg);
 	}
 
 	.alert-details {
