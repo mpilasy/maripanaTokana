@@ -82,6 +82,14 @@ android {
     defaultConfig {
         val gitHash = providers.exec { commandLine("git", "rev-parse", "--short", "HEAD") }.standardOutput.asText.get().trim()
         buildConfigField("String", "GIT_HASH", "\"$gitHash\"")
+
+        val localProperties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localProperties.load(localPropertiesFile.inputStream())
+        }
+        val weatherApiKey = localProperties.getProperty("WEATHERAPI_KEY") ?: "dummy_key"
+        buildConfigField("String", "WEATHERAPI_KEY", "\"$weatherApiKey\"")
     }
 }
 
