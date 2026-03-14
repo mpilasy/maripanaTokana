@@ -17,6 +17,11 @@ val keystoreProperties = Properties().apply {
     if (keystorePropertiesFile.exists()) load(keystorePropertiesFile.inputStream())
 }
 
+val localPropertiesFile = rootProject.file("local.properties")
+val localProperties = Properties().apply {
+    if (localPropertiesFile.exists()) load(localPropertiesFile.inputStream())
+}
+
 
 android {
     namespace = "orinasa.njarasoa.maripanatokana"
@@ -82,6 +87,7 @@ android {
     defaultConfig {
         val gitHash = providers.exec { commandLine("git", "rev-parse", "--short", "HEAD") }.standardOutput.asText.get().trim()
         buildConfigField("String", "GIT_HASH", "\"$gitHash\"")
+        buildConfigField("String", "WEATHER_API_KEY", "\"${localProperties.getProperty("WEATHER_API_KEY", "")}\"")
     }
 }
 
