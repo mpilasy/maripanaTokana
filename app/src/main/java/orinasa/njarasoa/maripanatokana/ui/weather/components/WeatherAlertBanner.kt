@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -129,29 +128,14 @@ fun WeatherAlertBanner(
                     }
                 }
                 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowDown,
+                    contentDescription = null,
                     modifier = Modifier
-                        .background(Color.White.copy(alpha = 0.1f), RoundedCornerShape(20.dp))
-                        .padding(horizontal = 12.sd(scale), vertical = 4.sd(scale))
-                ) {
-                    Text(
-                        text = stringResource(if (expanded) R.string.alert_hide_details else R.string.alert_show_details),
-                        fontSize = 12f.s(scale),
-                        fontWeight = FontWeight.SemiBold,
-                        fontFamily = bodyFont,
-                        color = Color.White.copy(alpha = 0.9f)
-                    )
-                    Spacer(modifier = Modifier.width(6.sd(scale)))
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(10.sd(scale))
-                            .rotate(if (expanded) 180f else 0f),
-                        tint = Color.White.copy(alpha = 0.7f)
-                    )
-                }
+                        .size(20.sd(scale))
+                        .rotate(if (expanded) 0f else -90f),
+                    tint = Color.White.copy(alpha = 0.7f)
+                )
             }
 
             AnimatedVisibility(
