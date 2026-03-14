@@ -6,7 +6,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import orinasa.njarasoa.maripanatokana.data.remote.GdacsApiService
-import orinasa.njarasoa.maripanatokana.data.remote.NwsApiService
+import orinasa.njarasoa.maripanatokana.data.remote.WeatherApiAlertService
 import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoApiService
 import orinasa.njarasoa.maripanatokana.data.remote.toDomain
 import orinasa.njarasoa.maripanatokana.domain.model.AlertLevel
@@ -17,10 +17,12 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
+import javax.inject.Named
 
 class WeatherRepositoryImpl @Inject constructor(
     private val apiService: OpenMeteoApiService,
-    private val nwsApiService: NwsApiService,
+    private val weatherApiAlertService: WeatherApiAlertService,
+    @Named("weatherApiKey") private val weatherApiKey: String,
     private val gdacsApiService: GdacsApiService,
     private val geocoder: Geocoder,
 ) : WeatherRepository {
@@ -28,15 +30,13 @@ class WeatherRepositoryImpl @Inject constructor(
     override suspend fun getWeather(lat: Double, lon: Double): Result<WeatherData> = coroutineScope {
         try {
             val weatherDeferred = async { apiService.getForecast(latitude = lat, longitude = lon) }
-            val nwsDeferred = async { 
+            val weatherApiAlertsDeferred = async {
                 try {
-                    // Use Locale.US to ensure dot decimal separator for NWS API
-                    val point = String.format(Locale.US, "%.4f,%.4f", lat, lon)
-                    nwsApiService.getActiveAlerts(point).features.map { f ->
-                        val p = f.properties
-                        val level = if (p.severity == "Extreme" || p.severity == "Severe") AlertLevel.WARNING else AlertLevel.WATCH
-                        WeatherAlert(level, p.event, p.description + (p.instruction?.let { "\n\n$it" } ?: ""), "official")
-                    }
+                    val location = String.format(Locale.US, "%.4f,%.4f", lat, lon)
+                    weatherApiAlertService.getForecastWithAlerts(weatherApiKey, location).alerts?.alert?.map { a ->
+                        val level = if (a.severity == "Extreme" || a.severity == "Severe") AlertLevel.WARNING else AlertLevel.WATCH
+                        WeatherAlert(level, a.event, a.desc + (a.instruction.takeIf { it.isNotBlank() }?.let { "\n\n$it" } ?: ""), "official")
+                    } ?: emptyList()
                 } catch (e: Exception) {
                     emptyList()
                 }
@@ -62,7 +62,7 @@ class WeatherRepositoryImpl @Inject constructor(
             }
 
             val response = weatherDeferred.await()
-            val nwsAlerts = nwsDeferred.await()
+            val weatherApiAlerts = weatherApiAlertsDeferred.await()
             val gdacsAlerts = gdacsDeferred.await()
 
             val locationName = try {
@@ -79,7 +79,7 @@ class WeatherRepositoryImpl @Inject constructor(
             
             val weatherData = response.toDomain(locationName)
             // Combine all alerts and remove exact duplicates based on title and source
-            val combinedAlerts = (nwsAlerts + gdacsAlerts + weatherData.alerts)
+            val combinedAlerts = (weatherApiAlerts + gdacsAlerts + weatherData.alerts)
                 .distinctBy { it.titleKey + it.source }
             
             Result.success(weatherData.copy(alerts = combinedAlerts))
