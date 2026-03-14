@@ -129,29 +129,16 @@ fun WeatherAlertBanner(
                     }
                 }
                 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
+                Spacer(modifier = Modifier.width(16.sd(scale)))
+
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowDown,
+                    contentDescription = null,
                     modifier = Modifier
-                        .background(Color.White.copy(alpha = 0.1f), RoundedCornerShape(20.dp))
-                        .padding(horizontal = 12.sd(scale), vertical = 4.sd(scale))
-                ) {
-                    Text(
-                        text = stringResource(if (expanded) R.string.alert_hide_details else R.string.alert_show_details),
-                        fontSize = 12f.s(scale),
-                        fontWeight = FontWeight.SemiBold,
-                        fontFamily = bodyFont,
-                        color = Color.White.copy(alpha = 0.9f)
-                    )
-                    Spacer(modifier = Modifier.width(6.sd(scale)))
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(10.sd(scale))
-                            .rotate(if (expanded) 180f else 0f),
-                        tint = Color.White.copy(alpha = 0.7f)
-                    )
-                }
+                        .size(24.sd(scale))
+                        .rotate(if (expanded) 180f else 0f),
+                    tint = Color.White.copy(alpha = 0.7f)
+                )
             }
 
             AnimatedVisibility(
