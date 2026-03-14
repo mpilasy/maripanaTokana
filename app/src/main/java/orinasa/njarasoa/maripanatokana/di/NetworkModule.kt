@@ -11,7 +11,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import orinasa.njarasoa.maripanatokana.BuildConfig
 import orinasa.njarasoa.maripanatokana.data.remote.GdacsApiService
-import orinasa.njarasoa.maripanatokana.data.remote.NwsApiService
+import orinasa.njarasoa.maripanatokana.data.remote.WeatherApiAlertsService
 import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoApiService
 import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit
@@ -60,14 +60,14 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideNwsApiService(okHttpClient: OkHttpClient, json: Json): NwsApiService {
+    fun provideWeatherApiAlertsService(okHttpClient: OkHttpClient, json: Json): WeatherApiAlertsService {
         val contentType = "application/json".toMediaType()
         return Retrofit.Builder()
-            .baseUrl("https://api.weather.gov/")
+            .baseUrl("https://api.weatherapi.com/v1/")
             .client(okHttpClient)
             .addConverterFactory(json.asConverterFactory(contentType))
             .build()
-            .create(NwsApiService::class.java)
+            .create(WeatherApiAlertsService::class.java)
     }
 
     @Provides

@@ -1,12 +1,12 @@
-export interface NwsAlertResponse {
-	features: {
-		properties: {
-			severity: 'Minor' | 'Moderate' | 'Severe' | 'Extreme';
-			event: string;
-			description: string;
-			instruction: string;
-		};
-	}[];
+export interface WeatherApiAlertResponse {
+	alerts?: {
+		alert?: {
+			severity?: string;
+			event?: string;
+			desc?: string;
+			instruction?: string;
+		}[];
+	};
 }
 
 export interface GdacsAlertResponse {

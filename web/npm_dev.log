@@ -1,0 +1,28 @@
+
+> maripanatokana-web@1.0.4 dev
+> vite dev
+
+5:59:15 PM [vite] (client) Forced re-optimization of dependencies
+
+  VITE v7.3.1  ready in 1379 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+5:59:37 PM [vite-plugin-svelte] src/lib/components/WeatherAlertBanner.svelte:14:16 This reference only captures the initial value of `alerts`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+5:59:37 PM [vite-plugin-svelte] src/lib/components/WeatherAlertBanner.svelte:19:18 This reference only captures the initial value of `alerts`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+5:59:37 PM [vite-plugin-svelte] src/lib/components/WeatherAlertBanner.svelte:19:60 This reference only captures the initial value of `alerts`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+5:59:37 PM [vite-plugin-svelte] src/lib/components/CollapsibleSection.svelte:13:25 This reference only captures the initial value of `expanded`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+5:59:39 PM [vite-plugin-svelte] src/lib/components/CollapsibleSection.svelte:13:25 This reference only captures the initial value of `expanded`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+5:59:39 PM [vite-plugin-svelte] src/lib/components/WeatherAlertBanner.svelte:14:16 This reference only captures the initial value of `alerts`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+5:59:39 PM [vite-plugin-svelte] src/lib/components/WeatherAlertBanner.svelte:19:18 This reference only captures the initial value of `alerts`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+5:59:39 PM [vite-plugin-svelte] src/lib/components/WeatherAlertBanner.svelte:19:60 This reference only captures the initial value of `alerts`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+6:02:20 PM [vite] (client) hmr update /src/routes/+layout.svelte, /src/lib/components/WeatherScreen.svelte
+6:02:20 PM [vite] (ssr) page reload src/lib/api/externalAlerts.ts

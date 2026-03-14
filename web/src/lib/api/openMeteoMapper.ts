@@ -1,4 +1,4 @@
-import type { OpenMeteoResponse, OpenMeteoCurrent, OpenMeteoDaily } from './openMeteoTypes';
+import type { OpenMeteoResponse, OpenMeteoCurrent, OpenMeteoHourly, OpenMeteoDaily } from './openMeteoTypes';
 import type { WeatherData, HourlyForecast, DailyForecast, WeatherAlert } from '../domain/weatherData';
 import { Temperature } from '../domain/temperature';
 import { Pressure } from '../domain/pressure';
@@ -19,7 +19,7 @@ function deriveAlerts(c: OpenMeteoCurrent, h: OpenMeteoHourly, d: OpenMeteoDaily
 	
 	// Scan next 24 hours of hourly forecast
 	const startIndex = h.time.findIndex(t => new Date(t).getTime() >= nowMillis);
-	const forecastWindow = h.time.slice(startIndex, startIndex + 24).map((_, i) => {
+	const forecastWindow = h.time.slice(startIndex, startIndex + 24).map((_: string, i: number) => {
 		const idx = startIndex + i;
 		return {
 			code: h.weather_code[idx],
@@ -28,8 +28,8 @@ function deriveAlerts(c: OpenMeteoCurrent, h: OpenMeteoHourly, d: OpenMeteoDaily
 		};
 	});
 
-	const hasCode = (codes: number[]) => [c.weather_code, ...forecastWindow.map(f => f.code)].some(code => codes.includes(code));
-	const maxWind = Math.max(c.wind_speed_10m, c.wind_gusts_10m ?? 0, ...forecastWindow.map(f => f.wind));
+	const hasCode = (codes: number[]) => [c.weather_code, ...forecastWindow.map((f: any) => f.code)].some(code => codes.includes(code));
+	const maxWind = Math.max(c.wind_speed_10m, c.wind_gusts_10m ?? 0, ...forecastWindow.map((f: any) => f.wind));
 	const maxTemp = Math.max(c.temperature_2m, ...d.temperature_2m_max.slice(0, 2));
 	const minTemp = Math.min(c.temperature_2m, ...d.temperature_2m_min.slice(0, 2));
 

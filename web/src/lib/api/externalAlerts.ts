@@ -1,30 +1,33 @@
-import type { NwsAlertResponse, GdacsAlertResponse } from './externalAlertsTypes';
+import type { WeatherApiAlertResponse, GdacsAlertResponse } from './externalAlertsTypes';
 import type { WeatherAlert, AlertLevel } from '../domain/weatherData';
 
 const USER_AGENT = 'maripanaTokana (contact@orinasa.mg)';
 
-export async function fetchNwsAlerts(lat: number, lon: number): Promise<WeatherAlert[]> {
+export async function fetchWeatherApiAlerts(lat: number, lon: number): Promise<WeatherAlert[]> {
 	try {
-		const res = await fetch(`https://api.weather.gov/alerts/active?point=${lat},${lon}`, {
+		const apiKey = import.meta.env.VITE_WEATHERAPI_KEY || 'dummy_key';
+		const res = await fetch(`https://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${lat},${lon}&days=1&alerts=yes`, {
 			headers: {
-				'Accept': 'application/geo+json',
 				'User-Agent': USER_AGENT
 			}
 		});
 		if (!res.ok) return [];
-		const data: NwsAlertResponse = await res.json();
-		return data.features.map(f => {
-			const p = f.properties;
-			const level: AlertLevel = (p.severity === 'Extreme' || p.severity === 'Severe') ? 'warning' : 'watch';
+		const data: WeatherApiAlertResponse = await res.json();
+		if (!data.alerts || !data.alerts.alert) return [];
+		return data.alerts.alert.map(a => {
+			const severity = a.severity || '';
+			const level: AlertLevel = (severity === 'Extreme' || severity === 'Severe') ? 'warning' : 'watch';
+			const desc = a.desc || '';
+			const instruction = a.instruction ? '\n\n' + a.instruction : '';
 			return {
 				level,
-				title: p.event,
-				description: p.description + (p.instruction ? '\n\n' + p.instruction : ''),
+				title: a.event || 'Alert',
+				description: desc + instruction,
 				source: 'official'
 			};
 		});
 	} catch (e) {
-		console.error('NWS fetch error:', e);
+		console.error('WeatherAPI fetch error:', e);
 		return [];
 	}
 }

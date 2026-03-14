@@ -1,7 +1,7 @@
 import { writable, get } from 'svelte/store';
 import type { WeatherData } from '$lib/domain/weatherData';
 import { fetchWeather } from '$lib/api/openMeteo';
-import { fetchNwsAlerts, fetchGdacsAlerts } from '$lib/api/externalAlerts';
+import { fetchWeatherApiAlerts, fetchGdacsAlerts } from '$lib/api/externalAlerts';
 import { mapToWeatherData } from '$lib/api/openMeteoMapper';
 import {
 	getCachedLocation, cacheLocation, movedSignificantly,
@@ -21,17 +21,17 @@ const STALE_MS = 30 * 60 * 1000; // 30 minutes
 async function fetchAtLocation(lat: number, lon: number, knownName?: string): Promise<WeatherData> {
 	const weatherPromise = fetchWeather(lat, lon);
 	const namePromise = knownName ? Promise.resolve(knownName) : reverseGeocode(lat, lon);
-	const nwsPromise = fetchNwsAlerts(lat, lon);
+	const weatherApiPromise = fetchWeatherApiAlerts(lat, lon);
 	const gdacsPromise = fetchGdacsAlerts(lat, lon);
 
-	const [response, locationName, nwsAlerts, gdacsAlerts] = await Promise.all([
+	const [response, locationName, weatherApiAlerts, gdacsAlerts] = await Promise.all([
 		weatherPromise,
 		namePromise,
-		nwsPromise,
+		weatherApiPromise,
 		gdacsPromise
 	]);
 	const data = mapToWeatherData(response, locationName);
-	data.alerts = [...nwsAlerts, ...gdacsAlerts, ...data.alerts];
+	data.alerts = [...weatherApiAlerts, ...gdacsAlerts, ...data.alerts];
 	// Filter duplicate alerts (e.g. same title)
 	data.alerts = data.alerts.filter((a, i, self) => 
 		i === self.findIndex(t => t.title === a.title)
