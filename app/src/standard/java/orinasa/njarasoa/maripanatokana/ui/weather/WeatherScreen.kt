@@ -82,6 +82,19 @@ fun WeatherScreen(
         }
     }
 
+    val showLocationDialog by viewModel.showLocationOverrideDialog.collectAsStateWithLifecycle()
+    val searchResults by viewModel.searchResults.collectAsStateWithLifecycle()
+
+    if (showLocationDialog) {
+        LocationOverrideDialog(
+            onDismissRequest = { viewModel.setShowLocationOverrideDialog(false) },
+            onLocationSelected = { lat, lon, name -> viewModel.setLocationOverride(lat, lon, name) },
+            onResetToCurrentLocation = { viewModel.clearLocationOverride() },
+            searchQuery = { viewModel.searchLocation(it) },
+            searchResults = searchResults,
+        )
+    }
+
     // Refresh when app comes to foreground if data is >30 min old
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
@@ -222,6 +235,8 @@ fun WeatherScreen(
                             onToggleUnits = { viewModel.toggleUnits() },
                             onCycleFont = { viewModel.cycleFont() },
                             onCycleLanguage = { viewModel.cycleLanguage() },
+                            onLocationClicked = viewModel::onLocationClicked,
+                            showGpsCoordinates = showGpsCoordinates,
                         )
                     }
                 }

@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import { weatherState, isRefreshing, doFetchWeather } from '$lib/stores/weather';
+	import { onLocationClicked, showGpsCoordinates, showLocationOverrideDialog, initDevMode } from '$lib/stores/devMode';
+	import LocationOverrideDialog from './LocationOverrideDialog.svelte';
 	import { metricPrimary, fontIndex, localeIndex, toggleUnits, cycleFont, cycleLanguage } from '$lib/stores/preferences';
 	import { SUPPORTED_LOCALES, localizeDigits } from '$lib/i18n/index';
 	import { fontPairings } from '$lib/fonts';
@@ -24,6 +26,10 @@
 
 	const browserLocaleTag = findBrowserLocaleTag();
 	let browserStrings = $state<Record<string, string> | null>(null);
+
+	onMount(() => {
+		initDevMode();
+	});
 
 	if (browserLocaleTag) {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -141,8 +147,16 @@
 
 			<!-- Fixed header (location + date captured for share screenshots) -->
 			<div class="header">
-				<div bind:this={headerEl}>
-					<h1 class="location-name">{data.locationName}</h1>
+				<!-- svelte-ignore a11y_click_events_have_key_events -->
+				<!-- svelte-ignore a11y_no_static_element_interactions -->
+				<div bind:this={headerEl} onclick={onLocationClicked} style="cursor: pointer;">
+					<h1 class="location-name">
+						{#if $showGpsCoordinates}
+							{Number(localStorage.getItem('lat')).toFixed(4)}, {Number(localStorage.getItem('lon')).toFixed(4)}
+						{:else}
+							{data.locationName}
+						{/if}
+					</h1>
 					<p class="date">{formatDate(data.timestamp)}</p>
 				</div>
 				<button type="button" class="updated" onclick={doFetchWeather}>
@@ -218,6 +232,10 @@
 		</div>
 	{/if}
 </div>
+
+{#if $showLocationOverrideDialog}
+	<LocationOverrideDialog />
+{/if}
 
 <style>
 	.weather-screen {

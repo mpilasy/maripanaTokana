@@ -5,11 +5,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import orinasa.njarasoa.maripanatokana.R
+import orinasa.njarasoa.maripanatokana.data.remote.GeocodingResult
 import orinasa.njarasoa.maripanatokana.domain.repository.LocationRepository
 import orinasa.njarasoa.maripanatokana.domain.repository.WeatherRepository
 import orinasa.njarasoa.maripanatokana.ui.theme.fontPairings
@@ -72,6 +75,120 @@ class WeatherViewModel @Inject constructor(
     private val _localeIndex = MutableStateFlow(prefs.getInt("locale_index", 0).coerceIn(0, supportedLocales.lastIndex))
     val localeIndex: StateFlow<Int> = _localeIndex.asStateFlow()
 
+    // Dev Mode State
+    private var locationClicks = 0
+    private var lastLocationClickTime = 0L
+    private val _devModeActive = MutableStateFlow(checkDevModeExpiration())
+    val devModeActive: StateFlow<Boolean> = _devModeActive.asStateFlow()
+
+    private val _showGpsCoordinates = MutableStateFlow(false)
+    val showGpsCoordinates: StateFlow<Boolean> = _showGpsCoordinates.asStateFlow()
+
+    private val _showLocationOverrideDialog = MutableStateFlow(false)
+    val showLocationOverrideDialog: StateFlow<Boolean> = _showLocationOverrideDialog.asStateFlow()
+
+    private val _searchResults = MutableStateFlow<List<GeocodingResult>>(emptyList())
+    val searchResults: StateFlow<List<GeocodingResult>> = _searchResults.asStateFlow()
+
+    private var searchJob: Job? = null
+
+    init {
+        // Ensure dev mode is false if expired on startup
+        if (!_devModeActive.value) {
+            clearDevModeOverride()
+        }
+    }
+
+    private fun checkDevModeExpiration(): Boolean {
+        val expiration = prefs.getLong("dev_mode_expiration", 0L)
+        return System.currentTimeMillis() < expiration
+    }
+
+    fun onLocationClicked() {
+        val now = System.currentTimeMillis()
+        if (now - lastLocationClickTime > 500) {
+            locationClicks = 0
+        }
+        lastLocationClickTime = now
+        locationClicks++
+
+        if (locationClicks >= 5) {
+            locationClicks = 0
+            val expiration = now + 4 * 60 * 60 * 1000L // 4 hours
+            prefs.edit().putLong("dev_mode_expiration", expiration).apply()
+            _devModeActive.value = true
+            _showLocationOverrideDialog.value = true // Open dialog automatically when dev mode activated
+        } else {
+            // Toggle GPS coordinate view on single click
+            _showGpsCoordinates.value = !_showGpsCoordinates.value
+        }
+    }
+
+    fun searchLocation(query: String) {
+        if (query.isBlank()) {
+            _searchResults.value = emptyList()
+            return
+        }
+
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            delay(500) // Debounce
+
+            // Check for direct coordinates
+            val coordsPattern = Regex("^(-?\\d+\\.\\d+)\\s*,\\s*(-?\\d+\\.\\d+)$")
+            val match = coordsPattern.find(query.trim())
+            if (match != null) {
+                val (latStr, lonStr) = match.destructured
+                val lat = latStr.toDoubleOrNull()
+                val lon = lonStr.toDoubleOrNull()
+                if (lat != null && lon != null) {
+                     _searchResults.value = listOf(
+                         GeocodingResult(
+                             id = 0,
+                             name = "$lat, $lon",
+                             latitude = lat,
+                             longitude = lon,
+                             country = "Coordinates"
+                         )
+                     )
+                     return@launch
+                }
+            }
+
+            weatherRepository.searchLocation(query).onSuccess { results ->
+                _searchResults.value = results
+            }
+        }
+    }
+
+    fun setShowLocationOverrideDialog(show: Boolean) {
+        _showLocationOverrideDialog.value = show
+    }
+
+    fun setLocationOverride(lat: Double, lon: Double, name: String) {
+        prefs.edit()
+            .putFloat("dev_override_lat", lat.toFloat())
+            .putFloat("dev_override_lon", lon.toFloat())
+            .putString("dev_override_name", name)
+            .apply()
+        _showLocationOverrideDialog.value = false
+        fetchWeather()
+    }
+
+    fun clearLocationOverride() {
+        clearDevModeOverride()
+        _showLocationOverrideDialog.value = false
+        fetchWeather()
+    }
+
+    private fun clearDevModeOverride() {
+        prefs.edit()
+            .remove("dev_override_lat")
+            .remove("dev_override_lon")
+            .remove("dev_override_name")
+            .apply()
+    }
+
     fun toggleUnits() {
         val newValue = !_metricPrimary.value
         _metricPrimary.value = newValue
@@ -93,14 +210,55 @@ class WeatherViewModel @Inject constructor(
     fun fetchWeather() {
         viewModelScope.launch {
             _uiState.value = WeatherUiState.Loading
-            doFetch()
+
+            // Check if dev mode expired
+            if (_devModeActive.value && !checkDevModeExpiration()) {
+                _devModeActive.value = false
+                clearDevModeOverride()
+            }
+
+            if (_devModeActive.value && prefs.contains("dev_override_lat")) {
+                val overrideLat = prefs.getFloat("dev_override_lat", 0f).toDouble()
+                val overrideLon = prefs.getFloat("dev_override_lon", 0f).toDouble()
+                val overrideName = prefs.getString("dev_override_name", "Overridden Location") ?: "Overridden Location"
+
+                weatherRepository.getWeather(overrideLat, overrideLon).onSuccess { data ->
+                    val overrideData = data.copy(locationName = overrideName)
+                    prefs.edit().putString("location_name", overrideName).apply()
+                    _uiState.value = WeatherUiState.Success(overrideData)
+                }.onFailure {
+                    _uiState.value = WeatherUiState.Error(R.string.error_fetch_weather)
+                }
+            } else {
+                doFetch()
+            }
         }
     }
 
     fun refresh() {
         viewModelScope.launch {
             _isRefreshing.value = true
-            doFetch()
+
+            if (_devModeActive.value && !checkDevModeExpiration()) {
+                _devModeActive.value = false
+                clearDevModeOverride()
+            }
+
+            if (_devModeActive.value && prefs.contains("dev_override_lat")) {
+                val overrideLat = prefs.getFloat("dev_override_lat", 0f).toDouble()
+                val overrideLon = prefs.getFloat("dev_override_lon", 0f).toDouble()
+                val overrideName = prefs.getString("dev_override_name", "Overridden Location") ?: "Overridden Location"
+
+                weatherRepository.getWeather(overrideLat, overrideLon).onSuccess { data ->
+                    val overrideData = data.copy(locationName = overrideName)
+                    prefs.edit().putString("location_name", overrideName).apply()
+                    _uiState.value = WeatherUiState.Success(overrideData)
+                }.onFailure {
+                    _uiState.value = WeatherUiState.Error(R.string.error_fetch_weather)
+                }
+            } else {
+                doFetch()
+            }
             _isRefreshing.value = false
         }
     }

@@ -119,6 +119,8 @@ internal fun WeatherContent(
     onToggleUnits: () -> Unit,
     onCycleFont: () -> Unit,
     onCycleLanguage: () -> Unit,
+    onLocationClicked: () -> Unit = {},
+    showGpsCoordinates: Boolean = false,
 ) {
     val context = LocalContext.current
     val appLocale = context.resources.configuration.locales[0]
@@ -134,6 +136,16 @@ internal fun WeatherContent(
         screenWidthDp >= 320 -> 0.8f
         else -> 0.7f
     }
+
+    // Get current lat/lon string from prefs since we might not have it in WeatherData exactly as requested
+    val prefs = context.getSharedPreferences("widget_prefs", android.content.Context.MODE_PRIVATE)
+    val lat = prefs.getFloat("lat", 0f).toDouble()
+    val lon = prefs.getFloat("lon", 0f).toDouble()
+    val overrideLat = prefs.getFloat("dev_override_lat", Float.NaN)
+    val overrideLon = prefs.getFloat("dev_override_lon", Float.NaN)
+
+    val displayLat = if (!overrideLat.isNaN()) overrideLat.toDouble() else lat
+    val displayLon = if (!overrideLon.isNaN()) overrideLon.toDouble() else lon
 
     CompositionLocalProvider(LocalScale provides scale) {
     Column(
@@ -155,11 +167,12 @@ internal fun WeatherContent(
                 },
         ) {
             Text(
-                text = data.locationName,
+                text = if (showGpsCoordinates) "%.4f, %.4f".format(Locale.US, displayLat, displayLon) else data.locationName,
                 fontSize = 32f.s(scale),
                 fontWeight = FontWeight.Bold,
                 fontFamily = displayFont,
-                color = Color.White
+                color = Color.White,
+                modifier = Modifier.clickable(onClick = onLocationClicked, role = Role.Button, onClickLabel = "Toggle location display")
             )
             Text(
                 text = localizeDigits(dateFormat.format(Date(data.timestamp))),

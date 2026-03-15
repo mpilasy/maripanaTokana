@@ -35,6 +35,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import orinasa.njarasoa.maripanatokana.R
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import orinasa.njarasoa.maripanatokana.ui.weather.components.LocationOverrideDialog
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFont
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFontFeatures
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
@@ -68,6 +70,19 @@ fun WeatherScreen(
 
     LaunchedEffect(Unit) {
         viewModel.fetchWeather()
+    }
+
+    val showLocationDialog by viewModel.showLocationOverrideDialog.collectAsStateWithLifecycle()
+    val searchResults by viewModel.searchResults.collectAsStateWithLifecycle()
+
+    if (showLocationDialog) {
+        LocationOverrideDialog(
+            onDismissRequest = { viewModel.setShowLocationOverrideDialog(false) },
+            onLocationSelected = { lat, lon, name -> viewModel.setLocationOverride(lat, lon, name) },
+            onResetToCurrentLocation = { viewModel.clearLocationOverride() },
+            searchQuery = { viewModel.searchLocation(it) },
+            searchResults = searchResults,
+        )
     }
 
     // Refresh when app comes to foreground if data is >30 min old
@@ -159,6 +174,7 @@ fun WeatherScreen(
                         onRefresh = { viewModel.refresh() },
                         modifier = Modifier.fillMaxSize(),
                     ) {
+                        val showGpsCoordinates by viewModel.showGpsCoordinates.collectAsStateWithLifecycle()
                         WeatherContent(
                             data = state.data,
                             metricPrimary = metricPrimary,
@@ -172,6 +188,8 @@ fun WeatherScreen(
                             onToggleUnits = { viewModel.toggleUnits() },
                             onCycleFont = { viewModel.cycleFont() },
                             onCycleLanguage = { viewModel.cycleLanguage() },
+                            onLocationClicked = viewModel::onLocationClicked,
+                            showGpsCoordinates = showGpsCoordinates,
                         )
                     }
                 }

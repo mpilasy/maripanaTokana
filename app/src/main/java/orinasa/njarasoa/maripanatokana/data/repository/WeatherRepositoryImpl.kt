@@ -7,8 +7,10 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.jsonPrimitive
 import orinasa.njarasoa.maripanatokana.data.remote.GdacsApiService
+import orinasa.njarasoa.maripanatokana.data.remote.GeocodingResult
 import orinasa.njarasoa.maripanatokana.data.remote.NwsApiService
 import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoApiService
+import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoGeocodingService
 import orinasa.njarasoa.maripanatokana.data.remote.toDomain
 import orinasa.njarasoa.maripanatokana.domain.model.AlertLevel
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherAlert
@@ -23,8 +25,18 @@ class WeatherRepositoryImpl @Inject constructor(
     private val apiService: OpenMeteoApiService,
     private val nwsApiService: NwsApiService,
     private val gdacsApiService: GdacsApiService,
+    private val geocodingApiService: OpenMeteoGeocodingService,
     private val geocoder: Geocoder,
 ) : WeatherRepository {
+
+    override suspend fun searchLocation(query: String): Result<List<GeocodingResult>> {
+        return try {
+            val response = geocodingApiService.searchLocation(name = query)
+            Result.success(response.results)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 
     override suspend fun getWeather(lat: Double, lon: Double): Result<WeatherData> = coroutineScope {
         try {

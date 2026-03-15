@@ -7,6 +7,7 @@ import {
 	getCachedLocation, cacheLocation, movedSignificantly,
 	getPosition, reverseGeocode
 } from '$lib/stores/location';
+import { devModeActive, checkDevModeExpiration } from '$lib/stores/devMode';
 
 export type WeatherState =
 	| { kind: 'loading' }
@@ -48,6 +49,24 @@ export async function doFetchWeather() {
 	}
 
 	try {
+		if (get(devModeActive)) {
+			if (!checkDevModeExpiration()) {
+				devModeActive.set(false);
+			} else {
+				const lat = localStorage.getItem('dev_override_lat');
+				const lon = localStorage.getItem('dev_override_lon');
+				const name = localStorage.getItem('dev_override_name');
+				if (lat && lon && name) {
+					const lLat = parseFloat(lat);
+					const lLon = parseFloat(lon);
+					const data = await fetchAtLocation(lLat, lLon, name);
+					weatherState.set({ kind: 'success', data });
+					isRefreshing.set(false);
+					return;
+				}
+			}
+		}
+
 		// Step 1: try cached location for instant result
 		const cached = getCachedLocation();
 		let data: WeatherData | null = null;

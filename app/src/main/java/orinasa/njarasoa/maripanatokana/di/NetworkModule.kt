@@ -48,6 +48,18 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    fun provideOpenMeteoGeocodingService(okHttpClient: OkHttpClient, json: Json): orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoGeocodingService {
+        val contentType = "application/json".toMediaType()
+        return Retrofit.Builder()
+            .baseUrl("https://geocoding-api.open-meteo.com/")
+            .client(okHttpClient)
+            .addConverterFactory(json.asConverterFactory(contentType))
+            .build()
+            .create(orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoGeocodingService::class.java)
+    }
+
+    @Provides
+    @Singleton
     fun provideOpenMeteoApiService(okHttpClient: OkHttpClient, json: Json): OpenMeteoApiService {
         val contentType = "application/json".toMediaType()
         return Retrofit.Builder()

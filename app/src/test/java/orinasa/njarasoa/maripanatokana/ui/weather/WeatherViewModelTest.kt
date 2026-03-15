@@ -49,6 +49,8 @@ class WeatherViewModelTest {
         every { sharedPreferences.getInt(any(), any()) } returns 0
         every { sharedPreferences.getFloat(any(), any()) } returns 0f
         every { sharedPreferences.getString(any(), any()) } returns ""
+        every { sharedPreferences.getLong(any(), any()) } returns 0L
+        every { sharedPreferences.contains(any()) } returns false
         every { sharedPreferences.edit() } returns editor
 
         // Default mocks
