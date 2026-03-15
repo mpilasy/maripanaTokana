@@ -20,7 +20,10 @@ export async function fetchNwsAlerts(lat: number, lon: number): Promise<WeatherA
 				level,
 				title: p.event,
 				description: p.description + (p.instruction ? '\n\n' + p.instruction : ''),
-				source: 'official'
+				source: 'official',
+				time: p.sent ? new Date(p.sent).getTime() : undefined,
+				headline: p.headline,
+				link: f.id
 			};
 		});
 	} catch (e) {
@@ -49,7 +52,9 @@ export async function fetchGdacsAlerts(lat: number, lon: number): Promise<Weathe
 					level,
 					title: `GDACS: ${p.eventtype} - ${p.name}`,
 					description: p.description,
-					source: 'gdacs'
+					source: 'gdacs',
+					time: p.fromdate ? new Date(p.fromdate).getTime() : undefined,
+					link: p.url?.report
 				};
 			});
 	} catch (e) {

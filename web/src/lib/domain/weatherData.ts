@@ -10,6 +10,9 @@ export interface WeatherAlert {
 	title: string;
 	description: string;
 	source: 'official' | 'derived' | 'gdacs';
+	time?: number; // epoch millis
+	headline?: string;
+	link?: string;
 }
 
 export interface HourlyForecast {

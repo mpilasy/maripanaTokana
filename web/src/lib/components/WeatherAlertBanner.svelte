@@ -2,6 +2,8 @@
 	import { _ } from 'svelte-i18n';
 	import type { WeatherAlert } from '$lib/domain/weatherData';
 	import { slide } from 'svelte/transition';
+	import { localeIndex } from '$lib/stores/preferences';
+	import { SUPPORTED_LOCALES } from '$lib/i18n/locales';
 
 	interface Props {
 		alerts: WeatherAlert[];
@@ -17,6 +19,15 @@
 		: 'watch');
 
 	let topAlert = $derived(alerts.find(a => a.level === topLevel) || alerts[0]);
+
+	let timeFormatter = $derived(new Intl.DateTimeFormat(SUPPORTED_LOCALES[$localeIndex].tag, {
+		year: 'numeric',
+		month: '2-digit',
+		day: '2-digit',
+		hour: '2-digit',
+		minute: '2-digit',
+		hour12: false
+	}));
 </script>
 
 {#if alerts.length > 0 && topAlert}
@@ -33,6 +44,9 @@
 					{/if}
 				</span>
 				<span class="alert-title">{$_(topAlert.title) || topAlert.title}</span>
+				{#if alerts.length > 1}
+					<span class="alert-count">&#9888; {alerts.length}</span>
+				{/if}
 				{#if topAlert.source !== 'derived'}
 					<span class="source-badge">{topAlert.source.toUpperCase()}</span>
 				{/if}
@@ -43,14 +57,36 @@
 
 		{#if isExpanded}
 			<div class="alert-details" transition:slide={{ duration: 300 }}>
-				{#each alerts as alert}
+				{#each alerts as alert, index}
 					<div class="alert-item">
 						<div class="item-title-row">
-							<div class="item-title">{$_(alert.title) || alert.title}</div>
+							<div class="item-title-group">
+								{#if alerts.length > 1}
+									<span class="alert-number" class:watch={alert.level === 'watch'} class:warning={alert.level !== 'watch'}>
+										{index + 1}
+									</span>
+								{/if}
+								<div class="item-title">{$_(alert.title) || alert.title}</div>
+							</div>
 							{#if alert.source !== 'derived'}
-								<span class="source-badge">{alert.source.toUpperCase()}</span>
+								{#if alert.link}
+									<a href={alert.link} target="_blank" rel="noopener noreferrer" class="source-badge clickable" onclick={(e) => e.stopPropagation()}>
+										{alert.source.toUpperCase()}
+									</a>
+								{:else}
+									<span class="source-badge">{alert.source.toUpperCase()}</span>
+								{/if}
 							{/if}
 						</div>
+						
+						{#if alert.time}
+							<div class="alert-time">{timeFormatter.format(alert.time)}</div>
+						{/if}
+
+						{#if alert.headline}
+							<div class="alert-headline">{alert.headline}</div>
+						{/if}
+
 						<div class="item-desc">{$_(alert.description) || alert.description}</div>
 					</div>
 				{/each}
@@ -109,6 +145,13 @@
 		color: white;
 	}
 
+	.alert-count {
+		font-size: 14px;
+		font-weight: 800;
+		color: #FF4444;
+		margin-left: 8px;
+	}
+
 	.source-badge {
 		background: rgba(255, 255, 255, 0.2);
 		padding: 2px 6px;
@@ -118,6 +161,16 @@
 		color: white;
 		margin-left: 4px;
 		letter-spacing: 0.5px;
+		text-decoration: none;
+	}
+
+	.source-badge.clickable {
+		background: rgba(255, 255, 255, 0.4);
+		transition: background 0.2s;
+	}
+
+	.source-badge.clickable:hover {
+		background: rgba(255, 255, 255, 0.6);
 	}
 
 	.chevron {
@@ -150,6 +203,32 @@
 		margin-bottom: 4px;
 	}
 
+	.item-title-group {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.alert-number {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 18px;
+		height: 18px;
+		border-radius: 50%;
+		font-size: 10px;
+		font-weight: 800;
+		color: white;
+	}
+
+	.alert-number.watch {
+		background: #FFA500;
+	}
+
+	.alert-number.warning {
+		background: #FF4444;
+	}
+
 	.alert-item:first-child {
 		border-top: none;
 		padding-top: 0;
@@ -159,7 +238,19 @@
 		font-size: 14px;
 		font-weight: 700;
 		color: white;
+	}
+
+	.alert-time {
+		font-size: 11px;
+		color: rgba(255, 255, 255, 0.5);
 		margin-bottom: 4px;
+	}
+
+	.alert-headline {
+		font-size: 14px;
+		font-weight: 700;
+		color: white;
+		margin-bottom: 6px;
 	}
 
 	.item-desc {

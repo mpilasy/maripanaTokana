@@ -1,9 +1,10 @@
 # maripànaTokana
 
-**maripànaTokana** (Malagasy for "a single thermometer") is a phone-only Android weather app that shows current conditions, hourly forecasts, and a 10-day outlook. It always displays both metric and imperial units side by side, and supports 8 languages with 22 font pairings.
+**maripànaTokana** (Malagasy for "a single thermometer") is a weather application available for Android and as a [PWA (Web)](./web). It shows current conditions, hourly forecasts, and a 10-day outlook. It always displays both metric and imperial units side by side, and supports 8 languages with 22 font pairings.
 
 ## Features
 
+- **Cross-Platform Parity**: Features on the Android and Web versions are kept in sync to provide a consistent experience.
 - Real-time weather data from [Open-Meteo](https://open-meteo.com) API (no key required)
 - GPS location with two-step strategy (instant cached + fresh background)
 - **Dual-unit display**: every measurement shows both metric and imperial simultaneously

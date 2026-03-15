@@ -621,6 +621,12 @@ Certain fonts (Rajdhani, Baloo 2, Poppins, Rubik) include Devanagari or Arabic d
 ### Why ContextWrapper instead of Activity.recreate()?
 Calling `activity.recreate()` to change locale causes a visible flash (screen goes black briefly). The ContextWrapper approach swaps resources in-place via `CompositionLocalProvider`, so locale changes are seamless.
 
+### Feature Parity (Android & Web)
+The app exists as both a native Android app and a SvelteKit PWA. To ensure a consistent user experience across platforms, features and UI enhancements must be kept in sync as much as feasible. This includes:
+- **Alert UI**: Headline display, issue time, source links, and numeric severity indicators.
+- **I18n**: Shared string keys and localization logic.
+- **Design Language**: Consistent colors, typography, and layout across the native and web implementations.
+
 ### Why a standalone widget fetcher?
 Widgets run in a `BroadcastReceiver` context where Hilt isn't available. `WidgetWeatherFetcher` builds its own Retrofit instance and location client. It also falls back to SharedPreferences coordinates saved by the main app, so widgets work even without background location permission.
 
