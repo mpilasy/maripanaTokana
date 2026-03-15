@@ -13,9 +13,6 @@ export interface DevOverrideLocation {
 
 export const locationOverride = writable<DevOverrideLocation | null>(null);
 
-let locationClicks = 0;
-let lastLocationClickTime = 0;
-
 export function checkDevModeExpiration(): boolean {
     if (typeof localStorage === 'undefined') return false;
     const expiration = localStorage.getItem('dev_mode_expiration');
@@ -32,34 +29,27 @@ export function initDevMode() {
     if (typeof localStorage === 'undefined') return;
     const active = checkDevModeExpiration();
     devModeActive.set(active);
-    if (active) {
-        const lat = localStorage.getItem('dev_override_lat');
-        const lon = localStorage.getItem('dev_override_lon');
-        const name = localStorage.getItem('dev_override_name');
-        if (lat && lon && name) {
-            locationOverride.set({ lat: parseFloat(lat), lon: parseFloat(lon), name });
-        }
-    } else {
-        clearDevModeOverride();
-    }
 }
 
 export function onLocationClicked() {
-    const now = Date.now();
-    if (now - lastLocationClickTime > 500) {
-        locationClicks = 0;
-    }
-    lastLocationClickTime = now;
-    locationClicks++;
+    showGpsCoordinates.update((v) => !v);
+}
 
-    if (locationClicks >= 5) {
-        locationClicks = 0;
-        const expiration = now + 4 * 60 * 60 * 1000; // 4 hours
+export function onLocationLongPressed() {
+    const now = Date.now();
+    const expiration = now + 4 * 60 * 60 * 1000; // 4 hours
+    if (typeof localStorage !== 'undefined') {
         localStorage.setItem('dev_mode_expiration', expiration.toString());
-        devModeActive.set(true);
+    }
+    devModeActive.set(true);
+}
+
+export function onLocationDoubleClicked() {
+    let active = false;
+    devModeActive.subscribe(v => active = v)();
+
+    if (active) {
         showLocationOverrideDialog.set(true);
-    } else {
-        showGpsCoordinates.update((v) => !v);
     }
 }
 

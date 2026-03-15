@@ -38,6 +38,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import orinasa.njarasoa.maripanatokana.R
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import orinasa.njarasoa.maripanatokana.ui.weather.components.LocationOverrideDialog
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFont
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFontFeatures
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
@@ -84,6 +86,7 @@ fun WeatherScreen(
 
     val showLocationDialog by viewModel.showLocationOverrideDialog.collectAsStateWithLifecycle()
     val searchResults by viewModel.searchResults.collectAsStateWithLifecycle()
+    val devModeActive by viewModel.devModeActive.collectAsStateWithLifecycle()
 
     if (showLocationDialog) {
         LocationOverrideDialog(
@@ -222,6 +225,7 @@ fun WeatherScreen(
                         onRefresh = { viewModel.refresh() },
                         modifier = Modifier.fillMaxSize(),
                     ) {
+                        val showGpsCoordinates by viewModel.showGpsCoordinates.collectAsStateWithLifecycle()
                         WeatherContent(
                             data = state.data,
                             metricPrimary = metricPrimary,
@@ -236,7 +240,10 @@ fun WeatherScreen(
                             onCycleFont = { viewModel.cycleFont() },
                             onCycleLanguage = { viewModel.cycleLanguage() },
                             onLocationClicked = viewModel::onLocationClicked,
+                            onLocationLongPressed = viewModel::onLocationLongPressed,
+                            onLocationDoubleClicked = viewModel::onLocationDoubleClicked,
                             showGpsCoordinates = showGpsCoordinates,
+                            devModeActive = devModeActive,
                         )
                     }
                 }

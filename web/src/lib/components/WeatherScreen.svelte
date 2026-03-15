@@ -1,7 +1,15 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import { weatherState, isRefreshing, doFetchWeather } from '$lib/stores/weather';
-	import { onLocationClicked, showGpsCoordinates, showLocationOverrideDialog, initDevMode } from '$lib/stores/devMode';
+	import { 
+		onLocationClicked, 
+		onLocationLongPressed,
+		onLocationDoubleClicked, 
+		showGpsCoordinates, 
+		showLocationOverrideDialog, 
+		devModeActive,
+		initDevMode 
+	} from '$lib/stores/devMode';
 	import LocationOverrideDialog from './LocationOverrideDialog.svelte';
 	import { metricPrimary, fontIndex, localeIndex, toggleUnits, cycleFont, cycleLanguage } from '$lib/stores/preferences';
 	import { SUPPORTED_LOCALES, localizeDigits } from '$lib/i18n/index';
@@ -111,6 +119,38 @@
 	onMount(() => {
 		doFetchWeather();
 	});
+
+	function longpress(node: HTMLElement, threshold = 600) {
+		let timer: number;
+
+		const handle_mousedown = () => {
+			timer = window.setTimeout(() => {
+				node.dispatchEvent(new CustomEvent('longpress'));
+			}, threshold);
+		};
+
+		const handle_mouseup = () => {
+			clearTimeout(timer);
+		};
+
+		node.addEventListener('mousedown', handle_mousedown);
+		node.addEventListener('mouseup', handle_mouseup);
+		node.addEventListener('mousemove', handle_mouseup);
+		node.addEventListener('touchstart', handle_mousedown);
+		node.addEventListener('touchend', handle_mouseup);
+		node.addEventListener('touchmove', handle_mouseup);
+
+		return {
+			destroy() {
+				node.removeEventListener('mousedown', handle_mousedown);
+				node.removeEventListener('mouseup', handle_mouseup);
+				node.removeEventListener('mousemove', handle_mouseup);
+				node.removeEventListener('touchstart', handle_mousedown);
+				node.removeEventListener('touchend', handle_mouseup);
+				node.removeEventListener('touchmove', handle_mouseup);
+			}
+		};
+	}
 </script>
 
 <div class="weather-screen">
@@ -149,12 +189,22 @@
 			<div class="header">
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
-				<div bind:this={headerEl} onclick={onLocationClicked} style="cursor: pointer;">
+				<div 
+					bind:this={headerEl} 
+					use:longpress
+					onclick={onLocationClicked} 
+					onlongpress={onLocationLongPressed}
+					ondblclick={onLocationDoubleClicked}
+					style="cursor: pointer;"
+				>
 					<h1 class="location-name">
 						{#if $showGpsCoordinates}
 							{Number(localStorage.getItem('lat')).toFixed(4)}, {Number(localStorage.getItem('lon')).toFixed(4)}
 						{:else}
 							{data.locationName}
+						{/if}
+						{#if $devModeActive}
+							<span class="dev-badge">DEV</span>
 						{/if}
 					</h1>
 					<p class="date">{formatDate(data.timestamp)}</p>
@@ -292,6 +342,20 @@
 		font-size: 32px;
 		font-weight: 700;
 		color: white;
+		display: flex;
+		align-items: center;
+		gap: 12px;
+	}
+
+	.dev-badge {
+		background: rgba(255, 255, 255, 0.2);
+		padding: 2px 6px;
+		border-radius: 4px;
+		font-size: 10px;
+		font-weight: 800;
+		color: white;
+		letter-spacing: 0.5px;
+		font-family: var(--font-body);
 	}
 
 	.date {

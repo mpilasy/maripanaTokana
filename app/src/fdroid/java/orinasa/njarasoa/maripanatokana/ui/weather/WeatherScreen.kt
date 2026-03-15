@@ -74,6 +74,7 @@ fun WeatherScreen(
 
     val showLocationDialog by viewModel.showLocationOverrideDialog.collectAsStateWithLifecycle()
     val searchResults by viewModel.searchResults.collectAsStateWithLifecycle()
+    val devModeActive by viewModel.devModeActive.collectAsStateWithLifecycle()
 
     if (showLocationDialog) {
         LocationOverrideDialog(
@@ -189,7 +190,10 @@ fun WeatherScreen(
                             onCycleFont = { viewModel.cycleFont() },
                             onCycleLanguage = { viewModel.cycleLanguage() },
                             onLocationClicked = viewModel::onLocationClicked,
+                            onLocationLongPressed = viewModel::onLocationLongPressed,
+                            onLocationDoubleClicked = viewModel::onLocationDoubleClicked,
                             showGpsCoordinates = showGpsCoordinates,
+                            devModeActive = devModeActive,
                         )
                     }
                 }

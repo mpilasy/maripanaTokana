@@ -76,8 +76,6 @@ class WeatherViewModel @Inject constructor(
     val localeIndex: StateFlow<Int> = _localeIndex.asStateFlow()
 
     // Dev Mode State
-    private var locationClicks = 0
-    private var lastLocationClickTime = 0L
     private val _devModeActive = MutableStateFlow(checkDevModeExpiration())
     val devModeActive: StateFlow<Boolean> = _devModeActive.asStateFlow()
 
@@ -105,22 +103,20 @@ class WeatherViewModel @Inject constructor(
     }
 
     fun onLocationClicked() {
-        val now = System.currentTimeMillis()
-        if (now - lastLocationClickTime > 500) {
-            locationClicks = 0
-        }
-        lastLocationClickTime = now
-        locationClicks++
+        // Single tap always toggles GPS coordinates view
+        _showGpsCoordinates.value = !_showGpsCoordinates.value
+    }
 
-        if (locationClicks >= 5) {
-            locationClicks = 0
-            val expiration = now + 4 * 60 * 60 * 1000L // 4 hours
-            prefs.edit().putLong("dev_mode_expiration", expiration).apply()
-            _devModeActive.value = true
-            _showLocationOverrideDialog.value = true // Open dialog automatically when dev mode activated
-        } else {
-            // Toggle GPS coordinate view on single click
-            _showGpsCoordinates.value = !_showGpsCoordinates.value
+    fun onLocationLongPressed() {
+        val now = System.currentTimeMillis()
+        val expiration = now + 4 * 60 * 60 * 1000L // 4 hours
+        prefs.edit().putLong("dev_mode_expiration", expiration).apply()
+        _devModeActive.value = true
+    }
+
+    fun onLocationDoubleClicked() {
+        if (_devModeActive.value) {
+            _showLocationOverrideDialog.value = true
         }
     }
 

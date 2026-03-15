@@ -7,8 +7,10 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,6 +39,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -108,6 +111,7 @@ internal val LocalScale = staticCompositionLocalOf { 1f }
 internal fun Float.s(scale: Float) = (this * scale).sp
 internal fun Int.sd(scale: Float) = (this * scale).dp
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun WeatherContent(
     data: WeatherData,
@@ -120,7 +124,10 @@ internal fun WeatherContent(
     onCycleFont: () -> Unit,
     onCycleLanguage: () -> Unit,
     onLocationClicked: () -> Unit = {},
+    onLocationLongPressed: () -> Unit = {},
+    onLocationDoubleClicked: () -> Unit = {},
     showGpsCoordinates: Boolean = false,
+    devModeActive: Boolean = false,
 ) {
     val context = LocalContext.current
     val appLocale = context.resources.configuration.locales[0]
@@ -166,14 +173,39 @@ internal fun WeatherContent(
                     drawLayer(headerGraphicsLayer)
                 },
         ) {
-            Text(
-                text = if (showGpsCoordinates) "%.4f, %.4f".format(Locale.US, displayLat, displayLon) else data.locationName,
-                fontSize = 32f.s(scale),
-                fontWeight = FontWeight.Bold,
-                fontFamily = displayFont,
-                color = Color.White,
-                modifier = Modifier.clickable(onClick = onLocationClicked, role = Role.Button, onClickLabel = "Toggle location display")
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.combinedClickable(
+                    onClick = onLocationClicked,
+                    onLongClick = onLocationLongPressed,
+                    onDoubleClick = onLocationDoubleClicked,
+                    role = Role.Button,
+                    onClickLabel = "Toggle location display or open dev prompt"
+                )
+            ) {
+                Text(
+                    text = if (showGpsCoordinates) "%.4f, %.4f".format(Locale.US, displayLat, displayLon) else data.locationName,
+                    fontSize = 32f.s(scale),
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = displayFont,
+                    color = Color.White,
+                )
+                if (devModeActive) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Surface(
+                        color = Color.White.copy(alpha = 0.2f),
+                        shape = RoundedCornerShape(4.dp)
+                    ) {
+                        Text(
+                            text = "DEV",
+                            fontSize = 10f.s(scale),
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color.White,
+                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                        )
+                    }
+                }
+            }
             Text(
                 text = localizeDigits(dateFormat.format(Date(data.timestamp))),
                 fontSize = 16f.s(scale),
