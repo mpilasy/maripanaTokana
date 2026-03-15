@@ -63,7 +63,15 @@ class WeatherWidgetLarge : GlanceAppWidget() {
 
 @Composable
 private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean) {
-    val context = LocalContext.current
+        val baseContext = LocalContext.current
+        val context = remember(baseContext) {
+            val prefs = baseContext.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
+            val localeIndex = prefs.getInt("locale_index", 0).coerceIn(orinasa.njarasoa.maripanatokana.ui.weather.supportedLocales.indices)
+            val locale = java.util.Locale.forLanguageTag(orinasa.njarasoa.maripanatokana.ui.weather.supportedLocales[localeIndex].tag)
+            val config = android.content.res.Configuration(baseContext.resources.configuration)
+            config.setLocale(locale)
+            baseContext.createConfigurationContext(config)
+        }
     val timeFormat = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
     val refreshTime = timeFormat.format(Date(data.timestamp))
     val (tempPrimary, tempSecondary) = data.temperature.displayDual(metricPrimary)
@@ -91,6 +99,17 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
                         fontWeight = FontWeight.Bold,
                     ),
                 )
+                if (data.alerts.isNotEmpty()) {
+                    Spacer(modifier = GlanceModifier.width(8.dp))
+                    Text(
+                        text = "\u26A0\uFE0F ${data.alerts.size}",
+                        style = TextStyle(
+                            color = androidx.glance.color.ColorProvider(androidx.compose.ui.graphics.Color(0xFFFF4444), androidx.compose.ui.graphics.Color(0xFFFF4444)),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                        ),
+                    )
+                }
                 Spacer(modifier = GlanceModifier.defaultWeight())
                 Text(
                     text = refreshTime,

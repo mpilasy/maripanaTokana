@@ -5,6 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.jsonPrimitive
 import orinasa.njarasoa.maripanatokana.data.remote.GdacsApiService
 import orinasa.njarasoa.maripanatokana.data.remote.NwsApiService
 import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoApiService
@@ -35,7 +36,13 @@ class WeatherRepositoryImpl @Inject constructor(
                     nwsApiService.getActiveAlerts(point).features.map { f ->
                         val p = f.properties
                         val level = if (p.severity == "Extreme" || p.severity == "Severe") AlertLevel.WARNING else AlertLevel.WATCH
-                        WeatherAlert(level, p.event, p.description + (p.instruction?.let { "\n\n$it" } ?: ""), "official")
+                        val time = p.sent?.let {
+                            try {
+                                val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
+                                parser.parse(it)?.time
+                            } catch (_: Exception) { null }
+                        }
+                        WeatherAlert(level, p.event, p.description + (p.instruction?.let { "\n\n$it" } ?: ""), "official", time, p.headline, f.id)
                     }
                 } catch (e: Exception) {
                     emptyList()
@@ -54,7 +61,14 @@ class WeatherRepositoryImpl @Inject constructor(
                                 "orange" -> AlertLevel.WARNING
                                 else -> AlertLevel.WATCH
                             }
-                            WeatherAlert(level, "GDACS: ${p.eventtype} - ${p.name}", p.description, "gdacs")
+                            val time = p.fromdate?.let {
+                                try {
+                                    val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
+                                    parser.parse(it)?.time
+                                } catch (_: Exception) { null }
+                            }
+                            val reportUrl = try { p.url?.get("report")?.jsonPrimitive?.content } catch (_: Exception) { null }
+                            WeatherAlert(level, "GDACS: ${p.eventtype} - ${p.name}", p.description, "gdacs", time, null, reportUrl)
                         }
                 } catch (e: Exception) {
                     emptyList()

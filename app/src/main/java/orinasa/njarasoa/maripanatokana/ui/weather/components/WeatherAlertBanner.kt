@@ -156,6 +156,27 @@ fun WeatherAlertBanner(
                         }
                         Column {
                             Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (alerts.size > 1) {
+                                    val circleColor = when (alert.level) {
+                                        AlertLevel.WATCH -> Color(0xFFFFA500)
+                                        else -> Color(0xFFFF4444)
+                                    }
+                                    Surface(
+                                        color = circleColor,
+                                        shape = androidx.compose.foundation.shape.CircleShape,
+                                        modifier = Modifier.size(18.sd(scale))
+                                    ) {
+                                        androidx.compose.foundation.layout.Box(contentAlignment = Alignment.Center) {
+                                            Text(
+                                                text = "${index + 1}",
+                                                fontSize = 10f.s(scale),
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color.White
+                                            )
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.width(6.sd(scale)))
+                                }
                                 val title = context.resources.getIdentifier(alert.titleKey, "string", context.packageName).let { id ->
                                     if (id != 0) stringResource(id) else alert.titleKey
                                 }
@@ -169,9 +190,13 @@ fun WeatherAlertBanner(
                                 )
                                 if (alert.source != "derived") {
                                     Spacer(modifier = Modifier.width(6.sd(scale)))
+                                    val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
                                     Surface(
-                                        color = Color.White.copy(alpha = 0.2f),
-                                        shape = RoundedCornerShape(4.dp)
+                                        color = if (alert.link != null) Color.White.copy(alpha = 0.4f) else Color.White.copy(alpha = 0.2f),
+                                        shape = RoundedCornerShape(4.dp),
+                                        modifier = if (alert.link != null) Modifier.clickable {
+                                            try { uriHandler.openUri(alert.link) } catch (_: Exception) {}
+                                        } else Modifier
                                     ) {
                                         Text(
                                             text = alert.source.uppercase(),
@@ -182,6 +207,28 @@ fun WeatherAlertBanner(
                                         )
                                     }
                                 }
+                            }
+                            if (alert.time != null) {
+                                Spacer(modifier = Modifier.height(2.sd(scale)))
+                                val timeFormat = remember(alert.time) {
+                                    java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault())
+                                }
+                                Text(
+                                    text = timeFormat.format(java.util.Date(alert.time)),
+                                    fontSize = 11f.s(scale),
+                                    fontFamily = bodyFont,
+                                    color = Color.White.copy(alpha = 0.5f),
+                                )
+                            }
+                            if (alert.headline != null) {
+                                Spacer(modifier = Modifier.height(4.sd(scale)))
+                                Text(
+                                    text = alert.headline,
+                                    fontSize = 14f.s(scale),
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = bodyFont,
+                                    color = Color.White,
+                                )
                             }
                             Spacer(modifier = Modifier.height(4.sd(scale)))
                             val desc = context.resources.getIdentifier(alert.descKey, "string", context.packageName).let { id ->

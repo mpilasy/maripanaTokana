@@ -20,7 +20,8 @@ data class NwsAlertResponse(
 
 @Serializable
 data class NwsFeature(
-    val properties: NwsProperties
+    val properties: NwsProperties,
+    val id: String? = null
 )
 
 @Serializable
@@ -28,5 +29,7 @@ data class NwsProperties(
     val severity: String,
     val event: String,
     val description: String,
-    val instruction: String? = null
+    val instruction: String? = null,
+    val sent: String? = null,
+    val headline: String? = null
 )

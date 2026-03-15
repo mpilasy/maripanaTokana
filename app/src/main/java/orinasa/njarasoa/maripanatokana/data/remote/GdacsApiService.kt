@@ -29,7 +29,9 @@ data class GdacsProperties(
     val name: String,
     val eventtype: String,
     val alertlevel: String,
-    val description: String
+    val description: String,
+    val fromdate: String? = null,
+    val url: kotlinx.serialization.json.JsonObject? = null
 )
 
 @Serializable
