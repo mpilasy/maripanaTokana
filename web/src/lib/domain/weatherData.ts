@@ -44,6 +44,7 @@ export interface WeatherData {
 	tempMax: Temperature;
 	weatherCode: number;
 	locationName: string;
+	locationSubtext?: string;
 	pressure: Pressure;
 	humidity: number;
 	dewPoint: Temperature;

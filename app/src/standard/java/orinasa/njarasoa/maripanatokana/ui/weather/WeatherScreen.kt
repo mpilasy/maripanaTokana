@@ -242,6 +242,7 @@ fun WeatherScreen(
                             onLocationClicked = viewModel::onLocationClicked,
                             onLocationLongPressed = viewModel::onLocationLongPressed,
                             onLocationDoubleClicked = viewModel::onLocationDoubleClicked,
+                            onDevBadgeDoubleClicked = viewModel::disableDevMode,
                             showGpsCoordinates = showGpsCoordinates,
                             devModeActive = devModeActive,
                         )

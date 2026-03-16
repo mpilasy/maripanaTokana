@@ -72,7 +72,7 @@ fun deriveAlerts(c: OpenMeteoCurrent, h: OpenMeteoHourly, d: OpenMeteoDaily): Li
     return alerts
 }
 
-fun OpenMeteoResponse.toDomain(locationName: String): WeatherData {
+fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = null): WeatherData {
     val c = current
     val isDay = c.isDay == 1
     val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm", Locale.US)
@@ -135,6 +135,7 @@ fun OpenMeteoResponse.toDomain(locationName: String): WeatherData {
         weatherCode = c.weatherCode,
         iconCode = wmoIconCode(c.weatherCode, isDay),
         locationName = locationName,
+        locationSubtext = locationSubtext,
         pressure = Pressure.fromHPa(c.pressureMsl),
         humidity = c.relativeHumidity,
         dewPoint = Temperature.fromCelsius(c.dewPoint),

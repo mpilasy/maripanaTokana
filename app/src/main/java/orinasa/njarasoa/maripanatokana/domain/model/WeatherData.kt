@@ -8,6 +8,7 @@ data class WeatherData(
     val weatherCode: Int,
     val iconCode: String,
     val locationName: String,
+    val locationSubtext: String? = null,
     val pressure: Pressure,
     val humidity: Int, // percentage
     val dewPoint: Temperature,

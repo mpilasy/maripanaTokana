@@ -5,6 +5,7 @@ interface CachedLocation {
 	lat: number;
 	lon: number;
 	name?: string;
+	subtext?: string;
 }
 
 export function getCachedLocation(): CachedLocation | null {
@@ -18,10 +19,11 @@ export function getCachedLocation(): CachedLocation | null {
 	}
 }
 
-export function cacheLocation(lat: number, lon: number, name?: string) {
+export function cacheLocation(lat: number, lon: number, name?: string, subtext?: string) {
 	if (typeof localStorage !== 'undefined') {
 		const data: CachedLocation = { lat, lon };
 		if (name) data.name = name;
+		if (subtext) data.subtext = subtext;
 		localStorage.setItem(LOCATION_KEY, JSON.stringify(data));
 	}
 }
@@ -47,7 +49,12 @@ export function getPosition(): Promise<{ lat: number; lon: number }> {
 	});
 }
 
-export async function reverseGeocode(lat: number, lon: number): Promise<string> {
+export interface GeocodedLocation {
+	name: string;
+	subtext?: string;
+}
+
+export async function reverseGeocode(lat: number, lon: number): Promise<GeocodedLocation> {
 	try {
 		const res = await fetch(
 			`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
@@ -56,8 +63,19 @@ export async function reverseGeocode(lat: number, lon: number): Promise<string> 
 		if (!res.ok) throw new Error('Geocoding failed');
 		const data = await res.json();
 		const addr = data.address;
-		return addr?.city || addr?.town || addr?.village || addr?.county || addr?.state || `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
+		
+		const rawName = addr?.city || addr?.town || addr?.village || addr?.county || addr?.state || `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
+		const name = rawName.split(/[,;\-]/)[0].trim();
+		
+		const subParts = [];
+		if (addr?.state && !name.includes(addr.state) && !addr.state.includes(name)) subParts.push(addr.state);
+		if (addr?.country) subParts.push(addr.country);
+		
+		return {
+			name,
+			subtext: subParts.length > 0 ? subParts.join(', ') : undefined
+		};
 	} catch {
-		return `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
+		return { name: `${lat.toFixed(2)}, ${lon.toFixed(2)}` };
 	}
 }

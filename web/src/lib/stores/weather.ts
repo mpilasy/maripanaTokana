@@ -19,19 +19,19 @@ export const isRefreshing = writable<boolean>(false);
 
 const STALE_MS = 30 * 60 * 1000; // 30 minutes
 
-async function fetchAtLocation(lat: number, lon: number, knownName?: string): Promise<WeatherData> {
+async function fetchAtLocation(lat: number, lon: number, knownName?: string, knownSubtext?: string): Promise<WeatherData> {
 	const weatherPromise = fetchWeather(lat, lon);
-	const namePromise = knownName ? Promise.resolve(knownName) : reverseGeocode(lat, lon);
+	const namePromise = knownName ? Promise.resolve({ name: knownName, subtext: knownSubtext }) : reverseGeocode(lat, lon);
 	const nwsPromise = fetchNwsAlerts(lat, lon);
 	const gdacsPromise = fetchGdacsAlerts(lat, lon);
 
-	const [response, locationName, nwsAlerts, gdacsAlerts] = await Promise.all([
+	const [response, location, nwsAlerts, gdacsAlerts] = await Promise.all([
 		weatherPromise,
 		namePromise,
 		nwsPromise,
 		gdacsPromise
 	]);
-	const data = mapToWeatherData(response, locationName);
+	const data = mapToWeatherData(response, location.name, location.subtext);
 	data.alerts = [...nwsAlerts, ...gdacsAlerts, ...data.alerts];
 	// Filter duplicate alerts (e.g. same title)
 	data.alerts = data.alerts.filter((a, i, self) => 
@@ -56,10 +56,11 @@ export async function doFetchWeather() {
 				const lat = localStorage.getItem('dev_override_lat');
 				const lon = localStorage.getItem('dev_override_lon');
 				const name = localStorage.getItem('dev_override_name');
+				const subtext = localStorage.getItem('dev_override_subtext') || undefined;
 				if (lat && lon && name) {
 					const lLat = parseFloat(lat);
 					const lLon = parseFloat(lon);
-					const data = await fetchAtLocation(lLat, lLon, name);
+					const data = await fetchAtLocation(lLat, lLon, name, subtext);
 					weatherState.set({ kind: 'success', data });
 					isRefreshing.set(false);
 					return;
@@ -72,7 +73,7 @@ export async function doFetchWeather() {
 		let data: WeatherData | null = null;
 
 		// Start fetching weather for cached location immediately if available
-		const cachedFetchPromise = cached ? fetchAtLocation(cached.lat, cached.lon, cached.name) : null;
+		const cachedFetchPromise = cached ? fetchAtLocation(cached.lat, cached.lon, cached.name, cached.subtext) : null;
 
 		// Start getting fresh location concurrently
 		const freshLocationPromise = getPosition();
@@ -89,10 +90,10 @@ export async function doFetchWeather() {
 		if (!cached || movedSignificantly(cached.lat, cached.lon, fresh.lat, fresh.lon)) {
 			data = await fetchAtLocation(fresh.lat, fresh.lon);
 			weatherState.set({ kind: 'success', data });
-			cacheLocation(fresh.lat, fresh.lon, data.locationName);
+			cacheLocation(fresh.lat, fresh.lon, data.locationName, data.locationSubtext);
 		} else {
 			// Update cached coordinates to fresher ones, preserving name if available
-			cacheLocation(fresh.lat, fresh.lon, cached.name);
+			cacheLocation(fresh.lat, fresh.lon, cached.name, cached.subtext);
 		}
 	} catch (err) {
 		const current = get(weatherState);

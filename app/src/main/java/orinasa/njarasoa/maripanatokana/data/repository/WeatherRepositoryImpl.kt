@@ -91,19 +91,35 @@ class WeatherRepositoryImpl @Inject constructor(
             val nwsAlerts = nwsDeferred.await()
             val gdacsAlerts = gdacsDeferred.await()
 
-            val locationName = try {
+            val (locationName, locationSubtext) = try {
                 withContext(Dispatchers.IO) {
                     @Suppress("DEPRECATION")
                     val addr = geocoder.getFromLocation(lat, lon, 1)?.firstOrNull()
-                    addr?.locality
+                    val rawName = addr?.locality
                         ?: addr?.subAdminArea
                         ?: addr?.adminArea
-                } ?: "%.2f, %.2f".format(Locale.US, lat, lon)
+                        ?: "%.2f, %.2f".format(Locale.US, lat, lon)
+                    
+                    // Bolt: Strictly take only the first part before any common separators
+                    val name = rawName.split(",")[0].split(";")[0].split("-")[0].trim()
+
+                    val subtext = if (addr != null) {
+                        val parts = mutableListOf<String>()
+                        // Bolt: Ensure subtext doesn't repeat the main name even if it's a partial match
+                        if (addr.adminArea != null && !name.contains(addr.adminArea) && !addr.adminArea.contains(name) && !rawName.contains(addr.adminArea)) {
+                            parts.add(addr.adminArea)
+                        }
+                        if (addr.countryName != null) parts.add(addr.countryName)
+                        if (parts.isNotEmpty()) parts.joinToString(", ") else null
+                    } else null
+
+                    name to subtext
+                }
             } catch (_: Exception) {
-                "%.2f, %.2f".format(Locale.US, lat, lon)
+                "%.2f, %.2f".format(Locale.US, lat, lon) to null
             }
-            
-            val weatherData = response.toDomain(locationName)
+
+            val weatherData = response.toDomain(locationName, locationSubtext)
             // Combine all alerts and remove exact duplicates based on title and source
             val combinedAlerts = (nwsAlerts + gdacsAlerts + weatherData.alerts)
                 .distinctBy { it.titleKey + it.source }

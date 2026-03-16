@@ -9,6 +9,7 @@ export interface DevOverrideLocation {
     lat: number;
     lon: number;
     name: string;
+    subtext?: string;
 }
 
 export const locationOverride = writable<DevOverrideLocation | null>(null);
@@ -53,13 +54,26 @@ export function onLocationDoubleClicked() {
     }
 }
 
-export function setLocationOverride(lat: number, lon: number, name: string) {
+export function disableDevMode() {
+    if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem('dev_mode_expiration');
+    }
+    devModeActive.set(false);
+    resetLocationToCurrent();
+}
+
+export function setLocationOverride(lat: number, lon: number, name: string, subtext?: string) {
     if (typeof localStorage !== 'undefined') {
         localStorage.setItem('dev_override_lat', lat.toString());
         localStorage.setItem('dev_override_lon', lon.toString());
         localStorage.setItem('dev_override_name', name);
+        if (subtext) {
+            localStorage.setItem('dev_override_subtext', subtext);
+        } else {
+            localStorage.removeItem('dev_override_subtext');
+        }
     }
-    locationOverride.set({ lat, lon, name });
+    locationOverride.set({ lat, lon, name, subtext });
     showLocationOverrideDialog.set(false);
     doFetchWeather();
 }
@@ -69,6 +83,7 @@ export function clearDevModeOverride() {
         localStorage.removeItem('dev_override_lat');
         localStorage.removeItem('dev_override_lon');
         localStorage.removeItem('dev_override_name');
+        localStorage.removeItem('dev_override_subtext');
     }
     locationOverride.set(null);
 }

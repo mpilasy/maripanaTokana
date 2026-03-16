@@ -8,7 +8,8 @@
 		showGpsCoordinates, 
 		showLocationOverrideDialog, 
 		devModeActive,
-		initDevMode 
+		initDevMode,
+		disableDevMode
 	} from '$lib/stores/devMode';
 	import LocationOverrideDialog from './LocationOverrideDialog.svelte';
 	import { metricPrimary, fontIndex, localeIndex, toggleUnits, cycleFont, cycleLanguage } from '$lib/stores/preferences';
@@ -197,16 +198,30 @@
 					ondblclick={onLocationDoubleClicked}
 					style="cursor: pointer;"
 				>
-					<h1 class="location-name">
-						{#if $showGpsCoordinates}
-							{Number(localStorage.getItem('lat')).toFixed(4)}, {Number(localStorage.getItem('lon')).toFixed(4)}
-						{:else}
-							{data.locationName}
+					<div class="location-header">
+						<h1 class="location-name">
+							<span class="location-text">
+								{#if $showGpsCoordinates}
+									{Number(localStorage.getItem('lat')).toFixed(4)}, {Number(localStorage.getItem('lon')).toFixed(4)}
+								{:else}
+									{data.locationName}
+								{/if}
+							</span>
+							{#if $devModeActive}
+								<!-- svelte-ignore a11y_click_events_have_key_events -->
+								<!-- svelte-ignore a11y_no_static_element_interactions -->
+								<span 
+									class="dev-badge" 
+									ondblclick={(e) => { e.stopPropagation(); disableDevMode(); }}
+								>
+									DEV
+								</span>
+							{/if}
+						</h1>
+						{#if !$showGpsCoordinates && data.locationSubtext}
+							<p class="location-subtext">{data.locationSubtext}</p>
 						{/if}
-						{#if $devModeActive}
-							<span class="dev-badge">DEV</span>
-						{/if}
-					</h1>
+					</div>
 					<p class="date">{formatDate(data.timestamp)}</p>
 				</div>
 				<button type="button" class="updated" onclick={doFetchWeather}>
@@ -345,17 +360,34 @@
 		display: flex;
 		align-items: center;
 		gap: 12px;
+		max-width: 100%;
+		overflow: hidden;
+	}
+
+	.location-text {
+		flex-shrink: 1;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.location-subtext {
+		font-size: 13px;
+		color: rgba(255, 255, 255, 0.5);
+		margin-top: -4px;
+		margin-bottom: 4px;
 	}
 
 	.dev-badge {
-		background: rgba(255, 255, 255, 0.2);
-		padding: 2px 6px;
-		border-radius: 4px;
-		font-size: 10px;
+		background: rgba(255, 255, 255, 0.15);
+		padding: 1px 4px;
+		border-radius: 3px;
+		font-size: 8px;
 		font-weight: 800;
-		color: white;
+		color: rgba(255, 255, 255, 0.9);
 		letter-spacing: 0.5px;
 		font-family: var(--font-body);
+		vertical-align: middle;
 	}
 
 	.date {

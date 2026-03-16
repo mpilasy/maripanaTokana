@@ -71,7 +71,7 @@ function deriveAlerts(c: OpenMeteoCurrent, h: OpenMeteoHourly, d: OpenMeteoDaily
 	return alerts;
 }
 
-export function mapToWeatherData(response: OpenMeteoResponse, locationName: string): WeatherData {
+export function mapToWeatherData(response: OpenMeteoResponse, locationName: string, locationSubtext?: string): WeatherData {
 	const c = response.current;
 	const d = response.daily;
 	const h = response.hourly;
@@ -122,6 +122,7 @@ export function mapToWeatherData(response: OpenMeteoResponse, locationName: stri
 		tempMax: Temperature.fromCelsius(d.temperature_2m_max[0] ?? c.temperature_2m),
 		weatherCode: c.weather_code,
 		locationName,
+		locationSubtext,
 		pressure: Pressure.fromHPa(c.pressure_msl),
 		humidity: c.relative_humidity_2m,
 		dewPoint: Temperature.fromCelsius(c.dew_point_2m),

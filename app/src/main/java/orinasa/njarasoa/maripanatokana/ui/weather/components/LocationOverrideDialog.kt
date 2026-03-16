@@ -22,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -80,15 +81,28 @@ fun LocationOverrideDialog(
                 OutlinedTextField(
                     value = text,
                     onValueChange = { text = it },
-                    placeholder = { Text("Search city, zip, or lat,lon") },
+                    placeholder = { Text("Search city, zip, or lat,lon", color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.5f)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
+                    colors = TextFieldDefaults.colors(
+                        focusedTextColor = androidx.compose.ui.graphics.Color.White,
+                        unfocusedTextColor = androidx.compose.ui.graphics.Color.White,
+                        focusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
+                        unfocusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
+                        focusedIndicatorColor = androidx.compose.ui.graphics.Color.White,
+                        unfocusedIndicatorColor = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.3f),
+                        cursorColor = androidx.compose.ui.graphics.Color.White,
+                    ),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     keyboardActions = KeyboardActions(onSearch = { searchQuery(text) }),
                     trailingIcon = {
                         if (text.isNotEmpty()) {
                             IconButton(onClick = { text = "" }) {
-                                Icon(Icons.Default.Clear, contentDescription = "Clear text")
+                                Icon(
+                                    Icons.Default.Clear, 
+                                    contentDescription = "Clear text",
+                                    tint = androidx.compose.ui.graphics.Color.White
+                                )
                             }
                         }
                     }

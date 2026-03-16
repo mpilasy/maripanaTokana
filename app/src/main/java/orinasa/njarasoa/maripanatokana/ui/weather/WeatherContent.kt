@@ -72,6 +72,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.TextUnit
@@ -126,6 +127,7 @@ internal fun WeatherContent(
     onLocationClicked: () -> Unit = {},
     onLocationLongPressed: () -> Unit = {},
     onLocationDoubleClicked: () -> Unit = {},
+    onDevBadgeDoubleClicked: () -> Unit = {},
     showGpsCoordinates: Boolean = false,
     devModeActive: Boolean = false,
 ) {
@@ -173,8 +175,7 @@ internal fun WeatherContent(
                     drawLayer(headerGraphicsLayer)
                 },
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
+            Column(
                 modifier = Modifier.combinedClickable(
                     onClick = onLocationClicked,
                     onLongClick = onLocationLongPressed,
@@ -183,27 +184,48 @@ internal fun WeatherContent(
                     onClickLabel = "Toggle location display or open dev prompt"
                 )
             ) {
-                Text(
-                    text = if (showGpsCoordinates) "%.4f, %.4f".format(Locale.US, displayLat, displayLon) else data.locationName,
-                    fontSize = 32f.s(scale),
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = displayFont,
-                    color = Color.White,
-                )
-                if (devModeActive) {
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Surface(
-                        color = Color.White.copy(alpha = 0.2f),
-                        shape = RoundedCornerShape(4.dp)
-                    ) {
-                        Text(
-                            text = "DEV",
-                            fontSize = 10f.s(scale),
-                            fontWeight = FontWeight.ExtraBold,
-                            color = Color.White,
-                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
-                        )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = if (showGpsCoordinates) "%.4f, %.4f".format(Locale.US, displayLat, displayLon) else data.locationName,
+                        fontSize = 32f.s(scale),
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = displayFont,
+                        color = Color.White,
+                        modifier = Modifier.weight(1f, fill = false),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    if (devModeActive) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Surface(
+                            color = Color.White.copy(alpha = 0.15f),
+                            shape = RoundedCornerShape(3.dp),
+                            modifier = Modifier.combinedClickable(
+                                onClick = {}, // Do nothing on single tap
+                                onDoubleClick = { onDevBadgeDoubleClicked() }
+                            )
+                        ) {
+                            Text(
+                                text = "DEV",
+                                fontSize = 8f.s(scale),
+                                fontWeight = FontWeight.ExtraBold,
+                                color = Color.White.copy(alpha = 0.9f),
+                                modifier = Modifier.padding(horizontal = 3.dp, vertical = 1.dp)
+                            )
+                        }
                     }
+                }
+                if (!showGpsCoordinates && data.locationSubtext != null) {
+                    Text(
+                        text = data.locationSubtext,
+                        fontSize = 13f.s(scale),
+                        fontFamily = bodyFont,
+                        color = Color.White.copy(alpha = 0.5f),
+                        modifier = Modifier.padding(top = 0.dp)
+                    )
                 }
             }
             Text(
