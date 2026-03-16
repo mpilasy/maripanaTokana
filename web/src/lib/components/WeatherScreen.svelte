@@ -193,7 +193,13 @@
 				>
 					<div class="location-header">
 						<div class="location-primary-row">
-							<h1 class="location-name">{data.locationName}</h1>
+							<h1 class="location-name">
+								{#if !data.locationSubtext && data.locationName.includes(',')}
+									{data.locationName.split(',')[0].trim()}
+								{:else}
+									{data.locationName}
+								{/if}
+							</h1>
 							{#if $devModeActive}
 								<!-- svelte-ignore a11y_click_events_have_key_events -->
 								<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -218,8 +224,10 @@
 								</span>
 							{/if}
 						</div>
-						{#if data.locationSubtext}
-							<p class="location-subtext">{data.locationSubtext}</p>
+						{#if data.locationSubtext || data.locationName.includes(',')}
+							<p class="location-subtext">
+								{data.locationSubtext || data.locationName.split(',').slice(1).join(',').trim()}
+							</p>
 						{/if}
 						{#if $showGpsCoordinates}
 							<div class="location-text-group coords">
