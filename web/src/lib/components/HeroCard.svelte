@@ -7,6 +7,8 @@
 	import { formatTime } from '$lib/utils/date';
 	import DualUnitText from './DualUnitText.svelte';
 
+	import { enableDevMode } from '$lib/stores/devMode';
+
 	interface Props {
 		data: WeatherData;
 		metricPrimary: boolean;
@@ -18,6 +20,15 @@
 	let { data, metricPrimary, loc, onToggleUnits, onShare }: Props = $props();
 
 	let cardEl = $state<HTMLElement | null>(null);
+	let copyrightTaps = $state(0);
+
+	function handleCopyrightClick() {
+		copyrightTaps++;
+		if (copyrightTaps >= 5) {
+			enableDevMode();
+			copyrightTaps = 0;
+		}
+	}
 
 	let isNight = $derived(data.timestamp < data.sunrise * 1000 || data.timestamp > data.sunset * 1000);
 	let emoji = $derived(wmoEmoji(data.weatherCode, isNight));
@@ -127,7 +138,13 @@
 		</div>
 	</div>
 
-	<div class="copyright">&copy; Orinasa Njarasoa</div>
+	<div 
+		class="copyright" 
+		onclick={handleCopyrightClick}
+		style="cursor: default; user-select: none;"
+	>
+		&copy; Orinasa Njarasoa
+	</div>
 </div>
 
 <style>

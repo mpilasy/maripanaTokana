@@ -1,21 +1,11 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { enableDevMode } from '$lib/stores/devMode';
 
 	interface Props {
 		// No props needed after moving controls
 	}
 
 	let { }: Props = $props();
-	let versionTaps = $state(0);
-
-	function handleVersionClick() {
-		versionTaps++;
-		if (versionTaps >= 5) {
-			enableDevMode();
-			versionTaps = 0;
-		}
-	}
 </script>
 
 <footer class="footer" dir="ltr">
@@ -24,15 +14,7 @@
 			{$_('credits_weather_data')}
 			<a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a>
 		</span>
-		<!-- svelte-ignore a11y_click_events_have_key_events -->
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<span 
-			class="version" 
-			onclick={handleVersionClick}
-			style="cursor: default; user-select: none;"
-		>
-			v1.0.3
-		</span>
+		<span class="version">v1.0.3</span>
 	</div>
 </footer>
 
