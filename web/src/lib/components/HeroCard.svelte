@@ -20,15 +20,33 @@
 	let { data, metricPrimary, loc, onToggleUnits, onShare }: Props = $props();
 
 	let cardEl = $state<HTMLElement | null>(null);
-	let copyrightTaps = $state(0);
+	let devTaps = 0;
+	let devTapTimeout: ReturnType<typeof setTimeout>;
 
-	function handleCopyrightClick() {
-		copyrightTaps++;
-		if (copyrightTaps >= 5) {
+	function handleDevTap() {
+		devTaps++;
+		clearTimeout(devTapTimeout);
+		if (devTaps >= 7) {
 			enableDevMode();
-			copyrightTaps = 0;
+			devTaps = 0;
+		} else {
+			devTapTimeout = setTimeout(() => {
+				devTaps = 0;
+			}, 500);
 		}
 	}
+
+	function onDevModeClick(e: MouseEvent) {
+		handleDevTap();
+	}
+
+	function onKeyDown(e: KeyboardEvent) {
+		if (e.key === 'Enter' || e.key === ' ') {
+			e.preventDefault();
+			handleDevTap();
+		}
+	}
+
 
 	let isNight = $derived(data.timestamp < data.sunrise * 1000 || data.timestamp > data.sunset * 1000);
 	let emoji = $derived(wmoEmoji(data.weatherCode, isNight));
@@ -69,7 +87,13 @@
 	</div>
 
 	<div class="hero-top">
-		<div class="hero-weather">
+		<div 
+			class="hero-weather" 
+			onclick={onDevModeClick} 
+			onkeydown={onKeyDown}
+			role="button"
+			tabindex="0"
+		>
 			<span class="hero-emoji">{emoji}</span>
 			<span class="hero-description">{description}</span>
 		</div>
@@ -138,13 +162,7 @@
 		</div>
 	</div>
 
-	<div 
-		class="copyright" 
-		onclick={handleCopyrightClick}
-		style="cursor: default; user-select: none;"
-	>
-		&copy; Orinasa Njarasoa
-	</div>
+	<div class="copyright">&copy; Orinasa Njarasoa</div>
 </div>
 
 <style>
@@ -235,6 +253,20 @@
 		flex-direction: column;
 		align-items: center;
 		flex: 1;
+		cursor: pointer;
+		user-select: none;
+		-webkit-user-select: none;
+		touch-action: manipulation;
+		border-radius: 12px;
+		padding: 4px;
+		transition: background 0.2s;
+		background: transparent;
+		border: none;
+		font-family: inherit;
+	}
+
+	.hero-weather:hover {
+		background: rgba(255, 255, 255, 0.05);
 	}
 
 	.hero-emoji {

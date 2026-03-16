@@ -1,4 +1,6 @@
 export interface OpenMeteoResponse {
+	latitude: number;
+	longitude: number;
 	current: OpenMeteoCurrent;
 	daily: OpenMeteoDaily;
 	hourly: OpenMeteoHourly;
