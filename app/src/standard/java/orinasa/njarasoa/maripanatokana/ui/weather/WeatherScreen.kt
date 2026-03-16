@@ -239,6 +239,7 @@ fun WeatherScreen(
                             onToggleUnits = { viewModel.toggleUnits() },
                             onCycleFont = { viewModel.cycleFont() },
                             onCycleLanguage = { viewModel.cycleLanguage() },
+                            onRefresh = { viewModel.refresh() },
                             onLocationClicked = viewModel::onLocationClicked,
                             onLocationLongPressed = viewModel::onLocationLongPressed,
                             onLocationDoubleClicked = viewModel::onLocationDoubleClicked,

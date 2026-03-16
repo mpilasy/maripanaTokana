@@ -15,6 +15,7 @@
 	import { metricPrimary, fontIndex, localeIndex, toggleUnits, cycleFont, cycleLanguage } from '$lib/stores/preferences';
 	import { SUPPORTED_LOCALES, localizeDigits } from '$lib/i18n/index';
 	import { fontPairings } from '$lib/fonts';
+	import { formatDate } from '$lib/utils/date';
 	import HeroCard from './HeroCard.svelte';
 	import WeatherAlertBanner from './WeatherAlertBanner.svelte';
 	import HourlyForecast from './HourlyForecast.svelte';
@@ -72,24 +73,6 @@
 
 	function loc(s: string): string {
 		return localizeDigits(s, SUPPORTED_LOCALES[$localeIndex]);
-	}
-
-	// Memoize Intl.DateTimeFormat
-	let headerDateFormatter = $derived(new Intl.DateTimeFormat(SUPPORTED_LOCALES[$localeIndex].tag, {
-		weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
-	}));
-
-	function formatDate(timestamp: number): string {
-		const d = new Date(timestamp);
-		// Use Intl for day/month names in correct locale, but localize digits ourselves
-		return headerDateFormatter.format(d);
-	}
-
-	function formatTime(timestamp: number): string {
-		const d = new Date(timestamp);
-		const hh = String(d.getHours()).padStart(2, '0');
-		const mm = String(d.getMinutes()).padStart(2, '0');
-		return `${hh}:${mm}`;
 	}
 
 	function handleTouchStart(e: TouchEvent) {
@@ -232,11 +215,8 @@
 							<p class="location-subtext">{data.locationSubtext}</p>
 						{/if}
 					</div>
-					<p class="date">{formatDate(data.timestamp)}</p>
+					<p class="date">{formatDate(data.timestamp, SUPPORTED_LOCALES[$localeIndex].tag)}</p>
 				</div>
-				<button type="button" class="updated" onclick={doFetchWeather}>
-					{$_('updated_time', { values: { time: loc(formatTime(data.timestamp)) } })}
-				</button>
 			</div>
 
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -414,33 +394,6 @@
 	.date {
 		font-size: 16px;
 		color: rgba(255,255,255,0.7);
-	}
-
-	.updated {
-		font-size: 12px;
-		color: rgba(255,255,255,0.4);
-		cursor: pointer;
-		background: transparent;
-		border: none;
-		padding: 4px 8px;
-		margin: -4px -8px;
-		border-radius: 4px;
-		transition: color 0.2s, background 0.2s;
-		font-family: inherit;
-	}
-
-	.updated:hover {
-		color: rgba(255,255,255,0.7);
-		background: rgba(255,255,255,0.05);
-	}
-
-	.updated:focus-visible {
-		outline: 2px solid rgba(255, 255, 255, 0.5);
-		outline-offset: 2px;
-	}
-
-	.updated:active {
-		transform: scale(0.98);
 	}
 
 	.scroll-area {

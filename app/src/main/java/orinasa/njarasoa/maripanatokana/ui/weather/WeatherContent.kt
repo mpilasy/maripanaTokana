@@ -34,6 +34,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -124,6 +125,7 @@ internal fun WeatherContent(
     onToggleUnits: () -> Unit,
     onCycleFont: () -> Unit,
     onCycleLanguage: () -> Unit,
+    onRefresh: () -> Unit,
     onLocationClicked: () -> Unit = {},
     onLocationLongPressed: () -> Unit = {},
     onLocationDoubleClicked: () -> Unit = {},
@@ -252,12 +254,6 @@ internal fun WeatherContent(
                 fontSize = 16f.s(scale),
                 fontFamily = bodyFont,
                 color = Color.White.copy(alpha = 0.7f)
-            )
-            Text(
-                text = localizeDigits(stringResource(R.string.updated_time, osTimeFormat.format(Date(data.timestamp)))),
-                fontSize = 12f.s(scale),
-                fontFamily = bodyFont,
-                color = Color.White.copy(alpha = 0.4f)
             )
         }
 
@@ -403,27 +399,52 @@ internal fun WeatherContent(
                         textAlign = TextAlign.Center,
                     )
                 }
-                IconButton(
-                    onClick = {
-                        coroutineScope.launch {
-                            val header = headerGraphicsLayer.toImageBitmap().asAndroidBitmap()
-                            val content = graphicsLayer.toImageBitmap().asAndroidBitmap()
-                            shareCardBitmap(context, combineBitmaps(header, content))
-                        }
-                    },
+                Row(
                     modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(4.dp)
-                        .size(32.dp),
-                    colors = IconButtonDefaults.iconButtonColors(
-                        contentColor = Color.White.copy(alpha = 0.6f),
-                    ),
+                        .fillMaxWidth()
+                        .padding(4.sd(scale)),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_share),
-                        contentDescription = stringResource(R.string.cd_share),
-                        modifier = Modifier.size(16.dp),
-                    )
+                    IconButton(
+                        onClick = {
+                            coroutineScope.launch {
+                                val header = headerGraphicsLayer.toImageBitmap().asAndroidBitmap()
+                                val content = graphicsLayer.toImageBitmap().asAndroidBitmap()
+                                shareCardBitmap(context, combineBitmaps(header, content))
+                            }
+                        },
+                        modifier = Modifier.size(32.dp),
+                        colors = IconButtonDefaults.iconButtonColors(
+                            contentColor = Color.White.copy(alpha = 0.6f),
+                        ),
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_share),
+                            contentDescription = stringResource(R.string.cd_share),
+                            modifier = Modifier.size(16.dp),
+                        )
+                    }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .padding(end = 12.sd(scale))
+                            .clickable { onRefresh() }
+                    ) {
+                        Text(
+                            text = localizeDigits(stringResource(R.string.updated_time, osTimeFormat.format(Date(data.timestamp)))),
+                            fontSize = 11f.s(scale),
+                            fontFamily = bodyFont,
+                            color = Color.White.copy(alpha = 0.35f),
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = stringResource(R.string.cd_refresh),
+                            modifier = Modifier.size(14.dp),
+                            tint = Color.White.copy(alpha = 0.35f)
+                        )
+                    }
                 }
             }
 

@@ -287,8 +287,9 @@ class WeatherViewModel @Inject constructor(
                     saveLocation(lat, lon)
                     weatherRepository.getWeather(lat, lon).onSuccess { data ->
                         if (!freshWeatherDisplayed) {
-                            prefs.edit().putString("location_name", data.locationName).apply()
-                            _uiState.value = WeatherUiState.Success(data)
+                            val displayData = data.copy(locationSubtext = null)
+                            prefs.edit().putString("location_name", displayData.locationName).apply()
+                            _uiState.value = WeatherUiState.Success(displayData)
                         }
                     }
                 }
@@ -303,8 +304,9 @@ class WeatherViewModel @Inject constructor(
                             weatherRepository.getWeather(lat, lon)
                                 .onSuccess { data ->
                                     freshWeatherDisplayed = true
-                                    prefs.edit().putString("location_name", data.locationName).apply()
-                                    _uiState.value = WeatherUiState.Success(data)
+                                    val displayData = data.copy(locationSubtext = null)
+                                    prefs.edit().putString("location_name", displayData.locationName).apply()
+                                    _uiState.value = WeatherUiState.Success(displayData)
                                 }
                                 .onFailure {
                                     if (!usedCached) {

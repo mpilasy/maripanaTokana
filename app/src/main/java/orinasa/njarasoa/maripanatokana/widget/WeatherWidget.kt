@@ -9,10 +9,12 @@ import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
+import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
@@ -25,6 +27,7 @@ import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
+import androidx.glance.layout.size
 import androidx.glance.layout.width
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
@@ -134,13 +137,25 @@ private fun WeatherWidgetContent(data: WeatherData, metricPrimary: Boolean) {
                     )
                 }
                 Spacer(modifier = GlanceModifier.defaultWeight())
-                Text(
-                    text = refreshTime,
-                    style = TextStyle(
-                        color = WidgetColorProviders.onSurfaceVariant,
-                        fontSize = 10.sp,
-                    ),
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = GlanceModifier.clickable(actionRunCallback<RefreshActionCallback>())
+                ) {
+                    Text(
+                        text = refreshTime,
+                        style = TextStyle(
+                            color = WidgetColorProviders.onSurfaceVariant,
+                            fontSize = 10.sp,
+                        ),
+                    )
+                    Spacer(modifier = GlanceModifier.width(4.dp))
+                    Image(
+                        provider = ImageProvider(R.drawable.ic_refresh),
+                        contentDescription = context.getString(R.string.cd_refresh),
+                        modifier = GlanceModifier.size(12.dp),
+                        colorFilter = androidx.glance.ColorFilter.tint(WidgetColorProviders.onSurfaceVariant)
+                    )
+                }
             }
 
             Spacer(modifier = GlanceModifier.height(4.dp))

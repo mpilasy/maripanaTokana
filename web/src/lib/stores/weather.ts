@@ -31,7 +31,7 @@ async function fetchAtLocation(lat: number, lon: number, knownName?: string, kno
 		nwsPromise,
 		gdacsPromise
 	]);
-	const data = mapToWeatherData(response, location.name, location.subtext);
+	const data = mapToWeatherData(response, location.name, knownName ? location.subtext : undefined);
 	data.alerts = [...nwsAlerts, ...gdacsAlerts, ...data.alerts];
 	// Filter duplicate alerts (e.g. same title)
 	data.alerts = data.alerts.filter((a, i, self) => 

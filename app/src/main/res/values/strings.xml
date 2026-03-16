@@ -80,6 +80,7 @@
     <string name="cd_change_language">Change language</string>
     <string name="cd_toggle_units">Toggle units</string>
     <string name="cd_cycle_mode">Cycle display mode</string>
+    <string name="cd_refresh">Refresh</string>
     <string name="cd_share">Share</string>
     <string name="cd_collapse">Collapse</string>
     <string name="cd_expand">Expand</string>
