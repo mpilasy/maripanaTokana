@@ -80,10 +80,10 @@
     <string name="cd_change_language">Change language</string>
     <string name="cd_toggle_units">Toggle units</string>
     <string name="cd_cycle_mode">Cycle display mode</string>
-    <string name="cd_refresh">Refresh</string>
     <string name="cd_share">Share</string>
     <string name="cd_collapse">Collapse</string>
     <string name="cd_expand">Expand</string>
+    <string name="cd_refresh">Refresh</string>
     <string name="detail_no_precip">None</string>
     <string name="visibility_km" formatted="false">%.1f km</string>
     <string name="visibility_mi" formatted="false">%.2f mi</string>

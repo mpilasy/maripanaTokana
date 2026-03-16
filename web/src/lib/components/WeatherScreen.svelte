@@ -230,7 +230,14 @@
 							</p>
 						{/if}
 						{#if $showGpsCoordinates}
-							<div class="location-text-group coords">
+							<!-- svelte-ignore a11y_no_static_element_interactions -->
+							<div class="location-text-group coords clickable" onclick={() => {
+								const url = `geo:${data.latitude},${data.longitude}?q=${data.latitude},${data.longitude}`;
+								const opened = window.open(url, '_blank');
+								if (!opened) {
+									window.open(`https://www.openstreetmap.org/?mlat=${data.latitude}&mlon=${data.longitude}#map=15/${data.latitude}/${data.longitude}`, '_blank');
+								}
+							}}>
 								<span>{formatDMS(data.latitude, 'N', 'S')}</span>
 								<span>{formatDMS(data.longitude, 'E', 'W')}</span>
 							</div>
@@ -390,6 +397,7 @@
 		font-size: 22px;
 		line-height: 1.1;
 		color: white;
+		cursor: pointer;
 	}
 
 	.location-subtext {
@@ -454,6 +462,7 @@
 		line-height: 1.1;
 		color: rgba(255, 255, 255, 0.8);
 		margin-top: 8px;
+		cursor: pointer;
 	}
 
 	.date {

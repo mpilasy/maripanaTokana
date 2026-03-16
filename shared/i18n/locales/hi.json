@@ -117,6 +117,7 @@
 		"cd_cycle_mode": "Cycle display mode",
 		"cd_collapse": "संक्षिप्त करें",
 		"cd_expand": "विस्तृत करें",
+		"cd_refresh": "रिफ्रेश",
 		"detail_no_precip": "कोई नहीं",
 		"visibility_km": "%.1f km",
 		"visibility_mi": "%.2f mi",

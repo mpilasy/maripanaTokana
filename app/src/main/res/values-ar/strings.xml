@@ -82,6 +82,7 @@
     <string name="cd_cycle_mode">Cycle display mode</string>
     <string name="cd_collapse">طي</string>
     <string name="cd_expand">توسيع</string>
+    <string name="cd_refresh">تحديث</string>
     <string name="detail_no_precip">لا يوجد</string>
     <string name="visibility_km" formatted="false">%.1f km</string>
     <string name="visibility_mi" formatted="false">%.2f mi</string>

@@ -2,6 +2,7 @@ package orinasa.njarasoa.maripanatokana.ui.weather
 
 import android.content.Intent
 import android.graphics.Bitmap
+import android.net.Uri
 import android.graphics.Canvas
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -258,7 +259,13 @@ internal fun WeatherContent(
                 if (showGpsCoordinates) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                val geoUri = Uri.parse("geo:$displayLat,$displayLon?q=$displayLat,$displayLon")
+                                val mapIntent = Intent(Intent.ACTION_VIEW, geoUri)
+                                context.startActivity(Intent.createChooser(mapIntent, null))
+                            },
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Text(

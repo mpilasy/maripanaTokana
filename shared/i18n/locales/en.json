@@ -97,6 +97,7 @@
 		"cd_share": "Share",
 		"cd_collapse": "Collapse",
 		"cd_expand": "Expand",
+		"cd_refresh": "Refresh",
 		"detail_no_precip": "None",
 		"visibility_km": "%.1f km",
 		"visibility_mi": "%.2f mi",

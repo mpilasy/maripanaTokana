@@ -82,6 +82,7 @@
     <string name="cd_cycle_mode">Cycle display mode</string>
     <string name="cd_collapse">सानो बनाउनुहोस्</string>
     <string name="cd_expand">विस्तार गर्नुहोस्</string>
+    <string name="cd_refresh">रिफ्रेस</string>
     <string name="detail_no_precip">छैन</string>
     <string name="visibility_km" formatted="false">%.1f km</string>
     <string name="visibility_mi" formatted="false">%.2f mi</string>
