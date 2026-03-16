@@ -3,8 +3,6 @@
 	import { weatherState, isRefreshing, doFetchWeather } from '$lib/stores/weather';
 	import { 
 		onLocationClicked, 
-		onLocationLongPressed,
-		onLocationDoubleClicked, 
 		showGpsCoordinates, 
 		showLocationOverrideDialog, 
 		devModeActive,
@@ -105,37 +103,6 @@
 		doFetchWeather();
 	});
 
-	function longpress(node: HTMLElement, threshold = 600) {
-		let timer: number;
-
-		const handle_mousedown = () => {
-			timer = window.setTimeout(() => {
-				node.dispatchEvent(new CustomEvent('longpress'));
-			}, threshold);
-		};
-
-		const handle_mouseup = () => {
-			clearTimeout(timer);
-		};
-
-		node.addEventListener('mousedown', handle_mousedown);
-		node.addEventListener('mouseup', handle_mouseup);
-		node.addEventListener('mousemove', handle_mouseup);
-		node.addEventListener('touchstart', handle_mousedown);
-		node.addEventListener('touchend', handle_mouseup);
-		node.addEventListener('touchmove', handle_mouseup);
-
-		return {
-			destroy() {
-				node.removeEventListener('mousedown', handle_mousedown);
-				node.removeEventListener('mouseup', handle_mouseup);
-				node.removeEventListener('mousemove', handle_mouseup);
-				node.removeEventListener('touchstart', handle_mousedown);
-				node.removeEventListener('touchend', handle_mouseup);
-				node.removeEventListener('touchmove', handle_mouseup);
-			}
-		};
-	}
 	function formatDMS(value: number, positive: string, negative: string): string {
 		const direction = value >= 0 ? positive : negative;
 		const absolute = Math.abs(value);
@@ -185,10 +152,7 @@
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<div 
 					bind:this={headerEl} 
-					use:longpress
 					onclick={onLocationClicked} 
-					onlongpress={onLocationLongPressed}
-					ondblclick={onLocationDoubleClicked}
 					style="cursor: pointer;"
 				>
 					<div class="location-header">

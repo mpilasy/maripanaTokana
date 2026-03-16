@@ -36,7 +36,7 @@ export function onLocationClicked() {
     showGpsCoordinates.update((v) => !v);
 }
 
-export function onLocationLongPressed() {
+export function enableDevMode() {
     const now = Date.now();
     const expiration = now + 4 * 60 * 60 * 1000; // 4 hours
     if (typeof localStorage !== 'undefined') {
@@ -44,10 +44,6 @@ export function onLocationLongPressed() {
     }
     devModeActive.set(true);
     alert('Developer mode enabled');
-}
-
-export function onLocationDoubleClicked() {
-    // No longer doing anything on double click
 }
 
 export function openLocationOverride() {
