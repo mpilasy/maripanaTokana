@@ -255,6 +255,24 @@ Test both widgets (if configured):
   - [ ] Updates automatically
   - [ ] Tapping opens app
 
+### Developer Mode
+
+- [ ] **Activation**
+  - [ ] Long-press location name activates Dev Mode
+  - [ ] "DEV" badge appears in header
+  - [ ] Double-tap location name opens override dialog
+
+- [ ] **Location Override**
+  - [ ] Searching for a city updates location instantly
+  - [ ] Entering `lat,lon` updates location instantly
+  - [ ] Coordinates display in DMS format on two lines when toggled
+  - [ ] "My Location" icon in search field resets to GPS
+
+- [ ] **Session & Deactivation**
+  - [ ] Double-tapping "DEV" badge disables dev mode
+  - [ ] Dev mode persists for 4 hours unless manually cleared
+  - [ ] Clearing app cache or data resets dev mode
+
 ### Performance & Stability
 
 - [ ] **No Crashes**

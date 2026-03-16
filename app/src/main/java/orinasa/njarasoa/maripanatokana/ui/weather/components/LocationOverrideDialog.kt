@@ -14,6 +14,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -96,11 +97,20 @@ fun LocationOverrideDialog(
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     keyboardActions = KeyboardActions(onSearch = { searchQuery(text) }),
                     trailingIcon = {
-                        if (text.isNotEmpty()) {
-                            IconButton(onClick = { text = "" }) {
+                        Row {
+                            if (text.isNotEmpty()) {
+                                IconButton(onClick = { text = "" }) {
+                                    Icon(
+                                        Icons.Default.Clear, 
+                                        contentDescription = "Clear text",
+                                        tint = androidx.compose.ui.graphics.Color.White
+                                    )
+                                }
+                            }
+                            IconButton(onClick = onResetToCurrentLocation) {
                                 Icon(
-                                    Icons.Default.Clear, 
-                                    contentDescription = "Clear text",
+                                    Icons.Default.LocationOn, 
+                                    contentDescription = "My Location",
                                     tint = androidx.compose.ui.graphics.Color.White
                                 )
                             }
@@ -130,16 +140,6 @@ fun LocationOverrideDialog(
                             }
                         }
                     }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Button(
-                    onClick = onResetToCurrentLocation,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = CardBlue)
-                ) {
-                    Text("Reset to Current Location")
                 }
             }
         }

@@ -19,6 +19,14 @@ This is the web port of the [Android app](../), built with SvelteKit.
 - Edge-to-edge Blue Marble background
 - **Screenshot sharing**: capture any section as a branded PNG via `html2canvas` + Web Share API (with download fallback)
 - **Installable PWA** with offline support (service worker with NetworkFirst caching)
+- **Developer Mode**: Long-press the location name to activate a 4-hour developer session.
+  - **Location Override**: Search for any city or enter specific coordinates to test weather in other regions.
+  - **Quick Reset**: Double-tap the "DEV" badge to immediately exit dev mode and return to your actual location.
+  - **My Location**: Convenient icon next to the search field to reset to device GPS.
+- **Enhanced Location Display**:
+  - **Two-line Header**: Shows the city/locality on the first line and the region/country on a discreet second line.
+  - **Smart Parsing**: Automatically cleans location names while preserving essential locality names.
+  - **DMS Coordinates**: Tap the location to toggle GPS coordinates displayed in Degrees, Minutes, and Seconds (DMS) format across two lines.
 - Collapsible sections with slide animation for hourly, daily, and conditions
 - **Dual-language error screen**: shows browser language as secondary when different from app language
 - **Single-file build**: CSS inlined into HTML, JS consolidated into one bundle via `manualChunks`

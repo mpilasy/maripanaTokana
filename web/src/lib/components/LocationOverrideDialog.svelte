@@ -59,13 +59,20 @@
         <h2 class="title">Developer Mode</h2>
         <h3 class="subtitle">Override Location</h3>
 
-        <input
-            type="text"
-            bind:value={query}
-            oninput={handleInput}
-            placeholder="Search city, zip, or lat,lon"
-            class="search-input"
-        />
+        <div class="search-container">
+            <input
+                type="text"
+                bind:value={query}
+                oninput={handleInput}
+                placeholder="Search city, zip, or lat,lon"
+                class="search-input"
+            />
+            <button class="icon-button" onclick={() => resetLocationToCurrent()} title="My Location">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                </svg>
+            </button>
+        </div>
 
         <div class="results">
             {#each results as result}
@@ -75,10 +82,6 @@
                 </button>
             {/each}
         </div>
-
-        <button class="reset-button" onclick={() => resetLocationToCurrent()}>
-            Reset to Current Location
-        </button>
     </div>
 </div>
 
@@ -116,21 +119,44 @@
         font-weight: 400;
     }
 
+    .search-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
     .search-input {
-        width: 100%;
+        flex: 1;
         padding: 12px 16px;
         border-radius: 8px;
         border: 1px solid rgba(255, 255, 255, 0.2);
         background: transparent;
         color: white;
         font-size: 16px;
-        margin-bottom: 12px;
         box-sizing: border-box;
     }
 
     .search-input:focus {
         outline: none;
         border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .icon-button {
+        background: transparent;
+        border: none;
+        color: white;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+    }
+
+    .icon-button:hover {
+        background: rgba(255, 255, 255, 0.1);
     }
 
     .results {
@@ -161,17 +187,5 @@
     .result-meta {
         font-size: 14px;
         color: rgba(255, 255, 255, 0.5);
-    }
-
-    .reset-button {
-        width: 100%;
-        padding: 12px;
-        border-radius: 8px;
-        background: #2A1FA5;
-        color: white;
-        border: none;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
     }
 </style>

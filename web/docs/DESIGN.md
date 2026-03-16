@@ -19,9 +19,10 @@ For the Android app's design documentation, see [`docs/DESIGN.md`](../../docs/DE
 9. [Internationalization](#9-internationalization)
 10. [Font System](#10-font-system)
 11. [Service Worker & Offline](#11-service-worker--offline)
-12. [Screenshot Sharing](#12-screenshot-sharing)
-13. [Deployment](#13-deployment)
-14. [Key Patterns & Decisions](#14-key-patterns--decisions)
+12. [Developer Mode](#12-developer-mode)
+13. [Screenshot Sharing](#13-screenshot-sharing)
+14. [Deployment](#14-deployment)
+15. [Key Patterns & Decisions](#15-key-patterns--decisions)
 
 ---
 
@@ -416,7 +417,14 @@ The `persistedWritable<T>(key, default)` helper creates a Svelte writable store 
 Utility functions (not a Svelte store):
 
 - `getPosition()`: Wraps `navigator.geolocation.getCurrentPosition()` in a Promise with 15-second timeout.
-- `reverseGeocode(lat, lon)`: Calls the Nominatim API to convert coordinates to a human-readable place name. Falls back through `city → town → village → county → state → "lat, lon"`.
+- `reverseGeocode(lat, lon)`: Calls the Nominatim API to convert coordinates to a human-readable place name.
+
+**Location Name Refinement:**
+To ensure a clean UI, the location name is refined by:
+1.  **Splitting by separators**: Taking only the first part before commas, semicolons, or dashes (e.g., "Paris" from "Paris, France").
+2.  **Subtext Extraction**: The region and country are extracted into a separate `subtext` field displayed on a smaller second line.
+3.  **DMS Formatting**: Coordinates are formatted into Degrees, Minutes, and Seconds (DMS) format (e.g., `48°51'24"N`) and displayed on two lines when toggled.
+
 - `getCachedLocation()` / `cacheLocation()`: Read/write last known coordinates to `localStorage`.
 - `movedSignificantly()`: Returns `true` if lat or lon changed by more than 0.045 degrees (~5 km).
 
@@ -727,11 +735,28 @@ Vite normally splits code into many small chunks for lazy loading. For this app 
 A post-build script (`scripts/inline-assets.js`) reads the generated CSS file and inlines it as a `<style>` tag in `index.html`. This eliminates one HTTP request. JS is not inlined because ES modules loaded from `data:` URIs cannot resolve relative imports (a browser security restriction).
 
 ### No Precaching
-
 Early versions had the service worker precache all assets on install, which caused dozens of simultaneous downloads. The current approach lets caches fill naturally via NetworkFirst — assets are cached as they're requested, and served from cache when offline.
 
-### Immutable Domain Models
+---
 
+## 12. Developer Mode
+
+Developer Mode allows testing the application in different geographic locations.
+
+### 12.1 Activation & Lifecycle
+- **Activation**: Long-press the location name in the header.
+- **Expiration**: Dev Mode automatically expires after 4 hours (`dev_mode_expiration` in localStorage).
+- **Deactivation**: Double-tap the "DEV" badge to immediately clear overrides and restore the actual GPS location.
+
+### 12.2 Location Overrides
+When active, the user can search for a new location via the `LocationOverrideDialog`.
+- **Search**: Supports city names or direct `lat,lon` input via Open-Meteo Geocoding API.
+- **My Location**: A dedicated icon next to the search field allows quickly resetting to the real device GPS.
+- **Persistence**: Overridden coordinates and names are stored in localStorage and prioritized over browser GPS data in `weather` store.
+
+---
+
+## 13. Screenshot Sharing
 Temperature, Pressure, WindSpeed, and Precipitation are immutable classes with private constructors and static factory methods. This ensures unit conversions are always consistent and prevents accidental mutation. The `displayDual()` method encapsulates the metric/imperial toggle logic in one place.
 
 ---

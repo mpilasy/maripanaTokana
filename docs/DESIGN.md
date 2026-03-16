@@ -20,9 +20,10 @@ There is also a web version of the app built with SvelteKit. See [`web/docs/DESI
 9. [Internationalization (i18n)](#9-internationalization-i18n)
 10. [Font System](#10-font-system)
 11. [Widgets](#11-widgets)
-12. [Build Configuration](#12-build-configuration)
-13. [Signing & Release](#13-signing--release)
-14. [Key Design Decisions](#14-key-design-decisions)
+12. [Developer Mode](#12-developer-mode)
+13. [Build Configuration](#13-build-configuration)
+14. [Signing & Release](#14-signing--release)
+15. [Key Design Decisions](#15-key-design-decisions)
 
 ---
 
@@ -312,7 +313,15 @@ Maps WMO integer codes (0-99) to:
 
 ### 6.4 Weather Repository (`WeatherRepositoryImpl.kt`)
 
-Calls the API and reverse-geocodes the city name using Android's built-in `Geocoder`. Tries `locality`, then `subAdminArea`, then `adminArea` as fallbacks. Falls back to formatted coordinates ("12.34, 56.78") if all geocoding fields are null or an exception is thrown. Returns `Result<WeatherData>`.
+Calls the API and reverse-geocodes the city name using Android's built-in `Geocoder`. Tries `locality`, then `subAdminArea`, then `adminArea` as fallbacks. Falls back to formatted coordinates ("12.34, 56.78") if all geocoding fields are null or an exception is thrown.
+
+**Location Name Refinement:**
+To ensure a clean UI, the location name is refined by:
+1.  **Splitting by separators**: Taking only the first part before commas, semicolons, or dashes (e.g., "Paris" from "Paris, France").
+2.  **Subtext Extraction**: The region and country are extracted into a separate `locationSubtext` field displayed on a smaller second line.
+3.  **DMS Formatting**: Coordinates are formatted into Degrees, Minutes, and Seconds (DMS) format (e.g., `48°51'24"N`) and displayed on two lines when toggled.
+
+Returns `Result<WeatherData>`.
 
 ### 6.5 Location Repository (`LocationRepositoryImpl.kt`)
 
@@ -550,7 +559,24 @@ The main app saves location coordinates to `SharedPreferences("widget_prefs")` s
 
 ---
 
-## 12. Build Configuration
+## 12. Developer Mode
+
+Developer Mode allows testing the application in different geographic locations without physically moving the device.
+
+### 12.1 Activation & Lifecycle
+- **Activation**: Long-press the location name in the header.
+- **Expiration**: Dev Mode automatically expires after 4 hours (`dev_mode_expiration` in SharedPreferences).
+- **Deactivation**: Double-tap the "DEV" badge to immediately clear overrides and restore the actual GPS location.
+
+### 12.2 Location Overrides
+When active, the user can search for a new location via the `LocationOverrideDialog`.
+- **Search**: Supports city names, zip codes, or direct `lat,lon` input.
+- **My Location**: A dedicated icon next to the search field allows quickly resetting to the real device location.
+- **Persistence**: Overridden coordinates and names are stored in SharedPreferences (`dev_override_lat`, `dev_override_lon`, `dev_override_name`) and prioritized over GPS data in `WeatherViewModel`.
+
+---
+
+## 13. Build Configuration
 
 ### 12.1 Version Catalog (`gradle/libs.versions.toml`)
 

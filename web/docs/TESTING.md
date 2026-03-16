@@ -287,3 +287,24 @@ Test at these viewport widths (DevTools → Device toolbar):
 - [ ] Cycle fonts rapidly — no layout jank or loading errors
 - [ ] Very long location names — truncated or wrapped gracefully
 - [ ] Location with no wind gust data — gust card replaced with empty placeholder
+
+---
+
+## 18. Developer Mode
+
+- [ ] **Activation**
+  - [ ] Long-press location name → activates Dev Mode
+  - [ ] "DEV" badge appears in header
+  - [ ] Double-click location name → opens override dialog
+
+- [ ] **Location Override**
+  - [ ] Search for city (e.g., "Paris") → updates weather instantly
+  - [ ] Enter `lat,lon` (e.g., `48.85,2.35`) → updates weather instantly
+  - [ ] Verify two-line location header: City on line 1, Region/Country on line 2
+  - [ ] Tap location → verify DMS coordinates displayed on two lines (smaller font)
+  - [ ] Click "My Location" icon in search field → resets to actual GPS
+
+- [ ] **Session & Deactivation**
+  - [ ] Double-tap "DEV" badge → disables dev mode instantly
+  - [ ] Dev mode persists for 4 hours (check `dev_mode_expiration` in localStorage)
+  - [ ] Clearing browser site data resets dev mode

@@ -188,16 +188,35 @@ internal fun WeatherContent(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(
-                        text = if (showGpsCoordinates) "%.4f, %.4f".format(Locale.US, displayLat, displayLon) else data.locationName,
-                        fontSize = 32f.s(scale),
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = displayFont,
-                        color = Color.White,
-                        modifier = Modifier.weight(1f, fill = false),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    if (showGpsCoordinates) {
+                        Column(modifier = Modifier.weight(1f, fill = false)) {
+                            Text(
+                                text = formatDMS(displayLat, "N", "S"),
+                                fontSize = 22f.s(scale),
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = displayFont,
+                                color = Color.White,
+                            )
+                            Text(
+                                text = formatDMS(displayLon, "E", "W"),
+                                fontSize = 22f.s(scale),
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = displayFont,
+                                color = Color.White,
+                            )
+                        }
+                    } else {
+                        Text(
+                            text = data.locationName,
+                            fontSize = 32f.s(scale),
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = displayFont,
+                            color = Color.White,
+                            modifier = Modifier.weight(1f, fill = false),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                     if (devModeActive) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Surface(
@@ -1232,4 +1251,14 @@ internal suspend fun shareCardBitmap(context: android.content.Context, bitmap: B
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
     context.startActivity(Intent.createChooser(intent, null))
+}
+
+private fun formatDMS(value: Double, positive: String, negative: String): String {
+    val direction = if (value >= 0) positive else negative
+    val absolute = Math.abs(value)
+    val degrees = absolute.toInt()
+    val minutesTotal = (absolute - degrees) * 60
+    val minutes = minutesTotal.toInt()
+    val seconds = ((minutesTotal - minutes) * 60).toInt()
+    return "%d\u00B0%02d'%02d\"%s".format(Locale.US, degrees, minutes, seconds, direction)
 }

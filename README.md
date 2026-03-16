@@ -5,6 +5,14 @@
 ## Features
 
 - **Cross-Platform Parity**: Features on the Android and Web versions are kept in sync to provide a consistent experience.
+- **Developer Mode**: Long-press the location name to activate a 4-hour developer session.
+  - **Location Override**: Search for any city or enter specific coordinates to test weather in other regions.
+  - **Quick Reset**: Double-tap the "DEV" badge to immediately exit dev mode and return to your actual location.
+  - **Search History**: Recent overrides are cached for quick switching.
+- **Enhanced Location Display**:
+  - **Two-line Header**: Shows the city/locality on the first line and the region/country on a discreet second line.
+  - **Smart Parsing**: Automatically cleans location names (e.g., "Paris" instead of "Paris, France") while preserving essential locality names.
+  - **DMS Coordinates**: Tap the location to toggle GPS coordinates displayed in Degrees, Minutes, and Seconds (DMS) format across two lines.
 - Real-time weather data from [Open-Meteo](https://open-meteo.com) API (no key required)
 - GPS location with two-step strategy (instant cached + fresh background)
 - **Dual-unit display**: every measurement shows both metric and imperial simultaneously

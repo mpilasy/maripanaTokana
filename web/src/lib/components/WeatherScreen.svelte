@@ -152,6 +152,15 @@
 			}
 		};
 	}
+	function formatDMS(value: number, positive: string, negative: string): string {
+		const direction = value >= 0 ? positive : negative;
+		const absolute = Math.abs(value);
+		const degrees = Math.floor(absolute);
+		const minutesTotal = (absolute - degrees) * 60;
+		const minutes = Math.floor(minutesTotal);
+		const seconds = Math.floor((minutesTotal - minutes) * 60);
+		return `${degrees}\u00B0${minutes.toString().padStart(2, '0')}'${seconds.toString().padStart(2, '0')}"${direction}`;
+	}
 </script>
 
 <div class="weather-screen">
@@ -199,10 +208,11 @@
 					style="cursor: pointer;"
 				>
 					<div class="location-header">
-						<h1 class="location-name">
-							<span class="location-text">
+						<h1 class="location-name" class:has-coords={$showGpsCoordinates}>
+							<span class="location-text" class:coords={$showGpsCoordinates}>
 								{#if $showGpsCoordinates}
-									{Number(localStorage.getItem('lat')).toFixed(4)}, {Number(localStorage.getItem('lon')).toFixed(4)}
+									<span>{formatDMS(Number(localStorage.getItem('lat')), 'N', 'S')}</span>
+									<span>{formatDMS(Number(localStorage.getItem('lon')), 'E', 'W')}</span>
 								{:else}
 									{data.locationName}
 								{/if}
@@ -364,11 +374,22 @@
 		overflow: hidden;
 	}
 
+	.location-name.has-coords {
+		align-items: flex-start;
+	}
+
 	.location-text {
 		flex-shrink: 1;
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
+	}
+
+	.location-text.coords {
+		display: flex;
+		flex-direction: column;
+		font-size: 22px;
+		line-height: 1.1;
 	}
 
 	.location-subtext {
