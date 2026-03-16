@@ -9,7 +9,8 @@
 		showLocationOverrideDialog, 
 		devModeActive,
 		initDevMode,
-		disableDevMode
+		disableDevMode,
+		openLocationOverride
 	} from '$lib/stores/devMode';
 	import LocationOverrideDialog from './LocationOverrideDialog.svelte';
 	import { metricPrimary, fontIndex, localeIndex, toggleUnits, cycleFont, cycleLanguage } from '$lib/stores/preferences';
@@ -191,28 +192,40 @@
 					style="cursor: pointer;"
 				>
 					<div class="location-header">
-						<h1 class="location-name" class:has-coords={$showGpsCoordinates}>
-							<span class="location-text" class:coords={$showGpsCoordinates}>
-								{#if $showGpsCoordinates}
-									<span>{formatDMS(Number(localStorage.getItem('lat')), 'N', 'S')}</span>
-									<span>{formatDMS(Number(localStorage.getItem('lon')), 'E', 'W')}</span>
-								{:else}
-									{data.locationName}
-								{/if}
-							</span>
+						<div class="location-primary-row">
+							<h1 class="location-name">{data.locationName}</h1>
+							{#if $devModeActive}
+								<!-- svelte-ignore a11y_click_events_have_key_events -->
+								<!-- svelte-ignore a11y_no_static_element_interactions -->
+								<span 
+									class="edit-icon" 
+									onclick={(e) => { e.stopPropagation(); openLocationOverride(); }}
+								>
+									<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+										<path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+									</svg>
+								</span>
+							{/if}
+							
 							{#if $devModeActive}
 								<!-- svelte-ignore a11y_click_events_have_key_events -->
 								<!-- svelte-ignore a11y_no_static_element_interactions -->
 								<span 
 									class="dev-badge" 
-									ondblclick={(e) => { e.stopPropagation(); disableDevMode(); }}
+									onclick={(e) => { e.stopPropagation(); disableDevMode(); }}
 								>
-									DEV
+									DEV <span class="close-x">✕</span>
 								</span>
 							{/if}
-						</h1>
-						{#if !$showGpsCoordinates && data.locationSubtext}
+						</div>
+						{#if data.locationSubtext}
 							<p class="location-subtext">{data.locationSubtext}</p>
+						{/if}
+						{#if $showGpsCoordinates}
+							<div class="location-text-group coords">
+								<span>{formatDMS(data.latitude, 'N', 'S')}</span>
+								<span>{formatDMS(data.longitude, 'E', 'W')}</span>
+							</div>
 						{/if}
 					</div>
 					<p class="date">{formatDate(data.timestamp, SUPPORTED_LOCALES[$localeIndex].tag)}</p>
@@ -342,11 +355,7 @@
 		flex-shrink: 0;
 	}
 
-	.location-name {
-		font-family: var(--font-display);
-		font-size: 32px;
-		font-weight: 700;
-		color: white;
+	.location-primary-row {
 		display: flex;
 		align-items: center;
 		gap: 12px;
@@ -354,41 +363,89 @@
 		overflow: hidden;
 	}
 
-	.location-name.has-coords {
-		align-items: flex-start;
-	}
-
-	.location-text {
-		flex-shrink: 1;
+	.location-name {
+		font-family: var(--font-display);
+		font-size: 32px;
+		font-weight: 700;
+		color: white;
+		margin: 0;
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
 
-	.location-text.coords {
+	.location-text-group.coords {
 		display: flex;
 		flex-direction: column;
+		font-family: var(--font-display);
+		font-weight: 700;
 		font-size: 22px;
 		line-height: 1.1;
+		color: white;
 	}
 
 	.location-subtext {
+		font-family: var(--font-body);
 		font-size: 13px;
 		color: rgba(255, 255, 255, 0.5);
-		margin-top: -4px;
-		margin-bottom: 4px;
+		margin-top: 0;
+		font-weight: 400;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	.dev-badge {
 		background: rgba(255, 255, 255, 0.15);
-		padding: 1px 4px;
-		border-radius: 3px;
-		font-size: 8px;
+		padding: 2px 6px;
+		border-radius: 4px;
+		font-size: 10px;
 		font-weight: 800;
 		color: rgba(255, 255, 255, 0.9);
 		letter-spacing: 0.5px;
 		font-family: var(--font-body);
-		vertical-align: middle;
+		flex-shrink: 0;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		transition: background 0.2s;
+	}
+
+	.dev-badge:hover {
+		background: rgba(255, 255, 255, 0.25);
+	}
+
+	.close-x {
+		font-size: 10px;
+		opacity: 0.7;
+	}
+
+	.edit-icon {
+		color: rgba(255, 255, 255, 0.6);
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 4px;
+		border-radius: 50%;
+		transition: background 0.2s, color 0.2s;
+	}
+
+	.edit-icon:hover {
+		background: rgba(255, 255, 255, 0.1);
+		color: white;
+	}
+
+	.location-text-group.coords {
+		display: flex;
+		flex-direction: column;
+		font-family: var(--font-display);
+		font-weight: 700;
+		font-size: 20px;
+		line-height: 1.1;
+		color: rgba(255, 255, 255, 0.8);
+		margin-top: 8px;
 	}
 
 	.date {

@@ -76,6 +76,9 @@ export function mapToWeatherData(response: OpenMeteoResponse, locationName: stri
 	const d = response.daily;
 	const h = response.hourly;
 
+	const latitude = response.latitude;
+	const longitude = response.longitude;
+
 	const sunriseEpochSec = d.sunrise[0] ? Math.floor(parseIsoDateTime(d.sunrise[0]) / 1000) : 0;
 	const sunsetEpochSec = d.sunset[0] ? Math.floor(parseIsoDateTime(d.sunset[0]) / 1000) : 0;
 
@@ -123,6 +126,8 @@ export function mapToWeatherData(response: OpenMeteoResponse, locationName: stri
 		weatherCode: c.weather_code,
 		locationName,
 		locationSubtext,
+		latitude,
+		longitude,
 		pressure: Pressure.fromHPa(c.pressure_msl),
 		humidity: c.relative_humidity_2m,
 		dewPoint: Temperature.fromCelsius(c.dew_point_2m),

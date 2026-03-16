@@ -43,15 +43,15 @@ export function onLocationLongPressed() {
         localStorage.setItem('dev_mode_expiration', expiration.toString());
     }
     devModeActive.set(true);
+    alert('Developer mode enabled');
 }
 
 export function onLocationDoubleClicked() {
-    let active = false;
-    devModeActive.subscribe(v => active = v)();
+    // No longer doing anything on double click
+}
 
-    if (active) {
-        showLocationOverrideDialog.set(true);
-    }
+export function openLocationOverride() {
+    showLocationOverrideDialog.set(true);
 }
 
 export function disableDevMode() {

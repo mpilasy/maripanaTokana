@@ -33,6 +33,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Card
@@ -128,8 +130,8 @@ internal fun WeatherContent(
     onRefresh: () -> Unit,
     onLocationClicked: () -> Unit = {},
     onLocationLongPressed: () -> Unit = {},
-    onLocationDoubleClicked: () -> Unit = {},
-    onDevBadgeDoubleClicked: () -> Unit = {},
+    onEditLocationClicked: () -> Unit = {},
+    onDisableDevMode: () -> Unit = {},
     showGpsCoordinates: Boolean = false,
     devModeActive: Boolean = false,
 ) {
@@ -181,72 +183,99 @@ internal fun WeatherContent(
                 modifier = Modifier.combinedClickable(
                     onClick = onLocationClicked,
                     onLongClick = onLocationLongPressed,
-                    onDoubleClick = onLocationDoubleClicked,
                     role = Role.Button,
-                    onClickLabel = "Toggle location display or open dev prompt"
+                    onClickLabel = "Toggle GPS coordinates or enable dev mode"
                 )
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    if (showGpsCoordinates) {
-                        Column(modifier = Modifier.weight(1f, fill = false)) {
-                            Text(
-                                text = formatDMS(displayLat, "N", "S"),
-                                fontSize = 22f.s(scale),
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = displayFont,
-                                color = Color.White,
-                            )
-                            Text(
-                                text = formatDMS(displayLon, "E", "W"),
-                                fontSize = 22f.s(scale),
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = displayFont,
-                                color = Color.White,
-                            )
-                        }
-                    } else {
+                    Column(modifier = Modifier.weight(1f, fill = false)) {
                         Text(
                             text = data.locationName,
                             fontSize = 32f.s(scale),
                             fontWeight = FontWeight.Bold,
                             fontFamily = displayFont,
                             color = Color.White,
-                            modifier = Modifier.weight(1f, fill = false),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
-                    }
-                    if (devModeActive) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Surface(
-                            color = Color.White.copy(alpha = 0.15f),
-                            shape = RoundedCornerShape(3.dp),
-                            modifier = Modifier.combinedClickable(
-                                onClick = {}, // Do nothing on single tap
-                                onDoubleClick = { onDevBadgeDoubleClicked() }
-                            )
-                        ) {
+                        if (data.locationSubtext != null) {
                             Text(
-                                text = "DEV",
-                                fontSize = 8f.s(scale),
-                                fontWeight = FontWeight.ExtraBold,
-                                color = Color.White.copy(alpha = 0.9f),
-                                modifier = Modifier.padding(horizontal = 3.dp, vertical = 1.dp)
+                                text = data.locationSubtext,
+                                fontSize = 13f.s(scale),
+                                fontFamily = bodyFont,
+                                color = Color.White.copy(alpha = 0.5f),
+                                modifier = Modifier.padding(top = 0.dp)
                             )
                         }
                     }
+
+                    if (devModeActive) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        IconButton(
+                            onClick = onEditLocationClicked,
+                            modifier = Modifier.size(32.sd(scale))
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Edit Location",
+                                tint = Color.White.copy(alpha = 0.7f),
+                                modifier = Modifier.size(18.sd(scale))
+                            )
+                        }
+                        
+                        Spacer(modifier = Modifier.width(4.dp))
+                        
+                        Surface(
+                            color = Color.White.copy(alpha = 0.15f),
+                            shape = RoundedCornerShape(4.dp),
+                            onClick = onDisableDevMode
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            ) {
+                                Text(
+                                    text = "DEV",
+                                    fontSize = 10f.s(scale),
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = Color.White.copy(alpha = 0.9f)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Exit Dev Mode",
+                                    tint = Color.White.copy(alpha = 0.7f),
+                                    modifier = Modifier.size(10.sd(scale))
+                                )
+                            }
+                        }
+                    }
                 }
-                if (!showGpsCoordinates && data.locationSubtext != null) {
-                    Text(
-                        text = data.locationSubtext,
-                        fontSize = 13f.s(scale),
-                        fontFamily = bodyFont,
-                        color = Color.White.copy(alpha = 0.5f),
-                        modifier = Modifier.padding(top = 0.dp)
-                    )
+                
+                if (showGpsCoordinates) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            text = formatDMS(displayLat, "N", "S"),
+                            fontSize = 20f.s(scale),
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = displayFont,
+                            color = Color.White.copy(alpha = 0.8f),
+                        )
+                        Text(
+                            text = formatDMS(displayLon, "E", "W"),
+                            fontSize = 20f.s(scale),
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = displayFont,
+                            color = Color.White.copy(alpha = 0.8f),
+                        )
+                    }
                 }
             }
             Text(

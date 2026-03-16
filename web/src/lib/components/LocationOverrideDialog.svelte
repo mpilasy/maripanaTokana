@@ -47,8 +47,10 @@
         }, 500);
     }
 
-    function selectLocation(lat: number, lon: number, name: string) {
-        setLocationOverride(lat, lon, name);
+    function selectLocation(result: any) {
+        const name = result.name;
+        const subtext = [result.admin1, result.country].filter(Boolean).join(', ');
+        setLocationOverride(result.latitude, result.longitude, name, subtext);
     }
 </script>
 
@@ -76,7 +78,7 @@
 
         <div class="results">
             {#each results as result}
-                <button class="result-item" onclick={() => selectLocation(result.latitude, result.longitude, result.displayName)}>
+                <button class="result-item" onclick={() => selectLocation(result)}>
                     <div class="result-name">{result.name}</div>
                     <div class="result-meta">{result.displayName}</div>
                 </button>

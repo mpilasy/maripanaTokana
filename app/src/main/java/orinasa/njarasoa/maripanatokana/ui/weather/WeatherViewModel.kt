@@ -1,6 +1,7 @@
 package orinasa.njarasoa.maripanatokana.ui.weather
 
 import android.content.Context
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -103,21 +104,26 @@ class WeatherViewModel @Inject constructor(
     }
 
     fun onLocationClicked() {
-        // Single tap always toggles GPS coordinates view
+        // Single tap toggles GPS coordinates below the location label
         _showGpsCoordinates.value = !_showGpsCoordinates.value
     }
 
     fun onLocationLongPressed() {
-        val now = System.currentTimeMillis()
-        val expiration = now + 4 * 60 * 60 * 1000L // 4 hours
-        prefs.edit().putLong("dev_mode_expiration", expiration).apply()
-        _devModeActive.value = true
+        if (!_devModeActive.value) {
+            val now = System.currentTimeMillis()
+            val expiration = now + 4 * 60 * 60 * 1000L // 4 hours
+            prefs.edit().putLong("dev_mode_expiration", expiration).apply()
+            _devModeActive.value = true
+            Toast.makeText(appContext, "Developer mode enabled", Toast.LENGTH_SHORT).show()
+        }
     }
 
     fun onLocationDoubleClicked() {
-        if (_devModeActive.value) {
-            _showLocationOverrideDialog.value = true
-        }
+        // No longer doing anything on double click
+    }
+
+    fun onEditLocationClicked() {
+        _showLocationOverrideDialog.value = true
     }
 
     fun disableDevMode() {
