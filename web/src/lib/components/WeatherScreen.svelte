@@ -196,11 +196,8 @@
 						{#if $showGpsCoordinates}
 							<!-- svelte-ignore a11y_no_static_element_interactions -->
 							<div class="location-text-group coords clickable" onclick={() => {
-								const url = `geo:${data.latitude},${data.longitude}?q=${data.latitude},${data.longitude}`;
-								const opened = window.open(url, '_blank');
-								if (!opened) {
-									window.open(`https://www.openstreetmap.org/?mlat=${data.latitude}&mlon=${data.longitude}#map=15/${data.latitude}/${data.longitude}`, '_blank');
-								}
+								const url = `https://www.openstreetmap.org/?mlat=${data.latitude}&mlon=${data.longitude}#map=15/${data.latitude}/${data.longitude}`;
+								window.open(url, '_blank');
 							}}>
 								<span>{formatDMS(data.latitude, 'N', 'S')}</span>
 								<span>{formatDMS(data.longitude, 'E', 'W')}</span>
