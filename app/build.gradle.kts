@@ -10,6 +10,12 @@ plugins {
     id("com.google.dagger.hilt.android")
 }
 
+kotlin {
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+}
+
 val buildTime: String = SimpleDateFormat("yyyy-MM-dd HH:mm").format(Date())
 
 val keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -39,8 +45,8 @@ android {
         applicationId = "orinasa.njarasoa.maripanatokana"
         minSdk = 24
         targetSdk = 36
-        versionCode = 8
-        versionName = "1.0.7"
+        versionCode = 9
+        versionName = "1.0.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
