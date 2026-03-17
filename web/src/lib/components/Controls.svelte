@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	interface Props {
 		fontName: string;
 		currentFlag: string;
@@ -10,14 +11,14 @@
 </script>
 
 <div class="controls" dir="ltr">
-	<button type="button" class="control-item" onclick={onCycleFont}>
+	<button type="button" class="control-item" onclick={onCycleFont} aria-label={$_('android_only.cd_change_font')}>
 		<span class="icon">Aa</span>
 		<span class="name">{fontName.replace(' + ', '\n')}</span>
 	</button>
 
 	<div class="spacer"></div>
 
-	<button type="button" class="control-item" onclick={onCycleLanguage}>
+	<button type="button" class="control-item" onclick={onCycleLanguage} aria-label={$_('android_only.cd_change_language')}>
 		<span class="flag">{currentFlag}</span>
 	</button>
 </div>

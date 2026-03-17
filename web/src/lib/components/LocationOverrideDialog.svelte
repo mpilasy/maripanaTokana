@@ -56,10 +56,10 @@
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-<div class="scrim" onclick={() => { resetLocationToCurrent(); }}>
-    <div class="dialog" onclick={(e) => e.stopPropagation()}>
-        <h2 class="title">Developer Mode</h2>
-        <h3 class="subtitle">Override Location</h3>
+<div class="scrim" role="button" tabindex="0" onclick={() => { resetLocationToCurrent(); }} onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); resetLocationToCurrent(); } }}>
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title" aria-describedby="dialog-subtitle" tabindex="-1" onclick={(e) => e.stopPropagation()}>
+        <h2 id="dialog-title" class="title">Developer Mode</h2>
+        <h3 id="dialog-subtitle" class="subtitle">Override Location</h3>
 
         <div class="search-container">
             <input
@@ -69,7 +69,7 @@
                 placeholder="Search city, zip, or lat,lon"
                 class="search-input"
             />
-            <button class="icon-button" onclick={() => resetLocationToCurrent()} title="My Location">
+            <button class="icon-button" onclick={() => resetLocationToCurrent()} title="My Location" aria-label="My Location">
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
                     <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
                 </svg>
