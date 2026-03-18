@@ -1,1 +1,1 @@
-Aplicación meteorológica que muestra unidades métricas e imperiales lado a lado en 8 idiomas
+App del clima con unidades métricas e imperiales a la vez en 8 idiomas
