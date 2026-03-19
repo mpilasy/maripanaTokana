@@ -13,7 +13,6 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import orinasa.njarasoa.maripanatokana.domain.model.HourlyForecast
-import orinasa.njarasoa.maripanatokana.ui.theme.SkyBlue
 
 @Composable
 fun TemperatureChart(
@@ -22,7 +21,7 @@ fun TemperatureChart(
     itemWidth: Dp,
     spacing: Dp,
     modifier: Modifier = Modifier,
-    lineColor: Color = SkyBlue,
+    lineColor: Color = Color.White,
 ) {
     if (forecasts.isEmpty()) return
 
@@ -87,16 +86,16 @@ fun TemperatureChart(
             drawPath(
                 path = fillPath,
                 brush = Brush.verticalGradient(
-                    colors = listOf(lineColor.copy(alpha = 0.2f), Color.Transparent),
+                    colors = listOf(lineColor.copy(alpha = 0.15f), Color.Transparent),
                     startY = 0f,
                     endY = height
                 )
             )
 
-            // Draw line - increased visibility (higher alpha and slightly thicker)
+            // Draw line - bright white
             drawPath(
                 path = path,
-                color = lineColor.copy(alpha = 0.8f),
+                color = lineColor.copy(alpha = 0.85f),
                 style = Stroke(width = 2.dp.toPx())
             )
         }

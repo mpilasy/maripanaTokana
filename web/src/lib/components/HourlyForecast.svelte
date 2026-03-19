@@ -5,6 +5,7 @@
 	import { wmoEmoji } from '$lib/api/wmoWeatherCode';
 	import { formatHourInDeviceTime, formatHourAtLocation, isRemoteTimezone } from '$lib/utils/date';
 	import DualUnitText from './DualUnitText.svelte';
+	import TemperatureChart from './TemperatureChart.svelte';
 
 	interface Props {
 		forecasts: HourlyForecastType[];
@@ -40,7 +41,18 @@
 	}
 </script>
 
-<div class="hourly-row">
+<div class="hourly-row" style="--chart-top: {isRemote ? '66px' : '52px'}">
+	{#if displayMode === 'Temperature'}
+		<div class="chart-container">
+			<TemperatureChart
+				{forecasts}
+				{metricPrimary}
+				itemWidth={80 + 24} 
+				itemSpacing={12}
+				height={40}
+			/>
+		</div>
+	{/if}
 	{#each forecasts as item}
 		{@const [tempP, tempS] = item.temperature.displayDual(metricPrimary)}
 		<div class="hourly-card">
@@ -55,6 +67,7 @@
 				{wmoEmoji(item.weatherCode, isNightForHour(item.time))}
 			</button>
 			{#if displayMode === 'Temperature'}
+				<div class="chart-spacer"></div>
 				{@const [tempP, tempS] = item.temperature.displayDual(metricPrimary)}
 				<DualUnitText
 					primary={loc(tempP)}
@@ -109,6 +122,19 @@
 		padding: 8px 0;
 		max-width: 100%;
 		-webkit-overflow-scrolling: touch;
+		position: relative;
+	}
+
+	.chart-container {
+		position: absolute;
+		top: var(--chart-top);
+		left: 0;
+		z-index: 0;
+		pointer-events: none;
+	}
+
+	.chart-spacer {
+		height: 40px;
 	}
 
 	.hourly-row::-webkit-scrollbar {
@@ -121,11 +147,12 @@
 		align-items: center;
 		gap: 4px;
 		padding: 12px;
-		background: rgba(42, 31, 165, 0.6);
+		background: rgba(42, 31, 165, 0.45);
 		border-radius: 16px;
 		scroll-snap-align: start;
 		flex-shrink: 0;
 		min-width: 80px;
+		z-index: 1;
 	}
 
 	.hour {
