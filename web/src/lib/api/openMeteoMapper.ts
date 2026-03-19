@@ -20,8 +20,10 @@ function deriveAlerts(c: OpenMeteoCurrent, h: OpenMeteoHourly, d: OpenMeteoDaily
 	const locationOffset = utcOffsetSeconds * 1000;
 	const locationNowAsDevice = nowMillis - (deviceOffset - locationOffset);
 	
+	const parsedTimes = h.time.map(t => new Date(t).getTime());
+
 	// Scan next 24 hours of hourly forecast
-	const startIndex = Math.max(0, h.time.findIndex((t: string) => new Date(t).getTime() >= locationNowAsDevice));
+	const startIndex = Math.max(0, parsedTimes.findIndex(t => t >= locationNowAsDevice));
 	const forecastWindow = h.time.slice(startIndex, startIndex + 24).map((_: string, i: number) => {
 		const idx = startIndex + i;
 		return {
@@ -93,14 +95,17 @@ export function mapToWeatherData(response: OpenMeteoResponse, locationName: stri
 	const locationOffset = response.utc_offset_seconds * 1000;
 	const locationNowAsDevice = nowMillis - (deviceOffset - locationOffset);
 
-	const startIndex = h.time.findIndex((time) => parseIsoDateTime(time) >= locationNowAsDevice);
+	const parsedHourlyTimes = h.time.map(parseIsoDateTime);
+
+	const startIndex = parsedHourlyTimes.findIndex((t) => t >= locationNowAsDevice);
 	const hourlyForecast: HourlyForecast[] =
 		startIndex === -1
 			? []
 			: h.time.slice(startIndex, startIndex + 24).map((time, i) => {
 					const actualIndex = startIndex + i;
+					const epoch = parsedHourlyTimes[actualIndex];
 					return {
-						time: parseIsoDateTime(time),
+						time: epoch,
 						temperature: Temperature.fromCelsius(h.temperature_2m[actualIndex]),
 						weatherCode: h.weather_code[actualIndex],
 						precipProbability: h.precipitation_probability[actualIndex],
@@ -111,9 +116,11 @@ export function mapToWeatherData(response: OpenMeteoResponse, locationName: stri
 					};
 				});
 
+	const parsedDailyTimes = d.time.map(parseIsoDate);
+
 	const dailyForecast: DailyForecast[] = d.time.map((time, i) => {
 		return {
-			date: parseIsoDate(time),
+			date: parsedDailyTimes[i],
 			tempMax: Temperature.fromCelsius(d.temperature_2m_max[i]),
 			tempMin: Temperature.fromCelsius(d.temperature_2m_min[i]),
 			weatherCode: i === 0 ? c.weather_code : d.weather_code[i],

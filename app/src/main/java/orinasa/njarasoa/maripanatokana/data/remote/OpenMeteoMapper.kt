@@ -20,15 +20,16 @@ fun deriveAlerts(c: OpenMeteoCurrent, h: OpenMeteoHourly, d: OpenMeteoDaily, utc
     val locationOffset = utcOffsetSeconds * 1000L
     val locationNowAsDevice = nowMillis - (deviceOffset - locationOffset)
 
+    // Pre-parse timestamps once
+    val parsedTimes = h.time.map { dateFormat.parse(it)?.time ?: 0L }
+
     // Scan next 24 hours of hourly forecast
-    val startIndex = h.time.indexOfFirst {
-        (dateFormat.parse(it)?.time ?: 0L) >= locationNowAsDevice
-    }.coerceAtLeast(0)
+    val startIndex = parsedTimes.indexOfFirst { it >= locationNowAsDevice }.coerceAtLeast(0)
     
-    val forecastWindow = h.time.indices.filter { it in startIndex until (startIndex + 24) && it < h.time.size }
-        .map { idx ->
-            Triple(h.weatherCode[idx], h.temperature2m[idx], h.windSpeed10m.getOrElse(idx) { 0.0 })
-        }
+    val forecastIndices = parsedTimes.indices.filter { it in startIndex until (startIndex + 24) && it < h.time.size }
+    val forecastWindow = forecastIndices.map { idx ->
+        Triple(h.weatherCode[idx], h.temperature2m[idx], h.windSpeed10m.getOrElse(idx) { 0.0 })
+    }
 
     val codes = listOf(c.weatherCode) + forecastWindow.map { it.first }
     val maxWind = (listOf(c.windSpeed, c.windGusts) + forecastWindow.map { it.third }).maxOrNull() ?: 0.0
@@ -81,6 +82,9 @@ fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = 
     val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm", Locale.US)
     val dayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
 
+    // Pre-parse hourly timestamps once
+    val parsedHourlyTimes = hourly.time.map { dateFormat.parse(it)?.time ?: 0L }
+
     val sunriseEpoch = daily.sunrise.firstOrNull()?.let {
         dateFormat.parse(it)?.time?.div(1000) ?: 0L
     } ?: 0L
@@ -96,15 +100,13 @@ fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = 
     val locationOffset = utcOffsetSeconds * 1000L
     val locationNowAsDevice = nowMillis - (deviceOffset - locationOffset)
 
-    // Find the first index where the time is >= locationNowAsDevice to avoid mapping all 168 hours
-    val startIndex = hourly.time.indexOfFirst { time ->
-        (dateFormat.parse(time)?.time ?: 0L) >= locationNowAsDevice
-    }.takeIf { it != -1 } ?: 0
+    // Find the first index using pre-parsed times
+    val startIndex = parsedHourlyTimes.indexOfFirst { it >= locationNowAsDevice }.takeIf { it != -1 } ?: 0
 
     val endIndex = minOf(startIndex + 24, hourly.time.size)
 
     val hourlyForecast = (startIndex until endIndex).mapNotNull { i ->
-        val epoch = dateFormat.parse(hourly.time[i])?.time ?: 0L
+        val epoch = parsedHourlyTimes[i]
         if (epoch < nowMillis) return@mapNotNull null // Extra safety in case startIndex logic failed
 
         HourlyForecast(
@@ -119,8 +121,10 @@ fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = 
         )
     }.distinctBy { it.time }
 
+    val parsedDailyTimes = daily.time.map { dayFormat.parse(it)?.time ?: 0L }
+
     val dailyForecast = daily.time.indices.map { i ->
-        val epoch = dayFormat.parse(daily.time[i])?.time ?: 0L
+        val epoch = parsedDailyTimes[i]
         DailyForecast(
             date = epoch,
             tempMax = Temperature.fromCelsius(daily.temperatureMax[i]),
