@@ -161,10 +161,10 @@ fun DailyTemperatureChart(
 
             // Draw dots (as requested)
             maxPoints.forEach { point ->
-                drawCircle(color = Color(0xFFFF7043), radius = 1.5.dp.toPx(), center = point)
+                drawCircle(color = Color(0xFFFF7043), radius = 3.dp.toPx(), center = point)
             }
             minPoints.forEach { point ->
-                drawCircle(color = Color(0xFF64B5F6), radius = 1.5.dp.toPx(), center = point)
+                drawCircle(color = Color(0xFF64B5F6), radius = 3.dp.toPx(), center = point)
             }
         }
     }

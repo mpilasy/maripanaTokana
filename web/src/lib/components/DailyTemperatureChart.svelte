@@ -96,10 +96,10 @@
 			<path d={minPath} fill="none" stroke="#64B5F6" stroke-width="2.5" stroke-linecap="round" vector-effect="non-scaling-stroke" />
 			
 			{#each maxPoints as point}
-				<circle cx={point.x} cy={point.y} r="1.5" fill="#FF7043" />
+				<circle cx={point.x} cy={point.y} r="3" fill="#FF7043" />
 			{/each}
 			{#each minPoints as point}
-				<circle cx={point.x} cy={point.y} r="1.5" fill="#64B5F6" />
+				<circle cx={point.x} cy={point.y} r="3" fill="#64B5F6" />
 			{/each}
 		</svg>
 	</div>
