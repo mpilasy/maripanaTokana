@@ -746,7 +746,7 @@ internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: B
                 // Background graph
                 Column {
                     // Offset based on Time (12sp) + RemoteTime? (9sp) + Icon (20sp) + Numbers (~32sp) + padding
-                    Spacer(modifier = Modifier.height(if (isRemote) 82.sd(scale) else 72.sd(scale)))
+                    Spacer(modifier = Modifier.height(if (isRemote) 96.sd(scale) else 84.sd(scale)))
                     TemperatureChart(
                         forecasts = forecasts,
                         metricPrimary = metricPrimary,
@@ -754,7 +754,7 @@ internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: B
                         spacing = itemSpacing,
                         modifier = Modifier
                             .width(itemWidth * forecasts.size + itemSpacing * (forecasts.size - 1))
-                            .height(40.sd(scale))
+                            .height(32.sd(scale))
                     )
                 }
             }
@@ -873,7 +873,7 @@ internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: B
 
                             if (displayMode == ForecastDisplayMode.Temperature) {
                                 // Explicit spacer to reserve vertical room for the graph line passing behind
-                                Spacer(modifier = Modifier.height(40.sd(scale)))
+                                Spacer(modifier = Modifier.height(32.sd(scale)))
                             } else {
                                 Spacer(modifier = Modifier.height(4.dp))
                             }

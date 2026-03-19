@@ -41,7 +41,7 @@
 	}
 </script>
 
-<div class="hourly-row" style="--chart-top: {isRemote ? '86px' : '72px'}">
+<div class="hourly-row" style="--chart-top: {isRemote ? '94px' : '80px'}">
 	{#if displayMode === 'Temperature'}
 		<div class="chart-container">
 			<TemperatureChart
@@ -49,7 +49,7 @@
 				{metricPrimary}
 				itemWidth={104} 
 				itemSpacing={12}
-				height={40}
+				height={32}
 			/>
 		</div>
 	{/if}
@@ -133,7 +133,7 @@
 	}
 
 	.chart-spacer {
-		height: 40px;
+		height: 32px;
 	}
 
 	.hourly-row::-webkit-scrollbar {
