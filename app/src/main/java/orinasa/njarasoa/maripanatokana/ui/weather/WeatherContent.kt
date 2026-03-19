@@ -754,6 +754,8 @@ internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: B
                         fontFamily = bodyFont,
                         color = Color.White.copy(alpha = 0.7f),
                         style = TextStyle(fontFeatureSettings = fontFeatures),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
                     )
                     if (isRemote) {
                         Text(
@@ -763,6 +765,7 @@ internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: B
                             color = Color.White.copy(alpha = 0.35f),
                             style = TextStyle(fontFeatureSettings = fontFeatures),
                             textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                     Spacer(modifier = Modifier.height(4.dp))

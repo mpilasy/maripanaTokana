@@ -37,12 +37,12 @@ export function formatHourAtLocation(epochMillis: number, utcOffsetSec: number):
  */
 export function formatLocationCurrentTime(utcOffsetSeconds: number, localeTag: string): string {
 	const now = Date.now();
-	// now IS UTC epoch.
 	const locationMs = now + utcOffsetSeconds * 1000;
 	const d = new Date(locationMs);
 	
-	const deviceDateStr = new Date(now).toISOString().split('T')[0];
-	const locationDateStr = new Date(locationMs).toISOString().split('T')[0];
+	// Compare local dates using locale-aware strings
+	const deviceDateStr = new Date(now).toLocaleDateString('en-US');
+	const locationDateStr = new Date(locationMs).toLocaleDateString('en-US', { timeZone: 'UTC' });
 	
 	if (deviceDateStr !== locationDateStr) {
 		const formatter = new Intl.DateTimeFormat(localeTag, {

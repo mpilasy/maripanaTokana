@@ -129,6 +129,8 @@
 		font-size: 12px;
 		color: rgba(255,255,255,0.7);
 		font-feature-settings: var(--font-features);
+		width: 100%;
+		text-align: center;
 	}
 
 	.hour-device {
@@ -136,6 +138,7 @@
 		color: rgba(255,255,255,0.35);
 		font-feature-settings: var(--font-features);
 		margin-top: -3px;
+		width: 100%;
 		text-align: center;
 	}
 
