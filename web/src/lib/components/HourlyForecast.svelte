@@ -3,7 +3,7 @@
 	import type { HourlyForecast as HourlyForecastType } from '$lib/domain/weatherData';
 	import { getCardinalDirection } from '$lib/domain/windSpeed';
 	import { wmoEmoji } from '$lib/api/wmoWeatherCode';
-	import { formatHourInDeviceTime, isRemoteTimezone } from '$lib/utils/date';
+	import { formatHourInDeviceTime, formatHourAtLocation, isRemoteTimezone } from '$lib/utils/date';
 	import DualUnitText from './DualUnitText.svelte';
 
 	interface Props {
@@ -29,11 +29,6 @@
 		else displayMode = 'Temperature';
 	}
 
-	function formatHour(millis: number): string {
-		const d = new Date(millis);
-		return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-	}
-
 	function isNightForHour(time: number): boolean {
 		let dayIdx = 0;
 		for (let i = dailySunrise.length - 1; i >= 0; i--) {
@@ -49,9 +44,9 @@
 	{#each forecasts as item}
 		{@const [tempP, tempS] = item.temperature.displayDual(metricPrimary)}
 		<div class="hourly-card">
-			<span class="hour">{loc(formatHour(item.time))}</span>
+			<span class="hour">{loc(formatHourAtLocation(item.time, utcOffsetSeconds))}</span>
 			{#if isRemote}
-				<span class="hour-device">{loc(formatHourInDeviceTime(item.time, utcOffsetSeconds))} &nbsp;📱</span>
+				<span class="hour-device">{loc(formatHourInDeviceTime(item.time))} &nbsp;📱</span>
 			{/if}
 			<button class="emoji-btn" onclick={toggleMode}>
 				{wmoEmoji(item.weatherCode, isNightForHour(item.time))}

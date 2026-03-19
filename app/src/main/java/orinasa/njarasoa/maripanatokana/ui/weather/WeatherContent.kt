@@ -718,8 +718,16 @@ internal fun CollapsibleSection(
 
 @Composable
 internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Boolean, dailySunrise: List<Long>, dailySunset: List<Long>, localizeDigits: (String) -> String, onToggleUnits: () -> Unit, utcOffsetSeconds: Int = 0) {
-    // Bolt: Memoize SimpleDateFormat
-    val hourFormat = remember { SimpleDateFormat("HH:mm", Locale.US) }
+    // Bolt: Memoize SimpleDateFormat for location time
+    val locationHourFormat = remember(utcOffsetSeconds) { 
+        SimpleDateFormat("HH:mm", Locale.US).apply {
+            val sign = if (utcOffsetSeconds >= 0) "+" else "-"
+            val absOffset = Math.abs(utcOffsetSeconds)
+            val hh = absOffset / 3600
+            val mm = (absOffset % 3600) / 60
+            timeZone = TimeZone.getTimeZone(String.format(Locale.US, "GMT%s%02d:%02d", sign, hh, mm))
+        }
+    }
     val bodyFont = LocalBodyFont.current
     val fontFeatures = LocalBodyFontFeatures.current
     val scale = LocalScale.current
@@ -741,7 +749,7 @@ internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: B
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(
-                        text = localizeDigits(hourFormat.format(Date(item.time))),
+                        text = localizeDigits(locationHourFormat.format(Date(item.time))),
                         fontSize = 12f.s(scale),
                         fontFamily = bodyFont,
                         color = Color.White.copy(alpha = 0.7f),
@@ -749,7 +757,7 @@ internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: B
                     )
                     if (isRemote) {
                         Text(
-                            text = "${localizeDigits(formatHourInDeviceTime(item.time, utcOffsetSeconds))}  \uD83D\uDCF1",
+                            text = "${localizeDigits(formatHourInDeviceTime(item.time))}  \uD83D\uDCF1",
                             fontSize = 9f.s(scale),
                             fontFamily = bodyFont,
                             color = Color.White.copy(alpha = 0.35f),
@@ -1345,11 +1353,10 @@ private fun isRemoteTimezone(utcOffsetSeconds: Int): Boolean {
 /** Get the current time at a location given its UTC offset. */
 private fun formatLocationCurrentTime(utcOffsetSeconds: Int, locale: Locale): String {
     val utcNow = System.currentTimeMillis()
-    val deviceTimeZone = TimeZone.getDefault()
     val locationMs = utcNow + utcOffsetSeconds * 1000L
     
     // Check if the date is different
-    val deviceDate = SimpleDateFormat("yyyyMMdd", Locale.US).apply { timeZone = deviceTimeZone }.format(Date(utcNow))
+    val deviceDate = SimpleDateFormat("yyyyMMdd", Locale.US).apply { timeZone = TimeZone.getDefault() }.format(Date(utcNow))
     val locationDate = SimpleDateFormat("yyyyMMdd", Locale.US).apply { timeZone = TimeZone.getTimeZone("UTC") }.format(Date(locationMs))
 
     return if (deviceDate != locationDate) {
@@ -1366,18 +1373,12 @@ private fun formatLocationCurrentTime(utcOffsetSeconds: Int, locale: Locale): St
 }
 
 /**
- * Convert a forecast time (parsed as device-local from API's location-local string)
- * to the device's actual local time.
+ * Convert an epoch (UTC millis) to the device's actual local time.
  */
-private fun formatHourInDeviceTime(locationLocalMillis: Long, locationUtcOffsetSec: Int): String {
-    val deviceTimeZone = TimeZone.getDefault()
-    val deviceOffsetMs = deviceTimeZone.getOffset(locationLocalMillis).toLong()
-    val locationOffsetMs = locationUtcOffsetSec * 1000L
-    
-    // targetEpoch = locationLocalMillis + (deviceOffset - locationOffset)
-    val targetEpoch = locationLocalMillis + (deviceOffsetMs - locationOffsetMs)
+private fun formatHourInDeviceTime(epochMillis: Long): String {
     val format = SimpleDateFormat("HH:mm", Locale.US)
-    return format.format(Date(targetEpoch))
+    // Default timezone for SimpleDateFormat is the device's local timezone
+    return format.format(Date(epochMillis))
 }
 
 private fun formatDMS(value: Double, positive: String, negative: String): String {

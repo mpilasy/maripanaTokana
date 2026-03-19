@@ -14,34 +14,31 @@ export function formatDate(timestamp: number, localeTag: string): string {
 }
 
 /**
- * Convert a timestamp that was parsed as device-local (from an API time string
- * in the location's timezone) back to the correct UTC instant, then return
- * what that instant looks like in the device's local timezone.
- *
- * @param locationLocalMillis  epoch millis obtained by parsing the bare ISO string
- * @param locationUtcOffsetSec the location's UTC offset returned by the API
- * @returns HH:MM in the device's local time
+ * Format an epoch (UTC millis) to HH:mm in the device's local timezone.
  */
-export function formatHourInDeviceTime(locationLocalMillis: number, locationUtcOffsetSec: number): string {
-	// The stored millis treat the API's local-time string as if it were device-local.
-	// Device UTC offset in ms (getTimezoneOffset returns minutes, sign inverted).
-	const deviceOffsetMs = new Date(locationLocalMillis).getTimezoneOffset() * -60_000;
-	const locationOffsetMs = locationUtcOffsetSec * 1000;
-	// targetEpoch = locationLocalMillis + (deviceOffset - locationOffset)
-	const targetEpoch = locationLocalMillis + (deviceOffsetMs - locationOffsetMs);
-	const d = new Date(targetEpoch);
+export function formatHourInDeviceTime(epochMillis: number): string {
+	const d = new Date(epochMillis);
 	return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
 /**
+ * Format an epoch (UTC millis) to HH:mm in the location's timezone using UTC offset.
+ */
+export function formatHourAtLocation(epochMillis: number, utcOffsetSec: number): string {
+	// Add offset to get location's local "millisecond instant"
+	const locationLocalMs = epochMillis + utcOffsetSec * 1000;
+	const d = new Date(locationLocalMs);
+	// Use UTC methods because we manually applied the offset to the epoch
+	return `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
+}
+
+/**
  * Get the current time at a location given its UTC offset.
- * @returns HH:MM in the location's local time
  */
 export function formatLocationCurrentTime(utcOffsetSeconds: number, localeTag: string): string {
 	const now = Date.now();
-	const deviceOffsetMs = new Date().getTimezoneOffset() * -60_000;
-	const utcMs = now - deviceOffsetMs;
-	const locationMs = utcMs + utcOffsetSeconds * 1000;
+	// now IS UTC epoch.
+	const locationMs = now + utcOffsetSeconds * 1000;
 	const d = new Date(locationMs);
 	
 	const deviceDateStr = new Date(now).toISOString().split('T')[0];
@@ -49,7 +46,7 @@ export function formatLocationCurrentTime(utcOffsetSeconds: number, localeTag: s
 	
 	if (deviceDateStr !== locationDateStr) {
 		const formatter = new Intl.DateTimeFormat(localeTag, {
-			weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false
+			weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC'
 		});
 		return formatter.format(d);
 	}
