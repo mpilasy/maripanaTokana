@@ -97,6 +97,7 @@ import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFont
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFontFeatures
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 import orinasa.njarasoa.maripanatokana.ui.theme.SkyBlue
+import orinasa.njarasoa.maripanatokana.ui.weather.components.TemperatureChart
 import orinasa.njarasoa.maripanatokana.ui.weather.components.WeatherAlertBanner
 import java.io.File
 import java.text.SimpleDateFormat
@@ -734,125 +735,138 @@ internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: B
     var displayMode by remember { mutableStateOf(ForecastDisplayMode.Temperature) }
     val isRemote = isRemoteTimezone(utcOffsetSeconds)
 
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(12.sd(scale)),
-        contentPadding = PaddingValues(vertical = 8.dp),
-    ) {
-        // Bolt: Add key to avoid unnecessary recomposition of unchanged items
-        items(items = forecasts, key = { it.time }) { item ->
-            Card(
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = CardBlue.copy(alpha = 0.6f)),
-            ) {
-                Column(
-                    modifier = Modifier.padding(12.sd(scale)),
-                    horizontalAlignment = Alignment.CenterHorizontally,
+    Column {
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(12.sd(scale)),
+            contentPadding = PaddingValues(vertical = 8.dp),
+        ) {
+            // Bolt: Add key to avoid unnecessary recomposition of unchanged items
+            items(items = forecasts, key = { it.time }) { item ->
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = CardBlue.copy(alpha = 0.6f)),
                 ) {
-                    Text(
-                        text = localizeDigits(locationHourFormat.format(Date(item.time))),
-                        fontSize = 12f.s(scale),
-                        fontFamily = bodyFont,
-                        color = Color.White.copy(alpha = 0.7f),
-                        style = TextStyle(fontFeatureSettings = fontFeatures),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    if (isRemote) {
-                        Box(modifier = Modifier.fillMaxWidth()) {
-                            Text(
-                                text = localizeDigits(formatHourInDeviceTime(item.time)),
-                                fontSize = 9f.s(scale),
-                                fontFamily = bodyFont,
-                                color = Color.White.copy(alpha = 0.35f),
-                                style = TextStyle(fontFeatureSettings = fontFeatures),
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.align(Alignment.Center)
-                            )
-                            Text(
-                                text = "\uD83D\uDCF1",
-                                fontSize = 8f.s(scale),
-                                color = Color.White.copy(alpha = 0.35f),
-                                modifier = Modifier.align(Alignment.CenterEnd)
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = run {
-                            val dayIdx = dailySunrise.indexOfLast { it <= item.time }.coerceAtLeast(0)
-                            val sr = dailySunrise.getOrElse(dayIdx) { 0L }
-                            val ss = dailySunset.getOrElse(dayIdx) { 0L }
-                            wmoEmoji(item.weatherCode, isNight = item.time !in sr..ss)
-                        },
-                        fontSize = 20f.s(scale),
-                        modifier = Modifier.clickable(
-                            role = Role.Button,
-                            onClickLabel = stringResource(R.string.cd_cycle_mode),
-                            onClick = {
-                                displayMode = when(displayMode) {
-                                    ForecastDisplayMode.Temperature -> ForecastDisplayMode.Wind
-                                    ForecastDisplayMode.Wind -> ForecastDisplayMode.Precipitation
-                                    ForecastDisplayMode.Precipitation -> ForecastDisplayMode.Pressure
-                                    ForecastDisplayMode.Pressure -> ForecastDisplayMode.Temperature
-                                }
-                            }
+                    Column(
+                        modifier = Modifier.padding(12.sd(scale)),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            text = localizeDigits(locationHourFormat.format(Date(item.time))),
+                            fontSize = 12f.s(scale),
+                            fontFamily = bodyFont,
+                            color = Color.White.copy(alpha = 0.7f),
+                            style = TextStyle(fontFeatureSettings = fontFeatures),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
                         )
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    when(displayMode) {
-                        ForecastDisplayMode.Temperature -> {
-                            val (tempP, tempS) = item.temperature.displayDual(metricPrimary)
-                            DualUnitText(
-                                primary = localizeDigits(tempP),
-                                secondary = localizeDigits(tempS),
-                                primarySize = 14f.s(scale),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                onClick = onToggleUnits,
-                            )
+                        if (isRemote) {
+                            Box(modifier = Modifier.fillMaxWidth()) {
+                                Text(
+                                    text = localizeDigits(formatHourInDeviceTime(item.time)),
+                                    fontSize = 9f.s(scale),
+                                    fontFamily = bodyFont,
+                                    color = Color.White.copy(alpha = 0.35f),
+                                    style = TextStyle(fontFeatureSettings = fontFeatures),
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.align(Alignment.Center)
+                                )
+                                Text(
+                                    text = "\uD83D\uDCF1",
+                                    fontSize = 8f.s(scale),
+                                    color = Color.White.copy(alpha = 0.35f),
+                                    modifier = Modifier.align(Alignment.CenterEnd)
+                                )
+                            }
                         }
-                        ForecastDisplayMode.Wind -> {
-                            val (windP, windS) = item.windSpeed.displayDual(metricPrimary)
-                            val directions = stringArrayResource(R.array.cardinal_directions)
-                            val dirIndex = (((item.windDirection % 360 + 360) / 22.5 + 0.5).toInt() % 16)
-                            DualUnitText(
-                                primary = localizeDigits("$windP ${directions[dirIndex]}"),
-                                secondary = localizeDigits(windS),
-                                primarySize = 14f.s(scale),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                onClick = onToggleUnits,
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = run {
+                                val dayIdx = dailySunrise.indexOfLast { it <= item.time }.coerceAtLeast(0)
+                                val sr = dailySunrise.getOrElse(dayIdx) { 0L }
+                                val ss = dailySunset.getOrElse(dayIdx) { 0L }
+                                wmoEmoji(item.weatherCode, isNight = item.time !in sr..ss)
+                            },
+                            fontSize = 20f.s(scale),
+                            modifier = Modifier.clickable(
+                                role = Role.Button,
+                                onClickLabel = stringResource(R.string.cd_cycle_mode),
+                                onClick = {
+                                    displayMode = when(displayMode) {
+                                        ForecastDisplayMode.Temperature -> ForecastDisplayMode.Wind
+                                        ForecastDisplayMode.Wind -> ForecastDisplayMode.Precipitation
+                                        ForecastDisplayMode.Precipitation -> ForecastDisplayMode.Pressure
+                                        ForecastDisplayMode.Pressure -> ForecastDisplayMode.Temperature
+                                    }
+                                }
                             )
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        when(displayMode) {
+                            ForecastDisplayMode.Temperature -> {
+                                val (tempP, tempS) = item.temperature.displayDual(metricPrimary)
+                                DualUnitText(
+                                    primary = localizeDigits(tempP),
+                                    secondary = localizeDigits(tempS),
+                                    primarySize = 14f.s(scale),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    onClick = onToggleUnits,
+                                )
+                            }
+                            ForecastDisplayMode.Wind -> {
+                                val (windP, windS) = item.windSpeed.displayDual(metricPrimary)
+                                val directions = stringArrayResource(R.array.cardinal_directions)
+                                val dirIndex = (((item.windDirection % 360 + 360) / 22.5 + 0.5).toInt() % 16)
+                                DualUnitText(
+                                    primary = localizeDigits("$windP ${directions[dirIndex]}"),
+                                    secondary = localizeDigits(windS),
+                                    primarySize = 14f.s(scale),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    onClick = onToggleUnits,
+                                )
+                            }
+                            ForecastDisplayMode.Precipitation -> {
+                                val (rainP, rainS) = item.precipitation.displayDual(metricPrimary)
+                                DualUnitText(
+                                    primary = localizeDigits(rainP),
+                                    secondary = localizeDigits(rainS),
+                                    primarySize = 14f.s(scale),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    onClick = onToggleUnits,
+                                )
+                            }
+                            ForecastDisplayMode.Pressure -> {
+                                val (pressP, pressS) = item.pressure.displayDual(metricPrimary)
+                                DualUnitText(
+                                    primary = localizeDigits(pressP),
+                                    secondary = localizeDigits(pressS),
+                                    primarySize = 14f.s(scale),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    onClick = onToggleUnits,
+                                )
+                            }
                         }
-                        ForecastDisplayMode.Precipitation -> {
-                            val (rainP, rainS) = item.precipitation.displayDual(metricPrimary)
-                            DualUnitText(
-                                primary = localizeDigits(rainP),
-                                secondary = localizeDigits(rainS),
-                                primarySize = 14f.s(scale),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                onClick = onToggleUnits,
-                            )
-                        }
-                        ForecastDisplayMode.Pressure -> {
-                            val (pressP, pressS) = item.pressure.displayDual(metricPrimary)
-                            DualUnitText(
-                                primary = localizeDigits(pressP),
-                                secondary = localizeDigits(pressS),
-                                primarySize = 14f.s(scale),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                onClick = onToggleUnits,
-                            )
-                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = if (item.precipProbability > 0) localizeDigits("%d%%".format(Locale.US, item.precipProbability)) else "",
+                            fontSize = 11f.s(scale),
+                            fontFamily = bodyFont,
+                            color = SkyBlue,
+                            style = TextStyle(fontFeatureSettings = fontFeatures),
+                        )
                     }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = if (item.precipProbability > 0) localizeDigits("%d%%".format(Locale.US, item.precipProbability)) else "",
-                        fontSize = 11f.s(scale),
-                        fontFamily = bodyFont,
-                        color = SkyBlue,
-                        style = TextStyle(fontFeatureSettings = fontFeatures),
-                    )
                 }
             }
+        }
+
+        if (displayMode == ForecastDisplayMode.Temperature) {
+            TemperatureChart(
+                forecasts = forecasts,
+                metricPrimary = metricPrimary,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+                    .padding(horizontal = 16.dp, vertical = 4.dp)
+            )
         }
     }
 }
