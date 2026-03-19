@@ -758,15 +758,23 @@ internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: B
                         modifier = Modifier.fillMaxWidth()
                     )
                     if (isRemote) {
-                        Text(
-                            text = "${localizeDigits(formatHourInDeviceTime(item.time))}  \uD83D\uDCF1",
-                            fontSize = 9f.s(scale),
-                            fontFamily = bodyFont,
-                            color = Color.White.copy(alpha = 0.35f),
-                            style = TextStyle(fontFeatureSettings = fontFeatures),
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            Text(
+                                text = localizeDigits(formatHourInDeviceTime(item.time)),
+                                fontSize = 9f.s(scale),
+                                fontFamily = bodyFont,
+                                color = Color.White.copy(alpha = 0.35f),
+                                style = TextStyle(fontFeatureSettings = fontFeatures),
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.align(Alignment.Center)
+                            )
+                            Text(
+                                text = "\uD83D\uDCF1",
+                                fontSize = 8f.s(scale),
+                                color = Color.White.copy(alpha = 0.35f),
+                                modifier = Modifier.align(Alignment.CenterEnd)
+                            )
+                        }
                     }
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(

@@ -46,7 +46,10 @@
 		<div class="hourly-card">
 			<span class="hour">{loc(formatHourAtLocation(item.time, utcOffsetSeconds))}</span>
 			{#if isRemote}
-				<span class="hour-device">{loc(formatHourInDeviceTime(item.time))} &nbsp;📱</span>
+				<div class="hour-device-container">
+					<span class="hour-device-text">{loc(formatHourInDeviceTime(item.time))}</span>
+					<span class="hour-device-icon">📱</span>
+				</div>
 			{/if}
 			<button class="emoji-btn" onclick={toggleMode}>
 				{wmoEmoji(item.weatherCode, isNightForHour(item.time))}
@@ -133,13 +136,27 @@
 		text-align: center;
 	}
 
-	.hour-device {
+	.hour-device-container {
+		position: relative;
+		width: 100%;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		margin-top: -3px;
+	}
+
+	.hour-device-text {
 		font-size: 9px;
 		color: rgba(255,255,255,0.35);
 		font-feature-settings: var(--font-features);
-		margin-top: -3px;
-		width: 100%;
 		text-align: center;
+	}
+
+	.hour-device-icon {
+		position: absolute;
+		right: 0;
+		font-size: 8px;
+		opacity: 0.35;
 	}
 
 	.emoji-btn {
