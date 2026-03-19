@@ -4,6 +4,7 @@
 	import { getCardinalDirection } from '$lib/domain/windSpeed';
 	import { wmoEmoji, wmoDescriptionKey } from '$lib/api/wmoWeatherCode';
 	import DualUnitText from './DualUnitText.svelte';
+	import DailyTemperatureChart from './DailyTemperatureChart.svelte';
 
 	interface Props {
 		forecasts: DailyForecastType[];
@@ -37,6 +38,9 @@
 </script>
 
 <div class="daily-list">
+	{#if forecasts.length > 0}
+		<DailyTemperatureChart {forecasts} {metricPrimary} />
+	{/if}
 	{#each forecasts as item}
 		<div class="daily-row">
 			<div class="day-info">

@@ -98,6 +98,7 @@ import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFont
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFontFeatures
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 import orinasa.njarasoa.maripanatokana.ui.theme.SkyBlue
+import orinasa.njarasoa.maripanatokana.ui.weather.components.DailyTemperatureChart
 import orinasa.njarasoa.maripanatokana.ui.weather.components.TemperatureChart
 import orinasa.njarasoa.maripanatokana.ui.weather.components.WeatherAlertBanner
 import java.io.File
@@ -895,6 +896,20 @@ internal fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Bo
     var displayMode by remember { mutableStateOf(ForecastDisplayMode.Temperature) }
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (forecasts.isNotEmpty()) {
+            DailyTemperatureChart(
+                forecasts = forecasts,
+                metricPrimary = metricPrimary,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        CardBlue.copy(alpha = 0.3f),
+                        RoundedCornerShape(12.dp)
+                    )
+                    .padding(horizontal = 16.sd(scale), vertical = 12.sd(scale))
+                    .height(48.sd(scale))
+            )
+        }
         forecasts.forEach { item ->
             // Bolt: Add key to enable smart recomposition
             androidx.compose.runtime.key(item.date) {
