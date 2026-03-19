@@ -41,7 +41,65 @@
 	}
 </script>
 
-<div class="hourly-row" style="--chart-top: {isRemote ? '94px' : '80px'}">
+<div class="hourly-container">
+	<div class="cards-row">
+		{#each forecasts as item}
+			<div class="hourly-card">
+				<span class="hour">{loc(formatHourAtLocation(item.time, utcOffsetSeconds))}</span>
+				{#if isRemote}
+					<div class="hour-device-container">
+						<span class="hour-device-text">{loc(formatHourInDeviceTime(item.time))}</span>
+						<span class="hour-device-icon">📱</span>
+					</div>
+				{/if}
+				<button class="emoji-btn" onclick={toggleMode}>
+					{wmoEmoji(item.weatherCode, isNightForHour(item.time))}
+				</button>
+				{#if displayMode === 'Temperature'}
+					{@const [tempP, tempS] = item.temperature.displayDual(metricPrimary)}
+					<DualUnitText
+						primary={loc(tempP)}
+						secondary={loc(tempS)}
+						primarySize="14px"
+						align="center"
+						onClick={onToggleUnits}
+					/>
+				{:else if displayMode === 'Wind'}
+					{@const [windP, windS] = item.windSpeed.displayDual(metricPrimary)}
+					{@const dir = getCardinalDirection(item.windDeg, $_('cardinal_directions'))}
+					<DualUnitText
+						primary={loc(`${windP} ${dir}`)}
+						secondary={loc(windS)}
+						primarySize="14px"
+						align="center"
+						onClick={onToggleUnits}
+					/>
+				{:else if displayMode === 'Precipitation'}
+					{@const [rainP, rainS] = item.precipitation.displayDual(metricPrimary)}
+					<DualUnitText
+						primary={loc(rainP)}
+						secondary={loc(rainS)}
+						primarySize="14px"
+						align="center"
+						onClick={onToggleUnits}
+					/>
+				{:else if displayMode === 'Pressure'}
+					{@const [pressP, pressS] = item.pressure.displayDual(metricPrimary)}
+					<DualUnitText
+						primary={loc(pressP)}
+						secondary={loc(pressS)}
+						primarySize="14px"
+						align="center"
+						onClick={onToggleUnits}
+					/>
+				{/if}
+				<span class="precip-prob">
+					{item.precipProbability > 0 ? loc(`${item.precipProbability}%`) : ''}
+				</span>
+			</div>
+		{/each}
+	</div>
+
 	{#if displayMode === 'Temperature'}
 		<div class="chart-container">
 			<TemperatureChart
@@ -49,95 +107,36 @@
 				{metricPrimary}
 				itemWidth={104} 
 				itemSpacing={12}
-				height={32}
+				height={48}
 			/>
 		</div>
 	{/if}
-	{#each forecasts as item}
-		<div class="hourly-card">
-			<span class="hour">{loc(formatHourAtLocation(item.time, utcOffsetSeconds))}</span>
-			{#if isRemote}
-				<div class="hour-device-container">
-					<span class="hour-device-text">{loc(formatHourInDeviceTime(item.time))}</span>
-					<span class="hour-device-icon">📱</span>
-				</div>
-			{/if}
-			<button class="emoji-btn" onclick={toggleMode}>
-				{wmoEmoji(item.weatherCode, isNightForHour(item.time))}
-			</button>
-			{#if displayMode === 'Temperature'}
-				{@const [tempP, tempS] = item.temperature.displayDual(metricPrimary)}
-				<DualUnitText
-					primary={loc(tempP)}
-					secondary={loc(tempS)}
-					primarySize="14px"
-					align="center"
-					onClick={onToggleUnits}
-				/>
-				<div class="chart-spacer"></div>
-			{:else if displayMode === 'Wind'}
-				{@const [windP, windS] = item.windSpeed.displayDual(metricPrimary)}
-				{@const dir = getCardinalDirection(item.windDeg, $_('cardinal_directions'))}
-				<DualUnitText
-					primary={loc(`${windP} ${dir}`)}
-					secondary={loc(windS)}
-					primarySize="14px"
-					align="center"
-					onClick={onToggleUnits}
-				/>
-			{:else if displayMode === 'Precipitation'}
-				{@const [rainP, rainS] = item.precipitation.displayDual(metricPrimary)}
-				<DualUnitText
-					primary={loc(rainP)}
-					secondary={loc(rainS)}
-					primarySize="14px"
-					align="center"
-					onClick={onToggleUnits}
-				/>
-			{:else if displayMode === 'Pressure'}
-				{@const [pressP, pressS] = item.pressure.displayDual(metricPrimary)}
-				<DualUnitText
-					primary={loc(pressP)}
-					secondary={loc(pressS)}
-					primarySize="14px"
-					align="center"
-					onClick={onToggleUnits}
-				/>
-			{/if}
-			<span class="precip-prob">
-				{item.precipProbability > 0 ? loc(`${item.precipProbability}%`) : ''}
-			</span>
-		</div>
-	{/each}
 </div>
 
 <style>
-	.hourly-row {
+	.hourly-container {
 		display: flex;
-		flex-wrap: nowrap;
-		gap: 12px;
+		flex-direction: column;
 		overflow-x: auto;
-		scroll-snap-type: x mandatory;
 		padding: 8px 0;
 		max-width: 100%;
 		-webkit-overflow-scrolling: touch;
-		position: relative;
+	}
+
+	.hourly-container::-webkit-scrollbar {
+		display: none;
+	}
+
+	.cards-row {
+		display: flex;
+		flex-wrap: nowrap;
+		gap: 12px;
+		margin-bottom: 4px;
 	}
 
 	.chart-container {
-		position: absolute;
-		top: var(--chart-top);
-		left: 0;
-		z-index: 0;
 		pointer-events: none;
-	}
-
-	.chart-spacer {
-		height: 32px;
-	}
-
-	.hourly-row::-webkit-scrollbar {
-		display: none;
+		margin-top: -8px; /* Pull up slightly to feel "attached" */
 	}
 
 	.hourly-card {
@@ -148,10 +147,8 @@
 		padding: 12px;
 		background: rgba(42, 31, 165, 0.45);
 		border-radius: 16px;
-		scroll-snap-align: start;
 		flex-shrink: 0;
 		width: 104px;
-		z-index: 1;
 	}
 
 	.hour {
