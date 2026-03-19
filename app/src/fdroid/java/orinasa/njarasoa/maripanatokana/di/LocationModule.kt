@@ -1,7 +1,6 @@
 package orinasa.njarasoa.maripanatokana.di
 
 import android.content.Context
-import android.location.Geocoder
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -10,9 +9,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import orinasa.njarasoa.maripanatokana.data.location.LocationProvider
 import orinasa.njarasoa.maripanatokana.data.location.NativeLocationProvider
-import orinasa.njarasoa.maripanatokana.data.repository.LocationRepositoryImpl
-import orinasa.njarasoa.maripanatokana.domain.repository.LocationRepository
-import java.util.Locale
+import orinasa.njarasoa.maripanatokana.ui.permission.PermissionHandler
+import orinasa.njarasoa.maripanatokana.ui.permission.FDroidPermissionHandler
 import javax.inject.Singleton
 
 @Module
@@ -26,14 +24,6 @@ object LocationModule {
     ): LocationProvider {
         return NativeLocationProvider(context)
     }
-
-    @Provides
-    @Singleton
-    fun provideGeocoder(
-        @ApplicationContext context: Context
-    ): Geocoder {
-        return Geocoder(context, Locale.getDefault())
-    }
 }
 
 @Module
@@ -42,7 +32,7 @@ abstract class LocationBindingModule {
 
     @Binds
     @Singleton
-    abstract fun bindLocationRepository(
-        impl: LocationRepositoryImpl
-    ): LocationRepository
+    abstract fun bindPermissionHandler(
+        impl: FDroidPermissionHandler
+    ): PermissionHandler
 }

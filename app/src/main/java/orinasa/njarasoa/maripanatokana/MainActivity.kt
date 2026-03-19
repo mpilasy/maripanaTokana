@@ -11,9 +11,14 @@ import dagger.hilt.android.AndroidEntryPoint
 import orinasa.njarasoa.maripanatokana.ui.theme.MaripanaTokanaTheme
 import orinasa.njarasoa.maripanatokana.ui.weather.WeatherScreen
 import orinasa.njarasoa.maripanatokana.ui.weather.supportedLocales
+import orinasa.njarasoa.maripanatokana.ui.permission.PermissionHandler
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var permissionHandler: PermissionHandler
 
     private var localeResources: Resources? = null
 
@@ -42,7 +47,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MaripanaTokanaTheme {
-                WeatherScreen()
+                WeatherScreen(permissionHandler = permissionHandler)
             }
         }
     }

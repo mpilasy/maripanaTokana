@@ -2,87 +2,21 @@ package orinasa.njarasoa.maripanatokana.widget
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.location.Geocoder
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
-import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
-import okhttp3.MediaType.Companion.toMediaType
-import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoApiService
-import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoResponse
-import orinasa.njarasoa.maripanatokana.data.remote.toDomain
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
-import retrofit2.Retrofit
-import java.util.Locale
 
 /**
  * Standalone weather fetcher for Glance widgets (no Hilt).
  * Standard flavor using Google Play Services for location.
  */
-object WidgetWeatherFetcher {
-
-    private val json = Json {
-        ignoreUnknownKeys = true
-        coerceInputValues = true
-    }
-
-    private val api: OpenMeteoApiService by lazy {
-        Retrofit.Builder()
-            .baseUrl("https://api.open-meteo.com/")
-            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
-            .build()
-            .create(OpenMeteoApiService::class.java)
-    }
+object WidgetWeatherFetcher : BaseWidgetWeatherFetcher() {
 
     @SuppressLint("MissingPermission")
     suspend fun fetch(context: Context): WeatherData? {
-        val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
-        return try {
-            val (lat, lon) = getCoordinates(context) ?: throw Exception("No coordinates")
-
-            val response = api.getForecast(latitude = lat, longitude = lon)
-
-            val locationName = prefs.getString("location_name", null)
-                ?: try {
-                    withContext(Dispatchers.IO) {
-                        @Suppress("DEPRECATION")
-                        Geocoder(context, Locale.getDefault())
-                            .getFromLocation(lat, lon, 1)
-                            ?.firstOrNull()
-                            ?.locality
-                    } ?: "%.2f, %.2f".format(Locale.US, lat, lon)
-                } catch (_: Exception) {
-                    "%.2f, %.2f".format(Locale.US, lat, lon)
-                }
-
-            // Cache the response and location name
-            prefs.edit()
-                .putString("cached_response", json.encodeToString(OpenMeteoResponse.serializer(), response))
-                .putString("cached_location_name", locationName)
-                .putLong("cached_timestamp", System.currentTimeMillis())
-                .apply()
-
-            response.toDomain(locationName)
-        } catch (_: Exception) {
-            val cachedJson = prefs.getString("cached_response", null)
-            val cachedName = prefs.getString("cached_location_name", null)
-            val cachedTimestamp = prefs.getLong("cached_timestamp", 0L)
-            
-            if (cachedJson != null && cachedName != null) {
-                try {
-                    val response = json.decodeFromString(OpenMeteoResponse.serializer(), cachedJson)
-                    response.toDomain(cachedName).copy(timestamp = cachedTimestamp)
-                } catch (_: Exception) {
-                    null
-                }
-            } else {
-                null
-            }
-        }
+        return fetchInternal(context) { getCoordinates(context) }
     }
 
     @SuppressLint("MissingPermission")

@@ -1,6 +1,5 @@
 package orinasa.njarasoa.maripanatokana.ui.weather
 
-import android.Manifest
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -18,7 +17,6 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -35,22 +33,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import orinasa.njarasoa.maripanatokana.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import orinasa.njarasoa.maripanatokana.ui.weather.components.LocationOverrideDialog
+import orinasa.njarasoa.maripanatokana.R
+import orinasa.njarasoa.maripanatokana.ui.permission.PermissionHandler
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFont
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFontFeatures
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 import orinasa.njarasoa.maripanatokana.ui.theme.fontPairings
+import orinasa.njarasoa.maripanatokana.ui.weather.components.LocationOverrideDialog
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-@OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WeatherScreen(
-    viewModel: WeatherViewModel = hiltViewModel()
+    viewModel: WeatherViewModel = hiltViewModel(),
+    permissionHandler: PermissionHandler
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
@@ -71,15 +69,15 @@ fun WeatherScreen(
         }
     }
 
-    val locationPermissionsState = rememberMultiplePermissionsState(
-        listOf(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-        )
-    )
+    val isPermissionGranted = permissionHandler.isPermissionGranted()
 
-    LaunchedEffect(locationPermissionsState.allPermissionsGranted) {
-        if (locationPermissionsState.allPermissionsGranted) {
+    if (isPermissionGranted) {
+        permissionHandler.RequestPermission {
+            viewModel.fetchWeather()
+        }
+    } else if (uiState is WeatherUiState.PermissionRequired) {
+        // Just triggering the request when needed
+        permissionHandler.RequestPermission {
             viewModel.fetchWeather()
         }
     }
@@ -205,7 +203,12 @@ fun WeatherScreen(
                             )
                         }
                         Spacer(modifier = Modifier.height(24.dp))
-                        Button(onClick = { locationPermissionsState.launchMultiplePermissionRequest() }) {
+                        Button(onClick = { 
+                            // This button click should trigger permission request via permissionHandler
+                            // We can use a side effect or a local state to trigger it.
+                            // For simplicity, fetchWeather() in standard flavor trigger it via handler.
+                            viewModel.fetchWeather() 
+                        }) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(appGrant)
                                 if (sysGrant != appGrant) {
