@@ -119,6 +119,7 @@ export function mapToWeatherData(response: OpenMeteoResponse, locationName: stri
 	});
 
 	return {
+		utcOffsetSeconds: response.utc_offset_seconds,
 		temperature: Temperature.fromCelsius(c.temperature_2m),
 		feelsLike: Temperature.fromCelsius(c.apparent_temperature),
 		tempMin: Temperature.fromCelsius(d.temperature_2m_min[0] ?? c.temperature_2m),

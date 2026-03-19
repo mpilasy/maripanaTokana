@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store';
-import { doFetchWeather } from '$lib/stores/weather';
+import { doFetchWeather, restoreGpsWeather } from '$lib/stores/weather';
 
 export const devModeActive = writable(false);
 export const showGpsCoordinates = writable(false);
@@ -55,7 +55,9 @@ export function disableDevMode() {
         localStorage.removeItem('dev_mode_expiration');
     }
     devModeActive.set(false);
-    resetLocationToCurrent();
+    clearDevModeOverride();
+    showLocationOverrideDialog.set(false);
+    restoreGpsWeather();
 }
 
 export function setLocationOverride(lat: number, lon: number, name: string, subtext?: string) {

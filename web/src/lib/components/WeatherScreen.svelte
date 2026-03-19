@@ -14,7 +14,7 @@
 	import { metricPrimary, fontIndex, localeIndex, toggleUnits, cycleFont, cycleLanguage } from '$lib/stores/preferences';
 	import { SUPPORTED_LOCALES, localizeDigits } from '$lib/i18n/index';
 	import { fontPairings } from '$lib/fonts';
-	import { formatDate } from '$lib/utils/date';
+	import { formatDate, formatLocationCurrentTime, isRemoteTimezone } from '$lib/utils/date';
 	import HeroCard from './HeroCard.svelte';
 	import WeatherAlertBanner from './WeatherAlertBanner.svelte';
 	import HourlyForecast from './HourlyForecast.svelte';
@@ -204,7 +204,12 @@
 							</div>
 						{/if}
 					</div>
-					<p class="date">{formatDate(data.timestamp, SUPPORTED_LOCALES[$localeIndex].tag)}</p>
+					<p class="date">
+					{formatDate(data.timestamp, SUPPORTED_LOCALES[$localeIndex].tag)}
+					{#if isRemoteTimezone(data.utcOffsetSeconds)}
+						<span class="location-time">{loc(formatLocationCurrentTime(data.utcOffsetSeconds))}</span>
+					{/if}
+				</p>
 				</div>
 			</div>
 
@@ -230,6 +235,7 @@
 							dailySunset={data.dailySunset}
 							{loc}
 							onToggleUnits={toggleUnits}
+							utcOffsetSeconds={data.utcOffsetSeconds}
 						/>
 					</CollapsibleSection>
 				{/if}
@@ -429,6 +435,20 @@
 	.date {
 		font-size: 16px;
 		color: rgba(255,255,255,0.7);
+	}
+
+	.location-time {
+		display: inline-block;
+		margin-left: 8px;
+		font-size: 13px;
+		color: rgba(255,255,255,0.45);
+		font-family: var(--font-display);
+		font-weight: 600;
+		font-feature-settings: var(--font-features);
+	}
+
+	.location-time::before {
+		content: '\1F553  ';
 	}
 
 	.scroll-area {

@@ -128,6 +128,7 @@ fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = 
     }.distinctBy { it.date }
 
     return WeatherData(
+        utcOffsetSeconds = utcOffsetSeconds,
         temperature = Temperature.fromCelsius(c.temperature),
         feelsLike = Temperature.fromCelsius(c.apparentTemperature),
         tempMin = Temperature.fromCelsius(daily.temperatureMin.firstOrNull() ?: c.temperature),

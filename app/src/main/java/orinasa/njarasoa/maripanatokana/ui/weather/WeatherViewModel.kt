@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.data.remote.GeocodingResult
+import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.repository.LocationRepository
 import orinasa.njarasoa.maripanatokana.domain.repository.WeatherRepository
 import orinasa.njarasoa.maripanatokana.ui.theme.fontPairings
@@ -91,6 +92,9 @@ class WeatherViewModel @Inject constructor(
 
     private var searchJob: Job? = null
 
+    // Cached GPS weather data fetched in background during dev mode
+    private var cachedGpsWeatherData: WeatherData? = null
+
     init {
         // Ensure dev mode is false if expired on startup
         if (!_devModeActive.value) {
@@ -129,7 +133,18 @@ class WeatherViewModel @Inject constructor(
     fun disableDevMode() {
         prefs.edit().remove("dev_mode_expiration").apply()
         _devModeActive.value = false
-        clearLocationOverride()
+        clearDevModeOverride()
+        _showLocationOverrideDialog.value = false
+        // Restore cached GPS weather if available
+        val cached = cachedGpsWeatherData
+        if (cached != null) {
+            _uiState.value = WeatherUiState.Success(cached)
+            cachedGpsWeatherData = null
+            // Also refresh in background to get truly fresh data
+            refresh()
+        } else {
+            fetchWeather()
+        }
     }
 
     fun searchLocation(query: String) {
@@ -215,9 +230,30 @@ class WeatherViewModel @Inject constructor(
         prefs.edit().putInt("locale_index", newIndex).apply()
     }
 
+    /** Spawn a background GPS weather fetch to cache for when dev mode is disabled */
+    private fun spawnGpsCacheRefresh() {
+        viewModelScope.launch {
+            try {
+                locationRepository.getFreshLocation().onSuccess { (lat, lon) ->
+                    saveLocation(lat, lon)
+                    weatherRepository.getWeather(lat, lon).onSuccess { data ->
+                        cachedGpsWeatherData = data.copy(locationSubtext = null)
+                    }
+                }
+            } catch (_: Exception) {
+                // Silently fail - this is a best-effort background refresh
+            }
+        }
+    }
+
     fun fetchWeather() {
         viewModelScope.launch {
-            _uiState.value = WeatherUiState.Loading
+            // Only show loading if we don't already have data
+            if (_uiState.value !is WeatherUiState.Success) {
+                _uiState.value = WeatherUiState.Loading
+            } else {
+                _isRefreshing.value = true
+            }
 
             // Check if dev mode expired
             if (_devModeActive.value && !checkDevModeExpiration()) {
@@ -235,12 +271,17 @@ class WeatherViewModel @Inject constructor(
                     val overrideData = data.copy(locationName = overrideName)
                     prefs.edit().putString("location_name", overrideName).apply()
                     _uiState.value = WeatherUiState.Success(overrideData)
+                    // Spawn background GPS cache refresh
+                    spawnGpsCacheRefresh()
                 }.onFailure {
-                    _uiState.value = WeatherUiState.Error(R.string.error_fetch_weather)
+                    if (_uiState.value !is WeatherUiState.Success) {
+                        _uiState.value = WeatherUiState.Error(R.string.error_fetch_weather)
+                    }
                 }
             } else {
                 doFetch()
             }
+            _isRefreshing.value = false
         }
     }
 
@@ -263,8 +304,12 @@ class WeatherViewModel @Inject constructor(
                     val overrideData = data.copy(locationName = overrideName)
                     prefs.edit().putString("location_name", overrideName).apply()
                     _uiState.value = WeatherUiState.Success(overrideData)
+                    // Spawn background GPS cache refresh
+                    spawnGpsCacheRefresh()
                 }.onFailure {
-                    _uiState.value = WeatherUiState.Error(R.string.error_fetch_weather)
+                    if (_uiState.value !is WeatherUiState.Success) {
+                        _uiState.value = WeatherUiState.Error(R.string.error_fetch_weather)
+                    }
                 }
             } else {
                 doFetch()
