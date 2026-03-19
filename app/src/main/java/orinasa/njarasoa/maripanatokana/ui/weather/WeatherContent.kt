@@ -104,6 +104,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 internal enum class ForecastDisplayMode {
     Temperature,
@@ -285,12 +286,24 @@ internal fun WeatherContent(
                     }
                 }
             }
-            Text(
-                text = localizeDigits(dateFormat.format(Date(data.timestamp))),
-                fontSize = 16f.s(scale),
-                fontFamily = bodyFont,
-                color = Color.White.copy(alpha = 0.7f)
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = localizeDigits(dateFormat.format(Date(data.timestamp))),
+                    fontSize = 16f.s(scale),
+                    fontFamily = bodyFont,
+                    color = Color.White.copy(alpha = 0.7f)
+                )
+                if (isRemoteTimezone(data.utcOffsetSeconds)) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "\uD83D\uDD53 ${localizeDigits(formatLocationCurrentTime(data.utcOffsetSeconds))}",
+                        fontSize = 13f.s(scale),
+                        fontFamily = displayFont,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White.copy(alpha = 0.45f)
+                    )
+                }
+            }
         }
 
         // Scrollable content
@@ -489,7 +502,7 @@ internal fun WeatherContent(
             // Hourly Forecast
             if (data.hourlyForecast.isNotEmpty()) {
                 CollapsibleSection(title = stringResource(R.string.section_hourly_forecast), headerGraphicsLayer = headerGraphicsLayer, initialExpanded = true) {
-                    HourlyForecastRow(data.hourlyForecast, metricPrimary, data.dailySunrise, data.dailySunset, localizeDigits, onToggleUnits)
+                    HourlyForecastRow(data.hourlyForecast, metricPrimary, data.dailySunrise, data.dailySunset, localizeDigits, onToggleUnits, data.utcOffsetSeconds)
                 }
                 Spacer(modifier = Modifier.height(24.sd(scale)))
             }
@@ -702,13 +715,14 @@ internal fun CollapsibleSection(
 }
 
 @Composable
-internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Boolean, dailySunrise: List<Long>, dailySunset: List<Long>, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
+internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: Boolean, dailySunrise: List<Long>, dailySunset: List<Long>, localizeDigits: (String) -> String, onToggleUnits: () -> Unit, utcOffsetSeconds: Int = 0) {
     // Bolt: Memoize SimpleDateFormat
     val hourFormat = remember { SimpleDateFormat("HH:mm", Locale.US) }
     val bodyFont = LocalBodyFont.current
     val fontFeatures = LocalBodyFontFeatures.current
     val scale = LocalScale.current
     var displayMode by remember { mutableStateOf(ForecastDisplayMode.Temperature) }
+    val isRemote = isRemoteTimezone(utcOffsetSeconds)
 
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(12.sd(scale)),
@@ -731,6 +745,15 @@ internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: B
                         color = Color.White.copy(alpha = 0.7f),
                         style = TextStyle(fontFeatureSettings = fontFeatures),
                     )
+                    if (isRemote) {
+                        Text(
+                            text = localizeDigits(formatHourInDeviceTime(item.time, utcOffsetSeconds)),
+                            fontSize = 9f.s(scale),
+                            fontFamily = bodyFont,
+                            color = Color.White.copy(alpha = 0.35f),
+                            style = TextStyle(fontFeatureSettings = fontFeatures),
+                        )
+                    }
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = run {
@@ -1308,6 +1331,34 @@ internal suspend fun shareCardBitmap(context: android.content.Context, bitmap: B
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
     context.startActivity(Intent.createChooser(intent, null))
+}
+
+/** Check if the location's timezone differs from the device's timezone. */
+private fun isRemoteTimezone(utcOffsetSeconds: Int): Boolean {
+    val deviceOffsetMs = TimeZone.getDefault().rawOffset
+    return deviceOffsetMs != utcOffsetSeconds * 1000
+}
+
+/** Get the current time at a location given its UTC offset. */
+private fun formatLocationCurrentTime(utcOffsetSeconds: Int): String {
+    val format = SimpleDateFormat("HH:mm", Locale.US)
+    format.timeZone = TimeZone.getTimeZone("UTC")
+    val utcNow = System.currentTimeMillis()
+    // UTC + offset = location local time
+    val locationMs = utcNow + utcOffsetSeconds * 1000L
+    return format.format(Date(locationMs))
+}
+
+/**
+ * Convert a forecast time (parsed as device-local from API's location-local string)
+ * to the device's actual local time.
+ */
+private fun formatHourInDeviceTime(locationLocalMillis: Long, locationUtcOffsetSec: Int): String {
+    val deviceOffsetMs = TimeZone.getDefault().rawOffset.toLong()
+    val locationOffsetMs = locationUtcOffsetSec * 1000L
+    val trueUtcMillis = locationLocalMillis - deviceOffsetMs + locationOffsetMs
+    val format = SimpleDateFormat("HH:mm", Locale.US)
+    return format.format(Date(trueUtcMillis))
 }
 
 private fun formatDMS(value: Double, positive: String, negative: String): String {

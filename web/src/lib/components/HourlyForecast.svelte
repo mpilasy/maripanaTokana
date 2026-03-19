@@ -3,6 +3,7 @@
 	import type { HourlyForecast as HourlyForecastType } from '$lib/domain/weatherData';
 	import { getCardinalDirection } from '$lib/domain/windSpeed';
 	import { wmoEmoji } from '$lib/api/wmoWeatherCode';
+	import { formatHourInDeviceTime, isRemoteTimezone } from '$lib/utils/date';
 	import DualUnitText from './DualUnitText.svelte';
 
 	interface Props {
@@ -12,11 +13,14 @@
 		dailySunset: number[];
 		loc: (s: string) => string;
 		onToggleUnits: () => void;
+		utcOffsetSeconds: number;
 	}
 
-	let { forecasts, metricPrimary, dailySunrise, dailySunset, loc, onToggleUnits }: Props = $props();
+	let { forecasts, metricPrimary, dailySunrise, dailySunset, loc, onToggleUnits, utcOffsetSeconds }: Props = $props();
 
 	let displayMode = $state('Temperature'); // Temperature, Wind, Precipitation, Pressure
+
+	let isRemote = $derived(isRemoteTimezone(utcOffsetSeconds));
 
 	function toggleMode() {
 		if (displayMode === 'Temperature') displayMode = 'Wind';
@@ -46,6 +50,9 @@
 		{@const [tempP, tempS] = item.temperature.displayDual(metricPrimary)}
 		<div class="hourly-card">
 			<span class="hour">{loc(formatHour(item.time))}</span>
+			{#if isRemote}
+				<span class="hour-device">{loc(formatHourInDeviceTime(item.time, utcOffsetSeconds))}</span>
+			{/if}
 			<button class="emoji-btn" onclick={toggleMode}>
 				{wmoEmoji(item.weatherCode, isNightForHour(item.time))}
 			</button>
@@ -127,6 +134,13 @@
 		font-size: 12px;
 		color: rgba(255,255,255,0.7);
 		font-feature-settings: var(--font-features);
+	}
+
+	.hour-device {
+		font-size: 9px;
+		color: rgba(255,255,255,0.35);
+		font-feature-settings: var(--font-features);
+		margin-top: -3px;
 	}
 
 	.emoji-btn {

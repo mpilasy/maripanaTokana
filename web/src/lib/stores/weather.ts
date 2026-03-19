@@ -19,6 +19,9 @@ export const isRefreshing = writable<boolean>(false);
 
 const STALE_MS = 30 * 60 * 1000; // 30 minutes
 
+// Cached GPS weather data fetched in background during dev mode
+let cachedGpsWeatherData: WeatherData | null = null;
+
 async function fetchAtLocation(lat: number, lon: number, knownName?: string, knownSubtext?: string): Promise<WeatherData> {
 	const weatherPromise = fetchWeather(lat, lon);
 	const namePromise = knownName ? Promise.resolve({ name: knownName, subtext: knownSubtext }) : reverseGeocode(lat, lon);
@@ -34,10 +37,40 @@ async function fetchAtLocation(lat: number, lon: number, knownName?: string, kno
 	const data = mapToWeatherData(response, location.name, knownName ? location.subtext : undefined);
 	data.alerts = [...nwsAlerts, ...gdacsAlerts, ...data.alerts];
 	// Filter duplicate alerts (e.g. same title)
-	data.alerts = data.alerts.filter((a, i, self) => 
+	data.alerts = data.alerts.filter((a, i, self) =>
 		i === self.findIndex(t => t.title === a.title)
 	);
 	return data;
+}
+
+/** Background-fetch GPS weather and cache it for when dev mode is disabled */
+function spawnGpsCacheRefresh() {
+	getPosition()
+		.then(async (fresh) => {
+			const cached = getCachedLocation();
+			const lat = fresh.lat;
+			const lon = fresh.lon;
+			const name = cached?.name;
+			const subtext = cached?.subtext;
+			const data = await fetchAtLocation(lat, lon, name, subtext);
+			cachedGpsWeatherData = data;
+			cacheLocation(lat, lon, data.locationName, data.locationSubtext);
+		})
+		.catch(() => {
+			// Silently fail - this is a best-effort background refresh
+		});
+}
+
+/** Called when dev mode is disabled to immediately show GPS weather */
+export function restoreGpsWeather() {
+	if (cachedGpsWeatherData) {
+		weatherState.set({ kind: 'success', data: cachedGpsWeatherData });
+		cachedGpsWeatherData = null;
+		// Also refresh in background to get truly fresh data
+		doFetchWeather();
+	} else {
+		doFetchWeather();
+	}
 }
 
 export async function doFetchWeather() {
@@ -63,6 +96,8 @@ export async function doFetchWeather() {
 					const data = await fetchAtLocation(lLat, lLon, name, subtext);
 					weatherState.set({ kind: 'success', data });
 					isRefreshing.set(false);
+					// Spawn background GPS cache refresh
+					spawnGpsCacheRefresh();
 					return;
 				}
 			}
