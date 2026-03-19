@@ -284,19 +284,19 @@ internal fun WeatherContent(
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = localizeDigits(dateFormat.format(Date(data.timestamp))),
-                    fontSize = 16f.s(scale),
+                    text = stringResource(R.string.updated_time, localizeDigits(dateFormat.format(Date(data.timestamp)))),
+                    fontSize = 13f.s(scale),
                     fontFamily = bodyFont,
-                    color = Color.White.copy(alpha = 0.7f)
+                    color = Color.White.copy(alpha = 0.5f)
                 )
                 if (isRemoteTimezone(data.utcOffsetSeconds)) {
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "\uD83D\uDD53 ${localizeDigits(formatLocationCurrentTime(data.utcOffsetSeconds, appLocale))}",
+                        text = "\uD83D\uDD53 Local: ${localizeDigits(formatLocationCurrentTime(data.utcOffsetSeconds, appLocale))}",
                         fontSize = 13f.s(scale),
                         fontFamily = displayFont,
                         fontWeight = FontWeight.SemiBold,
-                        color = Color.White.copy(alpha = 0.45f)
+                        color = Color.White.copy(alpha = 0.7f)
                     )
                 }
             }
@@ -749,7 +749,7 @@ internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: B
                     )
                     if (isRemote) {
                         Text(
-                            text = "${localizeDigits(formatHourInDeviceTime(item.time, utcOffsetSeconds))} \uD83D\uDCF1",
+                            text = "${localizeDigits(formatHourInDeviceTime(item.time, utcOffsetSeconds))}  \uD83D\uDCF1",
                             fontSize = 9f.s(scale),
                             fontFamily = bodyFont,
                             color = Color.White.copy(alpha = 0.35f),

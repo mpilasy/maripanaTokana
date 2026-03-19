@@ -51,7 +51,7 @@
 		<div class="hourly-card">
 			<span class="hour">{loc(formatHour(item.time))}</span>
 			{#if isRemote}
-				<span class="hour-device">{loc(formatHourInDeviceTime(item.time, utcOffsetSeconds))} 📱</span>
+				<span class="hour-device">{loc(formatHourInDeviceTime(item.time, utcOffsetSeconds))} &nbsp;📱</span>
 			{/if}
 			<button class="emoji-btn" onclick={toggleMode}>
 				{wmoEmoji(item.weatherCode, isNightForHour(item.time))}
