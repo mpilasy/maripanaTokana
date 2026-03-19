@@ -157,7 +157,10 @@ export function mapToWeatherData(response: OpenMeteoResponse, locationName: stri
 		dailySunset: dailySunsetMillis,
 		hourlyForecast,
 		dailyForecast,
-		alerts: deriveAlerts(c, h, d, response.utc_offset_seconds),
+		alerts: [],
+		alertsLoading: true,
 		timestamp: Date.now(),
 	};
 }
+
+export { deriveAlerts };

@@ -38,12 +38,46 @@ class WeatherRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getWeather(lat: Double, lon: Double): Result<WeatherData> = coroutineScope {
+    override suspend fun getWeather(lat: Double, lon: Double): Result<WeatherData> = withContext(Dispatchers.IO) {
         try {
-            val weatherDeferred = async { apiService.getForecast(latitude = lat, longitude = lon) }
+            val response = apiService.getForecast(latitude = lat, longitude = lon)
+
+            val (locationName, locationSubtext) = try {
+                @Suppress("DEPRECATION")
+                val addr = geocoder.getFromLocation(lat, lon, 1)?.firstOrNull()
+                val rawName = addr?.locality
+                    ?: addr?.subAdminArea
+                    ?: addr?.adminArea
+                    ?: "%.2f, %.2f".format(Locale.US, lat, lon)
+                
+                val name = rawName.split(",")[0].split(";")[0].split("-")[0].trim()
+
+                val subtext = if (addr != null) {
+                    val parts = mutableListOf<String>()
+                    if (addr.adminArea != null && !name.contains(addr.adminArea) && !addr.adminArea.contains(name) && !rawName.contains(addr.adminArea)) {
+                        parts.add(addr.adminArea)
+                    }
+                    if (addr.countryName != null) parts.add(addr.countryName)
+                    if (parts.isNotEmpty()) parts.joinToString(", ") else null
+                } else null
+
+                name to subtext
+            } catch (_: Exception) {
+                "%.2f, %.2f".format(Locale.US, lat, lon) to null
+            }
+
+            val weatherData = response.toDomain(locationName, locationSubtext)
+            Result.success(weatherData.copy(alertsLoading = true, alerts = emptyList()))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun fetchAlerts(lat: Double, lon: Double): Result<List<WeatherAlert>> = coroutineScope {
+        try {
+            // 1. Official NWS Alerts
             val nwsDeferred = async { 
                 try {
-                    // Use Locale.US to ensure dot decimal separator for NWS API
                     val point = String.format(Locale.US, "%.4f,%.4f", lat, lon)
                     nwsApiService.getActiveAlerts(point).features.map { f ->
                         val p = f.properties
@@ -60,6 +94,8 @@ class WeatherRepositoryImpl @Inject constructor(
                     emptyList()
                 }
             }
+
+            // 2. Global GDACS Alerts
             val gdacsDeferred = async {
                 try {
                     val toDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
@@ -87,44 +123,18 @@ class WeatherRepositoryImpl @Inject constructor(
                 }
             }
 
-            val response = weatherDeferred.await()
+            // 3. Derived Alerts (from Open-Meteo)
+            val weatherDeferred = async { apiService.getForecast(latitude = lat, longitude = lon) }
+
             val nwsAlerts = nwsDeferred.await()
             val gdacsAlerts = gdacsDeferred.await()
+            val weatherResponse = weatherDeferred.await()
+            val weatherData = weatherResponse.toDomain("temp", null) // location name doesn't matter for alerts
 
-            val (locationName, locationSubtext) = try {
-                withContext(Dispatchers.IO) {
-                    @Suppress("DEPRECATION")
-                    val addr = geocoder.getFromLocation(lat, lon, 1)?.firstOrNull()
-                    val rawName = addr?.locality
-                        ?: addr?.subAdminArea
-                        ?: addr?.adminArea
-                        ?: "%.2f, %.2f".format(Locale.US, lat, lon)
-                    
-                    // Bolt: Strictly take only the first part before any common separators
-                    val name = rawName.split(",")[0].split(";")[0].split("-")[0].trim()
-
-                    val subtext = if (addr != null) {
-                        val parts = mutableListOf<String>()
-                        // Bolt: Ensure subtext doesn't repeat the main name even if it's a partial match
-                        if (addr.adminArea != null && !name.contains(addr.adminArea) && !addr.adminArea.contains(name) && !rawName.contains(addr.adminArea)) {
-                            parts.add(addr.adminArea)
-                        }
-                        if (addr.countryName != null) parts.add(addr.countryName)
-                        if (parts.isNotEmpty()) parts.joinToString(", ") else null
-                    } else null
-
-                    name to subtext
-                }
-            } catch (_: Exception) {
-                "%.2f, %.2f".format(Locale.US, lat, lon) to null
-            }
-
-            val weatherData = response.toDomain(locationName, locationSubtext)
-            // Combine all alerts and remove exact duplicates based on title and source
             val combinedAlerts = (nwsAlerts + gdacsAlerts + weatherData.alerts)
                 .distinctBy { it.titleKey + it.source }
             
-            Result.success(weatherData.copy(alerts = combinedAlerts))
+            Result.success(combinedAlerts)
         } catch (e: Exception) {
             Result.failure(e)
         }

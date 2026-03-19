@@ -27,6 +27,7 @@ data class WeatherData(
     val hourlyForecast: List<HourlyForecast> = emptyList(),
     val dailyForecast: List<DailyForecast> = emptyList(),
     val alerts: List<WeatherAlert> = emptyList(),
+    val alertsLoading: Boolean = false,
     val timestamp: Long = System.currentTimeMillis(),
     val utcOffsetSeconds: Int = 0, // location's UTC offset in seconds
 )

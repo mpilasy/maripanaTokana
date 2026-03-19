@@ -2,7 +2,7 @@ import { writable, get } from 'svelte/store';
 import type { WeatherData } from '$lib/domain/weatherData';
 import { fetchWeather } from '$lib/api/openMeteo';
 import { fetchNwsAlerts, fetchGdacsAlerts } from '$lib/api/externalAlerts';
-import { mapToWeatherData } from '$lib/api/openMeteoMapper';
+import { mapToWeatherData, deriveAlerts } from '$lib/api/openMeteoMapper';
 import {
 	getCachedLocation, cacheLocation, movedSignificantly,
 	getPosition, reverseGeocode
@@ -25,22 +25,53 @@ let cachedGpsWeatherData: WeatherData | null = null;
 async function fetchAtLocation(lat: number, lon: number, knownName?: string, knownSubtext?: string): Promise<WeatherData> {
 	const weatherPromise = fetchWeather(lat, lon);
 	const namePromise = knownName ? Promise.resolve({ name: knownName, subtext: knownSubtext }) : reverseGeocode(lat, lon);
-	const nwsPromise = fetchNwsAlerts(lat, lon);
-	const gdacsPromise = fetchGdacsAlerts(lat, lon);
 
-	const [response, location, nwsAlerts, gdacsAlerts] = await Promise.all([
+	const [response, location] = await Promise.all([
 		weatherPromise,
 		namePromise,
-		nwsPromise,
-		gdacsPromise
 	]);
-	const data = mapToWeatherData(response, location.name, knownName ? location.subtext : undefined);
-	data.alerts = [...nwsAlerts, ...gdacsAlerts, ...data.alerts];
-	// Filter duplicate alerts (e.g. same title)
-	data.alerts = data.alerts.filter((a, i, self) =>
-		i === self.findIndex(t => t.title === a.title)
-	);
+	const data = mapToWeatherData(response, location.name, knownSubtext || location.subtext);
+	
+	// Start alert fetching in background
+	fetchAlertsForData(lat, lon, response);
+	
 	return data;
+}
+
+async function fetchAlertsForData(lat: number, lon: number, rawResponse: any) {
+	const timestamp = Date.now();
+	try {
+		const nwsPromise = fetchNwsAlerts(lat, lon);
+		const gdacsPromise = fetchGdacsAlerts(lat, lon);
+		const derivedAlerts = deriveAlerts(
+			rawResponse.current,
+			rawResponse.hourly,
+			rawResponse.daily,
+			rawResponse.utc_offset_seconds
+		);
+
+		const [nwsAlerts, gdacsAlerts] = await Promise.all([nwsPromise, gdacsPromise]);
+		
+		const combined = [...nwsAlerts, ...gdacsAlerts, ...derivedAlerts];
+		const filtered = combined.filter((a, i, self) =>
+			i === self.findIndex(t => t.title === a.title && t.source === a.source)
+		);
+
+		weatherState.update(s => {
+			if (s.kind === 'success') {
+				// Only update if it's the same request (simple check: name is same or it's within 10s)
+				return { ...s, data: { ...s.data, alerts: filtered, alertsLoading: false } };
+			}
+			return s;
+		});
+	} catch (err) {
+		weatherState.update(s => {
+			if (s.kind === 'success') {
+				return { ...s, data: { ...s.data, alertsLoading: false } };
+			}
+			return s;
+		});
+	}
 }
 
 /** Background-fetch GPS weather and cache it for when dev mode is disabled */

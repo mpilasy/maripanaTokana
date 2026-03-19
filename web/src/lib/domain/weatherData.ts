@@ -65,6 +65,7 @@ export interface WeatherData {
 	hourlyForecast: HourlyForecast[];
 	dailyForecast: DailyForecast[];
 	alerts: WeatherAlert[];
+	alertsLoading?: boolean;
 	timestamp: number; // epoch millis
 	utcOffsetSeconds: number; // location's UTC offset in seconds
 }
