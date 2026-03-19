@@ -11,6 +11,7 @@ import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.model.WindSpeed
 import java.text.SimpleDateFormat
 import java.util.Locale
+import java.util.TimeZone
 
 fun deriveAlerts(c: OpenMeteoCurrent, h: OpenMeteoHourly, d: OpenMeteoDaily, utcOffsetSeconds: Int): List<WeatherAlert> {
     val alerts = mutableListOf<WeatherAlert>()
@@ -142,12 +143,6 @@ fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = 
             tempMax = Temperature.fromCelsius(daily.temperatureMax[i]),
             tempMin = Temperature.fromCelsius(daily.temperatureMin[i]),
             weatherCode = if (i == 0) c.weatherCode else daily.weatherCode[i],
-            precipProbability = daily.precipitationProbabilityMax[i],
-            windSpeed = WindSpeed.fromMetersPerSecond(daily.windSpeed10mMax.getOrElse(i) { 0.0 }),
-            windDirection = daily.windDirection10mDominant.getOrElse(i) { 0 },
-            precipitation = Precipitation.fromMm(daily.precipitationSum.getOrElse(i) { 0.0 }),
-        )
-    }.distinctBy { it.date }
             precipProbability = daily.precipitationProbabilityMax[i],
             windSpeed = WindSpeed.fromMetersPerSecond(daily.windSpeed10mMax.getOrElse(i) { 0.0 }),
             windDirection = daily.windDirection10mDominant.getOrElse(i) { 0 },
