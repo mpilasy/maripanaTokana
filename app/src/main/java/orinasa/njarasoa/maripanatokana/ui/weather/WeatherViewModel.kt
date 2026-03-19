@@ -112,13 +112,26 @@ class WeatherViewModel @Inject constructor(
         _showGpsCoordinates.value = !_showGpsCoordinates.value
     }
 
-    fun onLocationLongPressed() {
-        if (!_devModeActive.value) {
-            val now = System.currentTimeMillis()
-            val expiration = now + 4 * 60 * 60 * 1000L // 4 hours
-            prefs.edit().putLong("dev_mode_expiration", expiration).apply()
-            _devModeActive.value = true
-            Toast.makeText(appContext, "Developer mode enabled", Toast.LENGTH_SHORT).show()
+    private var devModeTapCount = 0
+    private var devModeTapJob: Job? = null
+
+    fun onWeatherIconTapped() {
+        devModeTapCount++
+        devModeTapJob?.cancel()
+        if (devModeTapCount >= 7) {
+            devModeTapCount = 0
+            if (!_devModeActive.value) {
+                val now = System.currentTimeMillis()
+                val expiration = now + 4 * 60 * 60 * 1000L // 4 hours
+                prefs.edit().putLong("dev_mode_expiration", expiration).apply()
+                _devModeActive.value = true
+                Toast.makeText(appContext, "Developer mode enabled", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            devModeTapJob = viewModelScope.launch {
+                delay(500)
+                devModeTapCount = 0
+            }
         }
     }
 

@@ -241,7 +241,7 @@ fun WeatherScreen(
                             onCycleLanguage = { viewModel.cycleLanguage() },
                             onRefresh = { viewModel.refresh() },
                             onLocationClicked = viewModel::onLocationClicked,
-                            onLocationLongPressed = viewModel::onLocationLongPressed,
+                            onWeatherIconTapped = viewModel::onWeatherIconTapped,
                             onEditLocationClicked = viewModel::onEditLocationClicked,
                             onDisableDevMode = viewModel::disableDevMode,
                             showGpsCoordinates = showGpsCoordinates,

@@ -8,10 +8,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -117,7 +115,6 @@ internal val LocalScale = staticCompositionLocalOf { 1f }
 internal fun Float.s(scale: Float) = (this * scale).sp
 internal fun Int.sd(scale: Float) = (this * scale).dp
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun WeatherContent(
     data: WeatherData,
@@ -131,7 +128,7 @@ internal fun WeatherContent(
     onCycleLanguage: () -> Unit,
     onRefresh: () -> Unit,
     onLocationClicked: () -> Unit = {},
-    onLocationLongPressed: () -> Unit = {},
+    onWeatherIconTapped: () -> Unit = {},
     onEditLocationClicked: () -> Unit = {},
     onDisableDevMode: () -> Unit = {},
     showGpsCoordinates: Boolean = false,
@@ -182,11 +179,10 @@ internal fun WeatherContent(
                 },
         ) {
             Column(
-                modifier = Modifier.combinedClickable(
+                modifier = Modifier.clickable(
                     onClick = onLocationClicked,
-                    onLongClick = onLocationLongPressed,
                     role = Role.Button,
-                    onClickLabel = "Toggle GPS coordinates or enable dev mode"
+                    onClickLabel = "Toggle GPS coordinates"
                 )
             ) {
                 Row(
@@ -342,7 +338,13 @@ internal fun WeatherContent(
                         ) {
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clickable(
+                                        onClick = onWeatherIconTapped,
+                                        role = Role.Button,
+                                        onClickLabel = "Weather icon"
+                                    ),
                             ) {
                                 Text(
                                     text = wmoEmoji(data.weatherCode, isNight = data.timestamp !in (data.sunrise * 1000)..(data.sunset * 1000)),
