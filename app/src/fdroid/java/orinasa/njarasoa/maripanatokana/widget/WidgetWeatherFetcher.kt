@@ -36,12 +36,12 @@ object WidgetWeatherFetcher {
 
     @SuppressLint("MissingPermission")
     suspend fun fetch(context: Context): WeatherData? {
+        val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
         return try {
-            val (lat, lon) = getCoordinates(context) ?: return null
+            val (lat, lon) = getCoordinates(context) ?: throw Exception("No coordinates")
 
             val response = api.getForecast(latitude = lat, longitude = lon)
 
-            val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
             val locationName = prefs.getString("location_name", null)
                 ?: try {
                     withContext(Dispatchers.IO) {
@@ -55,9 +55,29 @@ object WidgetWeatherFetcher {
                     "%.2f, %.2f".format(Locale.US, lat, lon)
                 }
 
+            // Cache the response and location name
+            prefs.edit()
+                .putString("cached_response", json.encodeToString(OpenMeteoResponse.serializer(), response))
+                .putString("cached_location_name", locationName)
+                .putLong("cached_timestamp", System.currentTimeMillis())
+                .apply()
+
             response.toDomain(locationName)
         } catch (_: Exception) {
-            null
+            val cachedJson = prefs.getString("cached_response", null)
+            val cachedName = prefs.getString("cached_location_name", null)
+            val cachedTimestamp = prefs.getLong("cached_timestamp", 0L)
+            
+            if (cachedJson != null && cachedName != null) {
+                try {
+                    val response = json.decodeFromString(OpenMeteoResponse.serializer(), cachedJson)
+                    response.toDomain(cachedName).copy(timestamp = cachedTimestamp)
+                } catch (_: Exception) {
+                    null
+                }
+            } else {
+                null
+            }
         }
     }
 

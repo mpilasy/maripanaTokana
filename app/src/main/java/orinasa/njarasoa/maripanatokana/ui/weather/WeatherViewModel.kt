@@ -251,6 +251,7 @@ class WeatherViewModel @Inject constructor(
                     saveLocation(lat, lon)
                     weatherRepository.getWeather(lat, lon).onSuccess { data ->
                         cachedGpsWeatherData = data.copy(locationSubtext = null)
+                        prefs.edit().putString("location_name", data.locationName).apply()
                     }
                 }
             } catch (_: Exception) {
@@ -302,7 +303,6 @@ class WeatherViewModel @Inject constructor(
 
                 weatherRepository.getWeather(overrideLat, overrideLon).onSuccess { data ->
                     val overrideData = data.copy(locationName = overrideName)
-                    prefs.edit().putString("location_name", overrideName).apply()
                     _uiState.value = WeatherUiState.Success(overrideData)
                     fetchAlertsForData(overrideLat, overrideLon)
                     // Spawn background GPS cache refresh
@@ -336,7 +336,6 @@ class WeatherViewModel @Inject constructor(
 
                 weatherRepository.getWeather(overrideLat, overrideLon).onSuccess { data ->
                     val overrideData = data.copy(locationName = overrideName)
-                    prefs.edit().putString("location_name", overrideName).apply()
                     _uiState.value = WeatherUiState.Success(overrideData)
                     fetchAlertsForData(overrideLat, overrideLon)
                     // Spawn background GPS cache refresh
