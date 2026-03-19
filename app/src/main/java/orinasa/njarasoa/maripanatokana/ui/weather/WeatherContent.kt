@@ -752,9 +752,6 @@ internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: B
                         metricPrimary = metricPrimary,
                         itemWidth = itemWidth,
                         spacing = itemSpacing,
-                        localizeDigits = localizeDigits,
-                        fontFamily = bodyFont,
-                        scale = scale,
                         modifier = Modifier
                             .width(itemWidth * forecasts.size + itemSpacing * (forecasts.size - 1))
                             .height(40.sd(scale))

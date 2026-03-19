@@ -10,15 +10,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import orinasa.njarasoa.maripanatokana.domain.model.HourlyForecast
 import orinasa.njarasoa.maripanatokana.ui.theme.SkyBlue
-import kotlin.math.roundToInt
 
 @Composable
 fun TemperatureChart(
@@ -26,9 +21,6 @@ fun TemperatureChart(
     metricPrimary: Boolean,
     itemWidth: Dp,
     spacing: Dp,
-    localizeDigits: (String) -> String,
-    fontFamily: FontFamily,
-    scale: Float,
     modifier: Modifier = Modifier,
     lineColor: Color = SkyBlue,
 ) {
@@ -45,9 +37,9 @@ fun TemperatureChart(
         if (range == 0.0) 1.0 else range
     }
 
-    // Add padding to range for labels
-    val paddedMin = minTemp - (tempRange * 0.3)
-    val paddedMax = maxTemp + (tempRange * 0.3)
+    // Add padding to range
+    val paddedMin = minTemp - (tempRange * 0.15)
+    val paddedMax = maxTemp + (tempRange * 0.15)
     val paddedRange = paddedMax - paddedMin
 
     Box(modifier = modifier) {
@@ -62,14 +54,6 @@ fun TemperatureChart(
             val path = Path()
             val fillPath = Path()
 
-            val textPaint = android.graphics.Paint().apply {
-                color = Color.White.copy(alpha = 0.9f).toArgb()
-                textSize = (11 * scale).dp.toPx()
-                textAlign = android.graphics.Paint.Align.CENTER
-                typeface = android.graphics.Typeface.DEFAULT // Fallback, would be better to use font family
-                isAntiAlias = true
-            }
-
             temps.forEachIndexed { i, temp ->
                 val x = i * (itemWidthPx + spacingPx) + itemWidthPx / 2
                 val y = height - ((temp - paddedMin) / paddedRange * height).toFloat()
@@ -83,24 +67,15 @@ fun TemperatureChart(
                     val prevX = (i - 1) * (itemWidthPx + spacingPx) + itemWidthPx / 2
                     val prevY = height - ((prevTemp - paddedMin) / paddedRange * height).toFloat()
                     
-                    path.quadraticBezierTo(
+                    path.quadraticTo(
                         prevX + (itemWidthPx + spacingPx) / 2, prevY,
                         x, y
                     )
-                    fillPath.quadraticBezierTo(
+                    fillPath.quadraticTo(
                         prevX + (itemWidthPx + spacingPx) / 2, prevY,
                         x, y
                     )
                 }
-
-                // Draw temperature label
-                val label = localizeDigits("${temp.roundToInt()}°")
-                drawContext.canvas.nativeCanvas.drawText(
-                    label,
-                    x,
-                    y - (8 * scale).dp.toPx(),
-                    textPaint
-                )
                 
                 if (i == pointsCount - 1) {
                     fillPath.lineTo(x, height)
@@ -112,17 +87,17 @@ fun TemperatureChart(
             drawPath(
                 path = fillPath,
                 brush = Brush.verticalGradient(
-                    colors = listOf(lineColor.copy(alpha = 0.15f), Color.Transparent),
+                    colors = listOf(lineColor.copy(alpha = 0.2f), Color.Transparent),
                     startY = 0f,
                     endY = height
                 )
             )
 
-            // Draw line
+            // Draw line - increased visibility (higher alpha and slightly thicker)
             drawPath(
                 path = path,
-                color = lineColor.copy(alpha = 0.4f),
-                style = Stroke(width = 1.5.dp.toPx())
+                color = lineColor.copy(alpha = 0.8f),
+                style = Stroke(width = 2.dp.toPx())
             )
         }
     }
