@@ -66,12 +66,13 @@ fun DailyTemperatureChart(
 
             // Draw horizontal ticks
             horizontalTicks.forEach { temp ->
+                val isMajor = temp % 5 == 0
                 val y = height - ((temp - paddedMin) / paddedRange * height).toFloat()
                 drawLine(
-                    color = Color.White.copy(alpha = 0.1f),
+                    color = Color.White.copy(alpha = if (isMajor) 0.25f else 0.1f),
                     start = Offset(0f, y),
                     end = Offset(width, y),
-                    strokeWidth = 0.5.dp.toPx()
+                    strokeWidth = (if (isMajor) 0.8.dp else 0.5.dp).toPx()
                 )
             }
 

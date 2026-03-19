@@ -37,6 +37,8 @@
 		const start = Math.ceil(paddedMin);
 		const end = Math.floor(paddedMax);
 		for (let i = start; i <= end; i++) {
+			// Skip if too close to min or max temp to avoid overlap jank
+			if (Math.abs(i - minTemp) < 0.2 || Math.abs(i - maxTemp) < 0.2) continue;
 			ticks.push(getY(i));
 		}
 		return ticks;
@@ -91,6 +93,10 @@
 	{#each horizontalTicks() as y}
 		<line x1="0" y1={y} x2={totalWidth} y2={y} stroke="white" stroke-width="0.5" stroke-opacity="0.1" />
 	{/each}
+
+	<!-- Standout Min/Max Lines -->
+	<line x1="0" y1={getY(minTemp)} x2={totalWidth} y2={getY(minTemp)} stroke="white" stroke-width="0.8" stroke-opacity="0.3" stroke-dasharray="2 1" />
+	<line x1="0" y1={getY(maxTemp)} x2={totalWidth} y2={getY(maxTemp)} stroke="white" stroke-width="0.8" stroke-opacity="0.3" stroke-dasharray="2 1" />
 
 	<!-- Midnight Vertical Lines -->
 	{#each midnightIndices as idx}

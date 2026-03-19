@@ -44,10 +44,12 @@ fun TemperatureChart(
     val paddedMax = maxTemp + (tempRange * 0.15)
     val paddedRange = paddedMax - paddedMin
 
-    val horizontalTicks = remember(paddedMin, paddedMax) {
+    val horizontalTicks = remember(paddedMin, paddedMax, minTemp, maxTemp) {
         val start = Math.ceil(paddedMin).toInt()
         val end = Math.floor(paddedMax).toInt()
-        (start..end).toList()
+        (start..end).filter { temp ->
+            Math.abs(temp - minTemp) >= 0.2 && Math.abs(temp - maxTemp) >= 0.2
+        }
     }
 
     val midnightIndices = remember(forecasts) {
@@ -84,6 +86,18 @@ fun TemperatureChart(
                     start = Offset(0f, y),
                     end = Offset(width, y),
                     strokeWidth = 0.5.dp.toPx()
+                )
+            }
+
+            // Standout Min/Max Lines
+            listOf(minTemp, maxTemp).forEach { temp ->
+                val y = height - ((temp - paddedMin) / paddedRange * height).toFloat()
+                drawLine(
+                    color = Color.White.copy(alpha = 0.3f),
+                    start = Offset(0f, y),
+                    end = Offset(width, y),
+                    strokeWidth = 0.8.dp.toPx(),
+                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(2.dp.toPx(), 1.dp.toPx()), 0f)
                 )
             }
 

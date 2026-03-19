@@ -38,7 +38,7 @@
 		const start = Math.ceil(paddedMin);
 		const end = Math.floor(paddedMax);
 		for (let i = start; i <= end; i++) {
-			ticks.push(getY(i));
+			ticks.push({ y: getY(i), temp: i });
 		}
 		return ticks;
 	});
@@ -68,8 +68,15 @@
 	<div class="chart-wrapper" style="height: {height}px;">
 		<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
 			<!-- Horizontal Ticks -->
-			{#each horizontalTicks() as y}
-				<line x1="0" y1={y} x2="100" y2={y} stroke="white" stroke-width="0.5" stroke-opacity="0.1" vector-effect="non-scaling-stroke" />
+			{#each horizontalTicks() as tick}
+				{@const isMajor = tick.temp % 5 === 0}
+				<line 
+					x1="0" y1={tick.y} x2="100" y2={tick.y} 
+					stroke="white" 
+					stroke-width={isMajor ? "0.8" : "0.5"} 
+					stroke-opacity={isMajor ? "0.25" : "0.1"} 
+					vector-effect="non-scaling-stroke" 
+				/>
 			{/each}
 
 			<!-- Monday Vertical Lines -->
