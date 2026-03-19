@@ -25,11 +25,11 @@ export function formatDate(timestamp: number, localeTag: string): string {
 export function formatHourInDeviceTime(locationLocalMillis: number, locationUtcOffsetSec: number): string {
 	// The stored millis treat the API's local-time string as if it were device-local.
 	// Device UTC offset in ms (getTimezoneOffset returns minutes, sign inverted).
-	const deviceOffsetMs = new Date().getTimezoneOffset() * -60_000;
+	const deviceOffsetMs = new Date(locationLocalMillis).getTimezoneOffset() * -60_000;
 	const locationOffsetMs = locationUtcOffsetSec * 1000;
-	// Reconstruct the true UTC instant, then let Date render it in device timezone.
-	const trueUtcMillis = locationLocalMillis - deviceOffsetMs + locationOffsetMs;
-	const d = new Date(trueUtcMillis);
+	// targetEpoch = locationLocalMillis + (deviceOffset - locationOffset)
+	const targetEpoch = locationLocalMillis + (deviceOffsetMs - locationOffsetMs);
+	const d = new Date(targetEpoch);
 	return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
@@ -37,12 +37,26 @@ export function formatHourInDeviceTime(locationLocalMillis: number, locationUtcO
  * Get the current time at a location given its UTC offset.
  * @returns HH:MM in the location's local time
  */
-export function formatLocationCurrentTime(utcOffsetSeconds: number): string {
+export function formatLocationCurrentTime(utcOffsetSeconds: number, localeTag: string): string {
 	const now = Date.now();
-	const utcMs = now + new Date().getTimezoneOffset() * 60_000;
+	const deviceOffsetMs = new Date().getTimezoneOffset() * -60_000;
+	const utcMs = now - deviceOffsetMs;
 	const locationMs = utcMs + utcOffsetSeconds * 1000;
 	const d = new Date(locationMs);
-	return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+	
+	const deviceDateStr = new Date(now).toISOString().split('T')[0];
+	const locationDateStr = new Date(locationMs).toISOString().split('T')[0];
+	
+	if (deviceDateStr !== locationDateStr) {
+		const formatter = new Intl.DateTimeFormat(localeTag, {
+			weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false
+		});
+		return formatter.format(d);
+	}
+	
+	const hh = String(d.getUTCHours()).padStart(2, '0');
+	const mm = String(d.getUTCMinutes()).padStart(2, '0');
+	return `${hh}:${mm}`;
 }
 
 /**

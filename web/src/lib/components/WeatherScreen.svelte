@@ -207,7 +207,7 @@
 					<p class="date">
 					{formatDate(data.timestamp, SUPPORTED_LOCALES[$localeIndex].tag)}
 					{#if isRemoteTimezone(data.utcOffsetSeconds)}
-						<span class="location-time">{loc(formatLocationCurrentTime(data.utcOffsetSeconds))}</span>
+						<span class="location-time">{loc(formatLocationCurrentTime(data.utcOffsetSeconds, SUPPORTED_LOCALES[$localeIndex].tag))}</span>
 					{/if}
 				</p>
 				</div>
