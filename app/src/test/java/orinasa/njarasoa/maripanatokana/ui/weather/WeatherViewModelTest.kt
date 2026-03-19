@@ -64,6 +64,11 @@ class WeatherViewModelTest {
             Result.success(weatherData)
         }
 
+        coEvery { weatherRepository.fetchAlerts(any(), any()) } coAnswers {
+            delay(500) // Simulate network delay
+            Result.success(emptyList())
+        }
+
         coEvery { locationRepository.getLastLocation() } coAnswers {
             delay(100) // Fast cache
             Result.success(10.0 to 20.0)
