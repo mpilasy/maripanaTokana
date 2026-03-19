@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { DailyForecast as DailyForecastType } from '$lib/domain/weatherData';
+	import { onMount } from 'svelte';
 
 	interface Props {
 		forecasts: DailyForecastType[];
@@ -8,6 +9,20 @@
 	}
 
 	let { forecasts, metricPrimary, height = 48 }: Props = $props();
+
+	let containerWidth = $state(100);
+	let container: HTMLDivElement | undefined = $state();
+
+	onMount(() => {
+		if (!container) return;
+		const observer = new ResizeObserver((entries) => {
+			for (const entry of entries) {
+				containerWidth = entry.contentRect.width;
+			}
+		});
+		observer.observe(container);
+		return () => observer.disconnect();
+	});
 
 	let maxTemps = $derived(forecasts.map(f => metricPrimary ? f.tempMax.celsius : f.tempMax.fahrenheit));
 	let minTemps = $derived(forecasts.map(f => metricPrimary ? f.tempMin.celsius : f.tempMin.fahrenheit));
@@ -22,12 +37,12 @@
 	let paddedRange = $derived(paddedMax - paddedMin);
 
 	function getX(index: number, total: number) {
-		if (total <= 1) return 50;
-		return (index / (total - 1)) * 100;
+		if (total <= 1) return containerWidth / 2;
+		return (index / (total - 1)) * containerWidth;
 	}
 
 	function getY(temp: number) {
-		return 100 - ((temp - paddedMin) / paddedRange * 100);
+		return height - ((temp - paddedMin) / paddedRange * height);
 	}
 
 	let maxPoints = $derived(maxTemps.map((temp, i) => ({ x: getX(i, forecasts.length), y: getY(temp) })));
@@ -64,25 +79,24 @@
 	let minPath = $derived(generatePath(minPoints));
 </script>
 
-<div class="daily-chart-row">
+<div class="daily-chart-row" bind:this={container}>
 	<div class="chart-wrapper" style="height: {height}px;">
-		<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+		<svg width="100%" height="100%" viewBox="0 0 {containerWidth} {height}">
 			<!-- Horizontal Ticks -->
 			{#each horizontalTicks() as tick}
 				{@const isMajor = tick.temp % 5 === 0}
 				<line 
-					x1="0" y1={tick.y} x2="100" y2={tick.y} 
+					x1="0" y1={tick.y} x2={containerWidth} y2={tick.y} 
 					stroke="white" 
-					stroke-width={isMajor ? "0.8" : "0.5"} 
+					stroke-width={isMajor ? "1" : "0.5"} 
 					stroke-opacity={isMajor ? "0.25" : "0.1"} 
-					vector-effect="non-scaling-stroke" 
 				/>
 			{/each}
 
 			<!-- Monday Vertical Lines -->
 			{#each mondayIndices as idx}
 				{@const x = getX(idx, forecasts.length)}
-				<line x1={x} y1="0" x2={x} y2="100" stroke="white" stroke-width="1" stroke-opacity="0.2" stroke-dasharray="2 2" vector-effect="non-scaling-stroke" />
+				<line x1={x} y1="0" x2={x} y2={height} stroke="white" stroke-width="1" stroke-opacity="0.2" stroke-dasharray="2 2" />
 			{/each}
 
 			<!-- Area between high and low -->
@@ -92,8 +106,8 @@
 				<path d={areaPath} fill="white" fill-opacity="0.1" />
 			{/if}
 			
-			<path d={maxPath} fill="none" stroke="#FF7043" stroke-width="2.5" stroke-linecap="round" vector-effect="non-scaling-stroke" />
-			<path d={minPath} fill="none" stroke="#64B5F6" stroke-width="2.5" stroke-linecap="round" vector-effect="non-scaling-stroke" />
+			<path d={maxPath} fill="none" stroke="#FF7043" stroke-width="2.5" stroke-linecap="round" />
+			<path d={minPath} fill="none" stroke="#64B5F6" stroke-width="2.5" stroke-linecap="round" />
 			
 			{#each maxPoints as point}
 				<circle cx={point.x} cy={point.y} r="3" fill="#FF7043" />
