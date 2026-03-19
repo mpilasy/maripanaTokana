@@ -79,13 +79,13 @@ class WeatherRepositoryImpl @Inject constructor(
             val nwsDeferred = async { 
                 try {
                     val point = String.format(Locale.US, "%.4f,%.4f", lat, lon)
+                    val nwsParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
                     nwsApiService.getActiveAlerts(point).features.map { f ->
                         val p = f.properties
                         val level = if (p.severity == "Extreme" || p.severity == "Severe") AlertLevel.WARNING else AlertLevel.WATCH
                         val time = p.sent?.let {
                             try {
-                                val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
-                                parser.parse(it)?.time
+                                nwsParser.parse(it)?.time
                             } catch (_: Exception) { null }
                         }
                         WeatherAlert(level, p.event, p.description + (p.instruction?.let { "\n\n$it" } ?: ""), "official", time, p.headline, f.id)
@@ -100,6 +100,7 @@ class WeatherRepositoryImpl @Inject constructor(
                 try {
                     val toDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
                     val fromDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000))
+                    val gdacsParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
                     gdacsApiService.searchEvents(fromDate, toDate).features
                         .filter { f -> calculateDistance(lat, lon, f.geometry.coordinates[1], f.geometry.coordinates[0]) < 500 }
                         .map { f ->
@@ -111,8 +112,7 @@ class WeatherRepositoryImpl @Inject constructor(
                             }
                             val time = p.fromdate?.let {
                                 try {
-                                    val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
-                                    parser.parse(it)?.time
+                                    gdacsParser.parse(it)?.time
                                 } catch (_: Exception) { null }
                             }
                             val reportUrl = try { p.url?.get("report")?.jsonPrimitive?.content } catch (_: Exception) { null }

@@ -74,6 +74,8 @@ class WeatherViewModelTest {
             Result.success(10.1 to 20.1)
         }
 
+        coEvery { weatherRepository.fetchAlerts(any(), any()) } returns Result.success(emptyList())
+
         viewModel = WeatherViewModel(weatherRepository, locationRepository, context)
     }
 
