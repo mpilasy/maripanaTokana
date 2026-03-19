@@ -41,20 +41,19 @@
 	}
 </script>
 
-<div class="hourly-row" style="--chart-top: {isRemote ? '66px' : '52px'}">
+<div class="hourly-row" style="--chart-top: {isRemote ? '100px' : '86px'}">
 	{#if displayMode === 'Temperature'}
 		<div class="chart-container">
-	<TemperatureChart
-		{forecasts}
-		{metricPrimary}
-		itemWidth={104} 
-		itemSpacing={12}
-		height={40}
-	/>
+			<TemperatureChart
+				{forecasts}
+				{metricPrimary}
+				itemWidth={104} 
+				itemSpacing={12}
+				height={40}
+			/>
 		</div>
 	{/if}
 	{#each forecasts as item}
-		{@const [tempP, tempS] = item.temperature.displayDual(metricPrimary)}
 		<div class="hourly-card">
 			<span class="hour">{loc(formatHourAtLocation(item.time, utcOffsetSeconds))}</span>
 			{#if isRemote}
@@ -67,7 +66,6 @@
 				{wmoEmoji(item.weatherCode, isNightForHour(item.time))}
 			</button>
 			{#if displayMode === 'Temperature'}
-				<div class="chart-spacer"></div>
 				{@const [tempP, tempS] = item.temperature.displayDual(metricPrimary)}
 				<DualUnitText
 					primary={loc(tempP)}
@@ -76,6 +74,7 @@
 					align="center"
 					onClick={onToggleUnits}
 				/>
+				<div class="chart-spacer"></div>
 			{:else if displayMode === 'Wind'}
 				{@const [windP, windS] = item.windSpeed.displayDual(metricPrimary)}
 				{@const dir = getCardinalDirection(item.windDeg, $_('cardinal_directions'))}

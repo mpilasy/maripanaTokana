@@ -745,8 +745,8 @@ internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: B
             if (displayMode == ForecastDisplayMode.Temperature) {
                 // Background graph
                 Column {
-                    // Offset based on Time (12sp) + RemoteTime? (9sp) + Icon (20sp) + padding
-                    Spacer(modifier = Modifier.height(if (isRemote) 60.sd(scale) else 50.sd(scale)))
+                    // Offset based on Time (12sp) + RemoteTime? (9sp) + Icon (20sp) + Numbers (~32sp) + padding
+                    Spacer(modifier = Modifier.height(if (isRemote) 92.sd(scale) else 82.sd(scale)))
                     TemperatureChart(
                         forecasts = forecasts,
                         metricPrimary = metricPrimary,
@@ -824,12 +824,7 @@ internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: B
                                 )
                             )
                             
-                            if (displayMode == ForecastDisplayMode.Temperature) {
-                                // Explicit spacer to reserve vertical room for the graph line passing behind
-                                Spacer(modifier = Modifier.height(40.sd(scale)))
-                            } else {
-                                Spacer(modifier = Modifier.height(4.dp))
-                            }
+                            Spacer(modifier = Modifier.height(4.dp))
 
                             when(displayMode) {
                                 ForecastDisplayMode.Temperature -> {
@@ -874,6 +869,13 @@ internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: B
                                         onClick = onToggleUnits,
                                     )
                                 }
+                            }
+
+                            if (displayMode == ForecastDisplayMode.Temperature) {
+                                // Explicit spacer to reserve vertical room for the graph line passing behind
+                                Spacer(modifier = Modifier.height(40.sd(scale)))
+                            } else {
+                                Spacer(modifier = Modifier.height(4.dp))
                             }
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
