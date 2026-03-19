@@ -10,6 +10,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoApiService
+import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoResponse
 import orinasa.njarasoa.maripanatokana.data.remote.toDomain
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import retrofit2.Retrofit
