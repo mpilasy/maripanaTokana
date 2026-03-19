@@ -53,19 +53,19 @@ fun TemperatureChart(
             val path = Path()
             val fillPath = Path()
 
-            temps.forEachIndexed { i, temp ->
+            val points = temps.mapIndexed { i, temp ->
                 val x = i * (itemWidthPx + spacingPx) + itemWidthPx / 2
                 val y = height - ((temp - paddedMin) / paddedRange * height).toFloat()
+                x to y
+            }
 
+            points.forEachIndexed { i, (x, y) ->
                 if (i == 0) {
                     path.moveTo(x, y)
                     fillPath.moveTo(x, height)
                     fillPath.lineTo(x, y)
                 } else {
-                    val prevTemp = temps[i-1]
-                    val prevX = (i - 1) * (itemWidthPx + spacingPx) + itemWidthPx / 2
-                    val prevY = height - ((prevTemp - paddedMin) / paddedRange * height).toFloat()
-                    
+                    val (prevX, prevY) = points[i - 1]
                     // Cubic bezier for super smooth look
                     val cp1x = prevX + (x - prevX) / 2f
                     path.cubicTo(
@@ -102,6 +102,15 @@ fun TemperatureChart(
                 color = lineColor,
                 style = Stroke(width = 2.dp.toPx())
             )
+
+            // Draw dots at each hour
+            points.forEach { (x, y) ->
+                drawCircle(
+                    color = lineColor,
+                    radius = 3.dp.toPx(),
+                    center = androidx.compose.ui.geometry.Offset(x, y)
+                )
+            }
         }
     }
 }

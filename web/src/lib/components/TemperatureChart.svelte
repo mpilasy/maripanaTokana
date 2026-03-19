@@ -68,6 +68,10 @@
 	</defs>
 	<path d={fillData()} fill="url(#fillGradient)" />
 	<path d={pathData()} fill="none" stroke="white" stroke-width="2" stroke-opacity="1.0" />
+	
+	{#each points as point}
+		<circle cx={point.x} cy={point.y} r="3" fill="white" />
+	{/each}
 </svg>
 
 <style>
