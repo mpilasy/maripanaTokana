@@ -37,7 +37,7 @@
 	"error_retry": "Retry",
 	"error_fetch_weather": "Failed to fetch weather",
 	"error_get_location": "Failed to get location",
-	"updated_time": "Updated {time}",
+	"updated_time": "🕒 Updated: {time}",
 	"feels_like": "Feels Like",
 	"no_precip": "No precip",
 	"section_current_conditions": "Current Conditions",

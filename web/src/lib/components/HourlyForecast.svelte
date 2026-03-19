@@ -141,6 +141,7 @@
 		color: rgba(255,255,255,0.35);
 		font-feature-settings: var(--font-features);
 		margin-top: -3px;
+		text-align: center;
 	}
 
 	.emoji-btn {

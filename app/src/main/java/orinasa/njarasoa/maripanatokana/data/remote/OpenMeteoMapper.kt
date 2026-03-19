@@ -15,16 +15,19 @@ import java.util.Locale
 fun deriveAlerts(c: OpenMeteoCurrent, h: OpenMeteoHourly, d: OpenMeteoDaily, utcOffsetSeconds: Int): List<WeatherAlert> {
     val alerts = mutableListOf<WeatherAlert>()
     val nowMillis = System.currentTimeMillis()
-    val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm", Locale.US)
-    val deviceOffset = java.util.TimeZone.getDefault().getOffset(nowMillis)
-    val locationOffset = utcOffsetSeconds * 1000L
-    val locationNowAsDevice = nowMillis - (deviceOffset - locationOffset)
+    val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm", Locale.US).apply {
+        val sign = if (utcOffsetSeconds >= 0) "+" else "-"
+        val absOffset = Math.abs(utcOffsetSeconds)
+        val hh = absOffset / 3600
+        val mm = (absOffset % 3600) / 60
+        timeZone = TimeZone.getTimeZone(String.format(Locale.US, "GMT%s%02d:%02d", sign, hh, mm))
+    }
 
-    // Pre-parse timestamps once
+    // Pre-parse timestamps once using the location's timezone
     val parsedTimes = h.time.map { dateFormat.parse(it)?.time ?: 0L }
 
-    // Scan next 24 hours of hourly forecast
-    val startIndex = parsedTimes.indexOfFirst { it >= locationNowAsDevice }.coerceAtLeast(0)
+    // Scan next 24 hours of hourly forecast starting from "now" at the location
+    val startIndex = parsedTimes.indexOfFirst { it >= nowMillis }.coerceAtLeast(0)
     
     val forecastIndices = parsedTimes.indices.filter { it in startIndex until (startIndex + 24) && it < h.time.size }
     val forecastWindow = forecastIndices.map { idx ->
@@ -79,8 +82,20 @@ fun deriveAlerts(c: OpenMeteoCurrent, h: OpenMeteoHourly, d: OpenMeteoDaily, utc
 fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = null): WeatherData {
     val c = current
     val isDay = c.isDay == 1
-    val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm", Locale.US)
-    val dayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+    val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm", Locale.US).apply {
+        val sign = if (utcOffsetSeconds >= 0) "+" else "-"
+        val absOffset = Math.abs(utcOffsetSeconds)
+        val hh = absOffset / 3600
+        val mm = (absOffset % 3600) / 60
+        timeZone = TimeZone.getTimeZone(String.format(Locale.US, "GMT%s%02d:%02d", sign, hh, mm))
+    }
+    val dayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
+        val sign = if (utcOffsetSeconds >= 0) "+" else "-"
+        val absOffset = Math.abs(utcOffsetSeconds)
+        val hh = absOffset / 3600
+        val mm = (absOffset % 3600) / 60
+        timeZone = TimeZone.getTimeZone(String.format(Locale.US, "GMT%s%02d:%02d", sign, hh, mm))
+    }
 
     // Pre-parse hourly timestamps once
     val parsedHourlyTimes = hourly.time.map { dateFormat.parse(it)?.time ?: 0L }
@@ -96,18 +111,15 @@ fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = 
     val dailySunsetMillis = daily.sunset.map { dateFormat.parse(it)?.time ?: 0L }
 
     val nowMillis = System.currentTimeMillis()
-    val deviceOffset = java.util.TimeZone.getDefault().getOffset(nowMillis)
-    val locationOffset = utcOffsetSeconds * 1000L
-    val locationNowAsDevice = nowMillis - (deviceOffset - locationOffset)
 
-    // Find the first index using pre-parsed times
-    val startIndex = parsedHourlyTimes.indexOfFirst { it >= locationNowAsDevice }.takeIf { it != -1 } ?: 0
+    // Find the first index using correctly parsed absolute UTC times
+    val startIndex = parsedHourlyTimes.indexOfFirst { it >= nowMillis }.takeIf { it != -1 } ?: 0
 
     val endIndex = minOf(startIndex + 24, hourly.time.size)
 
     val hourlyForecast = (startIndex until endIndex).mapNotNull { i ->
         val epoch = parsedHourlyTimes[i]
-        if (epoch < nowMillis) return@mapNotNull null // Extra safety in case startIndex logic failed
+        if (epoch < nowMillis) return@mapNotNull null // Extra safety
 
         HourlyForecast(
             time = epoch,
@@ -130,6 +142,12 @@ fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = 
             tempMax = Temperature.fromCelsius(daily.temperatureMax[i]),
             tempMin = Temperature.fromCelsius(daily.temperatureMin[i]),
             weatherCode = if (i == 0) c.weatherCode else daily.weatherCode[i],
+            precipProbability = daily.precipitationProbabilityMax[i],
+            windSpeed = WindSpeed.fromMetersPerSecond(daily.windSpeed10mMax.getOrElse(i) { 0.0 }),
+            windDirection = daily.windDirection10mDominant.getOrElse(i) { 0 },
+            precipitation = Precipitation.fromMm(daily.precipitationSum.getOrElse(i) { 0.0 }),
+        )
+    }.distinctBy { it.date }
             precipProbability = daily.precipitationProbabilityMax[i],
             windSpeed = WindSpeed.fromMetersPerSecond(daily.windSpeed10mMax.getOrElse(i) { 0.0 }),
             windDirection = daily.windDirection10mDominant.getOrElse(i) { 0 },

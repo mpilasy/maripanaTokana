@@ -37,7 +37,7 @@
 	"error_retry": "पुन: प्रयास",
 	"error_fetch_weather": "मौसम प्राप्त गर्न असफल",
 	"error_get_location": "स्थान प्राप्त गर्न असफल",
-	"updated_time": "अद्यावधिक {time}",
+	"updated_time": "🕒 अद्यावधिक: {time}",
 	"feels_like": "अनुभूत तापक्रम",
 	"no_precip": "वर्षा छैन",
 	"section_current_conditions": "हालको अवस्था",

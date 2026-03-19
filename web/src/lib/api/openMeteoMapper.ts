@@ -5,8 +5,12 @@ import { Pressure } from '../domain/pressure';
 import { WindSpeed } from '../domain/windSpeed';
 import { Precipitation } from '../domain/precipitation';
 
-function parseIsoDateTime(iso: string): number {
-	return new Date(iso).getTime();
+function parseIsoDateTime(iso: string, utcOffsetSeconds: number): number {
+	const sign = utcOffsetSeconds >= 0 ? '+' : '-';
+	const absOffset = Math.abs(utcOffsetSeconds);
+	const hh = String(Math.floor(absOffset / 3600)).padStart(2, '0');
+	const mm = String(Math.floor((absOffset % 3600) / 60)).padStart(2, '0');
+	return new Date(`${iso}${sign}${hh}:${mm}`).getTime();
 }
 
 function parseIsoDate(iso: string): number {
@@ -16,14 +20,11 @@ function parseIsoDate(iso: string): number {
 function deriveAlerts(c: OpenMeteoCurrent, h: OpenMeteoHourly, d: OpenMeteoDaily, utcOffsetSeconds: number): WeatherAlert[] {
 	const alerts: WeatherAlert[] = [];
 	const nowMillis = Date.now();
-	const deviceOffset = new Date().getTimezoneOffset() * -60_000;
-	const locationOffset = utcOffsetSeconds * 1000;
-	const locationNowAsDevice = nowMillis - (deviceOffset - locationOffset);
 	
-	const parsedTimes = h.time.map(t => new Date(t).getTime());
+	const parsedTimes = h.time.map(t => parseIsoDateTime(t, utcOffsetSeconds));
 
 	// Scan next 24 hours of hourly forecast
-	const startIndex = Math.max(0, parsedTimes.findIndex(t => t >= locationNowAsDevice));
+	const startIndex = Math.max(0, parsedTimes.findIndex(t => t >= nowMillis));
 	const forecastWindow = h.time.slice(startIndex, startIndex + 24).map((_: string, i: number) => {
 		const idx = startIndex + i;
 		return {
@@ -84,20 +85,17 @@ export function mapToWeatherData(response: OpenMeteoResponse, locationName: stri
 	const latitude = response.latitude;
 	const longitude = response.longitude;
 
-	const sunriseEpochSec = d.sunrise[0] ? Math.floor(parseIsoDateTime(d.sunrise[0]) / 1000) : 0;
-	const sunsetEpochSec = d.sunset[0] ? Math.floor(parseIsoDateTime(d.sunset[0]) / 1000) : 0;
+	const sunriseEpochSec = d.sunrise[0] ? Math.floor(parseIsoDateTime(d.sunrise[0], response.utc_offset_seconds) / 1000) : 0;
+	const sunsetEpochSec = d.sunset[0] ? Math.floor(parseIsoDateTime(d.sunset[0], response.utc_offset_seconds) / 1000) : 0;
 
-	const dailySunriseMillis = d.sunrise.map(parseIsoDateTime);
-	const dailySunsetMillis = d.sunset.map(parseIsoDateTime);
+	const dailySunriseMillis = d.sunrise.map(t => parseIsoDateTime(t, response.utc_offset_seconds));
+	const dailySunsetMillis = d.sunset.map(t => parseIsoDateTime(t, response.utc_offset_seconds));
 
 	const nowMillis = Date.now();
-	const deviceOffset = new Date().getTimezoneOffset() * -60_000;
-	const locationOffset = response.utc_offset_seconds * 1000;
-	const locationNowAsDevice = nowMillis - (deviceOffset - locationOffset);
 
-	const parsedHourlyTimes = h.time.map(parseIsoDateTime);
+	const parsedHourlyTimes = h.time.map(t => parseIsoDateTime(t, response.utc_offset_seconds));
 
-	const startIndex = parsedHourlyTimes.findIndex((t) => t >= locationNowAsDevice);
+	const startIndex = parsedHourlyTimes.findIndex((t) => t >= nowMillis);
 	const hourlyForecast: HourlyForecast[] =
 		startIndex === -1
 			? []

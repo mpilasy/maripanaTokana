@@ -37,7 +37,7 @@
 	"error_retry": "重试",
 	"error_fetch_weather": "获取天气失败",
 	"error_get_location": "获取位置失败",
-	"updated_time": "更新于 {time}",
+	"updated_time": "🕒 已更新: {time}",
 	"feels_like": "体感温度",
 	"no_precip": "无降水",
 	"section_current_conditions": "当前状况",

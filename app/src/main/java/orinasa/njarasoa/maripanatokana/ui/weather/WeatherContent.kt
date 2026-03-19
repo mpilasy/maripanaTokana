@@ -754,6 +754,7 @@ internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: B
                             fontFamily = bodyFont,
                             color = Color.White.copy(alpha = 0.35f),
                             style = TextStyle(fontFeatureSettings = fontFeatures),
+                            textAlign = TextAlign.Center,
                         )
                     }
                     Spacer(modifier = Modifier.height(4.dp))

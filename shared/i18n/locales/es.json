@@ -37,7 +37,7 @@
 	"error_retry": "Reintentar",
 	"error_fetch_weather": "No se pudo obtener el clima",
 	"error_get_location": "No se pudo obtener la ubicacion",
-	"updated_time": "Actualizado {time}",
+	"updated_time": "🕒 Actualizado: {time}",
 	"feels_like": "Sensacion termica",
 	"no_precip": "Sin precipitacion",
 	"section_current_conditions": "Condiciones actuales",

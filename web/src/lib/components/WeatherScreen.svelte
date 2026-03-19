@@ -207,7 +207,7 @@
 					<p class="date">
 						{$_('updated_time', { values: { time: loc(formatDate(data.timestamp, SUPPORTED_LOCALES[$localeIndex].tag)) } })}
 						{#if isRemoteTimezone(data.utcOffsetSeconds)}
-							<span class="location-time">🕒 Local: {loc(formatLocationCurrentTime(data.utcOffsetSeconds, SUPPORTED_LOCALES[$localeIndex].tag))}</span>
+							<span class="location-time">Local: {loc(formatLocationCurrentTime(data.utcOffsetSeconds, SUPPORTED_LOCALES[$localeIndex].tag))}</span>
 						{/if}
 					</p>
 				</div>
