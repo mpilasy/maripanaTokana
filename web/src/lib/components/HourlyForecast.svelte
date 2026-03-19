@@ -44,13 +44,13 @@
 <div class="hourly-row" style="--chart-top: {isRemote ? '66px' : '52px'}">
 	{#if displayMode === 'Temperature'}
 		<div class="chart-container">
-			<TemperatureChart
-				{forecasts}
-				{metricPrimary}
-				itemWidth={80 + 24} 
-				itemSpacing={12}
-				height={40}
-			/>
+	<TemperatureChart
+		{forecasts}
+		{metricPrimary}
+		itemWidth={104} 
+		itemSpacing={12}
+		height={40}
+	/>
 		</div>
 	{/if}
 	{#each forecasts as item}
@@ -151,7 +151,7 @@
 		border-radius: 16px;
 		scroll-snap-align: start;
 		flex-shrink: 0;
-		min-width: 80px;
+		width: 104px;
 		z-index: 1;
 	}
 
