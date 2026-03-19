@@ -292,7 +292,7 @@ internal fun WeatherContent(
                 if (isRemoteTimezone(data.utcOffsetSeconds)) {
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "\uD83D\uDD53 ${localizeDigits(formatLocationCurrentTime(data.utcOffsetSeconds))}",
+                        text = "\uD83D\uDD53 ${localizeDigits(formatLocationCurrentTime(data.utcOffsetSeconds, appLocale))}",
                         fontSize = 13f.s(scale),
                         fontFamily = displayFont,
                         fontWeight = FontWeight.SemiBold,
@@ -749,7 +749,7 @@ internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: B
                     )
                     if (isRemote) {
                         Text(
-                            text = localizeDigits(formatHourInDeviceTime(item.time, utcOffsetSeconds)),
+                            text = "${localizeDigits(formatHourInDeviceTime(item.time, utcOffsetSeconds))} \uD83D\uDCF1",
                             fontSize = 9f.s(scale),
                             fontFamily = bodyFont,
                             color = Color.White.copy(alpha = 0.35f),
@@ -1337,18 +1337,31 @@ internal suspend fun shareCardBitmap(context: android.content.Context, bitmap: B
 
 /** Check if the location's timezone differs from the device's timezone. */
 private fun isRemoteTimezone(utcOffsetSeconds: Int): Boolean {
-    val deviceOffsetMs = TimeZone.getDefault().rawOffset
+    val deviceOffsetMs = TimeZone.getDefault().getOffset(System.currentTimeMillis())
     return deviceOffsetMs != utcOffsetSeconds * 1000
 }
 
 /** Get the current time at a location given its UTC offset. */
-private fun formatLocationCurrentTime(utcOffsetSeconds: Int): String {
-    val format = SimpleDateFormat("HH:mm", Locale.US)
-    format.timeZone = TimeZone.getTimeZone("UTC")
+private fun formatLocationCurrentTime(utcOffsetSeconds: Int, locale: Locale): String {
     val utcNow = System.currentTimeMillis()
-    // UTC + offset = location local time
+    val deviceTimeZone = TimeZone.getDefault()
     val locationMs = utcNow + utcOffsetSeconds * 1000L
-    return format.format(Date(locationMs))
+    
+    // Check if the date is different
+    val deviceDate = SimpleDateFormat("yyyyMMdd", Locale.US).apply { timeZone = deviceTimeZone }.format(Date(utcNow))
+    val locationDate = SimpleDateFormat("yyyyMMdd", Locale.US).apply { timeZone = TimeZone.getTimeZone("UTC") }.format(Date(locationMs))
+
+    return if (deviceDate != locationDate) {
+        // Show date and time, e.g., "Mon, 14:30"
+        val format = SimpleDateFormat("EEE, HH:mm", locale)
+        format.timeZone = TimeZone.getTimeZone("UTC")
+        format.format(Date(locationMs))
+    } else {
+        // Show only time
+        val format = SimpleDateFormat("HH:mm", Locale.US)
+        format.timeZone = TimeZone.getTimeZone("UTC")
+        format.format(Date(locationMs))
+    }
 }
 
 /**
@@ -1356,11 +1369,14 @@ private fun formatLocationCurrentTime(utcOffsetSeconds: Int): String {
  * to the device's actual local time.
  */
 private fun formatHourInDeviceTime(locationLocalMillis: Long, locationUtcOffsetSec: Int): String {
-    val deviceOffsetMs = TimeZone.getDefault().rawOffset.toLong()
+    val deviceTimeZone = TimeZone.getDefault()
+    val deviceOffsetMs = deviceTimeZone.getOffset(locationLocalMillis).toLong()
     val locationOffsetMs = locationUtcOffsetSec * 1000L
-    val trueUtcMillis = locationLocalMillis - deviceOffsetMs + locationOffsetMs
+    
+    // targetEpoch = locationLocalMillis + (deviceOffset - locationOffset)
+    val targetEpoch = locationLocalMillis + (deviceOffsetMs - locationOffsetMs)
     val format = SimpleDateFormat("HH:mm", Locale.US)
-    return format.format(Date(trueUtcMillis))
+    return format.format(Date(targetEpoch))
 }
 
 private fun formatDMS(value: Double, positive: String, negative: String): String {

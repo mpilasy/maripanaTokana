@@ -12,14 +12,17 @@ import orinasa.njarasoa.maripanatokana.domain.model.WindSpeed
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-fun deriveAlerts(c: OpenMeteoCurrent, h: OpenMeteoHourly, d: OpenMeteoDaily): List<WeatherAlert> {
+fun deriveAlerts(c: OpenMeteoCurrent, h: OpenMeteoHourly, d: OpenMeteoDaily, utcOffsetSeconds: Int): List<WeatherAlert> {
     val alerts = mutableListOf<WeatherAlert>()
     val nowMillis = System.currentTimeMillis()
     val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm", Locale.US)
+    val deviceOffset = java.util.TimeZone.getDefault().getOffset(nowMillis)
+    val locationOffset = utcOffsetSeconds * 1000L
+    val locationNowAsDevice = nowMillis - (deviceOffset - locationOffset)
 
     // Scan next 24 hours of hourly forecast
     val startIndex = h.time.indexOfFirst {
-        (dateFormat.parse(it)?.time ?: 0L) >= nowMillis
+        (dateFormat.parse(it)?.time ?: 0L) >= locationNowAsDevice
     }.coerceAtLeast(0)
     
     val forecastWindow = h.time.indices.filter { it in startIndex until (startIndex + 24) && it < h.time.size }
@@ -89,10 +92,13 @@ fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = 
     val dailySunsetMillis = daily.sunset.map { dateFormat.parse(it)?.time ?: 0L }
 
     val nowMillis = System.currentTimeMillis()
+    val deviceOffset = java.util.TimeZone.getDefault().getOffset(nowMillis)
+    val locationOffset = utcOffsetSeconds * 1000L
+    val locationNowAsDevice = nowMillis - (deviceOffset - locationOffset)
 
-    // Find the first index where the time is >= nowMillis to avoid mapping all 168 hours
+    // Find the first index where the time is >= locationNowAsDevice to avoid mapping all 168 hours
     val startIndex = hourly.time.indexOfFirst { time ->
-        (dateFormat.parse(time)?.time ?: 0L) >= nowMillis
+        (dateFormat.parse(time)?.time ?: 0L) >= locationNowAsDevice
     }.takeIf { it != -1 } ?: 0
 
     val endIndex = minOf(startIndex + 24, hourly.time.size)
@@ -154,6 +160,6 @@ fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = 
         dailySunset = dailySunsetMillis,
         hourlyForecast = hourlyForecast,
         dailyForecast = dailyForecast,
-        alerts = deriveAlerts(c, hourly, daily),
+        alerts = deriveAlerts(c, hourly, daily, utcOffsetSeconds),
     )
 }
