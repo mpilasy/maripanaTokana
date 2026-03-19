@@ -746,7 +746,7 @@ internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: B
                 // Background graph
                 Column {
                     // Offset based on Time (12sp) + RemoteTime? (9sp) + Icon (20sp) + Numbers (~32sp) + padding
-                    Spacer(modifier = Modifier.height(if (isRemote) 92.sd(scale) else 82.sd(scale)))
+                    Spacer(modifier = Modifier.height(if (isRemote) 82.sd(scale) else 72.sd(scale)))
                     TemperatureChart(
                         forecasts = forecasts,
                         metricPrimary = metricPrimary,

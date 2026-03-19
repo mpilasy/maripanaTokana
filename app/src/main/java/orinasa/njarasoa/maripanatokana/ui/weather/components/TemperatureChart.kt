@@ -66,12 +66,16 @@ fun TemperatureChart(
                     val prevX = (i - 1) * (itemWidthPx + spacingPx) + itemWidthPx / 2
                     val prevY = height - ((prevTemp - paddedMin) / paddedRange * height).toFloat()
                     
-                    path.quadraticTo(
-                        prevX + (itemWidthPx + spacingPx) / 2, prevY,
+                    // Cubic bezier for super smooth look
+                    val cp1x = prevX + (x - prevX) / 2f
+                    path.cubicTo(
+                        cp1x, prevY,
+                        cp1x, y,
                         x, y
                     )
-                    fillPath.quadraticTo(
-                        prevX + (itemWidthPx + spacingPx) / 2, prevY,
+                    fillPath.cubicTo(
+                        cp1x, prevY,
+                        cp1x, y,
                         x, y
                     )
                 }
@@ -92,10 +96,10 @@ fun TemperatureChart(
                 )
             )
 
-            // Draw line - bright white
+            // Draw line - bright solid white
             drawPath(
                 path = path,
-                color = lineColor.copy(alpha = 0.85f),
+                color = lineColor,
                 style = Stroke(width = 2.dp.toPx())
             )
         }

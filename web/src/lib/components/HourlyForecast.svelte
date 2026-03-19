@@ -41,7 +41,7 @@
 	}
 </script>
 
-<div class="hourly-row" style="--chart-top: {isRemote ? '100px' : '86px'}">
+<div class="hourly-row" style="--chart-top: {isRemote ? '86px' : '72px'}">
 	{#if displayMode === 'Temperature'}
 		<div class="chart-container">
 			<TemperatureChart

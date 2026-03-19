@@ -38,8 +38,8 @@
 		for (let i = 1; i < points.length; i++) {
 			const prev = points[i - 1];
 			const curr = points[i];
-			const cx = (prev.x + curr.x) / 2;
-			d += ` Q ${cx} ${prev.y} ${curr.x} ${curr.y}`;
+			const cp1x = prev.x + (curr.x - prev.x) / 2;
+			d += ` C ${cp1x} ${prev.y} ${cp1x} ${curr.y} ${curr.x} ${curr.y}`;
 		}
 		return d;
 	});
@@ -51,8 +51,8 @@
 		for (let i = 1; i < points.length; i++) {
 			const prev = points[i - 1];
 			const curr = points[i];
-			const cx = (prev.x + curr.x) / 2;
-			d += ` Q ${cx} ${prev.y} ${curr.x} ${curr.y}`;
+			const cp1x = prev.x + (curr.x - prev.x) / 2;
+			d += ` C ${cp1x} ${prev.y} ${cp1x} ${curr.y} ${curr.x} ${curr.y}`;
 		}
 		d += ` L ${points[points.length - 1].x} ${height} Z`;
 		return d;
@@ -67,7 +67,7 @@
 		</linearGradient>
 	</defs>
 	<path d={fillData()} fill="url(#fillGradient)" />
-	<path d={pathData()} fill="none" stroke="white" stroke-width="2" stroke-opacity="0.8" />
+	<path d={pathData()} fill="none" stroke="white" stroke-width="2" stroke-opacity="1.0" />
 </svg>
 
 <style>
