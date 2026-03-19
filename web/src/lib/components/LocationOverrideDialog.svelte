@@ -56,7 +56,7 @@
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-<div class="scrim" role="button" tabindex="0" onclick={() => { resetLocationToCurrent(); }} onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); resetLocationToCurrent(); } }}>
+<div class="scrim" role="button" tabindex="0" onclick={() => { resetLocationToCurrent(); }} onkeydown={(e) => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); resetLocationToCurrent(); } }}>
     <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title" aria-describedby="dialog-subtitle" tabindex="-1" onclick={(e) => e.stopPropagation()}>
         <h2 id="dialog-title" class="title">Developer Mode</h2>
         <h3 id="dialog-subtitle" class="subtitle">Override Location</h3>
