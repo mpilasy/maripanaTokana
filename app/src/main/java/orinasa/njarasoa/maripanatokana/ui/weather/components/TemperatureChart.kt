@@ -6,13 +6,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import orinasa.njarasoa.maripanatokana.domain.model.HourlyForecast
+import java.util.Calendar
 
 @Composable
 fun TemperatureChart(
@@ -41,14 +44,72 @@ fun TemperatureChart(
     val paddedMax = maxTemp + (tempRange * 0.15)
     val paddedRange = paddedMax - paddedMin
 
+    val horizontalTicks = remember(paddedMin, paddedMax) {
+        val start = Math.ceil(paddedMin).toInt()
+        val end = Math.floor(paddedMax).toInt()
+        (start..end).toList()
+    }
+
+    val midnightIndices = remember(forecasts) {
+        val calendar = Calendar.getInstance()
+        forecasts.mapIndexed { index, forecast ->
+            calendar.timeInMillis = forecast.time
+            if (calendar.get(Calendar.HOUR_OF_DAY) == 0) index else -1
+        }.filter { it != -1 }
+    }
+
+    val noonIndices = remember(forecasts) {
+        val calendar = Calendar.getInstance()
+        forecasts.mapIndexed { index, forecast ->
+            calendar.timeInMillis = forecast.time
+            if (calendar.get(Calendar.HOUR_OF_DAY) == 12) index else -1
+        }.filter { it != -1 }
+    }
+
     Box(modifier = modifier) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             val height = size.height
+            val width = size.width
             val pointsCount = temps.size
             if (pointsCount < 2) return@Canvas
 
             val itemWidthPx = itemWidth.toPx()
             val spacingPx = spacing.toPx()
+
+            // Draw horizontal ticks
+            horizontalTicks.forEach { temp ->
+                val y = height - ((temp - paddedMin) / paddedRange * height).toFloat()
+                drawLine(
+                    color = Color.White.copy(alpha = 0.1f),
+                    start = Offset(0f, y),
+                    end = Offset(width, y),
+                    strokeWidth = 0.5.dp.toPx()
+                )
+            }
+
+            // Draw Midnight vertical lines
+            midnightIndices.forEach { idx ->
+                val x = idx * (itemWidthPx + spacingPx) + itemWidthPx / 2
+                drawLine(
+                    color = Color.White.copy(alpha = 0.3f),
+                    start = Offset(x, 0f),
+                    end = Offset(x, height),
+                    strokeWidth = 1.dp.toPx(),
+                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(2.dp.toPx(), 2.dp.toPx()), 0f)
+                )
+            }
+
+            // Draw Noon vertical lines
+            noonIndices.forEach { idx ->
+                val x = idx * (itemWidthPx + spacingPx) + itemWidthPx / 2
+                drawLine(
+                    color = Color.White.copy(alpha = 0.15f),
+                    start = Offset(x, 0f),
+                    end = Offset(x, height),
+                    strokeWidth = 1.dp.toPx(),
+                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 4.dp.toPx()), 0f)
+                )
+            }
             
             val path = Path()
             val fillPath = Path()
@@ -108,7 +169,7 @@ fun TemperatureChart(
                 drawCircle(
                     color = lineColor,
                     radius = 3.dp.toPx(),
-                    center = androidx.compose.ui.geometry.Offset(x, y)
+                    center = Offset(x, y)
                 )
             }
         }

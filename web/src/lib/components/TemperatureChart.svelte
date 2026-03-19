@@ -32,6 +32,26 @@
 
 	let points = $derived(temps.map((temp, i) => ({ x: getX(i), y: getY(temp) })));
 
+	let horizontalTicks = $derived(() => {
+		const ticks = [];
+		const start = Math.ceil(paddedMin);
+		const end = Math.floor(paddedMax);
+		for (let i = start; i <= end; i++) {
+			ticks.push(getY(i));
+		}
+		return ticks;
+	});
+
+	let midnightIndices = $derived(forecasts.map((f, i) => {
+		const date = new Date(f.time);
+		return date.getHours() === 0 ? i : -1;
+	}).filter(idx => idx !== -1));
+
+	let noonIndices = $derived(forecasts.map((f, i) => {
+		const date = new Date(f.time);
+		return date.getHours() === 12 ? i : -1;
+	}).filter(idx => idx !== -1));
+
 	let pathData = $derived(() => {
 		if (points.length < 2) return '';
 		let d = `M ${points[0].x} ${points[0].y}`;
@@ -66,6 +86,24 @@
 			<stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
 		</linearGradient>
 	</defs>
+
+	<!-- Horizontal Ticks -->
+	{#each horizontalTicks() as y}
+		<line x1="0" y1={y} x2={totalWidth} y2={y} stroke="white" stroke-width="0.5" stroke-opacity="0.1" />
+	{/each}
+
+	<!-- Midnight Vertical Lines -->
+	{#each midnightIndices as idx}
+		{@const x = getX(idx)}
+		<line x1={x} y1="0" x2={x} y2={height} stroke="white" stroke-width="1" stroke-opacity="0.3" stroke-dasharray="2 2" />
+	{/each}
+
+	<!-- Noon Vertical Lines -->
+	{#each noonIndices as idx}
+		{@const x = getX(idx)}
+		<line x1={x} y1="0" x2={x} y2={height} stroke="white" stroke-width="1" stroke-opacity="0.15" stroke-dasharray="4 4" />
+	{/each}
+
 	<path d={fillData()} fill="url(#fillGradient)" />
 	<path d={pathData()} fill="none" stroke="white" stroke-width="2" stroke-opacity="1.0" />
 	

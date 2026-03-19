@@ -33,6 +33,21 @@
 	let maxPoints = $derived(maxTemps.map((temp, i) => ({ x: getX(i, forecasts.length), y: getY(temp) })));
 	let minPoints = $derived(minTemps.map((temp, i) => ({ x: getX(i, forecasts.length), y: getY(temp) })));
 
+	let horizontalTicks = $derived(() => {
+		const ticks = [];
+		const start = Math.ceil(paddedMin);
+		const end = Math.floor(paddedMax);
+		for (let i = start; i <= end; i++) {
+			ticks.push(getY(i));
+		}
+		return ticks;
+	});
+
+	let mondayIndices = $derived(forecasts.map((f, i) => {
+		const date = new Date(f.date);
+		return date.getDay() === 1 ? i : -1;
+	}).filter(idx => idx !== -1));
+
 	function generatePath(points: { x: number; y: number }[]) {
 		if (points.length < 2) return '';
 		let d = `M ${points[0].x} ${points[0].y}`;
@@ -52,6 +67,17 @@
 <div class="daily-chart-row">
 	<div class="chart-wrapper" style="height: {height}px;">
 		<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+			<!-- Horizontal Ticks -->
+			{#each horizontalTicks() as y}
+				<line x1="0" y1={y} x2="100" y2={y} stroke="white" stroke-width="0.5" stroke-opacity="0.1" vector-effect="non-scaling-stroke" />
+			{/each}
+
+			<!-- Monday Vertical Lines -->
+			{#each mondayIndices as idx}
+				{@const x = getX(idx, forecasts.length)}
+				<line x1={x} y1="0" x2={x} y2="100" stroke="white" stroke-width="1" stroke-opacity="0.2" stroke-dasharray="2 2" vector-effect="non-scaling-stroke" />
+			{/each}
+
 			<!-- Area between high and low -->
 			{#if maxPoints.length >= 2}
 				{@const minPointsReversed = [...minPoints].reverse()}
