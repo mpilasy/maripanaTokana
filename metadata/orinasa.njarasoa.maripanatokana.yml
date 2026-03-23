@@ -25,6 +25,7 @@ Builds:
     prebuild:
       - sed -i -e '/foojay/d' ../settings.gradle.kts
       - echo 'org.gradle.java.installations.auto-download=false' >> ../gradle.properties
+      - sed -i -e '/toolchainVendor/d' -e '/toolchainUrl/d' ../gradle/gradle-daemon-jvm.properties
 
   - versionName: 1.0.4
     versionCode: 5
@@ -35,6 +36,7 @@ Builds:
     prebuild:
       - sed -i -e '/foojay/d' ../settings.gradle.kts
       - echo 'org.gradle.java.installations.auto-download=false' >> ../gradle.properties
+      - sed -i -e '/toolchainVendor/d' -e '/toolchainUrl/d' ../gradle/gradle-daemon-jvm.properties
 
   - versionName: 1.0.5
     versionCode: 6
@@ -45,6 +47,7 @@ Builds:
     prebuild:
       - sed -i -e '/foojay/d' ../settings.gradle.kts
       - echo 'org.gradle.java.installations.auto-download=false' >> ../gradle.properties
+      - sed -i -e '/toolchainVendor/d' -e '/toolchainUrl/d' ../gradle/gradle-daemon-jvm.properties
 
   - versionName: 1.0.6
     versionCode: 7
@@ -55,6 +58,7 @@ Builds:
     prebuild:
       - sed -i -e '/foojay/d' ../settings.gradle.kts
       - echo 'org.gradle.java.installations.auto-download=false' >> ../gradle.properties
+      - sed -i -e '/toolchainVendor/d' -e '/toolchainUrl/d' ../gradle/gradle-daemon-jvm.properties
 
   - versionName: 1.0.7
     versionCode: 8
@@ -65,6 +69,7 @@ Builds:
     prebuild:
       - sed -i -e '/foojay/d' ../settings.gradle.kts
       - echo 'org.gradle.java.installations.auto-download=false' >> ../gradle.properties
+      - sed -i -e '/toolchainVendor/d' -e '/toolchainUrl/d' ../gradle/gradle-daemon-jvm.properties
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
