@@ -13,6 +13,10 @@
 	let isExpanded = $state(expanded);
 	let contentEl = $state<HTMLElement | null>(null);
 
+	$effect(() => {
+		isExpanded = expanded;
+	});
+
 	function handleShare(e: MouseEvent) {
 		e.stopPropagation();
 		if (contentEl && onShare) onShare(contentEl);

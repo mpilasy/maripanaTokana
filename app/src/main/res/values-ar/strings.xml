@@ -37,7 +37,7 @@
     <string name="error_retry">إعادة المحاولة</string>
     <string name="error_fetch_weather">فشل في جلب بيانات الطقس</string>
     <string name="error_get_location">فشل في تحديد الموقع</string>
-    <string name="updated_time">تم التحديث %1$s</string>
+    <string name="updated_time">&#x1f552; تم التحديث: %1$s</string>
     <string name="feels_like">الإحساس بالحرارة</string>
     <string name="no_precip">لا هطول</string>
     <string name="section_current_conditions">الأحوال الحالية</string>
@@ -80,6 +80,7 @@
     <string name="cd_change_language">تغيير اللغة</string>
     <string name="cd_toggle_units">Toggle units</string>
     <string name="cd_cycle_mode">Cycle display mode</string>
+    <string name="cd_share">شارك</string>
     <string name="cd_collapse">طي</string>
     <string name="cd_expand">توسيع</string>
     <string name="cd_refresh">تحديث</string>

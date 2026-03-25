@@ -1,5 +1,6 @@
 package orinasa.njarasoa.maripanatokana.widget
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import androidx.compose.runtime.Composable
@@ -63,6 +64,7 @@ class WeatherWidgetLarge : GlanceAppWidget() {
     }
 }
 
+@SuppressLint("LocalContextConfigurationRead")
 @Composable
 private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean) {
         val baseContext = LocalContext.current

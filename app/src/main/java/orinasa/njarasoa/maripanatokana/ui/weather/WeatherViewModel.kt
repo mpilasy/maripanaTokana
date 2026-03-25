@@ -2,6 +2,7 @@ package orinasa.njarasoa.maripanatokana.ui.weather
 
 import android.content.Context
 import android.widget.Toast
+import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -123,7 +124,7 @@ class WeatherViewModel @Inject constructor(
             if (!_devModeActive.value) {
                 val now = System.currentTimeMillis()
                 val expiration = now + 4 * 60 * 60 * 1000L // 4 hours
-                prefs.edit().putLong("dev_mode_expiration", expiration).apply()
+                prefs.edit { putLong("dev_mode_expiration", expiration) }
                 _devModeActive.value = true
                 Toast.makeText(appContext, "Developer mode enabled", Toast.LENGTH_SHORT).show()
             }
@@ -144,7 +145,7 @@ class WeatherViewModel @Inject constructor(
     }
 
     fun disableDevMode() {
-        prefs.edit().remove("dev_mode_expiration").apply()
+        prefs.edit { remove("dev_mode_expiration") }
         _devModeActive.value = false
         clearDevModeOverride()
         _showLocationOverrideDialog.value = false
@@ -202,11 +203,11 @@ class WeatherViewModel @Inject constructor(
     }
 
     fun setLocationOverride(lat: Double, lon: Double, name: String) {
-        prefs.edit()
-            .putFloat("dev_override_lat", lat.toFloat())
-            .putFloat("dev_override_lon", lon.toFloat())
-            .putString("dev_override_name", name)
-            .apply()
+        prefs.edit {
+            putFloat("dev_override_lat", lat.toFloat())
+            putFloat("dev_override_lon", lon.toFloat())
+            putString("dev_override_name", name)
+        }
         _showLocationOverrideDialog.value = false
         fetchWeather()
     }
@@ -218,29 +219,29 @@ class WeatherViewModel @Inject constructor(
     }
 
     private fun clearDevModeOverride() {
-        prefs.edit()
-            .remove("dev_override_lat")
-            .remove("dev_override_lon")
-            .remove("dev_override_name")
-            .apply()
+        prefs.edit {
+            remove("dev_override_lat")
+            remove("dev_override_lon")
+            remove("dev_override_name")
+        }
     }
 
     fun toggleUnits() {
         val newValue = !_metricPrimary.value
         _metricPrimary.value = newValue
-        prefs.edit().putBoolean("metric_primary", newValue).apply()
+        prefs.edit { putBoolean("metric_primary", newValue) }
     }
 
     fun cycleFont() {
         val newIndex = (_fontIndex.value + 1) % fontPairings.size
         _fontIndex.value = newIndex
-        prefs.edit().putInt("font_index", newIndex).apply()
+        prefs.edit { putInt("font_index", newIndex) }
     }
 
     fun cycleLanguage() {
         val newIndex = (_localeIndex.value + 1) % supportedLocales.size
         _localeIndex.value = newIndex
-        prefs.edit().putInt("locale_index", newIndex).apply()
+        prefs.edit { putInt("locale_index", newIndex) }
     }
 
     /** Spawn a background GPS weather fetch to cache for when dev mode is disabled */
@@ -251,7 +252,7 @@ class WeatherViewModel @Inject constructor(
                     saveLocation(lat, lon)
                     weatherRepository.getWeather(lat, lon).onSuccess { data ->
                         cachedGpsWeatherData = data.copy(locationSubtext = null)
-                        prefs.edit().putString("location_name", data.locationName).apply()
+                        prefs.edit { putString("location_name", data.locationName) }
                     }
                 }
             } catch (_: Exception) {

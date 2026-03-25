@@ -26,6 +26,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -59,9 +60,10 @@ fun WeatherScreen(
     val pairing = fontPairings[fontIndex]
     val localeTag = supportedLocales[localeIndex].tag
     val baseContext = LocalContext.current
-    val localizedContext = remember(localeTag, baseContext) {
+    val currentConfig = LocalConfiguration.current
+    val localizedContext = remember(localeTag, baseContext, currentConfig) {
         val locale = java.util.Locale.forLanguageTag(localeTag)
-        val config = android.content.res.Configuration(baseContext.resources.configuration)
+        val config = android.content.res.Configuration(currentConfig)
         config.setLocale(locale)
         val resContext = baseContext.createConfigurationContext(config)
         object : android.content.ContextWrapper(baseContext) {
@@ -152,8 +154,8 @@ fun WeatherScreen(
 
                 is WeatherUiState.PermissionRequired -> {
                     // System-locale context (phone language, not app language)
-                    val systemContext = remember(baseContext) {
-                        val cfg = android.content.res.Configuration(baseContext.resources.configuration)
+                    val systemContext = remember(baseContext, currentConfig) {
+                        val cfg = android.content.res.Configuration(currentConfig)
                         cfg.setLocale(java.util.Locale.getDefault())
                         baseContext.createConfigurationContext(cfg)
                     }

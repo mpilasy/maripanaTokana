@@ -2,7 +2,9 @@ package orinasa.njarasoa.maripanatokana.ui.weather
 
 import android.content.Intent
 import android.graphics.Bitmap
+import androidx.core.graphics.createBitmap
 import android.net.Uri
+import androidx.core.net.toUri
 import android.graphics.Canvas
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -135,7 +137,7 @@ internal fun WeatherContent(
     devModeActive: Boolean = false,
 ) {
     val context = LocalContext.current
-    val appLocale = context.resources.configuration.locales[0]
+    val appLocale = LocalConfiguration.current.locales[0]
     // Bolt: Memoize SimpleDateFormat to avoid expensive recreation on recomposition
     val dateFormat = remember(appLocale) { SimpleDateFormat("EEEE, d MMMM yyyy", appLocale) }
     val timeFormat = remember { SimpleDateFormat("HH:mm", Locale.US) }
@@ -259,7 +261,7 @@ internal fun WeatherContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                val geoUri = Uri.parse("geo:$displayLat,$displayLon?q=$displayLat,$displayLon")
+                                val geoUri = "geo:$displayLat,$displayLon?q=$displayLat,$displayLon".toUri()
                                 val mapIntent = Intent(Intent.ACTION_VIEW, geoUri)
                                 context.startActivity(Intent.createChooser(mapIntent, null))
                             },
@@ -883,7 +885,7 @@ internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: B
 
 @Composable
 internal fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
-    val appLocale = LocalContext.current.resources.configuration.locales[0]
+    val appLocale = LocalConfiguration.current.locales[0]
     // Bolt: Memoize SimpleDateFormat
     val dayFormat = remember(appLocale) { SimpleDateFormat("EEEE", appLocale) }
     val dayMonthFormat = remember(appLocale) { SimpleDateFormat("d MMM", appLocale) }
@@ -1370,7 +1372,7 @@ internal suspend fun combineBitmaps(header: Bitmap, content: Bitmap): Bitmap = w
     val padding = 24
     val width = maxOf(h.width, c.width) + padding * 2
     val height = h.height + padding + c.height + padding * 2
-    val result = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+    val result = createBitmap(width, height, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(result)
     canvas.drawColor(DarkNavyColorInt)
     canvas.drawBitmap(h, padding.toFloat(), padding.toFloat(), null)

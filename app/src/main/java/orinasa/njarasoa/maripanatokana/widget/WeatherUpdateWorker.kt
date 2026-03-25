@@ -1,6 +1,7 @@
 package orinasa.njarasoa.maripanatokana.widget
 
 import android.content.Context
+import androidx.core.content.edit
 import androidx.glance.appwidget.updateAll
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
@@ -18,9 +19,9 @@ class WeatherUpdateWorker(
         // Save refresh timestamp
         applicationContext
             .getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
-            .edit()
-            .putLong("last_refresh", System.currentTimeMillis())
-            .apply()
+            .edit {
+                putLong("last_refresh", System.currentTimeMillis())
+            }
 
         // Trigger all widget re-renders
         WeatherWidget().updateAll(applicationContext)

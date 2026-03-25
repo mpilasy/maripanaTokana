@@ -1,5 +1,6 @@
 package orinasa.njarasoa.maripanatokana.widget
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import androidx.compose.runtime.Composable
@@ -86,6 +87,7 @@ internal fun WidgetError(hasCachedLocation: Boolean = false) {
     }
 }
 
+@SuppressLint("LocalContextConfigurationRead")
 @Composable
 private fun WeatherWidgetContent(data: WeatherData, metricPrimary: Boolean) {
         val baseContext = LocalContext.current

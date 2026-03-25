@@ -37,7 +37,7 @@
     <string name="error_retry">重试</string>
     <string name="error_fetch_weather">获取天气失败</string>
     <string name="error_get_location">获取位置失败</string>
-    <string name="updated_time">更新于 %1$s</string>
+    <string name="updated_time">&#x1f552; 已更新: %1$s</string>
     <string name="feels_like">体感温度</string>
     <string name="no_precip">无降水</string>
     <string name="section_current_conditions">当前状况</string>
@@ -80,6 +80,7 @@
     <string name="cd_change_language">更改语言</string>
     <string name="cd_toggle_units">Toggle units</string>
     <string name="cd_cycle_mode">Cycle display mode</string>
+    <string name="cd_share">分享</string>
     <string name="cd_collapse">收起</string>
     <string name="cd_expand">展开</string>
     <string name="cd_refresh">刷新</string>

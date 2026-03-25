@@ -7,30 +7,19 @@ SourceCode: https://github.com/mpilasy/maripanaTokana
 IssueTracker: https://github.com/mpilasy/maripanaTokana/issues
 
 AutoName: maripànaTokana
-Description: |-
-  A lightweight weather application built with Kotlin and Jetpack Compose.
-  Displays current weather conditions and forecasts without requiring Google Play Services.
-  Supports 8 languages: Arabic, English, Spanish, French, Hindi, Malagasy, Nepali, and Chinese.
 
 RepoType: git
 Repo: https://github.com/mpilasy/maripanaTokana.git
 
 Builds:
-  - versionName: 1.0.7
-    versionCode: 8
-    commit: 0659e81bb83704d246b410e7039075278cf49541
+  - versionName: 1.0.10
+    versionCode: 11
+    commit: v1.0.10
     subdir: app
     gradle:
       - fdroid
-    prebuild:
-      - sed -i -e '/foojay/d' ../settings.gradle.kts
-      - echo 'org.gradle.java.installations.auto-download=false' >> ../gradle.properties
-      - sed -i -e '/toolchainVendor/d' -e '/toolchainUrl/d' ../gradle/gradle-daemon-jvm.properties
-      - sed -i 's/id("org.jetbrains.kotlin.plugin.compose")/id("org.jetbrains.kotlin.android")\n    id("org.jetbrains.kotlin.plugin.compose")/'
-        build.gradle.kts
-      - sed -i '/^android {/i kotlin {\n    jvmToolchain(21)\n}\n' build.gradle.kts
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 1.0.7
-CurrentVersionCode: 8
+CurrentVersion: 1.0.10
+CurrentVersionCode: 11

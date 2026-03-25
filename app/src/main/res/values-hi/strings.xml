@@ -80,6 +80,7 @@
     <string name="cd_change_language">भाषा बदलें</string>
     <string name="cd_toggle_units">Toggle units</string>
     <string name="cd_cycle_mode">Cycle display mode</string>
+    <string name="cd_share">शेयर करें</string>
     <string name="cd_collapse">संक्षिप्त करें</string>
     <string name="cd_expand">विस्तृत करें</string>
     <string name="cd_refresh">रिफ्रेश</string>

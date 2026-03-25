@@ -2,6 +2,7 @@ package orinasa.njarasoa.maripanatokana.widget
 
 import android.annotation.SuppressLint
 import android.content.Context
+import androidx.core.content.edit
 import android.location.Geocoder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -55,11 +56,11 @@ open class BaseWidgetWeatherFetcher(private val baseUrl: String = "https://api.o
                 }
 
             // Cache the response and location name
-            prefs.edit()
-                .putString("cached_response", json.encodeToString(OpenMeteoResponse.serializer(), response))
-                .putString("cached_location_name", locationName)
-                .putLong("cached_timestamp", System.currentTimeMillis())
-                .apply()
+            prefs.edit {
+                putString("cached_response", json.encodeToString(OpenMeteoResponse.serializer(), response))
+                putString("cached_location_name", locationName)
+                putLong("cached_timestamp", System.currentTimeMillis())
+            }
 
             response.toDomain(locationName)
         } catch (_: Exception) {

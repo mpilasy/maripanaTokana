@@ -37,7 +37,7 @@
     <string name="error_retry">पुन: प्रयास</string>
     <string name="error_fetch_weather">मौसम प्राप्त गर्न असफल</string>
     <string name="error_get_location">स्थान प्राप्त गर्न असफल</string>
-    <string name="updated_time">अद्यावधिक %1$s</string>
+    <string name="updated_time">&#x1f552; अद्यावधिक: %1$s</string>
     <string name="feels_like">अनुभूत तापक्रम</string>
     <string name="no_precip">वर्षा छैन</string>
     <string name="section_current_conditions">हालको अवस्था</string>
@@ -80,6 +80,7 @@
     <string name="cd_change_language">भाषा परिवर्तन गर्नुहोस्</string>
     <string name="cd_toggle_units">Toggle units</string>
     <string name="cd_cycle_mode">Cycle display mode</string>
+    <string name="cd_share">साझा गर्नुहोस्</string>
     <string name="cd_collapse">सानो बनाउनुहोस्</string>
     <string name="cd_expand">विस्तार गर्नुहोस्</string>
     <string name="cd_refresh">रिफ्रेस</string>
