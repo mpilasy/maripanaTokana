@@ -1,4 +1,7 @@
-# Project: maripana Tokana PWA (Weather App)
+# Project: maripànaTokana PWA (Weather App)
+
+> For full cross-platform context (Android + Web), read the root [AGENTS.md](../AGENTS.md).
+
 **Goal:** SvelteKit weather PWA — port of the Android app with simultaneous Metric/Imperial display.
 
 ## Shared Tech

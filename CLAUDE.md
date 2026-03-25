@@ -1,4 +1,4 @@
-# Gemini Instructions
+# Claude Code Instructions
 
 Read [AGENTS.md](./AGENTS.md) for the full project context — architecture, tech stack, build commands, critical rules, and mandates.
 
@@ -6,7 +6,7 @@ For F-Droid build issues, read [docs/FDROID.md](./docs/FDROID.md) before touchin
 
 ## Key Rules
 
-- Do NOT add `Co-Authored-By` or any AI attribution to commit messages.
+- Do NOT add `Co-Authored-By: Claude` or any AI attribution to commit messages.
 - Do NOT add `id("org.jetbrains.kotlin.android")` to `app/build.gradle.kts` — causes extension conflict.
 - Do NOT add foojay-resolver to `settings.gradle.kts` — F-Droid blocks it.
 - `kotlin { jvmToolchain(21) }` must stay in `app/build.gradle.kts`.
