@@ -18,6 +18,10 @@ val keystoreProperties = Properties().apply {
 }
 
 
+kotlin {
+    jvmToolchain(21)
+}
+
 android {
     namespace = "orinasa.njarasoa.maripanatokana"
     compileSdk {
