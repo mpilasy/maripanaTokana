@@ -5,6 +5,7 @@
 	import { wmoEmoji, wmoDescriptionKey } from '$lib/api/wmoWeatherCode';
 	import DualUnitText from './DualUnitText.svelte';
 	import DailyTemperatureChart from './DailyTemperatureChart.svelte';
+	import { getFormatter } from '$lib/utils/date';
 
 	interface Props {
 		forecasts: DailyForecastType[];
@@ -25,8 +26,8 @@
 	}
 
 	// Memoize Intl.DateTimeFormat to avoid expensive instantiations during rendering
-	let dayNameFormatter = $derived(new Intl.DateTimeFormat(localeTag, { weekday: 'long' }));
-	let dayMonthFormatter = $derived(new Intl.DateTimeFormat(localeTag, { day: 'numeric', month: 'short' }));
+	let dayNameFormatter = $derived(getFormatter(localeTag, { weekday: 'long' }));
+	let dayMonthFormatter = $derived(getFormatter(localeTag, { day: 'numeric', month: 'short' }));
 
 	function formatDayName(millis: number): string {
 		return dayNameFormatter.format(new Date(millis));
