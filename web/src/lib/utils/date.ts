@@ -1,3 +1,15 @@
+const formatterCache = new Map<string, Intl.DateTimeFormat>();
+
+export function getFormatter(localeTag: string, options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
+	const key = `${localeTag}-${JSON.stringify(options)}`;
+	let formatter = formatterCache.get(key);
+	if (!formatter) {
+		formatter = new Intl.DateTimeFormat(localeTag, options);
+		formatterCache.set(key, formatter);
+	}
+	return formatter;
+}
+
 export function formatTime(timestamp: number): string {
 	const d = new Date(timestamp);
 	const hh = String(d.getHours()).padStart(2, '0');
@@ -7,7 +19,7 @@ export function formatTime(timestamp: number): string {
 
 export function formatDate(timestamp: number, localeTag: string): string {
 	const d = new Date(timestamp);
-	const formatter = new Intl.DateTimeFormat(localeTag, {
+	const formatter = getFormatter(localeTag, {
 		weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
 	});
 	return formatter.format(d);
@@ -45,7 +57,7 @@ export function formatLocationCurrentTime(utcOffsetSeconds: number, localeTag: s
 	const locationDateStr = new Date(locationMs).toLocaleDateString('en-US', { timeZone: 'UTC' });
 	
 	if (deviceDateStr !== locationDateStr) {
-		const formatter = new Intl.DateTimeFormat(localeTag, {
+		const formatter = getFormatter(localeTag, {
 			weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC'
 		});
 		return formatter.format(d);

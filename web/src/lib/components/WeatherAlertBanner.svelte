@@ -4,6 +4,7 @@
 	import { slide } from 'svelte/transition';
 	import { localeIndex } from '$lib/stores/preferences';
 	import { SUPPORTED_LOCALES } from '$lib/i18n/locales';
+	import { getFormatter } from '$lib/utils/date';
 
 	interface Props {
 		alerts: WeatherAlert[];
@@ -20,7 +21,7 @@
 
 	let topAlert = $derived(alerts.find(a => a.level === topLevel) || alerts[0]);
 
-	let timeFormatter = $derived(new Intl.DateTimeFormat(SUPPORTED_LOCALES[$localeIndex].tag, {
+	let timeFormatter = $derived(getFormatter(SUPPORTED_LOCALES[$localeIndex].tag, {
 		year: 'numeric',
 		month: '2-digit',
 		day: '2-digit',
