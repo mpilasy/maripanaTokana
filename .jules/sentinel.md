@@ -1,0 +1,5 @@
+## 2024-05-24 - [PII Leak in Auto Backup]
+**Vulnerability:** User PII (location coordinates lat/lon) stored in `widget_prefs.xml` were being silently backed up to Google Drive cloud backups because `android:allowBackup="true"` was set without proper exclusion rules.
+**Learning:** Default Android auto-backup behavior includes all SharedPreferences. On Android 12+, `data_extraction_rules.xml` controls this; on older versions, it's `backup_rules.xml`. Simply enabling `allowBackup` without meticulously configuring these rules leads to silent PII leaks.
+**Prevention:** Always verify `data_extraction_rules.xml` and `backup_rules.xml` explicitly exclude any SharedPreferences or files containing sensitive user data (like PII, tokens, or locations) from cloud backups.
+**Warning:** Never use `<include>` tags in these XML files unless you genuinely intend to block everything else. In Android, the default is to backup everything; adding an `<include>` tag silently drops all other databases, files, and preferences from being backed up, causing massive data loss for users. Use ONLY `<exclude>` tags when making selective security fixes.
