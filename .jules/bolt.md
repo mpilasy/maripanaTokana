@@ -9,3 +9,7 @@
 ## 2026-03-19 - Fast Date Parsing in WeatherRepository
 **Learning:** Re-instantiating `SimpleDateFormat` inside a `.map` loop introduces significant performance overhead, especially over a large number of items. In `WeatherRepositoryImpl`, allocating the formatter per loop iteration resulted in a parsing time of ~90ms for 1000 dates, while hoisting it out reduced the time to ~8ms. Additionally, when using `io.mockk` to test ViewModels (like `WeatherViewModelTest`), all new repository methods called during init or refresh (like `fetchAlerts`) must be explicitly mocked to prevent test crashes.
 **Action:** When parsing lists of dates using `.map`, `.forEach`, or similar sequence operators, always initialize formatting objects (like `SimpleDateFormat`) before the loop. Ensure that test mocks are updated whenever repository interfaces receive new dependencies or functions.
+
+## 2026-03-19 - [Avoid List allocations in string extraction]
+**Learning:** Chaining `.split(delimiter)[0]` calls (e.g. `rawName.split(",")[0].split(";")[0]...`) causes the JVM to allocate intermediate `List` instances and scan the entire string multiple times. This introduces unnecessary memory pressure during frequent operations like location resolution in Android's `WeatherRepositoryImpl.kt` and `WeatherViewModel.kt`.
+**Action:** Replace chained `.split(delimiter)[0]` logic with chained `.substringBefore(delimiter)` calls. This extracts the exact substring required up to the first delimiter and avoids allocating intermediate array objects, improving memory footprint and speed.
