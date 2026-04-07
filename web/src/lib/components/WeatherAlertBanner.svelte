@@ -32,9 +32,13 @@
 
 {#if alerts.length > 0 && topAlert}
 	<div class="alert-banner" class:watch={topLevel === 'watch'} class:warning={topLevel === 'warning' || topLevel === 'emergency'}>
-		<!-- svelte-ignore a11y_click_events_have_key_events -->
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="banner-header" onclick={() => isExpanded = !isExpanded}>
+		<button
+			type="button"
+			class="banner-header"
+			onclick={() => isExpanded = !isExpanded}
+			aria-expanded={isExpanded}
+			aria-controls="alert-details"
+		>
 			<div class="icon-text">
 				<span class="alert-icon">
 					{#if topLevel === 'watch'}
@@ -53,10 +57,10 @@
 			</div>
 			<span class="spacer"></span>
 			<span class="chevron" class:expanded={isExpanded}>&#9660;</span>
-		</div>
+		</button>
 
 		{#if isExpanded}
-			<div class="alert-details" transition:slide={{ duration: 300 }}>
+			<div id="alert-details" class="alert-details" transition:slide={{ duration: 300 }}>
 				{#each alerts as alert, index}
 					<div class="alert-item">
 						<div class="item-title-row">
@@ -123,6 +127,17 @@
 		gap: 12px;
 		cursor: pointer;
 		user-select: none;
+		width: 100%;
+		background: none;
+		border: none;
+		text-align: left;
+		font: inherit;
+		color: inherit;
+	}
+
+	.banner-header:focus-visible {
+		outline: 2px solid rgba(255, 255, 255, 0.5);
+		outline-offset: -2px;
 	}
 
 	.icon-text {
