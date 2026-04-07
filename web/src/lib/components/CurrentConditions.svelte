@@ -50,9 +50,7 @@
 
 <div class="conditions-grid">
 	<!-- Temperature + Precipitation merged card -->
-	<!-- svelte-ignore a11y_click_events_have_key_events -->
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="merged-card temp-precip-card" onclick={onToggleUnits}>
+	<button type="button" class="merged-card temp-precip-card" onclick={onToggleUnits} aria-label={$_('android_only.cd_toggle_units')}>
 		<div class="tp-side">
 			<span class="card-title">{$_('detail_temperature')}</span>
 			<span class="tp-values">
@@ -85,12 +83,10 @@
 			<span class="feels-label">{$_('detail_cloud_cover')}</span>
 			<span class="feels-primary">{loc(`${data.cloudCover}%`)}</span>
 		</div>
-	</div>
+	</button>
 
 	<!-- High / Low merged card -->
-	<!-- svelte-ignore a11y_click_events_have_key_events -->
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="merged-card highlow-card" onclick={onToggleUnits}>
+	<button type="button" class="merged-card highlow-card" onclick={onToggleUnits} aria-label={$_('android_only.cd_toggle_units')}>
 		<span class="highlow-group">
 			<span class="highlow-arrow">↓</span>
 			<span class="merged-values">
@@ -105,12 +101,10 @@
 			</span>
 			<span class="highlow-arrow">↑</span>
 		</span>
-	</div>
+	</button>
 
 	<!-- Wind merged card -->
-	<!-- svelte-ignore a11y_click_events_have_key_events -->
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="merged-card wind-merged-card" onclick={onToggleUnits}>
+	<button type="button" class="merged-card wind-merged-card" onclick={onToggleUnits} aria-label={$_('android_only.cd_toggle_units')}>
 		<div class="wind-side">
 			<span class="merged-values">
 				<span class="merged-primary">{loc(windDual[0])}</span>
@@ -128,7 +122,7 @@
 				<span class="wind-subtitle">{$_('detail_wind_gust')}</span>
 			{/if}
 		</div>
-	</div>
+	</button>
 
 	<!-- Sunrise / Sunset merged card -->
 	<div class="merged-card sun-card">
@@ -154,12 +148,10 @@
 		<span class="card-title">{$_('detail_humidity')}</span>
 		<span class="card-value">{loc(`${data.humidity}%`)}</span>
 		<span class="dew-label">{$_('detail_dewpoint')}</span>
-		<!-- svelte-ignore a11y_click_events_have_key_events -->
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<span class="dew-values" onclick={onToggleUnits}>
+		<button type="button" class="dew-values" onclick={onToggleUnits} aria-label={$_('android_only.cd_toggle_units')}>
 			<span class="dew-primary">{loc(dewDual[0])}</span>
 			<span class="dew-secondary">{loc(dewDual[1])}</span>
-		</span>
+		</button>
 	</div>
 
 	<DetailCard
@@ -194,6 +186,15 @@
 		align-items: center;
 		justify-content: space-between;
 		cursor: pointer;
+		border: none;
+		color: inherit;
+		font: inherit;
+		text-align: left;
+	}
+
+	.merged-card:focus-visible {
+		outline: 2px solid rgba(255, 255, 255, 0.5);
+		outline-offset: 2px;
 	}
 
 	.merged-label {
@@ -381,6 +382,20 @@
 
 	.dew-values {
 		cursor: pointer;
+		background: none;
+		border: none;
+		padding: 0;
+		font: inherit;
+		color: inherit;
+		text-align: left;
+		display: flex;
+		align-items: baseline;
+	}
+
+	.dew-values:focus-visible {
+		outline: 2px solid rgba(255, 255, 255, 0.5);
+		outline-offset: 4px;
+		border-radius: 4px;
 	}
 
 	.dew-primary {
