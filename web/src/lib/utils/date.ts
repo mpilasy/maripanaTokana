@@ -5,11 +5,23 @@ export function formatTime(timestamp: number): string {
 	return `${hh}:${mm}`;
 }
 
+// Memoized formatter maps for performance optimization
+const dateFormatters = new Map<string, Intl.DateTimeFormat>();
+const locationTimeFormatters = new Map<string, Intl.DateTimeFormat>();
+
+// Static formatters for device/location timezone comparison
+const deviceDateFormatter = new Intl.DateTimeFormat('en-US');
+const locationDateFormatter = new Intl.DateTimeFormat('en-US', { timeZone: 'UTC' });
+
 export function formatDate(timestamp: number, localeTag: string): string {
 	const d = new Date(timestamp);
-	const formatter = new Intl.DateTimeFormat(localeTag, {
-		weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
-	});
+	let formatter = dateFormatters.get(localeTag);
+	if (!formatter) {
+		formatter = new Intl.DateTimeFormat(localeTag, {
+			weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+		});
+		dateFormatters.set(localeTag, formatter);
+	}
 	return formatter.format(d);
 }
 
@@ -40,14 +52,18 @@ export function formatLocationCurrentTime(utcOffsetSeconds: number, localeTag: s
 	const locationMs = now + utcOffsetSeconds * 1000;
 	const d = new Date(locationMs);
 	
-	// Compare local dates using locale-aware strings
-	const deviceDateStr = new Date(now).toLocaleDateString('en-US');
-	const locationDateStr = new Date(locationMs).toLocaleDateString('en-US', { timeZone: 'UTC' });
+	// Compare local dates using locale-aware strings with memoized formatters
+	const deviceDateStr = deviceDateFormatter.format(now);
+	const locationDateStr = locationDateFormatter.format(d);
 	
 	if (deviceDateStr !== locationDateStr) {
-		const formatter = new Intl.DateTimeFormat(localeTag, {
-			weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC'
-		});
+		let formatter = locationTimeFormatters.get(localeTag);
+		if (!formatter) {
+			formatter = new Intl.DateTimeFormat(localeTag, {
+				weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC'
+			});
+			locationTimeFormatters.set(localeTag, formatter);
+		}
 		return formatter.format(d);
 	}
 	
