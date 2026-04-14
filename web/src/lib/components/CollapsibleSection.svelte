@@ -24,10 +24,10 @@
 </script>
 
 <div class="collapsible-section">
-	<!-- svelte-ignore a11y_click_events_have_key_events -->
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="section-header" onclick={() => isExpanded = !isExpanded}>
-		<span class="section-title">{title}</span>
+	<div class="section-header-row">
+		<button class="section-header-btn" onclick={() => isExpanded = !isExpanded} aria-expanded={isExpanded}>
+			<span class="section-title">{title}</span>
+		</button>
 		{#if isExpanded && onShare}
 			<button class="share-btn" onclick={handleShare} aria-label="Share">
 				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -38,7 +38,9 @@
 			</button>
 		{/if}
 		<span class="spacer"></span>
-		<span class="chevron" class:expanded={isExpanded}>&#9660;</span>
+		<button class="section-header-btn chevron-btn" onclick={() => isExpanded = !isExpanded} aria-expanded={isExpanded} tabindex="-1">
+			<span class="chevron" class:expanded={isExpanded}>&#9660;</span>
+		</button>
 	</div>
 
 	{#if isExpanded}
@@ -53,13 +55,37 @@
 		margin-bottom: 24px;
 	}
 
-	.section-header {
+	.section-header-row {
+		display: flex;
+		align-items: center;
+		padding: 8px 0;
+		gap: 8px;
+	}
+
+	.section-header-btn {
 		display: flex;
 		align-items: center;
 		cursor: pointer;
-		padding: 8px 0;
 		user-select: none;
 		gap: 8px;
+		border: none;
+		background: transparent;
+		font: inherit;
+		color: inherit;
+		text-align: left;
+		padding: 4px;
+		margin: -4px;
+		border-radius: 8px;
+	}
+
+	.chevron-btn {
+		padding: 8px;
+		margin: -8px;
+	}
+
+	.section-header-btn:focus-visible {
+		outline: 2px solid rgba(255, 255, 255, 0.5);
+		outline-offset: 2px;
 	}
 
 	.section-title {
