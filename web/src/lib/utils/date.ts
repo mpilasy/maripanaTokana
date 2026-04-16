@@ -1,3 +1,16 @@
+// Cache for Intl.DateTimeFormat to avoid expensive instantiations
+const formatterCache = new Map<string, Intl.DateTimeFormat>();
+
+function getFormatter(locale: string, options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
+	const key = `${locale}-${JSON.stringify(options)}`;
+	let formatter = formatterCache.get(key);
+	if (!formatter) {
+		formatter = new Intl.DateTimeFormat(locale, options);
+		formatterCache.set(key, formatter);
+	}
+	return formatter;
+}
+
 export function formatTime(timestamp: number): string {
 	const d = new Date(timestamp);
 	const hh = String(d.getHours()).padStart(2, '0');
@@ -7,7 +20,7 @@ export function formatTime(timestamp: number): string {
 
 export function formatDate(timestamp: number, localeTag: string): string {
 	const d = new Date(timestamp);
-	const formatter = new Intl.DateTimeFormat(localeTag, {
+	const formatter = getFormatter(localeTag, {
 		weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
 	});
 	return formatter.format(d);
@@ -40,12 +53,14 @@ export function formatLocationCurrentTime(utcOffsetSeconds: number, localeTag: s
 	const locationMs = now + utcOffsetSeconds * 1000;
 	const d = new Date(locationMs);
 	
-	// Compare local dates using locale-aware strings
-	const deviceDateStr = new Date(now).toLocaleDateString('en-US');
-	const locationDateStr = new Date(locationMs).toLocaleDateString('en-US', { timeZone: 'UTC' });
+	// Compare dates: device local date vs location date
+	const deviceDate = new Date(now);
+	const isSameDay = deviceDate.getFullYear() === d.getUTCFullYear() &&
+		deviceDate.getMonth() === d.getUTCMonth() &&
+		deviceDate.getDate() === d.getUTCDate();
 	
-	if (deviceDateStr !== locationDateStr) {
-		const formatter = new Intl.DateTimeFormat(localeTag, {
+	if (!isSameDay) {
+		const formatter = getFormatter(localeTag, {
 			weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC'
 		});
 		return formatter.format(d);
