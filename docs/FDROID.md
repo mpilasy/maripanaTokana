@@ -71,6 +71,24 @@ Builds:
 
 No inline `Description` field — use fastlane structure instead (reviewer requirement).
 
+### `app/proguard-rules.pro`
+
+**R8 keep rules for Room/WorkManager — CRITICAL for release builds**
+
+WorkManager uses Room internally (`WorkDatabase_Impl`), and Room-generated `_Impl` classes are instantiated via reflection. R8 strips their no-arg constructors, causing a `NoSuchMethodException` crash at startup. The following rules must stay in `proguard-rules.pro`:
+
+```proguard
+# Room: keep generated _Impl classes (instantiated via reflection)
+-keep class * extends androidx.room.RoomDatabase { <init>(); }
+-keep class * implements androidx.room.DatabaseConfiguration { *; }
+-keep class **_Impl { <init>(); }
+
+# WorkManager: uses Room internally for WorkDatabase
+-keep class androidx.work.impl.** { *; }
+```
+
+Without these rules, the app crashes immediately on startup in any minified build (`isMinifyEnabled = true`).
+
 ### Quick Diagnostic Checklist
 
 If F-Droid build fails, check in order:
@@ -80,6 +98,7 @@ If F-Droid build fails, check in order:
 3. Is foojay in `settings.gradle.kts`? (present = fdroid-suss blocks it)
 4. Does `gradle-daemon-jvm.properties` have `toolchainVendor`? (present = Gradle daemon won't start)
 5. Is `auto-provisioning` set to `enabled`? (will try to download JDKs and fail)
+6. Are Room/WorkManager R8 keep rules in `proguard-rules.pro`? (missing = `NoSuchMethodException: WorkDatabase_Impl` crash at startup)
 
 ### Approaches That Were Tried and Failed
 
@@ -90,6 +109,7 @@ If F-Droid build fails, check in order:
 | Adding `kotlin.android` plugin | "Cannot add extension with name 'kotlin'" conflict |
 | `prebuild` sed hacks in metadata | Fragile; the sed for kotlin.android caused the same conflict |
 | No `jvmToolchain(21)` at all | Kotlin defaults to JetBrains vendor |
+| No R8 keep rules for Room/WorkManager | `NoSuchMethodException: WorkDatabase_Impl.<init>` crash at startup |
 
 ## Build Flavors
 

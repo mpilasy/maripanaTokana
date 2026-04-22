@@ -51,7 +51,7 @@ maripanaTokana/
 
 | Component | Version | Notes |
 |-----------|---------|-------|
-| AGP | 9.1.0 | `compileSdk { version = release(36) }` syntax |
+| AGP | 9.1.1 | `compileSdk { version = release(36) }` syntax |
 | Kotlin | 2.2.10 | Compose compiler plugin implicit via AGP 9 |
 | Compose BOM | 2024.09.00 | Material 3 |
 | Glance | 1.1.1 | Home screen widgets |
@@ -199,6 +199,7 @@ node shared/i18n/generate-android-strings.js   # JSON → Android XML strings
 - **DO NOT add foojay-resolver to `settings.gradle.kts`** — F-Droid's security scanner blocks it.
 - **`auto-provisioning=disabled` MUST stay in `gradle.properties`** — F-Droid doesn't allow JDK downloads.
 - **`gradle/gradle-daemon-jvm.properties`** — must NOT have `toolchainVendor` or `toolchainUrl` lines.
+- **R8 keep rules in `app/proguard-rules.pro` MUST be preserved** — Room/WorkManager `_Impl` classes are instantiated via reflection. Without keep rules, R8 strips them and the app crashes at startup.
 - **See `docs/FDROID.md` for the complete F-Droid build configuration guide** with diagnostic checklist and failure history.
 - Use `Locale.US` for all numeric/time formatting to prevent native digit rendering in format strings.
 - Do NOT use `AppCompatActivity` — causes `Theme.AppCompat` requirement. Use `ContextWrapper` for locale.

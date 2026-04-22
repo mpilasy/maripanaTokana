@@ -32,7 +32,7 @@ There is also a web version of the app built with SvelteKit. See [`web/docs/DESI
 | Component | Technology | Version |
 |-----------|-----------|---------|
 | Language | Kotlin | 2.2.10 |
-| Build system | Gradle + AGP | 9.0.1 |
+| Build system | Gradle + AGP | 9.1.1 |
 | UI framework | Jetpack Compose | BOM 2024.09.00 |
 | Widget framework | Glance | 1.1.1 |
 | Dependency injection | Hilt | 2.59 |

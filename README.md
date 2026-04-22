@@ -45,7 +45,7 @@
 
 | Component | Version |
 |-----------|---------|
-| AGP | 9.0.1 |
+| AGP | 9.1.1 |
 | Kotlin | 2.2.10 |
 | Compose BOM | 2024.09.00 |
 | Glance | 1.1.1 |
