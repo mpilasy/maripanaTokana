@@ -19,3 +19,11 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Room: keep generated _Impl classes (instantiated via reflection)
+-keep class * extends androidx.room.RoomDatabase { <init>(); }
+-keep class * implements androidx.room.DatabaseConfiguration { *; }
+-keep class **_Impl { <init>(); }
+
+# WorkManager: uses Room internally for WorkDatabase
+-keep class androidx.work.impl.** { *; }
