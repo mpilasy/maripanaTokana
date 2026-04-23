@@ -5,12 +5,16 @@ export function formatTime(timestamp: number): string {
 	return `${hh}:${mm}`;
 }
 
+const formatCache = new Map<string, Intl.DateTimeFormat>();
+
 export function formatDate(timestamp: number, localeTag: string): string {
 	const d = new Date(timestamp);
-	const formatter = new Intl.DateTimeFormat(localeTag, {
-		weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
-	});
-	return formatter.format(d);
+	if (!formatCache.has(localeTag)) {
+		formatCache.set(localeTag, new Intl.DateTimeFormat(localeTag, {
+			weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+		}));
+	}
+	return formatCache.get(localeTag)!.format(d);
 }
 
 /**
@@ -32,27 +36,33 @@ export function formatHourAtLocation(epochMillis: number, utcOffsetSec: number):
 	return `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
 }
 
+const locationCurrentTimeFormatCache = new Map<string, Intl.DateTimeFormat>();
+
 /**
  * Get the current time at a location given its UTC offset.
  */
 export function formatLocationCurrentTime(utcOffsetSeconds: number, localeTag: string): string {
 	const now = Date.now();
+	const deviceDate = new Date(now);
+	
 	const locationMs = now + utcOffsetSeconds * 1000;
-	const d = new Date(locationMs);
+	const locationDate = new Date(locationMs);
 	
-	// Compare local dates using locale-aware strings
-	const deviceDateStr = new Date(now).toLocaleDateString('en-US');
-	const locationDateStr = new Date(locationMs).toLocaleDateString('en-US', { timeZone: 'UTC' });
-	
-	if (deviceDateStr !== locationDateStr) {
-		const formatter = new Intl.DateTimeFormat(localeTag, {
-			weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC'
-		});
-		return formatter.format(d);
+	if (
+		deviceDate.getFullYear() !== locationDate.getUTCFullYear() ||
+		deviceDate.getMonth() !== locationDate.getUTCMonth() ||
+		deviceDate.getDate() !== locationDate.getUTCDate()
+	) {
+		if (!locationCurrentTimeFormatCache.has(localeTag)) {
+			locationCurrentTimeFormatCache.set(localeTag, new Intl.DateTimeFormat(localeTag, {
+				weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC'
+			}));
+		}
+		return locationCurrentTimeFormatCache.get(localeTag)!.format(locationDate);
 	}
 	
-	const hh = String(d.getUTCHours()).padStart(2, '0');
-	const mm = String(d.getUTCMinutes()).padStart(2, '0');
+	const hh = String(locationDate.getUTCHours()).padStart(2, '0');
+	const mm = String(locationDate.getUTCMinutes()).padStart(2, '0');
 	return `${hh}:${mm}`;
 }
 
