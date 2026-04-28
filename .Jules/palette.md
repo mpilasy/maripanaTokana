@@ -3,3 +3,10 @@
 **Action:** When seeing `svelte-ignore a11y_*` around click handlers on non-interactive tags (like `<p>` or `<div>`), immediately check if the element can be converted to a `<button type="button">`. Additionally, explicitly style `:focus-visible` to enhance keyboard accessibility.## 2024-03-16 - Svelte Accessibility Fixes
 **Learning:** In Svelte components like `LocationOverrideDialog`, do not ignore `a11y_no_static_element_interactions` on `<div>` elements acting as modals or click handlers. Provide `role="dialog"`, `aria-modal="true"`, `tabindex="-1"`, and proper keyboard event listeners instead. Also, avoid adding `aria-label` to buttons containing text nodes unless the intention is to completely override reading of child content.
 **Action:** When adding clickable elements, use semantic `<button>` elements (as done in `DualUnitText.svelte`) and use Svelte snippets `{@render}` to avoid code duplication across elements. Always test whether an `aria-label` inadvertently overrides intended screen reader output.
+## 2024-04-28 - Avoid Svelte State Warns when using un-tracked props
+**Learning:** When creating a component state variable using `$state(expanded)` to set its initial value from a prop but without auto-updating the state when the prop changes, Svelte compiler emits a warning: "This reference only captures the initial value of `prop`. Did you mean to reference it inside a closure instead?".
+**Action:** Use `untrack(() => propName)` to explicitly initialize the state without reactive bindings. E.g., `let isExpanded = $state(untrack(() => expanded));`.
+
+## 2024-04-28 - Testing with Locales in Playwright
+**Learning:** When writing Playwright tests using `page.get_by_role("button", name="...")`, be aware that the headless browser might run with a non-English default locale (like Malagasy in this application). Looking for an English string will cause a TimeoutError.
+**Action:** Always ensure you select elements based on the locale rendered in the browser (e.g. "Isan'ora" instead of "Hourly Forecast"), or force the browser's locale if you must test in English.
