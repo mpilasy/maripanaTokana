@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { slide } from 'svelte/transition';
+	import { untrack } from 'svelte';
 	import type { Snippet } from 'svelte';
 
 	interface Props {
@@ -10,7 +11,7 @@
 	}
 
 	let { title, expanded = false, children, onShare }: Props = $props();
-	let isExpanded = $state(expanded);
+	let isExpanded = $state(untrack(() => expanded));
 	let contentEl = $state<HTMLElement | null>(null);
 
 	$effect(() => {
@@ -21,13 +22,22 @@
 		e.stopPropagation();
 		if (contentEl && onShare) onShare(contentEl);
 	}
+
+    // Fallback to random ID suffix if unique ID isn't easily doable here
+    let contentId = $derived(`content-${title.replace(/\s+/g, '-').toLowerCase()}-${Math.random().toString(36).substring(2, 9)}`);
 </script>
 
 <div class="collapsible-section">
-	<!-- svelte-ignore a11y_click_events_have_key_events -->
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="section-header" onclick={() => isExpanded = !isExpanded}>
-		<span class="section-title">{title}</span>
+	<div class="section-header">
+		<button
+			class="expand-btn title-btn"
+			aria-expanded={isExpanded}
+			aria-controls={contentId}
+			onclick={() => isExpanded = !isExpanded}
+		>
+			<span class="section-title">{title}</span>
+		</button>
+
 		{#if isExpanded && onShare}
 			<button class="share-btn" onclick={handleShare} aria-label="Share">
 				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -37,12 +47,22 @@
 				</svg>
 			</button>
 		{/if}
-		<span class="spacer"></span>
-		<span class="chevron" class:expanded={isExpanded}>&#9660;</span>
+
+		<button
+			class="expand-btn spacer-btn"
+			aria-expanded={isExpanded}
+			aria-controls={contentId}
+			onclick={() => isExpanded = !isExpanded}
+			tabindex="-1"
+			aria-hidden="true"
+		>
+			<span class="spacer"></span>
+			<span class="chevron" class:expanded={isExpanded}>&#9660;</span>
+		</button>
 	</div>
 
 	{#if isExpanded}
-		<div class="section-content" bind:this={contentEl} transition:slide={{ duration: 300 }}>
+		<div id={contentId} class="section-content" bind:this={contentEl} transition:slide={{ duration: 300 }}>
 			{@render children()}
 		</div>
 	{/if}
@@ -56,10 +76,37 @@
 	.section-header {
 		display: flex;
 		align-items: center;
-		cursor: pointer;
 		padding: 8px 0;
-		user-select: none;
 		gap: 8px;
+	}
+
+	.expand-btn {
+		border: none;
+		background: transparent;
+		font: inherit;
+		color: inherit;
+		text-align: left;
+		box-sizing: border-box;
+		padding: 0;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+	}
+
+	.expand-btn:focus-visible {
+		outline: 2px solid rgba(255, 255, 255, 0.5);
+		outline-offset: 4px;
+		border-radius: 4px;
+	}
+
+	.title-btn {
+		flex-shrink: 0;
+	}
+
+	.spacer-btn {
+		flex-grow: 1;
+		justify-content: flex-end;
+		min-height: 28px;
 	}
 
 	.section-title {
