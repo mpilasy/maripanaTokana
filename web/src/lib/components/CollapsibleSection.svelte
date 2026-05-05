@@ -1,6 +1,11 @@
+<script module lang="ts">
+	let idCounter = 0;
+</script>
+
 <script lang="ts">
 	import { slide } from 'svelte/transition';
 	import type { Snippet } from 'svelte';
+	import { untrack } from 'svelte';
 
 	interface Props {
 		title: string;
@@ -10,8 +15,10 @@
 	}
 
 	let { title, expanded = false, children, onShare }: Props = $props();
-	let isExpanded = $state(expanded);
+	let isExpanded = $state(untrack(() => expanded));
 	let contentEl = $state<HTMLElement | null>(null);
+
+	let contentId = `content-${idCounter++}`;
 
 	$effect(() => {
 		isExpanded = expanded;
@@ -26,8 +33,23 @@
 <div class="collapsible-section">
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="section-header" onclick={() => isExpanded = !isExpanded}>
-		<span class="section-title">{title}</span>
+	<div class="section-header" onclick={(e) => {
+		// Only trigger expand if clicking directly on the header background, spacer, or chevron,
+		// but not on the share button. The title-btn handles its own click.
+		const target = e.target as HTMLElement;
+		if (!target.closest('.share-btn') && !target.closest('.title-btn')) {
+			isExpanded = !isExpanded;
+		}
+	}}>
+		<button
+			type="button"
+			class="title-btn"
+			onclick={() => isExpanded = !isExpanded}
+			aria-expanded={isExpanded}
+			aria-controls={contentId}
+		>
+			<span class="section-title">{title}</span>
+		</button>
 		{#if isExpanded && onShare}
 			<button class="share-btn" onclick={handleShare} aria-label="Share">
 				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -42,7 +64,7 @@
 	</div>
 
 	{#if isExpanded}
-		<div class="section-content" bind:this={contentEl} transition:slide={{ duration: 300 }}>
+		<div id={contentId} class="section-content" bind:this={contentEl} transition:slide={{ duration: 300 }}>
 			{@render children()}
 		</div>
 	{/if}
@@ -56,10 +78,27 @@
 	.section-header {
 		display: flex;
 		align-items: center;
-		cursor: pointer;
 		padding: 8px 0;
 		user-select: none;
 		gap: 8px;
+	}
+
+	.title-btn {
+		display: flex;
+		align-items: center;
+		background: transparent;
+		border: none;
+		padding: 0;
+		margin: 0;
+		color: inherit;
+		font: inherit;
+		cursor: pointer;
+		border-radius: 4px;
+	}
+
+	.title-btn:focus-visible {
+		outline: 2px solid rgba(255, 255, 255, 0.5);
+		outline-offset: 2px;
 	}
 
 	.section-title {
