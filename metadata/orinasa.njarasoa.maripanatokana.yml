@@ -12,14 +12,14 @@ RepoType: git
 Repo: https://github.com/mpilasy/maripanaTokana.git
 
 Builds:
-  - versionName: 1.0.11
-    versionCode: 12
-    commit: 1c68d2e0cbd16b65ab4265639ade1b3772711037
+  - versionName: 1.0.12
+    versionCode: 13
+    commit: 8a3792e237acc080476b628daab86e5bd194aafc
     subdir: app
     gradle:
       - fdroid
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 1.0.11
-CurrentVersionCode: 12
+CurrentVersion: 1.0.12
+CurrentVersionCode: 13
