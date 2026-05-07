@@ -6,15 +6,22 @@ import { WindSpeed } from '../domain/windSpeed';
 import { Precipitation } from '../domain/precipitation';
 
 function parseIsoDateTime(iso: string, utcOffsetSeconds: number): number {
-	const sign = utcOffsetSeconds >= 0 ? '+' : '-';
-	const absOffset = Math.abs(utcOffsetSeconds);
-	const hh = String(Math.floor(absOffset / 3600)).padStart(2, '0');
-	const mm = String(Math.floor((absOffset % 3600) / 60)).padStart(2, '0');
-	return new Date(`${iso}${sign}${hh}:${mm}`).getTime();
+	// Open-Meteo format: YYYY-MM-DDTHH:MM
+	const year = parseInt(iso.substring(0, 4), 10);
+	const month = parseInt(iso.substring(5, 7), 10) - 1; // 0-indexed
+	const day = parseInt(iso.substring(8, 10), 10);
+	const hour = parseInt(iso.substring(11, 13), 10);
+	const minute = parseInt(iso.substring(14, 16), 10);
+	return Date.UTC(year, month, day, hour, minute) - (utcOffsetSeconds * 1000);
 }
 
-function parseIsoDate(iso: string): number {
-	return new Date(iso + 'T00:00:00').getTime();
+function parseIsoDate(iso: string, utcOffsetSeconds: number): number {
+	// Open-Meteo format: YYYY-MM-DD
+	const year = parseInt(iso.substring(0, 4), 10);
+	const month = parseInt(iso.substring(5, 7), 10) - 1; // 0-indexed
+	const day = parseInt(iso.substring(8, 10), 10);
+	// We want midnight UTC
+	return Date.UTC(year, month, day, 0, 0) - (utcOffsetSeconds * 1000);
 }
 
 function deriveAlerts(c: OpenMeteoCurrent, h: OpenMeteoHourly, d: OpenMeteoDaily, utcOffsetSeconds: number): WeatherAlert[] {
@@ -114,7 +121,7 @@ export function mapToWeatherData(response: OpenMeteoResponse, locationName: stri
 					};
 				});
 
-	const parsedDailyTimes = d.time.map(parseIsoDate);
+	const parsedDailyTimes = d.time.map((t) => parseIsoDate(t, response.utc_offset_seconds));
 
 	const dailyForecast: DailyForecast[] = d.time.map((time, i) => {
 		return {
