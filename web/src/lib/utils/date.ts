@@ -5,11 +5,18 @@ export function formatTime(timestamp: number): string {
 	return `${hh}:${mm}`;
 }
 
+// Cache for date formatters to avoid expensive instantiations
+const dateFormatters = new Map<string, Intl.DateTimeFormat>();
+
 export function formatDate(timestamp: number, localeTag: string): string {
 	const d = new Date(timestamp);
-	const formatter = new Intl.DateTimeFormat(localeTag, {
-		weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
-	});
+	let formatter = dateFormatters.get(localeTag);
+	if (!formatter) {
+		formatter = new Intl.DateTimeFormat(localeTag, {
+			weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+		});
+		dateFormatters.set(localeTag, formatter);
+	}
 	return formatter.format(d);
 }
 
@@ -32,27 +39,36 @@ export function formatHourAtLocation(epochMillis: number, utcOffsetSec: number):
 	return `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
 }
 
+// Cache for location time formatters to avoid expensive instantiations
+const locationTimeFormatters = new Map<string, Intl.DateTimeFormat>();
+
 /**
  * Get the current time at a location given its UTC offset.
  */
 export function formatLocationCurrentTime(utcOffsetSeconds: number, localeTag: string): string {
 	const now = Date.now();
 	const locationMs = now + utcOffsetSeconds * 1000;
-	const d = new Date(locationMs);
+	const dLocation = new Date(locationMs);
+	const dDevice = new Date(now);
 	
-	// Compare local dates using locale-aware strings
-	const deviceDateStr = new Date(now).toLocaleDateString('en-US');
-	const locationDateStr = new Date(locationMs).toLocaleDateString('en-US', { timeZone: 'UTC' });
-	
-	if (deviceDateStr !== locationDateStr) {
-		const formatter = new Intl.DateTimeFormat(localeTag, {
-			weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC'
-		});
-		return formatter.format(d);
+	// Compare dates using fast numeric checks instead of slow toLocaleDateString
+	if (
+		dDevice.getFullYear() !== dLocation.getUTCFullYear() ||
+		dDevice.getMonth() !== dLocation.getUTCMonth() ||
+		dDevice.getDate() !== dLocation.getUTCDate()
+	) {
+		let formatter = locationTimeFormatters.get(localeTag);
+		if (!formatter) {
+			formatter = new Intl.DateTimeFormat(localeTag, {
+				weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC'
+			});
+			locationTimeFormatters.set(localeTag, formatter);
+		}
+		return formatter.format(dLocation);
 	}
 	
-	const hh = String(d.getUTCHours()).padStart(2, '0');
-	const mm = String(d.getUTCMinutes()).padStart(2, '0');
+	const hh = String(dLocation.getUTCHours()).padStart(2, '0');
+	const mm = String(dLocation.getUTCMinutes()).padStart(2, '0');
 	return `${hh}:${mm}`;
 }
 
