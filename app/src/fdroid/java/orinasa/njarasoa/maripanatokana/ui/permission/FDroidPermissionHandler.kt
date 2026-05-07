@@ -10,6 +10,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
@@ -29,8 +30,9 @@ class FDroidPermissionHandler @Inject constructor(
     }
 
     @Composable
-    override fun RequestPermission(onPermissionGranted: () -> Unit) {
+    override fun rememberPermissionRequester(onPermissionGranted: () -> Unit): () -> Unit {
         val ctx = LocalContext.current
+        val onGranted = rememberUpdatedState(onPermissionGranted)
         var granted by remember {
             mutableStateOf(
                 ContextCompat.checkSelfPermission(
@@ -48,13 +50,11 @@ class FDroidPermissionHandler @Inject constructor(
         }
 
         LaunchedEffect(granted) {
-            if (granted) {
-                onPermissionGranted()
-            }
+            if (granted) onGranted.value()
         }
 
-        LaunchedEffect(Unit) {
-            if (!granted) {
+        return remember(launcher) {
+            {
                 launcher.launch(
                     arrayOf(
                         Manifest.permission.ACCESS_FINE_LOCATION,

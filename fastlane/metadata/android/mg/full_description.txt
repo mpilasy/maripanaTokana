@@ -1,24 +1,23 @@
-maripànaTokana (= "thermometer tokana" amin'ny malagasy) dia fampiharana toetr'andro iray manondro ny toetry ny andro ankehitriny, ny fipanarahan'ny ora, ary ny fisailanan-toetr'andro 10 andro.
+maripànaTokana dia fampiharana toetr'andro iray milaza ny mombamomba ny toetry ny andro amin'izao fotoana izao, ny vinany ho an'ny ora vitsivitsy manaraka, ary ny vinanin-toetr'andro 10 andro manaraka koa.
 
-<b>Ny mampiavaka:</b>
-• Tarehimarika toetr'andro avy amin'ny Open-Meteo (tsy ilaina ny API key)
-• Fampisehoana marirefy roa: metrika sy mpanjanaka aseho miaraka
+<b>Ny mampiavaka azy:</b>
+• Tarehimarika toetr'andro avy amin'ny Open-Meteo (tsy ilana ny API key)
+• Fampisehoana marirefy roa miaraka: metrika sy mpanjanaka aseho miaraka
 • Teny 8: Malagasy, Arabo, Anglisy, Espaniola, Frantsay, Hindi, Nepali, Sinoa
 • Safidy fonts 22
-• Fampisehoana isa tena izy (Araba, Hindi, Nepali)
-• Fanohanana RTL ho an'ny Arabo
+• Fampisehoana isa arakaraky ny teny (Araba, Hindi, Nepali)
 • Widgets roa amin'ny fidirana (kely sy lehibe)
 • Toeran-gavina miaraka amin'ny vaovao sy lany andro
-• Fanavaozana ho azy rehafa tonga ny vaovao
+• Fanavaozana ho azy ny tarehimarika rehefa tonga ny vaovao
 • Mahavita manao Pull-to-Refresh
 
 <b>Fampahalalana ny toetr'andro:</b>
 • Hamehana miaraka amin'ny izay tsapa sy ambany-ambony
-• Tsindry, rano aman'ny tau-tsiron'rano
+• Tsindry, rano aman'ny taha-tsindron'ny hamadoana
 • Hafanana sy fandehan'ny rivotra miaraka amin'ny tondro
 • Hamafisan'ny UV
 • Ranonorana (rano orana na mandry)
-• Halaviran'ny hita maso
+• Halaviran'izay tazana
 • Oran'ny masoandro miposaka sy masoandro mody
 
 <b>Fitsinjovana ny fiainan'ny tsirairay:</b>

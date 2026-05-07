@@ -17,6 +17,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -71,17 +72,12 @@ fun WeatherScreen(
         }
     }
 
+    val requestPermission = permissionHandler.rememberPermissionRequester {
+        viewModel.fetchWeather()
+    }
     val isPermissionGranted = permissionHandler.isPermissionGranted()
-
-    if (isPermissionGranted) {
-        permissionHandler.RequestPermission {
-            viewModel.fetchWeather()
-        }
-    } else if (uiState is WeatherUiState.PermissionRequired) {
-        // Just triggering the request when needed
-        permissionHandler.RequestPermission {
-            viewModel.fetchWeather()
-        }
+    LaunchedEffect(Unit) {
+        if (!isPermissionGranted) requestPermission()
     }
 
     val showLocationDialog by viewModel.showLocationOverrideDialog.collectAsStateWithLifecycle()
@@ -205,12 +201,7 @@ fun WeatherScreen(
                             )
                         }
                         Spacer(modifier = Modifier.height(24.dp))
-                        Button(onClick = { 
-                            // This button click should trigger permission request via permissionHandler
-                            // We can use a side effect or a local state to trigger it.
-                            // For simplicity, fetchWeather() in standard flavor trigger it via handler.
-                            viewModel.fetchWeather() 
-                        }) {
+                        Button(onClick = { requestPermission() }) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(appGrant)
                                 if (sysGrant != appGrant) {

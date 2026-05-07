@@ -3,6 +3,8 @@ package orinasa.njarasoa.maripanatokana.ui.permission
 import android.Manifest
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import javax.inject.Inject
@@ -21,7 +23,8 @@ class StandardPermissionHandler @Inject constructor() : PermissionHandler {
     }
 
     @Composable
-    override fun RequestPermission(onPermissionGranted: () -> Unit) {
+    override fun rememberPermissionRequester(onPermissionGranted: () -> Unit): () -> Unit {
+        val onGranted = rememberUpdatedState(onPermissionGranted)
         val state = rememberMultiplePermissionsState(
             listOf(
                 Manifest.permission.ACCESS_FINE_LOCATION,
@@ -30,15 +33,9 @@ class StandardPermissionHandler @Inject constructor() : PermissionHandler {
         )
 
         LaunchedEffect(state.allPermissionsGranted) {
-            if (state.allPermissionsGranted) {
-                onPermissionGranted()
-            }
+            if (state.allPermissionsGranted) onGranted.value()
         }
 
-        LaunchedEffect(Unit) {
-            if (!state.allPermissionsGranted) {
-                state.launchMultiplePermissionRequest()
-            }
-        }
+        return remember(state) { { state.launchMultiplePermissionRequest() } }
     }
 }
