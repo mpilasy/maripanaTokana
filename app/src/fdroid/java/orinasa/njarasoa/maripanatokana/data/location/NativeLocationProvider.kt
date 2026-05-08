@@ -5,7 +5,7 @@ import android.content.Context
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
-import android.os.Looper
+import android.os.HandlerThread
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.firstOrNull
@@ -88,6 +88,11 @@ class NativeLocationProvider(
 
     @SuppressLint("MissingPermission")
     private suspend fun requestLocationUpdate(): Location? {
+        // Use a dedicated HandlerThread so location callbacks never run on the main thread.
+        // Running on Looper.getMainLooper() risks jank and ANR if the callback or any
+        // downstream work touches the UI thread while a frame is being rendered.
+        val handlerThread = HandlerThread("LocationRequest").also { it.start() }
+
         val locationFlow = callbackFlow<Location> {
             val locationListener = object : LocationListener {
                 override fun onLocationChanged(location: Location) {
@@ -104,7 +109,7 @@ class NativeLocationProvider(
                 try {
                     if (locationManager.isProviderEnabled(provider)) {
                         locationManager.requestLocationUpdates(
-                            provider, 0L, 0f, locationListener, Looper.getMainLooper()
+                            provider, 0L, 0f, locationListener, handlerThread.looper
                         )
                         registered = true
                     }
@@ -117,7 +122,10 @@ class NativeLocationProvider(
             }
             if (!registered) close()
 
-            awaitClose { locationManager.removeUpdates(locationListener) }
+            awaitClose {
+                locationManager.removeUpdates(locationListener)
+                handlerThread.quitSafely()
+            }
         }
 
         // Wait up to 10s for the first update from any enabled provider. On timeout, fall

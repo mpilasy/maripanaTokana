@@ -32,3 +32,11 @@
 -keep class * implements android.location.LocationListener { *; }
 -keepclassmembers class * implements android.location.LocationListener { *; }
 -keep class orinasa.njarasoa.maripanatokana.data.location.** { *; }
+
+# Kotlin Serialization: the plugin ships rules for serializer() companions, but R8 can still
+# prune fields of @Serializable classes since they are only accessed via generated serializers
+# (reflection-like), not through direct field references in reachable code.
+# Keep all fields and constructors of every @Serializable class in the remote package.
+-keep @kotlinx.serialization.Serializable class orinasa.njarasoa.maripanatokana.data.remote.** { *; }
+# Keep the generated $$serializer classes and their members (descriptor field is critical).
+-keep class orinasa.njarasoa.maripanatokana.data.remote.**$$serializer { *; }
