@@ -19,7 +19,14 @@ Builds:
     gradle:
       - fdroid
 
+  - versionName: 1.0.16
+    versionCode: 17
+    commit: da7a4bd648ca4f3ae07f3786b00c100e8ced5752
+    subdir: app
+    gradle:
+      - fdroid
+
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 1.0.15
-CurrentVersionCode: 16
+CurrentVersion: 1.0.16
+CurrentVersionCode: 17
