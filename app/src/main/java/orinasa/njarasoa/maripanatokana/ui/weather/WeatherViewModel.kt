@@ -10,6 +10,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -362,53 +363,60 @@ class WeatherViewModel @Inject constructor(
     }
 
     private suspend fun doFetch() {
-        kotlinx.coroutines.coroutineScope {
-            // Step 1: try cached location for instant render
-            var usedCached = false
-            var freshWeatherDisplayed = false
+        val completed = withTimeoutOrNull(15_000L) {
+            kotlinx.coroutines.coroutineScope {
+                // Step 1: try cached location for instant render
+                var usedCached = false
+                var freshWeatherDisplayed = false
 
-            launch {
-                locationRepository.getLastLocation().onSuccess { (lat, lon) ->
-                    usedCached = true
-                    saveLocation(lat, lon)
-                    weatherRepository.getWeather(lat, lon).onSuccess { data ->
-                        if (!freshWeatherDisplayed) {
-                            val displayData = data.copy(locationSubtext = null)
-                            prefs.edit().putString("location_name", displayData.locationName).apply()
-                            _uiState.value = WeatherUiState.Success(displayData)
-                            fetchAlertsForData(lat, lon)
+                launch {
+                    locationRepository.getLastLocation().onSuccess { (lat, lon) ->
+                        usedCached = true
+                        saveLocation(lat, lon)
+                        weatherRepository.getWeather(lat, lon).onSuccess { data ->
+                            if (!freshWeatherDisplayed) {
+                                val displayData = data.copy(locationSubtext = null)
+                                prefs.edit().putString("location_name", displayData.locationName).apply()
+                                _uiState.value = WeatherUiState.Success(displayData)
+                                fetchAlertsForData(lat, lon)
+                            }
                         }
                     }
                 }
-            }
 
-            // Step 2: get fresh location, re-fetch if moved significantly
-            launch {
-                locationRepository.getFreshLocation()
-                    .onSuccess { (lat, lon) ->
-                        saveLocation(lat, lon)
-                        if (!usedCached || movedSignificantly(lat, lon)) {
-                            weatherRepository.getWeather(lat, lon)
-                                .onSuccess { data ->
-                                    freshWeatherDisplayed = true
-                                    val displayData = data.copy(locationSubtext = null)
-                                    prefs.edit().putString("location_name", displayData.locationName).apply()
-                                    _uiState.value = WeatherUiState.Success(displayData)
-                                    fetchAlertsForData(lat, lon)
-                                }
-                                .onFailure {
-                                    if (!usedCached) {
-                                        _uiState.value = WeatherUiState.Error(R.string.error_fetch_weather)
+                // Step 2: get fresh location, re-fetch if moved significantly
+                launch {
+                    locationRepository.getFreshLocation()
+                        .onSuccess { (lat, lon) ->
+                            saveLocation(lat, lon)
+                            if (!usedCached || movedSignificantly(lat, lon)) {
+                                weatherRepository.getWeather(lat, lon)
+                                    .onSuccess { data ->
+                                        freshWeatherDisplayed = true
+                                        val displayData = data.copy(locationSubtext = null)
+                                        prefs.edit().putString("location_name", displayData.locationName).apply()
+                                        _uiState.value = WeatherUiState.Success(displayData)
+                                        fetchAlertsForData(lat, lon)
                                     }
-                                }
+                                    .onFailure {
+                                        if (!usedCached) {
+                                            _uiState.value = WeatherUiState.Error(R.string.error_fetch_weather)
+                                        }
+                                    }
+                            }
                         }
-                    }
-                    .onFailure {
-                        if (!usedCached) {
-                            _uiState.value = WeatherUiState.Error(R.string.error_get_location)
+                        .onFailure {
+                            if (!usedCached) {
+                                _uiState.value = WeatherUiState.Error(R.string.error_get_location)
+                            }
                         }
-                    }
+                }
             }
+        }
+        // Safety net: if the entire fetch timed out (provider hung despite internal timeout),
+        // guarantee we exit Loading rather than spinning indefinitely.
+        if (completed == null && _uiState.value is WeatherUiState.Loading) {
+            _uiState.value = WeatherUiState.Error(R.string.error_get_location)
         }
     }
 

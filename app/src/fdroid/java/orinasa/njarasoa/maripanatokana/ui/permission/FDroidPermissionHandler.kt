@@ -24,9 +24,11 @@ class FDroidPermissionHandler @Inject constructor(
     override fun isPermissionGranted(): Boolean {
         val ctx = LocalContext.current
         return ContextCompat.checkSelfPermission(
-            ctx,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
+            ctx, Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(
+                ctx, Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
     }
 
     @Composable
@@ -36,9 +38,11 @@ class FDroidPermissionHandler @Inject constructor(
         var granted by remember {
             mutableStateOf(
                 ContextCompat.checkSelfPermission(
-                    ctx,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                ) == PackageManager.PERMISSION_GRANTED
+                    ctx, Manifest.permission.ACCESS_FINE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED ||
+                    ContextCompat.checkSelfPermission(
+                        ctx, Manifest.permission.ACCESS_COARSE_LOCATION
+                    ) == PackageManager.PERMISSION_GRANTED
             )
         }
 

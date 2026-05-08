@@ -8,13 +8,10 @@ import android.location.LocationManager
 import android.os.Looper
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.withTimeoutOrNull
 
-/**
- * Location provider using Android's built-in LocationManager.
- * F-Droid compatible implementation with no Google Play Services dependency.
- */
 class NativeLocationProvider(
     private val context: Context,
 ) : LocationProvider {
@@ -27,11 +24,9 @@ class NativeLocationProvider(
             val gpsLocation = getLastKnownLocation(LocationManager.GPS_PROVIDER)
             val networkLocation = getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
 
-            // Use most recent location
             val location = when {
-                gpsLocation != null && networkLocation != null -> {
+                gpsLocation != null && networkLocation != null ->
                     if (gpsLocation.time >= networkLocation.time) gpsLocation else networkLocation
-                }
                 gpsLocation != null -> gpsLocation
                 networkLocation != null -> networkLocation
                 else -> null
@@ -72,36 +67,41 @@ class NativeLocationProvider(
             } else {
                 null
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }
 
+    // Returns any stale cached fix from any provider, ignoring whether the provider
+    // is currently enabled. Used as a last-resort fallback when a fresh fix times out.
+    @SuppressLint("MissingPermission")
+    private fun getStaleFallbackLocation(): Location? {
+        val providers = listOf(
+            LocationManager.GPS_PROVIDER,
+            LocationManager.NETWORK_PROVIDER,
+            LocationManager.PASSIVE_PROVIDER,
+        )
+        return providers.mapNotNull { provider ->
+            try { locationManager.getLastKnownLocation(provider) } catch (_: Exception) { null }
+        }.maxByOrNull { it.time }
+    }
+
     @SuppressLint("MissingPermission")
     private suspend fun requestLocationUpdate(): Location? {
-        var bestLocation: Location? = null
-        val providers = listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)
-
         val locationFlow = callbackFlow<Location> {
             val locationListener = object : LocationListener {
                 override fun onLocationChanged(location: Location) {
                     trySend(location)
                 }
-
                 override fun onProviderEnabled(provider: String) {}
                 override fun onProviderDisabled(provider: String) {}
             }
 
             try {
-                for (provider in providers) {
+                for (provider in listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)) {
                     if (locationManager.isProviderEnabled(provider)) {
-                        @Suppress("MissingPermission")
                         locationManager.requestLocationUpdates(
-                            provider,
-                            0L,
-                            0f,
-                            locationListener,
-                            Looper.getMainLooper()
+                            provider, 0L, 0f, locationListener, Looper.getMainLooper()
                         )
                     }
                 }
@@ -109,25 +109,22 @@ class NativeLocationProvider(
                 close(e)
             }
 
-            awaitClose {
-                locationManager.removeUpdates(locationListener)
-            }
+            awaitClose { locationManager.removeUpdates(locationListener) }
         }
 
-        try {
-            withTimeoutOrNull(30_000L) {
-                locationFlow.take(2).collect { location ->
-                    if (bestLocation == null || location.accuracy < bestLocation!!.accuracy) {
-                        bestLocation = location
-                    }
-                }
+        // Wait up to 10s for the first update from any enabled provider. On timeout, fall
+        // back to any stale cached fix rather than returning null immediately — a device may
+        // have an old fix even when no live provider is firing (e.g. emulator, airplane mode).
+        val liveLocation = try {
+            withTimeoutOrNull(10_000L) {
+                locationFlow.take(1).firstOrNull()
             }
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
-        } catch (e: Exception) {
-            // Flow might be closed
+        } catch (_: Exception) {
+            null
         }
 
-        return bestLocation
+        return liveLocation ?: getStaleFallbackLocation()
     }
 }

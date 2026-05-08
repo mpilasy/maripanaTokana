@@ -27,3 +27,8 @@
 
 # WorkManager: uses Room internally for WorkDatabase
 -keep class androidx.work.impl.** { *; }
+
+# Location callbacks used by NativeLocationProvider (F-Droid flavor, no Play Services)
+-keep class * implements android.location.LocationListener { *; }
+-keepclassmembers class * implements android.location.LocationListener { *; }
+-keep class orinasa.njarasoa.maripanatokana.data.location.** { *; }
