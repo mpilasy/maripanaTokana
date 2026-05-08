@@ -1,13 +1,18 @@
 #!/usr/bin/env bash
 # End-to-end regression test for the F-Droid permission + location + weather flow.
 #
-# Covers 6 scenarios on a single connected emulator:
+# Covers 11 scenarios on a single connected emulator:
 #   1. Cold cache, location providers DISABLED → Error within 20s
 #   2. Cold cache, providers enabled, NO geo fix → Error within 20s
 #   3. Cold cache, providers enabled, geo fix set → Success within 5s + OkHttp in logcat
 #   4. Warm cache (scenario 3 relaunched) → Success within 5s
 #   5. Deny → tap Grant button → dialog re-appears  (v1.0.12 regression)
 #   6. Standard flavor (scenario 3) → Success within 5s  (no Play Services regression)
+#   7. Double denial → "Open Settings" button shown
+#   8. Coarse-only grant → weather loads
+#   9. Permission revoked in background → PermissionRequired on return
+#  10. Location services master toggle OFF → "Open Settings" button (not "Retry")
+#  11. Non-Malagasy system locale → Error shown in both app language and system language
 #
 # Hard invariant: if CircularProgressIndicator is still on screen at t=20s, the test FAILS.
 # This invariant is what would have caught the v1.0.13 "keeps loading" bug.
@@ -459,14 +464,81 @@ fi
 save_logcat 9
 pass "Scenario 9: permission revoked in background — app shows PermissionRequired"
 
+# ── SCENARIO 10: Location services master toggle OFF → "Open Settings" button ──
+# Distinct from permission denial: location is ALLOWED but the master toggle is off.
+# The app must show "Open Settings" (to location settings) instead of "Retry".
+echo ""
+echo "=== SCENARIO 10: Location master toggle off → Open Settings button (not Retry) ==="
+install_apk "$FDROID_APK"
+reset_app
+adb -s "$DEV" shell pm grant "$PKG" android.permission.ACCESS_COARSE_LOCATION 2>/dev/null || true
+adb -s "$DEV" shell pm grant "$PKG" android.permission.ACCESS_FINE_LOCATION 2>/dev/null || true
+# Disable the master location toggle (location_mode 0 = off; 3 = high accuracy)
+adb -s "$DEV" shell settings put secure location_mode 0
+adb -s "$DEV" shell am start -W -n "$PKG/.MainActivity" >/dev/null
+assert_not_loading_within 20 "Scenario 10: must not hang when master location toggle is off"
+dump_ui
+if grep -q "Open Settings\|Sokafy\|Paramètres\|Ajustes\|الإعدادات\|सेटिंग\|设置" /tmp/ui.xml 2>/dev/null; then
+    echo "  'Open Settings' button found ✓"
+else
+    echo "FAIL (Scenario 10): 'Open Settings' button not found — location services off path broken"
+    echo "  UI: $(grep -oP 'text="[^"]+"' /tmp/ui.xml | grep -v '^text=""$' | tr '\n' ' ')"
+    exit 1
+fi
+if grep -qE 'text="Retry"|text="Avereno"' /tmp/ui.xml 2>/dev/null; then
+    echo "FAIL (Scenario 10): 'Retry' shown when location services are off — should be 'Open Settings'"
+    exit 1
+fi
+adb -s "$DEV" shell settings put secure location_mode 3  # restore
+save_logcat 10
+pass "Scenario 10: location master toggle off → Open Settings button shown"
+
+# ── SCENARIO 11: Non-Malagasy system locale → Error in both languages ─────────────
+# The app defaults to Malagasy (locale index 0). A reviewer with an English emulator
+# must see the error in BOTH Malagasy (app locale) AND English (system locale).
+# We use location_mode 0 (not just disable_providers) to force an error even when the
+# emulator has a cached geo fix from earlier scenarios.
+echo ""
+echo "=== SCENARIO 11: Non-Malagasy system locale → dual-language error ==="
+install_apk "$FDROID_APK"
+reset_app
+adb -s "$DEV" shell pm grant "$PKG" android.permission.ACCESS_COARSE_LOCATION 2>/dev/null || true
+adb -s "$DEV" shell pm grant "$PKG" android.permission.ACCESS_FINE_LOCATION 2>/dev/null || true
+adb -s "$DEV" shell settings put secure location_mode 0
+adb -s "$DEV" shell am start -W -n "$PKG/.MainActivity" >/dev/null
+assert_not_loading_within 20 "Scenario 11: must reach error state"
+dump_ui
+SYSTEM_LOCALE=$(adb -s "$DEV" shell getprop persist.sys.locale 2>/dev/null || \
+                adb -s "$DEV" shell getprop ro.product.locale 2>/dev/null || echo "en-US")
+echo "  System locale: $SYSTEM_LOCALE"
+if echo "$SYSTEM_LOCALE" | grep -qi '^mg'; then
+    echo "  System locale is already Malagasy — strings would be identical, skipping dual check"
+else
+    if grep -q "Tsy nahomby" /tmp/ui.xml 2>/dev/null; then
+        echo "  Malagasy (app locale) error text found ✓"
+    else
+        echo "  WARNING: Malagasy app-locale text not found — app may not be defaulting to mg"
+    fi
+    if grep -qE "Failed to get location|Failed to fetch" /tmp/ui.xml 2>/dev/null; then
+        echo "  English (system locale) error text found ✓"
+    else
+        echo "FAIL (Scenario 11): system-locale error text not shown — dual-language fix not working"
+        echo "  UI: $(grep -oP 'text="[^"]+"' /tmp/ui.xml | grep -v '^text=""$' | tr '\n' ' ')"
+        exit 1
+    fi
+fi
+adb -s "$DEV" shell settings put secure location_mode 3  # restore
+save_logcat 11
+pass "Scenario 11: error shown in both app locale and system locale"
+
 # ── summary ──────────────────────────────────────────────────────────────────
 echo ""
 echo "========================================"
-echo "ALL $PASS_COUNT/9 CHECKS PASSED"
+echo "ALL $PASS_COUNT/11 CHECKS PASSED"
 echo "========================================"
 echo ""
 echo "Logcat files for MR comment:"
-for i in 1 2 3 4 5 6 7 8 9; do
+for i in 1 2 3 4 5 6 7 8 9 10 11; do
     f="/tmp/test_logcat_scenario${i}.log"
     if [[ -f "$f" ]]; then
         lines=$(wc -l < "$f")

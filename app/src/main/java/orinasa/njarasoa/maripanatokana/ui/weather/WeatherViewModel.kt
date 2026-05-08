@@ -92,6 +92,7 @@ class WeatherViewModel @Inject constructor(
     private val _searchResults = MutableStateFlow<List<GeocodingResult>>(emptyList())
     val searchResults: StateFlow<List<GeocodingResult>> = _searchResults.asStateFlow()
 
+    private var fetchJob: Job? = null
     private var searchJob: Job? = null
 
     // Cached GPS weather data fetched in background during dev mode
@@ -289,7 +290,8 @@ class WeatherViewModel @Inject constructor(
     }
 
     fun fetchWeather() {
-        viewModelScope.launch {
+        fetchJob?.cancel()
+        fetchJob = viewModelScope.launch {
             // Only show loading if we don't already have data
             if (_uiState.value !is WeatherUiState.Success) {
                 _uiState.value = WeatherUiState.Loading
@@ -328,7 +330,8 @@ class WeatherViewModel @Inject constructor(
     }
 
     fun refresh() {
-        viewModelScope.launch {
+        fetchJob?.cancel()
+        fetchJob = viewModelScope.launch {
             _isRefreshing.value = true
 
             if (_devModeActive.value && !checkDevModeExpiration()) {

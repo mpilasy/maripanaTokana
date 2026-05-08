@@ -3,7 +3,9 @@ package orinasa.njarasoa.maripanatokana.ui.weather
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.LocationManager
 import android.net.Uri
+import android.os.Build
 import android.provider.Settings
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -108,6 +110,7 @@ fun WeatherScreen(
         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
             if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
                 viewModel.refreshIfStale()
+                if (viewModel.uiState.value is WeatherUiState.Error) viewModel.fetchWeather()
                 val fineGranted = ContextCompat.checkSelfPermission(
                     baseContext, Manifest.permission.ACCESS_FINE_LOCATION
                 ) == PackageManager.PERMISSION_GRANTED
@@ -286,6 +289,25 @@ fun WeatherScreen(
                 }
 
                 is WeatherUiState.Error -> {
+                    val systemContext = remember(baseContext, currentConfig) {
+                        val cfg = android.content.res.Configuration(currentConfig)
+                        cfg.setLocale(java.util.Locale.getDefault())
+                        baseContext.createConfigurationContext(cfg)
+                    }
+                    val sysTitle = systemContext.getString(R.string.error_title)
+                    val sysMessage = systemContext.getString(state.messageResId)
+                    val appTitle = stringResource(R.string.error_title)
+                    val appMessage = stringResource(state.messageResId)
+
+                    val lm = baseContext.getSystemService(android.content.Context.LOCATION_SERVICE) as LocationManager
+                    val locationServicesOff = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        !lm.isLocationEnabled
+                    } else {
+                        !lm.isProviderEnabled(LocationManager.GPS_PROVIDER) &&
+                        !lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+                    }
+
+                    val ctx = LocalContext.current
                     Column(
                         modifier = Modifier
                             .align(Alignment.Center)
@@ -293,20 +315,56 @@ fun WeatherScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = stringResource(R.string.error_title),
+                            text = appTitle,
                             style = MaterialTheme.typography.titleLarge,
                             color = Color.White,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
                         )
+                        if (sysTitle != appTitle) {
+                            Text(
+                                text = sysTitle,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.White.copy(alpha = 0.5f),
+                                textAlign = TextAlign.Center,
+                            )
+                        }
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = stringResource(state.messageResId),
+                            text = appMessage,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = Color.White.copy(alpha = 0.7f)
+                            color = Color.White.copy(alpha = 0.7f),
+                            textAlign = TextAlign.Center,
                         )
+                        if (sysMessage != appMessage) {
+                            Text(
+                                text = sysMessage,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.White.copy(alpha = 0.5f),
+                                textAlign = TextAlign.Center,
+                            )
+                        }
                         Spacer(modifier = Modifier.height(24.dp))
-                        Button(onClick = { viewModel.fetchWeather() }) {
-                            Text(stringResource(R.string.error_retry))
+                        if (locationServicesOff) {
+                            val sysOpenSettings = systemContext.getString(R.string.open_settings)
+                            val appOpenSettings = stringResource(R.string.open_settings)
+                            Button(onClick = {
+                                ctx.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                            }) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(appOpenSettings)
+                                    if (sysOpenSettings != appOpenSettings) {
+                                        Text(
+                                            text = sysOpenSettings,
+                                            style = MaterialTheme.typography.labelSmall,
+                                        )
+                                    }
+                                }
+                            }
+                        } else {
+                            Button(onClick = { viewModel.fetchWeather() }) {
+                                Text(stringResource(R.string.error_retry))
+                            }
                         }
                     }
                 }

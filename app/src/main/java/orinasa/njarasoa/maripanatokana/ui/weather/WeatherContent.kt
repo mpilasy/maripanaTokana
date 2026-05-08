@@ -577,7 +577,7 @@ internal fun WeatherContent(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(text = creditText, fontSize = 9f.s(scale), lineHeight = 11f.s(scale))
                     Text(
-                        text = "${stringResource(R.string.hash_version, BuildConfig.GIT_HASH)}${if (BuildConfig.DEBUG) "-d" else ""} \u2022 ${BuildConfig.BUILD_TIME}",
+                        text = "v${BuildConfig.VERSION_NAME} \u2022 ${stringResource(R.string.hash_version, BuildConfig.GIT_HASH)}${if (BuildConfig.DEBUG) "-d" else ""} \u2022 ${BuildConfig.BUILD_TIME}",
                         fontSize = 9f.s(scale),
                         lineHeight = 11f.s(scale),
                         color = Color.White.copy(alpha = 0.25f),
