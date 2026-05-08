@@ -33,6 +33,8 @@
 	"permission_title": "需要位置权限",
 	"permission_message": "此应用需要位置权限以显示您所在地区的天气。",
 	"grant_permission": "授予权限",
+	"permission_permanently_denied": "位置访问已被永久拒绝。请在设置中启用。",
+	"open_settings": "打开设置",
 	"error_title": "错误",
 	"error_retry": "重试",
 	"error_fetch_weather": "获取天气失败",

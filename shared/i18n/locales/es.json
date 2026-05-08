@@ -33,6 +33,8 @@
 	"permission_title": "Permiso de ubicacion requerido",
 	"permission_message": "Esta aplicacion necesita acceso a la ubicacion para mostrar el clima de tu zona.",
 	"grant_permission": "Conceder permiso",
+	"permission_permanently_denied": "El acceso a la ubicación fue denegado permanentemente. Actívalo en Ajustes.",
+	"open_settings": "Abrir Ajustes",
 	"error_title": "Error",
 	"error_retry": "Reintentar",
 	"error_fetch_weather": "No se pudo obtener el clima",

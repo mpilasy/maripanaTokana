@@ -33,6 +33,8 @@
     <string name="permission_title">需要位置权限</string>
     <string name="permission_message">此应用需要位置权限以显示您所在地区的天气。</string>
     <string name="grant_permission">授予权限</string>
+    <string name="permission_permanently_denied">位置访问已被永久拒绝。请在设置中启用。</string>
+    <string name="open_settings">打开设置</string>
     <string name="error_title">错误</string>
     <string name="error_retry">重试</string>
     <string name="error_fetch_weather">获取天气失败</string>

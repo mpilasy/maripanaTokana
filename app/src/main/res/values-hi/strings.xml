@@ -33,6 +33,8 @@
     <string name="permission_title">स्थान अनुमति आवश्यक</string>
     <string name="permission_message">इस ऐप को आपके क्षेत्र का मौसम दिखाने के लिए स्थान की अनुमति चाहिए।</string>
     <string name="grant_permission">अनुमति दें</string>
+    <string name="permission_permanently_denied">स्थान की अनुमति स्थायी रूप से अस्वीकार की गई। कृपया सेटिंग में सक्षम करें।</string>
+    <string name="open_settings">सेटिंग खोलें</string>
     <string name="error_title">त्रुटि</string>
     <string name="error_retry">पुनः प्रयास</string>
     <string name="error_fetch_weather">मौसम प्राप्त करने में विफल</string>

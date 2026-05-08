@@ -7,6 +7,13 @@ interface PermissionHandler {
     fun isPermissionGranted(): Boolean
 
     /**
+     * Returns true when the user has denied location permission enough times that the system
+     * will no longer show the dialog. The UI should show an "Open Settings" path instead.
+     */
+    @Composable
+    fun isPermissionPermanentlyDenied(): Boolean
+
+    /**
      * Composes the state needed to request location permission.
      *
      * @param onPermissionGranted invoked whenever permission transitions to granted.

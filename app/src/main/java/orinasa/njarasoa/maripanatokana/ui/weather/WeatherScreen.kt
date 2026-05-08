@@ -1,5 +1,10 @@
 package orinasa.njarasoa.maripanatokana.ui.weather
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.provider.Settings
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -34,6 +39,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import orinasa.njarasoa.maripanatokana.R
@@ -76,8 +82,10 @@ fun WeatherScreen(
         viewModel.fetchWeather()
     }
     val isPermissionGranted = permissionHandler.isPermissionGranted()
+    val isPermanentlyDenied = permissionHandler.isPermissionPermanentlyDenied()
     LaunchedEffect(Unit) {
-        if (!isPermissionGranted) requestPermission()
+        // Auto-request the dialog on first composition only if the dialog can still be shown.
+        if (!isPermissionGranted && !isPermanentlyDenied) requestPermission()
     }
 
     val showLocationDialog by viewModel.showLocationOverrideDialog.collectAsStateWithLifecycle()
@@ -94,12 +102,21 @@ fun WeatherScreen(
         )
     }
 
-    // Refresh when app comes to foreground if data is >30 min old
+    // On resume: refresh stale data AND detect if the user revoked location in Settings.
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
             if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
                 viewModel.refreshIfStale()
+                val fineGranted = ContextCompat.checkSelfPermission(
+                    baseContext, Manifest.permission.ACCESS_FINE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+                val coarseGranted = ContextCompat.checkSelfPermission(
+                    baseContext, Manifest.permission.ACCESS_COARSE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+                if (!fineGranted && !coarseGranted) {
+                    viewModel.onPermissionRevoked()
+                }
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -156,11 +173,23 @@ fun WeatherScreen(
                         baseContext.createConfigurationContext(cfg)
                     }
                     val sysTitle = systemContext.getString(R.string.permission_title)
-                    val sysMessage = systemContext.getString(R.string.permission_message)
-                    val sysGrant = systemContext.getString(R.string.grant_permission)
+                    val sysMessage = if (isPermanentlyDenied)
+                        systemContext.getString(R.string.permission_permanently_denied)
+                    else
+                        systemContext.getString(R.string.permission_message)
+                    val sysButton = if (isPermanentlyDenied)
+                        systemContext.getString(R.string.open_settings)
+                    else
+                        systemContext.getString(R.string.grant_permission)
                     val appTitle = stringResource(R.string.permission_title)
-                    val appMessage = stringResource(R.string.permission_message)
-                    val appGrant = stringResource(R.string.grant_permission)
+                    val appMessage = if (isPermanentlyDenied)
+                        stringResource(R.string.permission_permanently_denied)
+                    else
+                        stringResource(R.string.permission_message)
+                    val appButton = if (isPermanentlyDenied)
+                        stringResource(R.string.open_settings)
+                    else
+                        stringResource(R.string.grant_permission)
 
                     Column(
                         modifier = Modifier
@@ -201,12 +230,22 @@ fun WeatherScreen(
                             )
                         }
                         Spacer(modifier = Modifier.height(24.dp))
-                        Button(onClick = { requestPermission() }) {
+                        val ctx = LocalContext.current
+                        Button(onClick = {
+                            if (isPermanentlyDenied) {
+                                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                    data = Uri.fromParts("package", ctx.packageName, null)
+                                }
+                                ctx.startActivity(intent)
+                            } else {
+                                requestPermission()
+                            }
+                        }) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(appGrant)
-                                if (sysGrant != appGrant) {
+                                Text(appButton)
+                                if (sysButton != appButton) {
                                     Text(
-                                        text = sysGrant,
+                                        text = sysButton,
                                         style = MaterialTheme.typography.labelSmall,
                                     )
                                 }

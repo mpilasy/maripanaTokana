@@ -97,17 +97,25 @@ class NativeLocationProvider(
                 override fun onProviderDisabled(provider: String) {}
             }
 
-            try {
-                for (provider in listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)) {
+            // Register each provider independently: a SecurityException on GPS (e.g. when only
+            // ACCESS_COARSE_LOCATION is granted) must not prevent registration on NETWORK.
+            var registered = false
+            for (provider in listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)) {
+                try {
                     if (locationManager.isProviderEnabled(provider)) {
                         locationManager.requestLocationUpdates(
                             provider, 0L, 0f, locationListener, Looper.getMainLooper()
                         )
+                        registered = true
                     }
+                } catch (_: SecurityException) {
+                    // Provider requires a permission we don't have; try the next one
+                } catch (e: Exception) {
+                    close(e)
+                    return@callbackFlow
                 }
-            } catch (e: Exception) {
-                close(e)
             }
+            if (!registered) close()
 
             awaitClose { locationManager.removeUpdates(locationListener) }
         }

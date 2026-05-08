@@ -33,6 +33,8 @@
     <string name="permission_title">إذن الموقع مطلوب</string>
     <string name="permission_message">يحتاج هذا التطبيق إلى الوصول إلى الموقع لعرض حالة الطقس في منطقتك.</string>
     <string name="grant_permission">منح الإذن</string>
+    <string name="permission_permanently_denied">تم رفض إذن الموقع نهائياً. يرجى تفعيله في الإعدادات.</string>
+    <string name="open_settings">فتح الإعدادات</string>
     <string name="error_title">خطأ</string>
     <string name="error_retry">إعادة المحاولة</string>
     <string name="error_fetch_weather">فشل في جلب بيانات الطقس</string>

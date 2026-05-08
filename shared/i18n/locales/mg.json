@@ -33,6 +33,8 @@
 	"permission_title": "Mila avela maka GPS",
 	"permission_message": "Mila mahalala ny toerana misy anao mba hahalalana ny toetrandro.",
 	"grant_permission": "Ekena",
+	"permission_permanently_denied": "Nolavina tanteraka ny fahazoan-dalana maka GPS. Sokafy ny Paramètres mba amela azy.",
+	"open_settings": "Sokafy ny Paramètres",
 	"error_title": "Nisy olana",
 	"error_retry": "Andramo indray",
 	"error_fetch_weather": "Tsy nahomby ny fakana ny toetrandro",

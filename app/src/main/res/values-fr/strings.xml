@@ -33,6 +33,8 @@
     <string name="permission_title">Autorisation de localisation requise</string>
     <string name="permission_message">Cette application a besoin de la localisation pour afficher la météo de votre zone.</string>
     <string name="grant_permission">Autoriser</string>
+    <string name="permission_permanently_denied">L\'accès à la localisation a été refusé définitivement. Activez-le dans les Paramètres.</string>
+    <string name="open_settings">Ouvrir les Paramètres</string>
     <string name="error_title">Erreur</string>
     <string name="error_retry">Réessayer</string>
     <string name="error_fetch_weather">Échec de récupération de la météo</string>

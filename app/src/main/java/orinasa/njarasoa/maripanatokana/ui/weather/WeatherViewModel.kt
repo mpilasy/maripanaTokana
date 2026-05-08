@@ -282,6 +282,12 @@ class WeatherViewModel @Inject constructor(
         }
     }
 
+    fun onPermissionRevoked() {
+        if (_uiState.value is WeatherUiState.Success) {
+            _uiState.value = WeatherUiState.PermissionRequired
+        }
+    }
+
     fun fetchWeather() {
         viewModelScope.launch {
             // Only show loading if we don't already have data
