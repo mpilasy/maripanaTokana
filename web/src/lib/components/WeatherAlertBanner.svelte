@@ -1,3 +1,7 @@
+<script module lang="ts">
+	let idCounter = 0;
+</script>
+
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import type { WeatherAlert } from '$lib/domain/weatherData';
@@ -11,6 +15,7 @@
 
 	let { alerts }: Props = $props();
 	let isExpanded = $state(false);
+	let contentId = `alert-content-${idCounter++}`;
 
 	// Determine the most severe level present
 	let levels = $derived(alerts.map(a => a.level));
@@ -32,9 +37,13 @@
 
 {#if alerts.length > 0 && topAlert}
 	<div class="alert-banner" class:watch={topLevel === 'watch'} class:warning={topLevel === 'warning' || topLevel === 'emergency'}>
-		<!-- svelte-ignore a11y_click_events_have_key_events -->
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="banner-header" onclick={() => isExpanded = !isExpanded}>
+		<button
+			type="button"
+			class="banner-header"
+			onclick={() => isExpanded = !isExpanded}
+			aria-expanded={isExpanded}
+			aria-controls={contentId}
+		>
 			<div class="icon-text">
 				<span class="alert-icon">
 					{#if topLevel === 'watch'}
@@ -53,10 +62,10 @@
 			</div>
 			<span class="spacer"></span>
 			<span class="chevron" class:expanded={isExpanded}>&#9660;</span>
-		</div>
+		</button>
 
 		{#if isExpanded}
-			<div class="alert-details" transition:slide={{ duration: 300 }}>
+			<div id={contentId} class="alert-details" transition:slide={{ duration: 300 }}>
 				{#each alerts as alert, index}
 					<div class="alert-item">
 						<div class="item-title-row">
@@ -123,6 +132,18 @@
 		gap: 12px;
 		cursor: pointer;
 		user-select: none;
+		border: none;
+		background: transparent;
+		font: inherit;
+		color: inherit;
+		width: 100%;
+		text-align: left;
+		box-sizing: border-box;
+	}
+
+	.banner-header:focus-visible {
+		outline: 2px solid rgba(255, 255, 255, 0.5);
+		outline-offset: -2px;
 	}
 
 	.icon-text {
