@@ -131,8 +131,25 @@ class WeatherRepositoryImpl @Inject constructor(
             val weatherResponse = weatherDeferred.await()
             val weatherData = weatherResponse.toDomain("temp", null) // location name doesn't matter for alerts
 
-            val combinedAlerts = (nwsAlerts + gdacsAlerts + weatherData.alerts)
-                .distinctBy { it.titleKey + it.source }
+            // Optimize: Avoid intermediate lists from `+` and LinkedHashMap from `distinctBy`
+            val combinedAlerts = ArrayList<WeatherAlert>(nwsAlerts.size + gdacsAlerts.size + weatherData.alerts.size)
+            val seenKeys = HashSet<String>()
+
+            for (alert in nwsAlerts) {
+                if (seenKeys.add(alert.titleKey + alert.source)) {
+                    combinedAlerts.add(alert)
+                }
+            }
+            for (alert in gdacsAlerts) {
+                if (seenKeys.add(alert.titleKey + alert.source)) {
+                    combinedAlerts.add(alert)
+                }
+            }
+            for (alert in weatherData.alerts) {
+                if (seenKeys.add(alert.titleKey + alert.source)) {
+                    combinedAlerts.add(alert)
+                }
+            }
             
             Result.success(combinedAlerts)
         } catch (e: Exception) {
