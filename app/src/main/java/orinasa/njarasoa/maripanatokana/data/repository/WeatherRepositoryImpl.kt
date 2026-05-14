@@ -99,10 +99,10 @@ class WeatherRepositoryImpl @Inject constructor(
             val gdacsDeferred = async {
                 try {
                     val toDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
-                    val fromDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000))
+                    val fromDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(System.currentTimeMillis() - GDACS_SEARCH_DAYS * 24 * 60 * 60 * 1000L))
                     val gdacsParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
                     gdacsApiService.searchEvents(fromDate, toDate).features
-                        .filter { f -> calculateDistance(lat, lon, f.geometry.coordinates[1], f.geometry.coordinates[0]) < 500 }
+                        .filter { f -> calculateDistance(lat, lon, f.geometry.coordinates[1], f.geometry.coordinates[0]) < GDACS_SEARCH_RADIUS_KM }
                         .map { f ->
                             val p = f.properties
                             val level = when (p.alertlevel) {
@@ -141,7 +141,7 @@ class WeatherRepositoryImpl @Inject constructor(
     }
 
     private fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
-        val r = 6371.0 // km
+        val r = EARTH_RADIUS_KM
         val dLat = Math.toRadians(lat2 - lat1)
         val dLon = Math.toRadians(lon2 - lon1)
         val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
@@ -149,5 +149,11 @@ class WeatherRepositoryImpl @Inject constructor(
                 Math.sin(dLon / 2) * Math.sin(dLon / 2)
         val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
         return r * c
+    }
+
+    companion object {
+        private const val EARTH_RADIUS_KM = 6371.0
+        private const val GDACS_SEARCH_RADIUS_KM = 500
+        private const val GDACS_SEARCH_DAYS = 7
     }
 }

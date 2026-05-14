@@ -1,6 +1,10 @@
 import type { NwsAlertResponse, GdacsAlertResponse } from './externalAlertsTypes';
 import type { WeatherAlert, AlertLevel } from '../domain/weatherData';
 
+const GDACS_SEARCH_RADIUS_KM = 500;
+const GDACS_SEARCH_DAYS = 7;
+const EARTH_RADIUS_KM = 6371;
+
 const USER_AGENT = 'maripanaTokana (contact@orinasa.mg)';
 
 export async function fetchNwsAlerts(lat: number, lon: number): Promise<WeatherAlert[]> {
@@ -36,15 +40,15 @@ export async function fetchGdacsAlerts(lat: number, lon: number): Promise<Weathe
 	try {
 		// Fetch alerts from the last 7 days
 		const toDate = new Date().toISOString().split('T')[0];
-		const fromDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+		const fromDate = new Date(Date.now() - GDACS_SEARCH_DAYS * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 		
 		const res = await fetch(`https://www.gdacs.org/gdacsapi/api/events/geteventlist/SEARCH?fromdate=${fromDate}&todate=${toDate}&alertlevel=green;orange;red`);
 		if (!res.ok) return [];
 		const data: GdacsAlertResponse = await res.json();
 		
-		// Filter by distance (radius 500km)
+		// Filter by distance
 		return data.features
-			.filter(f => calculateDistance(lat, lon, f.geometry.coordinates[1], f.geometry.coordinates[0]) < 500)
+			.filter(f => calculateDistance(lat, lon, f.geometry.coordinates[1], f.geometry.coordinates[0]) < GDACS_SEARCH_RADIUS_KM)
 			.map(f => {
 				const p = f.properties;
 				const level: AlertLevel = p.alertlevel === 'red' ? 'emergency' : p.alertlevel === 'orange' ? 'warning' : 'watch';
@@ -64,7 +68,7 @@ export async function fetchGdacsAlerts(lat: number, lon: number): Promise<Weathe
 }
 
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-	const R = 6371; // km
+	const R = EARTH_RADIUS_KM;
 	const dLat = (lat2 - lat1) * Math.PI / 180;
 	const dLon = (lon2 - lon1) * Math.PI / 180;
 	const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
