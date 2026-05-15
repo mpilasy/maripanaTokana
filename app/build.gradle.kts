@@ -19,23 +19,27 @@ val keystoreProperties = Properties().apply {
 
 
 kotlin {
-    jvmToolchain(21)
 }
 
 android {
+    defaultConfig {
+        buildConfigField("String", "GIT_HASH", "\"dummy\"")
+    }
     namespace = "orinasa.njarasoa.maripanatokana"
     compileSdk {
         version = release(36)
     }
 
-    if (keystorePropertiesFile.exists()) {
-        signingConfigs {
-            create("release") {
-                storeFile = rootProject.file(keystoreProperties.getProperty("storeFile"))
-                storePassword = keystoreProperties.getProperty("storePassword")
-                keyAlias = keystoreProperties.getProperty("keyAlias")
-                keyPassword = keystoreProperties.getProperty("keyPassword")
+    signingConfigs {
+        create("release") {
+            storeFile = if (System.getenv("KEYSTORE_FILE") != null) {
+                file(System.getenv("KEYSTORE_FILE"))
+            } else {
+                rootProject.file(keystoreProperties.getProperty("storeFile", "release.keystore"))
             }
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: keystoreProperties.getProperty("storePassword")
+            keyAlias = System.getenv("KEY_ALIAS") ?: keystoreProperties.getProperty("keyAlias")
+            keyPassword = System.getenv("KEY_PASSWORD") ?: keystoreProperties.getProperty("keyPassword")
         }
     }
 
@@ -77,8 +81,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
     buildFeatures {
         compose = true
@@ -86,7 +90,6 @@ android {
     }
     defaultConfig {
         val gitHash = providers.exec { commandLine("git", "rev-parse", "--short", "HEAD") }.standardOutput.asText.get().trim()
-        buildConfigField("String", "GIT_HASH", "\"$gitHash\"")
     }
 }
 
