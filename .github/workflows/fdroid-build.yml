@@ -49,13 +49,14 @@ jobs:
         run: |
           set -e
           
-          # 1. Locate APK
+          # 1. Locate APK (handle signed and unsigned)
           echo "Finding built APK..."
           APK_PATH=$(find app/build/outputs/apk/fdroid/release -name "*.apk" | head -n 1)
           if [ -z "$APK_PATH" ]; then
             echo "Error: F-Droid release APK not found"
             exit 1
           fi
+          echo "Found APK: $APK_PATH"
           
           # 2. Rename APK for stability
           RENAMED_APK="app/build/outputs/apk/fdroid/release/maripanaTokana-${{ github.ref_name }}-fdroid.apk"
@@ -65,7 +66,8 @@ jobs:
           # 3. Extract Version Info
           V_NAME=$(grep "versionName =" app/build.gradle.kts | head -n 1 | awk -F'"' '{print $2}')
           V_CODE=$(grep "versionCode =" app/build.gradle.kts | head -n 1 | sed 's/.*= \(.*\)/\1/' | tr -d '[:space:]')
-          echo "Extracted: $V_NAME ($V_CODE)"
+          COMMIT_HASH=$(git rev-parse HEAD)
+          echo "Extracted: $V_NAME ($V_CODE) at $COMMIT_HASH"
           
           # 4. Get Hash
           HASH=$(sha256sum "$RENAMED_APK" | awk '{print $1}')
@@ -76,8 +78,8 @@ jobs:
           APK_URL="https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/maripanaTokana-${{ github.ref_name }}-fdroid.apk"
           APP_ID="orinasa.njarasoa.maripanatokana"
           
-          # 6. Update Local Metadata (using pre-calculated hash)
-          python3 scripts/update_metadata.py "$V_NAME" "$V_CODE" "$APK_URL" "$HASH" "metadata/$APP_ID.yml"
+          # 6. Update Local Metadata
+          python3 scripts/update_metadata.py "$V_NAME" "$V_CODE" "$APK_URL" "$HASH" "$COMMIT_HASH" "metadata/$APP_ID.yml"
           
           # 7. Git Setup
           git config --global user.name "github-actions[bot]"
@@ -89,7 +91,6 @@ jobs:
             git commit -m "Update F-Droid metadata for ${{ github.ref_name }} [skip ci]"
             git pull --rebase origin main
             git push origin HEAD:main
-            echo "Successfully pushed to GitHub main branch."
           else
             echo "No changes to metadata on GitHub."
           fi
