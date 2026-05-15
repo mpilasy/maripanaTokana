@@ -42,39 +42,45 @@ jobs:
       - name: Build F-Droid flavor (Release)
         run: ./gradlew assembleFdroidRelease
 
-      - name: Rename Release APK
+      - name: Locate and Rename APK
         if: startsWith(github.ref, 'refs/tags/')
         run: |
-          mv app/build/outputs/apk/fdroid/release/app-fdroid-release.apk app/build/outputs/apk/fdroid/release/maripanaTokana-${{ github.ref_name }}-fdroid.apk
+          set -e
+          echo "Listing all built APKs:"
+          find app/build/outputs/apk -name "*.apk"
+          APK_PATH=$(find app/build/outputs/apk/fdroid/release -name "*.apk" | head -n 1)
+          if [ -z "$APK_PATH" ]; then
+            echo "Error: Could not find F-Droid release APK"
+            exit 1
+          fi
+          NEW_NAME="app/build/outputs/apk/fdroid/release/maripanaTokana-${{ github.ref_name }}-fdroid.apk"
+          mv "$APK_PATH" "$NEW_NAME"
+          echo "RENAMED_APK=$NEW_NAME" >> $GITHUB_ENV
 
       - name: Update and Push Metadata
         if: startsWith(github.ref, 'refs/tags/')
         env:
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
+          set -e
           # 1. Extract Version Info
           V_NAME=$(grep "versionName =" app/build.gradle.kts | head -n 1 | awk -F'"' '{print $2}')
           V_CODE=$(grep "versionCode =" app/build.gradle.kts | head -n 1 | sed 's/.*= \(.*\)/\1/')
-          echo "Processing version: $V_NAME ($V_CODE)"
-          
-          # 2. Paths
           APK_URL="https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/maripanaTokana-${{ github.ref_name }}-fdroid.apk"
-          APK_PATH="app/build/outputs/apk/fdroid/release/maripanaTokana-${{ github.ref_name }}-fdroid.apk"
           APP_ID="orinasa.njarasoa.maripanatokana"
           
-          # 3. Get Hash
-          HASH=$(sha256sum "$APK_PATH" | awk '{print $1}')
+          # 2. Get Hash
+          HASH=$(sha256sum "$RENAMED_APK" | awk '{print $1}')
           echo "APK_HASH=$HASH" >> $GITHUB_ENV
-          echo "HASH CALCULATED: $HASH"
           
-          # 4. Update Local Metadata
+          # 3. Update Local Metadata
           python3 scripts/update_metadata.py "$V_NAME" "$V_CODE" "$APK_URL" "$HASH" "metadata/$APP_ID.yml"
           
-          # 5. Git Global Config
+          # 4. Git Global Config
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # 6. Push to GitHub (main)
+          # 5. Push to GitHub (main)
           git add metadata/$APP_ID.yml
           if ! git diff --staged --quiet; then
             git commit -m "Update F-Droid metadata for ${{ github.ref_name }} [skip ci]"
@@ -82,7 +88,7 @@ jobs:
             git push origin HEAD:main
           fi
           
-          # 7. Push to GitLab MR
+          # 6. Push to GitLab MR
           if [ -n "$GITLAB_TOKEN" ]; then
             GITLAB_REPO="https://oauth2:${GITLAB_TOKEN}@gitlab.com/mpilasy/fdroiddata.git"
             BRANCH="add-maripanatokana"
@@ -96,20 +102,19 @@ jobs:
               git commit -m "Update $APP_ID metadata (Reproducible Builds)"
               git push origin "$BRANCH"
             fi
-          - name: Create Release
-            if: startsWith(github.ref, 'refs/tags/')
-            uses: softprops/action-gh-release@v2
-            with:
-              files: |
-                app/build/outputs/apk/fdroid/release/*.apk
-                app/build/outputs/apk/fdroid/debug/*.apk
-              body: |
-                # maripànaTokana ${{ github.ref_name }}
-                F-Droid compatible release build.
+          fi
 
-                SHA256: ${{ env.APK_HASH }}
-            env:
-              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-          - name: Upload Debug APK
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ env.RENAMED_APK }}
+          body: |
+            # maripànaTokana ${{ github.ref_name }}
+            F-Droid compatible release build.
+            
+            SHA256: ${{ env.APK_HASH }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

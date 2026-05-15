@@ -2,6 +2,7 @@
 import sys
 import os
 import hashlib
+import re
 
 def get_sha256(file_path):
     sha256_hash = hashlib.sha256()
@@ -12,34 +13,60 @@ def get_sha256(file_path):
 
 def update_metadata(version_name, version_code, apk_url, sha256, yaml_path):
     with open(yaml_path, 'r') as f:
-        content = f.read()
+        lines = f.readlines()
 
-    v_pattern = f"  - versionName: {version_name}\n    versionCode: {version_code}"
-    if v_pattern not in content:
-        print(f"Error: Could not find version {version_name} ({version_code})")
+    new_lines = []
+    found_entry = False
+    updated = False
+    
+    # Clean version strings
+    v_name = str(version_name).strip()
+    v_code = str(version_code).strip()
+
+    print(f"Target: versionName: {v_name}, versionCode: {v_code}")
+
+    for i, line in enumerate(lines):
+        new_lines.append(line)
+        # Match versionName (allowing for quotes and spaces)
+        if re.search(rf"versionName:\s*[\"']?{re.escape(v_name)}[\"']?", line):
+            # Check if next line is the correct versionCode
+            if i + 1 < len(lines) and re.search(rf"versionCode:\s*{v_code}", lines[i+1]):
+                found_entry = True
+                print(f"Found build entry for {v_name} ({v_code}) at line {i+1}")
+        
+        if found_entry and not updated:
+            # Check if we hit the end of the builds block or the next build
+            is_end = False
+            if i + 1 < len(lines):
+                next_line = lines[i+1]
+                if next_line.startswith("  -") or next_line.startswith("AutoUpdateMode") or next_line.startswith("CurrentVersion"):
+                    is_end = True
+            else:
+                is_end = True
+                
+            if is_end:
+                # Check if binaries block already exists
+                has_binaries = False
+                for j in range(max(0, i-5), i+1):
+                    if "binaries:" in lines[j]:
+                        has_binaries = True
+                        break
+                
+                if has_binaries:
+                    print("Binaries block already exists. Skipping.")
+                else:
+                    print(f"Appending binaries block after line {i+1}")
+                    new_lines.append("    binaries:\n")
+                    new_lines.append(f"      - url: {apk_url}\n")
+                    new_lines.append(f"        sha256: {sha256}\n")
+                updated = True
+
+    if not updated:
+        print(f"Error: Could not update metadata for {v_name} ({v_code})")
         sys.exit(1)
 
-    if "binaries:" in content and sha256 in content:
-        print("Metadata already up to date.")
-        return
-
-    binaries_block = f"\n    binaries:\n      - url: {apk_url}\n        sha256: {sha256}"
-    
-    # Simple replacement: find the build entry and append the binaries block
-    # We look for the end of the build entry (either next build or end of builds)
-    entry_start = content.find(v_pattern)
-    next_entry = content.find("  -", entry_start + len(v_pattern))
-    if next_entry == -1:
-        next_entry = content.find("AutoUpdateMode", entry_start)
-    
-    if next_entry == -1:
-        new_content = content + binaries_block + "\n"
-    else:
-        new_content = content[:next_entry].rstrip() + binaries_block + "\n\n" + content[next_entry:]
-
     with open(yaml_path, 'w') as f:
-        f.write(new_content)
-    print("Successfully updated metadata.")
+        f.writelines(new_lines)
 
 if __name__ == "__main__":
     if len(sys.argv) < 5:
