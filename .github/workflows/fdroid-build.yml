@@ -65,19 +65,19 @@ jobs:
           # 3. Update Local Metadata
           python3 scripts/update_metadata.py "$V_NAME" "$V_CODE" "$APK_URL" "$APK_PATH" "metadata/$APP_ID.yml"
           
+          # 3.1. Save Hash for manual retrieval
+          sha256sum "$APK_PATH" | awk '{print $1}' > last_build_hash.txt
+          echo "HASH SAVED: $(cat last_build_hash.txt)"
+          
           # 4. Git Global Config
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
           # 5. Push to GitHub (main)
-          git add metadata/$APP_ID.yml
-          if ! git diff --staged --quiet; then
-            git commit -m "Update F-Droid metadata for ${{ github.ref_name }} [skip ci]"
-            git pull --rebase origin main
-            git push origin HEAD:main
-          else
-            echo "Metadata already up to date on GitHub."
-          fi
+          git add metadata/$APP_ID.yml last_build_hash.txt
+          git commit -m "Update F-Droid metadata and save hash for ${{ github.ref_name }} [skip ci]" || echo "No changes"
+          git pull --rebase origin main
+          git push origin HEAD:main
           
           # 6. Push to GitLab MR
           if [ -n "$GITLAB_TOKEN" ]; then
