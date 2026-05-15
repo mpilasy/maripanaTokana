@@ -47,69 +47,61 @@ jobs:
         run: |
           mv app/build/outputs/apk/fdroid/release/app-fdroid-release.apk app/build/outputs/apk/fdroid/release/maripanaTokana-${{ github.ref_name }}-fdroid.apk
 
-      - name: Update F-Droid Metadata
-        if: startsWith(github.ref, 'refs/tags/')
-        run: |
-          V_NAME=$(grep "versionName =" app/build.gradle.kts | head -n 1 | awk -F'"' '{print $2}')
-          V_CODE=$(grep "versionCode =" app/build.gradle.kts | head -n 1 | sed 's/.*= \(.*\)/\1/')
-          echo "Extracted Version: '$V_NAME' ('$V_CODE')"
-          APK_URL="https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/maripanaTokana-${{ github.ref_name }}-fdroid.apk"
-          APK_PATH="app/build/outputs/apk/fdroid/release/maripanaTokana-${{ github.ref_name }}-fdroid.apk"
-          
-          echo "Metadata file BEFORE update:"
-          cat metadata/orinasa.njarasoa.maripanatokana.yml
-          
-          python3 scripts/update_metadata.py "$V_NAME" "$V_CODE" "$APK_URL" "$APK_PATH" "metadata/orinasa.njarasoa.maripanatokana.yml"
-          
-          echo "Metadata file AFTER update:"
-          cat metadata/orinasa.njarasoa.maripanatokana.yml
-
-      - name: Commit and Push Updated Metadata
-        if: startsWith(github.ref, 'refs/tags/')
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add metadata/orinasa.njarasoa.maripanatokana.yml
-          
-          echo "GIT STATUS:"
-          git status
-          
-          if git diff --staged --quiet; then
-            echo "ERROR: No changes detected in metadata after update script!"
-            exit 1
-          fi
-          
-          git commit -m "Update F-Droid metadata with binary verification for ${{ github.ref_name }} [skip ci]"
-          git pull --rebase origin main
-          git push origin HEAD:main || (git pull --rebase origin main && git push origin HEAD:main)
-
-      - name: Push to F-Droid GitLab
+      - name: Update and Push Metadata
         if: startsWith(github.ref, 'refs/tags/')
         env:
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
-          if [ -z "$GITLAB_TOKEN" ]; then
-            echo "GITLAB_TOKEN not set, skipping GitLab update."
-            exit 0
-          fi
+          # 1. Extract Version Info
+          V_NAME=$(grep "versionName =" app/build.gradle.kts | head -n 1 | awk -F'"' '{print $2}')
+          V_CODE=$(grep "versionCode =" app/build.gradle.kts | head -n 1 | sed 's/.*= \(.*\)/\1/')
+          echo "Processing version: $V_NAME ($V_CODE)"
+          
+          # 2. Paths
+          APK_URL="https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/maripanaTokana-${{ github.ref_name }}-fdroid.apk"
+          APK_PATH="app/build/outputs/apk/fdroid/release/maripanaTokana-${{ github.ref_name }}-fdroid.apk"
           APP_ID="orinasa.njarasoa.maripanatokana"
-          GITLAB_REPO="https://oauth2:${GITLAB_TOKEN}@gitlab.com/mpilasy/fdroiddata.git"
-          BRANCH="add-maripanatokana"
           
-          git clone --depth 1 --branch "$BRANCH" "$GITLAB_REPO" fdroiddata_sync
-          cp metadata/$APP_ID.yml fdroiddata_sync/metadata/$APP_ID.yml
-          cd fdroiddata_sync
+          # 3. Update Local Metadata
+          python3 scripts/update_metadata.py "$V_NAME" "$V_CODE" "$APK_URL" "$APK_PATH" "metadata/$APP_ID.yml"
           
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # 4. Git Global Config
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          if git diff --quiet; then
-            echo "No changes to metadata on GitLab."
+          # 5. Push to GitHub (main)
+          git add metadata/$APP_ID.yml
+          if ! git diff --staged --quiet; then
+            git commit -m "Update F-Droid metadata for ${{ github.ref_name }} [skip ci]"
+            git pull --rebase origin main
+            git push origin HEAD:main
           else
-            git add "metadata/$APP_ID.yml"
-            git commit -m "Update $APP_ID metadata (Reproducible Builds)"
-            git push origin "$BRANCH"
-            echo "Successfully updated F-Droid MR on GitLab."
+            echo "Metadata already up to date on GitHub."
+          fi
+          
+          # 6. Push to GitLab MR
+          if [ -n "$GITLAB_TOKEN" ]; then
+            echo "Updating F-Droid MR on GitLab..."
+            GITLAB_REPO="https://oauth2:${GITLAB_TOKEN}@gitlab.com/mpilasy/fdroiddata.git"
+            BRANCH="add-maripanatokana"
+            
+            git clone --depth 1 --branch "$BRANCH" "$GITLAB_REPO" fdroiddata_sync
+            cp metadata/$APP_ID.yml fdroiddata_sync/metadata/$APP_ID.yml
+            cd fdroiddata_sync
+            
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            
+            if ! git diff --quiet; then
+              git add "metadata/$APP_ID.yml"
+              git commit -m "Update $APP_ID metadata (Reproducible Builds)"
+              git push origin "$BRANCH"
+              echo "Successfully pushed to GitLab!"
+            else
+              echo "GitLab MR already up to date."
+            fi
+          else
+            echo "GITLAB_TOKEN missing, skipping GitLab push."
           fi
 
       - name: Create Release

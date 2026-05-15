@@ -11,77 +11,41 @@ def get_sha256(file_path):
     return sha256_hash.hexdigest()
 
 def update_metadata(version_name, version_code, apk_url, sha256, yaml_path):
-    if not os.path.exists(yaml_path):
-        print(f"Error: {yaml_path} not found")
-        sys.exit(1)
-
     with open(yaml_path, 'r') as f:
-        lines = f.readlines()
+        content = f.read()
 
-    new_lines = []
-    found_start = False
-    updated = False
-    
-    v_name_line = f"- versionName: {version_name}"
-    v_code_line = f"versionCode: {version_code}"
-    
-    print(f"Searching for: '{v_name_line}' followed by '{v_code_line}'")
-
-    for i, line in enumerate(lines):
-        new_lines.append(line)
-        # Check for matching version entry
-        if v_name_line in line:
-            print(f"Match found for versionName at line {i+1}: '{line.strip()}'")
-            if i + 1 < len(lines) and v_code_line in lines[i+1]:
-                found_start = True
-                print(f"Match found for versionCode at line {i+2}: '{lines[i+1].strip()}'")
-            
-        # If we found the start, look for the right place to insert
-        if found_start and not updated:
-            # Check if we are at the end of the build entry
-            next_line = lines[i+1] if i + 1 < len(lines) else ""
-            is_end_of_entry = (
-                next_line.startswith("  -") or 
-                next_line.startswith("AutoUpdateMode") or 
-                next_line.startswith("CurrentVersion") or
-                not next_line
-            )
-            
-            # Also check if binaries already exists
-            if "binaries:" in line:
-                print(f"Warning: binaries block already exists for {version_name}. Skipping insertion.")
-                updated = True
-                continue
-
-            if is_end_of_entry:
-                print(f"Inserting binaries block after line {i+1}")
-                new_lines.append("    binaries:\n")
-                new_lines.append(f"      - url: {apk_url}\n")
-                new_lines.append(f"        sha256: {sha256}\n")
-                updated = True
-
-    if not updated:
-        print(f"Error: Could not find build entry for {version_name} ({version_code}) to update.")
+    v_pattern = f"  - versionName: {version_name}\n    versionCode: {version_code}"
+    if v_pattern not in content:
+        print(f"Error: Could not find version {version_name} ({version_code})")
         sys.exit(1)
+
+    if "binaries:" in content and sha256 in content:
+        print("Metadata already up to date.")
+        return
+
+    binaries_block = f"\n    binaries:\n      - url: {apk_url}\n        sha256: {sha256}"
+    
+    # Simple replacement: find the build entry and append the binaries block
+    # We look for the end of the build entry (either next build or end of builds)
+    entry_start = content.find(v_pattern)
+    next_entry = content.find("  -", entry_start + len(v_pattern))
+    if next_entry == -1:
+        next_entry = content.find("AutoUpdateMode", entry_start)
+    
+    if next_entry == -1:
+        new_content = content + binaries_block + "\n"
+    else:
+        new_content = content[:next_entry].rstrip() + binaries_block + "\n\n" + content[next_entry:]
 
     with open(yaml_path, 'w') as f:
-        f.writelines(new_lines)
+        f.write(new_content)
+    print("Successfully updated metadata.")
 
 if __name__ == "__main__":
     if len(sys.argv) < 5:
         print("Usage: update_metadata.py <version_name> <version_code> <apk_url> <apk_path> <yaml_path>")
         sys.exit(1)
-
-    v_name = sys.argv[1]
-    v_code = sys.argv[2]
-    url = sys.argv[3]
-    apk = sys.argv[4]
-    yaml_f = sys.argv[5]
-
+    
+    v_name, v_code, url, apk, yaml_f = sys.argv[1:6]
     hash_val = get_sha256(apk)
-    print(f"Updating metadata for {v_name} ({v_code})")
-    print(f"APK: {apk}")
-    print(f"SHA256: {hash_val}")
-    print(f"URL: {url}")
-
     update_metadata(v_name, v_code, url, hash_val, yaml_f)
