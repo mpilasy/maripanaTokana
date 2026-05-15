@@ -60,6 +60,34 @@ jobs:
           git commit -m "Update F-Droid metadata with binary verification for ${{ github.ref_name }} [skip ci]" || echo "No changes to commit"
           git push origin main
 
+      - name: Push to F-Droid GitLab
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+        run: |
+          if [ -z "$GITLAB_TOKEN" ]; then
+            echo "GITLAB_TOKEN not set, skipping GitLab update."
+            exit 0
+          fi
+          APP_ID="orinasa.njarasoa.maripanatokana"
+          GITLAB_REPO="https://oauth2:${GITLAB_TOKEN}@gitlab.com/mpilasy/fdroiddata.git"
+          BRANCH="add-maripanatokana"
+          
+          git clone --depth 1 --branch "$BRANCH" "$GITLAB_REPO" fdroiddata_sync
+          cp metadata/$APP_ID.yml fdroiddata_sync/metadata/$APP_ID.yml
+          cd fdroiddata_sync
+          
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          if git diff --quiet; then
+            echo "No changes to metadata."
+          else
+            git add "metadata/$APP_ID.yml"
+            git commit -m "Update $APP_ID metadata (Reproducible Builds)"
+            git push origin "$BRANCH"
+          fi
+
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
