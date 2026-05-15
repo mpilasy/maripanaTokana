@@ -79,8 +79,8 @@ class WeatherRepositoryImpl @Inject constructor(
             val nwsDeferred = async { 
                 try {
                     val point = String.format(Locale.US, "%.4f,%.4f", lat, lon)
-                    val nwsParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
                     nwsApiService.getActiveAlerts(point).features.map { f ->
+                        val nwsParser = nwsParserThreadLocal.get()!!
                         val p = f.properties
                         val level = if (p.severity == "Extreme" || p.severity == "Severe") AlertLevel.WARNING else AlertLevel.WATCH
                         val time = p.sent?.let {
@@ -98,12 +98,15 @@ class WeatherRepositoryImpl @Inject constructor(
             // 2. Global GDACS Alerts
             val gdacsDeferred = async {
                 try {
-                    val toDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
-                    val fromDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(System.currentTimeMillis() - GDACS_SEARCH_DAYS * 24 * 60 * 60 * 1000L))
-                    val gdacsParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
+                    // Safe here since we format right away before any suspension
+                    val dateFormatter = dateOnlyParserThreadLocal.get()!!
+                    val toDate = dateFormatter.format(Date())
+                    val fromDate = dateFormatter.format(Date(System.currentTimeMillis() - GDACS_SEARCH_DAYS * 24 * 60 * 60 * 1000L))
+
                     gdacsApiService.searchEvents(fromDate, toDate).features
                         .filter { f -> calculateDistance(lat, lon, f.geometry.coordinates[1], f.geometry.coordinates[0]) < GDACS_SEARCH_RADIUS_KM }
                         .map { f ->
+                            val gdacsParser = gdacsParserThreadLocal.get()!!
                             val p = f.properties
                             val level = when (p.alertlevel) {
                                 "red" -> AlertLevel.EMERGENCY
@@ -155,5 +158,17 @@ class WeatherRepositoryImpl @Inject constructor(
         private const val EARTH_RADIUS_KM = 6371.0
         private const val GDACS_SEARCH_RADIUS_KM = 500
         private const val GDACS_SEARCH_DAYS = 7
+
+        private val nwsParserThreadLocal = object : ThreadLocal<SimpleDateFormat>() {
+            override fun initialValue() = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
+        }
+
+        private val dateOnlyParserThreadLocal = object : ThreadLocal<SimpleDateFormat>() {
+            override fun initialValue() = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+        }
+
+        private val gdacsParserThreadLocal = object : ThreadLocal<SimpleDateFormat>() {
+            override fun initialValue() = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
+        }
     }
 }
