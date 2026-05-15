@@ -18,53 +18,28 @@ def update_metadata(version_name, version_code, apk_url, sha256, yaml_path):
         sys.exit(1)
 
     with open(yaml_path, 'r') as f:
-        lines = f.readlines()
+        content = f.read()
 
-    new_lines = []
-    in_builds = False
-    in_current_version = False
-    found_version = False
+    # Find the specific build entry
+    pattern = rf"(  - versionName: {re.escape(version_name)}\n    versionCode: {version_code}\n    commit: [^\n]+\n    subdir: [^\n]+\n    gradle:\n      - [^\n]+)\n"
+    
+    replacement = r"\1\n    binaries:\n      - url: " + apk_url + "\n        sha256: " + sha256 + "\n"
+    
+    if "binaries:" in content and apk_url in content:
+        print(f"Version {version_name} already has this binary. Skipping.")
+        return
 
-    # Regex to find the build entry for this version
-    version_pattern = re.compile(f"  - versionName: {version_name}")
-    code_pattern = re.compile(f"    versionCode: {version_code}")
-
-    i = 0
-    while i < len(lines):
-        line = lines[i]
-        new_lines.append(line)
-        
-        if version_pattern.match(line) and i + 1 < len(lines) and code_pattern.match(lines[i+1]):
-            found_version = True
-            # Skip until we find the end of this build entry or an existing binaries block
-            j = i + 1
-            has_binaries = False
-            while j < len(lines) and not lines[j].startswith("  -") and not lines[j].startswith("AutoUpdateMode"):
-                if "binaries:" in lines[j]:
-                    has_binaries = True
-                    break
-                j += 1
-            
-            if not has_binaries:
-                # Find the right spot to insert (before the next build or end of builds)
-                insert_pos = j
-                new_lines.extend([
-                    "    binaries:\n",
-                    f"      - url: {apk_url}\n",
-                    f"        sha256: {sha256}\n"
-                ])
-                # Skip the lines we already added to new_lines if we were scanning ahead
-                # Actually, the logic above is a bit complex for a simple append.
-                # Let's just find the next build or AutoUpdateMode
-            else:
-                print(f"Version {version_name} already has a binaries block. Updating it.")
-                # Logic to update existing binaries block could be added here
-                pass
-        
-        i += 1
+    new_content = re.sub(pattern, replacement, content)
+    
+    if new_content == content:
+        print(f"Warning: Could not find build entry for {version_name} ({version_code}) to update.")
+        # Fallback for slightly different structures
+        pattern_short = rf"(  - versionName: {re.escape(version_name)}\n    versionCode: {version_code}.*?\n)\s*(  -|AutoUpdateMode)"
+        replacement_short = r"\1    binaries:\n      - url: " + apk_url + "\n        sha256: " + sha256 + "\n\n\2"
+        new_content = re.sub(pattern_short, replacement_short, content, flags=re.DOTALL)
 
     with open(yaml_path, 'w') as f:
-        f.writelines(new_lines)
+        f.write(new_content)
 
 if __name__ == "__main__":
     if len(sys.argv) < 5:
