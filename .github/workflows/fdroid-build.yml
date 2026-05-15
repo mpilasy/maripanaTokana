@@ -62,59 +62,54 @@ jobs:
           APK_PATH="app/build/outputs/apk/fdroid/release/maripanaTokana-${{ github.ref_name }}-fdroid.apk"
           APP_ID="orinasa.njarasoa.maripanatokana"
           
-          # 3. Update Local Metadata
-          python3 scripts/update_metadata.py "$V_NAME" "$V_CODE" "$APK_URL" "$APK_PATH" "metadata/$APP_ID.yml"
+          # 3. Get Hash
+          HASH=$(sha256sum "$APK_PATH" | awk '{print $1}')
+          echo "APK_HASH=$HASH" >> $GITHUB_ENV
+          echo "HASH CALCULATED: $HASH"
           
-          # 3.1. Save Hash for manual retrieval
-          sha256sum "$APK_PATH" | awk '{print $1}' > last_build_hash.txt
-          echo "HASH SAVED: $(cat last_build_hash.txt)"
+          # 4. Update Local Metadata
+          python3 scripts/update_metadata.py "$V_NAME" "$V_CODE" "$APK_URL" "$HASH" "metadata/$APP_ID.yml"
           
-          # 4. Git Global Config
+          # 5. Git Global Config
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # 5. Push to GitHub (main)
-          git add metadata/$APP_ID.yml last_build_hash.txt
-          git commit -m "Update F-Droid metadata and save hash for ${{ github.ref_name }} [skip ci]" || echo "No changes"
-          git pull --rebase origin main
-          git push origin HEAD:main
+          # 6. Push to GitHub (main)
+          git add metadata/$APP_ID.yml
+          if ! git diff --staged --quiet; then
+            git commit -m "Update F-Droid metadata for ${{ github.ref_name }} [skip ci]"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
           
-          # 6. Push to GitLab MR
+          # 7. Push to GitLab MR
           if [ -n "$GITLAB_TOKEN" ]; then
-            echo "Updating F-Droid MR on GitLab..."
             GITLAB_REPO="https://oauth2:${GITLAB_TOKEN}@gitlab.com/mpilasy/fdroiddata.git"
             BRANCH="add-maripanatokana"
-            
             git clone --depth 1 --branch "$BRANCH" "$GITLAB_REPO" fdroiddata_sync
             cp metadata/$APP_ID.yml fdroiddata_sync/metadata/$APP_ID.yml
             cd fdroiddata_sync
-            
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
-            
             if ! git diff --quiet; then
               git add "metadata/$APP_ID.yml"
               git commit -m "Update $APP_ID metadata (Reproducible Builds)"
               git push origin "$BRANCH"
-              echo "Successfully pushed to GitLab!"
-            else
-              echo "GitLab MR already up to date."
             fi
-          else
-            echo "GITLAB_TOKEN missing, skipping GitLab push."
-          fi
+          - name: Create Release
+            if: startsWith(github.ref, 'refs/tags/')
+            uses: softprops/action-gh-release@v2
+            with:
+              files: |
+                app/build/outputs/apk/fdroid/release/*.apk
+                app/build/outputs/apk/fdroid/debug/*.apk
+              body: |
+                # maripànaTokana ${{ github.ref_name }}
+                F-Droid compatible release build.
 
-      - name: Create Release
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            app/build/outputs/apk/fdroid/release/*.apk
-            app/build/outputs/apk/fdroid/debug/*.apk
-          body: |
-            # maripànaTokana ${{ github.ref_name }}
-            F-Droid compatible release build.
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                SHA256: ${{ env.APK_HASH }}
+            env:
+              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          - name: Upload Debug APK
+
