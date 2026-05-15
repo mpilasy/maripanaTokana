@@ -40,6 +40,9 @@ Builds:
     gradle:
       - fdroid
 
+    binaries:
+      - url: https://github.com/mpilasy/maripanaTokana/releases/download/v1.0.18-final-v6/maripanaTokana-v1.0.18-final-v6-fdroid.apk
+        sha256: 94148a27147d98ed5c6f5e8ceba9022eda9247a8fd059b493fca3672cfeee012
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
 CurrentVersion: 1.0.18
