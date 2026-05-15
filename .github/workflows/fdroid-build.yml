@@ -51,14 +51,13 @@ jobs:
           path: app/build/outputs/apk/fdroid/release/*.apk
           if-no-files-found: ignore
 
-      - name: Create Release Notes
+      - name: Create Release
         if: startsWith(github.ref, 'refs/tags/')
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          release_name: Release ${{ github.ref_name }}
+          files: |
+            app/build/outputs/apk/fdroid/release/*.apk
+            app/build/outputs/apk/fdroid/debug/*.apk
           body: |
             # maripànaTokana ${{ github.ref_name }}
 
@@ -74,6 +73,6 @@ jobs:
             - `maripanatokana-fdroid-release-*.apk` - Release APK for F-Droid submission
 
             ## Testing
-            See [FDROID_IMPLEMENTATION_SUMMARY.md](https://github.com/mpilasy/maripanaTokana/blob/main/FDROID_IMPLEMENTATION_SUMMARY.md) for testing instructions.
-          draft: false
-          prerelease: false
+            See [docs/FDROID.md](https://github.com/mpilasy/maripanaTokana/blob/main/docs/FDROID.md) for technical details.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

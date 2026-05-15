@@ -203,7 +203,7 @@ The F-Droid flavor is configured for reproducible builds:
    - F-Droid flavor: "reproducible" string (for byte-identical builds)
 
 2. **PNG Crunching**
-   - Disabled in release builds for reproducibility
+   - Disabled in release builds for reproducibility (`isCrunchPngs = false` in `app/build.gradle.kts`)
 
 3. **Consistent Dependencies**
    - Version-locked in `libs.versions.toml`

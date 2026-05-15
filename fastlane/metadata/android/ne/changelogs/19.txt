@@ -1,0 +1,1 @@
+Technical release to enable F-Droid Reproducible Builds.
