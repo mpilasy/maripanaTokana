@@ -2,7 +2,6 @@
 import sys
 import os
 import hashlib
-import yaml
 import re
 
 def get_sha256(file_path):
@@ -20,23 +19,26 @@ def update_metadata(version_name, version_code, apk_url, sha256, yaml_path):
     with open(yaml_path, 'r') as f:
         content = f.read()
 
-    # Find the specific build entry
-    pattern = rf"(  - versionName: {re.escape(version_name)}\n    versionCode: {version_code}\n    commit: [^\n]+\n    subdir: [^\n]+\n    gradle:\n      - [^\n]+)\n"
-    
-    replacement = r"\1\n    binaries:\n      - url: " + apk_url + "\n        sha256: " + sha256 + "\n"
-    
-    if "binaries:" in content and apk_url in content:
+    if "binaries:" in content and sha256 in content:
         print(f"Version {version_name} already has this binary. Skipping.")
         return
 
-    new_content = re.sub(pattern, replacement, content)
+    # More flexible regex that matches the structure precisely
+    pattern = rf"(  - versionName: {re.escape(version_name)}\n    versionCode: {version_code}\n    commit: [^\n]+\n    subdir: [^\n]+\n    gradle:\n      - [^\n]+)"
     
+    binaries_block = f"\n    binaries:\n      - url: {apk_url}\n        sha256: {sha256}"
+    
+    if re.search(pattern, content):
+        print("Found primary match")
+        new_content = re.sub(pattern, rf"\1{binaries_block}", content)
+    else:
+        print("Falling back to secondary match")
+        pattern_fallback = rf"(  - versionName: {re.escape(version_name)}\n    versionCode: {version_code})"
+        new_content = re.sub(pattern_fallback, rf"\1{binaries_block}", content)
+
     if new_content == content:
-        print(f"Warning: Could not find build entry for {version_name} ({version_code}) to update.")
-        # Fallback for slightly different structures
-        pattern_short = rf"(  - versionName: {re.escape(version_name)}\n    versionCode: {version_code}.*?\n)\s*(  -|AutoUpdateMode)"
-        replacement_short = r"\1    binaries:\n      - url: " + apk_url + "\n        sha256: " + sha256 + "\n\n\2"
-        new_content = re.sub(pattern_short, replacement_short, content, flags=re.DOTALL)
+        print(f"Error: Could not update metadata for {version_name}. Pattern not found.")
+        sys.exit(1)
 
     with open(yaml_path, 'w') as f:
         f.write(new_content)
