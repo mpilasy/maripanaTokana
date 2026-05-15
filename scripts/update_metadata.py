@@ -24,28 +24,32 @@ def update_metadata(version_name, version_code, apk_url, sha256, yaml_path):
     
     v_name_line = f"- versionName: {version_name}"
     v_code_line = f"versionCode: {version_code}"
+    
+    print(f"Searching for: '{v_name_line}' followed by '{v_code_line}'")
 
     for i, line in enumerate(lines):
         new_lines.append(line)
-        if v_name_line in line and i + 1 < len(lines) and v_code_line in lines[i+1]:
-            found_start = True
-            print(f"Found version {version_name} at line {i+1}")
+        # Check for matching version entry
+        if v_name_line in line:
+            print(f"Match found for versionName at line {i+1}: '{line.strip()}'")
+            if i + 1 < len(lines) and v_code_line in lines[i+1]:
+                found_start = True
+                print(f"Match found for versionCode at line {i+2}: '{lines[i+1].strip()}'")
             
         # If we found the start, look for the right place to insert
         if found_start and not updated:
             # Check if we are at the end of the build entry
-            # The next build entry starts with '  -' or we hit AutoUpdateMode
-            is_end_of_entry = False
-            if i + 1 < len(lines):
-                next_line = lines[i+1]
-                if next_line.startswith("  -") or next_line.startswith("AutoUpdateMode") or next_line.startswith("CurrentVersion"):
-                    is_end_of_entry = True
-            else:
-                is_end_of_entry = True
+            next_line = lines[i+1] if i + 1 < len(lines) else ""
+            is_end_of_entry = (
+                next_line.startswith("  -") or 
+                next_line.startswith("AutoUpdateMode") or 
+                next_line.startswith("CurrentVersion") or
+                not next_line
+            )
             
             # Also check if binaries already exists
             if "binaries:" in line:
-                print(f"Warning: binaries block already exists for {version_name}. Skipping.")
+                print(f"Warning: binaries block already exists for {version_name}. Skipping insertion.")
                 updated = True
                 continue
 
