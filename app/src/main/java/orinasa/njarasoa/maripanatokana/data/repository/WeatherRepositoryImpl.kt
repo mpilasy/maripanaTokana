@@ -101,8 +101,24 @@ class WeatherRepositoryImpl @Inject constructor(
                     val toDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
                     val fromDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(System.currentTimeMillis() - GDACS_SEARCH_DAYS * 24 * 60 * 60 * 1000L))
                     val gdacsParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
+
+                    val latDelta = GDACS_SEARCH_RADIUS_KM / 111.0
+                    val lonDelta = if (Math.abs(lat) < 89.0) GDACS_SEARCH_RADIUS_KM / (111.0 * Math.cos(Math.toRadians(lat))) else 360.0
+                    val minLat = lat - latDelta
+                    val maxLat = lat + latDelta
+
                     gdacsApiService.searchEvents(fromDate, toDate).features
-                        .filter { f -> calculateDistance(lat, lon, f.geometry.coordinates[1], f.geometry.coordinates[0]) < GDACS_SEARCH_RADIUS_KM }
+                        .filter { f ->
+                            val fLat = f.geometry.coordinates[1]
+                            val fLon = f.geometry.coordinates[0]
+                            if (fLat < minLat || fLat > maxLat) return@filter false
+
+                            val dLon = Math.abs(fLon - lon)
+                            val shortestDLon = if (dLon > 180.0) 360.0 - dLon else dLon
+                            if (shortestDLon > lonDelta) return@filter false
+
+                            calculateDistance(lat, lon, fLat, fLon) < GDACS_SEARCH_RADIUS_KM
+                        }
                         .map { f ->
                             val p = f.properties
                             val level = when (p.alertlevel) {
