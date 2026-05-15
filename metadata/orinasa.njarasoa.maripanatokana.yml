@@ -39,12 +39,14 @@ Builds:
 
   - versionName: 1.0.18
     versionCode: 19
-    commit: v1.0.18-final-v60
+    commit: 42bdd8d3b338253c43f53738ffae8977dcc2ba1a
     subdir: app
     gradle:
       - fdroid
     reproducible: Yes
-
+    binaries:
+      - url: https://github.com/mpilasy/maripanaTokana/releases/download/v1.0.18-final-v60/maripanaTokana-v1.0.18-final-v60-fdroid.apk
+        sha256: 4107564d3d3c9e8c987f7d5ef6cc467f1e06f23c803ea435e6ca8d89ab0d71f6
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
 CurrentVersion: 1.0.18
