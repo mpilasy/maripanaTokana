@@ -25,9 +25,8 @@ def update_metadata(version_name, version_code, apk_url, commit_hash, yaml_path)
         entry_content = match.group(1)
         # Update commit hash
         entry_content = re.sub(r"commit: [^\n]+", f"commit: {commit_hash}", entry_content)
-        # Ensure 'reproducible: Yes' is there
-        if "reproducible: Yes" not in entry_content:
-             entry_content = entry_content.rstrip() + "\n    reproducible: Yes"
+        # Ensure 'reproducible: Yes' is NOT there (invalid flag)
+        entry_content = re.sub(r"\n\s+reproducible:\s*Yes\b", "", entry_content, flags=re.IGNORECASE)
         
         content = content[:match.start()] + entry_content + content[match.end():]
     else:
