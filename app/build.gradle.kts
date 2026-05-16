@@ -47,8 +47,8 @@ android {
         applicationId = "orinasa.njarasoa.maripanatokana"
         minSdk = 24
         targetSdk = 36
-        versionCode = 24
-        versionName = "1.0.23"
+        versionCode = 26
+        versionName = "1.0.25"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
