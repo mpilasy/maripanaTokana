@@ -43,7 +43,6 @@ Builds:
     subdir: app
     gradle:
       - fdroid
-    reproducible: Yes
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
