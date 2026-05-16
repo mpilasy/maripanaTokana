@@ -16,14 +16,14 @@ AllowedAPKSigningKeys:
   - 819fa7886022f2a5070dbef7d518f3e9469a302a577affc0311c092a6bf08c45
 
 Builds:
-  - versionName: 1.0.19
-    versionCode: 20
-    commit: fe0ef710f200c1ec4db08cd8837b28359ea2f7f1
+  - versionName: 1.0.20
+    versionCode: 21
+    commit: placeholder
     subdir: app
     gradle:
       - fdroid
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 1.0.19
-CurrentVersionCode: 20
+CurrentVersion: 1.0.20
+CurrentVersionCode: 21

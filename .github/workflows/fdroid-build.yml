@@ -107,17 +107,22 @@ jobs:
               git push origin "$BRANCH"
             fi
           fi
-- name: Create Release
-  if: startsWith(github.ref, 'refs/tags/')
-  uses: softprops/action-gh-release@v2
-  with:
-    files: |
-      app/build/outputs/apk/fdroid/release/*.apk
-    body: |
-      # maripànaTokana ${{ github.ref_name }}
-      F-Droid compatible release build.
-  env:
-    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-- name: Upload Debug APK
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            app/build/outputs/apk/fdroid/release/*.apk
+          body: |
+            # maripànaTokana ${{ github.ref_name }}
+            F-Droid compatible release build.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: maripanatokana-fdroid-debug-${{ github.ref_name }}.apk
+          path: app/build/outputs/apk/fdroid/debug/*.apk
+          if-no-files-found: ignore
