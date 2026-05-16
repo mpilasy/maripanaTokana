@@ -18,7 +18,7 @@ AllowedAPKSigningKeys:
 Builds:
   - versionName: 1.0.18
     versionCode: 19
-    commit: 97949760cec6e287b50058133bfdb5947249c71c
+    commit: 7d4ea040a9a003aaa2b39e6d349f3f39c8e15100
     subdir: app
     gradle:
       - fdroid
