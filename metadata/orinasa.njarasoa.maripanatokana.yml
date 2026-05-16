@@ -11,32 +11,11 @@ AutoName: maripànaTokana
 RepoType: git
 Repo: https://github.com/mpilasy/maripanaTokana.git
 
-Binaries: https://github.com/mpilasy/maripanaTokana/releases/download/%v/maripanaTokana-%v-fdroid.apk
+Binaries: https://github.com/mpilasy/maripanaTokana/releases/download/v%v/maripanaTokana-v%v-fdroid.apk
 AllowedAPKSigningKeys:
   - 819fa7886022f2a5070dbef7d518f3e9469a302a577affc0311c092a6bf08c45
 
 Builds:
-  - versionName: 1.0.15
-    versionCode: 16
-    commit: 07290d42820cd0eae44d5ab55440a469a86b40c2
-    subdir: app
-    gradle:
-      - fdroid
-
-  - versionName: 1.0.16
-    versionCode: 17
-    commit: da7a4bd648ca4f3ae07f3786b00c100e8ced5752
-    subdir: app
-    gradle:
-      - fdroid
-
-  - versionName: 1.0.17
-    versionCode: 18
-    commit: 4dd2602c860fd15630b6c3585a53e1f50f200715
-    subdir: app
-    gradle:
-      - fdroid
-
   - versionName: 1.0.18
     versionCode: 19
     commit: 97949760cec6e287b50058133bfdb5947249c71c
