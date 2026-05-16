@@ -18,7 +18,7 @@ AllowedAPKSigningKeys:
 Builds:
   - versionName: 1.0.25
     versionCode: 26
-    commit: ee981edd0fc07ed3ca240d6ec6dd9e8a021efab5
+    commit: c97df36a461257389193e0e5a12338e6d9b4c0d5
     subdir: app
     gradle:
       - fdroid
