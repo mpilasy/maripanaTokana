@@ -23,9 +23,8 @@ android {
         applicationId = "orinasa.njarasoa.maripanatokana"
         minSdk = 24
         targetSdk = 36
-        versionCode = 29
-        versionName = "1.0.28"
-
+        versionCode = 30
+        versionName = "1.0.29"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
         val gitHash = providers.exec { commandLine("git", "rev-parse", "--short", "HEAD") }.standardOutput.asText.get().trim()
@@ -34,11 +33,8 @@ android {
     
     signingConfigs {
         create("release") {
-            storeFile = if (System.getenv("KEYSTORE_FILE") != null) {
-                file(System.getenv("KEYSTORE_FILE"))
-            } else {
-                rootProject.file(keystoreProperties.getProperty("storeFile", "release.keystore"))
-            }
+            storeFile = if (System.getenv("KEYSTORE_FILE") != null) file(System.getenv("KEYSTORE_FILE"))
+            else rootProject.file(keystoreProperties.getProperty("storeFile", "release.keystore"))
             storePassword = System.getenv("KEYSTORE_PASSWORD") ?: keystoreProperties.getProperty("storePassword")
             keyAlias = System.getenv("KEY_ALIAS") ?: keystoreProperties.getProperty("keyAlias")
             keyPassword = System.getenv("KEY_PASSWORD") ?: keystoreProperties.getProperty("keyPassword")
@@ -51,7 +47,6 @@ android {
             dimension = "distribution"
             buildConfigField("String", "BUILD_TIME", ""${SimpleDateFormat("yyyy-MM-dd HH:mm").format(Date())}"")
         }
-
         create("fdroid") {
             dimension = "distribution"
             buildConfigField("String", "DISTRIBUTION", ""fdroid"")
@@ -63,10 +58,7 @@ android {
         release {
             isMinifyEnabled = true
             isCrunchPngs = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.getByName("release")
         }
     }
@@ -78,10 +70,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
-    }
-    
-    kotlinOptions {
-        jvmTarget = "1.8"
     }
     
     buildFeatures {
@@ -101,28 +89,17 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.glance.material3)
-
-    // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
-
-    // Retrofit
     implementation(libs.retrofit)
     implementation(libs.okhttp.logging)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.retrofit.kotlinx.serialization)
-
-    // WorkManager
     implementation(libs.androidx.work.runtime.ktx)
-
-    // Location - standard flavor only
     "standardImplementation"(libs.play.services.location)
     "standardImplementation"(libs.accompanist.permissions)
     "standardImplementation"(libs.kotlinx.coroutines.play.services)
-
-    // F-Droid uses native Android LocationManager (no extra dependencies)
-
     testImplementation("io.mockk:mockk:1.13.12")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
     testImplementation(libs.junit)
