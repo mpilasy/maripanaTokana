@@ -15,6 +15,10 @@ val keystoreProperties = Properties().apply {
     if (keystorePropertiesFile.exists()) load(keystorePropertiesFile.inputStream())
 }
 
+kotlin {
+    jvmToolchain(21)
+}
+
 android {
     namespace = "orinasa.njarasoa.maripanatokana"
     compileSdk = 36
