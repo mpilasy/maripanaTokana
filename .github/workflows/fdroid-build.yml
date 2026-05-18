@@ -24,6 +24,17 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate i18n strings
+        run: node shared/i18n/generate-android-strings.js
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
       - name: Build F-Droid flavor (Release)
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
@@ -31,33 +42,24 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          set -e
           if [ -n "$KEYSTORE_BASE64" ]; then
             echo "$KEYSTORE_BASE64" | base64 -d > release.keystore
             export KEYSTORE_FILE=$(pwd)/release.keystore
-            ./gradlew assembleFdroidRelease
-          else
-            echo "KEYSTORE_BASE64 missing, building unsigned APK."
-            ./gradlew assembleFdroidRelease
           fi
+          ./gradlew assembleFdroidRelease
 
       - name: RENAME AND HASH
         if: startsWith(github.ref, 'refs/tags/')
         run: |
           set -e
-          echo "--- Files in APK output directory ---"
-          ls -laR app/build/outputs/apk/fdroid/release
           APK_PATH=$(find app/build/outputs/apk/fdroid/release -name "*.apk" | head -n 1)
           if [ -z "$APK_PATH" ]; then
             echo "::error::Could not find APK file."
             exit 1
           fi
-          echo "Found APK at: $APK_PATH"
           RENAMED_APK="app/build/outputs/apk/fdroid/release/maripanaTokana-${{ github.ref_name }}.apk"
           mv "$APK_PATH" "$RENAMED_APK"
-          echo "Renamed to: $RENAMED_APK"
           HASH=$(sha256sum "$RENAMED_APK" | awk '{print $1}')
-          echo "SHA256: $HASH"
           echo "APK_HASH=$HASH" >> $GITHUB_ENV
           echo "RENAMED_APK_PATH=$RENAMED_APK" >> $GITHUB_ENV
           
@@ -67,35 +69,17 @@ jobs:
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
           set -e
-          
-          # --- Version Info ---
           V_NAME=$(grep "versionName =" app/build.gradle.kts | head -n 1 | awk -F'"' '{print $2}')
           V_CODE=$(grep "versionCode =" app/build.gradle.kts | head -n 1 | sed 's/.*= \(.*\)/\1/' | tr -d '[:space:]')
           COMMIT_HASH=$(git rev-parse HEAD)
           APP_ID="orinasa.njarasoa.maripanatokana"
           METADATA_FILE="metadata/$APP_ID.yml"
-
-          echo "--- Updating Metadata ---"
-          echo "Version: $V_NAME ($V_CODE)"
-          echo "Commit: $COMMIT_HASH"
-
-          # Use sed to replace the commit line
           sed -i "s/commit: .*/commit: $COMMIT_HASH/" "$METADATA_FILE"
-          
-          echo "--- Metadata file AFTER update: ---"
-          cat "$METADATA_FILE"
-
-          # --- Git Setup ---
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # --- Push to GitHub ---
           git add "$METADATA_FILE"
           git commit -m "Update F-Droid metadata for ${{ github.ref_name }} [skip ci]"
           git push origin HEAD:main
-          echo "Pushed metadata update to GitHub main branch."
-
-          # --- Push to GitLab ---
           GITLAB_REPO="https://oauth2:${GITLAB_TOKEN}@gitlab.com/mpilasy/fdroiddata.git"
           BRANCH="add-maripanatokana"
           git clone --depth 1 --branch "$BRANCH" "$GITLAB_REPO" fdroiddata_sync
@@ -104,7 +88,6 @@ jobs:
           git add "metadata/$APP_ID.yml"
           git commit -m "Update $APP_ID metadata (Reproducible Builds)"
           git push origin "$BRANCH"
-          echo "Pushed metadata update to GitLab MR."
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
@@ -113,9 +96,6 @@ jobs:
           files: |
             ${{ env.RENAMED_APK_PATH }}
           body: |
-            # maripànaTokana ${{ github.ref_name }}
-            F-Droid compatible release build.
-            
             SHA256: ${{ env.APK_HASH }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

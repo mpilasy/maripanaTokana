@@ -17,8 +17,8 @@ AllowedAPKSigningKeys:
   - 819fa7886022f2a5070dbef7d518f3e9469a302a577affc0311c092a6bf08c45
 
 Builds:
-  - versionName: 1.0.28
-    versionCode: 29
+  - versionName: 1.0.30
+    versionCode: 31
     commit: placeholder
     subdir: app
     gradle:
@@ -26,5 +26,5 @@ Builds:
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 1.0.28
-CurrentVersionCode: 29
+CurrentVersion: 1.0.30
+CurrentVersionCode: 31

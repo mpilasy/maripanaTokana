@@ -23,12 +23,12 @@ android {
         applicationId = "orinasa.njarasoa.maripanatokana"
         minSdk = 24
         targetSdk = 36
-        versionCode = 30
-        versionName = "1.0.29"
+        versionCode = 31
+        versionName = "1.0.30"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        
+
         val gitHash = providers.exec { commandLine("git", "rev-parse", "--short", "HEAD") }.standardOutput.asText.get().trim()
-        buildConfigField("String", "GIT_HASH", ""$gitHash"")
+        buildConfigField("String", "GIT_HASH", "\"$gitHash\"")
     }
     
     signingConfigs {
