@@ -27,8 +27,8 @@ android {
         applicationId = "orinasa.njarasoa.maripanatokana"
         minSdk = 24
         targetSdk = 36
-        versionCode = 26
-        versionName = "1.0.25"
+        versionCode = 27
+        versionName = "1.0.26"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -36,16 +36,6 @@ android {
         buildConfigField("String", "GIT_HASH", ""$gitHash"")
     }
     
-    // Ensure reproducible builds
-    packagingOptions {
-        resources.excludes.add("/META-INF/{AL2.0,LGPL2.1}")
-        buildInfo.buildToolsVersion = null
-    }
-    tasks.withType<AbstractArchiveTask>().configureEach {
-        isReproducibleFileOrder = true
-        isPreserveFileTimestamps = false
-    }
-
     signingConfigs {
         create("release") {
             storeFile = if (System.getenv("KEYSTORE_FILE") != null) {
@@ -83,6 +73,15 @@ android {
             )
             signingConfig = signingConfigs.getByName("release")
         }
+    }
+    
+    // Ensure reproducible builds
+    packagingOptions {
+        resources.excludes.add("/META-INF/{AL2.0,LGPL2.1}")
+    }
+    tasks.withType<AbstractArchiveTask>().configureEach {
+        isReproducibleFileOrder = true
+        isPreserveFileTimestamps = false
     }
     
     compileOptions {
