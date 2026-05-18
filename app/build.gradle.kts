@@ -15,10 +15,6 @@ val keystoreProperties = Properties().apply {
     if (keystorePropertiesFile.exists()) load(keystorePropertiesFile.inputStream())
 }
 
-kotlin {
-    jvmToolchain(21)
-}
-
 android {
     namespace = "orinasa.njarasoa.maripanatokana"
     compileSdk = 36
@@ -27,8 +23,8 @@ android {
         applicationId = "orinasa.njarasoa.maripanatokana"
         minSdk = 24
         targetSdk = 36
-        versionCode = 27
-        versionName = "1.0.26"
+        versionCode = 29
+        versionName = "1.0.28"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -75,18 +71,17 @@ android {
         }
     }
     
-    // Ensure reproducible builds
-    packagingOptions {
+    packaging {
         resources.excludes.add("/META-INF/{AL2.0,LGPL2.1}")
-    }
-    tasks.withType<AbstractArchiveTask>().configureEach {
-        isReproducibleFileOrder = true
-        isPreserveFileTimestamps = false
     }
     
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+    
+    kotlinOptions {
+        jvmTarget = "1.8"
     }
     
     buildFeatures {
