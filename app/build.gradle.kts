@@ -10,24 +10,40 @@ plugins {
     id("com.google.dagger.hilt.android")
 }
 
-val buildTime: String = SimpleDateFormat("yyyy-MM-dd HH:mm").format(Date())
-
 val keystorePropertiesFile = rootProject.file("keystore.properties")
 val keystoreProperties = Properties().apply {
     if (keystorePropertiesFile.exists()) load(keystorePropertiesFile.inputStream())
 }
 
-
 kotlin {
+    jvmToolchain(21)
 }
 
 android {
-    defaultConfig {
-        buildConfigField("String", "GIT_HASH", "\"dummy\"")
-    }
     namespace = "orinasa.njarasoa.maripanatokana"
-    compileSdk {
-        version = release(36)
+    compileSdk = 36
+
+    defaultConfig {
+        applicationId = "orinasa.njarasoa.maripanatokana"
+        minSdk = 24
+        targetSdk = 36
+        versionCode = 26
+        versionName = "1.0.25"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        
+        val gitHash = providers.exec { commandLine("git", "rev-parse", "--short", "HEAD") }.standardOutput.asText.get().trim()
+        buildConfigField("String", "GIT_HASH", ""$gitHash"")
+    }
+    
+    // Ensure reproducible builds
+    packagingOptions {
+        resources.excludes.add("/META-INF/{AL2.0,LGPL2.1}")
+        buildInfo.buildToolsVersion = null
+    }
+    tasks.withType<AbstractArchiveTask>().configureEach {
+        isReproducibleFileOrder = true
+        isPreserveFileTimestamps = false
     }
 
     signingConfigs {
@@ -43,27 +59,17 @@ android {
         }
     }
 
-    defaultConfig {
-        applicationId = "orinasa.njarasoa.maripanatokana"
-        minSdk = 24
-        targetSdk = 36
-        versionCode = 26
-        versionName = "1.0.25"
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-
     flavorDimensions.add("distribution")
     productFlavors {
         create("standard") {
             dimension = "distribution"
-            buildConfigField("String", "BUILD_TIME", "\"${SimpleDateFormat("yyyy-MM-dd HH:mm").format(Date())}\"")
+            buildConfigField("String", "BUILD_TIME", ""${SimpleDateFormat("yyyy-MM-dd HH:mm").format(Date())}"")
         }
 
         create("fdroid") {
             dimension = "distribution"
-            buildConfigField("String", "DISTRIBUTION", "\"fdroid\"")
-            buildConfigField("String", "BUILD_TIME", "\"reproducible\"")
+            buildConfigField("String", "DISTRIBUTION", ""fdroid"")
+            buildConfigField("String", "BUILD_TIME", ""reproducible"")
         }
     }
 
@@ -75,21 +81,18 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            if (keystorePropertiesFile.exists()) {
-                signingConfig = signingConfigs.getByName("release")
-            }
+            signingConfig = signingConfigs.getByName("release")
         }
     }
+    
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
+    
     buildFeatures {
         compose = true
         buildConfig = true
-    }
-    defaultConfig {
-        val gitHash = providers.exec { commandLine("git", "rev-parse", "--short", "HEAD") }.standardOutput.asText.get().trim()
     }
 }
 
