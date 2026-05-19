@@ -52,7 +52,7 @@
 						<span class="hour-device-icon">📱</span>
 					</div>
 				{/if}
-				<button class="emoji-btn" onclick={toggleMode}>
+				<button class="emoji-btn" onclick={toggleMode} aria-label={$_('android_only.cd_cycle_mode')}>
 					{wmoEmoji(item.weatherCode, isNightForHour(item.time))}
 				</button>
 				{#if displayMode === 'Temperature'}

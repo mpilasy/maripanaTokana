@@ -47,7 +47,7 @@
 				<span class="day-name">{formatDayName(item.date)}</span>
 				<span class="day-date">{loc(formatDayMonth(item.date))}</span>
 			</div>
-			<button class="daily-weather-btn" onclick={toggleMode}>
+			<button class="daily-weather-btn" onclick={toggleMode} aria-label={$_('android_only.cd_cycle_mode')}>
 				{wmoEmoji(item.weatherCode)} {$_(wmoDescriptionKey(item.weatherCode))}
 			</button>
 			<span class="daily-precip">
