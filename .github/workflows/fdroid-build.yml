@@ -75,6 +75,14 @@ jobs:
           echo "Extracted: $V_NAME ($V_CODE) at $COMMIT_HASH"
           APP_ID="orinasa.njarasoa.maripanatokana"
           python3 scripts/update_metadata.py "$V_NAME" "$V_CODE" "$COMMIT_HASH" "metadata/$APP_ID.yml"
+          # Validate Binaries field is in the exact canonical form fdroid rewritemeta expects:
+          # "Binaries: \n  URL" — the trailing space is required, its absence fails the GitLab CI.
+          if ! grep -qP '^Binaries: $' "metadata/$APP_ID.yml"; then
+            echo "::error::Binaries field in metadata/$APP_ID.yml is not in canonical format."
+            echo "::error::Must be 'Binaries: ' (colon + space + newline), not inline or missing trailing space."
+            grep "Binaries" "metadata/$APP_ID.yml" | cat -A
+            exit 1
+          fi
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add "metadata/$APP_ID.yml"
