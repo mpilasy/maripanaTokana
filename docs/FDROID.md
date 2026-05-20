@@ -71,13 +71,22 @@ This controls the Gradle daemon's JVM. If `toolchainVendor=JETBRAINS` is present
 Builds:
   - versionName: X.Y.Z
     versionCode: N
-    commit: vX.Y.Z
+    commit: <full commit hash>
     subdir: app
     gradle:
       - fdroid
 ```
 
 No inline `Description` field — use fastlane structure instead (reviewer requirement).
+
+**`Binaries:` field — trailing space is mandatory.** The canonical format that `fdroid rewritemeta` enforces is:
+
+```
+Binaries: 
+  https://github.com/mpilasy/maripanaTokana/releases/download/v%v/maripanaTokana-v%v.apk
+```
+
+The line must be `Binaries: ` — colon, **space**, then newline — with the URL indented two spaces on the next line. A missing trailing space causes the `fdroid rewritemeta` GitLab CI job to fail even though all other jobs pass. The GitHub CI validates this before pushing to GitLab (`grep -P '^Binaries: $'`). If that check fires, fix the file and re-run.
 
 ### `app/proguard-rules.pro`
 
@@ -99,7 +108,7 @@ Without these rules, the app crashes immediately on startup in any minified buil
 
 ### Quick Diagnostic Checklist
 
-If F-Droid build fails, check in order:
+If the **GitHub Actions build** fails, check in order:
 
 1. Is `kotlin { jvmToolchain(21) }` present in `app/build.gradle.kts`? (missing = JetBrains JDK error)
 2. Is `kotlin.android` in the plugins block? (present = extension conflict)
@@ -107,15 +116,34 @@ If F-Droid build fails, check in order:
 4. Does `gradle-daemon-jvm.properties` have `toolchainVendor`? (present = Gradle daemon won't start)
 5. Is `auto-provisioning` set to `enabled`? (will try to download JDKs and fail)
 6. Are Room/WorkManager R8 keep rules in `proguard-rules.pro`? (missing = `NoSuchMethodException: WorkDatabase_Impl` crash at startup)
+7. Does `metadata/*.yml` have `Binaries: ` with trailing space? (missing space = `fdroid rewritemeta` GitLab CI job fails)
+
+If the **GitLab MR pipeline** fails, check which job failed:
+
+- **`fdroid build`** — actual Gradle build failure. Look at the job log for Kotlin/Gradle errors.
+- **`check apk`** — APK has disallowed signing block or Google Play dependency. Check `android.dependenciesInfo.*=false` in `gradle.properties`.
+- **`fdroid lint`** — metadata YAML syntax error. Validate with a YAML linter.
+- **`fdroid rewritemeta`** — metadata is not in canonical format. Download the job artifact (`tmp/orinasa.njarasoa.maripanatokana.yml`) to see the diff of what `fdroid rewritemeta` would change. The most common cause is the `Binaries:` trailing space (see above).
+- **`schema validation`** — missing required field or wrong field type in the YAML.
+
+**Debugging `fdroid rewritemeta` failures:** The job saves the reformatted file as an artifact in `tmp/`. Download it and diff against the committed file to see exactly what byte-level difference `fdroid rewritemeta` detected. The GitLab API path is:
+```
+GET https://gitlab.com/api/v4/projects/mpilasy%2Ffdroiddata/pipelines/<id>/jobs
+# find the fdroid rewritemeta job id, then:
+GET https://gitlab.com/api/v4/projects/mpilasy%2Ffdroiddata/jobs/<job_id>/artifacts
+# follow the redirect, unzip, read tmp/orinasa.njarasoa.maripanatokana.yml
+```
 
 ### Approaches That Were Tried and Failed
 
 | Approach | Error |
-|----------|-------|
+|---|---|
 | foojay-resolver plugin | `fdroid-suss` blocks it as supply-chain risk |
 | `auto-provisioning=enabled` | F-Droid blocks JDK downloads |
 | Adding `kotlin.android` plugin | "Cannot add extension with name 'kotlin'" conflict |
 | `prebuild` sed hacks in metadata | Fragile; the sed for kotlin.android caused the same conflict |
+| `Binaries: URL` inline (no trailing space/newline) | `fdroid rewritemeta` reformats it, causing `git diff --exit-code` to fail |
+| `Binaries:\n  URL` without trailing space on first line | Same — rewritemeta adds the trailing space and fails the diff |
 | No `jvmToolchain(21)` at all | Kotlin defaults to JetBrains vendor |
 | No R8 keep rules for Room/WorkManager | `NoSuchMethodException: WorkDatabase_Impl.<init>` crash at startup |
 
