@@ -16,7 +16,7 @@ Binaries:
 Builds:
   - versionName: 1.0.36
     versionCode: 36
-    commit: placeholder
+    commit: 34a3f69dd7835e3775da4d13722c6775c4954bb4
     subdir: app
     gradle:
       - fdroid
