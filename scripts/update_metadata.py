@@ -19,11 +19,12 @@ def update_metadata(version_name, version_code, commit_hash, yaml_path):
 
     print(f"Updating metadata for {v_name} ({v_code}) at {commit_hash}")
 
-    # Ensure Binaries: is present as a single inline value.
-    # fdroid rewritemeta enforces the inline form — two-line block-scalar fails the job.
+    # Ensure Binaries: is present in the canonical form fdroid rewritemeta expects:
+    # "Binaries: \n  URL" — colon, trailing space, newline, two-space indent.
+    # The trailing space is load-bearing: rewritemeta will add it and fail the diff check.
     if "Binaries:" not in content:
         repo_match = re.search(r"Repo: [^\n]+\n", content)
-        bin_block = f"Binaries: {BINARIES_URL}\n"
+        bin_block = f"Binaries: \n  {BINARIES_URL}\n"
         if repo_match:
             content = content[:repo_match.end()] + bin_block + content[repo_match.end():]
         else:
