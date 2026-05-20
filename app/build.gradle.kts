@@ -27,14 +27,14 @@ android {
         applicationId = "orinasa.njarasoa.maripanatokana"
         minSdk = 24
         targetSdk = 36
-        versionCode = 31
-        versionName = "1.0.30"
+        versionCode = 32
+        versionName = "1.0.32"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        
+
         val gitHash = providers.exec { commandLine("git", "rev-parse", "--short", "HEAD") }.standardOutput.asText.get().trim()
-        buildConfigField("String", "GIT_HASH", ""$gitHash"")
+        buildConfigField("String", "GIT_HASH", "\"$gitHash\"")
     }
-    
+
     signingConfigs {
         create("release") {
             storeFile = if (System.getenv("KEYSTORE_FILE") != null) file(System.getenv("KEYSTORE_FILE"))
@@ -49,12 +49,12 @@ android {
     productFlavors {
         create("standard") {
             dimension = "distribution"
-            buildConfigField("String", "BUILD_TIME", ""${SimpleDateFormat("yyyy-MM-dd HH:mm").format(Date())}"")
+            buildConfigField("String", "BUILD_TIME", "\"${SimpleDateFormat("yyyy-MM-dd HH:mm").format(Date())}\"")
         }
         create("fdroid") {
             dimension = "distribution"
-            buildConfigField("String", "DISTRIBUTION", ""fdroid"")
-            buildConfigField("String", "BUILD_TIME", ""reproducible"")
+            buildConfigField("String", "DISTRIBUTION", "\"fdroid\"")
+            buildConfigField("String", "BUILD_TIME", "\"reproducible\"")
         }
     }
 
@@ -63,19 +63,21 @@ android {
             isMinifyEnabled = true
             isCrunchPngs = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = signingConfigs.getByName("release")
+            if (keystorePropertiesFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
-    
+
     packaging {
         resources.excludes.add("/META-INF/{AL2.0,LGPL2.1}")
     }
-    
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
-    
+
     buildFeatures {
         compose = true
         buildConfig = true

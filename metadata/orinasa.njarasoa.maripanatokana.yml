@@ -10,21 +10,20 @@ AutoName: maripànaTokana
 
 RepoType: git
 Repo: https://github.com/mpilasy/maripanaTokana.git
-
-Binaries: https://github.com/mpilasy/maripanaTokana/releases/download/v%v/maripanaTokana-%v.apk
-
-AllowedAPKSigningKeys:
-  - 819fa7886022f2a5070dbef7d518f3e9469a302a577affc0311c092a6bf08c45
+Binaries:
+  https://github.com/mpilasy/maripanaTokana/releases/download/v%v/maripanaTokana-v%v.apk
 
 Builds:
-  - versionName: 1.0.30
-    versionCode: 31
-    commit: placeholder
+  - versionName: 1.0.32
+    versionCode: 32
+    commit: 8447ba3450396235b31fb8b5037ba8684bde6fe3
     subdir: app
     gradle:
       - fdroid
 
+AllowedAPKSigningKeys: 819fa7886022f2a5070dbef7d518f3e9469a302a577affc0311c092a6bf08c45
+
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 1.0.30
-CurrentVersionCode: 31
+CurrentVersion: 1.0.32
+CurrentVersionCode: 32
