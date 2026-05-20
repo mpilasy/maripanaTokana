@@ -73,10 +73,10 @@ class WeatherRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun fetchAlerts(lat: Double, lon: Double): Result<List<WeatherAlert>> = coroutineScope {
+    override suspend fun fetchAlerts(lat: Double, lon: Double, derivedAlerts: List<WeatherAlert>): Result<List<WeatherAlert>> = coroutineScope {
         try {
             // 1. Official NWS Alerts
-            val nwsDeferred = async { 
+            val nwsDeferred = async {
                 try {
                     val point = String.format(Locale.US, "%.4f,%.4f", lat, lon)
                     val nwsParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
@@ -123,17 +123,12 @@ class WeatherRepositoryImpl @Inject constructor(
                 }
             }
 
-            // 3. Derived Alerts (from Open-Meteo)
-            val weatherDeferred = async { apiService.getForecast(latitude = lat, longitude = lon) }
-
             val nwsAlerts = nwsDeferred.await()
             val gdacsAlerts = gdacsDeferred.await()
-            val weatherResponse = weatherDeferred.await()
-            val weatherData = weatherResponse.toDomain("temp", null) // location name doesn't matter for alerts
 
-            val combinedAlerts = (nwsAlerts + gdacsAlerts + weatherData.alerts)
+            val combinedAlerts = (nwsAlerts + gdacsAlerts + derivedAlerts)
                 .distinctBy { it.titleKey + it.source }
-            
+
             Result.success(combinedAlerts)
         } catch (e: Exception) {
             Result.failure(e)

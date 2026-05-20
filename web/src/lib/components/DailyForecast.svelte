@@ -3,6 +3,7 @@
 	import type { DailyForecast as DailyForecastType } from '$lib/domain/weatherData';
 	import { getCardinalDirection } from '$lib/domain/windSpeed';
 	import { wmoEmoji, wmoDescriptionKey } from '$lib/api/wmoWeatherCode';
+	import { formatDayName, formatDayMonth } from '$lib/utils/date';
 	import DualUnitText from './DualUnitText.svelte';
 	import DailyTemperatureChart from './DailyTemperatureChart.svelte';
 
@@ -24,17 +25,6 @@
 		else displayMode = 'Temperature';
 	}
 
-	// Memoize Intl.DateTimeFormat to avoid expensive instantiations during rendering
-	let dayNameFormatter = $derived(new Intl.DateTimeFormat(localeTag, { weekday: 'long' }));
-	let dayMonthFormatter = $derived(new Intl.DateTimeFormat(localeTag, { day: 'numeric', month: 'short' }));
-
-	function formatDayName(millis: number): string {
-		return dayNameFormatter.format(new Date(millis));
-	}
-
-	function formatDayMonth(millis: number): string {
-		return dayMonthFormatter.format(new Date(millis));
-	}
 </script>
 
 <div class="daily-list">
@@ -44,8 +34,8 @@
 	{#each forecasts as item}
 		<div class="daily-row">
 			<div class="day-info">
-				<span class="day-name">{formatDayName(item.date)}</span>
-				<span class="day-date">{loc(formatDayMonth(item.date))}</span>
+				<span class="day-name">{formatDayName(item.date, localeTag)}</span>
+				<span class="day-date">{loc(formatDayMonth(item.date, localeTag))}</span>
 			</div>
 			<button class="daily-weather-btn" onclick={toggleMode}>
 				{wmoEmoji(item.weatherCode)} {$_(wmoDescriptionKey(item.weatherCode))}

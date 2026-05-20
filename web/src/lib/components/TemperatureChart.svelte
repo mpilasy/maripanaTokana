@@ -44,15 +44,16 @@
 		return ticks;
 	});
 
-	let midnightIndices = $derived(forecasts.map((f, i) => {
-		const date = new Date(f.time);
-		return date.getHours() === 0 ? i : -1;
-	}).filter(idx => idx !== -1));
-
-	let noonIndices = $derived(forecasts.map((f, i) => {
-		const date = new Date(f.time);
-		return date.getHours() === 12 ? i : -1;
-	}).filter(idx => idx !== -1));
+	let { midnightIndices, noonIndices } = $derived.by(() => {
+		const midnight: number[] = [];
+		const noon: number[] = [];
+		for (let i = 0; i < forecasts.length; i++) {
+			const h = new Date(forecasts[i].time).getHours();
+			if (h === 0) midnight.push(i);
+			else if (h === 12) noon.push(i);
+		}
+		return { midnightIndices: midnight, noonIndices: noon };
+	});
 
 	let pathData = $derived(() => {
 		if (points.length < 2) return '';

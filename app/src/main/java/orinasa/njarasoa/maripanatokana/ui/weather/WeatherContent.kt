@@ -151,15 +151,17 @@ internal fun WeatherContent(
         else -> 0.7f
     }
 
-    // Get current lat/lon string from prefs since we might not have it in WeatherData exactly as requested
-    val prefs = context.getSharedPreferences("widget_prefs", android.content.Context.MODE_PRIVATE)
-    val lat = prefs.getFloat("lat", 0f).toDouble()
-    val lon = prefs.getFloat("lon", 0f).toDouble()
-    val overrideLat = prefs.getFloat("dev_override_lat", Float.NaN)
-    val overrideLon = prefs.getFloat("dev_override_lon", Float.NaN)
-
-    val displayLat = if (!overrideLat.isNaN()) overrideLat.toDouble() else lat
-    val displayLon = if (!overrideLon.isNaN()) overrideLon.toDouble() else lon
+    // Get current lat/lon from prefs; memoized so it only re-reads on context change, not every recomposition
+    val (displayLat, displayLon) = remember(context) {
+        val prefs = context.getSharedPreferences("widget_prefs", android.content.Context.MODE_PRIVATE)
+        val lat = prefs.getFloat("lat", 0f).toDouble()
+        val lon = prefs.getFloat("lon", 0f).toDouble()
+        val overrideLat = prefs.getFloat("dev_override_lat", Float.NaN)
+        val overrideLon = prefs.getFloat("dev_override_lon", Float.NaN)
+        val dLat = if (!overrideLat.isNaN()) overrideLat.toDouble() else lat
+        val dLon = if (!overrideLon.isNaN()) overrideLon.toDouble() else lon
+        dLat to dLon
+    }
 
     CompositionLocalProvider(LocalScale provides scale) {
     Column(

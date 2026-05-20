@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.data.remote.GeocodingResult
+import orinasa.njarasoa.maripanatokana.domain.model.WeatherAlert
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.repository.LocationRepository
 import orinasa.njarasoa.maripanatokana.domain.repository.WeatherRepository
@@ -263,9 +264,9 @@ class WeatherViewModel @Inject constructor(
         }
     }
 
-    private fun fetchAlertsForData(lat: Double, lon: Double) {
+    private fun fetchAlertsForData(lat: Double, lon: Double, derivedAlerts: List<WeatherAlert> = emptyList()) {
         viewModelScope.launch {
-            weatherRepository.fetchAlerts(lat, lon).onSuccess { alerts ->
+            weatherRepository.fetchAlerts(lat, lon, derivedAlerts).onSuccess { alerts ->
                 val current = _uiState.value
                 if (current is WeatherUiState.Success && !current.data.locationName.contains(",")) {
                     // Only update if we are still on a non-coordinate-named location (to avoid race)
@@ -314,7 +315,7 @@ class WeatherViewModel @Inject constructor(
                 weatherRepository.getWeather(overrideLat, overrideLon).onSuccess { data ->
                     val overrideData = data.copy(locationName = overrideName)
                     _uiState.value = WeatherUiState.Success(overrideData)
-                    fetchAlertsForData(overrideLat, overrideLon)
+                    fetchAlertsForData(overrideLat, overrideLon, data.alerts)
                     // Spawn background GPS cache refresh
                     spawnGpsCacheRefresh()
                 }.onFailure {
@@ -348,7 +349,7 @@ class WeatherViewModel @Inject constructor(
                 weatherRepository.getWeather(overrideLat, overrideLon).onSuccess { data ->
                     val overrideData = data.copy(locationName = overrideName)
                     _uiState.value = WeatherUiState.Success(overrideData)
-                    fetchAlertsForData(overrideLat, overrideLon)
+                    fetchAlertsForData(overrideLat, overrideLon, data.alerts)
                     // Spawn background GPS cache refresh
                     spawnGpsCacheRefresh()
                 }.onFailure {
@@ -387,7 +388,7 @@ class WeatherViewModel @Inject constructor(
                                 val displayData = data.copy(locationSubtext = null)
                                 prefs.edit().putString("location_name", displayData.locationName).apply()
                                 _uiState.value = WeatherUiState.Success(displayData)
-                                fetchAlertsForData(lat, lon)
+                                fetchAlertsForData(lat, lon, data.alerts)
                             }
                         }
                     }
@@ -405,7 +406,7 @@ class WeatherViewModel @Inject constructor(
                                         val displayData = data.copy(locationSubtext = null)
                                         prefs.edit().putString("location_name", displayData.locationName).apply()
                                         _uiState.value = WeatherUiState.Success(displayData)
-                                        fetchAlertsForData(lat, lon)
+                                        fetchAlertsForData(lat, lon, data.alerts)
                                     }
                                     .onFailure {
                                         if (!usedCached) {
