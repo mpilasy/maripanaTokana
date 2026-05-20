@@ -22,7 +22,7 @@ Builds:
       - fdroid
   - versionName: 1.0.34
     versionCode: 34
-    commit: placeholder
+    commit: 4f36c56726956604b27bb47ad8fad28c11cdb481
     subdir: app
     gradle:
       - fdroid
