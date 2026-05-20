@@ -4,7 +4,7 @@ import os
 import re
 
 BINARIES_URL = "https://github.com/mpilasy/maripanaTokana/releases/download/v%v/maripanaTokana-v%v.apk"
-FINGERPRINT = "819fa7886022f2a5070dbef7d518f3e9469a302a577affc0311c092a6bf08c45"
+FINGERPRINT = "93270696531c2486d39b6d009a5f948eb0f7f6309b4dc4b46eeb538969fcf3e8"
 
 def update_metadata(version_name, version_code, commit_hash, yaml_path):
     if not os.path.exists(yaml_path):
