@@ -49,6 +49,14 @@ The file should have no `plugins {}` block — just `pluginManagement`, `depende
 
 F-Droid doesn't allow downloading JDKs during builds. Combined with `jvmToolchain(21)` (vendor-agnostic), the build uses whatever JDK 21 is already on the server.
 
+**`android.dependenciesInfo.includeInApk=false` and `android.dependenciesInfo.includeInBundle=false` — MUST be set**
+
+AGP 8+ embeds a "Dependency metadata" block in the APK's signing block by default. F-Droid's `fdroid-suss` scanner rejects any APK containing this block:
+
+> "Found extra signing block 'Dependency metadata'"
+
+Without these flags, `check apk` fails even when the build and reproducibility checks pass.
+
 ### `gradle/gradle-daemon-jvm.properties`
 
 **Must only contain `toolchainVersion=21` — NO `toolchainVendor` or `toolchainUrl` lines.**
