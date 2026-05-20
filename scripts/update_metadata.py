@@ -21,7 +21,6 @@ def update_metadata(version_name, version_code, commit_hash, yaml_path):
 
     # Ensure Binaries: is present in F-Droid canonical block-scalar format.
     # The URL must be on the indented next line — fdroid rewritemeta enforces this.
-    # No blank line between Repo: and Binaries: (rewritemeta removes it).
     if "Binaries:" not in content:
         repo_match = re.search(r"Repo: [^\n]+\n", content)
         bin_block = f"Binaries: \n  {BINARIES_URL}\n"
@@ -40,7 +39,8 @@ def update_metadata(version_name, version_code, commit_hash, yaml_path):
         else:
             content = content.rstrip() + pin_line
 
-    # Build entry for this version.
+    # Build entry for this version (only current version in Builds — older entries
+    # are skipped so fdroid check apk doesn't fetch and fail on old APKs).
     new_entry = (
         f"  - versionName: {v_name}\n"
         f"    versionCode: {v_code}\n"
@@ -50,17 +50,15 @@ def update_metadata(version_name, version_code, commit_hash, yaml_path):
         f"      - fdroid"
     )
 
-    # Update existing entry for this version, or insert before AllowedAPKSigningKeys.
-    pattern = rf"(  - versionName: {re.escape(v_name)}\n    versionCode: {v_code}.*?)(?=\n  -|\nAllowedAPKSigningKeys|\nAutoUpdateMode|\nCurrentVersion|\Z)"
-    match = re.search(pattern, content, re.DOTALL)
-    if match:
-        content = content[:match.start()] + new_entry + "\n" + content[match.end():]
-    else:
-        insert_before = re.search(r"\nAllowedAPKSigningKeys:|\nAutoUpdateMode:|\nCurrentVersion:", content)
-        if insert_before:
-            content = content[:insert_before.start()] + "\n" + new_entry + "\n" + content[insert_before.start():]
-        else:
-            content = content.rstrip() + "\n" + new_entry + "\n"
+    # Replace the entire Builds: section with only the current version's entry.
+    # This prevents check apk from downloading and failing on old APKs.
+    builds_section = f"Builds:\n{new_entry}\n"
+    content = re.sub(
+        r"Builds:.*?(?=\nAllowedAPKSigningKeys:|\nAutoUpdateMode:|\nCurrentVersion:|\Z)",
+        builds_section,
+        content,
+        flags=re.DOTALL,
+    )
 
     # Update CurrentVersion / CurrentVersionCode.
     content = re.sub(r"CurrentVersion: [^\n]+", f"CurrentVersion: {v_name}", content)
