@@ -20,6 +20,8 @@
 	let { forecasts, metricPrimary, dailySunrise, dailySunset, loc, onToggleUnits, utcOffsetSeconds }: Props = $props();
 
 	let displayMode = $state('Temperature'); // Temperature, Wind, Precipitation, Pressure
+	let scrollLeft = $state(0);
+	let containerWidth = $state(0);
 
 	let isRemote = $derived(isRemoteTimezone(utcOffsetSeconds));
 
@@ -41,7 +43,8 @@
 	}
 </script>
 
-<div class="hourly-container">
+<div class="hourly-wrapper" bind:clientWidth={containerWidth}>
+	<div class="cards-scroll" onscroll={(e) => { scrollLeft = e.currentTarget.scrollLeft; }}>
 	<div class="cards-row">
 		{#each forecasts as item}
 			<div class="hourly-card">
@@ -99,31 +102,37 @@
 			</div>
 		{/each}
 	</div>
+	</div>
 
 	{#if displayMode === 'Temperature'}
 		<div class="chart-container">
 			<TemperatureChart
 				{forecasts}
 				{metricPrimary}
-				itemWidth={104} 
+				itemWidth={104}
 				itemSpacing={12}
 				height={48}
+				{scrollLeft}
+				{containerWidth}
 			/>
 		</div>
 	{/if}
 </div>
 
 <style>
-	.hourly-container {
+	.hourly-wrapper {
 		display: flex;
 		flex-direction: column;
-		overflow-x: auto;
-		padding: 8px 0;
-		max-width: 100%;
-		-webkit-overflow-scrolling: touch;
+		width: 100%;
 	}
 
-	.hourly-container::-webkit-scrollbar {
+	.cards-scroll {
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+		padding: 8px 0;
+	}
+
+	.cards-scroll::-webkit-scrollbar {
 		display: none;
 	}
 
