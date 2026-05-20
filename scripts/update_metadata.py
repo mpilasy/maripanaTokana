@@ -24,7 +24,7 @@ def update_metadata(version_name, version_code, commit_hash, yaml_path):
     # No blank line between Repo: and Binaries: (rewritemeta removes it).
     if "Binaries:" not in content:
         repo_match = re.search(r"Repo: [^\n]+\n", content)
-        bin_block = f"Binaries:\n  {BINARIES_URL}\n"
+        bin_block = f"Binaries: \n  {BINARIES_URL}\n"
         if repo_match:
             content = content[:repo_match.end()] + bin_block + content[repo_match.end():]
         else:
