@@ -10,8 +10,7 @@ AutoName: maripànaTokana
 
 RepoType: git
 Repo: https://github.com/mpilasy/maripanaTokana.git
-Binaries:
-  https://github.com/mpilasy/maripanaTokana/releases/download/v%v/maripanaTokana-v%v.apk
+Binaries: https://github.com/mpilasy/maripanaTokana/releases/download/v%v/maripanaTokana-v%v.apk
 
 Builds:
   - versionName: 1.0.36
