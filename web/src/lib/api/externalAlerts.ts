@@ -47,8 +47,23 @@ export async function fetchGdacsAlerts(lat: number, lon: number): Promise<Weathe
 		const data: GdacsAlertResponse = await res.json();
 		
 		// Filter by distance
+		const latDelta = GDACS_SEARCH_RADIUS_KM / 111.0;
+		const lonDelta = Math.abs(lat) < 89.0 ? GDACS_SEARCH_RADIUS_KM / (111.0 * Math.cos(lat * Math.PI / 180)) : 360.0;
+		const minLat = lat - latDelta;
+		const maxLat = lat + latDelta;
+
 		return data.features
-			.filter(f => calculateDistance(lat, lon, f.geometry.coordinates[1], f.geometry.coordinates[0]) < GDACS_SEARCH_RADIUS_KM)
+			.filter(f => {
+				const fLat = f.geometry.coordinates[1];
+				const fLon = f.geometry.coordinates[0];
+				if (fLat < minLat || fLat > maxLat) return false;
+
+				const dLon = Math.abs(fLon - lon);
+				const shortestDLon = dLon > 180.0 ? 360.0 - dLon : dLon;
+				if (shortestDLon > lonDelta) return false;
+
+				return calculateDistance(lat, lon, fLat, fLon) < GDACS_SEARCH_RADIUS_KM;
+			})
 			.map(f => {
 				const p = f.properties;
 				const level: AlertLevel = p.alertlevel === 'red' ? 'emergency' : p.alertlevel === 'orange' ? 'warning' : 'watch';
