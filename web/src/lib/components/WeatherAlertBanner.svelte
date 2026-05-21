@@ -4,6 +4,7 @@
 	import { slide } from 'svelte/transition';
 	import { localeIndex } from '$lib/stores/preferences';
 	import { SUPPORTED_LOCALES } from '$lib/i18n/locales';
+	import { formatAlertTime } from '$lib/utils/date';
 
 	interface Props {
 		alerts: WeatherAlert[];
@@ -19,15 +20,7 @@
 		: 'watch');
 
 	let topAlert = $derived(alerts.find(a => a.level === topLevel) || alerts[0]);
-
-	let timeFormatter = $derived(new Intl.DateTimeFormat(SUPPORTED_LOCALES[$localeIndex].tag, {
-		year: 'numeric',
-		month: '2-digit',
-		day: '2-digit',
-		hour: '2-digit',
-		minute: '2-digit',
-		hour12: false
-	}));
+	let localeTag = $derived(SUPPORTED_LOCALES[$localeIndex].tag);
 </script>
 
 {#if alerts.length > 0 && topAlert}
@@ -80,7 +73,7 @@
 						</div>
 						
 						{#if alert.time}
-							<div class="alert-time">{timeFormatter.format(alert.time)}</div>
+							<div class="alert-time">{formatAlertTime(alert.time, localeTag)}</div>
 						{/if}
 
 						{#if alert.headline}

@@ -10,13 +10,10 @@ plugins {
     id("com.google.dagger.hilt.android")
 }
 
-val buildTime: String = SimpleDateFormat("yyyy-MM-dd HH:mm").format(Date())
-
 val keystorePropertiesFile = rootProject.file("keystore.properties")
 val keystoreProperties = Properties().apply {
     if (keystorePropertiesFile.exists()) load(keystorePropertiesFile.inputStream())
 }
-
 
 kotlin {
     jvmToolchain(21)
@@ -24,29 +21,28 @@ kotlin {
 
 android {
     namespace = "orinasa.njarasoa.maripanatokana"
-    compileSdk {
-        version = release(36)
-    }
-
-    if (keystorePropertiesFile.exists()) {
-        signingConfigs {
-            create("release") {
-                storeFile = rootProject.file(keystoreProperties.getProperty("storeFile"))
-                storePassword = keystoreProperties.getProperty("storePassword")
-                keyAlias = keystoreProperties.getProperty("keyAlias")
-                keyPassword = keystoreProperties.getProperty("keyPassword")
-            }
-        }
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "orinasa.njarasoa.maripanatokana"
         minSdk = 24
         targetSdk = 36
-        versionCode = 18
-        versionName = "1.0.17"
-
+        versionCode = 37
+        versionName = "1.0.37"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        val gitHash = providers.exec { commandLine("git", "rev-parse", "--short", "HEAD") }.standardOutput.asText.get().trim()
+        buildConfigField("String", "GIT_HASH", "\"$gitHash\"")
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = if (System.getenv("KEYSTORE_FILE") != null) file(System.getenv("KEYSTORE_FILE"))
+            else rootProject.file(keystoreProperties.getProperty("storeFile", "release.keystore"))
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: keystoreProperties.getProperty("storePassword")
+            keyAlias = System.getenv("KEY_ALIAS") ?: keystoreProperties.getProperty("keyAlias")
+            keyPassword = System.getenv("KEY_PASSWORD") ?: keystoreProperties.getProperty("keyPassword")
+        }
     }
 
     flavorDimensions.add("distribution")
@@ -55,7 +51,6 @@ android {
             dimension = "distribution"
             buildConfigField("String", "BUILD_TIME", "\"${SimpleDateFormat("yyyy-MM-dd HH:mm").format(Date())}\"")
         }
-
         create("fdroid") {
             dimension = "distribution"
             buildConfigField("String", "DISTRIBUTION", "\"fdroid\"")
@@ -66,26 +61,31 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-            if (keystorePropertiesFile.exists()) {
+            isCrunchPngs = false
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            if (keystorePropertiesFile.exists() || System.getenv("KEYSTORE_FILE") != null) {
                 signingConfig = signingConfigs.getByName("release")
             }
         }
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+
+    packaging {
+        resources.excludes.add("/META-INF/{AL2.0,LGPL2.1}")
     }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
+    }
+
     buildFeatures {
         compose = true
         buildConfig = true
-    }
-    defaultConfig {
-        val gitHash = providers.exec { commandLine("git", "rev-parse", "--short", "HEAD") }.standardOutput.asText.get().trim()
-        buildConfigField("String", "GIT_HASH", "\"$gitHash\"")
     }
 }
 
@@ -100,28 +100,17 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.glance.material3)
-
-    // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
-
-    // Retrofit
     implementation(libs.retrofit)
     implementation(libs.okhttp.logging)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.retrofit.kotlinx.serialization)
-
-    // WorkManager
     implementation(libs.androidx.work.runtime.ktx)
-
-    // Location - standard flavor only
     "standardImplementation"(libs.play.services.location)
     "standardImplementation"(libs.accompanist.permissions)
     "standardImplementation"(libs.kotlinx.coroutines.play.services)
-
-    // F-Droid uses native Android LocationManager (no extra dependencies)
-
     testImplementation("io.mockk:mockk:1.13.12")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
     testImplementation(libs.junit)

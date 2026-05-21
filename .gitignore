@@ -16,7 +16,7 @@ local.properties
 gradle.properties
 **/build/
 .idea
-release.keystore
+*.keystore
 keystore.properties
 
 # Web
@@ -33,3 +33,5 @@ web/**/vite.config.ts.timestamp-*
 web/**/tsconfig.tsbuildinfo
 
 /venv/
+
+.kotlin

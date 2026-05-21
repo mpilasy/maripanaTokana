@@ -49,7 +49,7 @@ class WeatherRepositoryImpl @Inject constructor(
                     ?: addr?.subAdminArea
                     ?: addr?.adminArea
                     ?: "%.2f, %.2f".format(Locale.US, lat, lon)
-                
+
                 val name = rawName.split(",")[0].split(";")[0].split("-")[0].trim()
 
                 val subtext = if (addr != null) {
@@ -142,8 +142,9 @@ class WeatherRepositoryImpl @Inject constructor(
             val nwsAlerts = nwsDeferred.await()
             val gdacsAlerts = gdacsDeferred.await()
 
+<<<<<<< HEAD
             // Optimize: Avoid intermediate lists from `+` and LinkedHashMap from `distinctBy`
-            val combinedAlerts = ArrayList<WeatherAlert>(nwsAlerts.size + gdacsAlerts.size + derivedAlerts.size)
+            val combinedAlerts = ArrayList<WeatherAlert>(nwsAlerts.size + gdacsAlerts.size + weatherData.alerts.size)
             val seenKeys = HashSet<String>()
 
             for (alert in nwsAlerts) {
@@ -156,11 +157,17 @@ class WeatherRepositoryImpl @Inject constructor(
                     combinedAlerts.add(alert)
                 }
             }
-            for (alert in derivedAlerts) {
+            for (alert in weatherData.alerts) {
                 if (seenKeys.add(alert.titleKey + alert.source)) {
                     combinedAlerts.add(alert)
                 }
             }
+
+=======
+            val combinedAlerts = (nwsAlerts + gdacsAlerts + derivedAlerts)
+                .distinctBy { it.titleKey + it.source }
+
+>>>>>>> origin/main
             Result.success(combinedAlerts)
         } catch (e: Exception) {
             Result.failure(e)

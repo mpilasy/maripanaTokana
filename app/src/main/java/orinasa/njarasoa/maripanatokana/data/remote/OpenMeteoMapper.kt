@@ -13,16 +13,18 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
 
+private fun makeDateFormat(pattern: String, utcOffsetSeconds: Int): SimpleDateFormat {
+    val sign = if (utcOffsetSeconds >= 0) "+" else "-"
+    val abs = Math.abs(utcOffsetSeconds)
+    return SimpleDateFormat(pattern, Locale.US).apply {
+        timeZone = TimeZone.getTimeZone(String.format(Locale.US, "GMT%s%02d:%02d", sign, abs / 3600, (abs % 3600) / 60))
+    }
+}
+
 fun deriveAlerts(c: OpenMeteoCurrent, h: OpenMeteoHourly, d: OpenMeteoDaily, utcOffsetSeconds: Int): List<WeatherAlert> {
     val alerts = mutableListOf<WeatherAlert>()
     val nowMillis = System.currentTimeMillis()
-    val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm", Locale.US).apply {
-        val sign = if (utcOffsetSeconds >= 0) "+" else "-"
-        val absOffset = Math.abs(utcOffsetSeconds)
-        val hh = absOffset / 3600
-        val mm = (absOffset % 3600) / 60
-        timeZone = TimeZone.getTimeZone(String.format(Locale.US, "GMT%s%02d:%02d", sign, hh, mm))
-    }
+    val dateFormat = makeDateFormat("yyyy-MM-dd'T'HH:mm", utcOffsetSeconds)
 
     // Pre-parse timestamps once using the location's timezone
     val parsedTimes = h.time.map { dateFormat.parse(it)?.time ?: 0L }
@@ -83,20 +85,8 @@ fun deriveAlerts(c: OpenMeteoCurrent, h: OpenMeteoHourly, d: OpenMeteoDaily, utc
 fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = null): WeatherData {
     val c = current
     val isDay = c.isDay == 1
-    val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm", Locale.US).apply {
-        val sign = if (utcOffsetSeconds >= 0) "+" else "-"
-        val absOffset = Math.abs(utcOffsetSeconds)
-        val hh = absOffset / 3600
-        val mm = (absOffset % 3600) / 60
-        timeZone = TimeZone.getTimeZone(String.format(Locale.US, "GMT%s%02d:%02d", sign, hh, mm))
-    }
-    val dayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
-        val sign = if (utcOffsetSeconds >= 0) "+" else "-"
-        val absOffset = Math.abs(utcOffsetSeconds)
-        val hh = absOffset / 3600
-        val mm = (absOffset % 3600) / 60
-        timeZone = TimeZone.getTimeZone(String.format(Locale.US, "GMT%s%02d:%02d", sign, hh, mm))
-    }
+    val dateFormat = makeDateFormat("yyyy-MM-dd'T'HH:mm", utcOffsetSeconds)
+    val dayFormat = makeDateFormat("yyyy-MM-dd", utcOffsetSeconds)
 
     // Pre-parse hourly timestamps once
     val parsedHourlyTimes = hourly.time.map { dateFormat.parse(it)?.time ?: 0L }

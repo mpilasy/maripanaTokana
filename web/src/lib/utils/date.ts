@@ -79,3 +79,41 @@ export function isRemoteTimezone(utcOffsetSeconds: number): boolean {
 	const deviceOffsetSeconds = new Date().getTimezoneOffset() * -60;
 	return deviceOffsetSeconds !== utcOffsetSeconds;
 }
+
+const dayNameFormatters = new Map<string, Intl.DateTimeFormat>();
+const dayMonthFormatters = new Map<string, Intl.DateTimeFormat>();
+const alertTimeFormatters = new Map<string, Intl.DateTimeFormat>();
+
+export function formatDayName(timestamp: number, localeTag: string): string {
+	let formatter = dayNameFormatters.get(localeTag);
+	if (!formatter) {
+		formatter = new Intl.DateTimeFormat(localeTag, { weekday: 'long' });
+		dayNameFormatters.set(localeTag, formatter);
+	}
+	return formatter.format(new Date(timestamp));
+}
+
+export function formatDayMonth(timestamp: number, localeTag: string): string {
+	let formatter = dayMonthFormatters.get(localeTag);
+	if (!formatter) {
+		formatter = new Intl.DateTimeFormat(localeTag, { day: 'numeric', month: 'short' });
+		dayMonthFormatters.set(localeTag, formatter);
+	}
+	return formatter.format(new Date(timestamp));
+}
+
+export function formatAlertTime(timestamp: number, localeTag: string): string {
+	let formatter = alertTimeFormatters.get(localeTag);
+	if (!formatter) {
+		formatter = new Intl.DateTimeFormat(localeTag, {
+			year: 'numeric',
+			month: '2-digit',
+			day: '2-digit',
+			hour: '2-digit',
+			minute: '2-digit',
+			hour12: false
+		});
+		alertTimeFormatters.set(localeTag, formatter);
+	}
+	return formatter.format(new Date(timestamp));
+}

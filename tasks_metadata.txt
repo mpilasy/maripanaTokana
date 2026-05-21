@@ -1,0 +1,100 @@
+Categories:
+  - Task
+  - Writing
+License: GPL-3.0-only
+AuthorName: Alex Baker
+AuthorEmail: support@tasks.org
+WebSite: https://tasks.org
+SourceCode: https://github.com/tasks/tasks
+IssueTracker: https://github.com/tasks/tasks/issues
+Translation: https://hosted.weblate.org/projects/tasks/
+Changelog: https://github.com/tasks/tasks/blob/HEAD/CHANGELOG.md
+Donate: https://tasks.org/donate
+Liberapay: tasks
+Bitcoin: 136mW34jW3cmZKhxuTDn3tHXMRwbbaRU8s
+
+AutoName: Tasks
+
+RepoType: git
+Repo: https://github.com/tasks/tasks.git
+
+Builds:
+  - versionName: 4.6.16
+    versionCode: 331
+    commit: 4.6.16
+    subdir: astrid
+    gradle:
+      - yes
+
+  - versionName: 4.6.17
+    versionCode: 332
+    commit: 4.6.17
+    subdir: astrid
+    gradle:
+      - yes
+
+  - versionName: 4.6.18
+    versionCode: 333
+    commit: 4.6.18
+    subdir: astrid
+    gradle:
+      - yes
+
+  - versionName: 4.7.0
+    versionCode: 336
+    commit: 4.7.0
+    gradle:
+      - yes
+    prebuild: sed -i -e 's/21.0.2/21.0.+/g' -e 's/gradle:1.0.0-rc1/gradle:0.14.0/g'
+      -e '/2.2.1/d' build.gradle
+
+  - versionName: 4.7.1
+    versionCode: 337
+    commit: 4.7.1
+    gradle:
+      - yes
+    prebuild: sed -i -e 's/21.0.2/21.0.+/g' -e 's/gradle:1.0.0-rc1/gradle:0.14.0/g'
+      -e '/2.2.1/d' build.gradle
+
+  - versionName: 4.7.2
+    versionCode: 338
+    commit: 4.7.2
+    gradle:
+      - yes
+    prebuild: sed -i -e 's/21.0.2/21.0.+/g' -e 's/gradle:1.0.0-rc1/gradle:0.14.0/g'
+      -e '/2.2.1/d' build.gradle
+
+  - versionName: 4.7.3
+    versionCode: 339
+    commit: 4.7.3
+    gradle:
+      - yes
+    prebuild: sed -i -e 's/21.0.2/21.0.+/g' -e 's/gradle:1.0.0-rc4/gradle:0.14.0/g'
+      -e '/2.2.1/d' build.gradle
+
+  - versionName: 4.7.4
+    versionCode: 341
+    commit: 4.7.4
+    gradle:
+      - yes
+    prebuild: sed -i -e 's/21.0.2/21.0.+/g' -e 's/gradle:1.0.0-rc4/gradle:0.14.0/g'
+      -e '/2.2.1/d' build.gradle
+
+  - versionName: 4.7.5
+    versionCode: 342
+    commit: 4.7.5
+    gradle:
+      - yes
+    prebuild: sed -i -e 's/21.0.2/21.0.+/g' -e 's/gradle:1.0.0-rc4/gradle:0.14.0/g'
+      -e '/2.2.1/d' build.gradle
+
+  - versionName: 4.7.5
+    versionCode: 345
+    commit: 4.7.5
+    gradle:
+      - yes
+    prebuild: sed -i -e 's/21.0.2/21.0.+/g' -e 's/gradle:1.0.0-rc4/gradle:0.14.0/g'
+      -e '/2.2.1/d' build.gradle
+
+  - versionName: 4.7.5
+    versionCode: 346

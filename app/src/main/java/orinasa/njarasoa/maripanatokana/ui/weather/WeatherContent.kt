@@ -63,6 +63,7 @@ import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
@@ -151,15 +152,17 @@ internal fun WeatherContent(
         else -> 0.7f
     }
 
-    // Get current lat/lon string from prefs since we might not have it in WeatherData exactly as requested
-    val prefs = context.getSharedPreferences("widget_prefs", android.content.Context.MODE_PRIVATE)
-    val lat = prefs.getFloat("lat", 0f).toDouble()
-    val lon = prefs.getFloat("lon", 0f).toDouble()
-    val overrideLat = prefs.getFloat("dev_override_lat", Float.NaN)
-    val overrideLon = prefs.getFloat("dev_override_lon", Float.NaN)
-
-    val displayLat = if (!overrideLat.isNaN()) overrideLat.toDouble() else lat
-    val displayLon = if (!overrideLon.isNaN()) overrideLon.toDouble() else lon
+    // Get current lat/lon from prefs; memoized so it only re-reads on context change, not every recomposition
+    val (displayLat, displayLon) = remember(context) {
+        val prefs = context.getSharedPreferences("widget_prefs", android.content.Context.MODE_PRIVATE)
+        val lat = prefs.getFloat("lat", 0f).toDouble()
+        val lon = prefs.getFloat("lon", 0f).toDouble()
+        val overrideLat = prefs.getFloat("dev_override_lat", Float.NaN)
+        val overrideLon = prefs.getFloat("dev_override_lon", Float.NaN)
+        val dLat = if (!overrideLat.isNaN()) overrideLat.toDouble() else lat
+        val dLon = if (!overrideLon.isNaN()) overrideLon.toDouble() else lon
+        dLat to dLon
+    }
 
     CompositionLocalProvider(LocalScale provides scale) {
     Column(
@@ -739,11 +742,15 @@ internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: B
     val scrollState = rememberScrollState()
     val itemWidth = 72.sd(scale)
     val itemSpacing = 12.sd(scale)
+    val density = LocalDensity.current
+    val totalScrollWidthPx = with(density) {
+        (itemWidth * forecasts.size + itemSpacing * (forecasts.size - 1)).toPx()
+    }
 
-    Column(modifier = Modifier.fillMaxWidth().horizontalScroll(scrollState)) {
+    Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(itemSpacing),
-            modifier = Modifier.padding(vertical = 8.dp)
+            modifier = Modifier.horizontalScroll(scrollState).padding(vertical = 8.dp)
         ) {
             forecasts.forEach { item ->
                 Card(
@@ -874,9 +881,11 @@ internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: B
                 metricPrimary = metricPrimary,
                 itemWidth = itemWidth,
                 spacing = itemSpacing,
+                scrollOffset = scrollState.value.toFloat(),
+                totalScrollWidth = totalScrollWidthPx,
                 modifier = Modifier
-                    .width(itemWidth * forecasts.size + itemSpacing * (forecasts.size - 1))
-                    .height(40.sd(scale))
+                    .fillMaxWidth()
+                    .height(48.sd(scale))
                     .padding(bottom = 8.dp)
             )
         }
