@@ -142,8 +142,20 @@ class WeatherRepositoryImpl @Inject constructor(
             val nwsAlerts = nwsDeferred.await()
             val gdacsAlerts = gdacsDeferred.await()
 
-            val combinedAlerts = (nwsAlerts + gdacsAlerts + derivedAlerts)
-                .distinctBy { it.titleKey + it.source }
+            val combinedAlerts = ArrayList<WeatherAlert>(nwsAlerts.size + gdacsAlerts.size + derivedAlerts.size)
+            val keys = HashSet<String>()
+            for (item in nwsAlerts) {
+                val key = item.titleKey + item.source
+                if (keys.add(key)) combinedAlerts.add(item)
+            }
+            for (item in gdacsAlerts) {
+                val key = item.titleKey + item.source
+                if (keys.add(key)) combinedAlerts.add(item)
+            }
+            for (item in derivedAlerts) {
+                val key = item.titleKey + item.source
+                if (keys.add(key)) combinedAlerts.add(item)
+            }
 
             Result.success(combinedAlerts)
         } catch (e: Exception) {
