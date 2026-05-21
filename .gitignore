@@ -36,8 +36,7 @@ web/**/tsconfig.tsbuildinfo
 
 .kotlin
 
-# Troubleshooting/build artifacts
-*_log.txt
-*_log2.txt
-*_status.txt
-*_hash.txt
+# Troubleshooting/build artifacts (root-level only)
+/*.txt
+/*.json
+!package.json
