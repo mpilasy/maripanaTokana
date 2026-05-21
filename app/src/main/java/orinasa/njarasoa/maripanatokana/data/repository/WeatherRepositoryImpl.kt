@@ -161,6 +161,7 @@ class WeatherRepositoryImpl @Inject constructor(
                     combinedAlerts.add(alert)
                 }
             }
+
             Result.success(combinedAlerts)
         } catch (e: Exception) {
             Result.failure(e)
