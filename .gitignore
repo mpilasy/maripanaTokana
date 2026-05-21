@@ -35,3 +35,9 @@ web/**/tsconfig.tsbuildinfo
 /venv/
 
 .kotlin
+
+# Troubleshooting/build artifacts
+*_log.txt
+*_log2.txt
+*_status.txt
+*_hash.txt
