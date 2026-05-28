@@ -11,3 +11,7 @@
 ## 2025-05-21 - Collection Optimization
 **Learning:** Combining lists with `+` followed by `.distinctBy {}` (e.g., `(list1 + list2 + list3).distinctBy { it.key }`) creates unnecessary intermediate list collections and adds overhead, especially for long lists or when doing this repeatedly.
 **Action:** Instead, pre-allocate an `ArrayList` and use a `HashSet` to deduplicate items by key in a single pass while iterating. This approach avoids intermediate collections and is significantly faster.
+
+## 2025-05-22 - String Extraction Optimization
+**Learning:** Chaining `.split(delimiter)[0]` to extract string segments allocates unnecessary intermediate `List` objects for the array of splits that get discarded.
+**Action:** Replace `.split(delimiter)[0]` with `.substringBefore(delimiter)` to extract string segments, avoiding intermediate collection overhead and boosting performance.

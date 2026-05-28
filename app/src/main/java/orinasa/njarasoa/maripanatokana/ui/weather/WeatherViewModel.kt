@@ -310,7 +310,7 @@ class WeatherViewModel @Inject constructor(
                 val overrideLat = prefs.getFloat("dev_override_lat", 0f).toDouble()
                 val overrideLon = prefs.getFloat("dev_override_lon", 0f).toDouble()
                 val rawOverrideName = prefs.getString("dev_override_name", "Overridden Location") ?: "Overridden Location"
-                val overrideName = rawOverrideName.split(",")[0].split(";")[0].split("-")[0].trim()
+                val overrideName = rawOverrideName.substringBefore(",").substringBefore(";").substringBefore("-").trim()
 
                 weatherRepository.getWeather(overrideLat, overrideLon).onSuccess { data ->
                     val overrideData = data.copy(locationName = overrideName)
@@ -344,7 +344,7 @@ class WeatherViewModel @Inject constructor(
                 val overrideLat = prefs.getFloat("dev_override_lat", 0f).toDouble()
                 val overrideLon = prefs.getFloat("dev_override_lon", 0f).toDouble()
                 val rawOverrideName = prefs.getString("dev_override_name", "Overridden Location") ?: "Overridden Location"
-                val overrideName = rawOverrideName.split(",")[0].split(";")[0].split("-")[0].trim()
+                val overrideName = rawOverrideName.substringBefore(",").substringBefore(";").substringBefore("-").trim()
 
                 weatherRepository.getWeather(overrideLat, overrideLon).onSuccess { data ->
                     val overrideData = data.copy(locationName = overrideName)
