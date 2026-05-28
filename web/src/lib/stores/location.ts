@@ -54,11 +54,13 @@ export interface GeocodedLocation {
 	subtext?: string;
 }
 
-export async function reverseGeocode(lat: number, lon: number): Promise<GeocodedLocation> {
+export async function reverseGeocode(lat: number, lon: number, localeTag?: string): Promise<GeocodedLocation> {
 	try {
+		const headers: Record<string, string> = { 'User-Agent': 'maripanaTokana-PWA/1.0' };
+		if (localeTag) headers['Accept-Language'] = `${localeTag},en;q=0.5`;
 		const res = await fetch(
 			`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
-			{ headers: { 'User-Agent': 'maripanaTokana-PWA/1.0' } }
+			{ headers }
 		);
 		if (!res.ok) throw new Error('Geocoding failed');
 		const data = await res.json();

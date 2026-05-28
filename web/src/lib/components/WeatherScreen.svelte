@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { weatherState, isRefreshing, doFetchWeather } from '$lib/stores/weather';
+	import { weatherState, isRefreshing, doFetchWeather, updateLocationName } from '$lib/stores/weather';
 	import { 
 		onLocationClicked, 
 		showGpsCoordinates, 
@@ -101,6 +101,14 @@
 
 	onMount(() => {
 		doFetchWeather();
+	});
+
+	let prevLocaleIndex = $localeIndex;
+	$effect(() => {
+		const idx = $localeIndex;
+		if (idx === prevLocaleIndex) return;
+		prevLocaleIndex = idx;
+		updateLocationName(SUPPORTED_LOCALES[idx].tag);
 	});
 
 	function formatDMS(value: number, positive: string, negative: string): string {

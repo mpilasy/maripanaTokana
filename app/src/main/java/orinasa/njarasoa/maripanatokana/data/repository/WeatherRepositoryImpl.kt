@@ -1,6 +1,8 @@
 package orinasa.njarasoa.maripanatokana.data.repository
 
+import android.content.Context
 import android.location.Geocoder
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -16,17 +18,18 @@ import orinasa.njarasoa.maripanatokana.domain.model.AlertLevel
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherAlert
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.repository.WeatherRepository
+import orinasa.njarasoa.maripanatokana.ui.weather.supportedLocales
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 
 class WeatherRepositoryImpl @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val apiService: OpenMeteoApiService,
     private val nwsApiService: NwsApiService,
     private val gdacsApiService: GdacsApiService,
     private val geocodingApiService: OpenMeteoGeocodingService,
-    private val geocoder: Geocoder,
 ) : WeatherRepository {
 
     override suspend fun searchLocation(query: String): Result<List<GeocodingResult>> {
@@ -43,6 +46,9 @@ class WeatherRepositoryImpl @Inject constructor(
             val response = apiService.getForecast(latitude = lat, longitude = lon)
 
             val (locationName, locationSubtext) = try {
+                val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
+                val localeIdx = prefs.getInt("locale_index", 0).coerceIn(supportedLocales.indices)
+                val geocoder = Geocoder(context, Locale.forLanguageTag(supportedLocales[localeIdx].tag))
                 @Suppress("DEPRECATION")
                 val addr = geocoder.getFromLocation(lat, lon, 1)?.firstOrNull()
                 val rawName = addr?.locality

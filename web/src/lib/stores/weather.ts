@@ -7,6 +7,8 @@ import {
 	getCachedLocation, cacheLocation, movedSignificantly,
 	getPosition, reverseGeocode
 } from '$lib/stores/location';
+import { localeIndex } from '$lib/stores/preferences';
+import { SUPPORTED_LOCALES } from '$lib/i18n/locales';
 import { devModeActive, checkDevModeExpiration } from '$lib/stores/devMode';
 
 export type WeatherState =
@@ -22,9 +24,9 @@ const STALE_MS = 30 * 60 * 1000; // 30 minutes
 // Cached GPS weather data fetched in background during dev mode
 let cachedGpsWeatherData: WeatherData | null = null;
 
-async function fetchAtLocation(lat: number, lon: number, knownName?: string, knownSubtext?: string): Promise<WeatherData> {
+async function fetchAtLocation(lat: number, lon: number, knownName?: string, knownSubtext?: string, localeTag?: string): Promise<WeatherData> {
 	const weatherPromise = fetchWeather(lat, lon);
-	const namePromise = knownName ? Promise.resolve({ name: knownName, subtext: knownSubtext }) : reverseGeocode(lat, lon);
+	const namePromise = knownName ? Promise.resolve({ name: knownName, subtext: knownSubtext }) : reverseGeocode(lat, lon, localeTag);
 
 	const [response, location] = await Promise.all([
 		weatherPromise,
@@ -137,9 +139,10 @@ export async function doFetchWeather() {
 		// Step 1: try cached location for instant result
 		const cached = getCachedLocation();
 		let data: WeatherData | null = null;
+		const localeTag = SUPPORTED_LOCALES[get(localeIndex)]?.tag;
 
 		// Start fetching weather for cached location immediately if available
-		const cachedFetchPromise = cached ? fetchAtLocation(cached.lat, cached.lon, cached.name, cached.subtext) : null;
+		const cachedFetchPromise = cached ? fetchAtLocation(cached.lat, cached.lon, cached.name, cached.subtext, localeTag) : null;
 
 		// Start getting fresh location concurrently
 		const freshLocationPromise = getPosition();
@@ -154,7 +157,7 @@ export async function doFetchWeather() {
 
 		// Re-fetch if moved significantly or if we had no cached location
 		if (!cached || movedSignificantly(cached.lat, cached.lon, fresh.lat, fresh.lon)) {
-			data = await fetchAtLocation(fresh.lat, fresh.lon);
+			data = await fetchAtLocation(fresh.lat, fresh.lon, undefined, undefined, localeTag);
 			weatherState.set({ kind: 'success', data });
 			cacheLocation(fresh.lat, fresh.lon, data.locationName, data.locationSubtext);
 		} else {
@@ -175,6 +178,17 @@ export async function doFetchWeather() {
 	} finally {
 		isRefreshing.set(false);
 	}
+}
+
+export async function updateLocationName(localeTag: string) {
+	const cached = getCachedLocation();
+	if (!cached) return;
+	const location = await reverseGeocode(cached.lat, cached.lon, localeTag);
+	cacheLocation(cached.lat, cached.lon, location.name, location.subtext);
+	weatherState.update(s => {
+		if (s.kind !== 'success') return s;
+		return { ...s, data: { ...s.data, locationName: location.name, locationSubtext: location.subtext } };
+	});
 }
 
 export function refreshIfStale() {
