@@ -1,6 +1,12 @@
 AntiFeatures:
   TetheredNet:
-    en-US: Depends on api.open-meteo.com servers
+    en-US: >-
+      Requires internet access to function. Connects to:
+      api.open-meteo.com (weather forecasts),
+      geocoding-api.open-meteo.com (location name search),
+      api.weather.gov (US severe weather alerts, only when in the US),
+      and www.gdacs.org (global disaster alerts).
+      Only GPS coordinates are transmitted; no personal data is collected or shared.
 Categories:
   - Weather
 License: MIT
