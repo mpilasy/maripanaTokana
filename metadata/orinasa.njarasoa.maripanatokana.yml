@@ -7,6 +7,13 @@ AntiFeatures:
       api.weather.gov (US severe weather alerts, only when in the US),
       and www.gdacs.org (global disaster alerts).
       Only GPS coordinates are transmitted; no personal data is collected or shared.
+    mg-MG: >-
+      Mila fidirana amin'ny internet mba hiasa. Mifandray amin':
+      api.open-meteo.com (vinavinan'ny toetrandro),
+      geocoding-api.open-meteo.com (fikarohana anarana toerana),
+      api.weather.gov (fampandrenesana toetrandro mahery any Etazonia, raha any Etazonia ihany),
+      ary www.gdacs.org (fampandrenesana loza maneran-tany).
+      Ny GPS coordinates ihany no ampitaina; tsy misy angona manokana angonina na zaraina.
 Categories:
   - Weather
 License: MIT
