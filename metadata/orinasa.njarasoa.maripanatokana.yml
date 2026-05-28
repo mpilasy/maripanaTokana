@@ -1,5 +1,12 @@
 AntiFeatures:
   TetheredNet:
+    mg-MG: >-
+      Mila mamantatra zavatra amin'ny internet hamandeha azy. Mifandray amin'ireto manaraka ireto:
+      api.open-meteo.com (vinavinan'ny toetrandro),
+      geocoding-api.open-meteo.com (hahlalana ny anaran'ny toerana),
+      api.weather.gov (fampandrenesana toetrandro mahery any Etazonia, ho an'ny toerana any Etazonia ihany),
+      ary www.gdacs.org (fampandrenesana loza maneran-tany).
+      Ny GPS ihany no ampitaina; tsy zava-pantatra momba ny mpampiasa alainay na zarainay.
     en-US: >-
       Requires internet access to function. Connects to:
       api.open-meteo.com (weather forecasts),
