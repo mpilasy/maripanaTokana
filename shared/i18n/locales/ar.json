@@ -132,6 +132,7 @@
 		"widget_feels_like": "الإحساس بالحرارة",
 		"widget_humidity": "الرطوبة",
 		"widget_wind": "الرياح",
-		"widget_min_max": "الأدنى {min_val} ({min_unit}) · الأقصى {max_val} ({max_unit})"
+		"widget_min_max": "الأدنى {min_val} ({min_unit}) · الأقصى {max_val} ({max_unit})",
+		"acquiring_location": "أين نحن؟"
 	}
 }

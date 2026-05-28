@@ -132,6 +132,7 @@
 		"widget_feels_like": "अनुभूत तापक्रम",
 		"widget_humidity": "आर्द्रता",
 		"widget_wind": "हावा",
-		"widget_min_max": "न्यू. {min_val} ({min_unit}) · अधि. {max_val} ({max_unit})"
+		"widget_min_max": "न्यू. {min_val} ({min_unit}) · अधि. {max_val} ({max_unit})",
+		"acquiring_location": "हामी कहाँ छौं?"
 	}
 }

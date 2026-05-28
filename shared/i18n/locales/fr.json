@@ -132,6 +132,7 @@
 		"widget_feels_like": "Ressenti",
 		"widget_humidity": "Humidité",
 		"widget_wind": "Vent",
-		"widget_min_max": "Min {min_val} ({min_unit}) · Max {max_val} ({max_unit})"
+		"widget_min_max": "Min {min_val} ({min_unit}) · Max {max_val} ({max_unit})",
+		"acquiring_location": "Où sommes-nous ?"
 	}
 }

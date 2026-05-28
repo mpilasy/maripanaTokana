@@ -132,6 +132,7 @@
 		"widget_feels_like": "अनुभव",
 		"widget_humidity": "आर्द्रता",
 		"widget_wind": "हवा",
-		"widget_min_max": "न्यूनतम {min_val} ({min_unit}) · अधिकतम {max_val} ({max_unit})"
+		"widget_min_max": "न्यूनतम {min_val} ({min_unit}) · अधिकतम {max_val} ({max_unit})",
+		"acquiring_location": "हम कहाँ हैं?"
 	}
 }

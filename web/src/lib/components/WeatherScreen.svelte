@@ -64,6 +64,38 @@
 		browserStrings != null
 	);
 
+	const acquiringStrings = [
+		'Aiza isika?',       // mg
+		'أين نحن؟',          // ar
+		'Where are we?',     // en
+		'¿Dónde estamos?',   // es
+		'Où sommes-nous ?',  // fr
+		'हम कहाँ हैं?',       // hi
+		'हामी कहाँ छौं?',     // ne
+		'我们在哪里？',          // zh
+	];
+	let acquiringIndex = $state(0);
+	let elapsedSeconds = $state(0);
+	let acquiringInterval: ReturnType<typeof setInterval> | null = null;
+
+	$effect(() => {
+		if ($weatherState.kind === 'loading') {
+			acquiringIndex = 0;
+			elapsedSeconds = 0;
+			acquiringInterval = setInterval(() => {
+				elapsedSeconds++;
+				if (elapsedSeconds % 2 === 0) {
+					acquiringIndex = (acquiringIndex + 1) % acquiringStrings.length;
+				}
+			}, 1000);
+		} else {
+			if (acquiringInterval) {
+				clearInterval(acquiringInterval);
+				acquiringInterval = null;
+			}
+		}
+	});
+
 	let pullStartY = $state(0);
 	let pullDelta = $state(0);
 	let isPulling = $state(false);
@@ -129,6 +161,8 @@
 	{#if $weatherState.kind === 'loading'}
 		<div class="center">
 			<div class="spinner"></div>
+			<p class="acquiring-text">{acquiringStrings[acquiringIndex]}</p>
+			<p class="acquiring-timer">{elapsedSeconds}s</p>
 		</div>
 
 	{:else if $weatherState.kind === 'success'}
@@ -329,6 +363,19 @@
 	}
 
 	@keyframes spin { to { transform: rotate(360deg); } }
+
+	.acquiring-text {
+		color: white;
+		font-size: 15px;
+		margin: 0;
+		text-align: center;
+	}
+
+	.acquiring-timer {
+		color: rgba(255, 255, 255, 0.4);
+		font-size: 12px;
+		margin: 0;
+	}
 
 	.content-wrapper {
 		display: flex;

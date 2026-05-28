@@ -98,6 +98,7 @@
     <string name="widget_humidity">湿度</string>
     <string name="widget_wind">风速</string>
     <string name="widget_min_max">最低 %1$s (%2$s) · 最高 %3$s (%4$s)</string>
+    <string name="acquiring_location">我们在哪里？</string>
     <string-array name="cardinal_directions">
         <item>北</item>
         <item>北北东</item>

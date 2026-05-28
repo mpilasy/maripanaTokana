@@ -27,7 +27,10 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -172,10 +175,48 @@ fun WeatherScreen(
 
             when (val state = uiState) {
                 is WeatherUiState.Loading -> {
-                    CircularProgressIndicator(
+                    val acquiringStrings = remember {
+                        listOf(
+                            "Aiza isika?",       // mg
+                            "أين نحن؟",          // ar
+                            "Where are we?",     // en
+                            "¿Dónde estamos?",   // es
+                            "Où sommes-nous ?",  // fr
+                            "हम कहाँ हैं?",       // hi
+                            "हामी कहाँ छौं?",     // ne
+                            "我们在哪里？",          // zh
+                        )
+                    }
+                    var labelIndex by remember { mutableIntStateOf(0) }
+                    var elapsedSeconds by remember { mutableIntStateOf(0) }
+                    LaunchedEffect(Unit) {
+                        while (true) {
+                            delay(1000L)
+                            elapsedSeconds++
+                            if (elapsedSeconds % 2 == 0) {
+                                labelIndex = (labelIndex + 1) % acquiringStrings.size
+                            }
+                        }
+                    }
+                    Column(
                         modifier = Modifier.align(Alignment.Center),
-                        color = Color.White
-                    )
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        CircularProgressIndicator(color = Color.White)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = acquiringStrings[labelIndex],
+                            color = Color.White,
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center,
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "${elapsedSeconds}s",
+                            color = Color.White.copy(alpha = 0.5f),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
                 }
 
                 is WeatherUiState.PermissionRequired -> {
@@ -372,8 +413,18 @@ fun WeatherScreen(
                                 }
                             }
                         } else {
+                            val appRetry = stringResource(R.string.error_retry)
+                            val sysRetry = systemContext.getString(R.string.error_retry)
                             Button(onClick = { viewModel.fetchWeather() }) {
-                                Text(stringResource(R.string.error_retry))
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(appRetry)
+                                    if (sysRetry != appRetry) {
+                                        Text(
+                                            text = sysRetry,
+                                            style = MaterialTheme.typography.labelSmall,
+                                        )
+                                    }
+                                }
                             }
                         }
                     }

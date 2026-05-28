@@ -132,6 +132,7 @@
 		"widget_feels_like": "体感温度",
 		"widget_humidity": "湿度",
 		"widget_wind": "风速",
-		"widget_min_max": "最低 {min_val} ({min_unit}) · 最高 {max_val} ({max_unit})"
+		"widget_min_max": "最低 {min_val} ({min_unit}) · 最高 {max_val} ({max_unit})",
+		"acquiring_location": "我们在哪里？"
 	}
 }

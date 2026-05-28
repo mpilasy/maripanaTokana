@@ -98,6 +98,7 @@
     <string name="widget_humidity">आर्द्रता</string>
     <string name="widget_wind">हवा</string>
     <string name="widget_min_max">न्यूनतम %1$s (%2$s) · अधिकतम %3$s (%4$s)</string>
+    <string name="acquiring_location">हम कहाँ हैं?</string>
     <string-array name="cardinal_directions">
         <item>N</item>
         <item>NNE</item>

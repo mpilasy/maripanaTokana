@@ -76,9 +76,31 @@
 	"alert_show_details": "Show details",
 	"alert_hide_details": "Hide details",
 	"credits_weather_data": "Weather data by ",
-	"cardinal_directions": ["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"],
-	"uv_labels": ["Low","Moderate","High","Very High","Extreme"],
-
+	"cardinal_directions": [
+		"N",
+		"NNE",
+		"NE",
+		"ENE",
+		"E",
+		"ESE",
+		"SE",
+		"SSE",
+		"S",
+		"SSW",
+		"SW",
+		"WSW",
+		"W",
+		"WNW",
+		"NW",
+		"NNW"
+	],
+	"uv_labels": [
+		"Low",
+		"Moderate",
+		"High",
+		"Very High",
+		"Extreme"
+	],
 	"web_only": {
 		"copy_link": "Copy link",
 		"link_copied": "Link copied!",
@@ -88,7 +110,6 @@
 		"geo_timeout": "Location request timed out. Please try again.",
 		"detail_high_low": "High / Low"
 	},
-
 	"android_only": {
 		"widget_description": "Current weather with dual-unit temperature",
 		"widget_description_large": "Weather details with feels-like, humidity, wind and min/max",
@@ -111,6 +132,7 @@
 		"widget_feels_like": "Feels Like",
 		"widget_humidity": "Humidity",
 		"widget_wind": "Wind",
-		"widget_min_max": "Min {min_val} ({min_unit}) · Max {max_val} ({max_unit})"
+		"widget_min_max": "Min {min_val} ({min_unit}) · Max {max_val} ({max_unit})",
+		"acquiring_location": "Where are we?"
 	}
 }

@@ -98,6 +98,7 @@
     <string name="widget_humidity">Humidité</string>
     <string name="widget_wind">Vent</string>
     <string name="widget_min_max">Min %1$s (%2$s) · Max %3$s (%4$s)</string>
+    <string name="acquiring_location">Où sommes-nous ?</string>
     <string-array name="cardinal_directions">
         <item>N</item>
         <item>NNE</item>

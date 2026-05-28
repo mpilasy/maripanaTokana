@@ -132,6 +132,7 @@
 		"widget_feels_like": "Sensacion termica",
 		"widget_humidity": "Humedad",
 		"widget_wind": "Viento",
-		"widget_min_max": "Min {min_val} ({min_unit}) · Max {max_val} ({max_unit})"
+		"widget_min_max": "Min {min_val} ({min_unit}) · Max {max_val} ({max_unit})",
+		"acquiring_location": "¿Dónde estamos?"
 	}
 }

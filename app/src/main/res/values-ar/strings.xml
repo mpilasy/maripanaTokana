@@ -98,6 +98,7 @@
     <string name="widget_humidity">الرطوبة</string>
     <string name="widget_wind">الرياح</string>
     <string name="widget_min_max">الأدنى %1$s (%2$s) · الأقصى %3$s (%4$s)</string>
+    <string name="acquiring_location">أين نحن؟</string>
     <string-array name="cardinal_directions">
         <item>ش</item>
         <item>ش ش ق</item>

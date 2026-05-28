@@ -132,6 +132,7 @@
 		"widget_feels_like": "Ohatry ny",
 		"widget_humidity": "Hamandoana",
 		"widget_wind": "Rivotra",
-		"widget_min_max": "Ambany {min_val} ({min_unit}) · Ambony {max_val} ({max_unit})"
+		"widget_min_max": "Ambany {min_val} ({min_unit}) · Ambony {max_val} ({max_unit})",
+		"acquiring_location": "Aiza isika?"
 	}
 }
