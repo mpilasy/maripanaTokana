@@ -1,10 +1,11 @@
-maripànaTokana (Malagasy for "a single thermometer") is a phone-only weather app that displays current conditions, hourly forecasts, and a 10-day outlook. The app defaults to Malagasy (mg) but supports English, Arabic, Spanish, French, Hindi, Nepali, and Chinese — tap the flag icon at the bottom right to switch.
+maripànaTokana (Malagasy for "a single thermometer") is a phone-only weather app that displays current conditions, hourly forecasts, and a 10-day outlook.
 
 <b>Key Features:</b>
 • Real-time weather from Open-Meteo (no API key needed)
 • Dual-unit display: metric and imperial shown simultaneously
 • Tap any value to swap primary/secondary units
 • 8 languages: Malagasy, Arabic, English, Spanish, French, Hindi, Nepali, Chinese
+• Tap the flag icon at the bottom right to switch language
 • 22 font pairings for customization
 • Native digit rendering (Arabic, Hindi, Nepali)
 • RTL support for Arabic

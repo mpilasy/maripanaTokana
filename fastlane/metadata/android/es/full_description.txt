@@ -1,8 +1,9 @@
-maripànaTokana (Malgache para "un termómetro") es una aplicación meteorológica que muestra las condiciones actuales, pronósticos por hora y perspectivas de 10 días. La aplicación usa el malgache (mg) de forma predeterminada pero admite inglés, árabe, español, francés, hindi, nepalí y chino — toca el ícono de la bandera en la esquina inferior derecha para cambiar.
+maripànaTokana (Malgache para "un termómetro") es una aplicación meteorológica que muestra las condiciones actuales, pronósticos por hora y perspectivas de 10 días.
 
 • Datos meteorológicos en tiempo real de Open-Meteo (sin clave API)
 • Pantalla de unidades dobles: métrica e imperial simultáneamente
 • 8 idiomas soportados
+• Toca el ícono de la bandera en la esquina inferior derecha para cambiar de idioma
 • 22 combinaciones de fuentes para personalización
 • Renderización de dígitos nativos (árabe, hindi, nepalí)
 • Soporte RTL para árabe
