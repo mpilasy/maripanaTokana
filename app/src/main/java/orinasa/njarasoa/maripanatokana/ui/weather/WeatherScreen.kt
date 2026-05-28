@@ -160,6 +160,15 @@ fun WeatherScreen(
                     .alpha(0.12f),
             )
 
+            // Device UI locale — uses Resources.getSystem() so it reflects the actual OS
+            // language regardless of any app-level locale override.
+            val systemLocale: java.util.Locale = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                android.content.res.Resources.getSystem().configuration.locales[0]
+            } else {
+                @Suppress("DEPRECATION")
+                android.content.res.Resources.getSystem().configuration.locale
+            }
+
             when (val state = uiState) {
                 is WeatherUiState.Loading -> {
                     CircularProgressIndicator(
@@ -170,9 +179,9 @@ fun WeatherScreen(
 
                 is WeatherUiState.PermissionRequired -> {
                     // System-locale context (phone language, not app language)
-                    val systemContext = remember(baseContext, currentConfig) {
+                    val systemContext = remember(baseContext, currentConfig, systemLocale) {
                         val cfg = android.content.res.Configuration(currentConfig)
-                        cfg.setLocale(java.util.Locale.getDefault())
+                        cfg.setLocale(systemLocale)
                         baseContext.createConfigurationContext(cfg)
                     }
                     val sysTitle = systemContext.getString(R.string.permission_title)
@@ -289,9 +298,9 @@ fun WeatherScreen(
                 }
 
                 is WeatherUiState.Error -> {
-                    val systemContext = remember(baseContext, currentConfig) {
+                    val systemContext = remember(baseContext, currentConfig, systemLocale) {
                         val cfg = android.content.res.Configuration(currentConfig)
-                        cfg.setLocale(java.util.Locale.getDefault())
+                        cfg.setLocale(systemLocale)
                         baseContext.createConfigurationContext(cfg)
                     }
                     val sysTitle = systemContext.getString(R.string.error_title)
