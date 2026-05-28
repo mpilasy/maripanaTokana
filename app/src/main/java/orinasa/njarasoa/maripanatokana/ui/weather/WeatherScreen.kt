@@ -133,6 +133,7 @@ fun WeatherScreen(
 
     CompositionLocalProvider(
         LocalContext provides localizedContext,
+        LocalConfiguration provides localizedContext.resources.configuration,
         LocalDisplayFont provides pairing.display,
         LocalBodyFont provides pairing.body,
         LocalBodyFontFeatures provides pairing.bodyFontFeatures,
