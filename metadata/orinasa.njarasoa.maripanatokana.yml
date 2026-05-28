@@ -1,3 +1,6 @@
+AntiFeatures:
+  TetheredNet:
+    en-US: Depends on api.open-meteo.com servers
 Categories:
   - Weather
 License: MIT
