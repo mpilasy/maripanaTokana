@@ -373,7 +373,7 @@ class WeatherViewModel @Inject constructor(
     }
 
     private suspend fun doFetch() {
-        val completed = withTimeoutOrNull(15_000L) {
+        val completed = withTimeoutOrNull(45_000L) {
             kotlinx.coroutines.coroutineScope {
                 // Step 1: try cached location for instant render
                 var usedCached = false

@@ -102,10 +102,16 @@ class NativeLocationProvider(
                 override fun onProviderDisabled(provider: String) {}
             }
 
-            // Register each provider independently: a SecurityException on GPS (e.g. when only
-            // ACCESS_COARSE_LOCATION is granted) must not prevent registration on NETWORK.
+            // Register each provider independently so a failure on one never blocks the others.
+            // PASSIVE_PROVIDER piggybacks on other apps' requests — on non-GMS devices where
+            // NETWORK_PROVIDER is absent, it immediately delivers any fix GPSTest or other apps
+            // are already producing, bypassing the GPS warm-up delay entirely.
             var registered = false
-            for (provider in listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)) {
+            for (provider in listOf(
+                LocationManager.GPS_PROVIDER,
+                LocationManager.NETWORK_PROVIDER,
+                LocationManager.PASSIVE_PROVIDER,
+            )) {
                 try {
                     if (locationManager.isProviderEnabled(provider)) {
                         locationManager.requestLocationUpdates(
@@ -128,11 +134,10 @@ class NativeLocationProvider(
             }
         }
 
-        // Wait up to 10s for the first update from any enabled provider. On timeout, fall
-        // back to any stale cached fix rather than returning null immediately — a device may
-        // have an old fix even when no live provider is firing (e.g. emulator, airplane mode).
+        // Wait up to 30s: GPS cold-start on non-GMS devices can take 20-30s even when the
+        // hardware is warm. On timeout, fall back to any stale cached fix.
         val liveLocation = try {
-            withTimeoutOrNull(10_000L) {
+            withTimeoutOrNull(30_000L) {
                 locationFlow.take(1).firstOrNull()
             }
         } catch (e: kotlinx.coroutines.CancellationException) {
