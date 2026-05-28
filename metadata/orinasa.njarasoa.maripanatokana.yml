@@ -32,7 +32,7 @@ Binaries:
 Builds:
   - versionName: 1.0.38
     versionCode: 38
-    commit: v1.0.38
+    commit: fdd66d389e1187b5041776605bd2feede4cd38b5
     subdir: app
     gradle:
       - fdroid
