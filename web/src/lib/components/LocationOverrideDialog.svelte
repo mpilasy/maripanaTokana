@@ -161,6 +161,11 @@
         background: rgba(255, 255, 255, 0.1);
     }
 
+    .icon-button:focus-visible {
+        outline: 2px solid rgba(255, 255, 255, 0.5);
+        outline-offset: 2px;
+    }
+
     .results {
         max-height: 200px;
         overflow-y: auto;
@@ -180,6 +185,11 @@
 
     .result-item:hover {
         background: rgba(255, 255, 255, 0.05);
+    }
+
+    .result-item:focus-visible {
+        outline: 2px solid rgba(255, 255, 255, 0.5);
+        outline-offset: 2px;
     }
 
     .result-name {

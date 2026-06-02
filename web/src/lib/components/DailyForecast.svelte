@@ -124,6 +124,11 @@
 		font-family: inherit;
 	}
 
+	.daily-weather-btn:focus-visible {
+		outline: 2px solid rgba(255, 255, 255, 0.5);
+		outline-offset: 2px;
+	}
+
 	.daily-precip {
 		font-size: 11px;
 		color: #64B5F6;
