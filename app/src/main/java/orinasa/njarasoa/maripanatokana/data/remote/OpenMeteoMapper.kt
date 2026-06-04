@@ -9,25 +9,47 @@ import orinasa.njarasoa.maripanatokana.domain.model.Temperature
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherAlert
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.model.WindSpeed
-import java.text.SimpleDateFormat
-import java.util.Locale
+import java.util.Calendar
 import java.util.TimeZone
 
-private fun makeDateFormat(pattern: String, utcOffsetSeconds: Int): SimpleDateFormat {
-    val sign = if (utcOffsetSeconds >= 0) "+" else "-"
-    val abs = Math.abs(utcOffsetSeconds)
-    return SimpleDateFormat(pattern, Locale.US).apply {
-        timeZone = TimeZone.getTimeZone(String.format(Locale.US, "GMT%s%02d:%02d", sign, abs / 3600, (abs % 3600) / 60))
+private fun parseIsoDateTime(iso: String, utcOffsetSeconds: Int): Long {
+    try {
+        val year = iso.substring(0, 4).toInt()
+        val month = iso.substring(5, 7).toInt() - 1
+        val day = iso.substring(8, 10).toInt()
+        val hour = iso.substring(11, 13).toInt()
+        val minute = iso.substring(14, 16).toInt()
+        val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+            set(year, month, day, hour, minute, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        return calendar.timeInMillis - (utcOffsetSeconds * 1000L)
+    } catch (e: Exception) {
+        return 0L
+    }
+}
+
+private fun parseIsoDate(iso: String, utcOffsetSeconds: Int): Long {
+    try {
+        val year = iso.substring(0, 4).toInt()
+        val month = iso.substring(5, 7).toInt() - 1
+        val day = iso.substring(8, 10).toInt()
+        val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+            set(year, month, day, 0, 0, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        return calendar.timeInMillis - (utcOffsetSeconds * 1000L)
+    } catch (e: Exception) {
+        return 0L
     }
 }
 
 fun deriveAlerts(c: OpenMeteoCurrent, h: OpenMeteoHourly, d: OpenMeteoDaily, utcOffsetSeconds: Int): List<WeatherAlert> {
     val alerts = mutableListOf<WeatherAlert>()
     val nowMillis = System.currentTimeMillis()
-    val dateFormat = makeDateFormat("yyyy-MM-dd'T'HH:mm", utcOffsetSeconds)
 
     // Pre-parse timestamps once using the location's timezone
-    val parsedTimes = h.time.map { dateFormat.parse(it)?.time ?: 0L }
+    val parsedTimes = h.time.map { parseIsoDateTime(it, utcOffsetSeconds) }
 
     // Scan next 24 hours of hourly forecast starting from "now" at the location
     val startIndex = parsedTimes.indexOfFirst { it >= nowMillis }.coerceAtLeast(0)
@@ -85,21 +107,19 @@ fun deriveAlerts(c: OpenMeteoCurrent, h: OpenMeteoHourly, d: OpenMeteoDaily, utc
 fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = null): WeatherData {
     val c = current
     val isDay = c.isDay == 1
-    val dateFormat = makeDateFormat("yyyy-MM-dd'T'HH:mm", utcOffsetSeconds)
-    val dayFormat = makeDateFormat("yyyy-MM-dd", utcOffsetSeconds)
 
     // Pre-parse hourly timestamps once
-    val parsedHourlyTimes = hourly.time.map { dateFormat.parse(it)?.time ?: 0L }
+    val parsedHourlyTimes = hourly.time.map { parseIsoDateTime(it, utcOffsetSeconds) }
 
     val sunriseEpoch = daily.sunrise.firstOrNull()?.let {
-        dateFormat.parse(it)?.time?.div(1000) ?: 0L
+        parseIsoDateTime(it, utcOffsetSeconds) / 1000
     } ?: 0L
     val sunsetEpoch = daily.sunset.firstOrNull()?.let {
-        dateFormat.parse(it)?.time?.div(1000) ?: 0L
+        parseIsoDateTime(it, utcOffsetSeconds) / 1000
     } ?: 0L
 
-    val dailySunriseMillis = daily.sunrise.map { dateFormat.parse(it)?.time ?: 0L }
-    val dailySunsetMillis = daily.sunset.map { dateFormat.parse(it)?.time ?: 0L }
+    val dailySunriseMillis = daily.sunrise.map { parseIsoDateTime(it, utcOffsetSeconds) }
+    val dailySunsetMillis = daily.sunset.map { parseIsoDateTime(it, utcOffsetSeconds) }
 
     val nowMillis = System.currentTimeMillis()
 
@@ -124,7 +144,7 @@ fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = 
         )
     }.distinctBy { it.time }
 
-    val parsedDailyTimes = daily.time.map { dayFormat.parse(it)?.time ?: 0L }
+    val parsedDailyTimes = daily.time.map { parseIsoDate(it, utcOffsetSeconds) }
 
     val dailyForecast = daily.time.indices.map { i ->
         val epoch = parsedDailyTimes[i]
