@@ -11,3 +11,7 @@
 ## 2025-05-21 - Collection Optimization
 **Learning:** Combining lists with `+` followed by `.distinctBy {}` (e.g., `(list1 + list2 + list3).distinctBy { it.key }`) creates unnecessary intermediate list collections and adds overhead, especially for long lists or when doing this repeatedly.
 **Action:** Instead, pre-allocate an `ArrayList` and use a `HashSet` to deduplicate items by key in a single pass while iterating. This approach avoids intermediate collections and is significantly faster.
+
+## 2026-06-04 - Fast Date Parsing
+**Learning:** Using `new Date(isoString)` or `SimpleDateFormat.parse` on large arrays (e.g. hourly weather data) causes significant performance overhead.
+**Action:** Implement fast string extraction using `substring`, `parseInt`/`toInt`, and `Date.UTC` / `Calendar(UTC)` to bypass expensive parser evaluation when the ISO format is strict and predictable.
