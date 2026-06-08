@@ -613,6 +613,11 @@
 		background: rgba(255,255,255,0.9);
 	}
 
+	.error-state button:focus-visible {
+		outline: 2px solid rgba(255, 255, 255, 0.5);
+		outline-offset: 2px;
+	}
+
 	.error-state button:active {
 		transform: scale(0.97);
 	}
