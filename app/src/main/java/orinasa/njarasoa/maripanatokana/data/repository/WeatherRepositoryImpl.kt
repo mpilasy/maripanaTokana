@@ -56,7 +56,8 @@ class WeatherRepositoryImpl @Inject constructor(
                     ?: addr?.adminArea
                     ?: "%.2f, %.2f".format(Locale.US, lat, lon)
                 
-                val name = rawName.split(",")[0].split(";")[0].split("-")[0].trim()
+                // Perf: Use substringBefore to extract segments without allocating intermediate List objects
+                val name = rawName.substringBefore(",").substringBefore(";").substringBefore("-").trim()
 
                 val subtext = if (addr != null) {
                     val parts = mutableListOf<String>()
