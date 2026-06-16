@@ -10,3 +10,7 @@
 ## 2024-05-04 - [Hydration Mismatches with Math.random() in Svelte 5]
 **Learning:** Using `Math.random()` to generate IDs for `aria-controls` within component initialization causes SSR hydration mismatches, because the server generates a different random number than the client.
 **Action:** In Svelte 5, avoid generating random IDs for elements. Use a module-level counter variable inside a `<script module>` block (e.g. `let contentId = 'content-' + idCounter++`) to ensure deterministic ID generation during both SSR and client-side hydration.
+
+## 2024-06-16 - [Weather Alert Banner Accessibility Enhancement]
+**Learning:** When a critical notification component like an alert banner relies on an interactive disclosure pattern, using an ignored `<div>` prevents screen readers from announcing its collapsible nature. Converting it to a semantic `<button>` with `aria-expanded` and `aria-controls` ensures severe weather warnings are fully navigable and understandable via keyboard and assistive technology.
+**Action:** Always prefer semantic `<button type="button">` with disclosure ARIA attributes over `svelte-ignore` on `<div>` elements for accordion-style critical alerts. Add CSS resets to preserve visual design.
