@@ -85,13 +85,12 @@ class WeatherRepositoryImpl @Inject constructor(
             val nwsDeferred = async {
                 try {
                     val point = String.format(Locale.US, "%.4f,%.4f", lat, lon)
-                    val nwsParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
                     nwsApiService.getActiveAlerts(point).features.map { f ->
                         val p = f.properties
                         val level = if (p.severity == "Extreme" || p.severity == "Severe") AlertLevel.WARNING else AlertLevel.WATCH
                         val time = p.sent?.let {
                             try {
-                                nwsParser.parse(it)?.time
+                                localNwsParser.get()?.parse(it)?.time
                             } catch (_: Exception) { null }
                         }
                         WeatherAlert(level, p.event, p.description + (p.instruction?.let { "\n\n$it" } ?: ""), "official", time, p.headline, f.id)
@@ -104,9 +103,9 @@ class WeatherRepositoryImpl @Inject constructor(
             // 2. Global GDACS Alerts
             val gdacsDeferred = async {
                 try {
-                    val toDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
-                    val fromDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(System.currentTimeMillis() - GDACS_SEARCH_DAYS * 24 * 60 * 60 * 1000L))
-                    val gdacsParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
+                    val dateFormat = localDateFormat.get()
+                    val toDate = dateFormat?.format(Date()) ?: ""
+                    val fromDate = dateFormat?.format(Date(System.currentTimeMillis() - GDACS_SEARCH_DAYS * 24 * 60 * 60 * 1000L)) ?: ""
 
                     val latDelta = GDACS_SEARCH_RADIUS_KM / 111.0
                     val lonDelta = if (Math.abs(lat) < 89.0) GDACS_SEARCH_RADIUS_KM / (111.0 * Math.cos(Math.toRadians(lat))) else 360.0
@@ -134,7 +133,7 @@ class WeatherRepositoryImpl @Inject constructor(
                             }
                             val time = p.fromdate?.let {
                                 try {
-                                    gdacsParser.parse(it)?.time
+                                    localGdacsParser.get()?.parse(it)?.time
                                 } catch (_: Exception) { null }
                             }
                             val reportUrl = try { p.url?.get("report")?.jsonPrimitive?.content } catch (_: Exception) { null }
@@ -184,5 +183,16 @@ class WeatherRepositoryImpl @Inject constructor(
         private const val EARTH_RADIUS_KM = 6371.0
         private const val GDACS_SEARCH_RADIUS_KM = 500
         private const val GDACS_SEARCH_DAYS = 7
+
+        // Bolt: Cache SimpleDateFormat instances using ThreadLocal to avoid expensive recreation in coroutines
+        private val localNwsParser = object : ThreadLocal<SimpleDateFormat>() {
+            override fun initialValue() = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
+        }
+        private val localDateFormat = object : ThreadLocal<SimpleDateFormat>() {
+            override fun initialValue() = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+        }
+        private val localGdacsParser = object : ThreadLocal<SimpleDateFormat>() {
+            override fun initialValue() = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
+        }
     }
 }
