@@ -143,6 +143,12 @@ internal fun WeatherContent(
     val appLocale = LocalConfiguration.current.locales[0]
     // Bolt: Memoize SimpleDateFormat to avoid expensive recreation on recomposition
     val dateFormat = remember(appLocale) { SimpleDateFormat("EEEE, d MMMM yyyy", appLocale) }
+    val screenTimeFormat = remember(appLocale) {
+        SimpleDateFormat(
+            if (android.text.format.DateFormat.is24HourFormat(context)) "HH:mm" else "h:mm a",
+            appLocale
+        )
+    }
     val timeFormat = remember { SimpleDateFormat("HH:mm", Locale.US) }
     val displayFont = LocalDisplayFont.current
     val bodyFont = LocalBodyFont.current
@@ -289,7 +295,7 @@ internal fun WeatherContent(
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = stringResource(R.string.updated_time, localizeDigits(dateFormat.format(Date(data.timestamp)))),
+                    text = stringResource(R.string.updated_time, localizeDigits("${dateFormat.format(Date(data.timestamp))}, ${screenTimeFormat.format(Date(data.timestamp))}")),
                     fontSize = 13f.s(scale),
                     fontFamily = bodyFont,
                     color = Color.White.copy(alpha = 0.5f)

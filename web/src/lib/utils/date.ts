@@ -13,7 +13,8 @@ export function formatDate(timestamp: number, localeTag: string): string {
 	let formatter = dateFormatters.get(localeTag);
 	if (!formatter) {
 		formatter = new Intl.DateTimeFormat(localeTag, {
-			weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+			weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+			hour: 'numeric', minute: '2-digit'
 		});
 		dateFormatters.set(localeTag, formatter);
 	}
