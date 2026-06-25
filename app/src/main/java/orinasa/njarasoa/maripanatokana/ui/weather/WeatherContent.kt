@@ -136,6 +136,8 @@ internal fun WeatherContent(
     onDisableDevMode: () -> Unit = {},
     showGpsCoordinates: Boolean = false,
     devModeActive: Boolean = false,
+    devOverrideLat: Double? = null,
+    devOverrideLon: Double? = null,
 ) {
     val context = LocalContext.current
     val appLocale = LocalConfiguration.current.locales[0]
@@ -152,16 +154,14 @@ internal fun WeatherContent(
         else -> 0.7f
     }
 
-    // Get current lat/lon from prefs; memoized so it only re-reads on context change, not every recomposition
-    val (displayLat, displayLon) = remember(context) {
-        val prefs = context.getSharedPreferences("widget_prefs", android.content.Context.MODE_PRIVATE)
-        val lat = prefs.getFloat("lat", 0f).toDouble()
-        val lon = prefs.getFloat("lon", 0f).toDouble()
-        val overrideLat = prefs.getFloat("dev_override_lat", Float.NaN)
-        val overrideLon = prefs.getFloat("dev_override_lon", Float.NaN)
-        val dLat = if (!overrideLat.isNaN()) overrideLat.toDouble() else lat
-        val dLon = if (!overrideLon.isNaN()) overrideLon.toDouble() else lon
-        dLat to dLon
+    // Use dev override coordinates directly when set (reactive via StateFlow), else fall back to cached GPS
+    val (displayLat, displayLon) = if (devOverrideLat != null && devOverrideLon != null) {
+        devOverrideLat to devOverrideLon
+    } else {
+        remember(context) {
+            val prefs = context.getSharedPreferences("widget_prefs", android.content.Context.MODE_PRIVATE)
+            prefs.getFloat("lat", 0f).toDouble() to prefs.getFloat("lon", 0f).toDouble()
+        }
     }
 
     CompositionLocalProvider(LocalScale provides scale) {

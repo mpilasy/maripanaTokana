@@ -181,6 +181,7 @@ export async function doFetchWeather() {
 }
 
 export async function updateLocationName(localeTag: string) {
+	if (get(devModeActive)) return;
 	const cached = getCachedLocation();
 	if (!cached) return;
 	const location = await reverseGeocode(cached.lat, cached.lon, localeTag);

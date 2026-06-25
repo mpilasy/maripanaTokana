@@ -84,6 +84,16 @@ class WeatherViewModel @Inject constructor(
     private val _devModeActive = MutableStateFlow(checkDevModeExpiration())
     val devModeActive: StateFlow<Boolean> = _devModeActive.asStateFlow()
 
+    private val _devOverrideLat = MutableStateFlow<Double?>(
+        prefs.getFloat("dev_override_lat", Float.NaN).takeUnless { it.isNaN() }?.toDouble()
+    )
+    val devOverrideLat: StateFlow<Double?> = _devOverrideLat.asStateFlow()
+
+    private val _devOverrideLon = MutableStateFlow<Double?>(
+        prefs.getFloat("dev_override_lon", Float.NaN).takeUnless { it.isNaN() }?.toDouble()
+    )
+    val devOverrideLon: StateFlow<Double?> = _devOverrideLon.asStateFlow()
+
     private val _showGpsCoordinates = MutableStateFlow(false)
     val showGpsCoordinates: StateFlow<Boolean> = _showGpsCoordinates.asStateFlow()
 
@@ -211,6 +221,8 @@ class WeatherViewModel @Inject constructor(
             putFloat("dev_override_lon", lon.toFloat())
             putString("dev_override_name", name)
         }
+        _devOverrideLat.value = lat
+        _devOverrideLon.value = lon
         _showLocationOverrideDialog.value = false
         fetchWeather()
     }
@@ -227,6 +239,8 @@ class WeatherViewModel @Inject constructor(
             remove("dev_override_lon")
             remove("dev_override_name")
         }
+        _devOverrideLat.value = null
+        _devOverrideLon.value = null
     }
 
     fun toggleUnits() {
