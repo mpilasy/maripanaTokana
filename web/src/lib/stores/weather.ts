@@ -186,12 +186,15 @@ export async function doFetchWeather() {
 }
 
 export async function updateLocationName(localeTag: string) {
-	// If a dev override is set, leave the city name alone — don't replace it with real GPS name
-	if (typeof localStorage !== 'undefined' && localStorage.getItem('dev_override_lat')) return;
-	const cached = getCachedLocation();
-	if (!cached) return;
-	const location = await reverseGeocode(cached.lat, cached.lon, localeTag);
-	cacheLocation(cached.lat, cached.lon, location.name, location.subtext);
+	// Use dev override coordinates if present (read from localStorage, not the store, to avoid
+	// stale state). This prevents language switches from reverse-geocoding real GPS coordinates.
+	const overrideLat = typeof localStorage !== 'undefined' ? localStorage.getItem('dev_override_lat') : null;
+	const overrideLon = typeof localStorage !== 'undefined' ? localStorage.getItem('dev_override_lon') : null;
+	const lat = overrideLat ? parseFloat(overrideLat) : getCachedLocation()?.lat;
+	const lon = overrideLon ? parseFloat(overrideLon) : getCachedLocation()?.lon;
+	if (lat == null || lon == null) return;
+	const location = await reverseGeocode(lat, lon, localeTag);
+	cacheLocation(lat, lon, location.name, location.subtext);
 	weatherState.update(s => {
 		if (s.kind !== 'success') return s;
 		return { ...s, data: { ...s.data, locationName: location.name, locationSubtext: location.subtext } };
