@@ -29,19 +29,33 @@ function deriveAlerts(c: OpenMeteoCurrent, h: OpenMeteoHourly, d: OpenMeteoDaily
 
 	// Scan next 24 hours of hourly forecast
 	const startIndex = Math.max(0, parsedTimes.findIndex(t => t >= nowMillis));
-	const forecastWindow = h.time.slice(startIndex, startIndex + 24).map((_: string, i: number) => {
-		const idx = startIndex + i;
-		return {
-			code: h.weather_code[idx],
-			temp: h.temperature_2m[idx],
-			wind: h.wind_speed_10m[idx]
-		};
-	});
 
-	const hasCode = (codes: number[]) => [c.weather_code, ...forecastWindow.map((f: { code: number }) => f.code)].some(code => codes.includes(code));
-	const maxWind = Math.max(c.wind_speed_10m, c.wind_gusts_10m ?? 0, ...forecastWindow.map((f: { wind: number }) => f.wind));
-	const maxTemp = Math.max(c.temperature_2m, ...d.temperature_2m_max.slice(0, 2));
-	const minTemp = Math.min(c.temperature_2m, ...d.temperature_2m_min.slice(0, 2));
+	// Bolt: Optimize loop to avoid multiple array creations
+	let maxWind = Math.max(c.wind_speed_10m, c.wind_gusts_10m ?? 0);
+	const windowCodes = new Set<number>([c.weather_code]);
+
+	const maxI = Math.min(24, h.time.length - startIndex);
+	for (let i = 0; i < maxI; i++) {
+		const idx = startIndex + i;
+		windowCodes.add(h.weather_code[idx]);
+		if (h.wind_speed_10m[idx] > maxWind) {
+			maxWind = h.wind_speed_10m[idx];
+		}
+	}
+
+	const hasCode = (codes: number[]) => codes.some(code => windowCodes.has(code));
+
+	const maxTemp = Math.max(
+		c.temperature_2m,
+		d.temperature_2m_max.length > 0 ? d.temperature_2m_max[0] : c.temperature_2m,
+		d.temperature_2m_max.length > 1 ? d.temperature_2m_max[1] : c.temperature_2m
+	);
+
+	const minTemp = Math.min(
+		c.temperature_2m,
+		d.temperature_2m_min.length > 0 ? d.temperature_2m_min[0] : c.temperature_2m,
+		d.temperature_2m_min.length > 1 ? d.temperature_2m_min[1] : c.temperature_2m
+	);
 
 	// Thunderstorm: 95, 96, 99
 	if (hasCode([95, 96, 99])) {
@@ -100,23 +114,23 @@ export function mapToWeatherData(response: OpenMeteoResponse, locationName: stri
 	const parsedHourlyTimes = h.time.map(t => parseIsoDateTime(t, response.utc_offset_seconds));
 
 	const startIndex = parsedHourlyTimes.findIndex((t) => t >= nowMillis);
-	const hourlyForecast: HourlyForecast[] =
-		startIndex === -1
-			? []
-			: h.time.slice(startIndex, startIndex + 24).map((time, i) => {
-					const actualIndex = startIndex + i;
-					const epoch = parsedHourlyTimes[actualIndex];
-					return {
-						time: epoch,
-						temperature: Temperature.fromCelsius(h.temperature_2m[actualIndex]),
-						weatherCode: h.weather_code[actualIndex],
-						precipProbability: h.precipitation_probability[actualIndex],
-						windSpeed: WindSpeed.fromMetersPerSecond(h.wind_speed_10m[actualIndex]),
-						windDeg: h.wind_direction_10m[actualIndex],
-						pressure: Pressure.fromHPa(h.pressure_msl[actualIndex]),
-						precipitation: Precipitation.fromMm(h.precipitation[actualIndex]),
-					};
-				});
+	const hourlyForecast: HourlyForecast[] = [];
+	if (startIndex !== -1) {
+		const endIndex = Math.min(startIndex + 24, h.time.length);
+		for (let i = startIndex; i < endIndex; i++) {
+			const epoch = parsedHourlyTimes[i];
+			hourlyForecast.push({
+				time: epoch,
+				temperature: Temperature.fromCelsius(h.temperature_2m[i]),
+				weatherCode: h.weather_code[i],
+				precipProbability: h.precipitation_probability[i],
+				windSpeed: WindSpeed.fromMetersPerSecond(h.wind_speed_10m[i]),
+				windDeg: h.wind_direction_10m[i],
+				pressure: Pressure.fromHPa(h.pressure_msl[i]),
+				precipitation: Precipitation.fromMm(h.precipitation[i]),
+			});
+		}
+	}
 
 	const parsedDailyTimes = d.time.map(t => parseIsoDate(t, response.utc_offset_seconds));
 

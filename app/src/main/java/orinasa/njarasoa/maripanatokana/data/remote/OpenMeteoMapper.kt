@@ -53,18 +53,33 @@ fun deriveAlerts(c: OpenMeteoCurrent, h: OpenMeteoHourly, d: OpenMeteoDaily, utc
 
     // Scan next 24 hours of hourly forecast starting from "now" at the location
     val startIndex = parsedTimes.indexOfFirst { it >= nowMillis }.coerceAtLeast(0)
-    
-    val forecastIndices = parsedTimes.indices.filter { it in startIndex until (startIndex + 24) && it < h.time.size }
-    val forecastWindow = forecastIndices.map { idx ->
-        Triple(h.weatherCode[idx], h.temperature2m[idx], h.windSpeed10m.getOrElse(idx) { 0.0 })
+
+    // Bolt: Optimize loop to avoid multiple array creations
+    var maxWind = maxOf(c.windSpeed, c.windGusts)
+    val windowCodes = mutableSetOf(c.weatherCode)
+
+    val maxI = minOf(24, h.time.size - startIndex)
+    for (i in 0 until maxI) {
+        val idx = startIndex + i
+        windowCodes.add(h.weatherCode[idx])
+        val wind = h.windSpeed10m.getOrElse(idx) { 0.0 }
+        if (wind > maxWind) {
+            maxWind = wind
+        }
     }
 
-    val codes = listOf(c.weatherCode) + forecastWindow.map { it.first }
-    val maxWind = (listOf(c.windSpeed, c.windGusts) + forecastWindow.map { it.third }).maxOrNull() ?: 0.0
-    val maxTemp = (listOf(c.temperature) + d.temperatureMax.take(2)).maxOrNull() ?: 0.0
-    val minTemp = (listOf(c.temperature) + d.temperatureMin.take(2)).minOrNull() ?: 0.0
+    val maxTemp = maxOf(
+        c.temperature,
+        d.temperatureMax.getOrElse(0) { c.temperature },
+        d.temperatureMax.getOrElse(1) { c.temperature }
+    )
+    val minTemp = minOf(
+        c.temperature,
+        d.temperatureMin.getOrElse(0) { c.temperature },
+        d.temperatureMin.getOrElse(1) { c.temperature }
+    )
 
-    fun hasCode(targetCodes: List<Int>) = codes.any { it in targetCodes }
+    fun hasCode(targetCodes: List<Int>) = targetCodes.any { windowCodes.contains(it) }
 
     // Thunderstorm: 95, 96, 99
     if (hasCode(listOf(95, 96, 99))) {
@@ -128,37 +143,47 @@ fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = 
 
     val endIndex = minOf(startIndex + 24, hourly.time.size)
 
-    val hourlyForecast = (startIndex until endIndex).mapNotNull { i ->
+    val hourlyForecast = ArrayList<HourlyForecast>(endIndex - startIndex)
+    val seenHourlyTimes = HashSet<Long>()
+    for (i in startIndex until endIndex) {
         val epoch = parsedHourlyTimes[i]
-        if (epoch < nowMillis) return@mapNotNull null // Extra safety
-
-        HourlyForecast(
-            time = epoch,
-            temperature = Temperature.fromCelsius(hourly.temperature2m.getOrElse(i) { 0.0 }),
-            weatherCode = hourly.weatherCode.getOrElse(i) { 0 },
-            precipProbability = hourly.precipitationProbability.getOrElse(i) { 0 },
-            windSpeed = WindSpeed.fromMetersPerSecond(hourly.windSpeed10m.getOrElse(i) { 0.0 }),
-            windDirection = hourly.windDirection10m.getOrElse(i) { 0 },
-            pressure = Pressure.fromHPa(hourly.pressureMsl.getOrElse(i) { 1013.0 }),
-            precipitation = Precipitation.fromMm(hourly.precipitation.getOrElse(i) { 0.0 }),
-        )
-    }.distinctBy { it.time }
+        if (epoch >= nowMillis && seenHourlyTimes.add(epoch)) {
+            hourlyForecast.add(
+                HourlyForecast(
+                    time = epoch,
+                    temperature = Temperature.fromCelsius(hourly.temperature2m.getOrElse(i) { 0.0 }),
+                    weatherCode = hourly.weatherCode.getOrElse(i) { 0 },
+                    precipProbability = hourly.precipitationProbability.getOrElse(i) { 0 },
+                    windSpeed = WindSpeed.fromMetersPerSecond(hourly.windSpeed10m.getOrElse(i) { 0.0 }),
+                    windDirection = hourly.windDirection10m.getOrElse(i) { 0 },
+                    pressure = Pressure.fromHPa(hourly.pressureMsl.getOrElse(i) { 1013.0 }),
+                    precipitation = Precipitation.fromMm(hourly.precipitation.getOrElse(i) { 0.0 }),
+                )
+            )
+        }
+    }
 
     val parsedDailyTimes = daily.time.map { parseIsoDate(it, utcOffsetSeconds) }
 
-    val dailyForecast = daily.time.indices.map { i ->
+    val dailyForecast = ArrayList<DailyForecast>(daily.time.size)
+    val seenDailyDates = HashSet<Long>()
+    for (i in daily.time.indices) {
         val epoch = parsedDailyTimes[i]
-        DailyForecast(
-            date = epoch,
-            tempMax = Temperature.fromCelsius(daily.temperatureMax[i]),
-            tempMin = Temperature.fromCelsius(daily.temperatureMin[i]),
-            weatherCode = if (i == 0) c.weatherCode else daily.weatherCode[i],
-            precipProbability = daily.precipitationProbabilityMax[i],
-            windSpeed = WindSpeed.fromMetersPerSecond(daily.windSpeed10mMax.getOrElse(i) { 0.0 }),
-            windDirection = daily.windDirection10mDominant.getOrElse(i) { 0 },
-            precipitation = Precipitation.fromMm(daily.precipitationSum.getOrElse(i) { 0.0 }),
-        )
-    }.distinctBy { it.date }
+        if (seenDailyDates.add(epoch)) {
+            dailyForecast.add(
+                DailyForecast(
+                    date = epoch,
+                    tempMax = Temperature.fromCelsius(daily.temperatureMax[i]),
+                    tempMin = Temperature.fromCelsius(daily.temperatureMin[i]),
+                    weatherCode = if (i == 0) c.weatherCode else daily.weatherCode[i],
+                    precipProbability = daily.precipitationProbabilityMax[i],
+                    windSpeed = WindSpeed.fromMetersPerSecond(daily.windSpeed10mMax.getOrElse(i) { 0.0 }),
+                    windDirection = daily.windDirection10mDominant.getOrElse(i) { 0 },
+                    precipitation = Precipitation.fromMm(daily.precipitationSum.getOrElse(i) { 0.0 }),
+                )
+            )
+        }
+    }
 
     return WeatherData(
         utcOffsetSeconds = utcOffsetSeconds,
