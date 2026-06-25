@@ -28,8 +28,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import orinasa.njarasoa.maripanatokana.ui.settings.SettingsScreen
 import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -63,6 +65,13 @@ fun WeatherScreen(
     viewModel: WeatherViewModel = hiltViewModel(),
     permissionHandler: PermissionHandler
 ) {
+    var showSettings by remember { mutableStateOf(false) }
+
+    if (showSettings) {
+        SettingsScreen(onBack = { showSettings = false })
+        return
+    }
+
     val uiState by viewModel.uiState.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
     val metricPrimary by viewModel.metricPrimary.collectAsState()
@@ -335,6 +344,7 @@ fun WeatherScreen(
                             onWeatherIconTapped = viewModel::onWeatherIconTapped,
                             onEditLocationClicked = viewModel::onEditLocationClicked,
                             onDisableDevMode = viewModel::disableDevMode,
+                            onOpenSettings = { showSettings = true },
                             showGpsCoordinates = showGpsCoordinates,
                             devModeActive = devModeActive,
                             devOverrideLat = devOverrideLat,

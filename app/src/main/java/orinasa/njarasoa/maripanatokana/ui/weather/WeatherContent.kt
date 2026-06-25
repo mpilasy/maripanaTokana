@@ -34,6 +34,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Card
@@ -134,6 +135,7 @@ internal fun WeatherContent(
     onWeatherIconTapped: () -> Unit = {},
     onEditLocationClicked: () -> Unit = {},
     onDisableDevMode: () -> Unit = {},
+    onOpenSettings: () -> Unit = {},
     showGpsCoordinates: Boolean = false,
     devModeActive: Boolean = false,
     devOverrideLat: Double? = null,
@@ -223,6 +225,17 @@ internal fun WeatherContent(
 
                     if (devModeActive) {
                         Spacer(modifier = Modifier.width(8.dp))
+                        IconButton(
+                            onClick = onOpenSettings,
+                            modifier = Modifier.size(32.sd(scale))
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Settings,
+                                contentDescription = "Settings",
+                                tint = Color.White.copy(alpha = 0.7f),
+                                modifier = Modifier.size(18.sd(scale))
+                            )
+                        }
                         IconButton(
                             onClick = onEditLocationClicked,
                             modifier = Modifier.size(32.sd(scale))

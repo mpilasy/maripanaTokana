@@ -11,8 +11,11 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import orinasa.njarasoa.maripanatokana.BuildConfig
 import orinasa.njarasoa.maripanatokana.data.remote.GdacsApiService
+import orinasa.njarasoa.maripanatokana.data.remote.NominatimApiService
 import orinasa.njarasoa.maripanatokana.data.remote.NwsApiService
 import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoApiService
+import orinasa.njarasoa.maripanatokana.data.remote.OpenWeatherMapApiService
+import orinasa.njarasoa.maripanatokana.data.remote.PirateWeatherApiService
 import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
@@ -92,5 +95,41 @@ object NetworkModule {
             .addConverterFactory(json.asConverterFactory(contentType))
             .build()
             .create(GdacsApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideOpenWeatherMapApiService(okHttpClient: OkHttpClient, json: Json): OpenWeatherMapApiService {
+        val contentType = "application/json".toMediaType()
+        return Retrofit.Builder()
+            .baseUrl("https://api.openweathermap.org/")
+            .client(okHttpClient)
+            .addConverterFactory(json.asConverterFactory(contentType))
+            .build()
+            .create(OpenWeatherMapApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun providePirateWeatherApiService(okHttpClient: OkHttpClient, json: Json): PirateWeatherApiService {
+        val contentType = "application/json".toMediaType()
+        return Retrofit.Builder()
+            .baseUrl("https://api.pirateweather.net/")
+            .client(okHttpClient)
+            .addConverterFactory(json.asConverterFactory(contentType))
+            .build()
+            .create(PirateWeatherApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideNominatimApiService(okHttpClient: OkHttpClient, json: Json): NominatimApiService {
+        val contentType = "application/json".toMediaType()
+        return Retrofit.Builder()
+            .baseUrl("https://nominatim.openstreetmap.org/")
+            .client(okHttpClient)
+            .addConverterFactory(json.asConverterFactory(contentType))
+            .build()
+            .create(NominatimApiService::class.java)
     }
 }

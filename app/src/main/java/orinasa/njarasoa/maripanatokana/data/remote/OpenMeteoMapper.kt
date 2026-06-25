@@ -104,6 +104,32 @@ fun deriveAlerts(c: OpenMeteoCurrent, h: OpenMeteoHourly, d: OpenMeteoDaily, utc
     return alerts
 }
 
+fun deriveAlertsFromWeatherData(data: orinasa.njarasoa.maripanatokana.domain.model.WeatherData): List<WeatherAlert> {
+    val alerts = mutableListOf<WeatherAlert>()
+    val nowMillis = System.currentTimeMillis()
+    val hourlyWindow = data.hourlyForecast.filter { it.time >= nowMillis }.take(24)
+
+    val codes = listOf(data.weatherCode) + hourlyWindow.map { it.weatherCode }
+    val maxWind = (listOf(data.windSpeed.metersPerSecond, data.windGust?.metersPerSecond ?: 0.0) +
+                   hourlyWindow.map { it.windSpeed.metersPerSecond }).maxOrNull() ?: 0.0
+    val maxTemp = (listOf(data.temperature.celsius) +
+                   data.dailyForecast.take(2).map { it.tempMax.celsius }).maxOrNull() ?: 0.0
+    val minTemp = (listOf(data.temperature.celsius) +
+                   data.dailyForecast.take(2).map { it.tempMin.celsius }).minOrNull() ?: 0.0
+
+    fun hasCode(targetCodes: List<Int>) = codes.any { it in targetCodes }
+
+    if (hasCode(listOf(95, 96, 99))) alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_thunderstorm", "alert_desc_thunderstorm", "derived"))
+    if (hasCode(listOf(65, 82))) alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_heavy_rain", "alert_desc_heavy_rain", "derived"))
+    if (hasCode(listOf(75, 86))) alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_heavy_snow", "alert_desc_heavy_snow", "derived"))
+    if (maxWind > 15.0) alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_high_wind", "alert_desc_high_wind", "derived"))
+    if (maxTemp > 35.0) alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_extreme_heat", "alert_desc_extreme_heat", "derived"))
+    if (minTemp < -15.0) alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_extreme_cold", "alert_desc_extreme_cold", "derived"))
+    if (data.uvIndex > 8.0) alerts.add(WeatherAlert(AlertLevel.WATCH, "alert_title_high_uv", "alert_desc_high_uv", "derived"))
+
+    return alerts
+}
+
 fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = null): WeatherData {
     val c = current
     val isDay = c.isDay == 1

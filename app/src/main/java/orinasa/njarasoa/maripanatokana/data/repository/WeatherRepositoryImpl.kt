@@ -1,7 +1,6 @@
 package orinasa.njarasoa.maripanatokana.data.repository
 
 import android.content.Context
-import android.location.Geocoder
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -11,9 +10,9 @@ import kotlinx.serialization.json.jsonPrimitive
 import orinasa.njarasoa.maripanatokana.data.remote.GdacsApiService
 import orinasa.njarasoa.maripanatokana.data.remote.GeocodingResult
 import orinasa.njarasoa.maripanatokana.data.remote.NwsApiService
-import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoApiService
-import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoGeocodingService
-import orinasa.njarasoa.maripanatokana.data.remote.toDomain
+import orinasa.njarasoa.maripanatokana.data.settings.AppSettingsRepository
+import orinasa.njarasoa.maripanatokana.data.source.GeocodingSourceSelector
+import orinasa.njarasoa.maripanatokana.data.source.WeatherSourceSelector
 import orinasa.njarasoa.maripanatokana.domain.model.AlertLevel
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherAlert
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
@@ -26,16 +25,23 @@ import javax.inject.Inject
 
 class WeatherRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val apiService: OpenMeteoApiService,
     private val nwsApiService: NwsApiService,
     private val gdacsApiService: GdacsApiService,
-    private val geocodingApiService: OpenMeteoGeocodingService,
+    private val settingsRepository: AppSettingsRepository,
+    private val weatherSourceSelector: WeatherSourceSelector,
+    private val geocodingSelector: GeocodingSourceSelector,
 ) : WeatherRepository {
+
+    private val prefs get() = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
+
+    private fun currentLocale(): Locale {
+        val idx = prefs.getInt("locale_index", 0).coerceIn(supportedLocales.indices)
+        return Locale.forLanguageTag(supportedLocales[idx].tag)
+    }
 
     override suspend fun searchLocation(query: String): Result<List<GeocodingResult>> {
         return try {
-            val response = geocodingApiService.searchLocation(name = query)
-            Result.success(response.results)
+            Result.success(geocodingSelector.current().searchLocations(query, currentLocale()))
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -43,46 +49,33 @@ class WeatherRepositoryImpl @Inject constructor(
 
     override suspend fun getWeather(lat: Double, lon: Double): Result<WeatherData> = withContext(Dispatchers.IO) {
         try {
-            val response = apiService.getForecast(latitude = lat, longitude = lon)
+            val sourceData = weatherSourceSelector.current().getForecast(lat, lon)
 
             val (locationName, locationSubtext) = try {
-                val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
-                val localeIdx = prefs.getInt("locale_index", 0).coerceIn(supportedLocales.indices)
-                val geocoder = Geocoder(context, Locale.forLanguageTag(supportedLocales[localeIdx].tag))
-                @Suppress("DEPRECATION")
-                val addr = geocoder.getFromLocation(lat, lon, 1)?.firstOrNull()
-                val rawName = addr?.locality
-                    ?: addr?.subAdminArea
-                    ?: addr?.adminArea
-                    ?: "%.2f, %.2f".format(Locale.US, lat, lon)
-                
-                val name = rawName.split(",")[0].split(";")[0].split("-")[0].trim()
-
-                val subtext = if (addr != null) {
-                    val parts = mutableListOf<String>()
-                    if (addr.adminArea != null && !name.contains(addr.adminArea) && !addr.adminArea.contains(name) && !rawName.contains(addr.adminArea)) {
-                        parts.add(addr.adminArea)
-                    }
-                    if (addr.countryName != null) parts.add(addr.countryName)
-                    if (parts.isNotEmpty()) parts.joinToString(", ") else null
-                } else null
-
-                name to subtext
+                geocodingSelector.current().reverseGeocode(lat, lon, currentLocale())
             } catch (_: Exception) {
                 "%.2f, %.2f".format(Locale.US, lat, lon) to null
             }
 
-            val weatherData = response.toDomain(locationName, locationSubtext)
-            Result.success(weatherData.copy(alertsLoading = true, alerts = emptyList()))
+            Result.success(sourceData.copy(
+                locationName = locationName,
+                locationSubtext = locationSubtext,
+                alertsLoading = true,
+                // derived alerts from the source are preserved and passed to fetchAlerts later
+            ))
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
     override suspend fun fetchAlerts(lat: Double, lon: Double, derivedAlerts: List<WeatherAlert>): Result<List<WeatherAlert>> = coroutineScope {
+        val settings = settingsRepository.current
+        if (!settings.alertsEnabled) return@coroutineScope Result.success(emptyList())
+
         try {
             // 1. Official NWS Alerts
             val nwsDeferred = async {
+                if (!settings.alertsNwsEnabled) return@async emptyList<WeatherAlert>()
                 try {
                     val point = String.format(Locale.US, "%.4f,%.4f", lat, lon)
                     val nwsParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
@@ -90,9 +83,7 @@ class WeatherRepositoryImpl @Inject constructor(
                         val p = f.properties
                         val level = if (p.severity == "Extreme" || p.severity == "Severe") AlertLevel.WARNING else AlertLevel.WATCH
                         val time = p.sent?.let {
-                            try {
-                                nwsParser.parse(it)?.time
-                            } catch (_: Exception) { null }
+                            try { nwsParser.parse(it)?.time } catch (_: Exception) { null }
                         }
                         WeatherAlert(level, p.event, p.description + (p.instruction?.let { "\n\n$it" } ?: ""), "official", time, p.headline, f.id)
                     }
@@ -103,6 +94,7 @@ class WeatherRepositoryImpl @Inject constructor(
 
             // 2. Global GDACS Alerts
             val gdacsDeferred = async {
+                if (!settings.alertsGdacsEnabled) return@async emptyList<WeatherAlert>()
                 try {
                     val toDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
                     val fromDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(System.currentTimeMillis() - GDACS_SEARCH_DAYS * 24 * 60 * 60 * 1000L))
@@ -118,11 +110,9 @@ class WeatherRepositoryImpl @Inject constructor(
                             val fLat = f.geometry.coordinates[1]
                             val fLon = f.geometry.coordinates[0]
                             if (fLat < minLat || fLat > maxLat) return@filter false
-
                             val dLon = Math.abs(fLon - lon)
                             val shortestDLon = if (dLon > 180.0) 360.0 - dLon else dLon
                             if (shortestDLon > lonDelta) return@filter false
-
                             calculateDistance(lat, lon, fLat, fLon) < GDACS_SEARCH_RADIUS_KM
                         }
                         .map { f ->
@@ -133,9 +123,7 @@ class WeatherRepositoryImpl @Inject constructor(
                                 else -> AlertLevel.WATCH
                             }
                             val time = p.fromdate?.let {
-                                try {
-                                    gdacsParser.parse(it)?.time
-                                } catch (_: Exception) { null }
+                                try { gdacsParser.parse(it)?.time } catch (_: Exception) { null }
                             }
                             val reportUrl = try { p.url?.get("report")?.jsonPrimitive?.content } catch (_: Exception) { null }
                             WeatherAlert(level, "GDACS: ${p.eventtype} - ${p.name}", p.description, "gdacs", time, null, reportUrl)
@@ -158,9 +146,11 @@ class WeatherRepositoryImpl @Inject constructor(
                 val key = item.titleKey + item.source
                 if (keys.add(key)) combinedAlerts.add(item)
             }
-            for (item in derivedAlerts) {
-                val key = item.titleKey + item.source
-                if (keys.add(key)) combinedAlerts.add(item)
+            if (settings.alertsDerivedEnabled) {
+                for (item in derivedAlerts) {
+                    val key = item.titleKey + item.source
+                    if (keys.add(key)) combinedAlerts.add(item)
+                }
             }
 
             Result.success(combinedAlerts)
