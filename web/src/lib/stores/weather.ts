@@ -186,22 +186,12 @@ export async function doFetchWeather() {
 }
 
 export async function updateLocationName(localeTag: string) {
-	let lat: number;
-	let lon: number;
-	if (get(devModeActive)) {
-		const overrideLat = localStorage.getItem('dev_override_lat');
-		const overrideLon = localStorage.getItem('dev_override_lon');
-		if (!overrideLat || !overrideLon) return;
-		lat = parseFloat(overrideLat);
-		lon = parseFloat(overrideLon);
-	} else {
-		const cached = getCachedLocation();
-		if (!cached) return;
-		lat = cached.lat;
-		lon = cached.lon;
-	}
-	const location = await reverseGeocode(lat, lon, localeTag);
-	cacheLocation(lat, lon, location.name, location.subtext);
+	// If a dev override is set, leave the city name alone — don't replace it with real GPS name
+	if (typeof localStorage !== 'undefined' && localStorage.getItem('dev_override_lat')) return;
+	const cached = getCachedLocation();
+	if (!cached) return;
+	const location = await reverseGeocode(cached.lat, cached.lon, localeTag);
+	cacheLocation(cached.lat, cached.lon, location.name, location.subtext);
 	weatherState.update(s => {
 		if (s.kind !== 'success') return s;
 		return { ...s, data: { ...s.data, locationName: location.name, locationSubtext: location.subtext } };
