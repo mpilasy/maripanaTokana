@@ -87,7 +87,12 @@ function spawnGpsCacheRefresh() {
 			const subtext = cached?.subtext;
 			const data = await fetchAtLocation(lat, lon, name, subtext);
 			cachedGpsWeatherData = data;
-			cacheLocation(lat, lon, data.locationName, data.locationSubtext);
+			// Don't overwrite the location cache while dev mode is active — it would corrupt
+			// the cached_location key and cause updateLocationName to reverse-geocode the
+			// wrong (real GPS) coordinates on language change.
+			if (!get(devModeActive)) {
+				cacheLocation(lat, lon, data.locationName, data.locationSubtext);
+			}
 		})
 		.catch(() => {
 			// Silently fail - this is a best-effort background refresh
@@ -181,11 +186,22 @@ export async function doFetchWeather() {
 }
 
 export async function updateLocationName(localeTag: string) {
-	if (get(devModeActive)) return;
-	const cached = getCachedLocation();
-	if (!cached) return;
-	const location = await reverseGeocode(cached.lat, cached.lon, localeTag);
-	cacheLocation(cached.lat, cached.lon, location.name, location.subtext);
+	let lat: number;
+	let lon: number;
+	if (get(devModeActive)) {
+		const overrideLat = localStorage.getItem('dev_override_lat');
+		const overrideLon = localStorage.getItem('dev_override_lon');
+		if (!overrideLat || !overrideLon) return;
+		lat = parseFloat(overrideLat);
+		lon = parseFloat(overrideLon);
+	} else {
+		const cached = getCachedLocation();
+		if (!cached) return;
+		lat = cached.lat;
+		lon = cached.lon;
+	}
+	const location = await reverseGeocode(lat, lon, localeTag);
+	cacheLocation(lat, lon, location.name, location.subtext);
 	weatherState.update(s => {
 		if (s.kind !== 'success') return s;
 		return { ...s, data: { ...s.data, locationName: location.name, locationSubtext: location.subtext } };
