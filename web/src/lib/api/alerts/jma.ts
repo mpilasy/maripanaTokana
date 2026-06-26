@@ -32,6 +32,31 @@ function nearestPrefectureCode(lat: number, lon: number): string {
 	return best[0];
 }
 
+function jmaWarningName(code: string): string {
+	const names: Record<string, string> = {
+		'01': 'Special Warning',
+		'02': 'Heavy Rain Warning',
+		'03': 'Flood Warning',
+		'04': 'Storm Warning',
+		'05': 'Snowstorm Warning',
+		'06': 'Heavy Snow Warning',
+		'07': 'Wave Warning',
+		'08': 'Storm Surge Warning',
+		'10': 'Heavy Rain Advisory',
+		'12': 'Strong Wind Advisory',
+		'13': 'Wave Advisory',
+		'14': 'Storm Surge Advisory',
+		'16': 'Flood Advisory',
+		'17': 'Frost Advisory',
+		'18': 'Thunder Advisory',
+		'19': 'Dry Advisory',
+		'20': 'Dense Fog Advisory',
+		'21': 'Low Temperature Advisory',
+		'22': 'Heavy Snow Advisory',
+	};
+	return names[code] ?? `Weather Warning (${code})`;
+}
+
 export async function fetchJmaAlerts(lat: number, lon: number): Promise<WeatherAlert[]> {
 	if (!isInJapan(lat, lon)) return [];
 	try {
@@ -50,7 +75,8 @@ export async function fetchJmaAlerts(lat: number, lon: number): Promise<WeatherA
 					if (w.status !== '発表' && w.status !== '継続') continue;
 					const level: AlertLevel = w.code === '01' ? 'emergency'
 						: (parseInt(w.code) <= 8) ? 'warning' : 'watch';
-					alerts.push({ level, title: `JMA: ${area.name}`, description: '', source: 'jma' });
+					const description = area.name ?? w.name ?? '';
+				alerts.push({ level, title: `JMA: ${jmaWarningName(w.code)}`, description, source: 'jma' });
 				}
 			}
 		}

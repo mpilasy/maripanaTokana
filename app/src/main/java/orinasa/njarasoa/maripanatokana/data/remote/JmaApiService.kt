@@ -31,4 +31,5 @@ data class JmaArea(
 data class JmaWarningEntry(
     val code: String = "",
     val status: String = "",
+    val name: String = "",
 )

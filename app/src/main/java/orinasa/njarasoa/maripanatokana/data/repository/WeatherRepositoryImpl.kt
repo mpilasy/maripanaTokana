@@ -188,7 +188,7 @@ class WeatherRepositoryImpl @Inject constructor(
                                     w.code.toIntOrNull()?.let { it <= 8 } == true -> AlertLevel.WARNING
                                     else -> AlertLevel.WATCH
                                 }
-                                WeatherAlert(level, "JMA: ${jmaWarningName(w.code)}", area.name, "jma", null, null, null)
+                                WeatherAlert(level, "JMA: ${jmaWarningName(w.code)}", area.name.ifEmpty { w.name }, "jma", null, null, null)
                             }
                     }.distinctBy { it.titleKey }
                 } catch (_: Exception) { emptyList() }
