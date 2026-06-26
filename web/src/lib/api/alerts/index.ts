@@ -48,11 +48,11 @@ export async function fetchAllAlerts(
 		METEOALARM_COUNTRIES.has(cc) || isInJapan(lat, lon);
 
 	const [nws, gdacs, meteoAlarm, jma, eccc, bom, nhc, wmo] = await Promise.all([
-		settings.alertsNwsEnabled ? fetchNwsAlerts(lat, lon) : Promise.resolve([]),
+		(settings.alertsNwsEnabled && cc === 'us') ? fetchNwsAlerts(lat, lon) : Promise.resolve([]),
 		(settings.alertsGdacsEnabled && !coveredByRegional) ? fetchGdacsAlerts(lat, lon) : Promise.resolve([]),
 		settings.alertsMeteoAlarmEnabled ? fetchMeteoAlarmAlerts(lat, lon, cc) : Promise.resolve([]),
 		settings.alertsJmaEnabled ? fetchJmaAlerts(lat, lon) : Promise.resolve([]),
-		settings.alertsEcccEnabled ? fetchEcccAlerts(lat, lon, cc) : Promise.resolve([]),
+		(settings.alertsEcccEnabled && cc === 'ca') ? fetchEcccAlerts(lat, lon, cc) : Promise.resolve([]),
 		(settings.alertsBomEnabled && cc === 'au') ? fetchBomAlerts() : Promise.resolve([]),
 		settings.alertsNhcEnabled ? fetchNhcAlerts(lat, lon) : Promise.resolve([]),
 		(settings.alertsWmoSwicEnabled && !coveredByRegional) ? fetchWmoSwicAlerts(lat, lon, cc) : Promise.resolve([]),
