@@ -1,16 +1,25 @@
 AntiFeatures:
   TetheredNet:
-    mg-MG: "Mila mamantatra zavatra amin'ny internet hamandeha azy. Mifandray amin'ireto
-      manaraka ireto: api.open-meteo.com (vinavinan'ny toetrandro), geocoding-api.open-meteo.com
-      (hahlalana ny anaran'ny toerana), api.weather.gov (fampandrenesana toetrandro
-      mahery any Etazonia, ho an'ny toerana any Etazonia ihany), ary www.gdacs.org
-      (fampandrenesana loza maneran-tany). Ny GPS ihany no ampitaina; tsy zava-pantatra
-      momba ny mpampiasa alainay na zarainay."
-    en-US: 'Requires internet access to function. Connects to: api.open-meteo.com
-      (weather forecasts), geocoding-api.open-meteo.com (location name search), api.weather.gov
-      (US severe weather alerts, only when in the US), and www.gdacs.org (global disaster
-      alerts). Only GPS coordinates are transmitted; no personal data is collected
-      or shared.'
+    mg-MG: "Mila mamantatra zavatra amin'ny internet hamandeha azy. Ny fitohizan-tserasera
+      rehetra dia azo fehezina amin'ny pejy Fikirana. Ny lalàna raikitra: api.open-meteo.com
+      (vinavinan'ny toetrandro, amin'ny alàlan'ny Open-Meteo na Pirate Weather — azo
+      ovaina). Ny fampandrenesana (avela tsirairay): api.weather.gov (NWS, Etazonia),
+      www.gdacs.org (GDACS, maneran-tany), feeds.meteoalarm.org (MeteoAlarm, Eoropa),
+      www.jma.go.jp (JMA, Japon), api.weather.gc.ca (ECCC, Kanada),
+      api.weather.bom.gov.au (BOM, Aostralia), www.nhc.noaa.gov (NHC, rivodoza),
+      severe.worldweather.wmo.int (WMO SWIC). Ny geocoding: nominatim.openstreetmap.org
+      na geocoding-api.open-meteo.com (azo ovaina). Ny GPS ihany no ampitaina; tsy
+      zava-pantatra momba ny mpampiasa alainay na zarainay."
+    en-US: 'Requires internet access to function. All network connections are user-configurable
+      via the Settings screen. Fixed connections: api.open-meteo.com (weather, default)
+      or api.pirateweather.net (optional, user-supplied API key). Optional alert sources
+      (each individually toggleable): api.weather.gov (NWS, US), www.gdacs.org (GDACS,
+      global), feeds.meteoalarm.org (MeteoAlarm, Europe), www.jma.go.jp (JMA, Japan),
+      api.weather.gc.ca (ECCC, Canada), api.weather.bom.gov.au (BOM, Australia),
+      www.nhc.noaa.gov (NHC, tropical storms), severe.worldweather.wmo.int (WMO SWIC,
+      global). Geocoding: nominatim.openstreetmap.org (default on F-Droid) or
+      geocoding-api.open-meteo.com. Only GPS coordinates are transmitted; no personal
+      data is collected or shared.'
 Categories:
   - Weather
 License: MIT
@@ -23,7 +32,7 @@ AutoName: maripànaTokana
 
 RepoType: git
 Repo: https://github.com/mpilasy/maripanaTokana.git
-Binaries: 
+Binaries:
   https://github.com/mpilasy/maripanaTokana/releases/download/v%v/maripanaTokana-v%v.apk
 
 Builds:
@@ -34,9 +43,16 @@ Builds:
     gradle:
       - fdroid
 
+  - versionName: 1.0.40
+    versionCode: 40
+    commit: TBD
+    subdir: app
+    gradle:
+      - fdroid
+
 AllowedAPKSigningKeys: 93270696531c2486d39b6d009a5f948eb0f7f6309b4dc4b46eeb538969fcf3e8
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 1.0.39
-CurrentVersionCode: 39
+CurrentVersion: 1.0.40
+CurrentVersionCode: 40

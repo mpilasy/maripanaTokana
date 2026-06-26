@@ -65,18 +65,19 @@ maripanaTokana/
 
 | Component | Version | Notes |
 |-----------|---------|-------|
-| SvelteKit | 2.x | Static adapter |
+| SvelteKit | 2.x | Node.js adapter (`adapter-node`) |
 | Svelte | 5.x | Runes (`$state`, `$derived`, `$effect`, `$props`) |
 | TypeScript | 5.x | Strict mode |
-| svelte-i18n | 4.x | `$_('key')` syntax |
+| svelte-i18n | 4.x | `$_('key')` + `$json('key')` syntax |
 | html2canvas | 1.4.1 | Screenshot capture |
-| Caddy | Alpine | Production server (Docker) |
+| Node.js | 22 Alpine | Production server (`node build/index.js`) |
 
 ### Shared
 
 | Component | Notes |
 |-----------|-------|
-| Open-Meteo API | Weather data — free, no API key |
+| Open-Meteo API | Weather data — free, no API key (default) |
+| Pirate Weather | Weather data — requires API key (optional, user-configured) |
 | Nominatim | Reverse geocoding — free, no API key |
 | i18n | 8 JSON files in `shared/i18n/locales/` |
 
@@ -100,14 +101,16 @@ UI (Compose) → ViewModel (StateFlow) → Repository → API (Retrofit)
 ### Web: SvelteKit + Stores
 
 ```
-Components (.svelte) → Stores (writable/derived) → API (fetch) → Open-Meteo
+Components (.svelte) → Stores (writable/derived) → API (fetch) → Open-Meteo / Pirate Weather
+                                                  ↘ Server routes (/api/alerts/*) → proxied alert feeds
 ```
 
-- **API:** `lib/api/` (client, types, mapper, WMO codes)
+- **API:** `lib/api/` (openMeteo, pirateWeather, WMO codes; `alerts/` subdirectory with one file per source)
 - **Domain:** `lib/domain/` (Temperature, Pressure, WindSpeed, Precipitation — same logic as Kotlin)
 - **Stores:** `lib/stores/` (weather, preferences, location, devMode)
-- **Components:** `lib/components/` (WeatherScreen, HeroCard, HourlyForecast, DailyForecast, CurrentConditions, CollapsibleSection, etc.)
+- **Components:** `lib/components/` (WeatherScreen, HeroCard, HourlyForecast, DailyForecast, CurrentConditions, SettingsScreen, CollapsibleSection, etc.)
 - **i18n:** `lib/i18n/` (svelte-i18n setup, locale config, `localizeDigits()`)
+- **Server routes:** `routes/api/alerts/` (SvelteKit `+server.ts` proxy endpoints for MeteoAlarm, BOM, NHC, WMO SWIC — needed because these feeds don't set `Access-Control-Allow-Origin`)
 
 ### Android ↔ Web Mapping
 
