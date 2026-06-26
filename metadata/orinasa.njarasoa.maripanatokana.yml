@@ -52,7 +52,7 @@ Builds:
 
   - versionName: 1.1.0
     versionCode: 41
-    commit: TO_BE_FILLED_BY_CI
+    commit: 143ba2e87a0c998e54b45c876c54929cba1d9da3
     subdir: app
     gradle:
       - fdroid
