@@ -10,12 +10,18 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import orinasa.njarasoa.maripanatokana.BuildConfig
+import orinasa.njarasoa.maripanatokana.data.remote.BomApiService
+import orinasa.njarasoa.maripanatokana.data.remote.EcccApiService
 import orinasa.njarasoa.maripanatokana.data.remote.GdacsApiService
+import orinasa.njarasoa.maripanatokana.data.remote.JmaApiService
+import orinasa.njarasoa.maripanatokana.data.remote.MeteoAlarmApiService
 import orinasa.njarasoa.maripanatokana.data.remote.NominatimApiService
+import orinasa.njarasoa.maripanatokana.data.remote.NhcApiService
 import orinasa.njarasoa.maripanatokana.data.remote.NwsApiService
 import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoApiService
 import orinasa.njarasoa.maripanatokana.data.remote.OpenWeatherMapApiService
 import orinasa.njarasoa.maripanatokana.data.remote.PirateWeatherApiService
+import orinasa.njarasoa.maripanatokana.data.remote.WmoSwicApiService
 import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
@@ -131,5 +137,74 @@ object NetworkModule {
             .addConverterFactory(json.asConverterFactory(contentType))
             .build()
             .create(NominatimApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideMeteoAlarmApiService(okHttpClient: OkHttpClient): MeteoAlarmApiService =
+        Retrofit.Builder()
+            .baseUrl("https://feeds.meteoalarm.org/")
+            .client(okHttpClient)
+            .build()
+            .create(MeteoAlarmApiService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideJmaApiService(okHttpClient: OkHttpClient, json: Json): JmaApiService {
+        val contentType = "application/json".toMediaType()
+        return Retrofit.Builder()
+            .baseUrl("https://www.jma.go.jp/")
+            .client(okHttpClient)
+            .addConverterFactory(json.asConverterFactory(contentType))
+            .build()
+            .create(JmaApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideEcccApiService(okHttpClient: OkHttpClient, json: Json): EcccApiService {
+        val contentType = "application/json".toMediaType()
+        return Retrofit.Builder()
+            .baseUrl("https://api.weather.gc.ca/")
+            .client(okHttpClient)
+            .addConverterFactory(json.asConverterFactory(contentType))
+            .build()
+            .create(EcccApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideNhcApiService(okHttpClient: OkHttpClient, json: Json): NhcApiService {
+        val contentType = "application/json".toMediaType()
+        return Retrofit.Builder()
+            .baseUrl("https://www.nhc.noaa.gov/")
+            .client(okHttpClient)
+            .addConverterFactory(json.asConverterFactory(contentType))
+            .build()
+            .create(NhcApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideBomApiService(okHttpClient: OkHttpClient, json: Json): BomApiService {
+        val contentType = "application/json".toMediaType()
+        return Retrofit.Builder()
+            .baseUrl("https://api.weather.bom.gov.au/")
+            .client(okHttpClient)
+            .addConverterFactory(json.asConverterFactory(contentType))
+            .build()
+            .create(BomApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideWmoSwicApiService(okHttpClient: OkHttpClient, json: Json): WmoSwicApiService {
+        val contentType = "application/json".toMediaType()
+        return Retrofit.Builder()
+            .baseUrl("https://severe.worldweather.wmo.int/")
+            .client(okHttpClient)
+            .addConverterFactory(json.asConverterFactory(contentType))
+            .build()
+            .create(WmoSwicApiService::class.java)
     }
 }

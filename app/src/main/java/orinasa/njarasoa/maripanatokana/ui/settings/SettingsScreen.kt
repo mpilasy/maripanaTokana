@@ -1,5 +1,6 @@
 package orinasa.njarasoa.maripanatokana.ui.settings
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -33,6 +34,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -59,6 +61,11 @@ fun SettingsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(Color(0xFF0E0B3D), Color(0xFF1A1565))
+                )
+            )
             .statusBarsPadding()
             .navigationBarsPadding()
             .verticalScroll(rememberScrollState())
@@ -138,7 +145,13 @@ fun SettingsScreen(
         }
         if (settings.alertsEnabled) {
             AlertCheckRow("NWS alerts (USA)", settings.alertsNwsEnabled) { viewModel.updateAlertsNwsEnabled(it) }
-            AlertCheckRow("GDACS alerts (global)", settings.alertsGdacsEnabled) { viewModel.updateAlertsGdacsEnabled(it) }
+            AlertCheckRow("GDACS alerts (global disasters)", settings.alertsGdacsEnabled) { viewModel.updateAlertsGdacsEnabled(it) }
+            AlertCheckRow("MeteoAlarm (Europe)", settings.alertsMeteoAlarmEnabled) { viewModel.updateAlertsMeteoAlarmEnabled(it) }
+            AlertCheckRow("JMA (Japan)", settings.alertsJmaEnabled) { viewModel.updateAlertsJmaEnabled(it) }
+            AlertCheckRow("ECCC (Canada)", settings.alertsEcccEnabled) { viewModel.updateAlertsEcccEnabled(it) }
+            AlertCheckRow("BOM (Australia)", settings.alertsBomEnabled) { viewModel.updateAlertsBomEnabled(it) }
+            AlertCheckRow("NHC (Atlantic & Pacific hurricanes)", settings.alertsNhcEnabled) { viewModel.updateAlertsNhcEnabled(it) }
+            AlertCheckRow("WMO SWIC (global)", settings.alertsWmoSwicEnabled) { viewModel.updateAlertsWmoSwicEnabled(it) }
             AlertCheckRow("Derived alerts (from weather codes)", settings.alertsDerivedEnabled) { viewModel.updateAlertsDerivedEnabled(it) }
         }
 

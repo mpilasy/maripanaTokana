@@ -22,4 +22,10 @@ class SettingsViewModel @Inject constructor(
     fun updateAlertsNwsEnabled(enabled: Boolean) = repository.updateAlertsNwsEnabled(enabled)
     fun updateAlertsGdacsEnabled(enabled: Boolean) = repository.updateAlertsGdacsEnabled(enabled)
     fun updateAlertsDerivedEnabled(enabled: Boolean) = repository.updateAlertsDerivedEnabled(enabled)
+    fun updateAlertsMeteoAlarmEnabled(enabled: Boolean) = repository.updateAlertsMeteoAlarmEnabled(enabled)
+    fun updateAlertsJmaEnabled(enabled: Boolean) = repository.updateAlertsJmaEnabled(enabled)
+    fun updateAlertsEcccEnabled(enabled: Boolean) = repository.updateAlertsEcccEnabled(enabled)
+    fun updateAlertsWmoSwicEnabled(enabled: Boolean) = repository.updateAlertsWmoSwicEnabled(enabled)
+    fun updateAlertsBomEnabled(enabled: Boolean) = repository.updateAlertsBomEnabled(enabled)
+    fun updateAlertsNhcEnabled(enabled: Boolean) = repository.updateAlertsNhcEnabled(enabled)
 }

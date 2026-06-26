@@ -22,9 +22,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MaripanaTokana">
         
-        <meta-data
-            android:name="com.google.android.wearable.standalone"
-            android:value="true" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

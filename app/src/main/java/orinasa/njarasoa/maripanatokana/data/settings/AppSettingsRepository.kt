@@ -42,6 +42,12 @@ class AppSettingsRepository @Inject constructor(
         alertsNwsEnabled = prefs.getBoolean("settings_alerts_nws", true),
         alertsGdacsEnabled = prefs.getBoolean("settings_alerts_gdacs", true),
         alertsDerivedEnabled = prefs.getBoolean("settings_alerts_derived", true),
+        alertsMeteoAlarmEnabled = prefs.getBoolean("settings_alerts_meteoalarm", true),
+        alertsJmaEnabled = prefs.getBoolean("settings_alerts_jma", true),
+        alertsEcccEnabled = prefs.getBoolean("settings_alerts_eccc", true),
+        alertsWmoSwicEnabled = prefs.getBoolean("settings_alerts_wmoswic", true),
+        alertsBomEnabled = prefs.getBoolean("settings_alerts_bom", true),
+        alertsNhcEnabled = prefs.getBoolean("settings_alerts_nhc", true),
     )
 
     fun updateWeatherSource(source: WeatherSource) =
@@ -64,4 +70,22 @@ class AppSettingsRepository @Inject constructor(
 
     fun updateAlertsDerivedEnabled(enabled: Boolean) =
         prefs.edit().putBoolean("settings_alerts_derived", enabled).apply()
+
+    fun updateAlertsMeteoAlarmEnabled(enabled: Boolean) =
+        prefs.edit().putBoolean("settings_alerts_meteoalarm", enabled).apply()
+
+    fun updateAlertsJmaEnabled(enabled: Boolean) =
+        prefs.edit().putBoolean("settings_alerts_jma", enabled).apply()
+
+    fun updateAlertsEcccEnabled(enabled: Boolean) =
+        prefs.edit().putBoolean("settings_alerts_eccc", enabled).apply()
+
+    fun updateAlertsWmoSwicEnabled(enabled: Boolean) =
+        prefs.edit().putBoolean("settings_alerts_wmoswic", enabled).apply()
+
+    fun updateAlertsBomEnabled(enabled: Boolean) =
+        prefs.edit().putBoolean("settings_alerts_bom", enabled).apply()
+
+    fun updateAlertsNhcEnabled(enabled: Boolean) =
+        prefs.edit().putBoolean("settings_alerts_nhc", enabled).apply()
 }

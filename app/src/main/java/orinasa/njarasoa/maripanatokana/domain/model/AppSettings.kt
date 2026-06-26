@@ -11,4 +11,10 @@ data class AppSettings(
     val alertsNwsEnabled: Boolean = true,
     val alertsGdacsEnabled: Boolean = true,
     val alertsDerivedEnabled: Boolean = true,
+    val alertsMeteoAlarmEnabled: Boolean = true,
+    val alertsJmaEnabled: Boolean = true,
+    val alertsEcccEnabled: Boolean = true,
+    val alertsWmoSwicEnabled: Boolean = true,
+    val alertsBomEnabled: Boolean = true,
+    val alertsNhcEnabled: Boolean = true,
 )

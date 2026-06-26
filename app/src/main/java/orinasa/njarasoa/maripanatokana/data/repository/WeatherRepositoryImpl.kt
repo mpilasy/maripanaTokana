@@ -1,15 +1,23 @@
 package orinasa.njarasoa.maripanatokana.data.repository
 
 import android.content.Context
+import android.location.Geocoder
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.jsonPrimitive
+import orinasa.njarasoa.maripanatokana.data.remote.BomApiService
+import orinasa.njarasoa.maripanatokana.data.remote.EcccApiService
 import orinasa.njarasoa.maripanatokana.data.remote.GdacsApiService
 import orinasa.njarasoa.maripanatokana.data.remote.GeocodingResult
+import orinasa.njarasoa.maripanatokana.data.remote.JmaApiService
+import orinasa.njarasoa.maripanatokana.data.remote.JmaAreaCodes
+import orinasa.njarasoa.maripanatokana.data.remote.MeteoAlarmApiService
+import orinasa.njarasoa.maripanatokana.data.remote.NhcApiService
 import orinasa.njarasoa.maripanatokana.data.remote.NwsApiService
+import orinasa.njarasoa.maripanatokana.data.remote.WmoSwicApiService
 import orinasa.njarasoa.maripanatokana.data.settings.AppSettingsRepository
 import orinasa.njarasoa.maripanatokana.data.source.GeocodingSourceSelector
 import orinasa.njarasoa.maripanatokana.data.source.WeatherSourceSelector
@@ -18,6 +26,9 @@ import orinasa.njarasoa.maripanatokana.domain.model.WeatherAlert
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.repository.WeatherRepository
 import orinasa.njarasoa.maripanatokana.ui.weather.supportedLocales
+import org.xmlpull.v1.XmlPullParser
+import org.xmlpull.v1.XmlPullParserFactory
+import java.io.StringReader
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -27,6 +38,12 @@ class WeatherRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
     private val nwsApiService: NwsApiService,
     private val gdacsApiService: GdacsApiService,
+    private val meteoAlarmApiService: MeteoAlarmApiService,
+    private val jmaApiService: JmaApiService,
+    private val ecccApiService: EcccApiService,
+    private val wmoSwicApiService: WmoSwicApiService,
+    private val bomApiService: BomApiService,
+    private val nhcApiService: NhcApiService,
     private val settingsRepository: AppSettingsRepository,
     private val weatherSourceSelector: WeatherSourceSelector,
     private val geocodingSelector: GeocodingSourceSelector,
@@ -72,6 +89,17 @@ class WeatherRepositoryImpl @Inject constructor(
         val settings = settingsRepository.current
         if (!settings.alertsEnabled) return@coroutineScope Result.success(emptyList())
 
+        val countryCode = try {
+            @Suppress("DEPRECATION")
+            Geocoder(context, Locale.US).getFromLocation(lat, lon, 1)?.firstOrNull()?.countryCode?.lowercase()
+        } catch (_: Exception) { null }
+
+        val coveredByRegional = countryCode == "us" ||
+            countryCode == "ca" ||
+            countryCode == "au" ||
+            countryCode in METEOALARM_COUNTRIES ||
+            JmaAreaCodes.isInJapan(lat, lon)
+
         try {
             // 1. Official NWS Alerts
             val nwsDeferred = async {
@@ -92,9 +120,9 @@ class WeatherRepositoryImpl @Inject constructor(
                 }
             }
 
-            // 2. Global GDACS Alerts
+            // 2. Global GDACS Alerts (skipped when a regional source covers the area)
             val gdacsDeferred = async {
-                if (!settings.alertsGdacsEnabled) return@async emptyList<WeatherAlert>()
+                if (!settings.alertsGdacsEnabled || coveredByRegional) return@async emptyList<WeatherAlert>()
                 try {
                     val toDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
                     val fromDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(System.currentTimeMillis() - GDACS_SEARCH_DAYS * 24 * 60 * 60 * 1000L))
@@ -133,16 +161,153 @@ class WeatherRepositoryImpl @Inject constructor(
                 }
             }
 
+            // 3. MeteoAlarm (Europe)
+            val meteoAlarmDeferred = async {
+                if (!settings.alertsMeteoAlarmEnabled) return@async emptyList<WeatherAlert>()
+                val code = countryCode ?: return@async emptyList()
+                if (code !in METEOALARM_COUNTRIES) return@async emptyList()
+                try {
+                    parseMeteoAlarmAtom(meteoAlarmApiService.getAlerts(code).string())
+                } catch (_: Exception) { emptyList() }
+            }
+
+            // 4. JMA (Japan)
+            val jmaDeferred = async {
+                if (!settings.alertsJmaEnabled) return@async emptyList<WeatherAlert>()
+                if (!JmaAreaCodes.isInJapan(lat, lon)) return@async emptyList()
+                try {
+                    val areaCode = JmaAreaCodes.nearestPrefectureCode(lat, lon)
+                    val response = jmaApiService.getWarnings(areaCode)
+                    val isoParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
+                    response.areaTypes.flatMap { it.areas }.flatMap { area ->
+                        area.warnings
+                            .filter { it.status == "発表" || it.status == "継続" }
+                            .map { w ->
+                                val level = when {
+                                    w.code == "01" -> AlertLevel.EMERGENCY
+                                    w.code.toIntOrNull()?.let { it <= 8 } == true -> AlertLevel.WARNING
+                                    else -> AlertLevel.WATCH
+                                }
+                                WeatherAlert(level, "JMA: ${jmaWarningName(w.code)}", area.name, "jma", null, null, null)
+                            }
+                    }.distinctBy { it.titleKey }
+                } catch (_: Exception) { emptyList() }
+            }
+
+            // 5. ECCC (Canada)
+            val ecccDeferred = async {
+                if (!settings.alertsEcccEnabled) return@async emptyList<WeatherAlert>()
+                if (countryCode != "ca") return@async emptyList()
+                try {
+                    val delta = 1.0
+                    val bbox = String.format(Locale.US, "%.4f,%.4f,%.4f,%.4f", lon - delta, lat - delta, lon + delta, lat + delta)
+                    val ecccParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
+                    ecccApiService.getAlerts(bbox = bbox).features.map { f ->
+                        val p = f.properties
+                        val level = when (p.severity.lowercase()) {
+                            "extreme", "severe" -> AlertLevel.WARNING
+                            else -> AlertLevel.WATCH
+                        }
+                        val time = p.onset?.let { try { ecccParser.parse(it)?.time } catch (_: Exception) { null } }
+                        WeatherAlert(level, p.headline.ifBlank { "ECCC Alert" }, p.description, "eccc", time, null, null)
+                    }
+                } catch (_: Exception) { emptyList() }
+            }
+
+            // 6. WMO SWIC (Global, skipped when a regional source covers the area)
+            val wmoDeferred = async {
+                if (!settings.alertsWmoSwicEnabled || coveredByRegional) return@async emptyList<WeatherAlert>()
+                val code = countryCode?.uppercase() ?: return@async emptyList()
+                try {
+                    wmoSwicApiService.getAlerts(code).Warning.map { w ->
+                        WeatherAlert(AlertLevel.WARNING, w.Summary.ifBlank { "WMO SWIC Warning" }, w.Detail.ifBlank { w.Summary }, "wmoswic", null, w.City.ifBlank { null }, w.Url.ifBlank { null })
+                    }
+                } catch (_: Exception) { emptyList() }
+            }
+
+            // 7. BOM (Australia)
+            val bomDeferred = async {
+                if (!settings.alertsBomEnabled || countryCode != "au") return@async emptyList<WeatherAlert>()
+                try {
+                    val bomParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
+                    bomApiService.getWarnings().data
+                        .filter { it.warningAction != "cancelled" }
+                        .map { w ->
+                            val level = when (w.phase.lowercase()) {
+                                "warning" -> AlertLevel.WARNING
+                                else -> AlertLevel.WATCH
+                            }
+                            val time = w.issueTime?.let { try { bomParser.parse(it)?.time } catch (_: Exception) { null } }
+                            val headline = if (w.state.isNotBlank()) "${w.state}: ${w.title}" else w.title
+                            WeatherAlert(level, headline, w.shortDescription.ifBlank { w.title }, "bom", time, null, null)
+                        }
+                } catch (_: Exception) { emptyList() }
+            }
+
+            // 8. NHC — National Hurricane Center (Atlantic + Eastern Pacific basins, proximity-filtered)
+            val nhcDeferred = async {
+                if (!settings.alertsNhcEnabled) return@async emptyList<WeatherAlert>()
+                try {
+                    val nhcParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
+                    nhcApiService.getCurrentStorms().activeStorms
+                        .filter { calculateDistance(lat, lon, it.lat, it.lon) < NHC_SEARCH_RADIUS_KM }
+                        .map { storm ->
+                            val knots = storm.intensity.toIntOrNull() ?: 0
+                            val level = when {
+                                storm.classification == "HU" && knots >= 96 -> AlertLevel.EMERGENCY
+                                storm.classification == "HU" -> AlertLevel.WARNING
+                                storm.classification == "TS" -> AlertLevel.WARNING
+                                else -> AlertLevel.WATCH
+                            }
+                            val time = storm.advisory?.issuance?.let { try { nhcParser.parse(it)?.time } catch (_: Exception) { null } }
+                            WeatherAlert(level, "NHC: ${storm.name}", storm.headline.ifBlank { storm.name }, "nhc", time, null, storm.advisory?.url)
+                        }
+                } catch (_: Exception) { emptyList() }
+            }
+
             val nwsAlerts = nwsDeferred.await()
             val gdacsAlerts = gdacsDeferred.await()
+            val meteoAlarmAlerts = meteoAlarmDeferred.await()
+            val jmaAlerts = jmaDeferred.await()
+            val ecccAlerts = ecccDeferred.await()
+            val wmoAlerts = wmoDeferred.await()
+            val bomAlerts = bomDeferred.await()
+            val nhcAlerts = nhcDeferred.await()
 
-            val combinedAlerts = ArrayList<WeatherAlert>(nwsAlerts.size + gdacsAlerts.size + derivedAlerts.size)
+            val combinedAlerts = ArrayList<WeatherAlert>(
+                nwsAlerts.size + gdacsAlerts.size + meteoAlarmAlerts.size + jmaAlerts.size +
+                    ecccAlerts.size + wmoAlerts.size + bomAlerts.size + nhcAlerts.size + derivedAlerts.size
+            )
             val keys = HashSet<String>()
             for (item in nwsAlerts) {
                 val key = item.titleKey + item.source
                 if (keys.add(key)) combinedAlerts.add(item)
             }
             for (item in gdacsAlerts) {
+                val key = item.titleKey + item.source
+                if (keys.add(key)) combinedAlerts.add(item)
+            }
+            for (item in meteoAlarmAlerts) {
+                val key = item.titleKey + item.source
+                if (keys.add(key)) combinedAlerts.add(item)
+            }
+            for (item in jmaAlerts) {
+                val key = item.titleKey + item.source
+                if (keys.add(key)) combinedAlerts.add(item)
+            }
+            for (item in ecccAlerts) {
+                val key = item.titleKey + item.source
+                if (keys.add(key)) combinedAlerts.add(item)
+            }
+            for (item in wmoAlerts) {
+                val key = item.titleKey + item.source
+                if (keys.add(key)) combinedAlerts.add(item)
+            }
+            for (item in bomAlerts) {
+                val key = item.titleKey + item.source
+                if (keys.add(key)) combinedAlerts.add(item)
+            }
+            for (item in nhcAlerts) {
                 val key = item.titleKey + item.source
                 if (keys.add(key)) combinedAlerts.add(item)
             }
@@ -170,9 +335,93 @@ class WeatherRepositoryImpl @Inject constructor(
         return r * c
     }
 
+    private fun parseMeteoAlarmAtom(xml: String): List<WeatherAlert> {
+        val alerts = mutableListOf<WeatherAlert>()
+        val factory = XmlPullParserFactory.newInstance().apply { isNamespaceAware = true }
+        val parser = factory.newPullParser()
+        parser.setInput(StringReader(xml))
+        val CAP_NS = "urn:oasis:names:tc:emergency:cap:1.2"
+        var inEntry = false
+        var currentLocalName = ""
+        var currentNs = ""
+        var capEvent = ""; var capSeverity = ""; var capOnset = ""
+        var capDescription = ""; var capAreaDesc = ""; var linkHref: String? = null
+        var event = parser.eventType
+        while (event != XmlPullParser.END_DOCUMENT) {
+            when (event) {
+                XmlPullParser.START_TAG -> {
+                    currentLocalName = parser.name ?: ""
+                    currentNs = parser.namespace ?: ""
+                    if (currentLocalName == "entry" && currentNs != CAP_NS) {
+                        inEntry = true; capEvent = ""; capSeverity = ""; capOnset = ""; capDescription = ""; capAreaDesc = ""; linkHref = null
+                    } else if (inEntry && currentLocalName == "link" && parser.getAttributeValue(null, "rel") == "alternate") {
+                        linkHref = parser.getAttributeValue(null, "href")
+                    }
+                }
+                XmlPullParser.TEXT -> if (inEntry && currentNs == CAP_NS) {
+                    val text = parser.text ?: ""
+                    when (currentLocalName) {
+                        "event" -> capEvent = text
+                        "severity" -> capSeverity = text
+                        "onset" -> capOnset = text
+                        "description" -> capDescription = text
+                        "areaDesc" -> capAreaDesc = text
+                    }
+                }
+                XmlPullParser.END_TAG -> {
+                    if ((parser.name ?: "") == "entry" && (parser.namespace ?: "") != CAP_NS && inEntry) {
+                        inEntry = false
+                        if (capEvent.isNotBlank()) {
+                            val level = when (capSeverity.lowercase()) {
+                                "extreme" -> AlertLevel.EMERGENCY
+                                "severe" -> AlertLevel.WARNING
+                                else -> AlertLevel.WATCH
+                            }
+                            val time = try { SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).parse(capOnset)?.time } catch (_: Exception) { null }
+                            alerts.add(WeatherAlert(level, "MeteoAlarm: $capEvent", capDescription.ifBlank { capAreaDesc }, "meteoalarm", time, capAreaDesc.ifBlank { null }, linkHref))
+                        }
+                    }
+                    currentLocalName = ""; currentNs = ""
+                }
+            }
+            event = parser.next()
+        }
+        return alerts
+    }
+
+    private fun jmaWarningName(code: String) = when (code) {
+        "01" -> "Special Warning"
+        "02" -> "Heavy Rain Warning"
+        "03" -> "Flood Warning"
+        "04" -> "Storm Warning"
+        "05" -> "Snowstorm Warning"
+        "06" -> "Heavy Snow Warning"
+        "07" -> "Wave Warning"
+        "08" -> "Storm Surge Warning"
+        "10" -> "Heavy Rain Advisory"
+        "12" -> "Strong Wind Advisory"
+        "13" -> "Wave Advisory"
+        "14" -> "Storm Surge Advisory"
+        "16" -> "Flood Advisory"
+        "17" -> "Frost Advisory"
+        "18" -> "Thunder Advisory"
+        "19" -> "Dry Advisory"
+        "20" -> "Dense Fog Advisory"
+        "21" -> "Low Temperature Advisory"
+        "22" -> "Heavy Snow Advisory"
+        else -> "Weather Warning ($code)"
+    }
+
     companion object {
         private const val EARTH_RADIUS_KM = 6371.0
         private const val GDACS_SEARCH_RADIUS_KM = 500
         private const val GDACS_SEARCH_DAYS = 7
+        private const val NHC_SEARCH_RADIUS_KM = 1500
+        private val METEOALARM_COUNTRIES = setOf(
+            "at", "ba", "be", "bg", "hr", "cy", "cz", "dk", "ee", "fi",
+            "fr", "de", "gr", "hu", "ie", "it", "lv", "li", "lt", "lu",
+            "mt", "md", "me", "nl", "mk", "no", "pl", "pt", "ro", "rs",
+            "sk", "si", "es", "se", "ch", "tr", "ua", "gb"
+        )
     }
 }
