@@ -397,6 +397,12 @@ adb install app/build/outputs/apk/fdroid/release/*.apk
 - [ ] Background widget refresh works
 - [ ] RTL layout works for Arabic
 - [ ] Native digits render for Arabic, Hindi, Nepali
+- [ ] Settings gear icon visible (top-right, always — not gated behind dev mode)
+- [ ] Settings screen opens and persists choices across app restart
+- [ ] Nominatim geocoding works (F-Droid flavor default)
+- [ ] NWS alerts appear when in the US
+- [ ] Alert toggles disable/enable individual sources
+- [ ] Pirate Weather key test rejects invalid keys without saving
 
 ### No Google Play Services Verification
 
@@ -410,10 +416,14 @@ adb shell pm list packages | grep gms
 ### For Future Versions
 
 1. Update `versionCode` and `versionName` in `app/build.gradle.kts`
-2. Create corresponding changelog file: `fastlane/metadata/android/*/changelogs/{versionCode}.txt`
-3. Update `metadata/orinasa.njarasoa.maripanatokana.yml` with new version
-4. Create git tag: `git tag -a v{version} -m "Release {version}"`
-5. Push tag and create new F-Droid merge request
+2. Create corresponding changelog files in all 8 languages: `fastlane/metadata/android/*/changelogs/{versionCode}.txt`
+3. Add new build entry to `metadata/orinasa.njarasoa.maripanatokana.yml` (keep previous entries)
+4. Update `CurrentVersion` and `CurrentVersionCode` in the YAML
+5. Commit everything, then note the commit hash
+6. Fill in the `commit:` field in the new build entry with the full commit hash
+7. Commit the filled-in hash, then create git tag: `git tag v{version} {commit-hash}`
+8. Push commits and tag: `git push && git push origin v{version}`
+9. Update the fdroiddata GitLab fork (`git@gitlab.com:mpilasy/fdroiddata.git`, branch `add-maripanatokana`) with the new build entry — the open MR will update automatically
 
 ### Screenshots
 

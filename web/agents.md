@@ -5,34 +5,41 @@
 **Goal:** SvelteKit weather PWA — port of the Android app with simultaneous Metric/Imperial display.
 
 ## Shared Tech
-- **Weather API:** [Open-Meteo](https://open-meteo.com) — free, no API key
+- **Weather API:** [Open-Meteo](https://open-meteo.com) (default, no key) or [Pirate Weather](https://pirateweather.net) (optional, user-supplied API key)
+- **Alert Sources (8):** NWS, GDACS, MeteoAlarm, JMA, ECCC, BOM, NHC, WMO SWIC — each individually toggleable. Four (MeteoAlarm, BOM, NHC, WMO SWIC) require server-side CORS proxy routes in `src/routes/api/alerts/`.
 - **Reverse Geocoding:** [Nominatim](https://nominatim.openstreetmap.org) — free, no API key
 - **Screenshots:** `html2canvas` — captures DOM sections, composites onto branded canvas, shares via Web Share API
-- **i18n:** 8 languages (mg, ar, en, es, fr, hi, ne, zh) with ~76 keys + 2 arrays (`cardinal_directions`, `uv_labels`). Default: Malagasy (mg, index 0).
+- **i18n:** 8 languages (mg, ar, en, es, fr, hi, ne, zh) with ~76 keys + 2 arrays (`cardinal_directions`, `uv_labels`). Default: Malagasy (mg, index 0). Use `$json('key')` for arrays, `$_('key')` for strings.
 
 ## Project Layout
 ```
 web/
 ├── src/
 │   ├── lib/
-│   │   ├── api/            # Open-Meteo client, types, mapper, WMO codes
+│   │   ├── api/
+│   │   │   ├── alerts/         # Per-source alert fetchers (8 files) + shared.ts + index.ts
+│   │   │   ├── externalAlerts.ts  # Re-export shim for backwards compat
+│   │   │   ├── pirateWeather.ts   # Pirate Weather (Dark Sky-compatible JSON → WeatherData)
+│   │   │   ├── openMeteo.ts       # Open-Meteo client, types, mapper, WMO codes
+│   │   │   └── ...
 │   │   ├── domain/         # Value classes: Temperature, Pressure, WindSpeed, Precipitation
 │   │   ├── i18n/           # svelte-i18n setup, locale config, 8 JSON translations (symlinked)
 │   │   ├── stores/         # Svelte stores (weather, preferences, location)
-│   │   ├── components/     # 9 Svelte UI components
+│   │   ├── components/     # Svelte UI components (including SettingsScreen)
 │   │   ├── fonts.ts        # 22 FontPairing definitions + Google Fonts URLs
 │   │   └── share.ts        # html2canvas capture + Web Share API / download fallback
-│   ├── routes/             # +page.svelte, +layout.svelte
+│   ├── routes/
+│   │   ├── api/alerts/     # CORS proxy routes: meteoalarm, bom, nhc, wmoswic
+│   │   ├── +page.svelte
+│   │   └── +layout.svelte
+│   ├── hooks.server.ts     # /svelte → / redirect
 │   ├── service-worker.ts
 │   └── app.html
 ├── static/                 # PWA manifest, icons, background
-├── scripts/                # Post-build CSS inlining (inline-assets.js)
-├── svelte.config.js        # SvelteKit config (static adapter)
-├── vite.config.ts          # Vite config (single-chunk bundling)
-├── Dockerfile              # Multi-stage build
-├── Caddyfile               # Path-based routing + gzip + caching
+├── svelte.config.js        # SvelteKit config (adapter-node)
+├── vite.config.ts          # Vite config
+├── Dockerfile              # Multi-stage: node build → node:22-alpine serve
 ├── docker-compose.yml      # Container configuration
-├── docs/                   # DESIGN.md, TESTING.md
 ├── package.json            # Dependencies + build scripts
 └── agents.md               # This file
 ```
@@ -50,16 +57,11 @@ docker compose up -d --build
 docker compose up -d --build          # Default port 3080
 PORT=8080 docker compose up -d --build  # Custom port via env
 ```
-- **Dockerfile:** Multi-stage — builds in `node:22-alpine`, serves via `caddy:alpine`.
-- **Caddyfile:** SPA fallback, gzip compression, smart caching headers
+- **Dockerfile:** Multi-stage — builds in `node:22-alpine`, runs via `node:22-alpine` (`CMD ["node", "build/index.js"]`)
 - **docker-compose.yml:** Container `maripanaTokana.web`, port `${PORT:-3080}:80`, `restart: unless-stopped`
-- App served at `/` (CSS inlined, single JS bundle)
-- `/svelte` → 301 redirect to `/` (backwards compatibility)
+- App served at `/` via SvelteKit adapter-node (Node.js HTTP server)
+- `/svelte` → 301 redirect to `/` handled by `src/hooks.server.ts`
 - Designed to sit behind a reverse proxy (e.g., Nginx Proxy Manager) that handles TLS
-
-### Performance Features
-- **Gzip compression**: All text assets automatically compressed
-- **Aggressive caching**: Versioned assets (hash in filename) cached for 1 year; HTML/service-worker always revalidated
 
 ## Core Features
 
@@ -101,7 +103,9 @@ PORT=8080 docker compose up -d --build  # Custom port via env
 - **HeroCard.svelte:** Emoji+description (left), temperature with `DualUnitText` (right), feels-like (bottom-left), precipitation (bottom-right), share button (top-right), copyright watermark.
 - **HourlyForecast.svelte:** Horizontal flex scroll with `scroll-snap-type`. `isNightForHour()` uses `dailySunrise`/`dailySunset` arrays for day/night emoji selection.
 - **DailyForecast.svelte:** Vertical list with `Intl.DateTimeFormat` for localized day names. Precip probability shown only when >0%.
-- **CurrentConditions.svelte:** CSS Grid (`1fr 1fr` columns, `1fr` auto-rows) of DetailCard pairs. Special humidity+dewpoint combined card. Cardinal direction from `$_('cardinal_directions')` array. UV label from `$_('uv_labels')` array.
+- **SettingsScreen.svelte:** Full-screen dark overlay. Weather source radio (Open-Meteo / Pirate Weather) + API key field + test button. Master alert toggle + 9 per-source checkboxes. Geocoding info section.
+- **WeatherAlertBanner.svelte:** Shows active alerts. `alertText()` helper applies i18n lookup only for `source === 'derived'` alerts; external alert text is used as-is to avoid `[object Object]` when raw text accidentally matches an array i18n key.
+- **CurrentConditions.svelte:** CSS Grid (`1fr 1fr` columns, `1fr` auto-rows) of DetailCard pairs. Special humidity+dewpoint combined card. Cardinal direction from `$json('cardinal_directions')` array. UV label from `$json('uv_labels')` array. Use `$json()` (not `$_()`) for array-typed i18n keys.
 - **CollapsibleSection.svelte:** Uses Svelte 5 `Snippet` for children. Share button next to title (visible when expanded). `let isExpanded = $state(expanded)` captures initial prop (intentional `state_referenced_locally` warning).
 
 ## Svelte 5 Specifics

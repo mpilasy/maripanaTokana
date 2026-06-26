@@ -255,6 +255,31 @@ Test both widgets (if configured):
   - [ ] Updates automatically
   - [ ] Tapping opens app
 
+### Settings Screen (Android)
+
+- [ ] **Access**
+  - [ ] Gear icon visible in dev mode row (alongside Edit Location button)
+  - [ ] Gear icon absent when dev mode is off
+  - [ ] Tapping gear opens Settings screen full-screen
+
+- [ ] **Weather Source**
+  - [ ] Open-Meteo selected by default; weather loads without API key
+  - [ ] Switching to Pirate Weather shows API key input field
+  - [ ] "Test" button with a valid key shows success; weather loads from Pirate Weather
+  - [ ] "Test" button with an invalid key shows error; source not saved
+  - [ ] Source selection persists after closing and reopening Settings
+
+- [ ] **Alert Toggles**
+  - [ ] Master alerts toggle disables all alert fetching
+  - [ ] Each of the 9 per-source checkboxes (NWS, GDACS, MeteoAlarm, JMA, ECCC, BOM, NHC, WMO SWIC, Derived) can be toggled independently
+  - [ ] Disabled sources show no banner even in regions they cover
+  - [ ] Toggles persist across app restarts
+
+- [ ] **Geocoding Source**
+  - [ ] System Geocoder selected by default on standard build
+  - [ ] Nominatim option available and works (dev mode location search returns results)
+  - [ ] Geocoding source persists after closing Settings
+
 ### Developer Mode
 
 - [ ] **Activation**

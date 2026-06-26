@@ -41,5 +41,12 @@ Use the right model for the job to save cost and context:
 - **Android strings**: Never edit `res/values-*/strings.xml` directly. Edit `shared/i18n/locales/*.json` then run `node shared/i18n/generate-android-strings.js`.
 - **Domain model changes**: If you change a value class (Temperature, Pressure, etc.) in Kotlin, you must also update the TypeScript equivalent in `web/src/lib/domain/` and vice versa.
 - **New i18n keys**: Add to all 8 JSON files in `shared/i18n/locales/`. Missing keys will show raw key strings at runtime.
+- **Array i18n keys** (e.g. `cardinal_directions`): Use `$json('key')` not `$_('key')` — `$_` only handles strings, `$json` returns the raw JSON value.
+- **Alert text in UI**: Only derive alert titles/descriptions through `$_()` for `source === 'derived'` alerts — external alert text (NWS, GDACS, etc.) is plain text, not i18n keys.
 - **Widget changes**: Widgets use standalone Retrofit (no Hilt). Test widget code paths separately from main app code.
+- **Weather sources**: `WeatherSource` enum has `OPEN_METEO` and `PIRATE_WEATHER` only — OpenWeatherMap was removed. Do not re-add it.
+- **Alert sources**: 8 sources (NWS, GDACS, MeteoAlarm, JMA, ECCC, BOM, NHC, WMO SWIC). Each has an individual toggle in `AppSettings`. `coveredByRegional` suppresses GDACS + WMO SWIC when a country-specific source applies.
+- **Web alert sources**: Sources without CORS (MeteoAlarm, BOM, NHC, WMO SWIC) are proxied through SvelteKit server routes at `src/routes/api/alerts/`. Sources with CORS (NWS, GDACS, JMA, ECCC) are called directly from the browser.
+- **Web adapter**: The web app uses `@sveltejs/adapter-node`. Build produces a Node.js server at `build/index.js`. Run with `node build/index.js` (PORT env var, default 3000). Do NOT switch back to adapter-static.
 - **F-Droid metadata**: The local copy is in `metadata/orinasa.njarasoa.maripanatokana.yml`. The live MR copy is in the fdroiddata GitLab fork (`git@gitlab.com:mpilasy/fdroiddata.git`, branch `add-maripanatokana`).
+- **New releases**: Bump `versionCode` + `versionName` in `app/build.gradle.kts`, add build entry to `metadata/orinasa.njarasoa.maripanatokana.yml`, add changelogs to `fastlane/metadata/android/*/changelogs/{versionCode}.txt`, tag `v{version}`, push tag.

@@ -32,7 +32,7 @@ AutoName: maripànaTokana
 
 RepoType: git
 Repo: https://github.com/mpilasy/maripanaTokana.git
-Binaries:
+Binaries: 
   https://github.com/mpilasy/maripanaTokana/releases/download/v%v/maripanaTokana-v%v.apk
 
 Builds:

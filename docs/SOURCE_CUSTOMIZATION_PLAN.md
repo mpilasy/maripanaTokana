@@ -1,5 +1,8 @@
 # Plan: Source Customization & Settings Page (Android — F-Droid Anti-Features)
 
+> **Status: IMPLEMENTED** — Released in v1.0.40. Android: all phases shipped. Web: ported with adapter-node + CORS proxy routes for MeteoAlarm, BOM, NHC, and WMO SWIC. OpenWeatherMap was dropped in favour of Pirate Weather (Dark Sky-compatible JSON, no extra mapper needed). Alert sources expanded to 8 (NWS, GDACS, MeteoAlarm, JMA, ECCC, BOM, NHC, WMO SWIC).
+
+
 ## Context
 
 F-Droid flags `TetheredNet` because the app hardcodes every network service it uses (Open-Meteo, GDACS, NWS, Android Geocoder). Users have no ability to opt out of or swap any source. This plan adds a developer-accessible settings screen where users can choose weather data sources, choose geocoding sources, enter API keys for commercial sources, and opt out of alerts — eliminating the "forced dependency" concern. Settings persist globally (dev mode is only the *access gate*, not a scope).

@@ -13,7 +13,9 @@
   - **Two-line Header**: Shows the city/locality on the first line and the region/country on a discreet second line.
   - **Smart Parsing**: Automatically cleans location names (e.g., "Paris" instead of "Paris, France") while preserving essential locality names.
   - **DMS Coordinates**: Tap the location to toggle GPS coordinates displayed in Degrees, Minutes, and Seconds (DMS) format across two lines.
-- Real-time weather data from [Open-Meteo](https://open-meteo.com) API (no key required)
+- Real-time weather data from [Open-Meteo](https://open-meteo.com) (default, no key) or [Pirate Weather](https://pirateweather.net) (optional, API key)
+- **Settings screen**: pluggable weather source, API key validation, per-source alert toggles, geocoding source
+- **8 alert sources**: NWS (US), GDACS (global), MeteoAlarm (Europe), JMA (Japan), ECCC (Canada), BOM (Australia), NHC (hurricanes), WMO SWIC (global) — each individually toggleable
 - GPS location with two-step strategy (instant cached + fresh background)
 - **Dual-unit display**: every measurement shows both metric and imperial simultaneously
 - **Tap to toggle**: tap any value to swap which unit is primary (bold/large) vs secondary (dimmer)
@@ -104,7 +106,7 @@ app/
 
 ## Permissions
 
-- `INTERNET` — fetch weather data from Open-Meteo API
+- `INTERNET` — fetch weather data (Open-Meteo or Pirate Weather) and alert sources
 - `ACCESS_FINE_LOCATION` — precise GPS coordinates
 - `ACCESS_COARSE_LOCATION` — fallback location
 

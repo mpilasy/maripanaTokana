@@ -6,7 +6,9 @@ This is the web port of the [Android app](../), built with SvelteKit.
 
 ## Features
 
-- Real-time weather data from [Open-Meteo](https://open-meteo.com) API (no key required)
+- Real-time weather data from [Open-Meteo](https://open-meteo.com) (default, no key) or [Pirate Weather](https://pirateweather.net) (optional, requires API key)
+- **Settings screen**: pluggable weather source, API key test flow, per-source alert toggles, geocoding info
+- **8 alert sources**: NWS (US), GDACS (global), MeteoAlarm (Europe), JMA (Japan), ECCC (Canada), BOM (Australia), NHC (hurricanes), WMO SWIC (global) — each individually toggleable
 - GPS location with two-step strategy (instant cached + fresh background)
 - **Dual-unit display**: every measurement shows both metric and imperial simultaneously
 - **Tap to toggle**: tap any value to swap which unit is primary (bold/large) vs secondary (dimmer)
@@ -49,7 +51,7 @@ This is the web port of the [Android app](../), built with SvelteKit.
 |-----------|-----------|
 | Framework | SvelteKit + Svelte 5 (runes) |
 | Language | TypeScript |
-| Adapter | `@sveltejs/adapter-static` |
+| Adapter | `@sveltejs/adapter-node` |
 | i18n | `svelte-i18n` |
 | Screenshots | `html2canvas` |
 | Weather API | Open-Meteo (free, no key) |
@@ -60,22 +62,27 @@ This is the web port of the [Android app](../), built with SvelteKit.
 ```bash
 npm install          # Install dependencies
 npm run dev          # Dev server at localhost:5173
-npm run build        # Production build to build/ (includes CSS inlining)
+npm run build        # Production build → Node.js server in build/
 npm run preview      # Preview production build
 npm run check        # Type-check with svelte-check
 ```
 
-The build step runs `vite build` followed by `scripts/inline-assets.js`, which inlines CSS into `index.html` to reduce HTTP requests.
+The build produces a Node.js server (adapter-node). Run it with:
+
+```bash
+node build/index.js          # Default port 3000
+PORT=8080 node build/index.js  # Custom port
+```
 
 ## Deployment (Docker)
 
-Multi-stage Docker build: node builds the Svelte app, Caddy serves it.
+Multi-stage Docker build: Node 22 builds the Svelte app, Node 22 runs it.
 
 ```bash
 docker compose up -d --build    # Build and run on port 3080 (default)
 ```
 
-To use a custom port, create a `.env` file or pass it inline:
+To use a custom port:
 
 ```bash
 PORT=8080 docker compose up -d --build
@@ -84,16 +91,23 @@ PORT=8080 docker compose up -d --build
 The container (`maripanaTokana.web`) exposes port 80, mapped to host port `$PORT` (default 3080). The app is served at `/`.
 
 ```
-Dockerfile          # Multi-stage: node build → caddy serve
-Caddyfile           # Path-based routing + SPA fallback + gzip compression
+Dockerfile          # Multi-stage: node build → node serve (node:22-alpine)
 docker-compose.yml  # Container config (port)
 .dockerignore       # Excludes node_modules, .git, build, .svelte-kit
 ```
 
-### Performance
-- **Gzip compression**: All text assets (JS, CSS, fonts) automatically compressed
-- **Smart caching**: Versioned assets (hash in filename) cached for 1 year; HTML/service-worker always revalidated
-- **Minimal repeat visits**: Only HTML/SW checked on return; JS/CSS served from cache if unchanged
+### CORS Proxy Routes
+
+Four alert sources lack `Access-Control-Allow-Origin` headers and cannot be called from the browser directly. SvelteKit server routes proxy them:
+
+| Route | Upstream |
+|---|---|
+| `/api/alerts/meteoalarm?country=XX` | feeds.meteoalarm.org |
+| `/api/alerts/bom` | api.weather.bom.gov.au |
+| `/api/alerts/nhc` | nhc.noaa.gov |
+| `/api/alerts/wmoswic?country=XX` | severe.worldweather.wmo.int |
+
+NWS, GDACS, JMA, and ECCC have CORS and are called directly from the browser.
 
 ## Architecture
 
@@ -114,9 +128,8 @@ web/
 │   ├── service-worker.ts
 │   └── app.html
 ├── static/                   # PWA manifest, icons, background
-├── scripts/                  # Post-build CSS inlining
-├── svelte.config.js          # SvelteKit config (static adapter)
-├── vite.config.ts            # Vite config (single-chunk bundling)
+├── svelte.config.js          # SvelteKit config (adapter-node)
+├── vite.config.ts            # Vite config
 └── package.json              # Dependencies + build scripts
 ```
 
