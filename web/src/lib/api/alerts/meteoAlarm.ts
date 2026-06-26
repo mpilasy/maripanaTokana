@@ -1,5 +1,4 @@
 import type { WeatherAlert, AlertLevel } from '$lib/domain/weatherData';
-import { USER_AGENT } from './shared';
 
 export const METEOALARM_COUNTRIES = new Set([
 	'at','ba','be','bg','hr','cy','cz','dk','ee','fi','fr','de','gr','hu','ie','it',
@@ -10,10 +9,7 @@ export const METEOALARM_COUNTRIES = new Set([
 export async function fetchMeteoAlarmAlerts(lat: number, lon: number, countryCode: string): Promise<WeatherAlert[]> {
 	if (!METEOALARM_COUNTRIES.has(countryCode)) return [];
 	try {
-		const res = await fetch(
-			`https://feeds.meteoalarm.org/feeds/meteoalarm-legacy-atom-${countryCode}`,
-			{ headers: { 'User-Agent': USER_AGENT } }
-		);
+		const res = await fetch(`/api/alerts/meteoalarm?country=${countryCode}`);
 		if (!res.ok) return [];
 		const text = await res.text();
 		const parser = new DOMParser();

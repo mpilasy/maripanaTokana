@@ -5,7 +5,7 @@ const SEARCH_RADIUS_KM = 1500;
 
 export async function fetchNhcAlerts(lat: number, lon: number): Promise<WeatherAlert[]> {
 	try {
-		const res = await fetch('https://www.nhc.noaa.gov/CurrentStorms.json');
+		const res = await fetch('/api/alerts/nhc');
 		if (!res.ok) return [];
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const data: any = await res.json();
