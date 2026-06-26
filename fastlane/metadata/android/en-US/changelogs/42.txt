@@ -1,0 +1,1 @@
+Fix JMA weather alerts: warning type now shown in title, area name shown as description.

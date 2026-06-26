@@ -1,0 +1,1 @@
+Corrección de alertas meteorológicas JMA: el tipo de aviso ahora se muestra en el título y el nombre del área como descripción.

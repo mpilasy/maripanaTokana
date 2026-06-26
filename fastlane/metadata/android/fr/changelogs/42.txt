@@ -1,0 +1,1 @@
+Correction des alertes météo JMA : le type d'avertissement s'affiche désormais dans le titre et le nom de la zone en description.
