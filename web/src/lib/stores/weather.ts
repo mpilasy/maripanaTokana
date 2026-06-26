@@ -31,7 +31,7 @@ const STALE_MS = 30 * 60 * 1000; // 30 minutes
 // Cached GPS weather data fetched in background during dev mode
 let cachedGpsWeatherData: WeatherData | null = null;
 
-async function fetchAtLocation(lat: number, lon: number, knownName?: string, knownSubtext?: string, localeTag?: string): Promise<WeatherData> {
+async function fetchAtLocation(lat: number, lon: number, knownName?: string, knownSubtext?: string, localeTag?: string, updateAlerts = true): Promise<WeatherData> {
 	const src = get(weatherSource);
 	const apiKey = get(weatherApiKey);
 
@@ -42,8 +42,7 @@ async function fetchAtLocation(lat: number, lon: number, knownName?: string, kno
 	if (src === 'PIRATE_WEATHER' && apiKey) {
 		const location = await namePromise;
 		const data = await fetchPirateWeather(lat, lon, apiKey, location.name, knownSubtext ?? location.subtext);
-		// Pirate Weather has no raw response for deriving alerts
-		fetchAlertsForData(lat, lon, []);
+		if (updateAlerts) fetchAlertsForData(lat, lon, []);
 		return data;
 	}
 
@@ -52,13 +51,15 @@ async function fetchAtLocation(lat: number, lon: number, knownName?: string, kno
 	const [response, location] = await Promise.all([weatherPromise, namePromise]);
 	const data = mapToWeatherData(response, location.name, knownSubtext || location.subtext);
 
-	const derived: WeatherAlert[] = deriveAlerts(
-		response.current,
-		response.hourly,
-		response.daily,
-		response.utc_offset_seconds
-	);
-	fetchAlertsForData(lat, lon, derived);
+	if (updateAlerts) {
+		const derived: WeatherAlert[] = deriveAlerts(
+			response.current,
+			response.hourly,
+			response.daily,
+			response.utc_offset_seconds
+		);
+		fetchAlertsForData(lat, lon, derived);
+	}
 
 	return data;
 }
@@ -110,7 +111,7 @@ function spawnGpsCacheRefresh() {
 			const lon = fresh.lon;
 			const name = cached?.name;
 			const subtext = cached?.subtext;
-			const data = await fetchAtLocation(lat, lon, name, subtext);
+			const data = await fetchAtLocation(lat, lon, name, subtext, undefined, false);
 			cachedGpsWeatherData = data;
 			// Don't overwrite the location cache while dev mode is active — it would corrupt
 			// the cached_location key and cause updateLocationName to reverse-geocode the
