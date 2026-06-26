@@ -311,7 +311,10 @@ class WeatherRepositoryImpl @Inject constructor(
                 val key = item.titleKey + item.source
                 if (keys.add(key)) combinedAlerts.add(item)
             }
-            if (settings.alertsDerivedEnabled) {
+            val hasSourceAlerts = nwsAlerts.isNotEmpty() || gdacsAlerts.isNotEmpty() ||
+                meteoAlarmAlerts.isNotEmpty() || jmaAlerts.isNotEmpty() || ecccAlerts.isNotEmpty() ||
+                wmoAlerts.isNotEmpty() || bomAlerts.isNotEmpty() || nhcAlerts.isNotEmpty()
+            if (settings.alertsDerivedEnabled && !hasSourceAlerts) {
                 for (item in derivedAlerts) {
                     val key = item.titleKey + item.source
                     if (keys.add(key)) combinedAlerts.add(item)

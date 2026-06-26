@@ -93,6 +93,7 @@ import orinasa.njarasoa.maripanatokana.data.remote.wmoEmoji
 import orinasa.njarasoa.maripanatokana.domain.model.DailyForecast
 import orinasa.njarasoa.maripanatokana.domain.model.HourlyForecast
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
+import orinasa.njarasoa.maripanatokana.domain.model.WeatherSource
 import orinasa.njarasoa.maripanatokana.ui.theme.CardBlue
 import orinasa.njarasoa.maripanatokana.ui.theme.DarkNavyColorInt
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFont
@@ -136,6 +137,7 @@ internal fun WeatherContent(
     onEditLocationClicked: () -> Unit = {},
     onDisableDevMode: () -> Unit = {},
     onOpenSettings: () -> Unit = {},
+    weatherSource: WeatherSource = WeatherSource.OPEN_METEO,
     showGpsCoordinates: Boolean = false,
     devModeActive: Boolean = false,
     devOverrideLat: Double? = null,
@@ -172,6 +174,7 @@ internal fun WeatherContent(
         }
     }
 
+    Box(modifier = Modifier.fillMaxSize()) {
     CompositionLocalProvider(LocalScale provides scale) {
     Column(
         modifier = Modifier
@@ -224,18 +227,6 @@ internal fun WeatherContent(
                     }
 
                     if (devModeActive) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        IconButton(
-                            onClick = onOpenSettings,
-                            modifier = Modifier.size(32.sd(scale))
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Settings,
-                                contentDescription = "Settings",
-                                tint = Color.White.copy(alpha = 0.7f),
-                                modifier = Modifier.size(18.sd(scale))
-                            )
-                        }
                         IconButton(
                             onClick = onEditLocationClicked,
                             modifier = Modifier.size(32.sd(scale))
@@ -549,15 +540,17 @@ internal fun WeatherContent(
 
         // Fixed footer
         val linkStyle = SpanStyle(color = Color.White.copy(alpha = 0.5f), textDecoration = TextDecoration.Underline)
+        val (sourceLabel, sourceUrl) = when (weatherSource) {
+            WeatherSource.OPEN_METEO -> "Open-Meteo" to "https://open-meteo.com"
+            WeatherSource.PIRATE_WEATHER -> "Pirate Weather" to "https://pirateweather.net"
+        }
         val creditText = buildAnnotatedString {
             withStyle(SpanStyle(color = Color.White.copy(alpha = 0.3f))) {
-                append(buildString {
-                    append(stringResource(R.string.credits_weather_data))
-                    append(" ")
-                })
+                append(stringResource(R.string.credits_weather_data))
+                append(" ")
             }
-            withLink(LinkAnnotation.Url("https://open-meteo.com")) {
-                withStyle(linkStyle) { append("Open-Meteo") }
+            withLink(LinkAnnotation.Url(sourceUrl)) {
+                withStyle(linkStyle) { append(sourceLabel) }
             }
         }
         CompositionLocalProvider(
@@ -620,6 +613,22 @@ internal fun WeatherContent(
         }
     }
     } // end CompositionLocalProvider(LocalScale)
+    IconButton(
+        onClick = onOpenSettings,
+        modifier = Modifier
+            .align(Alignment.TopEnd)
+            .statusBarsPadding()
+            .padding(top = 16.dp, end = 8.dp)
+            .size(48.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Default.Settings,
+            contentDescription = "Settings",
+            tint = Color.White.copy(alpha = 0.7f),
+            modifier = Modifier.size(24.dp)
+        )
+    }
+    } // end Box
 }
 
 @Composable

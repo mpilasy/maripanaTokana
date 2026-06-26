@@ -1,6 +1,6 @@
 package orinasa.njarasoa.maripanatokana.domain.model
 
-enum class WeatherSource { OPEN_METEO, OPEN_WEATHER_MAP, PIRATE_WEATHER }
+enum class WeatherSource { OPEN_METEO, PIRATE_WEATHER }
 enum class GeocodingSource { SYSTEM_GEOCODER, NOMINATIM }
 
 data class AppSettings(

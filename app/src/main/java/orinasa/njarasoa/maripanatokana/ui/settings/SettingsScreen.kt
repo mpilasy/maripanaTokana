@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -20,8 +21,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RadioButton
@@ -57,6 +60,8 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val settings by viewModel.settings.collectAsState()
+    val pendingApiKey by viewModel.pendingApiKey.collectAsState()
+    val testState by viewModel.testState.collectAsState()
 
     Column(
         modifier = Modifier
@@ -112,8 +117,8 @@ fun SettingsScreen(
         if (settings.weatherSource.requiresApiKey()) {
             Spacer(Modifier.height(8.dp))
             OutlinedTextField(
-                value = settings.weatherApiKey,
-                onValueChange = { viewModel.updateWeatherApiKey(it) },
+                value = pendingApiKey,
+                onValueChange = { viewModel.updatePendingApiKey(it) },
                 label = { Text("API Key", color = OnSurfaceDim) },
                 singleLine = true,
                 visualTransformation = PasswordVisualTransformation(),
@@ -126,7 +131,35 @@ fun SettingsScreen(
                     unfocusedBorderColor = OnSurfaceDim,
                 ),
             )
+            if (pendingApiKey.isNotEmpty()) {
+                Spacer(Modifier.height(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedButton(
+                        onClick = { viewModel.testApiKey() },
+                        enabled = testState !is ApiKeyTestState.Loading,
+                    ) {
+                        if (testState is ApiKeyTestState.Loading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(14.dp),
+                                strokeWidth = 2.dp,
+                                color = OnSurfaceDim,
+                            )
+                        } else {
+                            Text("Test", color = OnSurface)
+                        }
+                    }
+                    Spacer(Modifier.width(12.dp))
+                    when (val state = testState) {
+                        is ApiKeyTestState.Success ->
+                            Text("✓ Saved", color = Color(0xFF66BB6A), fontSize = 13.sp)
+                        is ApiKeyTestState.Failure ->
+                            Text(state.message, color = Color(0xFFEF5350), fontSize = 13.sp)
+                        else -> {}
+                    }
+                }
+            }
         }
+
 
         Spacer(Modifier.height(32.dp))
 
@@ -216,11 +249,10 @@ private fun AlertCheckRow(label: String, checked: Boolean, onChecked: (Boolean) 
 
 private fun WeatherSource.displayName() = when (this) {
     WeatherSource.OPEN_METEO -> "Open-Meteo (default)"
-    WeatherSource.OPEN_WEATHER_MAP -> "OpenWeatherMap"
     WeatherSource.PIRATE_WEATHER -> "Pirate Weather"
 }
 
-private fun WeatherSource.requiresApiKey() = this != WeatherSource.OPEN_METEO
+private fun WeatherSource.requiresApiKey() = this == WeatherSource.PIRATE_WEATHER
 
 private fun GeocodingSource.displayName() = when (this) {
     GeocodingSource.SYSTEM_GEOCODER -> "System Geocoder"

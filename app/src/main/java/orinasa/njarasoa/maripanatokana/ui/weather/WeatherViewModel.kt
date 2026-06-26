@@ -10,14 +10,19 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.launch
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.data.remote.GeocodingResult
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherAlert
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
+import orinasa.njarasoa.maripanatokana.data.settings.AppSettingsRepository
+import orinasa.njarasoa.maripanatokana.domain.model.WeatherSource
 import orinasa.njarasoa.maripanatokana.domain.repository.LocationRepository
 import orinasa.njarasoa.maripanatokana.domain.repository.WeatherRepository
 import orinasa.njarasoa.maripanatokana.ui.theme.fontPairings
@@ -60,6 +65,7 @@ val supportedLocales = listOf(
 class WeatherViewModel @Inject constructor(
     private val weatherRepository: WeatherRepository,
     private val locationRepository: LocationRepository,
+    private val settingsRepository: AppSettingsRepository,
     @ApplicationContext private val appContext: Context,
 ) : ViewModel() {
 
@@ -79,6 +85,10 @@ class WeatherViewModel @Inject constructor(
 
     private val _localeIndex = MutableStateFlow(prefs.getInt("locale_index", 0).coerceIn(0, supportedLocales.lastIndex))
     val localeIndex: StateFlow<Int> = _localeIndex.asStateFlow()
+
+    val weatherSource: StateFlow<WeatherSource> = settingsRepository.settings
+        .map { it.weatherSource }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, settingsRepository.current.weatherSource)
 
     // Dev Mode State
     private val _devModeActive = MutableStateFlow(checkDevModeExpiration())

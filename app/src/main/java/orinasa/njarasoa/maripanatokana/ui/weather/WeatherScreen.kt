@@ -326,6 +326,7 @@ fun WeatherScreen(
                         modifier = Modifier.fillMaxSize(),
                     ) {
                         val showGpsCoordinates by viewModel.showGpsCoordinates.collectAsStateWithLifecycle()
+                        val weatherSource by viewModel.weatherSource.collectAsStateWithLifecycle()
                         WeatherContent(
                             data = state.data,
                             metricPrimary = metricPrimary,
@@ -345,6 +346,7 @@ fun WeatherScreen(
                             onEditLocationClicked = viewModel::onEditLocationClicked,
                             onDisableDevMode = viewModel::disableDevMode,
                             onOpenSettings = { showSettings = true },
+                            weatherSource = weatherSource,
                             showGpsCoordinates = showGpsCoordinates,
                             devModeActive = devModeActive,
                             devOverrideLat = devOverrideLat,

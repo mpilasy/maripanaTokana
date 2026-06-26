@@ -19,7 +19,6 @@ import orinasa.njarasoa.maripanatokana.data.remote.NominatimApiService
 import orinasa.njarasoa.maripanatokana.data.remote.NhcApiService
 import orinasa.njarasoa.maripanatokana.data.remote.NwsApiService
 import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoApiService
-import orinasa.njarasoa.maripanatokana.data.remote.OpenWeatherMapApiService
 import orinasa.njarasoa.maripanatokana.data.remote.PirateWeatherApiService
 import orinasa.njarasoa.maripanatokana.data.remote.WmoSwicApiService
 import retrofit2.Retrofit
@@ -103,19 +102,7 @@ object NetworkModule {
             .create(GdacsApiService::class.java)
     }
 
-    @Provides
-    @Singleton
-    fun provideOpenWeatherMapApiService(okHttpClient: OkHttpClient, json: Json): OpenWeatherMapApiService {
-        val contentType = "application/json".toMediaType()
-        return Retrofit.Builder()
-            .baseUrl("https://api.openweathermap.org/")
-            .client(okHttpClient)
-            .addConverterFactory(json.asConverterFactory(contentType))
-            .build()
-            .create(OpenWeatherMapApiService::class.java)
-    }
-
-    @Provides
+@Provides
     @Singleton
     fun providePirateWeatherApiService(okHttpClient: OkHttpClient, json: Json): PirateWeatherApiService {
         val contentType = "application/json".toMediaType()
