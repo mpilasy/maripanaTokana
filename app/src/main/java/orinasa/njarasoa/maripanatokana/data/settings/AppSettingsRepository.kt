@@ -6,6 +6,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import orinasa.njarasoa.maripanatokana.DefaultSettings
 import orinasa.njarasoa.maripanatokana.domain.model.AppSettings
 import orinasa.njarasoa.maripanatokana.domain.model.GeocodingSource
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherSource
@@ -37,7 +38,7 @@ class AppSettingsRepository @Inject constructor(
         weatherApiKey = prefs.getString("settings_weather_api_key", "") ?: "",
         geocodingSource = prefs.getString("settings_geocoding_source", null)
             ?.let { runCatching { GeocodingSource.valueOf(it) }.getOrNull() }
-            ?: GeocodingSource.SYSTEM_GEOCODER,
+            ?: DefaultSettings.geocodingSource,
         alertsEnabled = prefs.getBoolean("settings_alerts_enabled", true),
         alertsNwsEnabled = prefs.getBoolean("settings_alerts_nws", true),
         alertsGdacsEnabled = prefs.getBoolean("settings_alerts_gdacs", true),
