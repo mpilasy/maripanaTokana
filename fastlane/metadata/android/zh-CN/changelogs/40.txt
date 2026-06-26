@@ -1,0 +1,1 @@
+天气数据源可配置（默认 Open-Meteo，可选 Pirate Weather）。八个天气预警来源（NWS、GDACS、MeteoAlarm、JMA、ECCC、BOM、NHC、WMO SWIC），每个均可在设置中单独开启或关闭。设置界面现已包含地理编码及来源配置。

@@ -1,0 +1,1 @@
+Pluggable weather sources (Open-Meteo default, Pirate Weather optional). Eight weather alert sources (NWS, GDACS, MeteoAlarm, JMA, ECCC, BOM, NHC, WMO SWIC) each individually toggleable in Settings. Settings screen now includes geocoding and source configuration.

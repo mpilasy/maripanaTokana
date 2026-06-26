@@ -1,0 +1,1 @@
+Sources météo configurables (Open-Meteo par défaut, Pirate Weather en option). Huit sources d'alertes météo (NWS, GDACS, MeteoAlarm, JMA, ECCC, BOM, NHC, WMO SWIC), chacune activable individuellement dans les Paramètres. L'écran Paramètres inclut désormais la configuration du géocodage et des sources.
