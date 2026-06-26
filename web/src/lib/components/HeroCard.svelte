@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { _ } from 'svelte-i18n';
+	import { _, json } from 'svelte-i18n';
 	import type { WeatherData } from '$lib/domain/weatherData';
 	import { getCardinalDirection } from '$lib/domain/windSpeed';
 	import { wmoEmoji, wmoDescriptionKey } from '$lib/api/wmoWeatherCode';
@@ -158,7 +158,7 @@
 				align="end"
 				onClick={onToggleUnits}
 			/>
-			<span class="wind-direction">{loc(getCardinalDirection(data.windDeg, $_('cardinal_directions')))}</span>
+			<span class="wind-direction">{loc(getCardinalDirection(data.windDeg, $json('cardinal_directions')))}</span>
 		</div>
 	</div>
 

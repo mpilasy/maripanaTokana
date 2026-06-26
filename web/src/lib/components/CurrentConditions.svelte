@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { _ } from 'svelte-i18n';
+	import { _, json } from 'svelte-i18n';
 	import type { WeatherData } from '$lib/domain/weatherData';
 	import { getCardinalDirection } from '$lib/domain/windSpeed';
 	import DetailCard from './DetailCard.svelte';
@@ -116,7 +116,7 @@
 				<span class="merged-primary">{loc(windDual[0])}</span>
 				<span class="merged-secondary">{loc(windDual[1])}</span>
 			</span>
-			<span class="wind-subtitle">{loc(`${getCardinalDirection(data.windDeg, $_('cardinal_directions'))} (${data.windDeg}°)`)}</span>
+			<span class="wind-subtitle">{loc(`${getCardinalDirection(data.windDeg, $json('cardinal_directions'))} (${data.windDeg}°)`)}</span>
 		</div>
 		<span class="merged-label wind-label">{$_('detail_wind')}</span>
 		<div class="wind-side wind-side-end">

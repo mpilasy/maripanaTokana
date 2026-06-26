@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import type { WeatherAlert } from '$lib/domain/weatherData';
+
+	function alertText(alert: WeatherAlert, field: 'title' | 'description'): string {
+		const raw = alert[field] ?? '';
+		return alert.source === 'derived' ? ($_(raw) || raw) : raw;
+	}
 	import { slide } from 'svelte/transition';
 	import { localeIndex } from '$lib/stores/preferences';
 	import { SUPPORTED_LOCALES } from '$lib/i18n/locales';
@@ -36,7 +41,7 @@
 						&#10071;
 					{/if}
 				</span>
-				<span class="alert-title">{$_(topAlert.title) || topAlert.title}</span>
+				<span class="alert-title">{alertText(topAlert, 'title')}</span>
 				{#if alerts.length > 1}
 					<span class="alert-count">&#9888; {alerts.length}</span>
 				{/if}
@@ -59,7 +64,7 @@
 										{index + 1}
 									</span>
 								{/if}
-								<div class="item-title">{$_(alert.title) || alert.title}</div>
+								<div class="item-title">{alertText(alert, 'title')}</div>
 							</div>
 							{#if alert.source !== 'derived'}
 								{#if alert.link}
@@ -80,7 +85,7 @@
 							<div class="alert-headline">{alert.headline}</div>
 						{/if}
 
-						<div class="item-desc">{$_(alert.description) || alert.description}</div>
+						<div class="item-desc">{alertText(alert, 'description')}</div>
 					</div>
 				{/each}
 			</div>

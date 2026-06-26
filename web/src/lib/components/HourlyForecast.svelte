@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { _ } from 'svelte-i18n';
+	import { _, json } from 'svelte-i18n';
 	import type { HourlyForecast as HourlyForecastType } from '$lib/domain/weatherData';
 	import { getCardinalDirection } from '$lib/domain/windSpeed';
 	import { wmoEmoji } from '$lib/api/wmoWeatherCode';
@@ -69,7 +69,7 @@
 					/>
 				{:else if displayMode === 'Wind'}
 					{@const [windP, windS] = item.windSpeed.displayDual(metricPrimary)}
-					{@const dir = getCardinalDirection(item.windDeg, $_('cardinal_directions'))}
+					{@const dir = getCardinalDirection(item.windDeg, $json('cardinal_directions'))}
 					<DualUnitText
 						primary={loc(`${windP} ${dir}`)}
 						secondary={loc(windS)}
