@@ -1,0 +1,1 @@
+Fuentes de clima configurables (Open-Meteo por defecto, Pirate Weather opcional). Ocho fuentes de alertas meteorológicas (NWS, GDACS, MeteoAlarm, JMA, ECCC, BOM, NHC, WMO SWIC), cada una activable individualmente en Ajustes. La pantalla de Ajustes ahora incluye geocodificación y configuración de fuentes.

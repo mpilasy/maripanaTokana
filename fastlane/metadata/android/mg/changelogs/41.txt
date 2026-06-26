@@ -1,0 +1,1 @@
+Azo ovaina ny loharanon'ny vinavinan'ny toetrandro (Open-Meteo amin'ny alalan'ny default, Pirate Weather azo safidina). Loharany fampandrenesana valo (NWS, GDACS, MeteoAlarm, JMA, ECCC, BOM, NHC, WMO SWIC) azo afanina tsirairay ao amin'ny Fikirana. Ny pejy Fikirana ankehitriny dia ahitana ny geocoding sy ny fandaminana ny loharany.
