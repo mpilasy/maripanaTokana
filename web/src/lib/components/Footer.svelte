@@ -1,18 +1,25 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
+	import { weatherSource } from '$lib/stores/preferences';
+	import type { WeatherSource } from '$lib/domain/weatherData';
 
 	interface Props {
 		// No props needed after moving controls
 	}
 
 	let { }: Props = $props();
+
+	const SOURCE_INFO: Record<WeatherSource, { label: string; url: string }> = {
+		OPEN_METEO: { label: 'Open-Meteo', url: 'https://open-meteo.com' },
+		PIRATE_WEATHER: { label: 'Pirate Weather', url: 'https://pirateweather.net' },
+	};
 </script>
 
 <footer class="footer" dir="ltr">
 	<div class="footer-credits">
 		<span class="credit-text">
 			{$_('credits_weather_data')}
-			<a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a>
+			<a href={SOURCE_INFO[$weatherSource].url} target="_blank" rel="noopener">{SOURCE_INFO[$weatherSource].label}</a>
 		</span>
 		<span class="version">v1.0.3</span>
 	</div>

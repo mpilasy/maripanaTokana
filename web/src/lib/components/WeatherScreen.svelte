@@ -1,16 +1,17 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import { weatherState, isRefreshing, doFetchWeather, updateLocationName } from '$lib/stores/weather';
-	import { 
-		onLocationClicked, 
-		showGpsCoordinates, 
-		showLocationOverrideDialog, 
+	import {
+		onLocationClicked,
+		showGpsCoordinates,
+		showLocationOverrideDialog,
 		devModeActive,
 		initDevMode,
 		disableDevMode,
 		openLocationOverride
 	} from '$lib/stores/devMode';
 	import LocationOverrideDialog from './LocationOverrideDialog.svelte';
+	import SettingsScreen from './SettingsScreen.svelte';
 	import { metricPrimary, fontIndex, localeIndex, toggleUnits, cycleFont, cycleLanguage } from '$lib/stores/preferences';
 	import { SUPPORTED_LOCALES, localizeDigits } from '$lib/i18n/index';
 	import { fontPairings } from '$lib/fonts';
@@ -25,6 +26,8 @@
 	import Footer from './Footer.svelte';
 	import { captureAndShare } from '$lib/share';
 	import { onMount } from 'svelte';
+
+	let showSettings = $state(false);
 
 	// Browser locale detection for secondary language on error screen
 	function findBrowserLocaleTag(): string | null {
@@ -150,13 +153,24 @@
 		const minutesTotal = (absolute - degrees) * 60;
 		const minutes = Math.floor(minutesTotal);
 		const seconds = Math.floor((minutesTotal - minutes) * 60);
-		return `${degrees}\u00B0${minutes.toString().padStart(2, '0')}'${seconds.toString().padStart(2, '0')}"${direction}`;
+		return `${degrees}°${minutes.toString().padStart(2, '0')}'${seconds.toString().padStart(2, '0')}"${direction}`;
 	}
 </script>
 
 <div class="weather-screen">
 	<!-- Blue Marble background -->
 	<div class="bg-marble"></div>
+
+	<!-- Settings gear button — always visible -->
+	<button
+		class="gear-btn"
+		onclick={() => showSettings = true}
+		aria-label="Settings"
+	>
+		<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+			<path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+		</svg>
+	</button>
 
 	{#if $weatherState.kind === 'loading'}
 		<div class="center">
@@ -192,9 +206,9 @@
 			<div class="header">
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
-				<div 
-					bind:this={headerEl} 
-					onclick={onLocationClicked} 
+				<div
+					bind:this={headerEl}
+					onclick={onLocationClicked}
 					style="cursor: pointer;"
 				>
 					<div class="location-header">
@@ -209,8 +223,8 @@
 							{#if $devModeActive}
 								<!-- svelte-ignore a11y_click_events_have_key_events -->
 								<!-- svelte-ignore a11y_no_static_element_interactions -->
-								<span 
-									class="edit-icon" 
+								<span
+									class="edit-icon"
 									onclick={(e) => { e.stopPropagation(); openLocationOverride(); }}
 								>
 									<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
@@ -218,12 +232,12 @@
 									</svg>
 								</span>
 							{/if}
-							
+
 							{#if $devModeActive}
 								<!-- svelte-ignore a11y_click_events_have_key_events -->
 								<!-- svelte-ignore a11y_no_static_element_interactions -->
-								<span 
-									class="dev-badge" 
+								<span
+									class="dev-badge"
 									onclick={(e) => { e.stopPropagation(); disableDevMode(); }}
 								>
 									DEV <span class="close-x">✕</span>
@@ -329,6 +343,10 @@
 	<LocationOverrideDialog />
 {/if}
 
+{#if showSettings}
+	<SettingsScreen onBack={() => showSettings = false} />
+{/if}
+
 <style>
 	.weather-screen {
 		width: 100%;
@@ -342,6 +360,28 @@
 		background: url('/bg-blue-marble.webp') center/cover no-repeat;
 		opacity: 0.12;
 		pointer-events: none;
+	}
+
+	.gear-btn {
+		position: absolute;
+		top: max(16px, env(safe-area-inset-top));
+		right: 16px;
+		z-index: 10;
+		background: none;
+		border: none;
+		color: rgba(255, 255, 255, 0.7);
+		cursor: pointer;
+		padding: 8px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 50%;
+		transition: background 0.2s, color 0.2s;
+	}
+
+	.gear-btn:hover {
+		background: rgba(255, 255, 255, 0.1);
+		color: white;
 	}
 
 	.center {

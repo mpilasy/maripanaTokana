@@ -3,13 +3,15 @@ import type { Pressure } from './pressure';
 import type { WindSpeed } from './windSpeed';
 import type { Precipitation } from './precipitation';
 
+export type WeatherSource = 'OPEN_METEO' | 'PIRATE_WEATHER';
+
 export type AlertLevel = 'watch' | 'warning' | 'emergency';
 
 export interface WeatherAlert {
 	level: AlertLevel;
 	title: string;
 	description: string;
-	source: 'official' | 'derived' | 'gdacs';
+	source: 'official' | 'derived' | 'gdacs' | 'meteoalarm' | 'jma' | 'eccc' | 'bom' | 'nhc' | 'wmo_swic';
 	time?: number; // epoch millis
 	headline?: string;
 	link?: string;

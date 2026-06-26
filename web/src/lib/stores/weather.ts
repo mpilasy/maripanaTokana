@@ -1,13 +1,20 @@
 import { writable, get } from 'svelte/store';
-import type { WeatherData } from '$lib/domain/weatherData';
+import type { WeatherAlert, WeatherData } from '$lib/domain/weatherData';
 import { fetchWeather } from '$lib/api/openMeteo';
-import { fetchNwsAlerts, fetchGdacsAlerts } from '$lib/api/externalAlerts';
+import { fetchPirateWeather } from '$lib/api/pirateWeather';
+import { fetchAllAlerts, type AlertSettings } from '$lib/api/externalAlerts';
 import { mapToWeatherData, deriveAlerts } from '$lib/api/openMeteoMapper';
 import {
 	getCachedLocation, cacheLocation, movedSignificantly,
 	getPosition, reverseGeocode
 } from '$lib/stores/location';
-import { localeIndex } from '$lib/stores/preferences';
+import {
+	localeIndex,
+	weatherSource, weatherApiKey,
+	alertsEnabled, alertsNwsEnabled, alertsGdacsEnabled, alertsDerivedEnabled,
+	alertsMeteoAlarmEnabled, alertsJmaEnabled, alertsEcccEnabled,
+	alertsWmoSwicEnabled, alertsBomEnabled, alertsNhcEnabled,
+} from '$lib/stores/preferences';
 import { SUPPORTED_LOCALES } from '$lib/i18n/locales';
 import { devModeActive, checkDevModeExpiration } from '$lib/stores/devMode';
 
@@ -25,48 +32,59 @@ const STALE_MS = 30 * 60 * 1000; // 30 minutes
 let cachedGpsWeatherData: WeatherData | null = null;
 
 async function fetchAtLocation(lat: number, lon: number, knownName?: string, knownSubtext?: string, localeTag?: string): Promise<WeatherData> {
-	const weatherPromise = fetchWeather(lat, lon);
-	const namePromise = knownName ? Promise.resolve({ name: knownName, subtext: knownSubtext }) : reverseGeocode(lat, lon, localeTag);
+	const src = get(weatherSource);
+	const apiKey = get(weatherApiKey);
 
-	const [response, location] = await Promise.all([
-		weatherPromise,
-		namePromise,
-	]);
+	const namePromise = knownName
+		? Promise.resolve({ name: knownName, subtext: knownSubtext })
+		: reverseGeocode(lat, lon, localeTag);
+
+	if (src === 'PIRATE_WEATHER' && apiKey) {
+		const location = await namePromise;
+		const data = await fetchPirateWeather(lat, lon, apiKey, location.name, knownSubtext ?? location.subtext);
+		// Pirate Weather has no raw response for deriving alerts
+		fetchAlertsForData(lat, lon, []);
+		return data;
+	}
+
+	// Open-Meteo path
+	const weatherPromise = fetchWeather(lat, lon);
+	const [response, location] = await Promise.all([weatherPromise, namePromise]);
 	const data = mapToWeatherData(response, location.name, knownSubtext || location.subtext);
-	
-	// Start alert fetching in background
-	fetchAlertsForData(lat, lon, response);
-	
+
+	const derived: WeatherAlert[] = deriveAlerts(
+		response.current,
+		response.hourly,
+		response.daily,
+		response.utc_offset_seconds
+	);
+	fetchAlertsForData(lat, lon, derived);
+
 	return data;
 }
 
-async function fetchAlertsForData(lat: number, lon: number, rawResponse: any) {
-	const timestamp = Date.now();
+async function fetchAlertsForData(lat: number, lon: number, derivedAlerts: WeatherAlert[]) {
 	try {
-		const nwsPromise = fetchNwsAlerts(lat, lon);
-		const gdacsPromise = fetchGdacsAlerts(lat, lon);
-		const derivedAlerts = deriveAlerts(
-			rawResponse.current,
-			rawResponse.hourly,
-			rawResponse.daily,
-			rawResponse.utc_offset_seconds
-		);
-
-		const [nwsAlerts, gdacsAlerts] = await Promise.all([nwsPromise, gdacsPromise]);
-		
-		const combined = [...nwsAlerts, ...gdacsAlerts, ...derivedAlerts];
-		const filtered = combined.filter((a, i, self) =>
-			i === self.findIndex(t => t.title === a.title && t.source === a.source)
-		);
-
+		const settings: AlertSettings = {
+			alertsEnabled: get(alertsEnabled),
+			alertsNwsEnabled: get(alertsNwsEnabled),
+			alertsGdacsEnabled: get(alertsGdacsEnabled),
+			alertsDerivedEnabled: get(alertsDerivedEnabled),
+			alertsMeteoAlarmEnabled: get(alertsMeteoAlarmEnabled),
+			alertsJmaEnabled: get(alertsJmaEnabled),
+			alertsEcccEnabled: get(alertsEcccEnabled),
+			alertsWmoSwicEnabled: get(alertsWmoSwicEnabled),
+			alertsBomEnabled: get(alertsBomEnabled),
+			alertsNhcEnabled: get(alertsNhcEnabled),
+		};
+		const alerts = await fetchAllAlerts(lat, lon, derivedAlerts, settings);
 		weatherState.update(s => {
 			if (s.kind === 'success') {
-				// Only update if it's the same request (simple check: name is same or it's within 10s)
-				return { ...s, data: { ...s.data, alerts: filtered, alertsLoading: false } };
+				return { ...s, data: { ...s.data, alerts, alertsLoading: false } };
 			}
 			return s;
 		});
-	} catch (err) {
+	} catch {
 		weatherState.update(s => {
 			if (s.kind === 'success') {
 				return { ...s, data: { ...s.data, alertsLoading: false } };
