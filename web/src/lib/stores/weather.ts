@@ -63,6 +63,13 @@ async function fetchAtLocation(lat: number, lon: number, knownName?: string, kno
 	return data;
 }
 
+function setWeatherData(data: WeatherData) {
+	weatherState.update(s => {
+		const existingAlerts = s.kind === 'success' ? s.data.alerts : [];
+		return { kind: 'success', data: { ...data, alerts: existingAlerts } };
+	});
+}
+
 async function fetchAlertsForData(lat: number, lon: number, derivedAlerts: WeatherAlert[]) {
 	try {
 		const settings: AlertSettings = {
@@ -120,7 +127,7 @@ function spawnGpsCacheRefresh() {
 /** Called when dev mode is disabled to immediately show GPS weather */
 export function restoreGpsWeather() {
 	if (cachedGpsWeatherData) {
-		weatherState.set({ kind: 'success', data: cachedGpsWeatherData });
+		setWeatherData(cachedGpsWeatherData);
 		cachedGpsWeatherData = null;
 		// Also refresh in background to get truly fresh data
 		doFetchWeather();
@@ -150,7 +157,7 @@ export async function doFetchWeather() {
 					const lLat = parseFloat(lat);
 					const lLon = parseFloat(lon);
 					const data = await fetchAtLocation(lLat, lLon, name, subtext);
-					weatherState.set({ kind: 'success', data });
+					setWeatherData(data);
 					isRefreshing.set(false);
 					// Spawn background GPS cache refresh
 					spawnGpsCacheRefresh();
@@ -172,7 +179,7 @@ export async function doFetchWeather() {
 
 		if (cachedFetchPromise) {
 			data = await cachedFetchPromise;
-			weatherState.set({ kind: 'success', data });
+			setWeatherData(data);
 		}
 
 		// Step 2: get fresh location
@@ -181,7 +188,7 @@ export async function doFetchWeather() {
 		// Re-fetch if moved significantly or if we had no cached location
 		if (!cached || movedSignificantly(cached.lat, cached.lon, fresh.lat, fresh.lon)) {
 			data = await fetchAtLocation(fresh.lat, fresh.lon, undefined, undefined, localeTag);
-			weatherState.set({ kind: 'success', data });
+			setWeatherData(data);
 			cacheLocation(fresh.lat, fresh.lon, data.locationName, data.locationSubtext);
 		} else {
 			// Update cached coordinates to fresher ones, preserving name if available
