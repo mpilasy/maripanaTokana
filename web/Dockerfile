@@ -16,8 +16,15 @@ COPY shared/i18n/locales/ ./src/lib/i18n/locales/
 # Build
 RUN npm run build
 
-# Stage 2: Serve
-FROM caddy:alpine
-COPY web/Caddyfile /etc/caddy/Caddyfile
-COPY --from=build /app/build /srv/app
+# Stage 2: Run
+FROM node:22-alpine
+WORKDIR /app
+COPY --from=build /app/build ./build
+
+ENV PORT=80
+ENV HOST=0.0.0.0
+# adapter-node compresses responses with brotli/gzip by default
+ENV COMPRESS=true
+
 EXPOSE 80
+CMD ["node", "build/index.js"]
