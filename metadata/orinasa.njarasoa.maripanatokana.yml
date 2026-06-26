@@ -45,7 +45,7 @@ Builds:
 
   - versionName: 1.0.40
     versionCode: 40
-    commit: TBD
+    commit: e74574914ffed97dc248a3cb0c3c55dd4e1cd6e6
     subdir: app
     gradle:
       - fdroid
