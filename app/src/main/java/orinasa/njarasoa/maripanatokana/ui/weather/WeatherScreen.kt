@@ -54,6 +54,7 @@ import orinasa.njarasoa.maripanatokana.ui.permission.PermissionHandler
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFont
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFontFeatures
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
+import orinasa.njarasoa.maripanatokana.ui.theme.buildTypography
 import orinasa.njarasoa.maripanatokana.ui.theme.fontPairings
 import orinasa.njarasoa.maripanatokana.ui.weather.components.LocationOverrideDialog
 import java.text.SimpleDateFormat
@@ -153,6 +154,7 @@ fun WeatherScreen(
         LocalBodyFontFeatures provides pairing.bodyFontFeatures,
         androidx.compose.ui.platform.LocalLayoutDirection provides layoutDirection,
     ) {
+        MaterialTheme(typography = buildTypography(pairing)) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -213,18 +215,18 @@ fun WeatherScreen(
                         modifier = Modifier.align(Alignment.Center),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        CircularProgressIndicator(color = Color.White)
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.onSurface)
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
                             text = acquiringStrings[labelIndex],
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onSurface,
                             style = MaterialTheme.typography.bodyMedium,
                             textAlign = TextAlign.Center,
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = "${elapsedSeconds}s",
-                            color = Color.White.copy(alpha = 0.5f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                             style = MaterialTheme.typography.bodySmall,
                         )
                     }
@@ -265,7 +267,7 @@ fun WeatherScreen(
                         Text(
                             text = appTitle,
                             style = MaterialTheme.typography.titleLarge,
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center,
                         )
@@ -273,7 +275,7 @@ fun WeatherScreen(
                             Text(
                                 text = sysTitle,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color.White.copy(alpha = 0.5f),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                                 textAlign = TextAlign.Center,
                             )
                         }
@@ -281,7 +283,7 @@ fun WeatherScreen(
                         Text(
                             text = appMessage,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = Color.White.copy(alpha = 0.7f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(horizontal = 16.dp)
                         )
@@ -289,7 +291,7 @@ fun WeatherScreen(
                             Text(
                                 text = sysMessage,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color.White.copy(alpha = 0.4f),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.padding(horizontal = 16.dp)
                             )
@@ -384,7 +386,7 @@ fun WeatherScreen(
                         Text(
                             text = appTitle,
                             style = MaterialTheme.typography.titleLarge,
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center,
                         )
@@ -392,7 +394,7 @@ fun WeatherScreen(
                             Text(
                                 text = sysTitle,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color.White.copy(alpha = 0.5f),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                                 textAlign = TextAlign.Center,
                             )
                         }
@@ -400,14 +402,14 @@ fun WeatherScreen(
                         Text(
                             text = appMessage,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = Color.White.copy(alpha = 0.7f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                             textAlign = TextAlign.Center,
                         )
                         if (sysMessage != appMessage) {
                             Text(
                                 text = sysMessage,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color.White.copy(alpha = 0.5f),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                                 textAlign = TextAlign.Center,
                             )
                         }
@@ -447,5 +449,6 @@ fun WeatherScreen(
                 }
             }
         }
+        } // end MaterialTheme(typography)
     }
 }

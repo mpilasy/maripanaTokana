@@ -3,6 +3,7 @@ package orinasa.njarasoa.maripanatokana.ui.weather.components
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -57,6 +58,7 @@ fun DailyTemperatureChart(
         }.filter { it != -1 }
     }
 
+    val gridColor = MaterialTheme.colorScheme.onSurface
     Box(modifier = modifier) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             val height = size.height
@@ -69,7 +71,7 @@ fun DailyTemperatureChart(
                 val isMajor = temp % 5 == 0
                 val y = height - ((temp - paddedMin) / paddedRange * height).toFloat()
                 drawLine(
-                    color = Color.White.copy(alpha = if (isMajor) 0.25f else 0.1f),
+                    color = gridColor.copy(alpha = if (isMajor) 0.25f else 0.1f),
                     start = Offset(0f, y),
                     end = Offset(width, y),
                     strokeWidth = (if (isMajor) 0.8.dp else 0.5.dp).toPx()
@@ -80,7 +82,7 @@ fun DailyTemperatureChart(
             mondayIndices.forEach { idx ->
                 val x = (idx.toFloat() / (pointsCount - 1)) * width
                 drawLine(
-                    color = Color.White.copy(alpha = 0.2f),
+                    color = gridColor.copy(alpha = 0.2f),
                     start = Offset(x, 0f),
                     end = Offset(x, height),
                     strokeWidth = 1.dp.toPx(),
@@ -142,7 +144,7 @@ fun DailyTemperatureChart(
             // Draw area fill
             drawPath(
                 path = areaPath,
-                color = Color.White.copy(alpha = 0.1f)
+                color = gridColor.copy(alpha = 0.1f)
             )
 
             // Draw high line

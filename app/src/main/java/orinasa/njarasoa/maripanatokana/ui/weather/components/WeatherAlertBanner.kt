@@ -21,6 +21,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -106,20 +107,20 @@ fun WeatherAlertBanner(
                                 fontSize = 16f.s(scale),
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = displayFont,
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.weight(1f)
                             )
                             if (topAlert.source != "derived") {
                                 Spacer(modifier = Modifier.width(6.sd(scale)))
                                 Surface(
-                                    color = Color.White.copy(alpha = 0.2f),
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
                                     shape = RoundedCornerShape(4.dp)
                                 ) {
                                     Text(
                                         text = topAlert.source.uppercase(),
                                         fontSize = 10f.s(scale),
                                         fontWeight = FontWeight.ExtraBold,
-                                        color = Color.White,
+                                        color = MaterialTheme.colorScheme.onSurface,
                                         modifier = Modifier.padding(horizontal = 4.sd(scale), vertical = 2.sd(scale))
                                     )
                                 }
@@ -136,7 +137,7 @@ fun WeatherAlertBanner(
                     modifier = Modifier
                         .size(24.sd(scale))
                         .rotate(if (expanded) 180f else 0f),
-                    tint = Color.White.copy(alpha = 0.7f)
+                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
             }
 
@@ -151,7 +152,7 @@ fun WeatherAlertBanner(
                 ) {
                     alerts.forEachIndexed { index, alert ->
                         if (index > 0) {
-                            HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+                            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
                         }
                         Column {
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -170,7 +171,7 @@ fun WeatherAlertBanner(
                                                 text = "${index + 1}",
                                                 fontSize = 10f.s(scale),
                                                 fontWeight = FontWeight.Bold,
-                                                color = Color.White
+                                                color = MaterialTheme.colorScheme.onSurface
                                             )
                                         }
                                     }
@@ -184,14 +185,14 @@ fun WeatherAlertBanner(
                                     fontSize = 14f.s(scale),
                                     fontWeight = FontWeight.Bold,
                                     fontFamily = bodyFont,
-                                    color = Color.White,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.weight(1f, fill = false)
                                 )
                                 if (alert.source != "derived") {
                                     Spacer(modifier = Modifier.width(6.sd(scale)))
                                     val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
                                     Surface(
-                                        color = if (alert.link != null) Color.White.copy(alpha = 0.4f) else Color.White.copy(alpha = 0.2f),
+                                        color = if (alert.link != null) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
                                         shape = RoundedCornerShape(4.dp),
                                         modifier = if (alert.link != null) Modifier.clickable {
                                             try { uriHandler.openUri(alert.link) } catch (_: Exception) {}
@@ -201,7 +202,7 @@ fun WeatherAlertBanner(
                                             text = alert.source.uppercase(),
                                             fontSize = 9f.s(scale),
                                             fontWeight = FontWeight.ExtraBold,
-                                            color = Color.White,
+                                            color = MaterialTheme.colorScheme.onSurface,
                                             modifier = Modifier.padding(horizontal = 4.sd(scale), vertical = 1.sd(scale))
                                         )
                                     }
@@ -216,7 +217,7 @@ fun WeatherAlertBanner(
                                     text = timeFormat.format(java.util.Date(alert.time)),
                                     fontSize = 11f.s(scale),
                                     fontFamily = bodyFont,
-                                    color = Color.White.copy(alpha = 0.5f),
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                                 )
                             }
                             if (alert.headline != null) {
@@ -226,7 +227,7 @@ fun WeatherAlertBanner(
                                     fontSize = 14f.s(scale),
                                     fontWeight = FontWeight.Bold,
                                     fontFamily = bodyFont,
-                                    color = Color.White,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                 )
                             }
                             Spacer(modifier = Modifier.height(4.sd(scale)))
@@ -237,7 +238,7 @@ fun WeatherAlertBanner(
                                 text = desc,
                                 fontSize = 13f.s(scale),
                                 fontFamily = bodyFont,
-                                color = Color.White.copy(alpha = 0.8f),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                                 lineHeight = 18f.s(scale)
                             )
                         }

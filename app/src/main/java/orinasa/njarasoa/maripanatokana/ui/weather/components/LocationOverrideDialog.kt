@@ -34,7 +34,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import orinasa.njarasoa.maripanatokana.data.remote.GeocodingResult
-import orinasa.njarasoa.maripanatokana.ui.theme.DarkNavy
 
 @Composable
 fun LocationOverrideDialog(
@@ -55,7 +54,7 @@ fun LocationOverrideDialog(
     Dialog(onDismissRequest = onDismissRequest) {
         Card(
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = DarkNavy),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         ) {
             Column(
                 modifier = Modifier
@@ -65,12 +64,12 @@ fun LocationOverrideDialog(
                 Text(
                     text = "Developer Mode",
                     style = MaterialTheme.typography.titleLarge,
-                    color = androidx.compose.ui.graphics.Color.White
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = "Override Location",
                     style = MaterialTheme.typography.titleMedium,
-                    color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.7f)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -78,17 +77,17 @@ fun LocationOverrideDialog(
                 OutlinedTextField(
                     value = text,
                     onValueChange = { text = it },
-                    placeholder = { Text("Search city, zip, or lat,lon", color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.5f)) },
+                    placeholder = { Text("Search city, zip, or lat,lon", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     colors = TextFieldDefaults.colors(
-                        focusedTextColor = androidx.compose.ui.graphics.Color.White,
-                        unfocusedTextColor = androidx.compose.ui.graphics.Color.White,
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                         focusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
                         unfocusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
-                        focusedIndicatorColor = androidx.compose.ui.graphics.Color.White,
-                        unfocusedIndicatorColor = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.3f),
-                        cursorColor = androidx.compose.ui.graphics.Color.White,
+                        focusedIndicatorColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                        cursorColor = MaterialTheme.colorScheme.onSurface,
                     ),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     keyboardActions = KeyboardActions(onSearch = { searchQuery(text) }),
@@ -99,7 +98,7 @@ fun LocationOverrideDialog(
                                     Icon(
                                         Icons.Default.Clear, 
                                         contentDescription = "Clear text",
-                                        tint = androidx.compose.ui.graphics.Color.White
+                                        tint = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
                             }
@@ -107,7 +106,7 @@ fun LocationOverrideDialog(
                                 Icon(
                                     Icons.Default.LocationOn, 
                                     contentDescription = "My Location",
-                                    tint = androidx.compose.ui.graphics.Color.White
+                                    tint = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         }
@@ -131,8 +130,8 @@ fun LocationOverrideDialog(
                                 .padding(vertical = 12.dp, horizontal = 8.dp)
                         ) {
                             Column {
-                                Text(text = result.name, color = androidx.compose.ui.graphics.Color.White)
-                                Text(text = result.displayName(), color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.5f), style = MaterialTheme.typography.bodySmall)
+                                Text(text = result.name, color = MaterialTheme.colorScheme.onSurface)
+                                Text(text = result.displayName(), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f), style = MaterialTheme.typography.bodySmall)
                             }
                         }
                     }
