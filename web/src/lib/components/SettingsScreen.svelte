@@ -1,7 +1,7 @@
 <script lang="ts">
 	import {
 		weatherSource, weatherApiKey,
-		alertsEnabled, alertsNwsEnabled, alertsGdacsEnabled, alertsDerivedEnabled,
+		alertsEnabled, alertsNwsEnabled, alertsGdacsEnabled,
 		alertsMeteoAlarmEnabled, alertsJmaEnabled, alertsEcccEnabled,
 		alertsWmoSwicEnabled, alertsBomEnabled, alertsNhcEnabled,
 	} from '$lib/stores/preferences';
@@ -164,10 +164,6 @@
 			<label class="check-row">
 				<input type="checkbox" bind:checked={$alertsWmoSwicEnabled} />
 				<span>WMO SWIC (global)</span>
-			</label>
-			<label class="check-row">
-				<input type="checkbox" bind:checked={$alertsDerivedEnabled} />
-				<span>Derived alerts (from weather codes)</span>
 			</label>
 		{/if}
 	</div>

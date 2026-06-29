@@ -35,7 +35,6 @@ export const weatherApiKey = persistedWritable<string>('weather_api_key', '');
 export const alertsEnabled = persistedWritable<boolean>('alerts_enabled', true);
 export const alertsNwsEnabled = persistedWritable<boolean>('alerts_nws', true);
 export const alertsGdacsEnabled = persistedWritable<boolean>('alerts_gdacs', true);
-export const alertsDerivedEnabled = persistedWritable<boolean>('alerts_derived', true);
 export const alertsMeteoAlarmEnabled = persistedWritable<boolean>('alerts_meteoalarm', true);
 export const alertsJmaEnabled = persistedWritable<boolean>('alerts_jma', true);
 export const alertsEcccEnabled = persistedWritable<boolean>('alerts_eccc', true);

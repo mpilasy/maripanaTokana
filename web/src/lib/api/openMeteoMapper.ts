@@ -1,5 +1,5 @@
-import type { OpenMeteoResponse, OpenMeteoCurrent, OpenMeteoDaily, OpenMeteoHourly } from './openMeteoTypes';
-import type { WeatherData, HourlyForecast, DailyForecast, WeatherAlert } from '../domain/weatherData';
+import type { OpenMeteoResponse } from './openMeteoTypes';
+import type { WeatherData, HourlyForecast, DailyForecast } from '../domain/weatherData';
 import { Temperature } from '../domain/temperature';
 import { Pressure } from '../domain/pressure';
 import { WindSpeed } from '../domain/windSpeed';
@@ -19,66 +19,6 @@ function parseIsoDate(iso: string, utcOffsetSeconds: number): number {
 	const month = parseInt(iso.substring(5, 7), 10) - 1;
 	const day = parseInt(iso.substring(8, 10), 10);
 	return Date.UTC(year, month, day) - utcOffsetSeconds * 1000;
-}
-
-function deriveAlerts(c: OpenMeteoCurrent, h: OpenMeteoHourly, d: OpenMeteoDaily, utcOffsetSeconds: number): WeatherAlert[] {
-	const alerts: WeatherAlert[] = [];
-	const nowMillis = Date.now();
-	
-	const parsedTimes = h.time.map(t => parseIsoDateTime(t, utcOffsetSeconds));
-
-	// Scan next 24 hours of hourly forecast
-	const startIndex = Math.max(0, parsedTimes.findIndex(t => t >= nowMillis));
-	const forecastWindow = h.time.slice(startIndex, startIndex + 24).map((_: string, i: number) => {
-		const idx = startIndex + i;
-		return {
-			code: h.weather_code[idx],
-			temp: h.temperature_2m[idx],
-			wind: h.wind_speed_10m[idx]
-		};
-	});
-
-	const hasCode = (codes: number[]) => [c.weather_code, ...forecastWindow.map((f: { code: number }) => f.code)].some(code => codes.includes(code));
-	const maxWind = Math.max(c.wind_speed_10m, c.wind_gusts_10m ?? 0, ...forecastWindow.map((f: { wind: number }) => f.wind));
-	const maxTemp = Math.max(c.temperature_2m, ...d.temperature_2m_max.slice(0, 2));
-	const minTemp = Math.min(c.temperature_2m, ...d.temperature_2m_min.slice(0, 2));
-
-	// Thunderstorm: 95, 96, 99
-	if (hasCode([95, 96, 99])) {
-		alerts.push({ level: 'warning', title: 'alert_title_thunderstorm', description: 'alert_desc_thunderstorm', source: 'derived' });
-	}
-
-	// Heavy Rain: 65, 82
-	if (hasCode([65, 82])) {
-		alerts.push({ level: 'warning', title: 'alert_title_heavy_rain', description: 'alert_desc_heavy_rain', source: 'derived' });
-	}
-
-	// Heavy Snow: 75, 86
-	if (hasCode([75, 86])) {
-		alerts.push({ level: 'warning', title: 'alert_title_heavy_snow', description: 'alert_desc_heavy_snow', source: 'derived' });
-	}
-
-	// High Wind
-	if (maxWind > 15) {
-		alerts.push({ level: 'warning', title: 'alert_title_high_wind', description: 'alert_desc_high_wind', source: 'derived' });
-	}
-
-	// Extreme Heat
-	if (maxTemp > 35) {
-		alerts.push({ level: 'warning', title: 'alert_title_extreme_heat', description: 'alert_desc_extreme_heat', source: 'derived' });
-	}
-
-	// Extreme Cold
-	if (minTemp < -15) {
-		alerts.push({ level: 'warning', title: 'alert_title_extreme_cold', description: 'alert_desc_extreme_cold', source: 'derived' });
-	}
-
-	// High UV
-	if (c.uv_index > 8) {
-		alerts.push({ level: 'watch', title: 'alert_title_high_uv', description: 'alert_desc_high_uv', source: 'derived' });
-	}
-
-	return alerts;
 }
 
 export function mapToWeatherData(response: OpenMeteoResponse, locationName: string, locationSubtext?: string): WeatherData {
@@ -167,4 +107,3 @@ export function mapToWeatherData(response: OpenMeteoResponse, locationName: stri
 	};
 }
 
-export { deriveAlerts };

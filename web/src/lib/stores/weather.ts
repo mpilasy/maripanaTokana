@@ -1,9 +1,9 @@
 import { writable, get } from 'svelte/store';
-import type { WeatherAlert, WeatherData } from '$lib/domain/weatherData';
+import type { WeatherData } from '$lib/domain/weatherData';
 import { fetchWeather } from '$lib/api/openMeteo';
 import { fetchPirateWeather } from '$lib/api/pirateWeather';
 import { fetchAllAlerts, type AlertSettings } from '$lib/api/externalAlerts';
-import { mapToWeatherData, deriveAlerts } from '$lib/api/openMeteoMapper';
+import { mapToWeatherData } from '$lib/api/openMeteoMapper';
 import {
 	getCachedLocation, cacheLocation, movedSignificantly,
 	getPosition, reverseGeocode
@@ -11,7 +11,7 @@ import {
 import {
 	localeIndex,
 	weatherSource, weatherApiKey,
-	alertsEnabled, alertsNwsEnabled, alertsGdacsEnabled, alertsDerivedEnabled,
+	alertsEnabled, alertsNwsEnabled, alertsGdacsEnabled,
 	alertsMeteoAlarmEnabled, alertsJmaEnabled, alertsEcccEnabled,
 	alertsWmoSwicEnabled, alertsBomEnabled, alertsNhcEnabled,
 } from '$lib/stores/preferences';
@@ -42,7 +42,7 @@ async function fetchAtLocation(lat: number, lon: number, knownName?: string, kno
 	if (src === 'PIRATE_WEATHER' && apiKey) {
 		const location = await namePromise;
 		const data = await fetchPirateWeather(lat, lon, apiKey, location.name, knownSubtext ?? location.subtext);
-		if (updateAlerts) fetchAlertsForData(lat, lon, []);
+		if (updateAlerts) fetchAlertsForData(lat, lon);
 		return data;
 	}
 
@@ -51,15 +51,7 @@ async function fetchAtLocation(lat: number, lon: number, knownName?: string, kno
 	const [response, location] = await Promise.all([weatherPromise, namePromise]);
 	const data = mapToWeatherData(response, location.name, knownSubtext || location.subtext);
 
-	if (updateAlerts) {
-		const derived: WeatherAlert[] = deriveAlerts(
-			response.current,
-			response.hourly,
-			response.daily,
-			response.utc_offset_seconds
-		);
-		fetchAlertsForData(lat, lon, derived);
-	}
+	if (updateAlerts) fetchAlertsForData(lat, lon);
 
 	return data;
 }
@@ -74,13 +66,12 @@ function setWeatherData(data: WeatherData) {
 	});
 }
 
-async function fetchAlertsForData(lat: number, lon: number, derivedAlerts: WeatherAlert[]) {
+async function fetchAlertsForData(lat: number, lon: number) {
 	try {
 		const settings: AlertSettings = {
 			alertsEnabled: get(alertsEnabled),
 			alertsNwsEnabled: get(alertsNwsEnabled),
 			alertsGdacsEnabled: get(alertsGdacsEnabled),
-			alertsDerivedEnabled: get(alertsDerivedEnabled),
 			alertsMeteoAlarmEnabled: get(alertsMeteoAlarmEnabled),
 			alertsJmaEnabled: get(alertsJmaEnabled),
 			alertsEcccEnabled: get(alertsEcccEnabled),
@@ -88,7 +79,7 @@ async function fetchAlertsForData(lat: number, lon: number, derivedAlerts: Weath
 			alertsBomEnabled: get(alertsBomEnabled),
 			alertsNhcEnabled: get(alertsNhcEnabled),
 		};
-		const alerts = await fetchAllAlerts(lat, lon, derivedAlerts, settings);
+		const alerts = await fetchAllAlerts(lat, lon, settings);
 		weatherState.update(s => {
 			if (s.kind === 'success') {
 				return { ...s, data: { ...s.data, alerts, alertsLoading: false } };

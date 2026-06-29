@@ -1,11 +1,5 @@
 <script lang="ts">
-	import { _ } from 'svelte-i18n';
 	import type { WeatherAlert } from '$lib/domain/weatherData';
-
-	function alertText(alert: WeatherAlert, field: 'title' | 'description'): string {
-		const raw = alert[field] ?? '';
-		return alert.source === 'derived' ? ($_(raw) || raw) : raw;
-	}
 	import { slide } from 'svelte/transition';
 	import { localeIndex } from '$lib/stores/preferences';
 	import { SUPPORTED_LOCALES } from '$lib/i18n/locales';
@@ -41,13 +35,11 @@
 						&#10071;
 					{/if}
 				</span>
-				<span class="alert-title">{alertText(topAlert, 'title')}</span>
+				<span class="alert-title">{topAlert.title}</span>
 				{#if alerts.length > 1}
 					<span class="alert-count">&#9888; {alerts.length}</span>
 				{/if}
-				{#if topAlert.source !== 'derived'}
-					<span class="source-badge">{topAlert.source.toUpperCase()}</span>
-				{/if}
+				<span class="source-badge">{topAlert.source.toUpperCase()}</span>
 			</div>
 			<span class="spacer"></span>
 			<span class="chevron" class:expanded={isExpanded}>&#9660;</span>
@@ -64,16 +56,14 @@
 										{index + 1}
 									</span>
 								{/if}
-								<div class="item-title">{alertText(alert, 'title')}</div>
+								<div class="item-title">{alert.title}</div>
 							</div>
-							{#if alert.source !== 'derived'}
-								{#if alert.link}
-									<a href={alert.link} target="_blank" rel="noopener noreferrer" class="source-badge clickable" onclick={(e) => e.stopPropagation()}>
-										{alert.source.toUpperCase()}
-									</a>
-								{:else}
-									<span class="source-badge">{alert.source.toUpperCase()}</span>
-								{/if}
+							{#if alert.link}
+								<a href={alert.link} target="_blank" rel="noopener noreferrer" class="source-badge clickable" onclick={(e) => e.stopPropagation()}>
+									{alert.source.toUpperCase()}
+								</a>
+							{:else}
+								<span class="source-badge">{alert.source.toUpperCase()}</span>
 							{/if}
 						</div>
 						
@@ -85,7 +75,7 @@
 							<div class="alert-headline">{alert.headline}</div>
 						{/if}
 
-						<div class="item-desc">{alertText(alert, 'description')}</div>
+						<div class="item-desc">{alert.description}</div>
 					</div>
 				{/each}
 			</div>

@@ -11,7 +11,7 @@ export interface WeatherAlert {
 	level: AlertLevel;
 	title: string;
 	description: string;
-	source: 'nws' | 'derived' | 'gdacs' | 'meteoalarm' | 'jma' | 'eccc' | 'bom' | 'nhc' | 'wmoswic';
+	source: 'nws' | 'gdacs' | 'meteoalarm' | 'jma' | 'eccc' | 'bom' | 'nhc' | 'wmoswic';
 	time?: number; // epoch millis
 	headline?: string;
 	link?: string;

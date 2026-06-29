@@ -23,7 +23,6 @@ export interface AlertSettings {
 	alertsEnabled: boolean;
 	alertsNwsEnabled: boolean;
 	alertsGdacsEnabled: boolean;
-	alertsDerivedEnabled: boolean;
 	alertsMeteoAlarmEnabled: boolean;
 	alertsJmaEnabled: boolean;
 	alertsEcccEnabled: boolean;
@@ -35,7 +34,6 @@ export interface AlertSettings {
 export async function fetchAllAlerts(
 	lat: number,
 	lon: number,
-	derivedAlerts: WeatherAlert[],
 	settings: AlertSettings
 ): Promise<WeatherAlert[]> {
 	if (!settings.alertsEnabled) return [];
@@ -61,13 +59,8 @@ export async function fetchAllAlerts(
 	]);
 
 	const sourceAlerts = [...nws, ...gdacs, ...meteoAlarm, ...jma, ...eccc, ...bom, ...nhc, ...wmo];
-	const hasSourceAlerts = sourceAlerts.length > 0;
 
-	const all = (hasSourceAlerts || !settings.alertsDerivedEnabled)
-		? sourceAlerts
-		: [...sourceAlerts, ...derivedAlerts];
-
-	return all.filter((a, i, self) =>
+	return sourceAlerts.filter((a, i, self) =>
 		i === self.findIndex(t => t.title === a.title && t.source === a.source)
 	);
 }
