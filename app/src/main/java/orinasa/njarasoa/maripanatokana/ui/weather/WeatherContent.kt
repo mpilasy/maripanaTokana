@@ -298,7 +298,7 @@ internal fun WeatherContent(
                     }
                 }
             }
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Column {
                 Text(
                     text = stringResource(R.string.updated_time, localizeDigits("${dateFormat.format(Date(data.timestamp))}, ${screenTimeFormat.format(Date(data.timestamp))}")),
                     fontSize = 13f.s(scale),
@@ -306,7 +306,6 @@ internal fun WeatherContent(
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                 )
                 if (isRemoteTimezone(data.utcOffsetSeconds)) {
-                    Spacer(modifier = Modifier.width(12.dp))
                     Text(
                         text = "\uD83D\uDD53 Local: ${localizeDigits(formatLocationCurrentTime(data.utcOffsetSeconds, appLocale))}",
                         fontSize = 13f.s(scale),
