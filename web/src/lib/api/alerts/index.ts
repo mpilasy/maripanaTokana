@@ -5,7 +5,7 @@ import { fetchGdacsAlerts } from './gdacs';
 import { fetchMeteoAlarmAlerts, METEOALARM_COUNTRIES } from './meteoAlarm';
 import { fetchJmaAlerts, isInJapan } from './jma';
 import { fetchEcccAlerts } from './eccc';
-import { fetchBomAlerts } from './bom';
+import { fetchBomAlerts, isInAustralia } from './bom';
 import { fetchNhcAlerts } from './nhc';
 import { fetchWmoSwicAlerts } from './wmoSwic';
 
@@ -43,8 +43,10 @@ export async function fetchAllAlerts(
 	const { countryCode, stateCode } = await getLocationInfo(lat, lon);
 	const cc = countryCode ?? '';
 
+	const inAustralia = cc === 'au' || isInAustralia(lat, lon);
+
 	const coveredByRegional =
-		cc === 'us' || cc === 'ca' || cc === 'au' ||
+		cc === 'us' || cc === 'ca' || inAustralia ||
 		METEOALARM_COUNTRIES.has(cc) || isInJapan(lat, lon);
 
 	const [nws, gdacs, meteoAlarm, jma, eccc, bom, nhc, wmo] = await Promise.all([
@@ -53,7 +55,7 @@ export async function fetchAllAlerts(
 		settings.alertsMeteoAlarmEnabled ? fetchMeteoAlarmAlerts(lat, lon, cc) : Promise.resolve([]),
 		settings.alertsJmaEnabled ? fetchJmaAlerts(lat, lon) : Promise.resolve([]),
 		(settings.alertsEcccEnabled && cc === 'ca') ? fetchEcccAlerts(lat, lon, cc) : Promise.resolve([]),
-		(settings.alertsBomEnabled && cc === 'au') ? fetchBomAlerts(stateCode) : Promise.resolve([]),
+		(settings.alertsBomEnabled && inAustralia) ? fetchBomAlerts(stateCode) : Promise.resolve([]),
 		settings.alertsNhcEnabled ? fetchNhcAlerts(lat, lon) : Promise.resolve([]),
 		(settings.alertsWmoSwicEnabled && !coveredByRegional) ? fetchWmoSwicAlerts(lat, lon, cc) : Promise.resolve([]),
 	]);

@@ -1,5 +1,9 @@
 import type { WeatherAlert, AlertLevel } from '$lib/domain/weatherData';
 
+export function isInAustralia(lat: number, lon: number): boolean {
+	return lat >= -44.0 && lat <= -10.0 && lon >= 113.0 && lon <= 154.0;
+}
+
 export async function fetchBomAlerts(stateCode: string | null): Promise<WeatherAlert[]> {
 	try {
 		const res = await fetch('/api/alerts/bom');
