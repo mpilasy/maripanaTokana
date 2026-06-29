@@ -1,0 +1,8 @@
+• Alertas JMA muestran ahora nombres de prefecturas en las descripciones
+• Alertas BOM: tipo de evento como título, área afectada como descripción (estaban invertidos)
+• Corregidos errores de NWS/ECCC fuera de EE. UU./Canadá
+• Corregida desaparición de alertas durante la actualización GPS en segundo plano
+• La hora local ahora se muestra bajo la marca de tiempo de actualización
+• Tema Material 3: colores y tipografía actualizados (Android)
+• Web: mejorada fiabilidad de alertas BOM, ECCC, JMA y WMO SWIC
+• Web: las alertas se borran inmediatamente al cambiar de ubicación
