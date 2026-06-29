@@ -1,6 +1,6 @@
 import type { WeatherAlert, AlertLevel } from '$lib/domain/weatherData';
 
-export async function fetchBomAlerts(): Promise<WeatherAlert[]> {
+export async function fetchBomAlerts(stateCode: string | null): Promise<WeatherAlert[]> {
 	try {
 		const res = await fetch('/api/alerts/bom');
 		if (!res.ok) return [];
@@ -9,9 +9,12 @@ export async function fetchBomAlerts(): Promise<WeatherAlert[]> {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		return (data.data ?? [])
 			.filter((w: any) => w.warningAction !== 'cancelled')
+			.filter((w: any) => !stateCode || !w.states?.length || (w.states as string[]).includes(stateCode))
 			.map((w: any) => {
 				const level: AlertLevel = w.phase === 'warning' ? 'warning' : 'watch';
-				return { level, title: w.title ?? 'Alert', description: w.shortDescription ?? '', source: 'bom' as const };
+				const rawDesc: string = w.short_title ?? '';
+				const description = rawDesc.trim().toLowerCase() === (w.title ?? '').trim().toLowerCase() ? '' : rawDesc;
+				return { level, title: w.title ?? 'Alert', description, source: 'bom' as const };
 			});
 	} catch { return []; }
 }

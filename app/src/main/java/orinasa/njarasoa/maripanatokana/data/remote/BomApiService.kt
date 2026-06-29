@@ -20,8 +20,10 @@ data class BomWarning(
     val type: String = "",
     val title: String = "",
     val phase: String = "",
+    @SerialName("short_title") val shortTitle: String = "",
     @SerialName("short_description") val shortDescription: String = "",
     val state: String = "",
+    val states: List<String> = emptyList(),
     @SerialName("issue_time") val issueTime: String? = null,
     @SerialName("warning_action") val warningAction: String = "",
 )

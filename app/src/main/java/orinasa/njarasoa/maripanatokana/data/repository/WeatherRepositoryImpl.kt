@@ -89,10 +89,16 @@ class WeatherRepositoryImpl @Inject constructor(
         val settings = settingsRepository.current
         if (!settings.alertsEnabled) return@coroutineScope Result.success(emptyList())
 
-        val countryCode = try {
+        val geoAddress = try {
             @Suppress("DEPRECATION")
-            Geocoder(context, Locale.US).getFromLocation(lat, lon, 1)?.firstOrNull()?.countryCode?.lowercase()
+            Geocoder(context, Locale.US).getFromLocation(lat, lon, 1)?.firstOrNull()
         } catch (_: Exception) { null }
+        val countryCode = geoAddress?.countryCode?.lowercase()
+        val australianStateCode = mapOf(
+            "New South Wales" to "NSW", "Victoria" to "VIC", "Queensland" to "QLD",
+            "Western Australia" to "WA", "South Australia" to "SA", "Tasmania" to "TAS",
+            "Australian Capital Territory" to "ACT", "Northern Territory" to "NT"
+        )[geoAddress?.adminArea ?: ""]
 
         val coveredByRegional = countryCode == "us" ||
             countryCode == "ca" ||
@@ -113,7 +119,7 @@ class WeatherRepositoryImpl @Inject constructor(
                         val time = p.sent?.let {
                             try { nwsParser.parse(it)?.time } catch (_: Exception) { null }
                         }
-                        WeatherAlert(level, p.event, p.description + (p.instruction?.let { "\n\n$it" } ?: ""), "official", time, p.headline, f.id)
+                        WeatherAlert(level, p.event, p.description + (p.instruction?.let { "\n\n$it" } ?: ""), "nws", time, p.headline, f.id)
                     }
                 } catch (e: Exception) {
                     emptyList()
@@ -165,9 +171,9 @@ class WeatherRepositoryImpl @Inject constructor(
             val meteoAlarmDeferred = async {
                 if (!settings.alertsMeteoAlarmEnabled) return@async emptyList<WeatherAlert>()
                 val code = countryCode ?: return@async emptyList()
-                if (code !in METEOALARM_COUNTRIES) return@async emptyList()
+                val slug = METEOALARM_SLUGS[code] ?: return@async emptyList()
                 try {
-                    parseMeteoAlarmAtom(meteoAlarmApiService.getAlerts(code).string())
+                    parseMeteoAlarmAtom(meteoAlarmApiService.getAlerts(slug).string())
                 } catch (_: Exception) { emptyList() }
             }
 
@@ -188,7 +194,7 @@ class WeatherRepositoryImpl @Inject constructor(
                                     w.code.toIntOrNull()?.let { it <= 8 } == true -> AlertLevel.WARNING
                                     else -> AlertLevel.WATCH
                                 }
-                                WeatherAlert(level, "JMA: ${jmaWarningName(w.code)}", area.name.ifEmpty { w.name }, "jma", null, null, null)
+                                WeatherAlert(level, jmaWarningName(w.code), area.name.ifEmpty { w.name }, "jma", null, null, null)
                             }
                     }.distinctBy { it.titleKey }
                 } catch (_: Exception) { emptyList() }
@@ -232,6 +238,7 @@ class WeatherRepositoryImpl @Inject constructor(
                     val bomParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
                     bomApiService.getWarnings().data
                         .filter { it.warningAction != "cancelled" }
+                        .filter { w -> australianStateCode == null || w.states.isEmpty() || australianStateCode in w.states }
                         .map { w ->
                             val level = when (w.phase.lowercase()) {
                                 "warning" -> AlertLevel.WARNING
@@ -239,7 +246,9 @@ class WeatherRepositoryImpl @Inject constructor(
                             }
                             val time = w.issueTime?.let { try { bomParser.parse(it)?.time } catch (_: Exception) { null } }
                             val headline = if (w.state.isNotBlank()) "${w.state}: ${w.title}" else w.title
-                            WeatherAlert(level, headline, w.shortDescription.ifBlank { w.title }, "bom", time, null, null)
+                            val body = w.shortTitle.ifBlank { w.shortDescription }
+                            val finalBody = if (body.trim().equals(w.title.trim(), ignoreCase = true)) "" else body
+                            WeatherAlert(level, headline, finalBody, "bom", time, null, null)
                         }
                 } catch (_: Exception) { emptyList() }
             }
@@ -347,7 +356,7 @@ class WeatherRepositoryImpl @Inject constructor(
         var inEntry = false
         var currentLocalName = ""
         var currentNs = ""
-        var capEvent = ""; var capSeverity = ""; var capOnset = ""
+        var capEvent = ""; var capSeverity = ""; var capOnset = ""; var capStatus = ""
         var capDescription = ""; var capAreaDesc = ""; var linkHref: String? = null
         var event = parser.eventType
         while (event != XmlPullParser.END_DOCUMENT) {
@@ -356,7 +365,7 @@ class WeatherRepositoryImpl @Inject constructor(
                     currentLocalName = parser.name ?: ""
                     currentNs = parser.namespace ?: ""
                     if (currentLocalName == "entry" && currentNs != CAP_NS) {
-                        inEntry = true; capEvent = ""; capSeverity = ""; capOnset = ""; capDescription = ""; capAreaDesc = ""; linkHref = null
+                        inEntry = true; capEvent = ""; capSeverity = ""; capOnset = ""; capStatus = ""; capDescription = ""; capAreaDesc = ""; linkHref = null
                     } else if (inEntry && currentLocalName == "link" && parser.getAttributeValue(null, "rel") == "alternate") {
                         linkHref = parser.getAttributeValue(null, "href")
                     }
@@ -367,6 +376,7 @@ class WeatherRepositoryImpl @Inject constructor(
                         "event" -> capEvent = text
                         "severity" -> capSeverity = text
                         "onset" -> capOnset = text
+                        "status" -> capStatus = text
                         "description" -> capDescription = text
                         "areaDesc" -> capAreaDesc = text
                     }
@@ -374,14 +384,14 @@ class WeatherRepositoryImpl @Inject constructor(
                 XmlPullParser.END_TAG -> {
                     if ((parser.name ?: "") == "entry" && (parser.namespace ?: "") != CAP_NS && inEntry) {
                         inEntry = false
-                        if (capEvent.isNotBlank()) {
+                        if (capEvent.isNotBlank() && (capStatus.isBlank() || capStatus == "Actual")) {
                             val level = when (capSeverity.lowercase()) {
                                 "extreme" -> AlertLevel.EMERGENCY
                                 "severe" -> AlertLevel.WARNING
                                 else -> AlertLevel.WATCH
                             }
                             val time = try { SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).parse(capOnset)?.time } catch (_: Exception) { null }
-                            alerts.add(WeatherAlert(level, "MeteoAlarm: $capEvent", capDescription.ifBlank { capAreaDesc }, "meteoalarm", time, capAreaDesc.ifBlank { null }, linkHref))
+                            alerts.add(WeatherAlert(level, capEvent, capDescription, "meteoalarm", time, capAreaDesc.ifBlank { null }, linkHref))
                         }
                     }
                     currentLocalName = ""; currentNs = ""
@@ -420,11 +430,18 @@ class WeatherRepositoryImpl @Inject constructor(
         private const val GDACS_SEARCH_RADIUS_KM = 500
         private const val GDACS_SEARCH_DAYS = 7
         private const val NHC_SEARCH_RADIUS_KM = 1500
-        private val METEOALARM_COUNTRIES = setOf(
-            "at", "ba", "be", "bg", "hr", "cy", "cz", "dk", "ee", "fi",
-            "fr", "de", "gr", "hu", "ie", "it", "lv", "li", "lt", "lu",
-            "mt", "md", "me", "nl", "mk", "no", "pl", "pt", "ro", "rs",
-            "sk", "si", "es", "se", "ch", "tr", "ua", "gb"
+        private val METEOALARM_SLUGS = mapOf(
+            "at" to "austria", "ba" to "bosnia-herzegovina", "be" to "belgium",
+            "bg" to "bulgaria", "hr" to "croatia", "cy" to "cyprus", "cz" to "czechia",
+            "dk" to "denmark", "ee" to "estonia", "fi" to "finland", "fr" to "france",
+            "de" to "germany", "gr" to "greece", "hu" to "hungary", "ie" to "ireland",
+            "it" to "italy", "lv" to "latvia", "lt" to "lithuania", "lu" to "luxembourg",
+            "mt" to "malta", "md" to "moldova", "me" to "montenegro", "nl" to "netherlands",
+            "mk" to "republic-of-north-macedonia", "no" to "norway", "pl" to "poland",
+            "pt" to "portugal", "ro" to "romania", "rs" to "serbia", "sk" to "slovakia",
+            "si" to "slovenia", "es" to "spain", "se" to "sweden", "ch" to "switzerland",
+            "ua" to "ukraine", "gb" to "united-kingdom"
         )
+        private val METEOALARM_COUNTRIES = METEOALARM_SLUGS.keys
     }
 }

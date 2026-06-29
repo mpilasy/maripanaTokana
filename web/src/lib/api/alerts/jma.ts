@@ -76,7 +76,7 @@ export async function fetchJmaAlerts(lat: number, lon: number): Promise<WeatherA
 					const level: AlertLevel = w.code === '01' ? 'emergency'
 						: (parseInt(w.code) <= 8) ? 'warning' : 'watch';
 					const description = area.name ?? w.name ?? '';
-				alerts.push({ level, title: `JMA: ${jmaWarningName(w.code)}`, description, source: 'jma' });
+				alerts.push({ level, title: jmaWarningName(w.code), description, source: 'jma' });
 				}
 			}
 		}

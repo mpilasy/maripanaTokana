@@ -1,5 +1,5 @@
 import type { WeatherAlert } from '$lib/domain/weatherData';
-import { getCountryCode } from './shared';
+import { getLocationInfo } from './shared';
 import { fetchNwsAlerts } from './nws';
 import { fetchGdacsAlerts } from './gdacs';
 import { fetchMeteoAlarmAlerts, METEOALARM_COUNTRIES } from './meteoAlarm';
@@ -40,7 +40,7 @@ export async function fetchAllAlerts(
 ): Promise<WeatherAlert[]> {
 	if (!settings.alertsEnabled) return [];
 
-	const countryCode = await getCountryCode(lat, lon);
+	const { countryCode, stateCode } = await getLocationInfo(lat, lon);
 	const cc = countryCode ?? '';
 
 	const coveredByRegional =
@@ -53,7 +53,7 @@ export async function fetchAllAlerts(
 		settings.alertsMeteoAlarmEnabled ? fetchMeteoAlarmAlerts(lat, lon, cc) : Promise.resolve([]),
 		settings.alertsJmaEnabled ? fetchJmaAlerts(lat, lon) : Promise.resolve([]),
 		(settings.alertsEcccEnabled && cc === 'ca') ? fetchEcccAlerts(lat, lon, cc) : Promise.resolve([]),
-		(settings.alertsBomEnabled && cc === 'au') ? fetchBomAlerts() : Promise.resolve([]),
+		(settings.alertsBomEnabled && cc === 'au') ? fetchBomAlerts(stateCode) : Promise.resolve([]),
 		settings.alertsNhcEnabled ? fetchNhcAlerts(lat, lon) : Promise.resolve([]),
 		(settings.alertsWmoSwicEnabled && !coveredByRegional) ? fetchWmoSwicAlerts(lat, lon, cc) : Promise.resolve([]),
 	]);

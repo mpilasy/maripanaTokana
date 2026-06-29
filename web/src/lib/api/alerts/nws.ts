@@ -16,7 +16,7 @@ export async function fetchNwsAlerts(lat: number, lon: number): Promise<WeatherA
 				level,
 				title: p.event,
 				description: p.description + (p.instruction ? '\n\n' + p.instruction : ''),
-				source: 'official' as const,
+				source: 'nws' as const,
 				time: p.sent ? new Date(p.sent).getTime() : undefined,
 				headline: p.headline,
 				link: f.id

@@ -106,7 +106,8 @@ fun WeatherAlertBanner(
                                 fontSize = 16f.s(scale),
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = displayFont,
-                                color = Color.White
+                                color = Color.White,
+                                modifier = Modifier.weight(1f)
                             )
                             if (topAlert.source != "derived") {
                                 Spacer(modifier = Modifier.width(6.sd(scale)))

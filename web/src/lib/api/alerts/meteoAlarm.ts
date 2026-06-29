@@ -2,8 +2,8 @@ import type { WeatherAlert, AlertLevel } from '$lib/domain/weatherData';
 
 export const METEOALARM_COUNTRIES = new Set([
 	'at','ba','be','bg','hr','cy','cz','dk','ee','fi','fr','de','gr','hu','ie','it',
-	'lv','li','lt','lu','mt','md','me','nl','mk','no','pl','pt','ro','rs','sk','si',
-	'es','se','ch','tr','ua','gb'
+	'lv','lt','lu','mt','md','me','nl','mk','no','pl','pt','ro','rs','sk','si',
+	'es','se','ch','ua','gb'
 ]);
 
 export async function fetchMeteoAlarmAlerts(lat: number, lon: number, countryCode: string): Promise<WeatherAlert[]> {
@@ -17,19 +17,20 @@ export async function fetchMeteoAlarmAlerts(lat: number, lon: number, countryCod
 		const CAP = 'urn:oasis:names:tc:emergency:cap:1.2';
 		const alerts: WeatherAlert[] = [];
 		for (const entry of Array.from(doc.getElementsByTagName('entry'))) {
-			const info = entry.getElementsByTagNameNS(CAP, 'info')[0];
-			if (!info) continue;
-			const event = info.getElementsByTagNameNS(CAP, 'event')[0]?.textContent ?? 'Alert';
-			const severity = info.getElementsByTagNameNS(CAP, 'severity')[0]?.textContent ?? '';
-			const desc = info.getElementsByTagNameNS(CAP, 'description')[0]?.textContent ?? '';
-			const areaDesc = info.getElementsByTagNameNS(CAP, 'areaDesc')[0]?.textContent ?? '';
-			const onset = info.getElementsByTagNameNS(CAP, 'onset')[0]?.textContent ?? null;
+			const g = (tag: string) => entry.getElementsByTagNameNS(CAP, tag)[0]?.textContent ?? '';
+			const status = g('status');
+			if (status && status !== 'Actual') continue;
+			const event = g('event') || 'Alert';
+			const severity = g('severity');
+			const desc = g('description');
+			const areaDesc = g('areaDesc');
+			const onset = g('onset');
 			const level: AlertLevel = severity === 'Extreme' ? 'emergency'
 				: (severity === 'Severe' || severity === 'Moderate') ? 'warning' : 'watch';
 			alerts.push({
 				level,
 				title: event,
-				description: areaDesc ? `${areaDesc}: ${desc}` : desc,
+				description: desc,
 				source: 'meteoalarm',
 				time: onset ? new Date(onset).getTime() : undefined,
 			});
