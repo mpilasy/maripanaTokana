@@ -32,6 +32,7 @@ class AppSettingsRepository @Inject constructor(
     }
 
     private fun load() = AppSettings(
+        expertMode = prefs.getBoolean("settings_expert_mode", false),
         weatherSource = prefs.getString("settings_weather_source", null)
             ?.let { runCatching { WeatherSource.valueOf(it) }.getOrNull() }
             ?: WeatherSource.OPEN_METEO,
@@ -89,4 +90,7 @@ class AppSettingsRepository @Inject constructor(
 
     fun updateAlertsNhcEnabled(enabled: Boolean) =
         prefs.edit().putBoolean("settings_alerts_nhc", enabled).apply()
+
+    fun updateExpertMode(enabled: Boolean) =
+        prefs.edit().putBoolean("settings_expert_mode", enabled).apply()
 }

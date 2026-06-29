@@ -7,6 +7,7 @@
 	} from '$lib/stores/preferences';
 	import { testPirateWeatherKey } from '$lib/api/pirateWeather';
 	import type { WeatherSource } from '$lib/domain/weatherData';
+	import { expertModeActive, enableExpertMode, disableExpertMode } from '$lib/stores/devMode';
 
 	interface Props { onBack: () => void; }
 	let { onBack }: Props = $props();
@@ -56,6 +57,27 @@
 		<h2>Settings</h2>
 	</header>
 
+	<div class="section">
+		<label class="toggle-row expert-toggle">
+			<span class="expert-label">Expert mode</span>
+			<input
+				type="checkbox"
+				checked={$expertModeActive}
+				onchange={(e) => {
+					if ((e.currentTarget as HTMLInputElement).checked) {
+						enableExpertMode();
+					} else {
+						disableExpertMode();
+					}
+				}}
+			/>
+		</label>
+		{#if !$expertModeActive}
+			<p class="info-text">Enable Expert mode to configure weather source, alerts, and location.</p>
+		{/if}
+	</div>
+
+	{#if $expertModeActive}
 	<div class="section">
 		<div class="section-title">WEATHER SOURCE</div>
 
@@ -154,6 +176,7 @@
 		<div class="section-title">LOCATION / GEOCODING</div>
 		<p class="info-text">Web version uses Nominatim (OpenStreetMap) for reverse geocoding — no API key required.</p>
 	</div>
+	{/if}
 </div>
 
 <style>
@@ -349,5 +372,11 @@
 		color: rgba(255, 255, 255, 0.5);
 		line-height: 1.5;
 		margin: 0;
+	}
+
+	.expert-label {
+		font-size: 15px;
+		color: white;
+		font-weight: 600;
 	}
 </style>

@@ -16,7 +16,7 @@ import {
 	alertsWmoSwicEnabled, alertsBomEnabled, alertsNhcEnabled,
 } from '$lib/stores/preferences';
 import { SUPPORTED_LOCALES } from '$lib/i18n/locales';
-import { devModeActive, checkDevModeExpiration } from '$lib/stores/devMode';
+import { expertModeActive, checkOverrideExpiry } from '$lib/stores/devMode';
 
 export type WeatherState =
 	| { kind: 'loading' }
@@ -119,7 +119,7 @@ function spawnGpsCacheRefresh() {
 			// Don't overwrite the location cache while dev mode is active — it would corrupt
 			// the cached_location key and cause updateLocationName to reverse-geocode the
 			// wrong (real GPS) coordinates on language change.
-			if (!get(devModeActive)) {
+			if (!get(expertModeActive)) {
 				cacheLocation(lat, lon, data.locationName, data.locationSubtext);
 			}
 		})
@@ -149,24 +149,20 @@ export async function doFetchWeather() {
 	}
 
 	try {
-		if (get(devModeActive)) {
-			if (!checkDevModeExpiration()) {
-				devModeActive.set(false);
-			} else {
-				const lat = localStorage.getItem('dev_override_lat');
-				const lon = localStorage.getItem('dev_override_lon');
-				const name = localStorage.getItem('dev_override_name');
-				const subtext = localStorage.getItem('dev_override_subtext') || undefined;
-				if (lat && lon && name) {
-					const lLat = parseFloat(lat);
-					const lLon = parseFloat(lon);
-					const data = await fetchAtLocation(lLat, lLon, name, subtext);
-					setWeatherData(data);
-					isRefreshing.set(false);
-					// Spawn background GPS cache refresh
-					spawnGpsCacheRefresh();
-					return;
-				}
+		if (get(expertModeActive)) {
+			checkOverrideExpiry();
+			const lat = localStorage.getItem('dev_override_lat');
+			const lon = localStorage.getItem('dev_override_lon');
+			const name = localStorage.getItem('dev_override_name');
+			const subtext = localStorage.getItem('dev_override_subtext') || undefined;
+			if (lat && lon && name) {
+				const lLat = parseFloat(lat);
+				const lLon = parseFloat(lon);
+				const data = await fetchAtLocation(lLat, lLon, name, subtext);
+				setWeatherData(data);
+				isRefreshing.set(false);
+				spawnGpsCacheRefresh();
+				return;
 			}
 		}
 

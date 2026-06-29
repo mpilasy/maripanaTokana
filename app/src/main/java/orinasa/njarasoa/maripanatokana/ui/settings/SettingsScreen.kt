@@ -84,6 +84,34 @@ fun SettingsScreen(
 
         Spacer(Modifier.height(24.dp))
 
+        // — Expert Mode —
+        Row(
+            Modifier.fillMaxWidth().padding(vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Expert mode", color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                Text(
+                    if (settings.expertMode) "All settings and location override available"
+                    else "Enable to access weather source, alerts, and location settings",
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                    fontSize = 12.sp
+                )
+            }
+            Switch(
+                checked = settings.expertMode,
+                onCheckedChange = { viewModel.updateExpertMode(it) },
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = MaterialTheme.colorScheme.onSurface,
+                    checkedTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                ),
+            )
+        }
+
+        if (settings.expertMode) {
+
+        Spacer(Modifier.height(32.dp))
+
         // — Weather Source —
         SectionHeader("Weather Source")
         Column(Modifier.selectableGroup()) {
@@ -216,6 +244,10 @@ fun SettingsScreen(
         }
 
         Spacer(Modifier.height(32.dp))
+
+        } // end if (settings.expertMode)
+
+        Spacer(Modifier.height(8.dp))
     }
 }
 

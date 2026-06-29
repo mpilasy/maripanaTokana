@@ -7,8 +7,6 @@
 	import { formatTime } from '$lib/utils/date';
 	import DualUnitText from './DualUnitText.svelte';
 
-	import { enableDevMode } from '$lib/stores/devMode';
-
 	interface Props {
 		data: WeatherData;
 		metricPrimary: boolean;
@@ -20,33 +18,6 @@
 	let { data, metricPrimary, loc, onToggleUnits, onShare }: Props = $props();
 
 	let cardEl = $state<HTMLElement | null>(null);
-	let devTaps = 0;
-	let devTapTimeout: ReturnType<typeof setTimeout>;
-
-	function handleDevTap() {
-		devTaps++;
-		clearTimeout(devTapTimeout);
-		if (devTaps >= 7) {
-			enableDevMode();
-			devTaps = 0;
-		} else {
-			devTapTimeout = setTimeout(() => {
-				devTaps = 0;
-			}, 500);
-		}
-	}
-
-	function onDevModeClick(e: MouseEvent) {
-		handleDevTap();
-	}
-
-	function onKeyDown(e: KeyboardEvent) {
-		if (e.key === 'Enter' || e.key === ' ') {
-			e.preventDefault();
-			handleDevTap();
-		}
-	}
-
 
 	let isNight = $derived(data.timestamp < data.sunrise * 1000 || data.timestamp > data.sunset * 1000);
 	let emoji = $derived(wmoEmoji(data.weatherCode, isNight));
@@ -87,13 +58,7 @@
 	</div>
 
 	<div class="hero-top">
-		<div 
-			class="hero-weather" 
-			onclick={onDevModeClick} 
-			onkeydown={onKeyDown}
-			role="button"
-			tabindex="0"
-		>
+		<div class="hero-weather">
 			<span class="hero-emoji">{emoji}</span>
 			<span class="hero-description">{description}</span>
 		</div>
@@ -253,20 +218,8 @@
 		flex-direction: column;
 		align-items: center;
 		flex: 1;
-		cursor: pointer;
-		user-select: none;
-		-webkit-user-select: none;
-		touch-action: manipulation;
 		border-radius: 12px;
 		padding: 4px;
-		transition: background 0.2s;
-		background: transparent;
-		border: none;
-		font-family: inherit;
-	}
-
-	.hero-weather:hover {
-		background: rgba(255, 255, 255, 0.05);
 	}
 
 	.hero-emoji {

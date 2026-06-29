@@ -5,10 +5,11 @@
 		onLocationClicked,
 		showGpsCoordinates,
 		showLocationOverrideDialog,
-		devModeActive,
-		initDevMode,
-		disableDevMode,
-		openLocationOverride
+		expertModeActive,
+		locationOverride,
+		initExpertMode,
+		openLocationOverride,
+		resetLocationToCurrent
 	} from '$lib/stores/devMode';
 	import LocationOverrideDialog from './LocationOverrideDialog.svelte';
 	import SettingsScreen from './SettingsScreen.svelte';
@@ -40,7 +41,7 @@
 	let browserStrings = $state<Record<string, string> | null>(null);
 
 	onMount(() => {
-		initDevMode();
+		initExpertMode();
 	});
 
 	if (browserLocaleTag) {
@@ -209,28 +210,31 @@
 									{data.locationName}
 								{/if}
 							</h1>
-							{#if $devModeActive}
+							{#if $expertModeActive}
 								<!-- svelte-ignore a11y_click_events_have_key_events -->
 								<!-- svelte-ignore a11y_no_static_element_interactions -->
 								<span
 									class="edit-icon"
 									onclick={(e) => { e.stopPropagation(); openLocationOverride(); }}
+									title="Change location"
 								>
 									<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
 										<path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
 									</svg>
 								</span>
-							{/if}
-
-							{#if $devModeActive}
-								<!-- svelte-ignore a11y_click_events_have_key_events -->
-								<!-- svelte-ignore a11y_no_static_element_interactions -->
-								<span
-									class="dev-badge"
-									onclick={(e) => { e.stopPropagation(); disableDevMode(); }}
-								>
-									DEV <span class="close-x">✕</span>
-								</span>
+								{#if $locationOverride !== null}
+									<!-- svelte-ignore a11y_click_events_have_key_events -->
+									<!-- svelte-ignore a11y_no_static_element_interactions -->
+									<span
+										class="goto-current-btn"
+										onclick={(e) => { e.stopPropagation(); resetLocationToCurrent(); }}
+										title="Go to current location"
+									>
+										<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+											<path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
+										</svg>
+									</span>
+								{/if}
 							{/if}
 						</div>
 						{#if data.locationSubtext || data.locationName.includes(',')}
@@ -475,30 +479,20 @@
 		text-overflow: ellipsis;
 	}
 
-	.dev-badge {
-		background: rgba(255, 255, 255, 0.15);
-		padding: 2px 6px;
-		border-radius: 4px;
-		font-size: 10px;
-		font-weight: 800;
-		color: rgba(255, 255, 255, 0.9);
-		letter-spacing: 0.5px;
-		font-family: var(--font-body);
-		flex-shrink: 0;
+	.goto-current-btn {
+		color: rgba(255, 255, 255, 0.6);
 		cursor: pointer;
 		display: flex;
 		align-items: center;
-		gap: 4px;
-		transition: background 0.2s;
+		justify-content: center;
+		padding: 4px;
+		border-radius: 50%;
+		transition: background 0.2s, color 0.2s;
 	}
 
-	.dev-badge:hover {
-		background: rgba(255, 255, 255, 0.25);
-	}
-
-	.close-x {
-		font-size: 10px;
-		opacity: 0.7;
+	.goto-current-btn:hover {
+		background: rgba(255, 255, 255, 0.1);
+		color: white;
 	}
 
 	.edit-icon {

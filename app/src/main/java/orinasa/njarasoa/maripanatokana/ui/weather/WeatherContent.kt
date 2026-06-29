@@ -32,8 +32,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Refresh
@@ -43,7 +43,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -134,13 +133,13 @@ internal fun WeatherContent(
     onCycleLanguage: () -> Unit,
     onRefresh: () -> Unit,
     onLocationClicked: () -> Unit = {},
-    onWeatherIconTapped: () -> Unit = {},
     onEditLocationClicked: () -> Unit = {},
-    onDisableDevMode: () -> Unit = {},
+    onResetToCurrentLocation: () -> Unit = {},
     onOpenSettings: () -> Unit = {},
     weatherSource: WeatherSource = WeatherSource.OPEN_METEO,
     showGpsCoordinates: Boolean = false,
-    devModeActive: Boolean = false,
+    expertModeActive: Boolean = false,
+    hasLocationOverride: Boolean = false,
     devOverrideLat: Double? = null,
     devOverrideLon: Double? = null,
 ) {
@@ -227,7 +226,7 @@ internal fun WeatherContent(
                         }
                     }
 
-                    if (devModeActive) {
+                    if (expertModeActive) {
                         IconButton(
                             onClick = onEditLocationClicked,
                             modifier = Modifier.size(32.sd(scale))
@@ -240,29 +239,16 @@ internal fun WeatherContent(
                             )
                         }
 
-                        Spacer(modifier = Modifier.width(4.dp))
-
-                        Surface(
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f),
-                            shape = RoundedCornerShape(4.dp),
-                            onClick = onDisableDevMode
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        if (hasLocationOverride) {
+                            IconButton(
+                                onClick = onResetToCurrentLocation,
+                                modifier = Modifier.size(32.sd(scale))
                             ) {
-                                Text(
-                                    text = "DEV",
-                                    fontSize = 10f.s(scale),
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f)
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
                                 Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = "Exit Dev Mode",
+                                    imageVector = Icons.Default.LocationOn,
+                                    contentDescription = "Go to current location",
                                     tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                                    modifier = Modifier.size(10.sd(scale))
+                                    modifier = Modifier.size(18.sd(scale))
                                 )
                             }
                         }
@@ -353,13 +339,7 @@ internal fun WeatherContent(
                         ) {
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clickable(
-                                        onClick = onWeatherIconTapped,
-                                        role = Role.Button,
-                                        onClickLabel = "Weather icon"
-                                    ),
+                                modifier = Modifier.weight(1f),
                             ) {
                                 Text(
                                     text = wmoEmoji(data.weatherCode, isNight = data.timestamp !in (data.sunrise * 1000)..(data.sunset * 1000)),

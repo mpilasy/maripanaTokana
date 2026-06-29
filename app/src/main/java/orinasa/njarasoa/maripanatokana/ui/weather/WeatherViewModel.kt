@@ -1,14 +1,12 @@
 package orinasa.njarasoa.maripanatokana.ui.weather
 
 import android.content.Context
-import android.widget.Toast
 import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -51,14 +49,14 @@ data class SupportedLocale(val tag: String, val flag: String, val nativeZero: Ch
 }
 
 val supportedLocales = listOf(
-    SupportedLocale("mg", "\uD83C\uDDF2\uD83C\uDDEC"),
-    SupportedLocale("ar", "\uD83C\uDDF8\uD83C\uDDE6", '\u0660'),  // ٠
-    SupportedLocale("en", "\uD83C\uDDEC\uD83C\uDDE7"),
-    SupportedLocale("es", "\uD83C\uDDEA\uD83C\uDDF8"),
-    SupportedLocale("fr", "\uD83C\uDDEB\uD83C\uDDF7"),
-    SupportedLocale("hi", "\uD83C\uDDEE\uD83C\uDDF3", '\u0966'),  // ०
-    SupportedLocale("ne", "\uD83C\uDDF3\uD83C\uDDF5", '\u0966'),  // ०
-    SupportedLocale("zh", "\uD83C\uDDE8\uD83C\uDDF3"),
+    SupportedLocale("mg", "🇲🇬"),
+    SupportedLocale("ar", "🇸🇦", '٠'),  // ٠
+    SupportedLocale("en", "🇬🇧"),
+    SupportedLocale("es", "🇪🇸"),
+    SupportedLocale("fr", "🇫🇷"),
+    SupportedLocale("hi", "🇮🇳", '०'),  // ०
+    SupportedLocale("ne", "🇳🇵", '०'),  // ०
+    SupportedLocale("zh", "🇨🇳"),
 )
 
 @HiltViewModel
@@ -90,9 +88,10 @@ class WeatherViewModel @Inject constructor(
         .map { it.weatherSource }
         .stateIn(viewModelScope, SharingStarted.Eagerly, settingsRepository.current.weatherSource)
 
-    // Dev Mode State
-    private val _devModeActive = MutableStateFlow(checkDevModeExpiration())
-    val devModeActive: StateFlow<Boolean> = _devModeActive.asStateFlow()
+    // Expert Mode State (derived from AppSettings)
+    val expertModeActive: StateFlow<Boolean> = settingsRepository.settings
+        .map { it.expertMode }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, settingsRepository.current.expertMode)
 
     private val _devOverrideLat = MutableStateFlow<Double?>(
         prefs.getFloat("dev_override_lat", Float.NaN).takeUnless { it.isNaN() }?.toDouble()
@@ -116,47 +115,33 @@ class WeatherViewModel @Inject constructor(
     private var fetchJob: Job? = null
     private var searchJob: Job? = null
 
-    // Cached GPS weather data fetched in background during dev mode
+    // Cached GPS weather data fetched in background during expert mode with override
     private var cachedGpsWeatherData: WeatherData? = null
 
     init {
-        // Ensure dev mode is false if expired on startup
-        if (!_devModeActive.value) {
+        checkOverrideExpiry()
+        // When expert mode is turned off, clear location override and refresh
+        viewModelScope.launch {
+            var prev = expertModeActive.value
+            expertModeActive.collect { active ->
+                if (!active && prev) {
+                    clearDevModeOverride()
+                    fetchWeather()
+                }
+                prev = active
+            }
+        }
+    }
+
+    private fun checkOverrideExpiry() {
+        val setTime = prefs.getLong("expert_override_set_time", 0L)
+        if (setTime != 0L && System.currentTimeMillis() - setTime >= 12 * 60 * 60 * 1000L) {
             clearDevModeOverride()
         }
     }
 
-    private fun checkDevModeExpiration(): Boolean {
-        val expiration = prefs.getLong("dev_mode_expiration", 0L)
-        return System.currentTimeMillis() < expiration
-    }
-
     fun onLocationClicked() {
-        // Single tap toggles GPS coordinates below the location label
         _showGpsCoordinates.value = !_showGpsCoordinates.value
-    }
-
-    private var devModeTapCount = 0
-    private var devModeTapJob: Job? = null
-
-    fun onWeatherIconTapped() {
-        devModeTapCount++
-        devModeTapJob?.cancel()
-        if (devModeTapCount >= 7) {
-            devModeTapCount = 0
-            if (!_devModeActive.value) {
-                val now = System.currentTimeMillis()
-                val expiration = now + 4 * 60 * 60 * 1000L // 4 hours
-                prefs.edit { putLong("dev_mode_expiration", expiration) }
-                _devModeActive.value = true
-                Toast.makeText(appContext, "Developer mode enabled", Toast.LENGTH_SHORT).show()
-            }
-        } else {
-            devModeTapJob = viewModelScope.launch {
-                delay(500)
-                devModeTapCount = 0
-            }
-        }
     }
 
     fun onLocationDoubleClicked() {
@@ -167,23 +152,6 @@ class WeatherViewModel @Inject constructor(
         _showLocationOverrideDialog.value = true
     }
 
-    fun disableDevMode() {
-        prefs.edit { remove("dev_mode_expiration") }
-        _devModeActive.value = false
-        clearDevModeOverride()
-        _showLocationOverrideDialog.value = false
-        // Restore cached GPS weather if available
-        val cached = cachedGpsWeatherData
-        if (cached != null) {
-            _uiState.value = WeatherUiState.Success(cached)
-            cachedGpsWeatherData = null
-            // Also refresh in background to get truly fresh data
-            refresh()
-        } else {
-            fetchWeather()
-        }
-    }
-
     fun searchLocation(query: String) {
         if (query.isBlank()) {
             _searchResults.value = emptyList()
@@ -192,7 +160,7 @@ class WeatherViewModel @Inject constructor(
 
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
-            delay(500) // Debounce
+            kotlinx.coroutines.delay(500) // Debounce
 
             // Check for direct coordinates
             val coordsPattern = Regex("^(-?\\d+\\.\\d+)\\s*,\\s*(-?\\d+\\.\\d+)$")
@@ -230,6 +198,7 @@ class WeatherViewModel @Inject constructor(
             putFloat("dev_override_lat", lat.toFloat())
             putFloat("dev_override_lon", lon.toFloat())
             putString("dev_override_name", name)
+            putLong("expert_override_set_time", System.currentTimeMillis())
         }
         _devOverrideLat.value = lat
         _devOverrideLon.value = lon
@@ -248,6 +217,7 @@ class WeatherViewModel @Inject constructor(
             remove("dev_override_lat")
             remove("dev_override_lon")
             remove("dev_override_name")
+            remove("expert_override_set_time")
         }
         _devOverrideLat.value = null
         _devOverrideLon.value = null
@@ -271,7 +241,7 @@ class WeatherViewModel @Inject constructor(
         prefs.edit { putInt("locale_index", newIndex) }
     }
 
-    /** Spawn a background GPS weather fetch to cache for when dev mode is disabled */
+    /** Spawn a background GPS weather fetch to cache for when override is cleared */
     private fun spawnGpsCacheRefresh() {
         viewModelScope.launch {
             try {
@@ -293,8 +263,6 @@ class WeatherViewModel @Inject constructor(
             weatherRepository.fetchAlerts(lat, lon, derivedAlerts).onSuccess { alerts ->
                 val current = _uiState.value
                 if (current is WeatherUiState.Success && !current.data.locationName.contains(",")) {
-                    // Only update if we are still on a non-coordinate-named location (to avoid race)
-                    // and it's likely the same location (checking name is a simple heuristic)
                     _uiState.value = WeatherUiState.Success(current.data.copy(alerts = alerts, alertsLoading = false))
                 } else if (current is WeatherUiState.Success) {
                     _uiState.value = WeatherUiState.Success(current.data.copy(alerts = alerts, alertsLoading = false))
@@ -324,13 +292,10 @@ class WeatherViewModel @Inject constructor(
                 _isRefreshing.value = true
             }
 
-            // Check if dev mode expired
-            if (_devModeActive.value && !checkDevModeExpiration()) {
-                _devModeActive.value = false
-                clearDevModeOverride()
-            }
+            // Check 12-hour non-local override expiry
+            checkOverrideExpiry()
 
-            if (_devModeActive.value && prefs.contains("dev_override_lat")) {
+            if (expertModeActive.value && prefs.contains("dev_override_lat")) {
                 val overrideLat = prefs.getFloat("dev_override_lat", 0f).toDouble()
                 val overrideLon = prefs.getFloat("dev_override_lon", 0f).toDouble()
                 val rawOverrideName = prefs.getString("dev_override_name", "Overridden Location") ?: "Overridden Location"
@@ -359,12 +324,10 @@ class WeatherViewModel @Inject constructor(
         fetchJob = viewModelScope.launch {
             _isRefreshing.value = true
 
-            if (_devModeActive.value && !checkDevModeExpiration()) {
-                _devModeActive.value = false
-                clearDevModeOverride()
-            }
+            // Check 12-hour non-local override expiry
+            checkOverrideExpiry()
 
-            if (_devModeActive.value && prefs.contains("dev_override_lat")) {
+            if (expertModeActive.value && prefs.contains("dev_override_lat")) {
                 val overrideLat = prefs.getFloat("dev_override_lat", 0f).toDouble()
                 val overrideLon = prefs.getFloat("dev_override_lon", 0f).toDouble()
                 val rawOverrideName = prefs.getString("dev_override_name", "Overridden Location") ?: "Overridden Location"
@@ -447,8 +410,7 @@ class WeatherViewModel @Inject constructor(
                 }
             }
         }
-        // Safety net: if the entire fetch timed out (provider hung despite internal timeout),
-        // guarantee we exit Loading rather than spinning indefinitely.
+        // Safety net: if the entire fetch timed out, guarantee we exit Loading.
         if (completed == null && _uiState.value is WeatherUiState.Loading) {
             _uiState.value = WeatherUiState.Error(R.string.error_get_location)
         }
