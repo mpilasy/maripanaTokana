@@ -1,5 +1,26 @@
 import { error } from '@sveltejs/kit';
+import https from 'node:https';
 import type { RequestHandler } from './$types';
+
+// WMO SWIC serves a cert for cyclone.wmo.int at severe.worldweather.wmo.int —
+// hostname mismatch causes Node fetch to reject. Use node:https with the check
+// disabled for this one host.
+function fetchWmoJson(country: string): Promise<unknown> {
+	return new Promise((resolve, reject) => {
+		https.get(
+			`https://severe.worldweather.wmo.int/json/${country}.json`,
+			{ rejectUnauthorized: false },
+			(res) => {
+				let raw = '';
+				res.on('data', (chunk: string) => { raw += chunk; });
+				res.on('end', () => {
+					try { resolve(JSON.parse(raw)); }
+					catch { resolve({ Warning: [] }); }
+				});
+			}
+		).on('error', reject);
+	});
+}
 
 export const GET: RequestHandler = async ({ url }) => {
 	const country = url.searchParams.get('country');
@@ -7,13 +28,9 @@ export const GET: RequestHandler = async ({ url }) => {
 		throw error(400, 'Missing or invalid country code');
 	}
 	try {
-		const res = await fetch(`https://severe.worldweather.wmo.int/json/${country}.json`);
-		if (!res.ok) return Response.json({ Warning: [] });
-		const data = await res.json();
+		const data = await fetchWmoJson(country);
 		return Response.json(data);
 	} catch {
-		// WMO SWIC has an SSL certificate mismatch (cert for cyclone.wmo.int served at
-		// severe.worldweather.wmo.int). Return empty rather than propagating a 500.
 		return Response.json({ Warning: [] });
 	}
 };
