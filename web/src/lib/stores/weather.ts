@@ -66,7 +66,10 @@ async function fetchAtLocation(lat: number, lon: number, knownName?: string, kno
 
 function setWeatherData(data: WeatherData) {
 	weatherState.update(s => {
-		const existingAlerts = s.kind === 'success' ? s.data.alerts : [];
+		const existingAlerts =
+			s.kind === 'success' && s.data.locationName === data.locationName
+				? s.data.alerts
+				: [];
 		return { kind: 'success', data: { ...data, alerts: existingAlerts } };
 	});
 }
