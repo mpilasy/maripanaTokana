@@ -185,18 +185,30 @@ class WeatherRepositoryImpl @Inject constructor(
                     val areaCode = JmaAreaCodes.nearestPrefectureCode(lat, lon)
                     val response = jmaApiService.getWarnings(areaCode)
                     val isoParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
-                    response.areaTypes.flatMap { it.areas }.flatMap { area ->
+                    val warningMap = linkedMapOf<String, Pair<AlertLevel, LinkedHashSet<String>>>()
+                    response.areaTypes.flatMap { it.areas }.forEach { area ->
+                        val areaName = JmaAreaCodes.prefectureName(area.code)
                         area.warnings
                             .filter { it.status == "発表" || it.status == "継続" }
-                            .map { w ->
+                            .forEach { w ->
                                 val level = when {
                                     w.code == "01" -> AlertLevel.EMERGENCY
                                     w.code.toIntOrNull()?.let { it <= 8 } == true -> AlertLevel.WARNING
                                     else -> AlertLevel.WATCH
                                 }
-                                WeatherAlert(level, jmaWarningName(w.code), area.name.ifEmpty { w.name }, "jma", null, null, null)
+                                val warnName = jmaWarningName(w.code)
+                                val existing = warningMap[warnName]
+                                if (existing == null) {
+                                    warningMap[warnName] = Pair(level, linkedSetOf<String>().also { if (areaName != null) it.add(areaName) })
+                                } else {
+                                    if (areaName != null) existing.second.add(areaName)
+                                    if (level.ordinal > existing.first.ordinal) warningMap[warnName] = Pair(level, existing.second)
+                                }
                             }
-                    }.distinctBy { it.titleKey }
+                    }
+                    warningMap.map { (warnName, pair) ->
+                        WeatherAlert(pair.first, warnName, pair.second.joinToString(", "), "jma", null, null, null)
+                    }
                 } catch (_: Exception) { emptyList() }
             }
 
@@ -245,10 +257,9 @@ class WeatherRepositoryImpl @Inject constructor(
                                 else -> AlertLevel.WATCH
                             }
                             val time = w.issueTime?.let { try { bomParser.parse(it)?.time } catch (_: Exception) { null } }
-                            val headline = if (w.state.isNotBlank()) "${w.state}: ${w.title}" else w.title
-                            val body = w.shortTitle.ifBlank { w.shortDescription }
-                            val finalBody = if (body.trim().equals(w.title.trim(), ignoreCase = true)) "" else body
-                            WeatherAlert(level, headline, finalBody, "bom", time, null, null)
+                            val eventType = w.shortTitle.ifBlank { w.shortDescription }
+                            val area = if (w.state.isNotBlank()) "${w.state}: ${w.title}" else w.title
+                            WeatherAlert(level, eventType, area, "bom", time, null, null)
                         }
                 } catch (_: Exception) { emptyList() }
             }

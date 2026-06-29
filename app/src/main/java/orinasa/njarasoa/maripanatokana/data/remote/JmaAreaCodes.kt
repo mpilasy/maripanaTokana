@@ -10,6 +10,31 @@ object JmaAreaCodes {
         }?.first ?: "130000"
     }
 
+    fun prefectureName(areaCode: String): String? {
+        val prefix = areaCode.take(2)
+        return PREFECTURES.firstOrNull { it.first.take(2) == prefix }
+            ?.let { PREFECTURE_NAMES[it.first] }
+    }
+
+    private val PREFECTURE_NAMES = mapOf(
+        "016000" to "Hokkaido", "020000" to "Aomori", "030000" to "Iwate",
+        "040000" to "Miyagi", "050000" to "Akita", "060000" to "Yamagata",
+        "070000" to "Fukushima", "080000" to "Ibaraki", "090000" to "Tochigi",
+        "100000" to "Gunma", "110000" to "Saitama", "120000" to "Chiba",
+        "130000" to "Tokyo", "140000" to "Kanagawa", "150000" to "Niigata",
+        "160000" to "Toyama", "170000" to "Ishikawa", "180000" to "Fukui",
+        "190000" to "Yamanashi", "200000" to "Nagano", "210000" to "Gifu",
+        "220000" to "Shizuoka", "230000" to "Aichi", "240000" to "Mie",
+        "250000" to "Shiga", "260000" to "Kyoto", "270000" to "Osaka",
+        "280000" to "Hyogo", "290000" to "Nara", "300000" to "Wakayama",
+        "310000" to "Tottori", "320000" to "Shimane", "330000" to "Okayama",
+        "340000" to "Hiroshima", "350000" to "Yamaguchi", "360000" to "Tokushima",
+        "370000" to "Kagawa", "380000" to "Ehime", "390000" to "Kochi",
+        "400000" to "Fukuoka", "410000" to "Saga", "420000" to "Nagasaki",
+        "430000" to "Kumamoto", "440000" to "Oita", "450000" to "Miyazaki",
+        "460000" to "Kagoshima", "471000" to "Okinawa"
+    )
+
     // (code, center_lat, center_lon) for all 47 prefectures
     private val PREFECTURES = arrayOf(
         Triple("016000", 43.06, 141.35), // Hokkaido
