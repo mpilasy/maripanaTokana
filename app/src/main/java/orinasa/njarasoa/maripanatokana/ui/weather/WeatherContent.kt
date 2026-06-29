@@ -42,6 +42,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -97,9 +98,9 @@ import orinasa.njarasoa.maripanatokana.domain.model.WeatherSource
 import orinasa.njarasoa.maripanatokana.ui.theme.CardBlue
 import orinasa.njarasoa.maripanatokana.ui.theme.DarkNavyColorInt
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFont
+import orinasa.njarasoa.maripanatokana.ui.theme.SkyBlue
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFontFeatures
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
-import orinasa.njarasoa.maripanatokana.ui.theme.SkyBlue
 import orinasa.njarasoa.maripanatokana.ui.weather.components.DailyTemperatureChart
 import orinasa.njarasoa.maripanatokana.ui.weather.components.TemperatureChart
 import orinasa.njarasoa.maripanatokana.ui.weather.components.WeatherAlertBanner
@@ -211,7 +212,7 @@ internal fun WeatherContent(
                             fontSize = 32f.s(scale),
                             fontWeight = FontWeight.Bold,
                             fontFamily = displayFont,
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onSurface,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -220,7 +221,7 @@ internal fun WeatherContent(
                                 text = data.locationSubtext,
                                 fontSize = 13f.s(scale),
                                 fontFamily = bodyFont,
-                                color = Color.White.copy(alpha = 0.5f),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                                 modifier = Modifier.padding(top = 0.dp)
                             )
                         }
@@ -234,15 +235,15 @@ internal fun WeatherContent(
                             Icon(
                                 imageVector = Icons.Default.Edit,
                                 contentDescription = "Edit Location",
-                                tint = Color.White.copy(alpha = 0.7f),
+                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                                 modifier = Modifier.size(18.sd(scale))
                             )
                         }
-                        
+
                         Spacer(modifier = Modifier.width(4.dp))
-                        
+
                         Surface(
-                            color = Color.White.copy(alpha = 0.15f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f),
                             shape = RoundedCornerShape(4.dp),
                             onClick = onDisableDevMode
                         ) {
@@ -254,13 +255,13 @@ internal fun WeatherContent(
                                     text = "DEV",
                                     fontSize = 10f.s(scale),
                                     fontWeight = FontWeight.ExtraBold,
-                                    color = Color.White.copy(alpha = 0.9f)
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f)
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Icon(
                                     imageVector = Icons.Default.Close,
                                     contentDescription = "Exit Dev Mode",
-                                    tint = Color.White.copy(alpha = 0.7f),
+                                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                                     modifier = Modifier.size(10.sd(scale))
                                 )
                             }
@@ -285,14 +286,14 @@ internal fun WeatherContent(
                             fontSize = 20f.s(scale),
                             fontWeight = FontWeight.Bold,
                             fontFamily = displayFont,
-                            color = Color.White.copy(alpha = 0.8f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                         )
                         Text(
                             text = formatDMS(displayLon, "E", "W"),
                             fontSize = 20f.s(scale),
                             fontWeight = FontWeight.Bold,
                             fontFamily = displayFont,
-                            color = Color.White.copy(alpha = 0.8f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                         )
                     }
                 }
@@ -302,7 +303,7 @@ internal fun WeatherContent(
                     text = stringResource(R.string.updated_time, localizeDigits("${dateFormat.format(Date(data.timestamp))}, ${screenTimeFormat.format(Date(data.timestamp))}")),
                     fontSize = 13f.s(scale),
                     fontFamily = bodyFont,
-                    color = Color.White.copy(alpha = 0.5f)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                 )
                 if (isRemoteTimezone(data.utcOffsetSeconds)) {
                     Spacer(modifier = Modifier.width(12.dp))
@@ -311,7 +312,7 @@ internal fun WeatherContent(
                         fontSize = 13f.s(scale),
                         fontFamily = displayFont,
                         fontWeight = FontWeight.SemiBold,
-                        color = Color.White.copy(alpha = 0.7f)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
                 }
             }
@@ -341,7 +342,7 @@ internal fun WeatherContent(
                             drawLayer(graphicsLayer)
                         },
                     shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = CardBlue)
+                    colors = CardDefaults.cardColors(containerColor = CardBlue.copy(alpha = 0.6f))
                 ) {
                     Column(
                         modifier = Modifier.padding(24.sd(scale))
@@ -370,7 +371,7 @@ internal fun WeatherContent(
                                     text = stringResource(wmoDescriptionRes(data.weatherCode)),
                                     fontSize = 16f.s(scale),
                                     fontFamily = bodyFont,
-                                    color = Color.White.copy(alpha = 0.9f),
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
                                     textAlign = TextAlign.Center,
                                 )
                             }
@@ -395,7 +396,7 @@ internal fun WeatherContent(
                                     text = stringResource(R.string.feels_like),
                                     fontSize = 14f.s(scale),
                                     fontFamily = bodyFont,
-                                    color = Color.White.copy(alpha = 0.7f)
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                                 )
                                 val (flPrimary, flSecondary) = data.feelsLike.displayDual(metricPrimary)
                                 DualUnitText(primary = localizeDigits(flPrimary), secondary = localizeDigits(flSecondary), onClick = onToggleUnits)
@@ -420,7 +421,7 @@ internal fun WeatherContent(
                                         text = stringResource(R.string.no_precip),
                                         fontSize = 14f.s(scale),
                                         fontFamily = bodyFont,
-                                        color = Color.White.copy(alpha = 0.5f),
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                                     )
                                 }
                             }
@@ -458,7 +459,7 @@ internal fun WeatherContent(
                         fontSize = 9f.s(scale),
                         lineHeight = 11f.s(scale),
                         fontFamily = bodyFont,
-                        color = Color.White.copy(alpha = 0.2f),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 7.dp),
@@ -482,7 +483,7 @@ internal fun WeatherContent(
                         },
                         modifier = Modifier.size(32.dp),
                         colors = IconButtonDefaults.iconButtonColors(
-                            contentColor = Color.White.copy(alpha = 0.6f),
+                            contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         ),
                     ) {
                         Icon(
@@ -501,14 +502,14 @@ internal fun WeatherContent(
                             text = localizeDigits(stringResource(R.string.updated_time, osTimeFormat.format(Date(data.timestamp)))),
                             fontSize = 11f.s(scale),
                             fontFamily = bodyFont,
-                            color = Color.White.copy(alpha = 0.35f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Icon(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = stringResource(R.string.cd_refresh),
                             modifier = Modifier.size(14.dp),
-                            tint = Color.White.copy(alpha = 0.35f)
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
                         )
                     }
                 }
@@ -539,13 +540,14 @@ internal fun WeatherContent(
         }
 
         // Fixed footer
-        val linkStyle = SpanStyle(color = Color.White.copy(alpha = 0.5f), textDecoration = TextDecoration.Underline)
+        val cs = MaterialTheme.colorScheme
+        val linkStyle = SpanStyle(color = cs.onSurface.copy(alpha = 0.5f), textDecoration = TextDecoration.Underline)
         val (sourceLabel, sourceUrl) = when (weatherSource) {
             WeatherSource.OPEN_METEO -> "Open-Meteo" to "https://open-meteo.com"
             WeatherSource.PIRATE_WEATHER -> "Pirate Weather" to "https://pirateweather.net"
         }
         val creditText = buildAnnotatedString {
-            withStyle(SpanStyle(color = Color.White.copy(alpha = 0.3f))) {
+            withStyle(SpanStyle(color = cs.onSurface.copy(alpha = 0.3f))) {
                 append(stringResource(R.string.credits_weather_data))
                 append(" ")
             }
@@ -576,7 +578,7 @@ internal fun WeatherContent(
                         painter = painterResource(R.drawable.ic_font),
                         contentDescription = stringResource(R.string.cd_change_font),
                         modifier = Modifier.size(14.dp),
-                        tint = Color.White.copy(alpha = 0.4f),
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
@@ -584,7 +586,7 @@ internal fun WeatherContent(
                         fontSize = 9f.s(scale),
                         lineHeight = 11f.s(scale),
                         fontFamily = bodyFont,
-                        color = Color.White.copy(alpha = 0.4f),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                     )
                 }
                 Spacer(modifier = Modifier.weight(1f))
@@ -595,7 +597,7 @@ internal fun WeatherContent(
                         text = "v${BuildConfig.VERSION_NAME} \u2022 ${stringResource(R.string.hash_version, BuildConfig.GIT_HASH)}${if (BuildConfig.DEBUG) "-d" else ""} \u2022 ${BuildConfig.BUILD_TIME}",
                         fontSize = 9f.s(scale),
                         lineHeight = 11f.s(scale),
-                        color = Color.White.copy(alpha = 0.25f),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f),
                     )
                 }
                 Spacer(modifier = Modifier.weight(1f))
@@ -624,7 +626,7 @@ internal fun WeatherContent(
         Icon(
             imageVector = Icons.Default.Settings,
             contentDescription = "Settings",
-            tint = Color.White.copy(alpha = 0.7f),
+            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
             modifier = Modifier.size(24.dp)
         )
     }
@@ -636,12 +638,13 @@ internal fun DualUnitText(
     primary: String,
     secondary: String,
     primarySize: TextUnit = 16f.s(LocalScale.current),
-    color: Color = Color.White,
+    color: Color = Color.Unspecified,
     horizontalAlignment: Alignment.Horizontal = Alignment.Start,
     onClick: (() -> Unit)? = null,
 ) {
     val displayFont = LocalDisplayFont.current
     val fontFeatures = LocalBodyFontFeatures.current
+    val resolvedColor = if (color != Color.Unspecified) color else MaterialTheme.colorScheme.onSurface
     Column(
         horizontalAlignment = horizontalAlignment,
         modifier = if (onClick != null) Modifier.clickable(
@@ -655,7 +658,7 @@ internal fun DualUnitText(
             fontSize = primarySize,
             fontWeight = FontWeight.Bold,
             fontFamily = displayFont,
-            color = color,
+            color = resolvedColor,
             style = TextStyle(fontFeatureSettings = fontFeatures),
         )
         Text(
@@ -663,7 +666,7 @@ internal fun DualUnitText(
             fontSize = primarySize * 0.75f,
             fontWeight = FontWeight.Normal,
             fontFamily = displayFont,
-            color = color.copy(alpha = 0.55f),
+            color = resolvedColor.copy(alpha = 0.55f),
             style = TextStyle(fontFeatureSettings = fontFeatures),
         )
     }
@@ -697,7 +700,7 @@ internal fun CollapsibleSection(
                 fontSize = 20f.s(scale),
                 fontWeight = FontWeight.Bold,
                 fontFamily = bodyFont,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
             )
             if (expanded) {
                 Spacer(modifier = Modifier.width(4.dp))
@@ -711,7 +714,7 @@ internal fun CollapsibleSection(
                     },
                     modifier = Modifier.size(32.dp),
                     colors = IconButtonDefaults.iconButtonColors(
-                        contentColor = Color.White.copy(alpha = 0.4f),
+                        contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                     ),
                 ) {
                     Icon(
@@ -726,7 +729,7 @@ internal fun CollapsibleSection(
                 imageVector = Icons.Default.KeyboardArrowDown,
                 contentDescription = if (expanded) stringResource(R.string.cd_collapse)
                                      else stringResource(R.string.cd_expand),
-                tint = Color.White.copy(alpha = 0.7f),
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                 modifier = Modifier.rotate(rotation),
             )
         }
@@ -794,7 +797,7 @@ internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: B
                             text = localizeDigits(locationHourFormat.format(Date(item.time))),
                             fontSize = 12f.s(scale),
                             fontFamily = bodyFont,
-                            color = Color.White.copy(alpha = 0.7f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                             style = TextStyle(fontFeatureSettings = fontFeatures),
                             textAlign = TextAlign.Center,
                             modifier = Modifier.fillMaxWidth()
@@ -805,7 +808,7 @@ internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: B
                                     text = localizeDigits(formatHourInDeviceTime(item.time)),
                                     fontSize = 9f.s(scale),
                                     fontFamily = bodyFont,
-                                    color = Color.White.copy(alpha = 0.35f),
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
                                     style = TextStyle(fontFeatureSettings = fontFeatures),
                                     textAlign = TextAlign.Center,
                                     modifier = Modifier.align(Alignment.Center)
@@ -813,7 +816,7 @@ internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: B
                                 Text(
                                     text = "\uD83D\uDCF1",
                                     fontSize = 8f.s(scale),
-                                    color = Color.White.copy(alpha = 0.35f),
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
                                     modifier = Modifier.align(Alignment.CenterEnd)
                                 )
                             }
@@ -965,20 +968,20 @@ internal fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Bo
                         fontSize = 14f.s(scale),
                         fontWeight = FontWeight.Medium,
                         fontFamily = bodyFont,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                     Text(
                         text = localizeDigits(dayMonthFormat.format(Date(item.date))),
                         fontSize = 10f.s(scale),
                         fontFamily = bodyFont,
-                        color = Color.White.copy(alpha = 0.4f),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                     )
                 }
                 Text(
                     text = "${wmoEmoji(item.weatherCode)} ${stringResource(wmoDescriptionRes(item.weatherCode))}",
                     fontSize = 12f.s(scale),
                     fontFamily = bodyFont,
-                    color = Color.White.copy(alpha = 0.7f),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     modifier = Modifier.weight(1f).clickable(
                         role = Role.Button,
                         onClickLabel = stringResource(R.string.cd_cycle_mode),
@@ -1064,7 +1067,7 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
                         text = stringResource(R.string.detail_temperature),
                         fontSize = 14f.s(scale),
                         fontFamily = bodyFont,
-                        color = Color.White.copy(alpha = 0.7f),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     val (tempP, tempS) = data.temperature.displayDual(metricPrimary)
@@ -1074,7 +1077,7 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
                         text = "${stringResource(R.string.feels_like)} ${localizeDigits(flP)}",
                         fontSize = 12f.s(scale),
                         fontFamily = bodyFont,
-                        color = Color.White.copy(alpha = 0.6f),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     )
                 }
                 // Precipitation + Cloud Cover (right)
@@ -1083,7 +1086,7 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
                         text = stringResource(R.string.detail_precipitation),
                         fontSize = 14f.s(scale),
                         fontFamily = bodyFont,
-                        color = Color.White.copy(alpha = 0.7f),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                         textAlign = TextAlign.End,
                         modifier = Modifier.fillMaxWidth(),
                     )
@@ -1100,7 +1103,7 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
                             fontSize = 20f.s(scale),
                             fontWeight = FontWeight.Bold,
                             fontFamily = LocalDisplayFont.current,
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onSurface,
                             style = TextStyle(fontFeatureSettings = fontFeatures),
                             textAlign = TextAlign.End,
                             modifier = Modifier.fillMaxWidth(),
@@ -1111,7 +1114,7 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
                         text = "${stringResource(R.string.detail_cloud_cover)}: ${localizeDigits("%d%%".format(Locale.US, data.cloudCover))}",
                         fontSize = 12f.s(scale),
                         fontFamily = bodyFont,
-                        color = Color.White.copy(alpha = 0.5f),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                         textAlign = TextAlign.End,
                         modifier = Modifier.fillMaxWidth(),
                     )
@@ -1137,7 +1140,7 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
                     text = "\u2193",
                     fontSize = 28f.s(scale),
                     fontWeight = FontWeight.Bold,
-                    color = Color.White.copy(alpha = 0.7f),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                 )
                 Spacer(modifier = Modifier.width(8.sd(scale)))
                 DualUnitText(primary = localizeDigits(minP), secondary = localizeDigits(minS), primarySize = 20f.s(scale), onClick = onToggleUnits)
@@ -1148,7 +1151,7 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
                     text = "\u2191",
                     fontSize = 28f.s(scale),
                     fontWeight = FontWeight.Bold,
-                    color = Color.White.copy(alpha = 0.7f),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                 )
             }
         }
@@ -1173,7 +1176,7 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
                         text = localizeDigits("${directions[dirIndex]} (%d\u00B0)".format(Locale.US, data.windDeg)),
                         fontSize = 12f.s(scale),
                         fontFamily = bodyFont,
-                        color = Color.White.copy(alpha = 0.6f),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     )
                 }
                 Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -1181,7 +1184,7 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
                         text = stringResource(R.string.detail_wind),
                         fontSize = 14f.s(scale),
                         fontFamily = bodyFont,
-                        color = Color.White.copy(alpha = 0.7f),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     )
                 }
                 Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
@@ -1192,7 +1195,7 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
                             text = stringResource(R.string.detail_wind_gust),
                             fontSize = 12f.s(scale),
                             fontFamily = bodyFont,
-                            color = Color.White.copy(alpha = 0.6f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                             textAlign = TextAlign.End,
                             modifier = Modifier.fillMaxWidth(),
                         )
@@ -1219,14 +1222,14 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
                         fontSize = 20f.s(scale),
                         fontWeight = FontWeight.Bold,
                         fontFamily = LocalDisplayFont.current,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                         style = TextStyle(fontFeatureSettings = fontFeatures),
                     )
                     Text(
                         text = stringResource(R.string.detail_sunrise),
                         fontSize = 12f.s(scale),
                         fontFamily = bodyFont,
-                        color = Color.White.copy(alpha = 0.6f),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     )
                 }
                 Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -1241,7 +1244,7 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
                         fontSize = 20f.s(scale),
                         fontWeight = FontWeight.Bold,
                         fontFamily = LocalDisplayFont.current,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                         style = TextStyle(fontFeatureSettings = fontFeatures),
                         textAlign = TextAlign.End,
                         modifier = Modifier.fillMaxWidth(),
@@ -1250,7 +1253,7 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
                         text = stringResource(R.string.detail_sunset),
                         fontSize = 12f.s(scale),
                         fontFamily = bodyFont,
-                        color = Color.White.copy(alpha = 0.6f),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         textAlign = TextAlign.End,
                         modifier = Modifier.fillMaxWidth(),
                     )
@@ -1284,7 +1287,7 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
                         text = stringResource(R.string.detail_humidity),
                         fontSize = 14f.s(scale),
                         fontFamily = bodyFont,
-                        color = Color.White.copy(alpha = 0.7f)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
@@ -1292,22 +1295,23 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
                         fontSize = 20f.s(scale),
                         fontWeight = FontWeight.Bold,
                         fontFamily = LocalDisplayFont.current,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                         style = TextStyle(fontFeatureSettings = fontFeatures),
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     val displayFont = LocalDisplayFont.current
+                    val onSurface = MaterialTheme.colorScheme.onSurface
                     Text(
                         text = stringResource(R.string.detail_dewpoint),
                         fontSize = 12f.s(scale),
                         fontFamily = bodyFont,
-                        color = Color.White.copy(alpha = 0.5f),
+                        color = onSurface.copy(alpha = 0.5f),
                     )
                     val dewText = buildAnnotatedString {
-                        withStyle(SpanStyle(fontSize = 13f.s(scale), fontWeight = FontWeight.Bold, fontFamily = displayFont, color = Color.White)) {
+                        withStyle(SpanStyle(fontSize = 13f.s(scale), fontWeight = FontWeight.Bold, fontFamily = displayFont, color = onSurface)) {
                             append(localizeDigits(dewP))
                         }
-                        withStyle(SpanStyle(fontSize = 12f.s(scale), fontFamily = displayFont, color = Color.White.copy(alpha = 0.55f))) {
+                        withStyle(SpanStyle(fontSize = 12f.s(scale), fontFamily = displayFont, color = onSurface.copy(alpha = 0.55f))) {
                             append(" ${localizeDigits(dewS)}")
                         }
                     }
@@ -1376,7 +1380,7 @@ internal fun DetailCard(
                 text = title,
                 fontSize = 14f.s(scale),
                 fontFamily = bodyFont,
-                color = Color.White.copy(alpha = 0.7f)
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
             )
             Spacer(modifier = Modifier.height(8.dp))
             if (secondaryValue != null) {
@@ -1387,7 +1391,7 @@ internal fun DetailCard(
                     fontSize = 20f.s(scale),
                     fontWeight = FontWeight.Bold,
                     fontFamily = LocalDisplayFont.current,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     style = TextStyle(fontFeatureSettings = fontFeatures),
                 )
             }
@@ -1396,7 +1400,7 @@ internal fun DetailCard(
                     text = it,
                     fontSize = 12f.s(scale),
                     fontFamily = bodyFont,
-                    color = Color.White.copy(alpha = 0.6f)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
             }
         }

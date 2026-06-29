@@ -3,6 +3,7 @@ package orinasa.njarasoa.maripanatokana.ui.weather.components
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -76,6 +77,7 @@ fun TemperatureChart(
     }
 
     val textMeasurer = rememberTextMeasurer()
+    val gridColor = MaterialTheme.colorScheme.onSurface
 
     Box(modifier = modifier) {
         Canvas(modifier = Modifier.fillMaxSize()) {
@@ -92,7 +94,7 @@ fun TemperatureChart(
             horizontalTicks.forEach { temp ->
                 val y = height - ((temp - paddedMin) / paddedRange * height).toFloat()
                 drawLine(
-                    color = Color.White.copy(alpha = 0.1f),
+                    color = gridColor.copy(alpha = 0.1f),
                     start = Offset(0f, y),
                     end = Offset(width, y),
                     strokeWidth = 0.5.dp.toPx()
@@ -103,7 +105,7 @@ fun TemperatureChart(
             listOf(minTemp, maxTemp).forEach { temp ->
                 val y = height - ((temp - paddedMin) / paddedRange * height).toFloat()
                 drawLine(
-                    color = Color.White.copy(alpha = 0.3f),
+                    color = gridColor.copy(alpha = 0.3f),
                     start = Offset(0f, y),
                     end = Offset(width, y),
                     strokeWidth = 0.8.dp.toPx(),
@@ -111,14 +113,14 @@ fun TemperatureChart(
                 )
             }
 
-            val midnightLabelStyle = TextStyle(color = Color.White.copy(alpha = 0.7f), fontSize = 8.sp)
-            val noonLabelStyle = TextStyle(color = Color.White.copy(alpha = 0.45f), fontSize = 8.sp)
+            val midnightLabelStyle = TextStyle(color = gridColor.copy(alpha = 0.7f), fontSize = 8.sp)
+            val noonLabelStyle = TextStyle(color = gridColor.copy(alpha = 0.45f), fontSize = 8.sp)
 
             // Draw Midnight vertical lines + label
             midnightIndices.forEach { idx ->
                 val x = (idx * (itemWidthPx + spacingPx) + itemWidthPx / 2) * xScale
                 drawLine(
-                    color = Color.White.copy(alpha = 0.4f),
+                    color = gridColor.copy(alpha = 0.4f),
                     start = Offset(x, 0f),
                     end = Offset(x, height),
                     strokeWidth = 1.dp.toPx()
@@ -131,7 +133,7 @@ fun TemperatureChart(
             noonIndices.forEach { idx ->
                 val x = (idx * (itemWidthPx + spacingPx) + itemWidthPx / 2) * xScale
                 drawLine(
-                    color = Color.White.copy(alpha = 0.2f),
+                    color = gridColor.copy(alpha = 0.2f),
                     start = Offset(x, 0f),
                     end = Offset(x, height),
                     strokeWidth = 1.dp.toPx(),
@@ -222,13 +224,13 @@ fun TemperatureChart(
                     )
                 }
                 drawLine(
-                    color = Color.White.copy(alpha = 0.7f),
+                    color = gridColor.copy(alpha = 0.7f),
                     start = Offset(vpLeft, 0f),
                     end = Offset(vpLeft, height),
                     strokeWidth = 1.5.dp.toPx()
                 )
                 drawLine(
-                    color = Color.White.copy(alpha = 0.7f),
+                    color = gridColor.copy(alpha = 0.7f),
                     start = Offset(vpRight, 0f),
                     end = Offset(vpRight, height),
                     strokeWidth = 1.5.dp.toPx()

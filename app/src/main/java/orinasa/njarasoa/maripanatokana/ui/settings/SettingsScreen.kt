@@ -31,6 +31,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -49,10 +50,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import orinasa.njarasoa.maripanatokana.domain.model.GeocodingSource
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherSource
 
-private val OnSurface = Color.White
-private val OnSurfaceDim = Color.White.copy(alpha = 0.6f)
-private val OnSurfaceFaint = Color.White.copy(alpha = 0.35f)
-private val SectionColor = Color.White.copy(alpha = 0.12f)
 
 @Composable
 fun SettingsScreen(
@@ -79,10 +76,10 @@ fun SettingsScreen(
         // Header
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
             IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = OnSurface)
+                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
             }
             Spacer(Modifier.width(8.dp))
-            Text("Settings", color = OnSurface, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text("Settings", color = MaterialTheme.colorScheme.onSurface, fontSize = 20.sp, fontWeight = FontWeight.Bold)
         }
 
         Spacer(Modifier.height(24.dp))
@@ -102,13 +99,13 @@ fun SettingsScreen(
                     RadioButton(
                         selected = selected,
                         onClick = null,
-                        colors = RadioButtonDefaults.colors(selectedColor = OnSurface, unselectedColor = OnSurfaceDim),
+                        colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.onSurface, unselectedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)),
                     )
                     Spacer(Modifier.width(12.dp))
                     Column {
-                        Text(source.displayName(), color = OnSurface, fontSize = 15.sp)
+                        Text(source.displayName(), color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp)
                         if (source.requiresApiKey()) {
-                            Text("Requires API key", color = OnSurfaceDim, fontSize = 12.sp)
+                            Text("Requires API key", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 12.sp)
                         }
                     }
                 }
@@ -119,16 +116,16 @@ fun SettingsScreen(
             OutlinedTextField(
                 value = pendingApiKey,
                 onValueChange = { viewModel.updatePendingApiKey(it) },
-                label = { Text("API Key", color = OnSurfaceDim) },
+                label = { Text("API Key", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)) },
                 singleLine = true,
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = OnSurface,
-                    unfocusedTextColor = OnSurface,
-                    focusedBorderColor = OnSurface,
-                    unfocusedBorderColor = OnSurfaceDim,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedBorderColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 ),
             )
             if (pendingApiKey.isNotEmpty()) {
@@ -142,10 +139,10 @@ fun SettingsScreen(
                             CircularProgressIndicator(
                                 modifier = Modifier.size(14.dp),
                                 strokeWidth = 2.dp,
-                                color = OnSurfaceDim,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                             )
                         } else {
-                            Text("Test", color = OnSurface)
+                            Text("Test", color = MaterialTheme.colorScheme.onSurface)
                         }
                     }
                     Spacer(Modifier.width(12.dp))
@@ -153,7 +150,7 @@ fun SettingsScreen(
                         is ApiKeyTestState.Success ->
                             Text("✓ Saved", color = Color(0xFF66BB6A), fontSize = 13.sp)
                         is ApiKeyTestState.Failure ->
-                            Text(state.message, color = Color(0xFFEF5350), fontSize = 13.sp)
+                            Text(state.message, color = MaterialTheme.colorScheme.error, fontSize = 13.sp)
                         else -> {}
                     }
                 }
@@ -169,11 +166,11 @@ fun SettingsScreen(
             Modifier.fillMaxWidth().padding(vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("Show weather alerts", color = OnSurface, fontSize = 15.sp, modifier = Modifier.weight(1f))
+            Text("Show weather alerts", color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp, modifier = Modifier.weight(1f))
             Switch(
                 checked = settings.alertsEnabled,
                 onCheckedChange = { viewModel.updateAlertsEnabled(it) },
-                colors = SwitchDefaults.colors(checkedThumbColor = OnSurface, checkedTrackColor = Color.White.copy(alpha = 0.3f)),
+                colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colorScheme.onSurface, checkedTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)),
             )
         }
         if (settings.alertsEnabled) {
@@ -205,13 +202,13 @@ fun SettingsScreen(
                     RadioButton(
                         selected = selected,
                         onClick = null,
-                        colors = RadioButtonDefaults.colors(selectedColor = OnSurface, unselectedColor = OnSurfaceDim),
+                        colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.onSurface, unselectedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)),
                     )
                     Spacer(Modifier.width(12.dp))
                     Column {
-                        Text(source.displayName(), color = OnSurface, fontSize = 15.sp)
+                        Text(source.displayName(), color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp)
                         if (source == GeocodingSource.NOMINATIM) {
-                            Text("Works on all builds including F-Droid, no API key required", color = OnSurfaceDim, fontSize = 12.sp)
+                            Text("Works on all builds including F-Droid, no API key required", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 12.sp)
                         }
                     }
                 }
@@ -224,7 +221,7 @@ fun SettingsScreen(
 
 @Composable
 private fun SectionHeader(title: String) {
-    Text(title.uppercase(), color = OnSurfaceFaint, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 1.sp)
+    Text(title.uppercase(), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 1.sp)
     Spacer(Modifier.height(8.dp))
 }
 
@@ -240,10 +237,10 @@ private fun AlertCheckRow(label: String, checked: Boolean, onChecked: (Boolean) 
         Checkbox(
             checked = checked,
             onCheckedChange = null,
-            colors = CheckboxDefaults.colors(checkedColor = OnSurface, uncheckedColor = OnSurfaceDim, checkmarkColor = Color.Black),
+            colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.onSurface, uncheckedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), checkmarkColor = Color.Black),
         )
         Spacer(Modifier.width(12.dp))
-        Text(label, color = OnSurfaceDim, fontSize = 14.sp)
+        Text(label, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 14.sp)
     }
 }
 

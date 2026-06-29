@@ -1,9 +1,12 @@
 package orinasa.njarasoa.maripanatokana.ui.theme
 
+import androidx.compose.material3.Typography
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import orinasa.njarasoa.maripanatokana.R
 
 // Existing fonts
@@ -205,3 +208,21 @@ val fontPairings = listOf(
 val LocalDisplayFont = compositionLocalOf<FontFamily> { FontFamily.Default }
 val LocalBodyFont = compositionLocalOf<FontFamily> { FontFamily.Default }
 val LocalBodyFontFeatures = compositionLocalOf<String?> { null }
+
+fun buildTypography(pairing: FontPairing): Typography = Typography(
+    displayLarge  = TextStyle(fontFamily = pairing.display, fontWeight = FontWeight.Bold,     fontSize = 57.sp, lineHeight = 64.sp),
+    displayMedium = TextStyle(fontFamily = pairing.display, fontWeight = FontWeight.Bold,     fontSize = 45.sp, lineHeight = 52.sp),
+    displaySmall  = TextStyle(fontFamily = pairing.display, fontWeight = FontWeight.Bold,     fontSize = 36.sp, lineHeight = 44.sp),
+    headlineLarge  = TextStyle(fontFamily = pairing.display, fontWeight = FontWeight.Bold,    fontSize = 32.sp, lineHeight = 40.sp),
+    headlineMedium = TextStyle(fontFamily = pairing.display, fontWeight = FontWeight.SemiBold,fontSize = 28.sp, lineHeight = 36.sp),
+    headlineSmall  = TextStyle(fontFamily = pairing.display, fontWeight = FontWeight.SemiBold,fontSize = 24.sp, lineHeight = 32.sp),
+    titleLarge  = TextStyle(fontFamily = pairing.display, fontWeight = FontWeight.Bold,       fontSize = 22.sp, lineHeight = 28.sp),
+    titleMedium = TextStyle(fontFamily = pairing.display, fontWeight = FontWeight.SemiBold,   fontSize = 16.sp, lineHeight = 24.sp),
+    titleSmall  = TextStyle(fontFamily = pairing.body,    fontWeight = FontWeight.Medium,     fontSize = 14.sp, lineHeight = 20.sp),
+    bodyLarge   = TextStyle(fontFamily = pairing.body,    fontWeight = FontWeight.Normal,     fontSize = 16.sp, lineHeight = 24.sp),
+    bodyMedium  = TextStyle(fontFamily = pairing.body,    fontWeight = FontWeight.Normal,     fontSize = 14.sp, lineHeight = 20.sp),
+    bodySmall   = TextStyle(fontFamily = pairing.body,    fontWeight = FontWeight.Normal,     fontSize = 12.sp, lineHeight = 16.sp),
+    labelLarge  = TextStyle(fontFamily = pairing.body,    fontWeight = FontWeight.Medium,     fontSize = 14.sp, lineHeight = 20.sp),
+    labelMedium = TextStyle(fontFamily = pairing.body,    fontWeight = FontWeight.Medium,     fontSize = 12.sp, lineHeight = 16.sp),
+    labelSmall  = TextStyle(fontFamily = pairing.body,    fontWeight = FontWeight.Medium,     fontSize = 11.sp, lineHeight = 16.sp),
+)
