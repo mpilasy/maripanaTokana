@@ -17,7 +17,11 @@ function normalizeArea(s: string): string {
 function areaMatches(areaDesc: string, subdivision: string): boolean {
 	const a = normalizeArea(areaDesc);
 	const b = normalizeArea(subdivision);
-	return a === b || a.includes(b) || b.includes(a);
+	if (a === b || a.includes(b) || b.includes(a)) return true;
+	// Word intersection: handles cases like "Grad Zagreb" vs "Zagreb region"
+	const wordsA = a.split(/\s+/).filter(w => w.length >= 4);
+	const wordsB = b.split(/\s+/).filter(w => w.length >= 4);
+	return wordsA.some(w => wordsB.includes(w));
 }
 
 export async function fetchMeteoAlarmAlerts(lat: number, lon: number, countryCode: string, subdivisionName: string | null = null): Promise<WeatherAlert[]> {

@@ -369,7 +369,11 @@ class WeatherRepositoryImpl @Inject constructor(
     private fun areaMatches(areaDesc: String, subdivision: String): Boolean {
         val a = normalizeArea(areaDesc)
         val b = normalizeArea(subdivision)
-        return a == b || a.contains(b) || b.contains(a)
+        if (a == b || a.contains(b) || b.contains(a)) return true
+        // Word intersection: handles "Grad Zagreb" vs "Zagreb region" etc.
+        val wordsA = a.split(Regex("\\s+")).filter { it.length >= 4 }
+        val wordsB = b.split(Regex("\\s+")).filter { it.length >= 4 }
+        return wordsA.any { it in wordsB }
     }
 
     private fun parseMeteoAlarmAtom(xml: String, subdivisionName: String? = null): List<WeatherAlert> {
