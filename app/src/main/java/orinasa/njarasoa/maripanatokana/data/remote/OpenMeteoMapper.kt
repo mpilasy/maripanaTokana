@@ -1,12 +1,10 @@
 package orinasa.njarasoa.maripanatokana.data.remote
 
-import orinasa.njarasoa.maripanatokana.domain.model.AlertLevel
 import orinasa.njarasoa.maripanatokana.domain.model.DailyForecast
 import orinasa.njarasoa.maripanatokana.domain.model.HourlyForecast
 import orinasa.njarasoa.maripanatokana.domain.model.Precipitation
 import orinasa.njarasoa.maripanatokana.domain.model.Pressure
 import orinasa.njarasoa.maripanatokana.domain.model.Temperature
-import orinasa.njarasoa.maripanatokana.domain.model.WeatherAlert
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.model.WindSpeed
 import java.util.Calendar
@@ -44,91 +42,6 @@ private fun parseIsoDate(iso: String, utcOffsetSeconds: Int): Long {
     }
 }
 
-fun deriveAlerts(c: OpenMeteoCurrent, h: OpenMeteoHourly, d: OpenMeteoDaily, utcOffsetSeconds: Int): List<WeatherAlert> {
-    val alerts = mutableListOf<WeatherAlert>()
-    val nowMillis = System.currentTimeMillis()
-
-    // Pre-parse timestamps once using the location's timezone
-    val parsedTimes = h.time.map { parseIsoDateTime(it, utcOffsetSeconds) }
-
-    // Scan next 24 hours of hourly forecast starting from "now" at the location
-    val startIndex = parsedTimes.indexOfFirst { it >= nowMillis }.coerceAtLeast(0)
-    
-    val forecastIndices = parsedTimes.indices.filter { it in startIndex until (startIndex + 24) && it < h.time.size }
-    val forecastWindow = forecastIndices.map { idx ->
-        Triple(h.weatherCode[idx], h.temperature2m[idx], h.windSpeed10m.getOrElse(idx) { 0.0 })
-    }
-
-    val codes = listOf(c.weatherCode) + forecastWindow.map { it.first }
-    val maxWind = (listOf(c.windSpeed, c.windGusts) + forecastWindow.map { it.third }).maxOrNull() ?: 0.0
-    val maxTemp = (listOf(c.temperature) + d.temperatureMax.take(2)).maxOrNull() ?: 0.0
-    val minTemp = (listOf(c.temperature) + d.temperatureMin.take(2)).minOrNull() ?: 0.0
-
-    fun hasCode(targetCodes: List<Int>) = codes.any { it in targetCodes }
-
-    // Thunderstorm: 95, 96, 99
-    if (hasCode(listOf(95, 96, 99))) {
-        alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_thunderstorm", "alert_desc_thunderstorm", "derived"))
-    }
-
-    // Heavy Rain: 65, 82
-    if (hasCode(listOf(65, 82))) {
-        alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_heavy_rain", "alert_desc_heavy_rain", "derived"))
-    }
-
-    // Heavy Snow: 75, 86
-    if (hasCode(listOf(75, 86))) {
-        alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_heavy_snow", "alert_desc_heavy_snow", "derived"))
-    }
-
-    // High Wind
-    if (maxWind > 15.0) {
-        alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_high_wind", "alert_desc_high_wind", "derived"))
-    }
-
-    // Extreme Heat
-    if (maxTemp > 35.0) {
-        alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_extreme_heat", "alert_desc_extreme_heat", "derived"))
-    }
-
-    // Extreme Cold
-    if (minTemp < -15.0) {
-        alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_extreme_cold", "alert_desc_extreme_cold", "derived"))
-    }
-
-    // High UV
-    if (c.uvIndex > 8.0) {
-        alerts.add(WeatherAlert(AlertLevel.WATCH, "alert_title_high_uv", "alert_desc_high_uv", "derived"))
-    }
-
-    return alerts
-}
-
-fun deriveAlertsFromWeatherData(data: orinasa.njarasoa.maripanatokana.domain.model.WeatherData): List<WeatherAlert> {
-    val alerts = mutableListOf<WeatherAlert>()
-    val nowMillis = System.currentTimeMillis()
-    val hourlyWindow = data.hourlyForecast.filter { it.time >= nowMillis }.take(24)
-
-    val codes = listOf(data.weatherCode) + hourlyWindow.map { it.weatherCode }
-    val maxWind = (listOf(data.windSpeed.metersPerSecond, data.windGust?.metersPerSecond ?: 0.0) +
-                   hourlyWindow.map { it.windSpeed.metersPerSecond }).maxOrNull() ?: 0.0
-    val maxTemp = (listOf(data.temperature.celsius) +
-                   data.dailyForecast.take(2).map { it.tempMax.celsius }).maxOrNull() ?: 0.0
-    val minTemp = (listOf(data.temperature.celsius) +
-                   data.dailyForecast.take(2).map { it.tempMin.celsius }).minOrNull() ?: 0.0
-
-    fun hasCode(targetCodes: List<Int>) = codes.any { it in targetCodes }
-
-    if (hasCode(listOf(95, 96, 99))) alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_thunderstorm", "alert_desc_thunderstorm", "derived"))
-    if (hasCode(listOf(65, 82))) alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_heavy_rain", "alert_desc_heavy_rain", "derived"))
-    if (hasCode(listOf(75, 86))) alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_heavy_snow", "alert_desc_heavy_snow", "derived"))
-    if (maxWind > 15.0) alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_high_wind", "alert_desc_high_wind", "derived"))
-    if (maxTemp > 35.0) alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_extreme_heat", "alert_desc_extreme_heat", "derived"))
-    if (minTemp < -15.0) alerts.add(WeatherAlert(AlertLevel.WARNING, "alert_title_extreme_cold", "alert_desc_extreme_cold", "derived"))
-    if (data.uvIndex > 8.0) alerts.add(WeatherAlert(AlertLevel.WATCH, "alert_title_high_uv", "alert_desc_high_uv", "derived"))
-
-    return alerts
-}
 
 fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = null): WeatherData {
     val c = current
@@ -213,6 +126,6 @@ fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = 
         dailySunset = dailySunsetMillis,
         hourlyForecast = hourlyForecast,
         dailyForecast = dailyForecast,
-        alerts = deriveAlerts(c, hourly, daily, utcOffsetSeconds),
+        alerts = emptyList(),
     )
 }

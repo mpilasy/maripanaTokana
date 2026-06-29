@@ -43,7 +43,6 @@ class AppSettingsRepository @Inject constructor(
         alertsEnabled = prefs.getBoolean("settings_alerts_enabled", true),
         alertsNwsEnabled = prefs.getBoolean("settings_alerts_nws", true),
         alertsGdacsEnabled = prefs.getBoolean("settings_alerts_gdacs", true),
-        alertsDerivedEnabled = prefs.getBoolean("settings_alerts_derived", true),
         alertsMeteoAlarmEnabled = prefs.getBoolean("settings_alerts_meteoalarm", true),
         alertsJmaEnabled = prefs.getBoolean("settings_alerts_jma", true),
         alertsEcccEnabled = prefs.getBoolean("settings_alerts_eccc", true),
@@ -69,9 +68,6 @@ class AppSettingsRepository @Inject constructor(
 
     fun updateAlertsGdacsEnabled(enabled: Boolean) =
         prefs.edit().putBoolean("settings_alerts_gdacs", enabled).apply()
-
-    fun updateAlertsDerivedEnabled(enabled: Boolean) =
-        prefs.edit().putBoolean("settings_alerts_derived", enabled).apply()
 
     fun updateAlertsMeteoAlarmEnabled(enabled: Boolean) =
         prefs.edit().putBoolean("settings_alerts_meteoalarm", enabled).apply()

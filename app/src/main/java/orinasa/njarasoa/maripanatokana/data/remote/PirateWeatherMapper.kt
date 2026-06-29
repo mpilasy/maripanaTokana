@@ -80,5 +80,5 @@ fun PirateWeatherResponse.toDomain(): WeatherData {
         hourlyForecast = hourlyForecast,
         dailyForecast = dailyForecast,
     )
-    return partial.copy(alerts = deriveAlertsFromWeatherData(partial))
+    return partial
 }

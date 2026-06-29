@@ -110,20 +110,18 @@ fun WeatherAlertBanner(
                                 color = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.weight(1f)
                             )
-                            if (topAlert.source != "derived") {
-                                Spacer(modifier = Modifier.width(6.sd(scale)))
-                                Surface(
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                                    shape = RoundedCornerShape(4.dp)
-                                ) {
-                                    Text(
-                                        text = topAlert.source.uppercase(),
-                                        fontSize = 10f.s(scale),
-                                        fontWeight = FontWeight.ExtraBold,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        modifier = Modifier.padding(horizontal = 4.sd(scale), vertical = 2.sd(scale))
-                                    )
-                                }
+                            Spacer(modifier = Modifier.width(6.sd(scale)))
+                            Surface(
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                                shape = RoundedCornerShape(4.dp)
+                            ) {
+                                Text(
+                                    text = topAlert.source.uppercase(),
+                                    fontSize = 10f.s(scale),
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.padding(horizontal = 4.sd(scale), vertical = 2.sd(scale))
+                                )
                             }
                         }
                     }
@@ -188,24 +186,22 @@ fun WeatherAlertBanner(
                                     color = MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.weight(1f, fill = false)
                                 )
-                                if (alert.source != "derived") {
-                                    Spacer(modifier = Modifier.width(6.sd(scale)))
-                                    val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
-                                    Surface(
-                                        color = if (alert.link != null) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                                        shape = RoundedCornerShape(4.dp),
-                                        modifier = if (alert.link != null) Modifier.clickable {
-                                            try { uriHandler.openUri(alert.link) } catch (_: Exception) {}
-                                        } else Modifier
-                                    ) {
-                                        Text(
-                                            text = alert.source.uppercase(),
-                                            fontSize = 9f.s(scale),
-                                            fontWeight = FontWeight.ExtraBold,
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                            modifier = Modifier.padding(horizontal = 4.sd(scale), vertical = 1.sd(scale))
-                                        )
-                                    }
+                                Spacer(modifier = Modifier.width(6.sd(scale)))
+                                val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
+                                Surface(
+                                    color = if (alert.link != null) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                                    shape = RoundedCornerShape(4.dp),
+                                    modifier = if (alert.link != null) Modifier.clickable {
+                                        try { uriHandler.openUri(alert.link) } catch (_: Exception) {}
+                                    } else Modifier
+                                ) {
+                                    Text(
+                                        text = alert.source.uppercase(),
+                                        fontSize = 9f.s(scale),
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        modifier = Modifier.padding(horizontal = 4.sd(scale), vertical = 1.sd(scale))
+                                    )
                                 }
                             }
                             if (alert.time != null) {

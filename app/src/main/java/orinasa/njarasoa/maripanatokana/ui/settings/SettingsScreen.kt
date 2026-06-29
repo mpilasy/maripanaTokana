@@ -210,7 +210,6 @@ fun SettingsScreen(
             AlertCheckRow("BOM (Australia)", settings.alertsBomEnabled) { viewModel.updateAlertsBomEnabled(it) }
             AlertCheckRow("NHC (Atlantic & Pacific hurricanes)", settings.alertsNhcEnabled) { viewModel.updateAlertsNhcEnabled(it) }
             AlertCheckRow("WMO SWIC (global)", settings.alertsWmoSwicEnabled) { viewModel.updateAlertsWmoSwicEnabled(it) }
-            AlertCheckRow("Derived alerts (from weather codes)", settings.alertsDerivedEnabled) { viewModel.updateAlertsDerivedEnabled(it) }
         }
 
         Spacer(Modifier.height(32.dp))

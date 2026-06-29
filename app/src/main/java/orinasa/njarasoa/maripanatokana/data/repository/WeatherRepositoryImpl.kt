@@ -85,7 +85,7 @@ class WeatherRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun fetchAlerts(lat: Double, lon: Double, derivedAlerts: List<WeatherAlert>): Result<List<WeatherAlert>> = coroutineScope {
+    override suspend fun fetchAlerts(lat: Double, lon: Double): Result<List<WeatherAlert>> = coroutineScope {
         val settings = settingsRepository.current
         if (!settings.alertsEnabled) return@coroutineScope Result.success(emptyList())
 
@@ -299,7 +299,7 @@ class WeatherRepositoryImpl @Inject constructor(
 
             val combinedAlerts = ArrayList<WeatherAlert>(
                 nwsAlerts.size + gdacsAlerts.size + meteoAlarmAlerts.size + jmaAlerts.size +
-                    ecccAlerts.size + wmoAlerts.size + bomAlerts.size + nhcAlerts.size + derivedAlerts.size
+                    ecccAlerts.size + wmoAlerts.size + bomAlerts.size + nhcAlerts.size
             )
             val keys = HashSet<String>()
             for (item in nwsAlerts) {
@@ -334,16 +334,6 @@ class WeatherRepositoryImpl @Inject constructor(
                 val key = item.titleKey + item.source
                 if (keys.add(key)) combinedAlerts.add(item)
             }
-            val hasSourceAlerts = nwsAlerts.isNotEmpty() || gdacsAlerts.isNotEmpty() ||
-                meteoAlarmAlerts.isNotEmpty() || jmaAlerts.isNotEmpty() || ecccAlerts.isNotEmpty() ||
-                wmoAlerts.isNotEmpty() || bomAlerts.isNotEmpty() || nhcAlerts.isNotEmpty()
-            if (settings.alertsDerivedEnabled && !hasSourceAlerts) {
-                for (item in derivedAlerts) {
-                    val key = item.titleKey + item.source
-                    if (keys.add(key)) combinedAlerts.add(item)
-                }
-            }
-
             Result.success(combinedAlerts)
         } catch (e: Exception) {
             Result.failure(e)
