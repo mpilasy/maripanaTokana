@@ -11,8 +11,16 @@ export async function fetchEcccAlerts(lat: number, lon: number, countryCode: str
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		return (data.features ?? []).map((f: any) => {
 			const p = f.properties ?? {};
-			const level: AlertLevel = /warning/i.test(p.type ?? '') ? 'warning' : 'watch';
-			return { level, title: p.alert_type ?? 'Alert', description: p.name ?? '', source: 'eccc' as const };
+			// Android: extreme/severe → warning, else → watch
+			const sev = (p.severity ?? '').toLowerCase();
+			const level: AlertLevel = (sev === 'extreme' || sev === 'severe') ? 'warning' : 'watch';
+			return {
+				level,
+				title: p.headline || 'ECCC Alert',
+				description: p.description ?? '',
+				source: 'eccc' as const,
+				time: p.onset ? new Date(p.onset).getTime() : undefined,
+			};
 		});
 	} catch { return []; }
 }

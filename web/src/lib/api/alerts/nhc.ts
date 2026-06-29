@@ -24,10 +24,11 @@ export async function fetchNhcAlerts(lat: number, lon: number): Promise<WeatherA
 					: (s.classification === 'HU' || s.classification === 'TS') ? 'warning' : 'watch';
 				return {
 					level,
-					title: `${s.name}: ${s.headline ?? s.classification}`,
-					description: '',
+					title: `NHC: ${s.name}`,
+					description: s.headline || s.name || '',
 					source: 'nhc' as const,
-					link: s.advisory?.url
+					time: s.advisory?.issuance ? new Date(s.advisory.issuance).getTime() : undefined,
+					link: s.advisory?.url,
 				};
 			});
 	} catch { return []; }

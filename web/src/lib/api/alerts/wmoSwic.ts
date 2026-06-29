@@ -10,10 +10,12 @@ export async function fetchWmoSwicAlerts(lat: number, lon: number, countryCode: 
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		return (data.Warning ?? []).map((w: any) => ({
 			level: 'warning' as AlertLevel,
-			title: w.Summary ?? 'WMO Alert',
-			description: w.Detail ?? '',
-			source: 'wmo_swic' as const,
+			title: w.Summary || 'WMO Alert',
+			description: w.Detail || w.Summary || '',
+			source: 'wmoswic' as const,
 			time: w.Issuance ? new Date(w.Issuance).getTime() : undefined,
+			headline: w.City?.trim() || undefined,
+			link: w.Url?.trim() || undefined,
 		}));
 	} catch { return []; }
 }

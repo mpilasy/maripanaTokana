@@ -25,14 +25,19 @@ export async function fetchMeteoAlarmAlerts(lat: number, lon: number, countryCod
 			const desc = g('description');
 			const areaDesc = g('areaDesc');
 			const onset = g('onset');
+			const linkEl = entry.querySelector('link[rel="alternate"]');
+			const link = linkEl?.getAttribute('href') || undefined;
+			// Android mapping: extreme→emergency, severe→warning, else→watch
 			const level: AlertLevel = severity === 'Extreme' ? 'emergency'
-				: (severity === 'Severe' || severity === 'Moderate') ? 'warning' : 'watch';
+				: severity === 'Severe' ? 'warning' : 'watch';
 			alerts.push({
 				level,
 				title: event,
 				description: desc,
 				source: 'meteoalarm',
 				time: onset ? new Date(onset).getTime() : undefined,
+				headline: areaDesc || undefined,
+				link,
 			});
 		}
 		return alerts;
