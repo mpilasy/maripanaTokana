@@ -12,7 +12,7 @@ export async function fetchBomAlerts(stateCode: string | null): Promise<WeatherA
 		const data: any = await res.json();
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		return (data.data ?? [])
-			.filter((w: any) => w.warningAction !== 'cancelled')
+			.filter((w: any) => w.warning_action !== 'cancelled')
 			.filter((w: any) => !stateCode || !w.states?.length || (w.states as string[]).includes(stateCode))
 			.map((w: any) => {
 				const level: AlertLevel = w.phase === 'warning' ? 'warning' : 'watch';
