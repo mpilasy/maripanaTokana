@@ -1,13 +1,10 @@
 import type { WeatherAlert, AlertLevel } from '$lib/domain/weatherData';
-import { USER_AGENT } from './shared';
 
 export async function fetchEcccAlerts(lat: number, lon: number, countryCode: string): Promise<WeatherAlert[]> {
 	if (countryCode !== 'ca') return [];
 	try {
-		const res = await fetch(
-			`https://api.weather.gc.ca/collections/alerts/items?bbox=${lon - 1},${lat - 1},${lon + 1},${lat + 1}&f=json`,
-			{ headers: { 'User-Agent': USER_AGENT } }
-		);
+		const bbox = `${lon - 1},${lat - 1},${lon + 1},${lat + 1}`;
+		const res = await fetch(`/api/alerts/eccc?bbox=${bbox}`);
 		if (!res.ok) return [];
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const data: any = await res.json();
