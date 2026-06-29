@@ -110,7 +110,7 @@ Components (.svelte) → Stores (writable/derived) → API (fetch) → Open-Mete
 - **Stores:** `lib/stores/` (weather, preferences, location, devMode)
 - **Components:** `lib/components/` (WeatherScreen, HeroCard, HourlyForecast, DailyForecast, CurrentConditions, SettingsScreen, CollapsibleSection, etc.)
 - **i18n:** `lib/i18n/` (svelte-i18n setup, locale config, `localizeDigits()`)
-- **Server routes:** `routes/api/alerts/` (SvelteKit `+server.ts` proxy endpoints for MeteoAlarm, BOM, NHC, WMO SWIC — needed because these feeds don't set `Access-Control-Allow-Origin`)
+- **Server routes:** `routes/api/alerts/` (SvelteKit `+server.ts` proxy endpoints for MeteoAlarm, BOM, NHC, WMO SWIC, ECCC — needed because these feeds don't set `Access-Control-Allow-Origin`)
 
 ### Android ↔ Web Mapping
 
