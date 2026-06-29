@@ -40,7 +40,7 @@ export async function fetchAllAlerts(
 ): Promise<WeatherAlert[]> {
 	if (!settings.alertsEnabled) return [];
 
-	const { countryCode, stateCode } = await getLocationInfo(lat, lon);
+	const { countryCode, stateCode, subdivisionName } = await getLocationInfo(lat, lon);
 	const cc = countryCode ?? '';
 
 	const inAustralia = cc === 'au' || isInAustralia(lat, lon);
@@ -52,7 +52,7 @@ export async function fetchAllAlerts(
 	const [nws, gdacs, meteoAlarm, jma, eccc, bom, nhc, wmo] = await Promise.all([
 		(settings.alertsNwsEnabled && cc === 'us') ? fetchNwsAlerts(lat, lon) : Promise.resolve([]),
 		(settings.alertsGdacsEnabled && !coveredByRegional) ? fetchGdacsAlerts(lat, lon) : Promise.resolve([]),
-		settings.alertsMeteoAlarmEnabled ? fetchMeteoAlarmAlerts(lat, lon, cc) : Promise.resolve([]),
+		settings.alertsMeteoAlarmEnabled ? fetchMeteoAlarmAlerts(lat, lon, cc, subdivisionName) : Promise.resolve([]),
 		settings.alertsJmaEnabled ? fetchJmaAlerts(lat, lon) : Promise.resolve([]),
 		(settings.alertsEcccEnabled && cc === 'ca') ? fetchEcccAlerts(lat, lon, cc) : Promise.resolve([]),
 		(settings.alertsBomEnabled && inAustralia) ? fetchBomAlerts(stateCode) : Promise.resolve([]),

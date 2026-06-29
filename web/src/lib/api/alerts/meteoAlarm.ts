@@ -6,7 +6,21 @@ export const METEOALARM_COUNTRIES = new Set([
 	'es','se','ch','ua','gb'
 ]);
 
-export async function fetchMeteoAlarmAlerts(lat: number, lon: number, countryCode: string): Promise<WeatherAlert[]> {
+function normalizeArea(s: string): string {
+	return s.toLowerCase()
+		.normalize('NFD')
+		.replace(/[̀-ͯ]/g, '')
+		.replace(/-/g, ' ')
+		.trim();
+}
+
+function areaMatches(areaDesc: string, subdivision: string): boolean {
+	const a = normalizeArea(areaDesc);
+	const b = normalizeArea(subdivision);
+	return a === b || a.includes(b) || b.includes(a);
+}
+
+export async function fetchMeteoAlarmAlerts(lat: number, lon: number, countryCode: string, subdivisionName: string | null = null): Promise<WeatherAlert[]> {
 	if (!METEOALARM_COUNTRIES.has(countryCode)) return [];
 	try {
 		const res = await fetch(`/api/alerts/meteoalarm?country=${countryCode}`);
@@ -27,6 +41,8 @@ export async function fetchMeteoAlarmAlerts(lat: number, lon: number, countryCod
 			const onset = g('onset');
 			const linkEl = entry.querySelector('link[rel="alternate"]');
 			const link = linkEl?.getAttribute('href') || undefined;
+			// Filter to user's subdivision when known; skip alerts for other areas
+			if (subdivisionName && areaDesc && !areaMatches(areaDesc, subdivisionName)) continue;
 			// Android mapping: extreme→emergency, severe→warning, else→watch
 			const level: AlertLevel = severity === 'Extreme' ? 'emergency'
 				: severity === 'Severe' ? 'warning' : 'watch';

@@ -11,20 +11,23 @@ export function calculateDistance(lat1: number, lon1: number, lat2: number, lon2
 	return EARTH_RADIUS_KM * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-export async function getLocationInfo(lat: number, lon: number): Promise<{ countryCode: string | null; stateCode: string | null }> {
+export async function getLocationInfo(lat: number, lon: number): Promise<{ countryCode: string | null; stateCode: string | null; subdivisionName: string | null }> {
 	try {
 		const res = await fetch(
-			`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=3`,
+			`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=8&addressdetails=1`,
 			{ headers: { 'User-Agent': USER_AGENT } }
 		);
-		if (!res.ok) return { countryCode: null, stateCode: null };
+		if (!res.ok) return { countryCode: null, stateCode: null, subdivisionName: null };
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const data: any = await res.json();
 		const countryCode = data.address?.country_code?.toLowerCase() ?? null;
 		const iso: string | undefined = data.address?.['ISO3166-2-lvl4'];
 		const stateCode = iso?.split('-')[1] ?? null;
-		return { countryCode, stateCode };
-	} catch { return { countryCode: null, stateCode: null }; }
+		// county matches département-level (NUTS3) in most MeteoAlarm countries
+		const subdivisionName: string | null =
+			data.address?.county ?? data.address?.city ?? data.address?.state ?? null;
+		return { countryCode, stateCode, subdivisionName };
+	} catch { return { countryCode: null, stateCode: null, subdivisionName: null }; }
 }
 
 export async function getCountryCode(lat: number, lon: number): Promise<string | null> {

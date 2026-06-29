@@ -172,8 +172,11 @@ class WeatherRepositoryImpl @Inject constructor(
                 if (!settings.alertsMeteoAlarmEnabled) return@async emptyList<WeatherAlert>()
                 val code = countryCode ?: return@async emptyList()
                 val slug = METEOALARM_SLUGS[code] ?: return@async emptyList()
+                // subAdminArea = county/département; adminArea = region — prefer the more granular one
+                val subdivision = geoAddress?.subAdminArea?.takeIf { it.isNotBlank() }
+                    ?: geoAddress?.adminArea?.takeIf { it.isNotBlank() }
                 try {
-                    parseMeteoAlarmAtom(meteoAlarmApiService.getAlerts(slug).string())
+                    parseMeteoAlarmAtom(meteoAlarmApiService.getAlerts(slug).string(), subdivision)
                 } catch (_: Exception) { emptyList() }
             }
 
@@ -358,7 +361,18 @@ class WeatherRepositoryImpl @Inject constructor(
         return r * c
     }
 
-    private fun parseMeteoAlarmAtom(xml: String): List<WeatherAlert> {
+    private fun normalizeArea(s: String): String =
+        s.lowercase().replace('-', ' ').trim()
+            .let { java.text.Normalizer.normalize(it, java.text.Normalizer.Form.NFD) }
+            .replace(Regex("\\p{InCombiningDiacriticalMarks}+"), "")
+
+    private fun areaMatches(areaDesc: String, subdivision: String): Boolean {
+        val a = normalizeArea(areaDesc)
+        val b = normalizeArea(subdivision)
+        return a == b || a.contains(b) || b.contains(a)
+    }
+
+    private fun parseMeteoAlarmAtom(xml: String, subdivisionName: String? = null): List<WeatherAlert> {
         val alerts = mutableListOf<WeatherAlert>()
         val factory = XmlPullParserFactory.newInstance().apply { isNamespaceAware = true }
         val parser = factory.newPullParser()
@@ -396,13 +410,18 @@ class WeatherRepositoryImpl @Inject constructor(
                     if ((parser.name ?: "") == "entry" && (parser.namespace ?: "") != CAP_NS && inEntry) {
                         inEntry = false
                         if (capEvent.isNotBlank() && (capStatus.isBlank() || capStatus == "Actual")) {
-                            val level = when (capSeverity.lowercase()) {
-                                "extreme" -> AlertLevel.EMERGENCY
-                                "severe" -> AlertLevel.WARNING
-                                else -> AlertLevel.WATCH
+                            // Filter to user's subdivision when known
+                            if (subdivisionName != null && capAreaDesc.isNotBlank() && !areaMatches(capAreaDesc, subdivisionName)) {
+                                // skip — alert is for a different area
+                            } else {
+                                val level = when (capSeverity.lowercase()) {
+                                    "extreme" -> AlertLevel.EMERGENCY
+                                    "severe" -> AlertLevel.WARNING
+                                    else -> AlertLevel.WATCH
+                                }
+                                val time = try { SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).parse(capOnset)?.time } catch (_: Exception) { null }
+                                alerts.add(WeatherAlert(level, capEvent, capDescription, "meteoalarm", time, capAreaDesc.ifBlank { null }, linkHref))
                             }
-                            val time = try { SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).parse(capOnset)?.time } catch (_: Exception) { null }
-                            alerts.add(WeatherAlert(level, capEvent, capDescription, "meteoalarm", time, capAreaDesc.ifBlank { null }, linkHref))
                         }
                     }
                     currentLocalName = ""; currentNs = ""
