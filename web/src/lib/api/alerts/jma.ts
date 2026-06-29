@@ -32,6 +32,27 @@ function nearestPrefectureCode(lat: number, lon: number): string {
 	return best[0];
 }
 
+const PREFECTURE_NAMES: Record<string, string> = {
+	'016000': 'Hokkaido', '020000': 'Aomori', '030000': 'Iwate', '040000': 'Miyagi',
+	'050000': 'Akita', '060000': 'Yamagata', '070000': 'Fukushima', '080000': 'Ibaraki',
+	'090000': 'Tochigi', '100000': 'Gunma', '110000': 'Saitama', '120000': 'Chiba',
+	'130000': 'Tokyo', '140000': 'Kanagawa', '150000': 'Niigata', '160000': 'Toyama',
+	'170000': 'Ishikawa', '180000': 'Fukui', '190000': 'Yamanashi', '200000': 'Nagano',
+	'210000': 'Gifu', '220000': 'Shizuoka', '230000': 'Aichi', '240000': 'Mie',
+	'250000': 'Shiga', '260000': 'Kyoto', '270000': 'Osaka', '280000': 'Hyogo',
+	'290000': 'Nara', '300000': 'Wakayama', '310000': 'Tottori', '320000': 'Shimane',
+	'330000': 'Okayama', '340000': 'Hiroshima', '350000': 'Yamaguchi', '360000': 'Tokushima',
+	'370000': 'Kagawa', '380000': 'Ehime', '390000': 'Kochi', '400000': 'Fukuoka',
+	'410000': 'Saga', '420000': 'Nagasaki', '430000': 'Kumamoto', '440000': 'Oita',
+	'450000': 'Miyazaki', '460000': 'Kagoshima', '471000': 'Okinawa',
+};
+
+function prefectureName(areaCode: string): string | null {
+	const prefix = areaCode.slice(0, 2);
+	const entry = Object.entries(PREFECTURE_NAMES).find(([k]) => k.slice(0, 2) === prefix);
+	return entry ? entry[1] : null;
+}
+
 function jmaWarningName(code: string): string {
 	const names: Record<string, string> = {
 		'01': 'Special Warning',
@@ -65,21 +86,33 @@ export async function fetchJmaAlerts(lat: number, lon: number): Promise<WeatherA
 		if (!res.ok) return [];
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const data: any = await res.json();
-		const alerts: WeatherAlert[] = [];
+		const warningMap = new Map<string, { level: AlertLevel; areas: Set<string> }>();
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		for (const areaType of (data.areaTypes ?? [])) {
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			for (const area of (areaType.areas ?? [])) {
+				const areaName = prefectureName(area.code ?? '');
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				for (const w of (area.warnings ?? [])) {
 					if (w.status !== '発表' && w.status !== '継続') continue;
 					const level: AlertLevel = w.code === '01' ? 'emergency'
 						: (parseInt(w.code) <= 8) ? 'warning' : 'watch';
-					const description = area.name ?? w.name ?? '';
-				alerts.push({ level, title: jmaWarningName(w.code), description, source: 'jma' });
+					const warnName = jmaWarningName(w.code);
+					const existing = warningMap.get(warnName);
+					if (!existing) {
+						const areas = new Set<string>();
+						if (areaName) areas.add(areaName);
+						warningMap.set(warnName, { level, areas });
+					} else {
+						if (areaName) existing.areas.add(areaName);
+						const levels: AlertLevel[] = ['watch', 'warning', 'emergency'];
+						if (levels.indexOf(level) > levels.indexOf(existing.level)) existing.level = level;
+					}
 				}
 			}
 		}
-		return alerts;
+		return Array.from(warningMap.entries()).map(([title, { level, areas }]) => ({
+			level, title, description: Array.from(areas).join(', '), source: 'jma' as const,
+		}));
 	} catch { return []; }
 }

@@ -252,10 +252,10 @@
 					<div class="date-row">
 						<p class="date">
 							{$_('updated_time', { values: { time: loc(formatDate(data.timestamp, SUPPORTED_LOCALES[$localeIndex].tag)) } })}
-							{#if isRemoteTimezone(data.utcOffsetSeconds)}
-								<span class="location-time">Local: {loc(formatLocationCurrentTime(data.utcOffsetSeconds, SUPPORTED_LOCALES[$localeIndex].tag))}</span>
-							{/if}
 						</p>
+						{#if isRemoteTimezone(data.utcOffsetSeconds)}
+							<p class="location-time">Local: {loc(formatLocationCurrentTime(data.utcOffsetSeconds, SUPPORTED_LOCALES[$localeIndex].tag))}</p>
+						{/if}
 						<button
 							class="gear-btn"
 							onclick={(e) => { e.stopPropagation(); showSettings = true; }}
@@ -535,13 +535,12 @@
 	}
 
 	.location-time {
-		display: inline-block;
-		margin-left: 8px;
 		font-size: 13px;
 		color: rgba(255,255,255,0.45);
 		font-family: var(--font-display);
 		font-weight: 600;
 		font-feature-settings: var(--font-features);
+		margin: 0;
 	}
 
 	.location-time::before {

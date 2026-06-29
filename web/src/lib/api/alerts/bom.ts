@@ -12,9 +12,9 @@ export async function fetchBomAlerts(stateCode: string | null): Promise<WeatherA
 			.filter((w: any) => !stateCode || !w.states?.length || (w.states as string[]).includes(stateCode))
 			.map((w: any) => {
 				const level: AlertLevel = w.phase === 'warning' ? 'warning' : 'watch';
-				const rawDesc: string = w.short_title ?? '';
-				const description = rawDesc.trim().toLowerCase() === (w.title ?? '').trim().toLowerCase() ? '' : rawDesc;
-				return { level, title: w.title ?? 'Alert', description, source: 'bom' as const };
+				const eventType: string = w.short_title || w.title || 'Alert';
+				const area: string = w.state ? `${w.state}: ${w.title ?? ''}` : (w.title ?? '');
+				return { level, title: eventType, description: area, source: 'bom' as const };
 			});
 	} catch { return []; }
 }
