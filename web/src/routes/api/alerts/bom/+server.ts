@@ -6,9 +6,9 @@ const USER_AGENT = 'maripanaTokana (contact@orinasa.mg)';
 // BOM API has HTTP/2 issues (INTERNAL_ERROR). Use node:https to force HTTP/1.1.
 function fetchBomJson(): Promise<unknown> {
 	return new Promise((resolve, reject) => {
-		https.get(
+		const req = https.get(
 			'https://api.weather.bom.gov.au/v1/warnings',
-			{ headers: { 'User-Agent': USER_AGENT } },
+			{},
 			(res) => {
 				let raw = '';
 				res.on('data', (chunk: string) => { raw += chunk; });
@@ -17,7 +17,9 @@ function fetchBomJson(): Promise<unknown> {
 					catch { resolve({ data: [] }); }
 				});
 			}
-		).on('error', reject);
+		);
+		req.setTimeout(8000, () => req.destroy(new Error('BOM API timeout')));
+		req.on('error', reject);
 	});
 }
 
