@@ -41,10 +41,16 @@ Builds:
     subdir: app
     gradle:
       - fdroid
+  - versionName: 1.2.1
+    versionCode: 44
+    commit: PLACEHOLDER
+    subdir: app
+    gradle:
+      - fdroid
 
 AllowedAPKSigningKeys: 93270696531c2486d39b6d009a5f948eb0f7f6309b4dc4b46eeb538969fcf3e8
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 1.2.0
-CurrentVersionCode: 43
+CurrentVersion: 1.2.1
+CurrentVersionCode: 44

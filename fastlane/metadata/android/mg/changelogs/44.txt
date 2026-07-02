@@ -1,0 +1,6 @@
+• Ny mode "Expert" no solon'ny mode "Dev" teo aloha: ovay ao amin'ny Paramètres, tsy ilaina intsony ny famikasana 7 impotsiny miafina
+• Amin'ny mode "Expert", azo ovaina an-tanana ny toerana, avy eo averina amin'ny GPS amin'ny fikasihana iray (miverina ho azy ny GPS aorian'ny 12 ora)
+• Nesorina ny fampandrenesana nokajian'ny app; avy amin'ny loharano ofisialy irery ihany sisa ny fampandrenesana
+• Sivanina ho an'ny faritra misy anao ny fampandrenesana MeteoAlarm, manamboatra ohatra ny fisehoan'ny fampandrenesana Corse tao Paris
+• Nanamboarina ny fampandrenesana BOM tsy nety naka
+• Nampitoviana amin'ny Android ny fandinihana fampandrenesana amin'ny Web mba hitovy ny valiny amin'ny platform roa

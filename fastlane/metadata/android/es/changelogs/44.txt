@@ -1,0 +1,6 @@
+• El modo experto reemplaza al modo de desarrollo: activar en Ajustes, sin más gesto oculto de 7 pulsaciones
+• En modo experto, la ubicación se puede cambiar manualmente y luego restablecer a GPS con un toque (se restablece automáticamente después de 12 horas)
+• Eliminadas alertas derivadas (calculadas por la app); las alertas ahora proceden solo de fuentes oficiales
+• Las alertas de MeteoAlarm ahora se filtran según su subdivisión local, corrigiendo p. ej. París mostrando alertas de Córcega
+• Corregidas alertas de BOM que no se cargaban
+• Análisis de alertas web sincronizado con Android para obtener resultados coherentes entre plataformas

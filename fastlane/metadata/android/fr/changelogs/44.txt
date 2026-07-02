@@ -1,0 +1,6 @@
+• Le mode Expert remplace le mode Développeur : activer dans les Paramètres, plus de geste caché à 7 appuis
+• En mode Expert, la localisation peut être modifiée manuellement, puis réinitialisée au GPS d'un appui (réinitialise automatiquement après 12 heures)
+• Suppression des alertes dérivées (calculées par l'app) ; les alertes proviennent désormais des sources officielles uniquement
+• Les alertes MeteoAlarm sont maintenant filtrées selon votre subdivision locale, corrigeant par ex. Paris affichant des alertes de Corse
+• Correction des alertes BOM ne se chargeant pas
+• Analyse des alertes Web synchronisée avec Android pour des résultats cohérents entre les plates-formes

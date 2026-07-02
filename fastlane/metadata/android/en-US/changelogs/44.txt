@@ -1,0 +1,6 @@
+• Expert mode replaces Dev mode: toggle in Settings, no more hidden 7-tap gesture
+• In Expert mode, location can be changed manually, then reset to GPS with one tap (auto-resets after 12 hours)
+• Removed derived (app-calculated) alerts; alerts now come only from official sources
+• MeteoAlarm alerts now filtered to your local subdivision, fixing e.g. Paris showing Corsica alerts
+• Fixed BOM alerts failing to load
+• Web alert parsing synced with Android for consistent results across platforms
