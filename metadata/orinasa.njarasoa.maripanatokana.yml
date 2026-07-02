@@ -43,7 +43,7 @@ Builds:
       - fdroid
   - versionName: 1.2.1
     versionCode: 44
-    commit: PLACEHOLDER
+    commit: a26673ff15c067e6ed623a2be82b504d0b98a262
     subdir: app
     gradle:
       - fdroid
