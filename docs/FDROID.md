@@ -134,6 +134,8 @@ GET https://gitlab.com/api/v4/projects/mpilasy%2Ffdroiddata/jobs/<job_id>/artifa
 # follow the redirect, unzip, read tmp/orinasa.njarasoa.maripanatokana.yml
 ```
 
+**Why the GitHub CI runs `fdroid rewritemeta` locally but doesn't trust its output:** The "UPDATE METADATA AND PUSH" step in `fdroid-build.yml` runs `fdroid rewritemeta` before pushing so a hard failure (real schema/lint error) still fails the GitHub job. But its *reformatted* output is discarded — the step snapshots the file before running it and restores the snapshot if `fdroid rewritemeta` changed anything, keeping `scripts/update_metadata.py`'s canonical output instead. This exists because `fdroid rewritemeta`, run locally, was observed (2026-07-02, v1.2.1 release) to non-deterministically rewrite semantically-identical YAML into a form GitLab's own `fdroid rewritemeta` job then rejected: it collapsed the `Binaries: ` trailing-space two-line form into one line, and re-wrapped the `mg-MG` AntiFeatures double-quoted block scalar from plain continuation into `\`-escaped continuation. No `fdroidserver`/`ruamel.yaml` version had changed between the prior successful run and this one, so the local tool's output isn't safe to push as-is — only `update_metadata.py`'s targeted edits are.
+
 ### Approaches That Were Tried and Failed
 
 | Approach | Error |

@@ -84,7 +84,22 @@ jobs:
             exit 1
           fi
           pip install fdroidserver --quiet
+          # fdroid rewritemeta is run for its own validation (a hard failure here means a
+          # real schema/lint problem), but its reformatted output is NOT what gets pushed.
+          # It has been observed to non-deterministically alter byte-for-byte formatting
+          # (e.g. collapsing the "Binaries: " trailing-space form, re-wrapping quoted
+          # block scalars) in ways that are semantically identical but fail GitLab's
+          # canonical-format diff check. update_metadata.py already produces canonical
+          # output, so we snapshot before rewritemeta and restore if it touched anything.
+          cp "metadata/$APP_ID.yml" "metadata/$APP_ID.yml.orig"
           fdroid rewritemeta "$APP_ID"
+          if ! diff -q "metadata/$APP_ID.yml.orig" "metadata/$APP_ID.yml" > /dev/null; then
+            echo "::warning::fdroid rewritemeta reformatted metadata/$APP_ID.yml; discarding its formatting changes and keeping update_metadata.py's canonical output. Diff was:"
+            diff "metadata/$APP_ID.yml.orig" "metadata/$APP_ID.yml" || true
+            mv "metadata/$APP_ID.yml.orig" "metadata/$APP_ID.yml"
+          else
+            rm "metadata/$APP_ID.yml.orig"
+          fi
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add "metadata/$APP_ID.yml"
