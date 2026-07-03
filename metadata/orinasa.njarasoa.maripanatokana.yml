@@ -1,15 +1,15 @@
 AntiFeatures:
   TetheredNet:
-    mg-MG: "Mila mamantatra zavatra amin'ny internet hamandeha azy. Ny fitohizan-tserasera\
-      \ rehetra dia azo fehezina amin'ny pejy Fikirana. Ny lalàna raikitra: api.open-meteo.com\
-      \ (vinavinan'ny toetrandro, amin'ny alàlan'ny Open-Meteo na Pirate Weather —\
-      \ azo ovaina). Ny fampandrenesana (avela tsirairay): api.weather.gov (NWS, Etazonia),\
-      \ www.gdacs.org (GDACS, maneran-tany), feeds.meteoalarm.org (MeteoAlarm, Eoropa),\
-      \ www.jma.go.jp (JMA, Japon), api.weather.gc.ca (ECCC, Kanada), api.weather.bom.gov.au\
-      \ (BOM, Aostralia), www.nhc.noaa.gov (NHC, rivodoza), severe.worldweather.wmo.int\
-      \ (WMO SWIC). Ny geocoding: nominatim.openstreetmap.org na geocoding-api.open-meteo.com\
-      \ (azo ovaina). Ny GPS ihany no ampitaina; tsy zava-pantatra momba ny mpampiasa\
-      \ alainay na zarainay."
+    mg-MG: "Mila mamantatra zavatra amin'ny internet hamandeha azy. Ny fitohizan-tserasera
+      rehetra dia azo fehezina amin'ny pejy Fikirana. Ny lalàna raikitra: api.open-meteo.com
+      (vinavinan'ny toetrandro, amin'ny alàlan'ny Open-Meteo na Pirate Weather — azo
+      ovaina). Ny fampandrenesana (avela tsirairay): api.weather.gov (NWS, Etazonia),
+      www.gdacs.org (GDACS, maneran-tany), feeds.meteoalarm.org (MeteoAlarm, Eoropa),
+      www.jma.go.jp (JMA, Japon), api.weather.gc.ca (ECCC, Kanada), api.weather.bom.gov.au
+      (BOM, Aostralia), www.nhc.noaa.gov (NHC, rivodoza), severe.worldweather.wmo.int
+      (WMO SWIC). Ny geocoding: nominatim.openstreetmap.org na geocoding-api.open-meteo.com
+      (azo ovaina). Ny GPS ihany no ampitaina; tsy zava-pantatra momba ny mpampiasa
+      alainay na zarainay."
     en-US: 'Requires internet access to function. All network connections are user-configurable
       via the Settings screen. Fixed connections: api.open-meteo.com (weather, default)
       or api.pirateweather.net (optional, user-supplied API key). Optional alert sources
@@ -31,7 +31,8 @@ AutoName: maripànaTokana
 
 RepoType: git
 Repo: https://github.com/mpilasy/maripanaTokana.git
-Binaries: https://github.com/mpilasy/maripanaTokana/releases/download/v%v/maripanaTokana-v%v.apk
+Binaries: 
+  https://github.com/mpilasy/maripanaTokana/releases/download/v%v/maripanaTokana-v%v.apk
 
 Builds:
   - versionName: 1.2.1
