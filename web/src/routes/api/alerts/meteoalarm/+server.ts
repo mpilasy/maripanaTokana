@@ -1,7 +1,6 @@
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-
-const USER_AGENT = 'maripanaTokana (contact@orinasa.mg)';
+import { USER_AGENT } from '$lib/api/alerts/shared';
 
 const COUNTRY_SLUGS: Record<string, string> = {
 	at: 'austria', ba: 'bosnia-herzegovina', be: 'belgium', bg: 'bulgaria',

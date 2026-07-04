@@ -6,7 +6,7 @@ import retrofit2.http.Headers
 import retrofit2.http.Query
 
 interface NwsApiService {
-    @Headers("Accept: application/geo+json", "User-Agent: maripanaTokana (contact@orinasa.mg)")
+    @Headers("Accept: application/geo+json", "User-Agent: $APP_USER_AGENT")
     @GET("alerts/active")
     suspend fun getActiveAlerts(
         @Query("point") point: String // "lat,lon"

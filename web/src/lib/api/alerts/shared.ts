@@ -1,4 +1,4 @@
-export const USER_AGENT = 'maripanaTokana (contact@orinasa.mg)';
+export const USER_AGENT = 'maripanaTokana (mpilasy@duck.com)';
 
 const EARTH_RADIUS_KM = 6371;
 

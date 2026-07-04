@@ -28,7 +28,7 @@ data class NominatimAddress(
 )
 
 interface NominatimApiService {
-    @Headers("User-Agent: maripanaTokana (contact@orinasa.mg)")
+    @Headers("User-Agent: $APP_USER_AGENT")
     @GET("reverse")
     suspend fun reverse(
         @Query("lat") lat: Double,
@@ -37,7 +37,7 @@ interface NominatimApiService {
         @Query("accept-language") language: String = "en",
     ): NominatimPlace
 
-    @Headers("User-Agent: maripanaTokana (contact@orinasa.mg)")
+    @Headers("User-Agent: $APP_USER_AGENT")
     @GET("search")
     suspend fun search(
         @Query("q") query: String,

@@ -1,8 +1,6 @@
 import https from 'node:https';
 import type { RequestHandler } from './$types';
 
-const USER_AGENT = 'maripanaTokana (contact@orinasa.mg)';
-
 // BOM API has HTTP/2 issues (INTERNAL_ERROR). Use node:https to force HTTP/1.1.
 function fetchBomJson(): Promise<unknown> {
 	return new Promise((resolve, reject) => {
