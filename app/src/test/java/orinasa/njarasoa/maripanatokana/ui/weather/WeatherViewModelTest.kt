@@ -8,6 +8,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -19,6 +20,8 @@ import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import orinasa.njarasoa.maripanatokana.data.settings.AppSettingsRepository
+import orinasa.njarasoa.maripanatokana.domain.model.AppSettings
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.repository.LocationRepository
 import orinasa.njarasoa.maripanatokana.domain.repository.WeatherRepository
@@ -29,6 +32,7 @@ class WeatherViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private lateinit var locationRepository: LocationRepository
     private lateinit var weatherRepository: WeatherRepository
+    private lateinit var settingsRepository: AppSettingsRepository
     private lateinit var context: Context
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var editor: SharedPreferences.Editor
@@ -40,9 +44,13 @@ class WeatherViewModelTest {
 
         locationRepository = mockk()
         weatherRepository = mockk()
+        settingsRepository = mockk()
         context = mockk()
         sharedPreferences = mockk()
         editor = mockk(relaxed = true)
+
+        every { settingsRepository.settings } returns MutableStateFlow(AppSettings())
+        every { settingsRepository.current } returns AppSettings()
 
         every { context.getSharedPreferences(any(), any()) } returns sharedPreferences
         every { sharedPreferences.getBoolean(any(), any()) } returns true
@@ -76,7 +84,7 @@ class WeatherViewModelTest {
 
         coEvery { weatherRepository.fetchAlerts(any(), any()) } returns Result.success(emptyList())
 
-        viewModel = WeatherViewModel(weatherRepository, locationRepository, context)
+        viewModel = WeatherViewModel(weatherRepository, locationRepository, settingsRepository, context)
     }
 
     @After
