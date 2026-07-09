@@ -1426,11 +1426,12 @@ private fun formatLocationCurrentTime(utcOffsetSeconds: Int, locale: Locale): St
     val utcNow = System.currentTimeMillis()
     val locationMs = utcNow + utcOffsetSeconds * 1000L
     
-    // Check if the date is different
-    val deviceDate = SimpleDateFormat("yyyyMMdd", Locale.US).apply { timeZone = TimeZone.getDefault() }.format(Date(utcNow))
-    val locationDate = SimpleDateFormat("yyyyMMdd", Locale.US).apply { timeZone = TimeZone.getTimeZone("UTC") }.format(Date(locationMs))
+    // Bolt: Use fast numeric check instead of string formatting for date comparison
+    val deviceTzOffset = TimeZone.getDefault().getOffset(utcNow)
+    val deviceDay = (utcNow + deviceTzOffset) / 86400000L
+    val locationDay = locationMs / 86400000L
 
-    return if (deviceDate != locationDate) {
+    return if (deviceDay != locationDay) {
         // Show date and time, e.g., "Mon, 14:30"
         val format = SimpleDateFormat("EEE, HH:mm", locale)
         format.timeZone = TimeZone.getTimeZone("UTC")
