@@ -222,15 +222,15 @@ class WeatherRepositoryImpl @Inject constructor(
                 try {
                     val delta = 1.0
                     val bbox = String.format(Locale.US, "%.4f,%.4f,%.4f,%.4f", lon - delta, lat - delta, lon + delta, lat + delta)
-                    val ecccParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
+                    val ecccParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.US)
                     ecccApiService.getAlerts(bbox = bbox).features.map { f ->
                         val p = f.properties
-                        val level = when (p.severity.lowercase()) {
-                            "extreme", "severe" -> AlertLevel.WARNING
+                        val level = when (p.alertType.lowercase()) {
+                            "warning" -> AlertLevel.WARNING
                             else -> AlertLevel.WATCH
                         }
-                        val time = p.onset?.let { try { ecccParser.parse(it)?.time } catch (_: Exception) { null } }
-                        WeatherAlert(level, p.headline.ifBlank { "ECCC Alert" }, p.description, "eccc", time, null, null)
+                        val time = p.publicationDatetime?.let { try { ecccParser.parse(it)?.time } catch (_: Exception) { null } }
+                        WeatherAlert(level, p.alertNameEn.ifBlank { "ECCC Alert" }, p.alertTextEn, "eccc", time, null, null)
                     }
                 } catch (_: Exception) { emptyList() }
             }

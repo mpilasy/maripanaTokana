@@ -1,12 +1,12 @@
 package orinasa.njarasoa.maripanatokana.data.remote
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonElement
 import retrofit2.http.GET
 import retrofit2.http.Query
 
 interface EcccApiService {
-    @GET("collections/alerts/items")
+    @GET("collections/weather-alerts/items")
     suspend fun getAlerts(
         @Query("lang") lang: String = "en",
         @Query("limit") limit: Int = 20,
@@ -28,10 +28,8 @@ data class EcccAlertFeature(
 
 @Serializable
 data class EcccAlertProperties(
-    val headline: String = "",
-    val description: String = "",
-    val severity: String = "",
-    val urgency: String = "",
-    val onset: String? = null,
-    val url: JsonElement? = null,
+    @SerialName("alert_type") val alertType: String = "",
+    @SerialName("alert_name_en") val alertNameEn: String = "",
+    @SerialName("alert_text_en") val alertTextEn: String = "",
+    @SerialName("publication_datetime") val publicationDatetime: String? = null,
 )

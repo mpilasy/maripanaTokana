@@ -98,7 +98,7 @@ docker-compose.yml  # Container config (port)
 
 ### CORS Proxy Routes
 
-Four alert sources lack `Access-Control-Allow-Origin` headers and cannot be called from the browser directly. SvelteKit server routes proxy them:
+Five alert sources lack `Access-Control-Allow-Origin` headers and cannot be called from the browser directly. SvelteKit server routes proxy them:
 
 | Route | Upstream |
 |---|---|
@@ -106,8 +106,9 @@ Four alert sources lack `Access-Control-Allow-Origin` headers and cannot be call
 | `/api/alerts/bom` | api.weather.bom.gov.au |
 | `/api/alerts/nhc` | nhc.noaa.gov |
 | `/api/alerts/wmoswic?country=XX` | severe.worldweather.wmo.int |
+| `/api/alerts/eccc?bbox=...` | api.weather.gc.ca |
 
-NWS, GDACS, JMA, and ECCC have CORS and are called directly from the browser.
+NWS, GDACS, and JMA have CORS and are called directly from the browser.
 
 ## Architecture
 
