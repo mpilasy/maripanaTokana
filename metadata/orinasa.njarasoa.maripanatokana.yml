@@ -37,7 +37,7 @@ Binaries:
 Builds:
   - versionName: 1.2.2
     versionCode: 45
-    commit: PLACEHOLDER
+    commit: 3045064a3d969ad1bd990746a368b3d2978b3cc2
     subdir: app
     gradle:
       - fdroid
