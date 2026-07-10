@@ -425,7 +425,11 @@ adb shell pm list packages | grep gms
 6. Fill in the `commit:` field in the new build entry with the full commit hash
 7. Commit the filled-in hash, then create git tag: `git tag v{version} {commit-hash}`
 8. Push commits and tag: `git push && git push origin v{version}`
-9. Update the fdroiddata GitLab fork (`git@gitlab.com:mpilasy/fdroiddata.git`, branch `add-maripanatokana`) with the new build entry — the open MR will update automatically
+
+**Step 9 is obsolete — do not do it.** The original inclusion MR (`!33362`, `add-maripanatokana` branch on the `mpilasy/fdroiddata` fork) merged into `fdroid/fdroiddata` on 2026-06-18. Since then, F-Droid's own bot detects new tags (`AutoUpdateMode: Version` + `UpdateCheckMode: Tags` in the metadata) and opens its own `bot: Update maripànaTokana to {versionCode}` MR directly against `fdroid/fdroiddata`, auto-merged within the hour. It runs roughly once a day (observed ~04:20-04:30 UTC in recent cycles) — a tag pushed after that day's run won't show up in fdroiddata until the next cycle. Pushing to the old fork branch now has zero effect: that MR is closed and nothing polls the branch. Check status with:
+```
+curl -s "https://gitlab.com/api/v4/projects/fdroid%2Ffdroiddata/merge_requests?search=maripanatokana&per_page=5&order_by=updated_at"
+```
 
 ### Screenshots
 
