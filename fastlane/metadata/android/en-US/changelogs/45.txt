@@ -1,0 +1,1 @@
+Fixed ECCC (Environment Canada) alerts failing to load for all Canadian locations due to an outdated API endpoint.

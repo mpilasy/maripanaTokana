@@ -1,0 +1,1 @@
+Correction des alertes ECCC (Environnement Canada) qui ne se chargeaient pas pour tous les lieux canadiens en raison d'un point de terminaison API obsolète.
