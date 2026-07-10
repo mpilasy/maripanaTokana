@@ -40,3 +40,7 @@ web/**/tsconfig.tsbuildinfo
 /*.txt
 /*.json
 !package.json
+
+# Local AI-tool notes (kept locally, not committed)
+/.jules/
+/.Jules/

@@ -203,11 +203,7 @@ Test each of the 22 font pairings:
   - [ ] Body font (text) changes
   - [ ] Font selection persists across restart
 
-**Font Pairings to Test:**
-1. Roboto + Lora
-2. Orbitron + Outfit
-3. Rajdhani + Inter
-4. (and 19 more...)
+See the font pairings table in [`docs/DESIGN.md`](DESIGN.md#10-font-system) for the full list of 22 pairings (index 0 = system default).
 
 ### Refresh & Pull-to-Refresh
 
@@ -258,8 +254,7 @@ Test both widgets (if configured):
 ### Settings Screen (Android)
 
 - [ ] **Access**
-  - [ ] Gear icon visible in dev mode row (alongside Edit Location button)
-  - [ ] Gear icon absent when dev mode is off
+  - [ ] Gear icon visible top-right, always (not gated behind Expert Mode)
   - [ ] Tapping gear opens Settings screen full-screen
 
 - [ ] **Weather Source**
@@ -277,15 +272,15 @@ Test both widgets (if configured):
 
 - [ ] **Geocoding Source**
   - [ ] System Geocoder selected by default on standard build
-  - [ ] Nominatim option available and works (dev mode location search returns results)
+  - [ ] Nominatim option available and works (Expert Mode location search returns results)
   - [ ] Geocoding source persists after closing Settings
 
-### Developer Mode
+### Expert Mode
 
 - [ ] **Activation**
-  - [ ] Long-press location name activates Dev Mode
-  - [ ] "DEV" badge appears in header
-  - [ ] Double-tap location name opens override dialog
+  - [ ] Toggling "Expert mode" on in Settings activates it (no gesture)
+  - [ ] Edit (pencil) icon appears next to the location name
+  - [ ] Tapping the edit icon opens the location override dialog
 
 - [ ] **Location Override**
   - [ ] Searching for a city updates location instantly
@@ -294,9 +289,9 @@ Test both widgets (if configured):
   - [ ] "My Location" icon in search field resets to GPS
 
 - [ ] **Session & Deactivation**
-  - [ ] Double-tapping "DEV" badge disables dev mode
-  - [ ] Dev mode persists for 4 hours unless manually cleared
-  - [ ] Clearing app cache or data resets dev mode
+  - [ ] Toggling "Expert mode" off in Settings disables it and clears the override immediately
+  - [ ] Expert mode persists for 12 hours unless manually disabled
+  - [ ] Clearing app cache or data resets it
 
 ### Performance & Stability
 
@@ -539,13 +534,9 @@ Check workflow status: https://github.com/mpilasy/maripanaTokana/actions
 
 ## Next Steps After Testing
 
-1. ✅ Verify all tests pass
-2. ✅ Capture screenshots for all 8 languages
-3. ✅ Document any found issues
-4. ✅ Prepare F-Droid submission:
-   - Fork F-Droid Data repository
-   - Add metadata/orinasa.njarasoa.maripanatokana.yml
-   - Create merge request
-5. ✅ Respond to F-Droid team feedback
+1. Verify all tests pass
+2. Capture screenshots for all 8 languages
+3. Document any found issues
+4. Bump `versionCode`/`versionName`, tag, and push — F-Droid's bot picks up new tags automatically
 
-See [FDROID_PUBLISHING.md](FDROID_PUBLISHING.md) for publishing instructions.
+See [FDROID.md](FDROID.md) for the release/publishing process.

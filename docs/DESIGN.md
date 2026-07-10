@@ -20,10 +20,13 @@ There is also a web version of the app built with SvelteKit. See [`web/docs/DESI
 9. [Internationalization (i18n)](#9-internationalization-i18n)
 10. [Font System](#10-font-system)
 11. [Widgets](#11-widgets)
-12. [Developer Mode](#12-developer-mode)
-13. [Build Configuration](#13-build-configuration)
-14. [Signing & Release](#14-signing--release)
-15. [Key Design Decisions](#15-key-design-decisions)
+12. [Expert Mode](#12-expert-mode)
+13. [Settings & Pluggable Data Sources](#13-settings--pluggable-data-sources)
+14. [Weather Alerts](#14-weather-alerts)
+15. [Build Flavors](#15-build-flavors)
+16. [Build Configuration](#16-build-configuration)
+17. [Signing & Release](#17-signing--release)
+18. [Key Design Decisions](#18-key-design-decisions)
 
 ---
 
@@ -32,7 +35,7 @@ There is also a web version of the app built with SvelteKit. See [`web/docs/DESI
 | Component | Technology | Version |
 |-----------|-----------|---------|
 | Language | Kotlin | 2.2.10 |
-| Build system | Gradle + AGP | 9.1.1 |
+| Build system | Gradle + AGP | 9.2.1 |
 | UI framework | Jetpack Compose | BOM 2024.09.00 |
 | Widget framework | Glance | 1.1.1 |
 | Dependency injection | Hilt | 2.59 |
@@ -55,67 +58,79 @@ maripanaTokana/
 +-- app/
 |   +-- build.gradle.kts                    # App build config, signing, dependencies
 |   +-- src/main/
-|       +-- AndroidManifest.xml             # Permissions, activities, widget receivers
-|       +-- java/orinasa/njarasoa/maripanatokana/
-|       |   +-- MaripanaTokanaApp.kt        # Application class (Hilt + WorkManager init)
-|       |   +-- MainActivity.kt             # Entry point, locale setup, Compose host
-|       |   +-- data/
-|       |   |   +-- remote/
-|       |   |   |   +-- OpenMeteoApiService.kt   # Retrofit API interface
-|       |   |   |   +-- OpenMeteoResponse.kt     # JSON response data classes
-|       |   |   |   +-- OpenMeteoMapper.kt       # API response -> domain model
-|       |   |   |   +-- WmoWeatherCode.kt        # Weather code -> emoji/description
-|       |   |   +-- repository/
-|       |   |       +-- WeatherRepositoryImpl.kt  # Fetches weather + geocodes city
-|       |   |       +-- LocationRepositoryImpl.kt # GPS location provider
-|       |   +-- domain/
-|       |   |   +-- model/
-|       |   |   |   +-- WeatherData.kt       # Main weather data container
-|       |   |   |   +-- Temperature.kt       # Celsius/Fahrenheit value type
-|       |   |   |   +-- WindSpeed.kt         # m/s and mph value type
-|       |   |   |   +-- Pressure.kt          # hPa and inHg value type
-|       |   |   |   +-- Precipitation.kt     # mm and inches value type
-|       |   |   |   +-- HourlyForecast.kt    # Single hour forecast entry
-|       |   |   |   +-- DailyForecast.kt     # Single day forecast entry
-|       |   |   +-- repository/
-|       |   |       +-- WeatherRepository.kt     # Interface
-|       |   |       +-- LocationRepository.kt    # Interface
-|       |   +-- di/
-|       |   |   +-- NetworkModule.kt         # Hilt: Retrofit, OkHttp, JSON
-|       |   |   +-- LocationModule.kt        # Hilt: Fused location, Geocoder
-|       |   |   +-- RepositoryModule.kt      # Hilt: binds repo implementations
-|       |   +-- ui/
-|       |   |   +-- weather/
-|       |   |   |   +-- WeatherScreen.kt     # Main UI (all composables)
-|       |   |   |   +-- WeatherViewModel.kt  # State management, user actions
-|       |   |   |   +-- WeatherUiState.kt    # Sealed UI state
-|       |   |   +-- theme/
-|       |   |       +-- AppFonts.kt          # 22 font pairings + CompositionLocals
-|       |   |       +-- Theme.kt             # Material3 theme
-|       |   |       +-- Color.kt             # Color definitions
-|       |   |       +-- Type.kt              # Typography
-|       |   +-- widget/
-|       |       +-- WeatherWidget.kt             # 4x1 widget (Glance)
-|       |       +-- WeatherWidgetLarge.kt        # 4x2 widget (Glance)
-|       |       +-- WeatherWidgetReceiver.kt     # 4x1 broadcast receiver
-|       |       +-- WeatherWidgetLargeReceiver.kt # 4x2 broadcast receiver
-|       |       +-- WidgetWeatherFetcher.kt      # Standalone weather fetcher
-|       |       +-- WeatherUpdateWorker.kt       # Background periodic updater
-|       |       +-- theme/WidgetTheme.kt         # Widget color palette
-|       +-- res/
-|           +-- drawable/                    # Background images, icons
-|           +-- font/                        # TTF files (font families x 2 weights)
-|           +-- layout/                      # widget_loading.xml (placeholder)
-|           +-- mipmap-*/                    # App launcher icons
-|           +-- values/                      # strings.xml, colors.xml, themes.xml
-|           +-- values-ar/strings.xml        # Arabic translations
-|           +-- values-es/strings.xml        # Spanish translations
-|           +-- values-fr/strings.xml        # French translations
-|           +-- values-hi/strings.xml        # Hindi translations
-|           +-- values-mg/strings.xml        # Malagasy translations
-|           +-- values-ne/strings.xml        # Nepali translations
-|           +-- values-zh/strings.xml        # Chinese translations
-|           +-- xml/                         # Widget metadata, backup rules
+|   |   +-- AndroidManifest.xml             # Permissions, activities, widget receivers
+|   |   +-- java/orinasa/njarasoa/maripanatokana/
+|   |   |   +-- MaripanaTokanaApp.kt        # Application class (Hilt + WorkManager init)
+|   |   |   +-- MainActivity.kt             # Entry point, locale setup, Compose host
+|   |   |   +-- data/
+|   |   |   |   +-- location/
+|   |   |   |   |   +-- LocationProvider.kt      # Interface (flavor-implemented)
+|   |   |   |   +-- remote/
+|   |   |   |   |   +-- OpenMeteoApiService.kt   # Retrofit API interface
+|   |   |   |   |   +-- OpenMeteoResponse.kt     # JSON response data classes
+|   |   |   |   |   +-- OpenMeteoMapper.kt       # API response -> domain model
+|   |   |   |   |   +-- WmoWeatherCode.kt        # Weather code -> emoji/description
+|   |   |   |   +-- repository/
+|   |   |   |   |   +-- WeatherRepositoryImpl.kt  # Fetches weather, alerts + geocodes city
+|   |   |   |   |   +-- LocationRepositoryImpl.kt # GPS location provider
+|   |   |   |   +-- settings/
+|   |   |   |   |   +-- AppSettingsRepository.kt # SharedPreferences-backed settings + StateFlow
+|   |   |   |   +-- source/                      # Pluggable weather + geocoding sources
+|   |   |   |       +-- WeatherDataSource.kt / WeatherSourceSelector.kt
+|   |   |   |       +-- OpenMeteoWeatherSource.kt / PirateWeatherSource.kt
+|   |   |   |       +-- GeocodingDataSource.kt / GeocodingSourceSelector.kt
+|   |   |   |       +-- SystemGeocoderSource.kt / NominatimGeocodingSource.kt
+|   |   |   +-- domain/
+|   |   |   |   +-- model/
+|   |   |   |   |   +-- WeatherData.kt       # Main weather data container
+|   |   |   |   |   +-- Temperature.kt       # Celsius/Fahrenheit value type
+|   |   |   |   |   +-- WindSpeed.kt         # m/s and mph value type
+|   |   |   |   |   +-- Pressure.kt          # hPa and inHg value type
+|   |   |   |   |   +-- Precipitation.kt     # mm and inches value type
+|   |   |   |   |   +-- HourlyForecast.kt    # Single hour forecast entry
+|   |   |   |   |   +-- DailyForecast.kt     # Single day forecast entry
+|   |   |   |   +-- repository/
+|   |   |   |       +-- WeatherRepository.kt     # Interface
+|   |   |   |       +-- LocationRepository.kt    # Interface
+|   |   |   +-- di/
+|   |   |   |   +-- NetworkModule.kt         # Hilt: Retrofit, OkHttp, JSON
+|   |   |   |   +-- CommonLocationModule.kt  # Hilt: Geocoder (flavor-agnostic bindings)
+|   |   |   |   +-- RepositoryModule.kt      # Hilt: binds repo implementations
+|   |   |   +-- ui/
+|   |   |   |   +-- weather/
+|   |   |   |   |   +-- WeatherScreen.kt     # Main UI (all composables)
+|   |   |   |   |   +-- WeatherViewModel.kt  # State management, user actions
+|   |   |   |   |   +-- WeatherUiState.kt    # Sealed UI state
+|   |   |   |   |   +-- components/          # Charts, alert banner, location override dialog
+|   |   |   |   +-- settings/
+|   |   |   |   |   +-- SettingsScreen.kt / SettingsViewModel.kt
+|   |   |   |   +-- permission/
+|   |   |   |   |   +-- PermissionHandler.kt # Interface (flavor-implemented)
+|   |   |   |   +-- theme/
+|   |   |   |       +-- AppFonts.kt          # 22 font pairings + CompositionLocals
+|   |   |   |       +-- Theme.kt             # Material3 theme
+|   |   |   |       +-- Color.kt             # Color definitions
+|   |   |   |       +-- Type.kt              # Typography
+|   |   |   +-- widget/
+|   |   |       +-- WeatherWidget.kt             # 4x1 widget (Glance)
+|   |   |       +-- WeatherWidgetLarge.kt        # 4x2 widget (Glance)
+|   |   |       +-- WeatherWidgetReceiver.kt     # 4x1 broadcast receiver
+|   |   |       +-- WeatherWidgetLargeReceiver.kt # 4x2 broadcast receiver
+|   |   |       +-- BaseWidgetWeatherFetcher.kt  # Standalone weather fetcher (no Hilt)
+|   |   |       +-- WeatherUpdateWorker.kt       # Background periodic updater
+|   |   |       +-- theme/WidgetTheme.kt         # Widget color palette
+|   |   +-- res/
+|   |       +-- drawable/                    # Background images, icons
+|   |       +-- font/                        # TTF files (font families x 2 weights)
+|   |       +-- layout/                      # widget_loading.xml (placeholder)
+|   |       +-- mipmap-*/                    # App launcher icons
+|   |       +-- values/                      # strings.xml, colors.xml, themes.xml
+|   |       +-- values-{ar,es,fr,hi,mg,ne,zh}/strings.xml  # Translations (generated, don't edit directly)
+|   |       +-- xml/                         # Widget metadata, backup rules
+|   +-- src/standard/                        # Standard flavor: FusedLocationProviderClient,
+|   |                                        # Accompanist permission UI, Play Services DI module
+|   +-- src/fdroid/                          # F-Droid flavor: LocationManager, simplified
+|                                             # permission handling, no Play Services
 +-- gradle/
 |   +-- libs.versions.toml                   # Centralized dependency versions
 +-- build.gradle.kts                         # Root build config (plugin versions)
@@ -313,7 +328,7 @@ Maps WMO integer codes (0-99) to:
 
 ### 6.4 Weather Repository (`WeatherRepositoryImpl.kt`)
 
-Calls the API and reverse-geocodes the city name using Android's built-in `Geocoder`. Tries `locality`, then `subAdminArea`, then `adminArea` as fallbacks. Falls back to formatted coordinates ("12.34, 56.78") if all geocoding fields are null or an exception is thrown.
+Fetches weather via `WeatherSourceSelector.current().getForecast(lat, lon)` and reverse-geocodes via `GeocodingSourceSelector.current().reverseGeocode(...)` — both pluggable at runtime through Settings (see [§13](#13-settings--pluggable-data-sources)). Falls back to formatted coordinates ("12.34, 56.78") if geocoding throws. Also fetches alerts from the 8 sources gated by their individual toggles (see [§14](#14-weather-alerts)).
 
 **Location Name Refinement:**
 To ensure a clean UI, the location name is refined by:
@@ -325,7 +340,7 @@ Returns `Result<WeatherData>`.
 
 ### 6.5 Location Repository (`LocationRepositoryImpl.kt`)
 
-Wraps Google's Fused Location Provider:
+Delegates to the flavor-provided `LocationProvider` (Fused Location on `standard`, `LocationManager` on `fdroid` — see [§15](#15-build-flavors)):
 - `getLastLocation()` -- instant cached location
 - `getFreshLocation()` -- active GPS fetch with balanced power accuracy
 
@@ -335,25 +350,29 @@ Both return `Result<Pair<Double, Double>>`.
 
 ## 7. Dependency Injection
 
-Hilt wires everything together via three modules in the `di/` package:
+Hilt wires most of the graph via explicit modules in `di/`, plus flavor-specific modules, plus plain `@Inject constructor` classes that need no module at all.
 
-### `NetworkModule.kt`
+### `di/NetworkModule.kt` (main)
 Provides singletons: `Json` config, `OkHttpClient` (with logging), `Retrofit`, `OpenMeteoApiService`.
 
-### `LocationModule.kt`
-Provides: `FusedLocationProviderClient`, `Geocoder`. Binds `LocationRepositoryImpl` to `LocationRepository` interface.
+### `di/CommonLocationModule.kt` (main)
+Binds `LocationRepositoryImpl` to the `LocationRepository` interface. The concrete `LocationProvider` it delegates to comes from the flavor's own `di/LocationModule.kt` (`app/src/standard/` or `app/src/fdroid/`), which also binds the flavor's `PermissionHandler`.
 
-### `RepositoryModule.kt`
-Binds `WeatherRepositoryImpl` to `WeatherRepository` interface.
+### `di/RepositoryModule.kt` (main)
+Binds `WeatherRepositoryImpl` to the `WeatherRepository` interface.
+
+### No module needed
+`AppSettingsRepository`, `WeatherSourceSelector`, `GeocodingSourceSelector`, and each individual source (`OpenMeteoWeatherSource`, `PirateWeatherSource`, `SystemGeocoderSource`, `NominatimGeocodingSource`) are plain `@Singleton @Inject constructor` classes — Hilt provides them without a `@Provides`/`@Binds` declaration (see [§13](#13-settings--pluggable-data-sources)).
 
 **How it connects:** The `WeatherViewModel` constructor declares its dependencies, and Hilt automatically provides them:
 
 ```kotlin
 @HiltViewModel
 class WeatherViewModel @Inject constructor(
-    private val weatherRepository: WeatherRepository,   // from RepositoryModule
-    private val locationRepository: LocationRepository,  // from LocationModule
-    @ApplicationContext private val appContext: Context,  // built-in Hilt
+    private val weatherRepository: WeatherRepository,
+    private val locationRepository: LocationRepository,
+    private val settingsRepository: AppSettingsRepository,
+    @ApplicationContext private val appContext: Context,
 ) : ViewModel()
 ```
 
@@ -375,9 +394,9 @@ The ViewModel exposes several `StateFlow`s that the UI observes:
 
 User actions (toggle units, cycle font, cycle language, refresh) are ViewModel methods that update state and persist preferences to `SharedPreferences("widget_prefs")`.
 
-### 8.2 Main Screen (`WeatherScreen.kt`)
+### 8.2 Main Screen (`WeatherScreen.kt` + `WeatherContent.kt`)
 
-This is the largest file (~1249 lines). It contains all the composable functions:
+`WeatherContent.kt` is the largest file (~1,460 lines) and holds most of the composables; `WeatherScreen.kt` (~450 lines) is the top-level entry point.
 
 **Top-level: `WeatherScreen()`**
 - Collects all ViewModel state
@@ -394,7 +413,8 @@ This is the largest file (~1249 lines). It contains all the composable functions
 - `Error` -- Error message + retry button.
 
 **WeatherContent composable** (the main scrollable UI):
-- **Fixed header**: City name, date, "Updated" time
+- **Fixed header**: City/region name (two lines, Expert-Mode Edit icon when active), date, "Updated" time, Settings gear icon
+- **Alert banner** (`WeatherAlertBanner`): rendered above the hero card when `data.alerts` is non-empty
 - **Scrollable middle** (`.weight(1f).verticalScroll()`):
   - Hero card: weather icon, temperature, feels-like, description, precipitation, high/low temps, wind with cardinal direction, "© Orinasa Njarasoa" watermark, share button (top-left) that captures the card as PNG and opens Android share sheet via FileProvider
   - Three collapsible sections: Hourly Forecast (expanded by default), 10-Day Forecast, Current Conditions
@@ -503,6 +523,14 @@ Each pairing has a **display** font (for headings, numbers, temperatures) and a 
 | 13 | Exo 2 + Barlow | Exo 2 | Barlow |
 | 14 | Michroma + Saira | Michroma | Saira |
 | 15 | Jost + Atkinson | Jost | Atkinson Hyperlegible |
+| 16 | Roboto + Fira Code | System | Fira Code |
+| 17 | Montserrat + Open Sans | Montserrat | Open Sans |
+| 18 | Space Grotesk + Space Mono | Space Grotesk | Space Mono |
+| 19 | Plus Jakarta Sans + Inter | Plus Jakarta Sans | Inter |
+| 20 | Archivo + Archivo Narrow | Archivo | Archivo Narrow |
+| 21 | Roboto + Lora | System | Lora |
+
+Pairings 16–20 set `bodyFontFeatures = "tnum"` for tabular (aligned) numerals.
 
 All fonts are open source (Google Fonts, OFL licensed). Font files are in `res/font/` as TTF.
 
@@ -559,38 +587,73 @@ The main app saves location coordinates to `SharedPreferences("widget_prefs")` s
 
 ---
 
-## 12. Developer Mode
+## 12. Expert Mode
 
-Developer Mode allows testing the application in different geographic locations without physically moving the device.
+Expert Mode gates the Settings screen and lets testers override GPS location without physically moving the device. It replaced the earlier "Dev Mode" (hidden long-press activation) — activation is now an explicit toggle in Settings.
 
 ### 12.1 Activation & Lifecycle
-- **Activation**: Long-press the location name in the header.
-- **Expiration**: Dev Mode automatically expires after 4 hours (`dev_mode_expiration` in SharedPreferences).
-- **Deactivation**: Double-tap the "DEV" badge to immediately clear overrides and restore the actual GPS location.
+- **Activation**: Toggle "Expert mode" on in the Settings screen (`ui/settings/SettingsScreen.kt`).
+- **Expiration**: Automatically expires 12 hours after being enabled.
+- **Deactivation**: Toggle it back off in Settings; this immediately clears any location override.
 
 ### 12.2 Location Overrides
-When active, the user can search for a new location via the `LocationOverrideDialog`.
+While Expert Mode is active, an Edit (pencil) icon appears next to the location name, opening `LocationOverrideDialog`.
 - **Search**: Supports city names, zip codes, or direct `lat,lon` input.
 - **My Location**: A dedicated icon next to the search field allows quickly resetting to the real device location.
 - **Persistence**: Overridden coordinates and names are stored in SharedPreferences (`dev_override_lat`, `dev_override_lon`, `dev_override_name`) and prioritized over GPS data in `WeatherViewModel`.
 
 ---
 
-## 13. Build Configuration
+## 13. Settings & Pluggable Data Sources
 
-### 12.1 Version Catalog (`gradle/libs.versions.toml`)
+`ui/settings/SettingsScreen.kt` + `SettingsViewModel.kt` present a full-screen Compose destination, gated behind Expert Mode (see [§12](#12-expert-mode)), backed by `AppSettingsRepository` (`data/settings/`) — a `@Singleton` SharedPreferences wrapper exposing a `StateFlow<AppSettings>` that both the ViewModel and Settings screen collect.
+
+**Weather source** — `WeatherSource` enum: `OPEN_METEO` (default, no key) or `PIRATE_WEATHER` (requires an API key, entered inline with a "Test" flow that validates before saving). `WeatherSourceSelector` (`data/source/`) reads the current setting and returns the matching `WeatherDataSource` implementation (`OpenMeteoWeatherSource` / `PirateWeatherSource`); `WeatherRepositoryImpl` calls `sourceSelector.current().getForecast(...)` rather than a hardcoded API.
+
+**Geocoding source** — `GeocodingSource` enum: `SYSTEM_GEOCODER` or `NOMINATIM`. `GeocodingSourceSelector` picks between `SystemGeocoderSource` and `NominatimGeocodingSource`. Default differs per build flavor (see [§15](#15-build-flavors)): F-Droid defaults to Nominatim, Standard defaults to the system geocoder — set via a flavor-specific `DefaultSettings` object.
+
+**Alert toggles** — a master switch plus one per-source checkbox (see [§14](#14-weather-alerts)), all fields on the `AppSettings` data class.
+
+None of this needs a dedicated Hilt module: `AppSettingsRepository`, the selectors, and each source implementation are plain `@Singleton @Inject constructor` classes — Hilt wires them without an explicit `@Provides`/`@Binds`.
+
+## 14. Weather Alerts
+
+Eight alert sources, each individually toggleable in Settings: NWS (US), GDACS (global), MeteoAlarm (Europe), JMA (Japan), ECCC (Canada), BOM (Australia), NHC (hurricanes), WMO SWIC (global). `WeatherRepositoryImpl.fetchAlerts()` gates the whole call behind the master `alertsEnabled` flag, then skips each source individually per its own toggle. `coveredByRegional` suppresses GDACS + WMO SWIC when a country-specific source already covers the location.
+
+`WeatherAlertBanner` renders the merged, deduplicated list. Alert text is only run through string resources for `source == "derived"` entries — every other source's title/description is upstream plain text, not an i18n key.
+
+**Cross-platform sync rule**: this file (`WeatherRepositoryImpl.kt`) is the canonical implementation. When alert parsing differs from `web/src/lib/api/alerts/`, Android wins — severity mapping, field names, source tag strings (WMO SWIC is `"wmoswic"`, no underscore), and deduplication must match on both platforms.
+
+## 15. Build Flavors
+
+Two flavors, differing only in location/permission plumbing — everything else (UI, domain, data sources, alerts) is shared in `src/main/`:
+
+| | `standard` | `fdroid` |
+|---|---|---|
+| Location | `PlayServicesLocationProvider` (Fused Location) | `NativeLocationProvider` (`LocationManager`, GPS + network) |
+| Permissions UI | Accompanist Permissions | Simplified, no Accompanist dependency |
+| Default geocoding source | System Geocoder | Nominatim |
+| Play Services dependency | Yes | No |
+| Build command | `assembleStandardRelease` | `assembleFdroidRelease` |
+
+Flavor-specific code (`LocationProvider`, `PermissionHandler`, `WidgetWeatherFetcher`, DI's `LocationModule`, `DefaultSettings`) lives in `app/src/standard/` and `app/src/fdroid/`. Widgets can't use the flavor's Hilt-provided location client directly since they run in a `BroadcastReceiver` context — see [§11.2](#112-widget-data-flow).
+
+---
+
+## 16. Build Configuration
+
+### 16.1 Version Catalog (`gradle/libs.versions.toml`)
 
 All dependency versions are centralized here. Dependencies are referenced in `build.gradle.kts` as `libs.something` (e.g. `libs.retrofit`, `libs.hilt.android`).
 
-### 12.2 App Build (`app/build.gradle.kts`)
+### 16.2 App Build (`app/build.gradle.kts`)
 
 Key aspects:
-- **AGP 9 syntax**: `compileSdk { version = release(36) }` instead of `compileSdk = 36`
-- **Kotlin plugin is implicit**: AGP 9 auto-applies kotlin-android, so it's not listed explicitly
+- **Kotlin plugin is implicit**: AGP 9 auto-applies kotlin-android, so `id("org.jetbrains.kotlin.android")` must NOT be listed explicitly (causes an "extension already registered" conflict)
 - **BuildConfig fields**: `GIT_HASH` (from `git rev-parse --short HEAD`) and `BUILD_TIME` (formatted timestamp) are injected at compile time. Footer appends `-d` suffix to the hash on debug builds via `BuildConfig.DEBUG`.
 - **Build features**: Compose and BuildConfig generation enabled
 
-### 12.3 Gradle Properties
+### 16.3 Gradle Properties
 
 ```properties
 android.disallowKotlinSourceSets=false  # Required for KSP + AGP 9 (built-in Kotlin)
@@ -599,13 +662,13 @@ org.gradle.jvmargs=-Xmx4096m -XX:+HeapDumpOnOutOfMemoryError  # Prevent OOM duri
 
 ---
 
-## 13. Signing & Release
+## 17. Signing & Release
 
-### 13.1 Debug Builds
+### 17.1 Debug Builds
 
 Automatically signed with the debug keystore at `~/.android/debug.keystore`. No configuration needed.
 
-### 13.2 Release Builds
+### 17.2 Release Builds
 
 Signing credentials are stored in two gitignored files:
 
@@ -620,7 +683,7 @@ Signing credentials are stored in two gitignored files:
 
 `app/build.gradle.kts` conditionally reads these and configures a `release` signing config. If the files don't exist (e.g. on CI without secrets), the release build still compiles but won't be signed.
 
-### 13.3 Build Commands
+### 17.3 Build Commands
 
 ```bash
 ./gradlew assembleDebug     # Debug APK (auto-signed)
@@ -630,7 +693,7 @@ Signing credentials are stored in two gitignored files:
 
 ---
 
-## 14. Key Design Decisions
+## 18. Key Design Decisions
 
 ### Why inline value classes for units?
 `Temperature`, `WindSpeed`, `Pressure`, and `Precipitation` are `@JvmInline value class` types. At runtime they're just `Double` values with zero overhead, but at compile time they prevent mixing up units (you can't accidentally pass a `Pressure` where a `Temperature` is expected).

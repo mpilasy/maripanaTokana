@@ -51,7 +51,7 @@ maripanaTokana/
 
 | Component | Version | Notes |
 |-----------|---------|-------|
-| AGP | 9.1.1 | `compileSdk { version = release(36) }` syntax |
+| AGP | 9.2.1 | |
 | Kotlin | 2.2.10 | Compose compiler plugin implicit via AGP 9 |
 | Compose BOM | 2024.09.00 | Material 3 |
 | Glance | 1.1.1 | Home screen widgets |
@@ -168,7 +168,7 @@ node shared/i18n/generate-android-strings.js   # JSON → Android XML strings
 - **Auto-Refresh:** Re-fetches weather on app resume if data >30 min old.
 - **Pull-to-Refresh:** Swipe gesture to manually refresh.
 - **Screenshot Sharing:** Capture hero card or any section as branded PNG with watermark.
-- **Developer Mode:** Long-press location → 4-hour session with location override. DMS coordinate display.
+- **Expert Mode:** Toggle in Settings → 12-hour session unlocking location override, pluggable weather/geocoding sources, and per-alert-source toggles. DMS coordinate display.
 - **Dual-Language Error Screen:** Shows secondary translation when app locale differs from system/browser locale.
 - **Widgets (Android only):** 4x1 compact and 4x2 with 3-day forecast. WorkManager background updates.
 

@@ -19,10 +19,12 @@ For the Android app's design documentation, see [`docs/DESIGN.md`](../../docs/DE
 9. [Internationalization](#9-internationalization)
 10. [Font System](#10-font-system)
 11. [Service Worker & Offline](#11-service-worker--offline)
-12. [Developer Mode](#12-developer-mode)
-13. [Screenshot Sharing](#13-screenshot-sharing)
-14. [Deployment](#14-deployment)
-15. [Key Patterns & Decisions](#15-key-patterns--decisions)
+12. [Settings & Pluggable Data Sources](#12-settings--pluggable-data-sources)
+13. [Weather Alerts](#13-weather-alerts)
+14. [Expert Mode](#14-expert-mode)
+15. [Screenshot Sharing](#15-screenshot-sharing)
+16. [Deployment](#16-deployment)
+17. [Key Patterns & Decisions](#17-key-patterns--decisions)
 
 ---
 
@@ -33,12 +35,13 @@ For the Android app's design documentation, see [`docs/DESIGN.md`](../../docs/DE
 | Framework | **SvelteKit** (v2) + **Svelte 5** | UI framework + routing + build tooling |
 | Language | **TypeScript** | Type safety throughout |
 | Build | **Vite** | Dev server + production bundler |
-| Hosting | **adapter-static** | Generates a fully static site (no server) |
+| Hosting | **adapter-node** | Builds a standalone Node.js server (`build/index.js`) |
 | i18n | **svelte-i18n** | Runtime internationalization (8 languages) |
 | Screenshots | **html2canvas** | DOM-to-canvas capture for sharing |
-| Weather API | **Open-Meteo** | Free weather data (no API key) |
+| Weather API | **Open-Meteo** (default) / **Pirate Weather** (optional) | Weather data |
 | Geocoding | **Nominatim** (OpenStreetMap) | Reverse geocoding (coordinates to place name) |
-| Server | **Caddy** (in Docker) | Static file serving with SPA fallback |
+| Alerts | 8 sources (NWS, GDACS, MeteoAlarm, JMA, ECCC, BOM, NHC, WMO SWIC) | Some proxied server-side (`routes/api/alerts/`) to work around missing CORS headers |
+| Server | **Node.js** (via adapter-node) | Serves the built app directly — no separate reverse-proxy layer bundled |
 
 ### Why Svelte?
 
@@ -72,7 +75,7 @@ SvelteKit is a full application framework built on top of Svelte:
 |-------------------|-------------------|--------------|
 | `src/routes/+page.svelte` | `app/page.tsx` | Page component for a URL route |
 | `src/routes/+layout.svelte` | `app/layout.tsx` | Shared layout wrapping all pages |
-| `adapter-static` | `output: 'export'` | Generates static HTML (no server needed) |
+| `adapter-node` | `output: 'standalone'` | Generates a Node.js server (`build/index.js`) |
 | `$lib/` alias | `@/lib/` | Import alias for `src/lib/` directory (Svelte-specific code) |
 | `$lib/` sub-paths | — | All app code under `src/lib/` (api, domain, i18n, stores, etc.) |
 | `src/service-worker.ts` | Custom setup | Built-in service worker support with build manifest |
@@ -86,16 +89,25 @@ web/
 ├── src/
 │   ├── app.html                          # HTML shell (viewport, PWA meta, fonts preconnect)
 │   ├── app.d.ts                          # Global TypeScript declarations
+│   ├── hooks.server.ts                   # /svelte → / redirect
 │   ├── service-worker.ts                 # PWA offline caching (3 cache strategies)
 │   ├── routes/                           # URL-mapped pages
 │   │   ├── +layout.svelte                # Root layout: fonts, RTL, i18n init, auto-refresh
-│   │   └── +page.svelte                  # Home page: mounts WeatherScreen
+│   │   ├── +page.svelte                  # Home page: mounts WeatherScreen
+│   │   └── api/alerts/                   # Server routes proxying CORS-blocked alert sources
+│   │       ├── meteoalarm/+server.ts
+│   │       ├── bom/+server.ts
+│   │       ├── nhc/+server.ts
+│   │       ├── wmoswic/+server.ts
+│   │       └── eccc/+server.ts
 │   └── lib/                              # All app code (imported via $lib)
 │       ├── api/                          # Network layer
-│       │   ├── openMeteo.ts              # API client: fetchWeather(lat, lon)
-│       │   ├── openMeteoTypes.ts         # Response type definitions
-│       │   ├── openMeteoMapper.ts        # API response → domain model conversion
-│       │   └── wmoWeatherCode.ts         # WMO code → emoji + i18n key lookup
+│       │   ├── openMeteo.ts              # Open-Meteo client, types, mapper
+│       │   ├── openMeteoTypes.ts / openMeteoMapper.ts
+│       │   ├── pirateWeather.ts          # Pirate Weather (Dark Sky-compatible JSON)
+│       │   ├── wmoWeatherCode.ts         # WMO code → emoji + i18n key lookup
+│       │   ├── externalAlerts.ts / externalAlertsTypes.ts
+│       │   └── alerts/                   # One fetcher per alert source (8 files) + shared.ts + index.ts
 │       ├── domain/                       # Business logic / value objects
 │       │   ├── weatherData.ts            # WeatherData, HourlyForecast, DailyForecast
 │       │   ├── temperature.ts            # Temperature (°C ↔ °F) with displayDual()
@@ -109,23 +121,21 @@ web/
 │       ├── stores/
 │       │   ├── weather.ts                # Weather state machine + fetch orchestration
 │       │   ├── preferences.ts            # Persisted user preferences (units, font, language)
-│       │   └── location.ts              # Geolocation + Nominatim reverse geocoding
-│       ├── components/                   # UI components (9 .svelte files)
+│       │   ├── location.ts              # Geolocation + Nominatim reverse geocoding
+│       │   └── devMode.ts               # Developer mode location override state
+│       ├── components/                   # 15 UI components (WeatherScreen, HeroCard,
+│       │                                  # SettingsScreen, WeatherAlertBanner,
+│       │                                  # LocationOverrideDialog, charts, etc.)
 │       ├── fonts.ts                      # 22 FontPairing definitions + Google Fonts URLs
 │       └── share.ts                      # html2canvas capture + Web Share API / download
 ├── static/                               # Files copied as-is to build output
-├── scripts/
-│   └── inline-assets.js                  # Post-build: inlines CSS into HTML
-├── svelte.config.js                      # SvelteKit config (static adapter)
+├── svelte.config.js                      # SvelteKit config (adapter-node)
 ├── vite.config.ts                        # Vite config (single-chunk bundling)
 ├── package.json                          # Dependencies + build scripts
 ├── tsconfig.json
-├── Dockerfile                            # Multi-stage: node build → caddy serve
-├── Caddyfile                             # SPA routing + service worker headers
+├── Dockerfile                            # Multi-stage: node build → node serve
 └── docker-compose.yml                    # Container config (port 3080)
 ```
-
-**Total**: ~42 source files, ~2,900 lines of code.
 
 ---
 
@@ -141,27 +151,19 @@ npm run dev  →  Vite dev server at localhost:5173
 ### Production
 
 ```
-npm run build  →  Step 1: vite build
+npm run build  →  vite build
                           ↓
                   Compiles .svelte → JS, bundles into single chunk,
                   generates service-worker.js, copies static/
                           ↓
-                  Step 2: node scripts/inline-assets.js
-                          ↓
-                  Finds <link href="*.css"> in index.html,
-                  reads CSS file contents, replaces with <style> tag,
-                  deletes the now-unused CSS file
+                  adapter-node emits a standalone Node.js server
                           ↓
                   Output: build/ directory
-                  - index.html (CSS inlined, JS referenced)
-                  - _app/immutable/entry/*.js (single app bundle)
-                  - service-worker.js
-                  - manifest.json, icons, background image
+                  - index.js (Node.js server entry point)
+                  - client/ (JS/CSS assets, service worker, manifest, icons)
 ```
 
-### Why CSS Inlining?
-
-The app targets mobile users on potentially slow connections. Inlining CSS into the HTML eliminates one round-trip HTTP request. JavaScript stays as a separate file because ES modules loaded from `data:` URIs cannot resolve imports to other modules (a browser limitation discovered during development).
+Run the production server with `node build/index.js` (`PORT` env var, default 3000).
 
 ### Bundle Strategy
 
@@ -627,7 +629,47 @@ If the app shell request fails and there's no cache hit, the service worker trie
 
 ---
 
-## 12. Screenshot Sharing
+## 12. Settings & Pluggable Data Sources
+
+`SettingsScreen.svelte` is a full-screen overlay (opened via a gear icon, visible when Expert Mode is active — see [§14](#14-expert-mode)) covering:
+
+- **Weather source**: radio choice between Open-Meteo (default, no key) and Pirate Weather (requires an API key, with a "Test" button that validates the key before saving). Selection and key are persisted to `localStorage` and read by `lib/api/openMeteo.ts` / `lib/api/pirateWeather.ts` at fetch time.
+- **Alerts**: a master toggle plus one checkbox per source (NWS, GDACS, MeteoAlarm, JMA, ECCC, BOM, NHC, WMO SWIC) — mirrors the Android `AppSettings` shape field-for-field so both platforms stay in sync.
+- **Geocoding info**: Nominatim is the only reverse-geocoding source on web (no system geocoder equivalent in a browser).
+
+## 13. Weather Alerts
+
+Eight sources, fetched in parallel and merged into one list:
+
+| Source | Coverage | Access |
+|---|---|---|
+| NWS, GDACS, JMA | US / global / Japan | Direct browser fetch (CORS-enabled) |
+| MeteoAlarm, BOM, NHC, WMO SWIC, ECCC | Europe / Australia / hurricanes / global / Canada | Proxied through `src/routes/api/alerts/*/+server.ts` (these upstreams don't set `Access-Control-Allow-Origin`) |
+
+Each source has an individual on/off toggle in Settings; `coveredByRegional` suppresses GDACS + WMO SWIC when a country-specific source already applies to that location. `WeatherAlertBanner.svelte` renders the merged list; `alertText()` only runs i18n lookup for `source === 'derived'` entries — all other sources' text is used as-is (it's plain text from the upstream feed, not an i18n key).
+
+**Parser sync rule**: Android's `WeatherRepositoryImpl.kt` is the canonical alert implementation. When parsing logic differs between platforms, Android wins — severity mapping, field names, source tag strings (e.g. `"wmoswic"`, no underscore), and deduplication must match on both sides.
+
+---
+
+## 14. Expert Mode
+
+Expert Mode gates the Settings screen and lets testers override GPS location without physically moving the device. Implemented in `stores/devMode.ts`.
+
+### 14.1 Activation & Lifecycle
+- **Activation**: Toggle "Expert mode" on in the Settings screen (no gesture — replaced a hidden long-press/7-tap activation used in earlier versions).
+- **Expiration**: Automatically expires 12 hours after being enabled (`expert_mode_enabled` / timestamp in `localStorage`).
+- **Deactivation**: Toggle it back off in Settings; this immediately clears any location override.
+
+### 14.2 Location Overrides
+While active, an edit icon next to the location name opens `LocationOverrideDialog.svelte`:
+- **Search**: City names or direct `lat,lon` input via the Open-Meteo Geocoding API.
+- **My Location**: A dedicated icon resets to the real device GPS.
+- **Persistence**: Overridden coordinates and name are stored in `localStorage` and take priority over browser GPS in the `weather` store.
+
+---
+
+## 15. Screenshot Sharing
 
 `src/lib/share.ts` implements branded screenshot capture:
 
@@ -649,48 +691,37 @@ Share buttons appear on the HeroCard and on each CollapsibleSection header (only
 
 ---
 
-## 13. Deployment
+## 16. Deployment
 
 ### Docker (Production)
 
-The Docker setup builds and serves the Svelte app:
+Multi-stage build: Node builds the SvelteKit app, a second Node stage runs the adapter-node server:
 
 ```dockerfile
 # Stage 1: Build
-FROM node:22-alpine
+FROM node:22-alpine AS build
 WORKDIR /app
-
-COPY package.json package-lock.json ./
+COPY web/package.json web/package-lock.json ./
 RUN npm ci
-
-COPY . .
-
+COPY web/ .
+RUN rm -f src/lib/i18n/locales
+COPY shared/i18n/locales/ ./src/lib/i18n/locales/
 RUN npm run build
 
-# Stage 2: Serve
-FROM caddy:alpine
-COPY Caddyfile /etc/caddy/Caddyfile
-COPY --from=build /app/build /srv/app
+# Stage 2: Run
+FROM node:22-alpine
+WORKDIR /app
+COPY --from=build /app/build ./build
+ENV PORT=80
+ENV HOST=0.0.0.0
+ENV COMPRESS=true
 EXPOSE 80
+CMD ["node", "build/index.js"]
 ```
 
-### Routing Configuration
+**Routing**: `/svelte` → 301 redirect to `/` (backwards compatibility), handled by `src/hooks.server.ts` rather than a reverse proxy.
 
-The Caddyfile implements path-based routing with optimization:
-
-**Compression**: Gzip enabled for all text assets (JS, CSS, fonts)
-
-**Routing**:
-- `/` → Svelte app (SPA fallback)
-- `/svelte` → 301 redirect to `/` (backwards compatibility)
-
-**Caching**:
-- **Versioned assets** (regex: `.*\.[a-f0-9]{8}\.(js|css|woff2|ttf)$`): `max-age=31536000, immutable` (1 year)
-  - Vite hashes filenames; unchanged assets stay cached
-- **HTML files**: `no-cache, public, must-revalidate` (browser always checks, serves cached if unchanged)
-- **Service worker**: `no-cache, no-store, must-revalidate` (always fetch fresh)
-
-**Result**: On repeat visits, browser only downloads HTML (metadata check), reuses all cached JS/CSS/fonts if unchanged.
+**Compression & caching**: adapter-node's own Node server handles gzip/brotli compression (`COMPRESS=true`) and sets long-lived, immutable cache headers on Vite's hashed `_app/immutable/` assets. There is no bundled reverse proxy — deployments are expected to sit behind one (e.g. Nginx Proxy Manager) for TLS termination.
 
 ### Docker Compose
 
@@ -699,11 +730,11 @@ docker compose up -d --build                       # Default port 3080
 PORT=8080 docker compose up -d --build             # Custom port
 ```
 
-The container runs Caddy on port 80, mapped to the host port.
+The container (`maripanaTokana.web`) runs the Node server on port 80, mapped to the host port via `${PORT:-3080}:80`.
 
 ---
 
-## 14. Key Patterns & Decisions
+## 17. Key Patterns & Decisions
 
 ### Why No Permission Screen?
 
@@ -730,50 +761,18 @@ The error screen shows messages in both the app language and the browser's syste
 
 Vite normally splits code into many small chunks for lazy loading. For this app (~45 KB total), the overhead of multiple HTTP requests outweighs any benefit. All code is bundled into one file via `manualChunks: () => 'app'`.
 
-### CSS Inlining
-
-A post-build script (`scripts/inline-assets.js`) reads the generated CSS file and inlines it as a `<style>` tag in `index.html`. This eliminates one HTTP request. JS is not inlined because ES modules loaded from `data:` URIs cannot resolve relative imports (a browser security restriction).
-
 ### No Precaching
 Early versions had the service worker precache all assets on install, which caused dozens of simultaneous downloads. The current approach lets caches fill naturally via NetworkFirst — assets are cached as they're requested, and served from cache when offline.
 
 ---
 
-## 12. Developer Mode
-
-Developer Mode allows testing the application in different geographic locations.
-
-### 12.1 Activation & Lifecycle
-- **Activation**: Long-press the location name in the header.
-- **Expiration**: Dev Mode automatically expires after 4 hours (`dev_mode_expiration` in localStorage).
-- **Deactivation**: Double-tap the "DEV" badge to immediately clear overrides and restore the actual GPS location.
-
-### 12.2 Location Overrides
-When active, the user can search for a new location via the `LocationOverrideDialog`.
-- **Search**: Supports city names or direct `lat,lon` input via Open-Meteo Geocoding API.
-- **My Location**: A dedicated icon next to the search field allows quickly resetting to the real device GPS.
-- **Persistence**: Overridden coordinates and names are stored in localStorage and prioritized over browser GPS data in `weather` store.
-
----
-
-## 13. Screenshot Sharing
-Temperature, Pressure, WindSpeed, and Precipitation are immutable classes with private constructors and static factory methods. This ensures unit conversions are always consistent and prevents accidental mutation. The `displayDual()` method encapsulates the metric/imperial toggle logic in one place.
-
----
-
 ## Appendix: File Sizes
 
-| Category | Files | Lines |
-|----------|-------|-------|
-| Components | 9 | ~1,280 |
-| Stores | 2 | ~120 |
-| API | 4 | ~217 |
-| Domain | 5 | ~177 |
-| i18n | 9 | ~535 |
-| Fonts | 1 | ~169 |
-| Share | 1 | ~73 |
-| Routes | 2 | ~136 |
-| Service Worker | 1 | ~85 |
-| Config | 5 | ~80 |
-| Scripts | 1 | ~42 |
-| **Total** | **~42** | **~2,900** |
+| Category | Files |
+|----------|-------|
+| Components | 15 |
+| Stores | 4 |
+| API (incl. `alerts/`) | 17 |
+| Domain | 5 |
+
+Total `.ts`/`.svelte` under `src/`: ~5,650 lines. Grown substantially since the initial port with the addition of Settings, alert sources, and dev-mode location override.

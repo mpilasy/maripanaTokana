@@ -399,7 +399,7 @@ adb install app/build/outputs/apk/fdroid/release/*.apk
 - [ ] Background widget refresh works
 - [ ] RTL layout works for Arabic
 - [ ] Native digits render for Arabic, Hindi, Nepali
-- [ ] Settings gear icon visible (top-right, always — not gated behind dev mode)
+- [ ] Settings gear icon visible (top-right, always — not gated behind Expert Mode)
 - [ ] Settings screen opens and persists choices across app restart
 - [ ] Nominatim geocoding works (F-Droid flavor default)
 - [ ] NWS alerts appear when in the US

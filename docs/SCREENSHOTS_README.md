@@ -242,4 +242,4 @@ done
 - Quality screenshots improve download rates
 - Multiple languages help international users
 
-See `FDROID_PUBLISHING.md` for complete publishing instructions.
+See [`FDROID.md`](./FDROID.md) for complete publishing instructions.

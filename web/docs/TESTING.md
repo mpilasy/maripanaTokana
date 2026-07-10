@@ -19,10 +19,9 @@ npm run build
 npm run check
 ```
 
-- `npm run build` produces output in `build/` directory (runs vite build + CSS inlining)
+- `npm run build` (vite build) produces a Node.js server in `build/` (adapter-node)
 - `npm run check` runs `svelte-check` with no type errors
-- The `build/` directory should contain `index.html` (with CSS inlined), JS bundles, and static assets
-- `index.html` should contain a `<style>` tag (CSS inlined by `scripts/inline-assets.js`)
+- `build/index.js` is the server entry point; run it with `node build/index.js`
 
 ---
 
@@ -290,12 +289,12 @@ Test at these viewport widths (DevTools → Device toolbar):
 
 ---
 
-## 18. Developer Mode
+## 18. Expert Mode
 
 - [ ] **Activation**
-  - [ ] Long-press location name → activates Dev Mode
-  - [ ] "DEV" badge appears in header
-  - [ ] Double-click location name → opens override dialog
+  - [ ] Toggling "Expert mode" on in Settings activates it (no gesture)
+  - [ ] Edit icon appears next to the location name
+  - [ ] Clicking the edit icon opens the location override dialog
 
 - [ ] **Location Override**
   - [ ] Search for city (e.g., "Paris") → updates weather instantly
@@ -305,6 +304,6 @@ Test at these viewport widths (DevTools → Device toolbar):
   - [ ] Click "My Location" icon in search field → resets to actual GPS
 
 - [ ] **Session & Deactivation**
-  - [ ] Double-tap "DEV" badge → disables dev mode instantly
-  - [ ] Dev mode persists for 4 hours (check `dev_mode_expiration` in localStorage)
-  - [ ] Clearing browser site data resets dev mode
+  - [ ] Toggling "Expert mode" off in Settings disables it and clears the override immediately
+  - [ ] Expert mode persists for 12 hours (check `expert_mode_enabled` timestamp in localStorage)
+  - [ ] Clearing browser site data resets it

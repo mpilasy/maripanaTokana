@@ -5,9 +5,9 @@
 ## Features
 
 - **Cross-Platform Parity**: Features on the Android and Web versions are kept in sync to provide a consistent experience.
-- **Developer Mode**: Long-press the location name to activate a 4-hour developer session.
+- **Expert Mode**: Toggle it on in Settings to unlock a 12-hour session with advanced options.
   - **Location Override**: Search for any city or enter specific coordinates to test weather in other regions.
-  - **Quick Reset**: Double-tap the "DEV" badge to immediately exit dev mode and return to your actual location.
+  - **Quick Reset**: Toggle Expert Mode off in Settings to immediately clear overrides and return to your actual location.
   - **Search History**: Recent overrides are cached for quick switching.
 - **Enhanced Location Display**:
   - **Two-line Header**: Shows the city/locality on the first line and the region/country on a discreet second line.
@@ -47,7 +47,7 @@
 
 | Component | Version |
 |-----------|---------|
-| AGP | 9.1.1 |
+| AGP | 9.2.1 |
 | Kotlin | 2.2.10 |
 | Compose BOM | 2024.09.00 |
 | Glance | 1.1.1 |
@@ -92,16 +92,23 @@ MVVM with Clean Architecture. Package: `orinasa.njarasoa.maripanatokana`
 ```
 app/
 ├── data/
+│   ├── location/        # LocationProvider (GPS)
 │   ├── remote/          # API DTOs, Retrofit service, WMO code mapping
-│   └── repository/      # Repository implementations
+│   ├── repository/      # Repository implementations
+│   ├── settings/        # AppSettingsRepository
+│   └── source/          # Pluggable weather (Open-Meteo, Pirate Weather) and geocoding sources
 ├── di/                  # Hilt modules (Network, Location, Repository)
 ├── domain/
 │   ├── model/           # Inline value classes (Temperature, Pressure, WindSpeed, Precipitation)
 │   └── repository/      # Repository interfaces
 ├── ui/
+│   ├── permission/      # Runtime location permission screen
+│   ├── settings/        # SettingsScreen, SettingsViewModel
 │   ├── theme/           # Compose theme, 22 font pairings, CompositionLocals
 │   └── weather/         # WeatherScreen, WeatherViewModel, WeatherUiState
+│       └── components/  # Charts, alert banner, location override dialog
 └── widget/              # Glance widgets (4x1, 4x2), WorkManager updater
+    └── theme/           # Widget-specific Glance theme
 ```
 
 ## Permissions

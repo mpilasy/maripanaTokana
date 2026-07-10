@@ -21,9 +21,9 @@ This is the web port of the [Android app](../), built with SvelteKit.
 - Edge-to-edge Blue Marble background
 - **Screenshot sharing**: capture any section as a branded PNG via `html2canvas` + Web Share API (with download fallback)
 - **Installable PWA** with offline support (service worker with NetworkFirst caching)
-- **Developer Mode**: Long-press the location name to activate a 4-hour developer session.
+- **Expert Mode**: Toggle it on in Settings to unlock a 12-hour session with advanced options.
   - **Location Override**: Search for any city or enter specific coordinates to test weather in other regions.
-  - **Quick Reset**: Double-tap the "DEV" badge to immediately exit dev mode and return to your actual location.
+  - **Quick Reset**: Toggle Expert Mode off in Settings to immediately clear overrides and return to your actual location.
   - **My Location**: Convenient icon next to the search field to reset to device GPS.
 - **Enhanced Location Display**:
   - **Two-line Header**: Shows the city/locality on the first line and the region/country on a discreet second line.
