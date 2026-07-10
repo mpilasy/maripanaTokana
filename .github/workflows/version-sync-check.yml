@@ -1,0 +1,17 @@
+name: Version Sync Check
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check Android and web version strings match
+        run: python3 scripts/check_version_sync.py
