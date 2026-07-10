@@ -21,7 +21,7 @@
 			{$_('credits_weather_data')}
 			<a href={SOURCE_INFO[$weatherSource].url} target="_blank" rel="noopener">{SOURCE_INFO[$weatherSource].label}</a>
 		</span>
-		<span class="version">v1.2.1</span>
+		<span class="version">v1.2.2</span>
 	</div>
 </footer>
 
