@@ -42,4 +42,4 @@ Use the right model for the job to save cost and context:
 - **Domain model changes**: If you change a value class (Temperature, Pressure, etc.) in Kotlin, you must also update the TypeScript equivalent in `web/src/lib/domain/` and vice versa.
 - **New i18n keys**: Add to all 8 JSON files in `shared/i18n/locales/`. Missing keys will show raw key strings at runtime.
 - **Widget changes**: Widgets use standalone Retrofit (no Hilt). Test widget code paths separately from main app code.
-- **F-Droid metadata**: The local copy is in `metadata/orinasa.njarasoa.maripanatokana.yml`. The live MR copy is in the fdroiddata GitLab fork (`git@gitlab.com:mpilasy/fdroiddata.git`, branch `add-maripanatokana`).
+- **F-Droid metadata**: The local copy is in `metadata/orinasa.njarasoa.maripanatokana.yml`. The app is already merged into `fdroid/fdroiddata` (inclusion MR `!33362` merged 2026-06-18) — do NOT push to the old fork branch, it's dead. F-Droid's bot auto-detects new tags and opens/merges its own MR (~daily, see `docs/FDROID.md`).
