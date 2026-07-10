@@ -106,13 +106,13 @@
 	<div class="hero-extra">
 		<div class="hero-highlow">
 			<DualUnitText
-				primary={"\u2191 " + loc(maxDual[0])}
-				secondary={loc(maxDual[1])}
+				primary={"\u2193 " + loc(minDual[0])}
+				secondary={loc(minDual[1])}
 				onClick={onToggleUnits}
 			/>
 			<DualUnitText
-				primary={"\u2193 " + loc(minDual[0])}
-				secondary={loc(minDual[1])}
+				primary={"\u2191 " + loc(maxDual[0])}
+				secondary={loc(maxDual[1])}
 				onClick={onToggleUnits}
 			/>
 		</div>

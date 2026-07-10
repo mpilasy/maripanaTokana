@@ -231,7 +231,7 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
                                 style = TextStyle(fontSize = 14.sp),
                             )
                             Text(
-                                text = "$hi / $lo",
+                                text = "$lo / $hi",
                                 style = TextStyle(
                                     color = WidgetColorProviders.onSurface,
                                     fontSize = 10.sp,

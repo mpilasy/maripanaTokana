@@ -416,8 +416,8 @@ internal fun WeatherContent(
                                 val (maxP, maxS) = data.tempMax.displayDual(metricPrimary)
                                 val (minP, minS) = data.tempMin.displayDual(metricPrimary)
                                 DualUnitText(
-                                    primary = localizeDigits("\u2191$maxP / \u2193$minP"),
-                                    secondary = localizeDigits("\u2191$maxS / \u2193$minS"),
+                                    primary = localizeDigits("\u2193$minP / \u2191$maxP"),
+                                    secondary = localizeDigits("\u2193$minS / \u2191$maxS"),
                                     onClick = onToggleUnits,
                                 )
                             }
@@ -987,8 +987,8 @@ internal fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Bo
                         val (maxP, maxS) = item.tempMax.displayDual(metricPrimary)
                         val (minP, minS) = item.tempMin.displayDual(metricPrimary)
                         DualUnitText(
-                            primary = localizeDigits("\u2191$maxP \u2193$minP"),
-                            secondary = localizeDigits("\u2191$maxS \u2193$minS"),
+                            primary = localizeDigits("\u2193$minP \u2191$maxP"),
+                            secondary = localizeDigits("\u2193$minS \u2191$maxS"),
                             primarySize = 13f.s(scale),
                             onClick = onToggleUnits,
                         )

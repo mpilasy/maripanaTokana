@@ -47,8 +47,8 @@
 				{@const [maxP, maxS] = item.tempMax.displayDual(metricPrimary)}
 				{@const [minP, minS] = item.tempMin.displayDual(metricPrimary)}
 				<DualUnitText
-					primary={loc(`\u2191${maxP} \u2193${minP}`)}
-					secondary={loc(`\u2191${maxS} \u2193${minS}`)}
+					primary={loc(`\u2193${minP} \u2191${maxP}`)}
+					secondary={loc(`\u2193${minS} \u2191${maxS}`)}
 					primarySize="13px"
 					onClick={onToggleUnits}
 				/>
