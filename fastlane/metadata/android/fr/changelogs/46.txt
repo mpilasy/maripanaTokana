@@ -1,0 +1,1 @@
+Ordre des températures min/max inversé : le minimum s'affiche désormais à gauche et le maximum à droite (carte principale, liste de prévisions, widget).

@@ -1,0 +1,1 @@
+Low/high temperature order swapped: low now shows on the left, high on the right (hero card, forecast list, widget).

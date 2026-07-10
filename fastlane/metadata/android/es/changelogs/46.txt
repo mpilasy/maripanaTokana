@@ -1,0 +1,1 @@
+Se invirtió el orden de las temperaturas mínima y máxima: ahora la mínima aparece a la izquierda y la máxima a la derecha (tarjeta principal, lista de pronóstico, widget).
