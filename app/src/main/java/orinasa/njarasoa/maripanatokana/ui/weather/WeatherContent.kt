@@ -105,6 +105,7 @@ import orinasa.njarasoa.maripanatokana.ui.weather.components.AirQualityDetailDia
 import orinasa.njarasoa.maripanatokana.ui.weather.components.AqiTierBadge
 import orinasa.njarasoa.maripanatokana.ui.weather.components.DailyTemperatureChart
 import orinasa.njarasoa.maripanatokana.ui.weather.components.TemperatureChart
+import orinasa.njarasoa.maripanatokana.ui.weather.components.UvTierBadge
 import orinasa.njarasoa.maripanatokana.ui.weather.components.WeatherAlertBanner
 import java.io.File
 import java.text.SimpleDateFormat
@@ -1320,33 +1321,36 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
 
         Spacer(modifier = Modifier.height(16.sd(scale)))
 
-        // UV Index / Visibility
-        Row(
-            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
-            horizontalArrangement = Arrangement.spacedBy(16.sd(scale))
-        ) {
-            val uvLabelText = when {
-                data.uvIndex < 3 -> uvLabels[0]
-                data.uvIndex < 6 -> uvLabels[1]
-                data.uvIndex < 8 -> uvLabels[2]
-                data.uvIndex < 11 -> uvLabels[3]
-                else -> uvLabels[4]
+        val uvLabelText = when {
+            data.uvIndex < 3 -> uvLabels[0]
+            data.uvIndex < 6 -> uvLabels[1]
+            data.uvIndex < 8 -> uvLabels[2]
+            data.uvIndex < 11 -> uvLabels[3]
+            else -> uvLabels[4]
+        }
+
+        if (data.airQuality == null) {
+            // UV Index / Visibility (no Air Quality data to pair UV Index with)
+            Row(
+                modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                horizontalArrangement = Arrangement.spacedBy(16.sd(scale))
+            ) {
+                DetailCard(
+                    title = stringResource(R.string.detail_uv_index),
+                    value = localizeDigits("%.1f".format(Locale.US, data.uvIndex)),
+                    subtitleContent = { UvTierBadge(uvIndex = data.uvIndex, label = uvLabelText) },
+                    modifier = Modifier.weight(1f).fillMaxHeight()
+                )
+                DetailCard(
+                    title = stringResource(R.string.detail_visibility),
+                    value = localizeDigits(if (metricPrimary) stringResource(R.string.visibility_km).format(Locale.US, data.visibility / 1000.0)
+                            else stringResource(R.string.visibility_mi).format(Locale.US, data.visibility / 1609.34)),
+                    secondaryValue = localizeDigits(if (metricPrimary) stringResource(R.string.visibility_mi).format(Locale.US, data.visibility / 1609.34)
+                                     else stringResource(R.string.visibility_km).format(Locale.US, data.visibility / 1000.0)),
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    onToggleUnits = onToggleUnits,
+                )
             }
-            DetailCard(
-                title = stringResource(R.string.detail_uv_index),
-                value = localizeDigits("%.1f".format(Locale.US, data.uvIndex)),
-                subtitle = uvLabelText,
-                modifier = Modifier.weight(1f).fillMaxHeight()
-            )
-            DetailCard(
-                title = stringResource(R.string.detail_visibility),
-                value = localizeDigits(if (metricPrimary) stringResource(R.string.visibility_km).format(Locale.US, data.visibility / 1000.0)
-                        else stringResource(R.string.visibility_mi).format(Locale.US, data.visibility / 1609.34)),
-                secondaryValue = localizeDigits(if (metricPrimary) stringResource(R.string.visibility_mi).format(Locale.US, data.visibility / 1609.34)
-                                 else stringResource(R.string.visibility_km).format(Locale.US, data.visibility / 1000.0)),
-                modifier = Modifier.weight(1f).fillMaxHeight(),
-                onToggleUnits = onToggleUnits,
-            )
         }
 
         // Air Quality (only when available from Open-Meteo)
@@ -1354,11 +1358,17 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
             val aqiTierLabels = stringArrayResource(R.array.aqi_tier_labels)
             val usAqiLabel = stringResource(R.string.air_quality_us_aqi)
             val euAqiLabel = stringResource(R.string.air_quality_eu_aqi)
-            Spacer(modifier = Modifier.height(16.sd(scale)))
+            // UV Index / Air Quality
             Row(
                 modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
                 horizontalArrangement = Arrangement.spacedBy(16.sd(scale))
             ) {
+                DetailCard(
+                    title = stringResource(R.string.detail_uv_index),
+                    value = localizeDigits("%.1f".format(Locale.US, data.uvIndex)),
+                    subtitleContent = { UvTierBadge(uvIndex = data.uvIndex, label = uvLabelText) },
+                    modifier = Modifier.weight(1f).fillMaxHeight()
+                )
                 val (aqiP, aqiS) = aqi.displayDual()
                 val (unitP, unitS) = if (aqi.primaryStandard == AqiStandard.EUROPEAN) euAqiLabel to usAqiLabel else usAqiLabel to euAqiLabel
                 DetailCard(
@@ -1375,6 +1385,23 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
                     modifier = Modifier.weight(1f).fillMaxHeight(),
                     unit = unitP,
                     secondaryUnit = unitS,
+                )
+            }
+
+            // Visibility (dropped to its own row to make room for Air Quality next to UV Index)
+            Spacer(modifier = Modifier.height(16.sd(scale)))
+            Row(
+                modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                horizontalArrangement = Arrangement.spacedBy(16.sd(scale))
+            ) {
+                DetailCard(
+                    title = stringResource(R.string.detail_visibility),
+                    value = localizeDigits(if (metricPrimary) stringResource(R.string.visibility_km).format(Locale.US, data.visibility / 1000.0)
+                            else stringResource(R.string.visibility_mi).format(Locale.US, data.visibility / 1609.34)),
+                    secondaryValue = localizeDigits(if (metricPrimary) stringResource(R.string.visibility_mi).format(Locale.US, data.visibility / 1609.34)
+                                     else stringResource(R.string.visibility_km).format(Locale.US, data.visibility / 1000.0)),
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    onToggleUnits = onToggleUnits,
                 )
             }
             if (showAirQualityDetail) {

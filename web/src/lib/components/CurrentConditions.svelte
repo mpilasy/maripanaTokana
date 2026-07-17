@@ -5,6 +5,7 @@
 	import DetailCard from './DetailCard.svelte';
 	import AirQualityDetailDialog from './AirQualityDetailDialog.svelte';
 	import AqiTierBadge from './AqiTierBadge.svelte';
+	import UvTierBadge from './UvTierBadge.svelte';
 
 	interface Props {
 		data: WeatherData;
@@ -183,34 +184,44 @@
 	<DetailCard
 		title={$_('detail_uv_index')}
 		value={loc(data.uvIndex.toFixed(1))}
-		subtitle={getUvLabel(data.uvIndex)}
-	/>
-	<DetailCard
-		title={$_('detail_visibility')}
-		value={loc(visDual[0])}
-		secondaryValue={loc(visDual[1])}
-		{onToggleUnits}
-	/>
+	>
+		{#snippet subtitleSnippet()}
+			<UvTierBadge uvIndex={data.uvIndex} label={getUvLabel(data.uvIndex)} />
+		{/snippet}
+	</DetailCard>
 	{#if data.airQuality}
 		{@const aqiDual = data.airQuality.displayDual()}
 		{@const aqiUnitDual = getAqiUnitDual(data.airQuality.primaryStandard)}
-		<div class="aqi-card-wrapper">
+		<DetailCard
+			title={$_('detail_air_quality')}
+			value={loc(aqiDual[0])}
+			secondaryValue={loc(aqiDual[1])}
+			unit={aqiUnitDual[0]}
+			secondaryUnit={aqiUnitDual[1]}
+		>
+			{#snippet subtitleSnippet()}
+				<AqiTierBadge
+					tier={data.airQuality!.primaryTier}
+					label={getAqiTierLabel(data.airQuality!.primaryTier)}
+					onClick={() => showAirQualityDetail = true}
+				/>
+			{/snippet}
+		</DetailCard>
+		<div class="full-width-card">
 			<DetailCard
-				title={$_('detail_air_quality')}
-				value={loc(aqiDual[0])}
-				secondaryValue={loc(aqiDual[1])}
-				unit={aqiUnitDual[0]}
-				secondaryUnit={aqiUnitDual[1]}
-			>
-				{#snippet subtitleSnippet()}
-					<AqiTierBadge
-						tier={data.airQuality!.primaryTier}
-						label={getAqiTierLabel(data.airQuality!.primaryTier)}
-						onClick={() => showAirQualityDetail = true}
-					/>
-				{/snippet}
-			</DetailCard>
+				title={$_('detail_visibility')}
+				value={loc(visDual[0])}
+				secondaryValue={loc(visDual[1])}
+				{onToggleUnits}
+			/>
 		</div>
+	{:else}
+		<DetailCard
+			title={$_('detail_visibility')}
+			value={loc(visDual[0])}
+			secondaryValue={loc(visDual[1])}
+			{onToggleUnits}
+		/>
 	{/if}
 </div>
 
@@ -231,7 +242,7 @@
 		gap: 16px;
 	}
 
-	.aqi-card-wrapper {
+	.full-width-card {
 		grid-column: 1 / -1;
 	}
 

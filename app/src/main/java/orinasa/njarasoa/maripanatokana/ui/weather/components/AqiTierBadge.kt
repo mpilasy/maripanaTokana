@@ -34,13 +34,25 @@ fun AqiTierBadge(
     fontSize: TextUnit = 12.sp,
 ) {
     val colors = colorsFor(tier)
+    TierPill(label = label, background = colors.background, foreground = colors.text, modifier = modifier, fontSize = fontSize)
+}
+
+/** Shared pill styling for tier badges (AQI, UV Index, ...). */
+@Composable
+internal fun TierPill(
+    label: String,
+    background: Color,
+    foreground: Color,
+    modifier: Modifier = Modifier,
+    fontSize: TextUnit = 12.sp,
+) {
     Text(
         text = label,
-        color = colors.text,
+        color = foreground,
         fontSize = fontSize,
         fontWeight = FontWeight.Medium,
         modifier = modifier
-            .background(colors.background, RoundedCornerShape(50))
+            .background(background, RoundedCornerShape(50))
             .padding(horizontal = 8.dp, vertical = 2.dp),
     )
 }
