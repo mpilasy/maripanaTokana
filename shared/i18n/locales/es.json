@@ -59,6 +59,7 @@
 	"detail_precipitation": "Precipitación",
 	"detail_cloud_cover": "Nubosidad",
 	"detail_sunset": "Atardecer",
+	"detail_air_quality": "Calidad del aire",
 	"alert_title_thunderstorm": "Aviso de tormenta",
 	"alert_desc_thunderstorm": "Se está produciendo o se espera una tormenta en su zona.",
 	"alert_title_heavy_rain": "Aviso de lluvia intensa",
@@ -100,6 +101,13 @@
 		"Alto",
 		"Muy alto",
 		"Extremo"
+	],
+	"aqi_tier_labels": [
+		"Buena",
+		"Moderada",
+		"Mala",
+		"Muy mala",
+		"Peligrosa"
 	],
 	"web_only": {
 		"copy_link": "Copiar enlace",

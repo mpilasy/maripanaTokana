@@ -59,6 +59,7 @@
 	"detail_precipitation": "降水",
 	"detail_cloud_cover": "云量",
 	"detail_sunset": "日落",
+	"detail_air_quality": "空气质量",
 	"alert_title_thunderstorm": "Thunderstorm Warning",
 	"alert_desc_thunderstorm": "A thunderstorm is occurring or expected in your area.",
 	"alert_title_heavy_rain": "Heavy Rain Warning",
@@ -100,6 +101,13 @@
 		"高",
 		"很高",
 		"极高"
+	],
+	"aqi_tier_labels": [
+		"良好",
+		"中等",
+		"不健康",
+		"非常不健康",
+		"危险"
 	],
 	"web_only": {
 		"copy_link": "复制链接",

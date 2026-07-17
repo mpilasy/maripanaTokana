@@ -59,6 +59,7 @@
     <string name="detail_precipitation">वर्षा</string>
     <string name="detail_cloud_cover">बादल आवरण</string>
     <string name="detail_sunset">सूर्यास्त</string>
+    <string name="detail_air_quality">वायु गुणस्तर</string>
     <string name="alert_title_thunderstorm">Thunderstorm Warning</string>
     <string name="alert_desc_thunderstorm">A thunderstorm is occurring or expected in your area.</string>
     <string name="alert_title_heavy_rain">Heavy Rain Warning</string>
@@ -123,5 +124,12 @@
         <item>उच्च</item>
         <item>अति उच्च</item>
         <item>चरम</item>
+    </string-array>
+    <string-array name="aqi_tier_labels">
+        <item>राम्रो</item>
+        <item>मध्यम</item>
+        <item>अस्वस्थकर</item>
+        <item>धेरै अस्वस्थकर</item>
+        <item>खतरनाक</item>
     </string-array>
 </resources>

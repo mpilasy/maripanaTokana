@@ -59,6 +59,7 @@
 	"detail_precipitation": "वर्षा",
 	"detail_cloud_cover": "बादल आवरण",
 	"detail_sunset": "सूर्यास्त",
+	"detail_air_quality": "वायु गुणस्तर",
 	"alert_title_thunderstorm": "Thunderstorm Warning",
 	"alert_desc_thunderstorm": "A thunderstorm is occurring or expected in your area.",
 	"alert_title_heavy_rain": "Heavy Rain Warning",
@@ -100,6 +101,13 @@
 		"उच्च",
 		"अति उच्च",
 		"चरम"
+	],
+	"aqi_tier_labels": [
+		"राम्रो",
+		"मध्यम",
+		"अस्वस्थकर",
+		"धेरै अस्वस्थकर",
+		"खतरनाक"
 	],
 	"web_only": {
 		"copy_link": "लिंक कपी गर्नुहोस्",

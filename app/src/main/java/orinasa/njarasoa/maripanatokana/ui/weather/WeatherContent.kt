@@ -620,6 +620,8 @@ internal fun DualUnitText(
     color: Color = Color.Unspecified,
     horizontalAlignment: Alignment.Horizontal = Alignment.Start,
     onClick: (() -> Unit)? = null,
+    primaryUnit: String? = null,
+    secondaryUnit: String? = null,
 ) {
     val displayFont = LocalDisplayFont.current
     val fontFeatures = LocalBodyFontFeatures.current
@@ -633,19 +635,29 @@ internal fun DualUnitText(
         ) else Modifier
     ) {
         Text(
-            text = primary,
-            fontSize = primarySize,
-            fontWeight = FontWeight.Bold,
-            fontFamily = displayFont,
-            color = resolvedColor,
+            text = buildAnnotatedString {
+                withStyle(SpanStyle(fontSize = primarySize, fontWeight = FontWeight.Bold, fontFamily = displayFont, color = resolvedColor)) {
+                    append(primary)
+                }
+                if (primaryUnit != null) {
+                    withStyle(SpanStyle(fontSize = primarySize * 0.55f, fontWeight = FontWeight.Normal, fontFamily = displayFont, color = resolvedColor.copy(alpha = 0.7f))) {
+                        append(" $primaryUnit")
+                    }
+                }
+            },
             style = TextStyle(fontFeatureSettings = fontFeatures),
         )
         Text(
-            text = secondary,
-            fontSize = primarySize * 0.75f,
-            fontWeight = FontWeight.Normal,
-            fontFamily = displayFont,
-            color = resolvedColor.copy(alpha = 0.55f),
+            text = buildAnnotatedString {
+                withStyle(SpanStyle(fontSize = primarySize * 0.75f, fontWeight = FontWeight.Normal, fontFamily = displayFont, color = resolvedColor.copy(alpha = 0.55f))) {
+                    append(secondary)
+                }
+                if (secondaryUnit != null) {
+                    withStyle(SpanStyle(fontSize = primarySize * 0.55f, fontWeight = FontWeight.Normal, fontFamily = displayFont, color = resolvedColor.copy(alpha = 0.45f))) {
+                        append(" $secondaryUnit")
+                    }
+                }
+            },
             style = TextStyle(fontFeatureSettings = fontFeatures),
         )
     }
@@ -1332,6 +1344,29 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
                 onToggleUnits = onToggleUnits,
             )
         }
+
+        // Air Quality (only when available from Open-Meteo)
+        data.airQuality?.let { aqi ->
+            val aqiTierLabels = stringArrayResource(R.array.aqi_tier_labels)
+            Spacer(modifier = Modifier.height(16.sd(scale)))
+            Row(
+                modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                horizontalArrangement = Arrangement.spacedBy(16.sd(scale))
+            ) {
+                val (aqiP, aqiS) = aqi.displayDual()
+                val (unitP, unitS) = aqi.unitDual()
+                DetailCard(
+                    title = stringResource(R.string.detail_air_quality),
+                    value = localizeDigits(aqiP),
+                    secondaryValue = localizeDigits(aqiS),
+                    subtitle = aqiTierLabels[aqi.primaryTier.ordinal],
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    onToggleUnits = onToggleUnits,
+                    unit = unitP,
+                    secondaryUnit = unitS,
+                )
+            }
+        }
     }
 }
 
@@ -1343,6 +1378,8 @@ internal fun DetailCard(
     secondaryValue: String? = null,
     subtitle: String? = null,
     onToggleUnits: (() -> Unit)? = null,
+    unit: String? = null,
+    secondaryUnit: String? = null,
 ) {
     val bodyFont = LocalBodyFont.current
     val fontFeatures = LocalBodyFontFeatures.current
@@ -1363,7 +1400,14 @@ internal fun DetailCard(
             )
             Spacer(modifier = Modifier.height(8.dp))
             if (secondaryValue != null) {
-                DualUnitText(primary = value, secondary = secondaryValue, primarySize = 20f.s(scale), onClick = onToggleUnits)
+                DualUnitText(
+                    primary = value,
+                    secondary = secondaryValue,
+                    primarySize = 20f.s(scale),
+                    onClick = onToggleUnits,
+                    primaryUnit = unit,
+                    secondaryUnit = secondaryUnit,
+                )
             } else {
                 Text(
                     text = value,

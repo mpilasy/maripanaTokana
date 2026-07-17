@@ -59,6 +59,7 @@
     <string name="detail_precipitation">降水</string>
     <string name="detail_cloud_cover">云量</string>
     <string name="detail_sunset">日落</string>
+    <string name="detail_air_quality">空气质量</string>
     <string name="alert_title_thunderstorm">Thunderstorm Warning</string>
     <string name="alert_desc_thunderstorm">A thunderstorm is occurring or expected in your area.</string>
     <string name="alert_title_heavy_rain">Heavy Rain Warning</string>
@@ -123,5 +124,12 @@
         <item>高</item>
         <item>很高</item>
         <item>极高</item>
+    </string-array>
+    <string-array name="aqi_tier_labels">
+        <item>良好</item>
+        <item>中等</item>
+        <item>不健康</item>
+        <item>非常不健康</item>
+        <item>危险</item>
     </string-array>
 </resources>

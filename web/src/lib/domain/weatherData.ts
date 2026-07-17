@@ -2,6 +2,7 @@ import type { Temperature } from './temperature';
 import type { Pressure } from './pressure';
 import type { WindSpeed } from './windSpeed';
 import type { Precipitation } from './precipitation';
+import type { AirQualityIndex } from './airQuality';
 
 export type WeatherSource = 'OPEN_METEO' | 'PIRATE_WEATHER';
 
@@ -70,4 +71,5 @@ export interface WeatherData {
 	alertsLoading?: boolean;
 	timestamp: number; // epoch millis
 	utcOffsetSeconds: number; // location's UTC offset in seconds
+	airQuality?: AirQualityIndex | null;
 }

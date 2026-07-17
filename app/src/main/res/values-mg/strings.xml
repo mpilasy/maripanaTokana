@@ -59,6 +59,7 @@
     <string name="detail_sunrise">&#x1f31e; Miposaka</string>
     <string name="detail_sunset">&#x1f31e; Mody</string>
     <string name="detail_cloud_cover">Rahona</string>
+    <string name="detail_air_quality">Hadion\'ny rivotra</string>
     <string name="alert_title_thunderstorm">Tandremo: Orambaratra</string>
     <string name="alert_desc_thunderstorm">Misy na hisy ny orambaratra eo amin\'ny faritra misy anao.</string>
     <string name="alert_title_heavy_rain">Tandremo: Orambe</string>
@@ -123,5 +124,12 @@
         <item>Avo</item>
         <item>Avo dia avo</item>
         <item>Faran\'izay avo</item>
+    </string-array>
+    <string-array name="aqi_tier_labels">
+        <item>Tsara</item>
+        <item>Antonony</item>
+        <item>Ratsy</item>
+        <item>Ratsy be</item>
+        <item>Mampidi-doza</item>
     </string-array>
 </resources>

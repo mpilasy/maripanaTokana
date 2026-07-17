@@ -59,6 +59,7 @@
     <string name="detail_precipitation">الهطول</string>
     <string name="detail_cloud_cover">الغطاء السحابي</string>
     <string name="detail_sunset">غروب الشمس</string>
+    <string name="detail_air_quality">جودة الهواء</string>
     <string name="alert_title_thunderstorm">Thunderstorm Warning</string>
     <string name="alert_desc_thunderstorm">A thunderstorm is occurring or expected in your area.</string>
     <string name="alert_title_heavy_rain">Heavy Rain Warning</string>
@@ -123,5 +124,12 @@
         <item>مرتفع</item>
         <item>مرتفع جدًا</item>
         <item>شديد</item>
+    </string-array>
+    <string-array name="aqi_tier_labels">
+        <item>جيدة</item>
+        <item>متوسطة</item>
+        <item>غير صحية</item>
+        <item>غير صحية جدًا</item>
+        <item>خطيرة</item>
     </string-array>
 </resources>

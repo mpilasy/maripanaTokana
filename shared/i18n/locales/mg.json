@@ -59,6 +59,7 @@
 	"detail_sunrise": "🌞 Miposaka",
 	"detail_sunset": "🌞 Mody",
 	"detail_cloud_cover": "Rahona",
+	"detail_air_quality": "Hadion'ny rivotra",
 	"alert_title_thunderstorm": "Tandremo: Orambaratra",
 	"alert_desc_thunderstorm": "Misy na hisy ny orambaratra eo amin'ny faritra misy anao.",
 	"alert_title_heavy_rain": "Tandremo: Orambe",
@@ -100,6 +101,13 @@
 		"Avo",
 		"Avo dia avo",
 		"Faran'izay avo"
+	],
+	"aqi_tier_labels": [
+		"Tsara",
+		"Antonony",
+		"Ratsy",
+		"Ratsy be",
+		"Mampidi-doza"
 	],
 	"web_only": {
 		"copy_link": "Adikao ny rohy",

@@ -4,6 +4,8 @@ import { fetchWeather } from '$lib/api/openMeteo';
 import { fetchPirateWeather } from '$lib/api/pirateWeather';
 import { fetchAllAlerts, type AlertSettings } from '$lib/api/externalAlerts';
 import { mapToWeatherData } from '$lib/api/openMeteoMapper';
+import { fetchAirQuality, mapToAirQuality } from '$lib/api/openMeteoAirQuality';
+import { getCountryCode } from '$lib/api/alerts/shared';
 import {
 	getCachedLocation, cacheLocation, movedSignificantly,
 	getPosition, reverseGeocode
@@ -48,8 +50,13 @@ async function fetchAtLocation(lat: number, lon: number, knownName?: string, kno
 
 	// Open-Meteo path
 	const weatherPromise = fetchWeather(lat, lon);
-	const [response, location] = await Promise.all([weatherPromise, namePromise]);
-	const data = mapToWeatherData(response, location.name, knownSubtext || location.subtext);
+	const airQualityResponsePromise = fetchAirQuality(lat, lon).catch(() => null);
+	// Country decides which AQI standard is primary (european_aqi vs us_aqi) — same lookup
+	// used for alert-source gating in fetchAllAlerts.
+	const countryCodePromise = getCountryCode(lat, lon);
+	const [response, location, airQualityResponse, countryCode] = await Promise.all([weatherPromise, namePromise, airQualityResponsePromise, countryCodePromise]);
+	const airQuality = airQualityResponse ? mapToAirQuality(airQualityResponse, countryCode) : null;
+	const data = { ...mapToWeatherData(response, location.name, knownSubtext || location.subtext), airQuality };
 
 	if (updateAlerts) fetchAlertsForData(lat, lon);
 

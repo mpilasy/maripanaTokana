@@ -18,6 +18,7 @@ import orinasa.njarasoa.maripanatokana.data.remote.MeteoAlarmApiService
 import orinasa.njarasoa.maripanatokana.data.remote.NominatimApiService
 import orinasa.njarasoa.maripanatokana.data.remote.NhcApiService
 import orinasa.njarasoa.maripanatokana.data.remote.NwsApiService
+import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoAirQualityApiService
 import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoApiService
 import orinasa.njarasoa.maripanatokana.data.remote.PirateWeatherApiService
 import orinasa.njarasoa.maripanatokana.data.remote.WmoSwicApiService
@@ -76,6 +77,18 @@ object NetworkModule {
             .addConverterFactory(json.asConverterFactory(contentType))
             .build()
             .create(OpenMeteoApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideOpenMeteoAirQualityApiService(okHttpClient: OkHttpClient, json: Json): OpenMeteoAirQualityApiService {
+        val contentType = "application/json".toMediaType()
+        return Retrofit.Builder()
+            .baseUrl("https://air-quality-api.open-meteo.com/")
+            .client(okHttpClient)
+            .addConverterFactory(json.asConverterFactory(contentType))
+            .build()
+            .create(OpenMeteoAirQualityApiService::class.java)
     }
 
     @Provides

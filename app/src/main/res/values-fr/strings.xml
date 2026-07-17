@@ -59,6 +59,7 @@
     <string name="detail_precipitation">Précipitations</string>
     <string name="detail_cloud_cover">Couverture nuageuse</string>
     <string name="detail_sunset">Coucher du soleil</string>
+    <string name="detail_air_quality">Qualité de l\'air</string>
     <string name="alert_title_thunderstorm">Alerte aux orages</string>
     <string name="alert_desc_thunderstorm">Un orage est en cours ou prévu dans votre région.</string>
     <string name="alert_title_heavy_rain">Alerte pluie forte</string>
@@ -123,5 +124,12 @@
         <item>Élevé</item>
         <item>Très élevé</item>
         <item>Extrême</item>
+    </string-array>
+    <string-array name="aqi_tier_labels">
+        <item>Bonne</item>
+        <item>Modérée</item>
+        <item>Mauvaise</item>
+        <item>Très mauvaise</item>
+        <item>Dangereuse</item>
     </string-array>
 </resources>

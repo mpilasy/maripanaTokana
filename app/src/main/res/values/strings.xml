@@ -59,6 +59,7 @@
     <string name="detail_sunrise">Sunrise</string>
     <string name="detail_sunset">Sunset</string>
     <string name="detail_cloud_cover">Cloud Cover</string>
+    <string name="detail_air_quality">Air Quality</string>
     <string name="alert_title_thunderstorm">Thunderstorm Warning</string>
     <string name="alert_desc_thunderstorm">A thunderstorm is occurring or expected in your area.</string>
     <string name="alert_title_heavy_rain">Heavy Rain Warning</string>
@@ -123,5 +124,12 @@
         <item>High</item>
         <item>Very High</item>
         <item>Extreme</item>
+    </string-array>
+    <string-array name="aqi_tier_labels">
+        <item>Good</item>
+        <item>Moderate</item>
+        <item>Unhealthy</item>
+        <item>Very Unhealthy</item>
+        <item>Hazardous</item>
     </string-array>
 </resources>

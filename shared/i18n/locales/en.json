@@ -59,6 +59,7 @@
 	"detail_sunrise": "Sunrise",
 	"detail_sunset": "Sunset",
 	"detail_cloud_cover": "Cloud Cover",
+	"detail_air_quality": "Air Quality",
 	"alert_title_thunderstorm": "Thunderstorm Warning",
 	"alert_desc_thunderstorm": "A thunderstorm is occurring or expected in your area.",
 	"alert_title_heavy_rain": "Heavy Rain Warning",
@@ -100,6 +101,13 @@
 		"High",
 		"Very High",
 		"Extreme"
+	],
+	"aqi_tier_labels": [
+		"Good",
+		"Moderate",
+		"Unhealthy",
+		"Very Unhealthy",
+		"Hazardous"
 	],
 	"web_only": {
 		"copy_link": "Copy link",

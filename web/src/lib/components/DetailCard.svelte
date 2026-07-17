@@ -7,9 +7,11 @@
 		secondaryValue?: string;
 		subtitle?: string;
 		onToggleUnits?: () => void;
+		unit?: string;
+		secondaryUnit?: string;
 	}
 
-	let { title, value, secondaryValue, subtitle, onToggleUnits }: Props = $props();
+	let { title, value, secondaryValue, subtitle, onToggleUnits, unit, secondaryUnit }: Props = $props();
 </script>
 
 <div class="detail-card">
@@ -20,6 +22,8 @@
 			secondary={secondaryValue}
 			primarySize="20px"
 			onClick={onToggleUnits}
+			primaryUnit={unit}
+			secondaryUnit={secondaryUnit}
 		/>
 	{:else}
 		<span class="card-value">{value}</span>

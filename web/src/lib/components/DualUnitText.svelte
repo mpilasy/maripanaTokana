@@ -6,14 +6,20 @@
 		primarySize?: string;
 		align?: 'start' | 'end' | 'center';
 		onClick?: () => void;
+		primaryUnit?: string;
+		secondaryUnit?: string;
 	}
 
-	let { primary, secondary, primarySize = '16px', align = 'start', onClick }: Props = $props();
+	let { primary, secondary, primarySize = '16px', align = 'start', onClick, primaryUnit, secondaryUnit }: Props = $props();
 </script>
 
 {#snippet content()}
-	<div class="primary" style:font-size={primarySize}>{primary}</div>
-	<div class="secondary" style:font-size="calc({primarySize} * 0.75)">{secondary}</div>
+	<div class="primary" style:font-size={primarySize}
+		>{primary}{#if primaryUnit}<span class="unit" style:font-size="calc({primarySize} * 0.55)"> {primaryUnit}</span>{/if}</div
+	>
+	<div class="secondary" style:font-size="calc({primarySize} * 0.75)"
+		>{secondary}{#if secondaryUnit}<span class="unit" style:font-size="calc({primarySize} * 0.55)"> {secondaryUnit}</span>{/if}</div
+	>
 {/snippet}
 
 {#if onClick}
@@ -67,5 +73,10 @@
 		font-family: var(--font-display);
 		color: rgba(255,255,255,0.55);
 		font-feature-settings: var(--font-features);
+	}
+
+	.unit {
+		font-weight: 400;
+		opacity: 0.75;
 	}
 </style>

@@ -59,6 +59,7 @@
 	"detail_precipitation": "الهطول",
 	"detail_cloud_cover": "الغطاء السحابي",
 	"detail_sunset": "غروب الشمس",
+	"detail_air_quality": "جودة الهواء",
 	"alert_title_thunderstorm": "Thunderstorm Warning",
 	"alert_desc_thunderstorm": "A thunderstorm is occurring or expected in your area.",
 	"alert_title_heavy_rain": "Heavy Rain Warning",
@@ -100,6 +101,13 @@
 		"مرتفع",
 		"مرتفع جدًا",
 		"شديد"
+	],
+	"aqi_tier_labels": [
+		"جيدة",
+		"متوسطة",
+		"غير صحية",
+		"غير صحية جدًا",
+		"خطيرة"
 	],
 	"web_only": {
 		"copy_link": "نسخ الرابط",

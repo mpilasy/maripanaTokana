@@ -29,6 +29,14 @@
 		return labels[4];
 	}
 
+	const AQI_TIERS = ['good', 'moderate', 'unhealthy', 'very_unhealthy', 'hazardous'];
+
+	function getAqiTierLabel(tier: string): string {
+		const labels: string[] = $_('aqi_tier_labels') as unknown as string[];
+		if (!Array.isArray(labels)) return '';
+		return labels[AQI_TIERS.indexOf(tier)] ?? '';
+	}
+
 	function visibilityDisplay(meters: number, metric: boolean): [string, string] {
 		const km = (meters / 1000).toFixed(1);
 		const mi = (meters / 1609.34).toFixed(2);
@@ -173,6 +181,21 @@
 		secondaryValue={loc(visDual[1])}
 		{onToggleUnits}
 	/>
+	{#if data.airQuality}
+		{@const aqiDual = data.airQuality.displayDual()}
+		{@const aqiUnitDual = data.airQuality.unitDual()}
+		<div class="aqi-card-wrapper">
+			<DetailCard
+				title={$_('detail_air_quality')}
+				value={loc(aqiDual[0])}
+				secondaryValue={loc(aqiDual[1])}
+				unit={aqiUnitDual[0]}
+				secondaryUnit={aqiUnitDual[1]}
+				subtitle={getAqiTierLabel(data.airQuality.primaryTier)}
+				{onToggleUnits}
+			/>
+		</div>
+	{/if}
 </div>
 
 <style>
@@ -181,6 +204,10 @@
 		grid-template-columns: 1fr 1fr;
 		grid-auto-rows: auto;
 		gap: 16px;
+	}
+
+	.aqi-card-wrapper {
+		grid-column: 1 / -1;
 	}
 
 	.merged-card {
