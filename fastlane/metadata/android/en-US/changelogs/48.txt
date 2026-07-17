@@ -1,0 +1,2 @@
+• Added a detailed Air Quality breakdown dialog displaying pollutant concentrations and AQI tiers
+• Introduced colored AQI category tier badges

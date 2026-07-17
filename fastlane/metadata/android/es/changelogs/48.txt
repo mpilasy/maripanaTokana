@@ -1,0 +1,2 @@
+• Se agregó un diálogo detallado de la calidad del aire que muestra las concentraciones de contaminantes y los niveles de AQI
+• Se introdujeron etiquetas de colores para las categorías de AQI

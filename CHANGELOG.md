@@ -6,6 +6,10 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.2.5] - 2026-07-17
+- Added detailed Air Quality breakdown dialog displaying pollutant concentrations and AQI tiers.
+- Introduced colored AQI category tier badges.
+
 ## [1.2.4] - 2026-07-17
 - Added an Air Quality card (US AQI / EU AQI) to Current Conditions, powered by Open-Meteo.
 - Collapsed alert banners with multiple alerts now show "N alerts" instead of just the first alert's title.

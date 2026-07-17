@@ -1,0 +1,2 @@
+• Ajout d'une boîte de dialogue détaillée sur la qualité de l'air affichant les concentrations de polluants et les niveaux d'AQI
+• Introduction de badges colorés pour les catégories d'AQI
