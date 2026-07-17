@@ -30,14 +30,30 @@
                 }
             }
 
+            // Open-Meteo's `name` param only matches the place name itself — a combined
+            // "City, State" query returns zero results. Split off the qualifier (state/country)
+            // and use it to filter the results client-side instead.
+            const commaIndex = query.indexOf(',');
+            const namePart = commaIndex >= 0 ? query.slice(0, commaIndex).trim() : query.trim();
+            const qualifier = commaIndex >= 0 ? query.slice(commaIndex + 1).trim().toLowerCase() : '';
+
             try {
-                const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5&language=en&format=json`);
+                const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(namePart)}&count=20&language=en&format=json`);
                 const data = await res.json();
                 if (data.results) {
-                    results = data.results.map((r: any) => ({
+                    let mapped = data.results.map((r: any) => ({
                         ...r,
                         displayName: [r.name, r.admin1, r.country].filter(Boolean).join(', ')
                     }));
+                    if (qualifier) {
+                        const filtered = mapped.filter((r: any) =>
+                            r.admin1?.toLowerCase().includes(qualifier) ||
+                            r.admin2?.toLowerCase().includes(qualifier) ||
+                            r.country?.toLowerCase().includes(qualifier)
+                        );
+                        if (filtered.length > 0) mapped = filtered;
+                    }
+                    results = mapped;
                 } else {
                     results = [];
                 }

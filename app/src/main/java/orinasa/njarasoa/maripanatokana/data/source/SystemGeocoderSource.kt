@@ -36,6 +36,22 @@ class SystemGeocoderSource @Inject constructor(
         return name to subtext
     }
 
-    override suspend fun searchLocations(query: String, locale: Locale): List<GeocodingResult> =
-        geocodingApiService.searchLocation(name = query, language = locale.language).results
+    // Open-Meteo's `name` param only matches the place name itself — a combined "City, State"
+    // query returns zero results. Split off the qualifier (state/country) and use it to filter
+    // the results client-side instead.
+    override suspend fun searchLocations(query: String, locale: Locale): List<GeocodingResult> {
+        val commaIndex = query.indexOf(',')
+        val namePart = if (commaIndex >= 0) query.substring(0, commaIndex).trim() else query.trim()
+        val qualifier = if (commaIndex >= 0) query.substring(commaIndex + 1).trim() else null
+
+        val results = geocodingApiService.searchLocation(name = namePart, language = locale.language).results
+        if (qualifier.isNullOrBlank()) return results
+
+        val filtered = results.filter { r ->
+            r.admin1?.contains(qualifier, ignoreCase = true) == true ||
+                r.admin2?.contains(qualifier, ignoreCase = true) == true ||
+                r.country?.contains(qualifier, ignoreCase = true) == true
+        }
+        return filtered.ifEmpty { results }
+    }
 }

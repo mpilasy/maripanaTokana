@@ -43,7 +43,7 @@ interface NominatimApiService {
         @Query("q") query: String,
         @Query("format") format: String = "jsonv2",
         @Query("accept-language") language: String = "en",
-        @Query("limit") limit: Int = 5,
+        @Query("limit") limit: Int = 20,
         @Query("addressdetails") addressDetails: Int = 1,
     ): List<NominatimPlace>
 }

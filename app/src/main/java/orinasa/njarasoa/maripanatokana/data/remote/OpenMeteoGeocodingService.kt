@@ -28,7 +28,7 @@ interface OpenMeteoGeocodingService {
     @GET("v1/search")
     suspend fun searchLocation(
         @Query("name") name: String,
-        @Query("count") count: Int = 5,
+        @Query("count") count: Int = 20,
         @Query("language") language: String = "en",
         @Query("format") format: String = "json"
     ): GeocodingResponse
