@@ -131,14 +131,14 @@
     </string-array>
     <string-array name="uv_labels">
         <item>Ambany</item>
-        <item>Antonony</item>
+        <item>Eo ho eo</item>
         <item>Avo</item>
         <item>Avo dia avo</item>
         <item>Faran\'izay avo</item>
     </string-array>
     <string-array name="aqi_tier_labels">
         <item>Tsara</item>
-        <item>Antonony</item>
+        <item>Eo ho eo</item>
         <item>Ratsy</item>
         <item>Ratsy be</item>
         <item>Mampidi-doza</item>
