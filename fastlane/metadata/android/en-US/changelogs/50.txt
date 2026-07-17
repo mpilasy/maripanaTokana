@@ -1,0 +1,2 @@
+• Added a colored tier badge (Low/Moderate/High/Very High/Extreme) to the UV Index card
+• Air Quality now sits next to UV Index in Current Conditions; Visibility moved to its own row

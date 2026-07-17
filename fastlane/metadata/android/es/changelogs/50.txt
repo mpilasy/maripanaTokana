@@ -1,0 +1,2 @@
+• Se agregó una etiqueta de colores (Baja/Moderada/Alta/Muy Alta/Extrema) a la tarjeta del índice UV
+• La calidad del aire ahora aparece junto al índice UV en Condiciones Actuales; la visibilidad se movió a su propia fila

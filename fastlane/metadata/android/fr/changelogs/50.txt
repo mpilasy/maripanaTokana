@@ -1,0 +1,2 @@
+• Ajout d'un badge de couleur (Faible/Modéré/Élevé/Très élevé/Extrême) à la carte de l'indice UV
+• La qualité de l'air apparaît désormais à côté de l'indice UV dans les conditions actuelles ; la visibilité est passée sur sa propre ligne
