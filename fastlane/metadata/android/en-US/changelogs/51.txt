@@ -1,0 +1,2 @@
+• Location search now returns more results (up to 20) so places that share a common name aren't hidden
+• Fixed "City, State" searches (e.g. "Bloomington, Indiana") returning nothing on the default geocoder

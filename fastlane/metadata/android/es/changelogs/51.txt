@@ -1,0 +1,2 @@
+• La búsqueda de ubicaciones ahora muestra más resultados (hasta 20) para que los lugares con nombres repetidos no queden ocultos
+• Se corrigieron las búsquedas de "Ciudad, Estado" (p. ej. "Bloomington, Indiana") que no devolvían nada con el geocodificador predeterminado

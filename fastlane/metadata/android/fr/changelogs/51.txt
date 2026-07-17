@@ -1,0 +1,2 @@
+• La recherche de lieux affiche désormais plus de résultats (jusqu'à 20) afin que les lieux homonymes ne soient plus masqués
+• Correction des recherches « Ville, État » (ex. « Bloomington, Indiana ») qui ne renvoyaient aucun résultat avec le géocodeur par défaut

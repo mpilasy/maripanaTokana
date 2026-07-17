@@ -6,6 +6,10 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.2.8] - 2026-07-17
+- Location search now returns more results (up to 20) so places that share a common name aren't hidden.
+- Fixed "City, State" searches (e.g. "Bloomington, Indiana") returning nothing on the default geocoder.
+
 ## [1.2.7] - 2026-07-17
 - Added a colored tier badge (Low/Moderate/High/Very High/Extreme) to the UV Index card.
 - Air Quality now sits next to UV Index in Current Conditions; Visibility moved to its own row.
