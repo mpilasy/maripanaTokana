@@ -54,6 +54,7 @@ fun WeatherAlertBanner(
     if (alerts.isEmpty()) return
 
     val context = LocalContext.current
+    val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
     var expanded by remember { mutableStateOf(false) }
     val scale = LocalScale.current
     val bodyFont = LocalBodyFont.current
@@ -117,8 +118,11 @@ fun WeatherAlertBanner(
                             )
                             Spacer(modifier = Modifier.width(6.sd(scale)))
                             Surface(
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                                shape = RoundedCornerShape(4.dp)
+                                color = if (topAlert.link != null) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                                shape = RoundedCornerShape(4.dp),
+                                modifier = if (topAlert.link != null) Modifier.clickable {
+                                    try { uriHandler.openUri(topAlert.link) } catch (_: Exception) {}
+                                } else Modifier
                             ) {
                                 Text(
                                     text = topAlert.source.uppercase(),
@@ -192,7 +196,6 @@ fun WeatherAlertBanner(
                                     modifier = Modifier.weight(1f, fill = false)
                                 )
                                 Spacer(modifier = Modifier.width(6.sd(scale)))
-                                val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
                                 Surface(
                                     color = if (alert.link != null) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
                                     shape = RoundedCornerShape(4.dp),

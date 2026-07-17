@@ -43,7 +43,13 @@
 						{topAlert.title}
 					{/if}
 				</span>
-				<span class="source-badge">{topAlert.source.toUpperCase()}</span>
+				{#if topAlert.link}
+					<a href={topAlert.link} target="_blank" rel="noopener noreferrer" class="source-badge clickable" onclick={(e) => e.stopPropagation()}>
+						{topAlert.source.toUpperCase()}
+					</a>
+				{:else}
+					<span class="source-badge">{topAlert.source.toUpperCase()}</span>
+				{/if}
 			</div>
 			<span class="spacer"></span>
 			<span class="chevron" class:expanded={isExpanded}>&#9660;</span>
