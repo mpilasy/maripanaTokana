@@ -43,7 +43,7 @@ Builds:
       - fdroid
   - versionName: 1.2.4
     versionCode: 47
-    commit: PENDING
+    commit: fe9625643ef5904950774f6a8726c53edad4d437
     subdir: app
     gradle:
       - fdroid
