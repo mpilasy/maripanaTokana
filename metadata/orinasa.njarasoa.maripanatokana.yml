@@ -37,7 +37,7 @@ Binaries:
 Builds:
   - versionName: 1.2.5
     versionCode: 48
-    commit: b6755bfd3445ca66d1983f3ddce6c12fe401aece
+    commit: 34ba1467d563451e189b57776b52f3e1093bc7fd
     subdir: app
     gradle:
       - fdroid
