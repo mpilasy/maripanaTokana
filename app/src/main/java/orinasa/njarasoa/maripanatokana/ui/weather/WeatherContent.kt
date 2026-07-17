@@ -83,6 +83,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
+import androidx.exifinterface.media.ExifInterface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -1499,6 +1500,15 @@ internal suspend fun shareCardBitmap(context: android.content.Context, bitmap: B
         val dir = File(context.cacheDir, "shared_images").also { it.mkdirs() }
         val file = File(dir, "weather.png")
         file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+
+        // PNG's "eXIf" chunk carries EXIF just like JPEG does; ExifInterface writes it directly.
+        val exifDateTime = SimpleDateFormat("yyyy:MM:dd HH:mm:ss", Locale.US).format(Date())
+        val exif = ExifInterface(file.absolutePath)
+        exif.setAttribute(ExifInterface.TAG_DATETIME, exifDateTime)
+        exif.setAttribute(ExifInterface.TAG_DATETIME_ORIGINAL, exifDateTime)
+        exif.setAttribute(ExifInterface.TAG_DATETIME_DIGITIZED, exifDateTime)
+        exif.saveAttributes()
+
         FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
     }
     val intent = Intent(Intent.ACTION_SEND).apply {

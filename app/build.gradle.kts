@@ -108,6 +108,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.retrofit.kotlinx.serialization)
     implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.exifinterface)
     "standardImplementation"(libs.play.services.location)
     "standardImplementation"(libs.accompanist.permissions)
     "standardImplementation"(libs.kotlinx.coroutines.play.services)
