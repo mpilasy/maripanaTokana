@@ -1365,9 +1365,14 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
                     title = stringResource(R.string.detail_air_quality),
                     value = localizeDigits(aqiP),
                     secondaryValue = localizeDigits(aqiS),
-                    subtitleContent = { AqiTierBadge(tier = aqi.primaryTier, label = aqiTierLabels[aqi.primaryTier.ordinal]) },
+                    subtitleContent = {
+                        AqiTierBadge(
+                            tier = aqi.primaryTier,
+                            label = aqiTierLabels[aqi.primaryTier.ordinal],
+                            modifier = Modifier.clickable { showAirQualityDetail = true },
+                        )
+                    },
                     modifier = Modifier.weight(1f).fillMaxHeight(),
-                    onToggleUnits = { showAirQualityDetail = true },
                     unit = unitP,
                     secondaryUnit = unitS,
                 )

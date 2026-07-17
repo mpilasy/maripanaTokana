@@ -5,12 +5,17 @@
 		tier: AqiTier;
 		label: string;
 		compact?: boolean;
+		onClick?: () => void;
 	}
 
-	let { tier, label, compact = false }: Props = $props();
+	let { tier, label, compact = false, onClick }: Props = $props();
 </script>
 
-<span class="aqi-badge tier-{tier}" class:compact>{label}</span>
+{#if onClick}
+	<button type="button" class="aqi-badge tier-{tier}" class:compact onclick={onClick}>{label}</button>
+{:else}
+	<span class="aqi-badge tier-{tier}" class:compact>{label}</span>
+{/if}
 
 <style>
 	/* AirNow AQI category colors (airnow.gov/aqi/aqi-basics). Our AqiTier type has 5 buckets
@@ -23,6 +28,12 @@
 		font-size: 12px;
 		font-weight: 600;
 		line-height: 1.4;
+		border: none;
+		font-family: inherit;
+	}
+
+	button.aqi-badge {
+		cursor: pointer;
 	}
 
 	.aqi-badge.compact {

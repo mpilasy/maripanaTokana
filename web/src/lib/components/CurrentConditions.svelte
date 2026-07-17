@@ -201,10 +201,13 @@
 				secondaryValue={loc(aqiDual[1])}
 				unit={aqiUnitDual[0]}
 				secondaryUnit={aqiUnitDual[1]}
-				onToggleUnits={() => showAirQualityDetail = true}
 			>
 				{#snippet subtitleSnippet()}
-					<AqiTierBadge tier={data.airQuality!.primaryTier} label={getAqiTierLabel(data.airQuality!.primaryTier)} />
+					<AqiTierBadge
+						tier={data.airQuality!.primaryTier}
+						label={getAqiTierLabel(data.airQuality!.primaryTier)}
+						onClick={() => showAirQualityDetail = true}
+					/>
 				{/snippet}
 			</DetailCard>
 		</div>
