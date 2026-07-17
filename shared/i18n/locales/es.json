@@ -76,6 +76,7 @@
 	"alert_desc_high_uv": "Niveles altos de UV hoy. Use protección solar.",
 	"alert_show_details": "Ver detalles",
 	"alert_hide_details": "Ocultar detalles",
+	"alert_count_title": "{count} alertas",
 	"credits_weather_data": "Datos meteorologicos de ",
 	"cardinal_directions": [
 		"N",

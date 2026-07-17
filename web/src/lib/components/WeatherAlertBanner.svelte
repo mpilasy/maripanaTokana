@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { WeatherAlert } from '$lib/domain/weatherData';
 	import { slide } from 'svelte/transition';
+	import { _ } from 'svelte-i18n';
 	import { localeIndex } from '$lib/stores/preferences';
 	import { SUPPORTED_LOCALES } from '$lib/i18n/locales';
 	import { formatAlertTime } from '$lib/utils/date';
@@ -35,10 +36,13 @@
 						&#10071;
 					{/if}
 				</span>
-				<span class="alert-title">{topAlert.title}</span>
-				{#if alerts.length > 1}
-					<span class="alert-count">&#9888; {alerts.length}</span>
-				{/if}
+				<span class="alert-title">
+					{#if alerts.length > 1}
+						{$_('alert_count_title', { values: { count: alerts.length } })}
+					{:else}
+						{topAlert.title}
+					{/if}
+				</span>
 				<span class="source-badge">{topAlert.source.toUpperCase()}</span>
 			</div>
 			<span class="spacer"></span>
@@ -133,14 +137,7 @@
 		color: white;
 	}
 
-	.alert-count {
-		font-size: 14px;
-		font-weight: 800;
-		color: #FF4444;
-		margin-left: 8px;
-	}
-
-	.source-badge {
+.source-badge {
 		background: rgba(255, 255, 255, 0.2);
 		padding: 2px 6px;
 		border-radius: 4px;

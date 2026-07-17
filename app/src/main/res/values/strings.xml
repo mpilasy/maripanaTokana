@@ -76,6 +76,7 @@
     <string name="alert_desc_high_uv">High UV levels today. Use sun protection.</string>
     <string name="alert_show_details">Show details</string>
     <string name="alert_hide_details">Hide details</string>
+    <string name="alert_count_title">%1$s alerts</string>
     <string name="credits_weather_data">Weather data by </string>
     <string name="widget_description">Current weather with dual-unit temperature</string>
     <string name="widget_description_large">Weather details with feels-like, humidity, wind and min/max</string>

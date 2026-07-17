@@ -24,6 +24,7 @@ const PLACEHOLDER_ORDER = {
 	widget_today_in: ['location'],
 	widget_now_in: ['location'],
 	widget_min_max: ['min_val', 'min_unit', 'max_val', 'max_unit'],
+	alert_count_title: ['count'],
 };
 
 // Keys that use printf-style format specifiers (%.1f etc) — not our {name} placeholders

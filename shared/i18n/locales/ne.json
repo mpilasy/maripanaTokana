@@ -76,6 +76,7 @@
 	"alert_desc_high_uv": "High UV levels today. Use sun protection.",
 	"alert_show_details": "Show details",
 	"alert_hide_details": "Hide details",
+	"alert_count_title": "{count} अलर्ट",
 	"credits_weather_data": "मौसम डाटा प्रदायक: ",
 	"cardinal_directions": [
 		"N",

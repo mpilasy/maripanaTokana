@@ -76,6 +76,7 @@
     <string name="alert_desc_high_uv">Niveles altos de UV hoy. Use protección solar.</string>
     <string name="alert_show_details">Ver detalles</string>
     <string name="alert_hide_details">Ocultar detalles</string>
+    <string name="alert_count_title">%1$s alertas</string>
     <string name="credits_weather_data">Datos meteorologicos de </string>
     <string name="widget_description">Clima actual con temperatura en doble unidad</string>
     <string name="widget_description_large">Detalles del clima con sensacion termica, humedad, viento y min/max</string>

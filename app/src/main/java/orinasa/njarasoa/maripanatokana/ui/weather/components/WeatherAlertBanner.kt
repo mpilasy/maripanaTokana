@@ -37,6 +37,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.domain.model.AlertLevel
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherAlert
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFont
@@ -99,8 +100,12 @@ fun WeatherAlertBanner(
                     Spacer(modifier = Modifier.width(8.sd(scale)))
                     Column(modifier = Modifier.weight(1f)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            val title = context.resources.getIdentifier(topAlert.titleKey, "string", context.packageName).let { id ->
-                                if (id != 0) stringResource(id) else topAlert.titleKey
+                            val title = if (alerts.size > 1) {
+                                stringResource(R.string.alert_count_title, localizeDigits(alerts.size.toString()))
+                            } else {
+                                context.resources.getIdentifier(topAlert.titleKey, "string", context.packageName).let { id ->
+                                    if (id != 0) stringResource(id) else topAlert.titleKey
+                                }
                             }
                             Text(
                                 text = title,

@@ -76,6 +76,7 @@
     <string name="alert_desc_high_uv">High UV levels today. Use sun protection.</string>
     <string name="alert_show_details">Show details</string>
     <string name="alert_hide_details">Hide details</string>
+    <string name="alert_count_title">%1$s 条警报</string>
     <string name="credits_weather_data">天气数据来自 </string>
     <string name="widget_description">当前天气与双单位温度</string>
     <string name="widget_description_large">天气详情，包含体感温度、湿度、风速和最低/最高温</string>

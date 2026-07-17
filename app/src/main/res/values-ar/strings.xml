@@ -76,6 +76,7 @@
     <string name="alert_desc_high_uv">High UV levels today. Use sun protection.</string>
     <string name="alert_show_details">Show details</string>
     <string name="alert_hide_details">Hide details</string>
+    <string name="alert_count_title">%1$s تنبيهات</string>
     <string name="credits_weather_data">بيانات الطقس من </string>
     <string name="widget_description">الطقس الحالي مع درجة الحرارة بوحدتين</string>
     <string name="widget_description_large">تفاصيل الطقس مع الإحساس بالحرارة والرطوبة والرياح والحد الأدنى/الأقصى</string>

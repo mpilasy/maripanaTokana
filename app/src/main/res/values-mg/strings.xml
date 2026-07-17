@@ -76,6 +76,7 @@
     <string name="alert_desc_high_uv">Avo ny tahan\'ny UV anio. Mampiasà fiarovana amin\'ny masoandro.</string>
     <string name="alert_show_details">Asehoy</string>
     <string name="alert_hide_details">Afeno</string>
+    <string name="alert_count_title">Filazana %1$s</string>
     <string name="credits_weather_data">Fankasitrahana:</string>
     <string name="widget_description">Toetrandro ankehitriny miaraka amin\'ny mari-pana roa sosony</string>
     <string name="widget_description_large">Antsipiriany momba ny toetrandro: tsapa, hamandoana, rivotra ary ambany/ambony</string>

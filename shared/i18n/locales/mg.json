@@ -76,6 +76,7 @@
 	"alert_desc_high_uv": "Avo ny tahan'ny UV anio. Mampiasà fiarovana amin'ny masoandro.",
 	"alert_show_details": "Asehoy",
 	"alert_hide_details": "Afeno",
+	"alert_count_title": "Filazana {count}",
 	"credits_weather_data": "Fankasitrahana:",
 	"cardinal_directions": [
 		"N",
