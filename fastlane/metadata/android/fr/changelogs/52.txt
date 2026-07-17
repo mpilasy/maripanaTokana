@@ -1,0 +1,1 @@
+• Les images météo partagées incluent désormais la date et l'heure de capture dans leurs métadonnées (EXIF)

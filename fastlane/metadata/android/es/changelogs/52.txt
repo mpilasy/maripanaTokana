@@ -1,0 +1,1 @@
+• Las imágenes del clima compartidas ahora incluyen la fecha y hora de captura en sus metadatos (EXIF)

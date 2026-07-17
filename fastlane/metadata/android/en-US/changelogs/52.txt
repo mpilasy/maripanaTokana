@@ -1,0 +1,1 @@
+• Shared weather images now include the capture date/time in their metadata (EXIF)

@@ -6,6 +6,9 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.2.9] - 2026-07-17
+- Shared weather images now include the capture date/time in their metadata (EXIF).
+
 ## [1.2.8] - 2026-07-17
 - Location search now returns more results (up to 20) so places that share a common name aren't hidden.
 - Fixed "City, State" searches (e.g. "Bloomington, Indiana") returning nothing on the default geocoder.

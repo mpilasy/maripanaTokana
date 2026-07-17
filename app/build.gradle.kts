@@ -27,8 +27,8 @@ android {
         applicationId = "orinasa.njarasoa.maripanatokana"
         minSdk = 24
         targetSdk = 36
-        versionCode = 51
-        versionName = "1.2.8"
+        versionCode = 52
+        versionName = "1.2.9"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         val gitHash = providers.exec { commandLine("git", "rev-parse", "--short", "HEAD") }.standardOutput.asText.get().trim()
