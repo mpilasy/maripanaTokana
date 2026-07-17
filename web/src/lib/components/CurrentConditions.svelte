@@ -3,6 +3,8 @@
 	import type { WeatherData } from '$lib/domain/weatherData';
 	import { getCardinalDirection } from '$lib/domain/windSpeed';
 	import DetailCard from './DetailCard.svelte';
+	import AirQualityDetailDialog from './AirQualityDetailDialog.svelte';
+	import AqiTierBadge from './AqiTierBadge.svelte';
 
 	interface Props {
 		data: WeatherData;
@@ -12,6 +14,8 @@
 	}
 
 	let { data, metricPrimary, loc, onToggleUnits }: Props = $props();
+
+	let showAirQualityDetail = $state(false);
 
 	function formatTime(epochSec: number): string {
 		const d = new Date(epochSec * 1000);
@@ -30,6 +34,12 @@
 	}
 
 	const AQI_TIERS = ['good', 'moderate', 'unhealthy', 'very_unhealthy', 'hazardous'];
+
+	function getAqiUnitDual(standard: 'US' | 'EUROPEAN'): [string, string] {
+		const us = $_('air_quality_us_aqi');
+		const eu = $_('air_quality_eu_aqi');
+		return standard === 'EUROPEAN' ? [eu, us] : [us, eu];
+	}
 
 	function getAqiTierLabel(tier: string): string {
 		const labels: string[] = $_('aqi_tier_labels') as unknown as string[];
@@ -183,7 +193,7 @@
 	/>
 	{#if data.airQuality}
 		{@const aqiDual = data.airQuality.displayDual()}
-		{@const aqiUnitDual = data.airQuality.unitDual()}
+		{@const aqiUnitDual = getAqiUnitDual(data.airQuality.primaryStandard)}
 		<div class="aqi-card-wrapper">
 			<DetailCard
 				title={$_('detail_air_quality')}
@@ -191,12 +201,24 @@
 				secondaryValue={loc(aqiDual[1])}
 				unit={aqiUnitDual[0]}
 				secondaryUnit={aqiUnitDual[1]}
-				subtitle={getAqiTierLabel(data.airQuality.primaryTier)}
-				{onToggleUnits}
-			/>
+				onToggleUnits={() => showAirQualityDetail = true}
+			>
+				{#snippet subtitleSnippet()}
+					<AqiTierBadge tier={data.airQuality!.primaryTier} label={getAqiTierLabel(data.airQuality!.primaryTier)} />
+				{/snippet}
+			</DetailCard>
 		</div>
 	{/if}
 </div>
+
+{#if showAirQualityDetail && data.airQuality}
+	<AirQualityDetailDialog
+		airQuality={data.airQuality}
+		aqiTierLabel={getAqiTierLabel(data.airQuality.primaryTier)}
+		onClose={() => showAirQualityDetail = false}
+		{loc}
+	/>
+{/if}
 
 <style>
 	.conditions-grid {

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
 	import DualUnitText from './DualUnitText.svelte';
 
 	interface Props {
@@ -6,12 +7,13 @@
 		value: string;
 		secondaryValue?: string;
 		subtitle?: string;
+		subtitleSnippet?: Snippet;
 		onToggleUnits?: () => void;
 		unit?: string;
 		secondaryUnit?: string;
 	}
 
-	let { title, value, secondaryValue, subtitle, onToggleUnits, unit, secondaryUnit }: Props = $props();
+	let { title, value, secondaryValue, subtitle, subtitleSnippet, onToggleUnits, unit, secondaryUnit }: Props = $props();
 </script>
 
 <div class="detail-card">
@@ -28,7 +30,9 @@
 	{:else}
 		<span class="card-value">{value}</span>
 	{/if}
-	{#if subtitle}
+	{#if subtitleSnippet}
+		{@render subtitleSnippet()}
+	{:else if subtitle}
 		<span class="card-subtitle">{subtitle}</span>
 	{/if}
 </div>

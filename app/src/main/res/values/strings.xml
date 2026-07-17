@@ -60,6 +60,16 @@
     <string name="detail_sunset">Sunset</string>
     <string name="detail_cloud_cover">Cloud Cover</string>
     <string name="detail_air_quality">Air Quality</string>
+    <string name="air_quality_us_aqi">US AQI</string>
+    <string name="air_quality_eu_aqi">EU AQI</string>
+    <string name="air_quality_pm2_5">PM2.5</string>
+    <string name="air_quality_pm10">PM10</string>
+    <string name="air_quality_carbon_monoxide">Carbon Monoxide</string>
+    <string name="air_quality_nitrogen_dioxide">Nitrogen Dioxide</string>
+    <string name="air_quality_sulphur_dioxide">Sulphur Dioxide</string>
+    <string name="air_quality_ozone">Ozone</string>
+    <string name="air_quality_ammonia">Ammonia</string>
+    <string name="air_quality_dust">Dust</string>
     <string name="alert_title_thunderstorm">Thunderstorm Warning</string>
     <string name="alert_desc_thunderstorm">A thunderstorm is occurring or expected in your area.</string>
     <string name="alert_title_heavy_rain">Heavy Rain Warning</string>

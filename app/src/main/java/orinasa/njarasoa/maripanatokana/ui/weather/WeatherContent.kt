@@ -90,6 +90,7 @@ import orinasa.njarasoa.maripanatokana.BuildConfig
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.data.remote.wmoDescriptionRes
 import orinasa.njarasoa.maripanatokana.data.remote.wmoEmoji
+import orinasa.njarasoa.maripanatokana.domain.model.AqiStandard
 import orinasa.njarasoa.maripanatokana.domain.model.DailyForecast
 import orinasa.njarasoa.maripanatokana.domain.model.HourlyForecast
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
@@ -100,6 +101,8 @@ import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFont
 import orinasa.njarasoa.maripanatokana.ui.theme.SkyBlue
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFontFeatures
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
+import orinasa.njarasoa.maripanatokana.ui.weather.components.AirQualityDetailDialog
+import orinasa.njarasoa.maripanatokana.ui.weather.components.AqiTierBadge
 import orinasa.njarasoa.maripanatokana.ui.weather.components.DailyTemperatureChart
 import orinasa.njarasoa.maripanatokana.ui.weather.components.TemperatureChart
 import orinasa.njarasoa.maripanatokana.ui.weather.components.WeatherAlertBanner
@@ -1040,6 +1043,7 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
     val bodyFont = LocalBodyFont.current
     val fontFeatures = LocalBodyFontFeatures.current
     val scale = LocalScale.current
+    var showAirQualityDetail by remember { mutableStateOf(false) }
     Column {
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -1348,22 +1352,31 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
         // Air Quality (only when available from Open-Meteo)
         data.airQuality?.let { aqi ->
             val aqiTierLabels = stringArrayResource(R.array.aqi_tier_labels)
+            val usAqiLabel = stringResource(R.string.air_quality_us_aqi)
+            val euAqiLabel = stringResource(R.string.air_quality_eu_aqi)
             Spacer(modifier = Modifier.height(16.sd(scale)))
             Row(
                 modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
                 horizontalArrangement = Arrangement.spacedBy(16.sd(scale))
             ) {
                 val (aqiP, aqiS) = aqi.displayDual()
-                val (unitP, unitS) = aqi.unitDual()
+                val (unitP, unitS) = if (aqi.primaryStandard == AqiStandard.EUROPEAN) euAqiLabel to usAqiLabel else usAqiLabel to euAqiLabel
                 DetailCard(
                     title = stringResource(R.string.detail_air_quality),
                     value = localizeDigits(aqiP),
                     secondaryValue = localizeDigits(aqiS),
-                    subtitle = aqiTierLabels[aqi.primaryTier.ordinal],
+                    subtitleContent = { AqiTierBadge(tier = aqi.primaryTier, label = aqiTierLabels[aqi.primaryTier.ordinal]) },
                     modifier = Modifier.weight(1f).fillMaxHeight(),
-                    onToggleUnits = onToggleUnits,
+                    onToggleUnits = { showAirQualityDetail = true },
                     unit = unitP,
                     secondaryUnit = unitS,
+                )
+            }
+            if (showAirQualityDetail) {
+                AirQualityDetailDialog(
+                    airQuality = aqi,
+                    onDismissRequest = { showAirQualityDetail = false },
+                    localizeDigits = localizeDigits,
                 )
             }
         }
@@ -1377,6 +1390,7 @@ internal fun DetailCard(
     modifier: Modifier = Modifier,
     secondaryValue: String? = null,
     subtitle: String? = null,
+    subtitleContent: (@Composable () -> Unit)? = null,
     onToggleUnits: (() -> Unit)? = null,
     unit: String? = null,
     secondaryUnit: String? = null,
@@ -1417,6 +1431,10 @@ internal fun DetailCard(
                     color = MaterialTheme.colorScheme.onSurface,
                     style = TextStyle(fontFeatureSettings = fontFeatures),
                 )
+            }
+            if (subtitleContent != null) {
+                Spacer(modifier = Modifier.height(4.dp))
+                subtitleContent()
             }
             subtitle?.let {
                 Text(

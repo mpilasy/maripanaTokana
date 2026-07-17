@@ -60,6 +60,16 @@
     <string name="detail_cloud_cover">Couverture nuageuse</string>
     <string name="detail_sunset">Coucher du soleil</string>
     <string name="detail_air_quality">Qualité de l\'air</string>
+    <string name="air_quality_us_aqi">AQI US</string>
+    <string name="air_quality_eu_aqi">AQI UE</string>
+    <string name="air_quality_pm2_5">PM2.5</string>
+    <string name="air_quality_pm10">PM10</string>
+    <string name="air_quality_carbon_monoxide">Monoxyde de Carbone</string>
+    <string name="air_quality_nitrogen_dioxide">Dioxyde d\'Azote</string>
+    <string name="air_quality_sulphur_dioxide">Dioxyde de Soufre</string>
+    <string name="air_quality_ozone">Ozone</string>
+    <string name="air_quality_ammonia">Ammoniac</string>
+    <string name="air_quality_dust">Poussière</string>
     <string name="alert_title_thunderstorm">Alerte aux orages</string>
     <string name="alert_desc_thunderstorm">Un orage est en cours ou prévu dans votre région.</string>
     <string name="alert_title_heavy_rain">Alerte pluie forte</string>

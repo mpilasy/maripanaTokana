@@ -60,6 +60,16 @@
     <string name="detail_cloud_cover">बादल आवरण</string>
     <string name="detail_sunset">सूर्यास्त</string>
     <string name="detail_air_quality">वायु गुणवत्ता</string>
+    <string name="air_quality_us_aqi">अमेरिकी AQI</string>
+    <string name="air_quality_eu_aqi">यूरोपीय AQI</string>
+    <string name="air_quality_pm2_5">पीएम2.5</string>
+    <string name="air_quality_pm10">पीएम10</string>
+    <string name="air_quality_carbon_monoxide">कार्बन मोनोऑक्साइड</string>
+    <string name="air_quality_nitrogen_dioxide">नाइट्रोजन डाइऑक्साइड</string>
+    <string name="air_quality_sulphur_dioxide">सल्फर डाइऑक्साइड</string>
+    <string name="air_quality_ozone">ओज़ोन</string>
+    <string name="air_quality_ammonia">अमोनिया</string>
+    <string name="air_quality_dust">धूल</string>
     <string name="alert_title_thunderstorm">Thunderstorm Warning</string>
     <string name="alert_desc_thunderstorm">A thunderstorm is occurring or expected in your area.</string>
     <string name="alert_title_heavy_rain">Heavy Rain Warning</string>

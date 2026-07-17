@@ -11,7 +11,10 @@ interface OpenMeteoAirQualityApiService {
     suspend fun getAirQuality(
         @Query("latitude") latitude: Double,
         @Query("longitude") longitude: Double,
-        @Query("current") current: String = "us_aqi,european_aqi",
+        @Query("current") current: String =
+            "us_aqi,european_aqi,pm2_5,pm10,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,ammonia,dust," +
+                "us_aqi_pm2_5,us_aqi_pm10,us_aqi_carbon_monoxide,us_aqi_nitrogen_dioxide,us_aqi_sulphur_dioxide,us_aqi_ozone," +
+                "european_aqi_pm2_5,european_aqi_pm10,european_aqi_nitrogen_dioxide,european_aqi_sulphur_dioxide,european_aqi_ozone",
     ): OpenMeteoAirQualityResponse
 }
 
@@ -24,7 +27,49 @@ data class OpenMeteoAirQualityResponse(
 data class OpenMeteoAirQualityCurrent(
     @SerialName("us_aqi") val usAqi: Int? = null,
     @SerialName("european_aqi") val europeanAqi: Int? = null,
+    @SerialName("pm2_5") val pm25: Double? = null,
+    @SerialName("pm10") val pm10: Double? = null,
+    @SerialName("carbon_monoxide") val carbonMonoxide: Double? = null,
+    @SerialName("nitrogen_dioxide") val nitrogenDioxide: Double? = null,
+    @SerialName("sulphur_dioxide") val sulphurDioxide: Double? = null,
+    @SerialName("ozone") val ozone: Double? = null,
+    @SerialName("ammonia") val ammonia: Double? = null,
+    @SerialName("dust") val dust: Double? = null,
+    @SerialName("us_aqi_pm2_5") val usAqiPm25: Int? = null,
+    @SerialName("us_aqi_pm10") val usAqiPm10: Int? = null,
+    @SerialName("us_aqi_carbon_monoxide") val usAqiCarbonMonoxide: Int? = null,
+    @SerialName("us_aqi_nitrogen_dioxide") val usAqiNitrogenDioxide: Int? = null,
+    @SerialName("us_aqi_sulphur_dioxide") val usAqiSulphurDioxide: Int? = null,
+    @SerialName("us_aqi_ozone") val usAqiOzone: Int? = null,
+    @SerialName("european_aqi_pm2_5") val europeanAqiPm25: Int? = null,
+    @SerialName("european_aqi_pm10") val europeanAqiPm10: Int? = null,
+    @SerialName("european_aqi_nitrogen_dioxide") val europeanAqiNitrogenDioxide: Int? = null,
+    @SerialName("european_aqi_sulphur_dioxide") val europeanAqiSulphurDioxide: Int? = null,
+    @SerialName("european_aqi_ozone") val europeanAqiOzone: Int? = null,
 )
 
 fun OpenMeteoAirQualityResponse.toDomain(countryCode: String?): AirQualityIndex? =
-    AirQualityIndex.from(current.usAqi, current.europeanAqi, countryCode)
+    AirQualityIndex.from(
+        usAqi = current.usAqi,
+        europeanAqi = current.europeanAqi,
+        countryCode = countryCode,
+        pm25 = current.pm25,
+        pm10 = current.pm10,
+        carbonMonoxide = current.carbonMonoxide,
+        nitrogenDioxide = current.nitrogenDioxide,
+        sulphurDioxide = current.sulphurDioxide,
+        ozone = current.ozone,
+        ammonia = current.ammonia,
+        dust = current.dust,
+        usAqiPm25 = current.usAqiPm25,
+        usAqiPm10 = current.usAqiPm10,
+        usAqiCarbonMonoxide = current.usAqiCarbonMonoxide,
+        usAqiNitrogenDioxide = current.usAqiNitrogenDioxide,
+        usAqiSulphurDioxide = current.usAqiSulphurDioxide,
+        usAqiOzone = current.usAqiOzone,
+        europeanAqiPm25 = current.europeanAqiPm25,
+        europeanAqiPm10 = current.europeanAqiPm10,
+        europeanAqiNitrogenDioxide = current.europeanAqiNitrogenDioxide,
+        europeanAqiSulphurDioxide = current.europeanAqiSulphurDioxide,
+        europeanAqiOzone = current.europeanAqiOzone,
+    )

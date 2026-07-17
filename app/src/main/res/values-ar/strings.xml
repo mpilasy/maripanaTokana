@@ -60,6 +60,16 @@
     <string name="detail_cloud_cover">الغطاء السحابي</string>
     <string name="detail_sunset">غروب الشمس</string>
     <string name="detail_air_quality">جودة الهواء</string>
+    <string name="air_quality_us_aqi">AQI الأمريكي</string>
+    <string name="air_quality_eu_aqi">AQI الأوروبي</string>
+    <string name="air_quality_pm2_5">الجسيمات الدقيقة PM2.5</string>
+    <string name="air_quality_pm10">الجسيمات الدقيقة PM10</string>
+    <string name="air_quality_carbon_monoxide">أول أكسيد الكربون</string>
+    <string name="air_quality_nitrogen_dioxide">ثاني أكسيد النيتروجين</string>
+    <string name="air_quality_sulphur_dioxide">ثاني أكسيد الكبريت</string>
+    <string name="air_quality_ozone">الأوزون</string>
+    <string name="air_quality_ammonia">الأمونيا</string>
+    <string name="air_quality_dust">الغبار</string>
     <string name="alert_title_thunderstorm">Thunderstorm Warning</string>
     <string name="alert_desc_thunderstorm">A thunderstorm is occurring or expected in your area.</string>
     <string name="alert_title_heavy_rain">Heavy Rain Warning</string>

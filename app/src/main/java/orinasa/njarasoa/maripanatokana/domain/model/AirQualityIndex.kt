@@ -8,24 +8,33 @@ data class AirQualityIndex(
     val usValue: Int,
     val europeanValue: Int,
     val primaryStandard: AqiStandard,
+    // Pollutant concentrations in µg/m³, straight from the Open-Meteo air-quality "current" call.
+    // Null when a given pollutant isn't covered by the domain for this location (e.g. ammonia is
+    // CAMS-Europe only) or the API omitted it.
+    val pm25: Double? = null,
+    val pm10: Double? = null,
+    val carbonMonoxide: Double? = null,
+    val nitrogenDioxide: Double? = null,
+    val sulphurDioxide: Double? = null,
+    val ozone: Double? = null,
+    val ammonia: Double? = null,
+    val dust: Double? = null,
+    // Per-pollutant AQI tier, resolved from Open-Meteo's precomputed sub-indices for whichever
+    // standard is primary at this location. Null when Open-Meteo doesn't publish a sub-index for
+    // this pollutant+standard pair (the EU index has no CO sub-index) or ammonia/dust, which have
+    // no official AQI breakpoints at all.
+    val pm25Tier: AqiTier? = null,
+    val pm10Tier: AqiTier? = null,
+    val carbonMonoxideTier: AqiTier? = null,
+    val nitrogenDioxideTier: AqiTier? = null,
+    val sulphurDioxideTier: AqiTier? = null,
+    val ozoneTier: AqiTier? = null,
 ) {
     val usTier: AqiTier
-        get() = when {
-            usValue <= 50 -> AqiTier.GOOD
-            usValue <= 100 -> AqiTier.MODERATE
-            usValue <= 200 -> AqiTier.UNHEALTHY
-            usValue <= 300 -> AqiTier.VERY_UNHEALTHY
-            else -> AqiTier.HAZARDOUS
-        }
+        get() = tierFor(usValue, AqiStandard.US)
 
     val europeanTier: AqiTier
-        get() = when {
-            europeanValue < 20 -> AqiTier.GOOD
-            europeanValue < 40 -> AqiTier.MODERATE
-            europeanValue < 60 -> AqiTier.UNHEALTHY
-            europeanValue < 100 -> AqiTier.VERY_UNHEALTHY
-            else -> AqiTier.HAZARDOUS
-        }
+        get() = tierFor(europeanValue, AqiStandard.EUROPEAN)
 
     /**
      * Dual-unit display. Unlike Temperature/Pressure, primary/secondary here is NOT tied to the
@@ -35,11 +44,6 @@ data class AirQualityIndex(
     fun displayDual(): Pair<String, String> =
         if (primaryStandard == AqiStandard.EUROPEAN) europeanValue.toString() to usValue.toString()
         else usValue.toString() to europeanValue.toString()
-
-    /** Unit labels matching the order returned by displayDual(). */
-    fun unitDual(): Pair<String, String> =
-        if (primaryStandard == AqiStandard.EUROPEAN) "EU AQI" to "US AQI"
-        else "US AQI" to "EU AQI"
 
     val primaryTier: AqiTier
         get() = if (primaryStandard == AqiStandard.EUROPEAN) europeanTier else usTier
@@ -53,10 +57,61 @@ data class AirQualityIndex(
             "es", "se", "ch", "ua", "gb",
         )
 
-        fun from(usAqi: Int?, europeanAqi: Int?, countryCode: String?): AirQualityIndex? {
+        fun tierFor(value: Int, standard: AqiStandard): AqiTier = if (standard == AqiStandard.US) {
+            when {
+                value <= 50 -> AqiTier.GOOD
+                value <= 100 -> AqiTier.MODERATE
+                value <= 200 -> AqiTier.UNHEALTHY
+                value <= 300 -> AqiTier.VERY_UNHEALTHY
+                else -> AqiTier.HAZARDOUS
+            }
+        } else {
+            when {
+                value < 20 -> AqiTier.GOOD
+                value < 40 -> AqiTier.MODERATE
+                value < 60 -> AqiTier.UNHEALTHY
+                value < 100 -> AqiTier.VERY_UNHEALTHY
+                else -> AqiTier.HAZARDOUS
+            }
+        }
+
+        fun from(
+            usAqi: Int?,
+            europeanAqi: Int?,
+            countryCode: String?,
+            pm25: Double? = null,
+            pm10: Double? = null,
+            carbonMonoxide: Double? = null,
+            nitrogenDioxide: Double? = null,
+            sulphurDioxide: Double? = null,
+            ozone: Double? = null,
+            ammonia: Double? = null,
+            dust: Double? = null,
+            usAqiPm25: Int? = null,
+            usAqiPm10: Int? = null,
+            usAqiCarbonMonoxide: Int? = null,
+            usAqiNitrogenDioxide: Int? = null,
+            usAqiSulphurDioxide: Int? = null,
+            usAqiOzone: Int? = null,
+            europeanAqiPm25: Int? = null,
+            europeanAqiPm10: Int? = null,
+            europeanAqiNitrogenDioxide: Int? = null,
+            europeanAqiSulphurDioxide: Int? = null,
+            europeanAqiOzone: Int? = null,
+        ): AirQualityIndex? {
             if (usAqi == null || europeanAqi == null) return null
             val standard = if (countryCode != null && countryCode in EUROPEAN_COUNTRY_CODES) AqiStandard.EUROPEAN else AqiStandard.US
-            return AirQualityIndex(usAqi, europeanAqi, standard)
+            fun tier(us: Int?, eu: Int?): AqiTier? = (if (standard == AqiStandard.EUROPEAN) eu else us)?.let { tierFor(it, standard) }
+            return AirQualityIndex(
+                usAqi, europeanAqi, standard,
+                pm25, pm10, carbonMonoxide, nitrogenDioxide, sulphurDioxide, ozone, ammonia, dust,
+                pm25Tier = tier(usAqiPm25, europeanAqiPm25),
+                pm10Tier = tier(usAqiPm10, europeanAqiPm10),
+                carbonMonoxideTier = tier(usAqiCarbonMonoxide, null),
+                nitrogenDioxideTier = tier(usAqiNitrogenDioxide, europeanAqiNitrogenDioxide),
+                sulphurDioxideTier = tier(usAqiSulphurDioxide, europeanAqiSulphurDioxide),
+                ozoneTier = tier(usAqiOzone, europeanAqiOzone),
+            )
         }
     }
 }

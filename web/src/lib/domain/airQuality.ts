@@ -9,23 +9,91 @@ const EUROPEAN_COUNTRY_CODES = new Set([
 	'es', 'se', 'ch', 'ua', 'gb',
 ]);
 
-export class AirQualityIndex {
-	private constructor(readonly usValue: number, readonly europeanValue: number, readonly primaryStandard: AqiStandard) {}
+export interface AirQualityConcentrations {
+	pm25: number | null;
+	pm10: number | null;
+	carbonMonoxide: number | null;
+	nitrogenDioxide: number | null;
+	sulphurDioxide: number | null;
+	ozone: number | null;
+	ammonia: number | null;
+	dust: number | null;
+}
 
-	get usTier(): AqiTier {
-		if (this.usValue <= 50) return 'good';
-		if (this.usValue <= 100) return 'moderate';
-		if (this.usValue <= 200) return 'unhealthy';
-		if (this.usValue <= 300) return 'very_unhealthy';
+// Per-pollutant AQI tier, resolved from Open-Meteo's precomputed sub-indices for whichever
+// standard is primary at this location. Null when Open-Meteo doesn't publish a sub-index for
+// this pollutant+standard pair (the EU index has no CO sub-index) or ammonia/dust, which have
+// no official AQI breakpoints at all.
+export interface AirQualityPollutants extends AirQualityConcentrations {
+	pm25Tier: AqiTier | null;
+	pm10Tier: AqiTier | null;
+	carbonMonoxideTier: AqiTier | null;
+	nitrogenDioxideTier: AqiTier | null;
+	sulphurDioxideTier: AqiTier | null;
+	ozoneTier: AqiTier | null;
+}
+
+export interface AirQualitySubIndices {
+	usAqiPm25: number | null;
+	usAqiPm10: number | null;
+	usAqiCarbonMonoxide: number | null;
+	usAqiNitrogenDioxide: number | null;
+	usAqiSulphurDioxide: number | null;
+	usAqiOzone: number | null;
+	europeanAqiPm25: number | null;
+	europeanAqiPm10: number | null;
+	europeanAqiNitrogenDioxide: number | null;
+	europeanAqiSulphurDioxide: number | null;
+	europeanAqiOzone: number | null;
+}
+
+const EMPTY_CONCENTRATIONS: AirQualityConcentrations = {
+	pm25: null, pm10: null, carbonMonoxide: null, nitrogenDioxide: null,
+	sulphurDioxide: null, ozone: null, ammonia: null, dust: null,
+};
+
+const EMPTY_SUB_INDICES: AirQualitySubIndices = {
+	usAqiPm25: null, usAqiPm10: null, usAqiCarbonMonoxide: null, usAqiNitrogenDioxide: null,
+	usAqiSulphurDioxide: null, usAqiOzone: null, europeanAqiPm25: null, europeanAqiPm10: null,
+	europeanAqiNitrogenDioxide: null, europeanAqiSulphurDioxide: null, europeanAqiOzone: null,
+};
+
+export class AirQualityIndex {
+	// Pollutant concentrations in µg/m³ plus per-pollutant tier, straight from the Open-Meteo
+	// air-quality "current" call. Null when a given pollutant isn't covered by the domain for
+	// this location (e.g. ammonia is CAMS-Europe only) or the API omitted it.
+	readonly pollutants: AirQualityPollutants;
+
+	private constructor(
+		readonly usValue: number,
+		readonly europeanValue: number,
+		readonly primaryStandard: AqiStandard,
+		pollutants: AirQualityPollutants,
+	) {
+		this.pollutants = pollutants;
+	}
+
+	static tierFor(value: number, standard: AqiStandard): AqiTier {
+		if (standard === 'US') {
+			if (value <= 50) return 'good';
+			if (value <= 100) return 'moderate';
+			if (value <= 200) return 'unhealthy';
+			if (value <= 300) return 'very_unhealthy';
+			return 'hazardous';
+		}
+		if (value < 20) return 'good';
+		if (value < 40) return 'moderate';
+		if (value < 60) return 'unhealthy';
+		if (value < 100) return 'very_unhealthy';
 		return 'hazardous';
 	}
 
+	get usTier(): AqiTier {
+		return AirQualityIndex.tierFor(this.usValue, 'US');
+	}
+
 	get europeanTier(): AqiTier {
-		if (this.europeanValue < 20) return 'good';
-		if (this.europeanValue < 40) return 'moderate';
-		if (this.europeanValue < 60) return 'unhealthy';
-		if (this.europeanValue < 100) return 'very_unhealthy';
-		return 'hazardous';
+		return AirQualityIndex.tierFor(this.europeanValue, 'EUROPEAN');
 	}
 
 	/**
@@ -39,18 +107,32 @@ export class AirQualityIndex {
 			: [this.usValue.toString(), this.europeanValue.toString()];
 	}
 
-	/** Unit labels matching the order returned by displayDual(). */
-	unitDual(): [string, string] {
-		return this.primaryStandard === 'EUROPEAN' ? ['EU AQI', 'US AQI'] : ['US AQI', 'EU AQI'];
-	}
-
 	get primaryTier(): AqiTier {
 		return this.primaryStandard === 'EUROPEAN' ? this.europeanTier : this.usTier;
 	}
 
-	static from(usAqi: number | null, europeanAqi: number | null, countryCode: string | null): AirQualityIndex | null {
+	static from(
+		usAqi: number | null,
+		europeanAqi: number | null,
+		countryCode: string | null,
+		concentrations: AirQualityConcentrations = EMPTY_CONCENTRATIONS,
+		subIndices: AirQualitySubIndices = EMPTY_SUB_INDICES,
+	): AirQualityIndex | null {
 		if (usAqi == null || europeanAqi == null) return null;
 		const standard: AqiStandard = countryCode != null && EUROPEAN_COUNTRY_CODES.has(countryCode) ? 'EUROPEAN' : 'US';
-		return new AirQualityIndex(usAqi, europeanAqi, standard);
+		const tier = (us: number | null, eu: number | null): AqiTier | null => {
+			const v = standard === 'EUROPEAN' ? eu : us;
+			return v == null ? null : AirQualityIndex.tierFor(v, standard);
+		};
+		const pollutants: AirQualityPollutants = {
+			...concentrations,
+			pm25Tier: tier(subIndices.usAqiPm25, subIndices.europeanAqiPm25),
+			pm10Tier: tier(subIndices.usAqiPm10, subIndices.europeanAqiPm10),
+			carbonMonoxideTier: tier(subIndices.usAqiCarbonMonoxide, null),
+			nitrogenDioxideTier: tier(subIndices.usAqiNitrogenDioxide, subIndices.europeanAqiNitrogenDioxide),
+			sulphurDioxideTier: tier(subIndices.usAqiSulphurDioxide, subIndices.europeanAqiSulphurDioxide),
+			ozoneTier: tier(subIndices.usAqiOzone, subIndices.europeanAqiOzone),
+		};
+		return new AirQualityIndex(usAqi, europeanAqi, standard, pollutants);
 	}
 }
