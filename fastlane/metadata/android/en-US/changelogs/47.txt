@@ -1,0 +1,3 @@
+• Added an Air Quality card (US AQI / EU AQI) to Current Conditions
+• Collapsed alert banners with multiple alerts now show "N alerts" instead of the first alert's title
+• Alert banner's source badge now opens the alert's detail link, even while collapsed

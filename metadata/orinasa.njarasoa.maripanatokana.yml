@@ -41,10 +41,16 @@ Builds:
     subdir: app
     gradle:
       - fdroid
+  - versionName: 1.2.4
+    versionCode: 47
+    commit: PENDING
+    subdir: app
+    gradle:
+      - fdroid
 
 AllowedAPKSigningKeys: 93270696531c2486d39b6d009a5f948eb0f7f6309b4dc4b46eeb538969fcf3e8
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 1.2.3
-CurrentVersionCode: 46
+CurrentVersion: 1.2.4
+CurrentVersionCode: 47

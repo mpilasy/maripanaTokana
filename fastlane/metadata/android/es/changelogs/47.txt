@@ -1,0 +1,3 @@
+• Se añadió una tarjeta de Calidad del aire (US AQI / EU AQI) a Condiciones actuales
+• Al contraer el aviso de alertas con más de una alerta, ahora se muestra "N alertas" en lugar del título de la primera
+• La insignia de fuente del aviso de alertas ahora abre el enlace de detalles de la alerta, incluso contraído

@@ -1,0 +1,3 @@
+• Ajout d'une carte Qualité de l'air (US AQI / EU AQI) aux Conditions actuelles
+• Lorsque la bannière d'alertes est repliée avec plusieurs alertes, elle affiche désormais « N alertes » au lieu du titre de la première
+• Le badge de source de la bannière d'alertes ouvre désormais le lien de détails de l'alerte, même repliée
