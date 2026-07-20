@@ -12,6 +12,14 @@
 
 	let { alerts }: Props = $props();
 	let isExpanded = $state(false);
+	let expandedItems = $state<Set<number>>(new Set());
+
+	function toggleItem(index: number) {
+		const next = new Set(expandedItems);
+		if (next.has(index)) next.delete(index);
+		else next.add(index);
+		expandedItems = next;
+	}
 
 	// Determine the most severe level present
 	let levels = $derived(alerts.map(a => a.level));
@@ -21,6 +29,16 @@
 
 	let topAlert = $derived(alerts.find(a => a.level === topLevel) || alerts[0]);
 	let localeTag = $derived(SUPPORTED_LOCALES[$localeIndex].tag);
+
+	const LEVEL_RANK: Record<string, number> = { watch: 0, warning: 1, emergency: 2 };
+	let distinctSources = $derived([...new Set(alerts.map(a => a.source))]);
+	// One representative alert per source (the most severe) to back that source's badge link.
+	let sourceRepresentatives = $derived(
+		distinctSources.map(source => {
+			const forSource = alerts.filter(a => a.source === source);
+			return forSource.reduce((best, a) => LEVEL_RANK[a.level] > LEVEL_RANK[best.level] ? a : best, forSource[0]);
+		})
+	);
 </script>
 
 {#if alerts.length > 0 && topAlert}
@@ -43,7 +61,19 @@
 						{topAlert.title}
 					{/if}
 				</span>
-				{#if topAlert.link}
+				{#if distinctSources.length > 1}
+					<span class="source-badges">
+						{#each sourceRepresentatives as rep (rep.source)}
+							{#if rep.link}
+								<a href={rep.link} target="_blank" rel="noopener noreferrer" class="source-badge clickable" onclick={(e) => e.stopPropagation()}>
+									{rep.source.toUpperCase()}
+								</a>
+							{:else}
+								<span class="source-badge">{rep.source.toUpperCase()}</span>
+							{/if}
+						{/each}
+					</span>
+				{:else if topAlert.link}
 					<a href={topAlert.link} target="_blank" rel="noopener noreferrer" class="source-badge clickable" onclick={(e) => e.stopPropagation()}>
 						{topAlert.source.toUpperCase()}
 					</a>
@@ -58,8 +88,12 @@
 		{#if isExpanded}
 			<div class="alert-details" transition:slide={{ duration: 300 }}>
 				{#each alerts as alert, index}
+					{@const collapsible = alerts.length > 1}
+					{@const itemExpanded = !collapsible || expandedItems.has(index)}
 					<div class="alert-item">
-						<div class="item-title-row">
+						<!-- svelte-ignore a11y_click_events_have_key_events -->
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
+						<div class="item-title-row" class:clickable-row={collapsible} onclick={() => collapsible && toggleItem(index)}>
 							<div class="item-title-group">
 								{#if alerts.length > 1}
 									<span class="alert-number" class:watch={alert.level === 'watch'} class:warning={alert.level !== 'watch'}>
@@ -68,24 +102,32 @@
 								{/if}
 								<div class="item-title">{alert.title}</div>
 							</div>
-							{#if alert.link}
-								<a href={alert.link} target="_blank" rel="noopener noreferrer" class="source-badge clickable" onclick={(e) => e.stopPropagation()}>
-									{alert.source.toUpperCase()}
-								</a>
-							{:else}
-								<span class="source-badge">{alert.source.toUpperCase()}</span>
-							{/if}
+							<div class="item-title-end">
+								{#if alert.link}
+									<a href={alert.link} target="_blank" rel="noopener noreferrer" class="source-badge clickable" onclick={(e) => e.stopPropagation()}>
+										{alert.source.toUpperCase()}
+									</a>
+								{:else}
+									<span class="source-badge">{alert.source.toUpperCase()}</span>
+								{/if}
+								{#if collapsible}
+									<span class="chevron item-chevron" class:expanded={itemExpanded}>&#9660;</span>
+								{/if}
+							</div>
 						</div>
-						
+
 						{#if alert.time}
 							<div class="alert-time">{formatAlertTime(alert.time, localeTag)}</div>
 						{/if}
 
-						{#if alert.headline}
-							<div class="alert-headline">{alert.headline}</div>
+						{#if itemExpanded}
+							<div transition:slide={{ duration: 200 }}>
+								{#if alert.headline}
+									<div class="alert-headline">{alert.headline}</div>
+								{/if}
+								<div class="item-desc">{alert.description}</div>
+							</div>
 						{/if}
-
-						<div class="item-desc">{alert.description}</div>
 					</div>
 				{/each}
 			</div>
@@ -143,6 +185,11 @@
 		color: white;
 	}
 
+	.source-badges {
+		display: inline-flex;
+		gap: 4px;
+	}
+
 .source-badge {
 		background: rgba(255, 255, 255, 0.2);
 		padding: 2px 6px;
@@ -153,6 +200,10 @@
 		margin-left: 4px;
 		letter-spacing: 0.5px;
 		text-decoration: none;
+	}
+
+	.source-badges .source-badge {
+		margin-left: 0;
 	}
 
 	.source-badge.clickable {
@@ -175,6 +226,11 @@
 		transform: rotate(0deg);
 	}
 
+	.item-chevron {
+		font-size: 10px;
+		color: rgba(255, 255, 255, 0.5);
+	}
+
 	.alert-details {
 		padding: 0 16px 16px 16px;
 		display: flex;
@@ -194,10 +250,21 @@
 		margin-bottom: 4px;
 	}
 
+	.item-title-row.clickable-row {
+		cursor: pointer;
+		user-select: none;
+	}
+
 	.item-title-group {
 		display: flex;
 		align-items: center;
 		gap: 8px;
+	}
+
+	.item-title-end {
+		display: flex;
+		align-items: center;
+		gap: 6px;
 	}
 
 	.alert-number {

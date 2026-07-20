@@ -6,6 +6,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -34,9 +36,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.domain.model.AlertLevel
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherAlert
@@ -47,6 +53,30 @@ import orinasa.njarasoa.maripanatokana.ui.weather.s
 import orinasa.njarasoa.maripanatokana.ui.weather.sd
 
 @Composable
+private fun AlertSourceBadge(
+    alert: WeatherAlert,
+    uriHandler: UriHandler,
+    fontSize: TextUnit = 10.sp,
+) {
+    val scale = LocalScale.current
+    Surface(
+        color = if (alert.link != null) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+        shape = RoundedCornerShape(4.dp),
+        modifier = if (alert.link != null) Modifier.clickable {
+            try { uriHandler.openUri(alert.link) } catch (_: Exception) {}
+        } else Modifier
+    ) {
+        Text(
+            text = alert.source.uppercase(),
+            fontSize = fontSize,
+            fontWeight = FontWeight.ExtraBold,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(horizontal = 4.sd(scale), vertical = 2.sd(scale))
+        )
+    }
+}
+
+@Composable
 fun WeatherAlertBanner(
     alerts: List<WeatherAlert>,
     localizeDigits: (String) -> String,
@@ -54,7 +84,7 @@ fun WeatherAlertBanner(
     if (alerts.isEmpty()) return
 
     val context = LocalContext.current
-    val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
+    val uriHandler = LocalUriHandler.current
     var expanded by remember { mutableStateOf(false) }
     val scale = LocalScale.current
     val bodyFont = LocalBodyFont.current
@@ -72,6 +102,7 @@ fun WeatherAlertBanner(
     }
 
     val topAlert = alerts.find { it.level == topLevel } ?: alerts.first()
+    val distinctSources = remember(alerts) { alerts.map { it.source }.distinct() }
 
     Card(
         modifier = Modifier
@@ -95,7 +126,7 @@ fun WeatherAlertBanner(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        text = if (topLevel == AlertLevel.WATCH) "\u26A0\uFE0F" else "\u2757",
+                        text = if (topLevel == AlertLevel.WATCH) "⚠️" else "❗",
                         fontSize = 18f.s(scale)
                     )
                     Spacer(modifier = Modifier.width(8.sd(scale)))
@@ -117,25 +148,20 @@ fun WeatherAlertBanner(
                                 modifier = Modifier.weight(1f)
                             )
                             Spacer(modifier = Modifier.width(6.sd(scale)))
-                            Surface(
-                                color = if (topAlert.link != null) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                                shape = RoundedCornerShape(4.dp),
-                                modifier = if (topAlert.link != null) Modifier.clickable {
-                                    try { uriHandler.openUri(topAlert.link) } catch (_: Exception) {}
-                                } else Modifier
-                            ) {
-                                Text(
-                                    text = topAlert.source.uppercase(),
-                                    fontSize = 10f.s(scale),
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.padding(horizontal = 4.sd(scale), vertical = 2.sd(scale))
-                                )
+                            if (distinctSources.size > 1) {
+                                Row(horizontalArrangement = Arrangement.spacedBy(4.sd(scale))) {
+                                    distinctSources.forEach { source ->
+                                        val rep = alerts.filter { it.source == source }.maxByOrNull { it.level.ordinal }
+                                        if (rep != null) AlertSourceBadge(rep, uriHandler)
+                                    }
+                                }
+                            } else {
+                                AlertSourceBadge(topAlert, uriHandler)
                             }
                         }
                     }
                 }
-                
+
                 Spacer(modifier = Modifier.width(16.sd(scale)))
 
                 Icon(
@@ -161,7 +187,14 @@ fun WeatherAlertBanner(
                         if (index > 0) {
                             HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
                         }
-                        Column {
+                        val collapsible = alerts.size > 1
+                        var itemExpanded by remember(alert.titleKey, alert.source, alert.time) { mutableStateOf(!collapsible) }
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .let { if (collapsible) it.clickable { itemExpanded = !itemExpanded } else it }
+                                .animateContentSize()
+                        ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 if (alerts.size > 1) {
                                     val circleColor = when (alert.level) {
@@ -170,10 +203,10 @@ fun WeatherAlertBanner(
                                     }
                                     Surface(
                                         color = circleColor,
-                                        shape = androidx.compose.foundation.shape.CircleShape,
+                                        shape = CircleShape,
                                         modifier = Modifier.size(18.sd(scale))
                                     ) {
-                                        androidx.compose.foundation.layout.Box(contentAlignment = Alignment.Center) {
+                                        Box(contentAlignment = Alignment.Center) {
                                             Text(
                                                 text = "${index + 1}",
                                                 fontSize = 10f.s(scale),
@@ -196,19 +229,16 @@ fun WeatherAlertBanner(
                                     modifier = Modifier.weight(1f, fill = false)
                                 )
                                 Spacer(modifier = Modifier.width(6.sd(scale)))
-                                Surface(
-                                    color = if (alert.link != null) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                                    shape = RoundedCornerShape(4.dp),
-                                    modifier = if (alert.link != null) Modifier.clickable {
-                                        try { uriHandler.openUri(alert.link) } catch (_: Exception) {}
-                                    } else Modifier
-                                ) {
-                                    Text(
-                                        text = alert.source.uppercase(),
-                                        fontSize = 9f.s(scale),
-                                        fontWeight = FontWeight.ExtraBold,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        modifier = Modifier.padding(horizontal = 4.sd(scale), vertical = 1.sd(scale))
+                                AlertSourceBadge(alert, uriHandler)
+                                if (collapsible) {
+                                    Spacer(modifier = Modifier.width(6.sd(scale)))
+                                    Icon(
+                                        imageVector = Icons.Default.KeyboardArrowDown,
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .size(18.sd(scale))
+                                            .rotate(if (itemExpanded) 180f else 0f),
+                                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                                     )
                                 }
                             }
@@ -224,27 +254,35 @@ fun WeatherAlertBanner(
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                                 )
                             }
-                            if (alert.headline != null) {
-                                Spacer(modifier = Modifier.height(4.sd(scale)))
-                                Text(
-                                    text = alert.headline,
-                                    fontSize = 14f.s(scale),
-                                    fontWeight = FontWeight.Bold,
-                                    fontFamily = bodyFont,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                )
+                            AnimatedVisibility(
+                                visible = itemExpanded,
+                                enter = expandVertically(),
+                                exit = shrinkVertically()
+                            ) {
+                                Column {
+                                    if (alert.headline != null) {
+                                        Spacer(modifier = Modifier.height(4.sd(scale)))
+                                        Text(
+                                            text = alert.headline,
+                                            fontSize = 14f.s(scale),
+                                            fontWeight = FontWeight.Bold,
+                                            fontFamily = bodyFont,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(4.sd(scale)))
+                                    val desc = context.resources.getIdentifier(alert.descKey, "string", context.packageName).let { id ->
+                                        if (id != 0) stringResource(id) else alert.descKey
+                                    }
+                                    Text(
+                                        text = desc,
+                                        fontSize = 13f.s(scale),
+                                        fontFamily = bodyFont,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                                        lineHeight = 18f.s(scale)
+                                    )
+                                }
                             }
-                            Spacer(modifier = Modifier.height(4.sd(scale)))
-                            val desc = context.resources.getIdentifier(alert.descKey, "string", context.packageName).let { id ->
-                                if (id != 0) stringResource(id) else alert.descKey
-                            }
-                            Text(
-                                text = desc,
-                                fontSize = 13f.s(scale),
-                                fontFamily = bodyFont,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                                lineHeight = 18f.s(scale)
-                            )
                         }
                     }
                 }
