@@ -6,6 +6,10 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.2.10] - 2026-07-20
+- Fixed NWS/ECCC/BOM alerts sometimes failing to show when location lookup was unreliable.
+- NHC hurricane/storm alerts now show wind speed, pressure, movement, and distance instead of just the storm's name.
+
 ## [1.2.9] - 2026-07-17
 - Shared weather images now include the capture date/time in their metadata (EXIF).
 

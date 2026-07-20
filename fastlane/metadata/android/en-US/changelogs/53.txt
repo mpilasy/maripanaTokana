@@ -1,0 +1,2 @@
+• Fixed NWS/ECCC/BOM alerts sometimes failing to show when location lookup was unreliable
+• NHC hurricane/storm alerts now show wind speed, pressure, movement, and distance instead of just the storm's name

@@ -1,0 +1,2 @@
+• Se corrigió que las alertas de NWS/ECCC/BOM a veces no aparecieran cuando la ubicación no se podía determinar de forma fiable
+• Las alertas de NHC ahora muestran velocidad del viento, presión, movimiento y distancia, en lugar de solo el nombre de la tormenta
