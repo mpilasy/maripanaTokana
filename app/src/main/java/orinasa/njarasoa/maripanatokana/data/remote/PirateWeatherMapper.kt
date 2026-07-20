@@ -40,7 +40,7 @@ fun PirateWeatherResponse.toDomain(): WeatherData {
         )
     }
 
-    val dailyForecast = daily.data.map { d ->
+    val dailyForecast = daily.data.take(7).map { d ->
         DailyForecast(
             date = d.time * 1000,
             tempMax = Temperature.fromCelsius(d.temperatureMax),
@@ -50,6 +50,7 @@ fun PirateWeatherResponse.toDomain(): WeatherData {
             windSpeed = WindSpeed.fromMetersPerSecond(d.windSpeed),
             windDirection = d.windBearing,
             precipitation = Precipitation.fromMm(d.precipIntensity),
+            uvIndexMax = d.uvIndex,
         )
     }
 
@@ -75,8 +76,8 @@ fun PirateWeatherResponse.toDomain(): WeatherData {
         visibility = (c.visibility * 1000).toInt(),
         sunrise = daily.data.firstOrNull()?.sunriseTime ?: 0L,
         sunset = daily.data.firstOrNull()?.sunsetTime ?: 0L,
-        dailySunrise = daily.data.map { it.sunriseTime * 1000 },
-        dailySunset = daily.data.map { it.sunsetTime * 1000 },
+        dailySunrise = daily.data.take(7).map { it.sunriseTime * 1000 },
+        dailySunset = daily.data.take(7).map { it.sunsetTime * 1000 },
         hourlyForecast = hourlyForecast,
         dailyForecast = dailyForecast,
     )

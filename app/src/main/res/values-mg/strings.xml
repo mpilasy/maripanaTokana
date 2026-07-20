@@ -44,7 +44,9 @@
     <string name="no_precip">Tsisy orana</string>
     <string name="section_current_conditions">Izao</string>
     <string name="section_hourly_forecast">Isan\'ora</string>
-    <string name="section_this_week">Ny folo andro manaraka</string>
+    <string name="section_air_quality_forecast">Hadion\'ny rivotra</string>
+    <string name="section_uv_forecast">Tara-masoandro</string>
+    <string name="section_this_week">Ny fito andro manaraka</string>
     <string name="detail_temperature">Maripàna</string>
     <string name="detail_precipitation">Orana</string>
     <string name="detail_min_temp">Iva Indrindra</string>
@@ -54,7 +56,7 @@
     <string name="detail_pressure">Tsindry Atmosferika</string>
     <string name="detail_humidity">Hamandoana</string>
     <string name="detail_dewpoint">Marimando</string>
-    <string name="detail_uv_index">Tahan\'ny UV</string>
+    <string name="detail_uv_index">Tahan\'ny tara-masoandro</string>
     <string name="detail_visibility">Tazana</string>
     <string name="detail_sunrise">&#x1f31e; Miposaka</string>
     <string name="detail_sunset">&#x1f31e; Mody</string>
@@ -82,8 +84,8 @@
     <string name="alert_desc_extreme_heat">Mety hampitombo ny loza ateraky ny aretina vokatry ny hafanana ny hafanana ambony.</string>
     <string name="alert_title_extreme_cold">Mailo: Hatsiaka be</string>
     <string name="alert_desc_extreme_cold">Mety hiteraka loza ny hatsiaka ambany be.</string>
-    <string name="alert_title_high_uv">Fampitandremana UV</string>
-    <string name="alert_desc_high_uv">Avo ny tahan\'ny UV anio. Mampiasà fiarovana amin\'ny masoandro.</string>
+    <string name="alert_title_high_uv">Fampitandremana tara-masoandro</string>
+    <string name="alert_desc_high_uv">Avo ny tahan\'ny tara-masoandro anio. Mampiasà fiarovana amin\'ny masoandro.</string>
     <string name="alert_show_details">Asehoy</string>
     <string name="alert_hide_details">Afeno</string>
     <string name="alert_count_title">Filazana %1$s</string>
@@ -130,15 +132,15 @@
         <item>NNW</item>
     </string-array>
     <string-array name="uv_labels">
-        <item>Ambany</item>
-        <item>Eo ho eo</item>
+        <item>Iva</item>
+        <item>Mety</item>
         <item>Avo</item>
         <item>Avo dia avo</item>
         <item>Faran\'izay avo</item>
     </string-array>
     <string-array name="aqi_tier_labels">
-        <item>Tsara</item>
-        <item>Eo ho eo</item>
+        <item>Iva</item>
+        <item>Mety</item>
         <item>Ratsy</item>
         <item>Ratsy be</item>
         <item>Mampidi-doza</item>

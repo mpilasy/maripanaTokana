@@ -44,7 +44,9 @@
     <string name="no_precip">No precip</string>
     <string name="section_current_conditions">Current Conditions</string>
     <string name="section_hourly_forecast">Hourly Forecast</string>
-    <string name="section_this_week">10-Day Forecast</string>
+    <string name="section_air_quality_forecast">Air Quality</string>
+    <string name="section_uv_forecast">UV</string>
+    <string name="section_this_week">7-Day Forecast</string>
     <string name="detail_temperature">Temperature</string>
     <string name="detail_precipitation">Precipitation</string>
     <string name="detail_min_temp">Min Temp</string>

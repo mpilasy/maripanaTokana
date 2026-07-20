@@ -16,9 +16,9 @@ import orinasa.njarasoa.maripanatokana.domain.model.AqiTier
 // AirNow AQI category colors (airnow.gov/aqi/aqi-basics). Our AqiTier enum has 5 buckets rather
 // than AirNow's 6 — UNHEALTHY covers AirNow's Orange "Unhealthy for Sensitive Groups" (101-150)
 // and Red "Unhealthy" (151-200) range, mapped here to Red.
-private data class AqiTierColors(val background: Color, val text: Color)
+internal data class AqiTierColors(val background: Color, val text: Color)
 
-private fun colorsFor(tier: AqiTier): AqiTierColors = when (tier) {
+internal fun colorsFor(tier: AqiTier): AqiTierColors = when (tier) {
     AqiTier.GOOD -> AqiTierColors(Color(0xFF00E400), Color(0xFF1A1A1A))
     AqiTier.MODERATE -> AqiTierColors(Color(0xFFFFFF00), Color(0xFF1A1A1A))
     AqiTier.UNHEALTHY -> AqiTierColors(Color(0xFFFF0000), Color.White)

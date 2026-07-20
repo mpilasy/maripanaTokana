@@ -29,6 +29,12 @@ export interface HourlyForecast {
 	precipitation: Precipitation;
 }
 
+export interface HourlyAirQuality {
+	time: number; // epoch millis
+	usValue: number;
+	europeanValue: number;
+}
+
 export interface DailyForecast {
 	date: number; // epoch millis
 	tempMax: Temperature;
@@ -38,6 +44,7 @@ export interface DailyForecast {
 	windSpeed: WindSpeed;
 	windDeg: number;
 	precipitation: Precipitation;
+	uvIndexMax: number;
 }
 
 export interface WeatherData {
@@ -72,4 +79,5 @@ export interface WeatherData {
 	timestamp: number; // epoch millis
 	utcOffsetSeconds: number; // location's UTC offset in seconds
 	airQuality?: AirQualityIndex | null;
+	hourlyAirQuality?: HourlyAirQuality[];
 }

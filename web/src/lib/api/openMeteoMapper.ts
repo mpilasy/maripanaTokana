@@ -5,7 +5,7 @@ import { Pressure } from '../domain/pressure';
 import { WindSpeed } from '../domain/windSpeed';
 import { Precipitation } from '../domain/precipitation';
 
-function parseIsoDateTime(iso: string, utcOffsetSeconds: number): number {
+export function parseIsoDateTime(iso: string, utcOffsetSeconds: number): number {
 	const year = parseInt(iso.substring(0, 4), 10);
 	const month = parseInt(iso.substring(5, 7), 10) - 1;
 	const day = parseInt(iso.substring(8, 10), 10);
@@ -70,6 +70,7 @@ export function mapToWeatherData(response: OpenMeteoResponse, locationName: stri
 			windSpeed: WindSpeed.fromMetersPerSecond(d.wind_speed_10m_max[i]),
 			windDeg: d.wind_direction_10m_dominant[i],
 			precipitation: Precipitation.fromMm(d.precipitation_sum[i]),
+			uvIndexMax: d.uv_index_max?.[i] ?? 0,
 		};
 	});
 

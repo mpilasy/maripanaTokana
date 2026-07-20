@@ -44,7 +44,9 @@
     <string name="no_precip">वर्षा नहीं</string>
     <string name="section_current_conditions">वर्तमान स्थिति</string>
     <string name="section_hourly_forecast">प्रति घंटा पूर्वानुमान</string>
-    <string name="section_this_week">10 दिन का पूर्वानुमान</string>
+    <string name="section_air_quality_forecast">वायु गुणवत्ता</string>
+    <string name="section_uv_forecast">यूवी</string>
+    <string name="section_this_week">7 दिन का पूर्वानुमान</string>
     <string name="detail_min_temp">न्यूनतम तापमान</string>
     <string name="detail_max_temp">अधिकतम तापमान</string>
     <string name="detail_wind">हवा</string>

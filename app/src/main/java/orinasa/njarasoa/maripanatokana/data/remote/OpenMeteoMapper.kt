@@ -10,7 +10,7 @@ import orinasa.njarasoa.maripanatokana.domain.model.WindSpeed
 import java.util.Calendar
 import java.util.TimeZone
 
-private fun parseIsoDateTime(iso: String, utcOffsetSeconds: Int): Long {
+internal fun parseIsoDateTime(iso: String, utcOffsetSeconds: Int): Long {
     try {
         val year = iso.substring(0, 4).toInt()
         val month = iso.substring(5, 7).toInt() - 1
@@ -96,6 +96,7 @@ fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = 
             windSpeed = WindSpeed.fromMetersPerSecond(daily.windSpeed10mMax.getOrElse(i) { 0.0 }),
             windDirection = daily.windDirection10mDominant.getOrElse(i) { 0 },
             precipitation = Precipitation.fromMm(daily.precipitationSum.getOrElse(i) { 0.0 }),
+            uvIndexMax = daily.uvIndexMax.getOrElse(i) { 0.0 },
         )
     }.distinctBy { it.date }
 

@@ -44,7 +44,9 @@
     <string name="no_precip">لا هطول</string>
     <string name="section_current_conditions">الأحوال الحالية</string>
     <string name="section_hourly_forecast">التوقعات بالساعة</string>
-    <string name="section_this_week">توقعات ١٠ يومًا</string>
+    <string name="section_air_quality_forecast">جودة الهواء</string>
+    <string name="section_uv_forecast">الأشعة فوق البنفسجية</string>
+    <string name="section_this_week">توقعات ٧ أيام</string>
     <string name="detail_min_temp">الحرارة الدنيا</string>
     <string name="detail_max_temp">الحرارة القصوى</string>
     <string name="detail_wind">الرياح</string>

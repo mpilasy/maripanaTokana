@@ -1,6 +1,17 @@
 export type AqiStandard = 'US' | 'EUROPEAN';
 export type AqiTier = 'good' | 'moderate' | 'unhealthy' | 'very_unhealthy' | 'hazardous';
 
+// AirNow AQI category colors (airnow.gov/aqi/aqi-basics) — matches AqiTierBadge.svelte's CSS
+// classes, as actual color values for contexts (e.g. canvas/SVG fills) that need a value rather
+// than a class name.
+export const AQI_TIER_COLORS: Record<AqiTier, string> = {
+	good: '#00E400',
+	moderate: '#FFFF00',
+	unhealthy: '#FF0000',
+	very_unhealthy: '#8F3F97',
+	hazardous: '#7E0023',
+};
+
 // Countries covered by Open-Meteo's CAMS-Europe air quality domain. Mirrors the country set
 // used for MeteoAlarm coverage — see METEOALARM_COUNTRIES in $lib/api/alerts/meteoAlarm.ts.
 const EUROPEAN_COUNTRY_CODES = new Set([

@@ -1,14 +1,23 @@
 <script lang="ts">
 	import type { DailyForecast as DailyForecastType } from '$lib/domain/weatherData';
+	import type { UvTier } from '$lib/domain/uv';
+	import { uvColorFor, UV_TIER_COLORS } from '$lib/domain/uv';
+	import { json } from 'svelte-i18n';
 	import { onMount } from 'svelte';
+	import TierLegend from './TierLegend.svelte';
 
 	interface Props {
 		forecasts: DailyForecastType[];
-		metricPrimary: boolean;
 		height?: number;
 	}
 
-	let { forecasts, metricPrimary, height = 48 }: Props = $props();
+	let { forecasts, height = 48 }: Props = $props();
+
+	const UV_TIER_ORDER: UvTier[] = ['low', 'moderate', 'high', 'veryHigh', 'extreme'];
+	let legendEntries = $derived(($json('uv_labels') as string[]).map((label, i) => ({
+		color: UV_TIER_COLORS[UV_TIER_ORDER[i]],
+		label,
+	})));
 
 	let containerWidth = $state(100);
 	let container: HTMLDivElement | undefined = $state();
@@ -24,36 +33,26 @@
 		return () => observer.disconnect();
 	});
 
-	let maxTemps = $derived(forecasts.map(f => metricPrimary ? f.tempMax.celsius : f.tempMax.fahrenheit));
-	let minTemps = $derived(forecasts.map(f => metricPrimary ? f.tempMin.celsius : f.tempMin.fahrenheit));
-
-	let allTemps = $derived([...maxTemps, ...minTemps]);
-	let globalMin = $derived(Math.min(...allTemps));
-	let globalMax = $derived(Math.max(...allTemps));
-	let tempRange = $derived(globalMax - globalMin === 0 ? 1 : globalMax - globalMin);
-
-	let paddedMin = $derived(globalMin - (tempRange * 0.2));
-	let paddedMax = $derived(globalMax + (tempRange * 0.2));
-	let paddedRange = $derived(paddedMax - paddedMin);
+	let uvValues = $derived(forecasts.map(f => f.uvIndexMax));
+	let uvMax = $derived(uvValues.length ? Math.max(...uvValues) : 0);
+	let paddedMax = $derived(uvMax > 0 ? uvMax * 1.2 : 1);
 
 	function getX(index: number, total: number) {
 		if (total <= 1) return containerWidth / 2;
 		return (index / (total - 1)) * containerWidth;
 	}
 
-	function getY(temp: number) {
-		return height - ((temp - paddedMin) / paddedRange * height);
+	function getY(uv: number) {
+		return height - (uv / paddedMax * height);
 	}
 
-	let maxPoints = $derived(maxTemps.map((temp, i) => ({ x: getX(i, forecasts.length), y: getY(temp) })));
-	let minPoints = $derived(minTemps.map((temp, i) => ({ x: getX(i, forecasts.length), y: getY(temp) })));
+	let uvPoints = $derived(uvValues.map((uv, i) => ({ x: getX(i, forecasts.length), y: getY(uv), color: uvColorFor(uv) })));
 
 	let horizontalTicks = $derived(() => {
 		const ticks = [];
-		const start = Math.ceil(paddedMin);
 		const end = Math.floor(paddedMax);
-		for (let i = start; i <= end; i++) {
-			ticks.push({ y: getY(i), temp: i });
+		for (let i = 0; i <= end; i++) {
+			ticks.push({ y: getY(i), value: i });
 		}
 		return ticks;
 	});
@@ -75,16 +74,16 @@
 		return d;
 	}
 
-	let maxPath = $derived(generatePath(maxPoints));
-	let minPath = $derived(generatePath(minPoints));
+	let uvPath = $derived(generatePath(uvPoints));
 </script>
 
 <div class="daily-chart-row" bind:this={container}>
+	<TierLegend entries={legendEntries} />
 	<div class="chart-wrapper" style="height: {height}px;">
 		<svg width="100%" height="100%" viewBox="0 0 {containerWidth} {height}">
 			<!-- Horizontal Ticks -->
 			{#each horizontalTicks() as tick}
-				{@const isMajor = tick.temp % 5 === 0}
+				{@const isMajor = tick.value % 5 === 0}
 				<line
 					x1="0" y1={tick.y} x2={containerWidth} y2={tick.y}
 					stroke="white"
@@ -99,21 +98,10 @@
 				<line x1={x} y1="0" x2={x} y2={height} stroke="white" stroke-width="1" stroke-opacity="0.2" stroke-dasharray="2 2" />
 			{/each}
 
-			<!-- Area between high and low -->
-			{#if maxPoints.length >= 2}
-				{@const minPointsReversed = [...minPoints].reverse()}
-				{@const areaPath = maxPath + ` L ${minPointsReversed.map(p => `${p.x} ${p.y}`).join(' ')} Z`}
-				<path d={areaPath} fill="white" fill-opacity="0.1" />
-			{/if}
+			<path d={uvPath} fill="none" stroke="white" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" />
 
-			<path d={maxPath} fill="none" stroke="#FF7043" stroke-width="2.5" stroke-linecap="round" />
-			<path d={minPath} fill="none" stroke="#64B5F6" stroke-width="2.5" stroke-linecap="round" />
-
-			{#each maxPoints as point}
-				<circle cx={point.x} cy={point.y} r="3" fill="#FF7043" />
-			{/each}
-			{#each minPoints as point}
-				<circle cx={point.x} cy={point.y} r="3" fill="#64B5F6" />
+			{#each uvPoints as point}
+				<circle cx={point.x} cy={point.y} r="3" fill={point.color} />
 			{/each}
 		</svg>
 	</div>

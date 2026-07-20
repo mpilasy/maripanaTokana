@@ -43,7 +43,10 @@ class OpenMeteoWeatherSource @Inject constructor(
             }
         }
 
-        val airQuality = airQualityDeferred.await()?.toDomain(countryCodeDeferred.await())
-        forecastDeferred.await().toDomain("", null).copy(airQuality = airQuality)
+        val airQualityResult = airQualityDeferred.await()?.toDomain(countryCodeDeferred.await())
+        forecastDeferred.await().toDomain("", null).copy(
+            airQuality = airQualityResult?.current,
+            hourlyAirQuality = airQualityResult?.hourly ?: emptyList(),
+        )
     }
 }

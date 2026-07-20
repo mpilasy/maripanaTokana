@@ -1,21 +1,15 @@
 <script lang="ts">
+	import { uvTier } from '$lib/domain/uv';
+
 	interface Props {
 		uvIndex: number;
 		label: string;
 	}
 
 	let { uvIndex, label }: Props = $props();
-
-	function tierClass(uv: number): string {
-		if (uv < 3) return 'uv-low';
-		if (uv < 6) return 'uv-moderate';
-		if (uv < 8) return 'uv-high';
-		if (uv < 11) return 'uv-very-high';
-		return 'uv-extreme';
-	}
 </script>
 
-<span class="uv-badge {tierClass(uvIndex)}">{label}</span>
+<span class="uv-badge uv-{uvTier(uvIndex)}">{label}</span>
 
 <style>
 	/* EPA UV Index color scale (epa.gov/sunsafety/uv-index-scale-0): Green/Yellow/Orange/Red/Violet.
@@ -32,6 +26,6 @@
 	.uv-low { background: #299501; color: #fff; }
 	.uv-moderate { background: #F7E401; color: #1a1a1a; }
 	.uv-high { background: #F85900; color: #fff; }
-	.uv-very-high { background: #D8001D; color: #fff; }
+	.uv-veryHigh { background: #D8001D; color: #fff; }
 	.uv-extreme { background: #6B49C8; color: #fff; }
 </style>

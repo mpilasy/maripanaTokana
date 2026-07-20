@@ -1,7 +1,16 @@
 import { AirQualityIndex } from '../domain/airQuality';
+import type { HourlyAirQuality } from '../domain/weatherData';
+import { parseIsoDateTime } from './openMeteoMapper';
 
 export interface OpenMeteoAirQualityResponse {
 	current: OpenMeteoAirQualityCurrent;
+	hourly?: OpenMeteoAirQualityHourly;
+}
+
+export interface OpenMeteoAirQualityHourly {
+	time: string[];
+	us_aqi: (number | null)[];
+	european_aqi: (number | null)[];
 }
 
 export interface OpenMeteoAirQualityCurrent {
@@ -37,6 +46,8 @@ export async function fetchAirQuality(lat: number, lon: number): Promise<OpenMet
 		current: 'us_aqi,european_aqi,pm2_5,pm10,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,ammonia,dust,' +
 			'us_aqi_pm2_5,us_aqi_pm10,us_aqi_carbon_monoxide,us_aqi_nitrogen_dioxide,us_aqi_sulphur_dioxide,us_aqi_ozone,' +
 			'european_aqi_pm2_5,european_aqi_pm10,european_aqi_nitrogen_dioxide,european_aqi_sulphur_dioxide,european_aqi_ozone',
+		hourly: 'us_aqi,european_aqi',
+		forecast_days: '3',
 	});
 
 	const res = await fetch(`${BASE_URL}?${params}`);
@@ -68,4 +79,26 @@ export function mapToAirQuality(response: OpenMeteoAirQualityResponse, countryCo
 		europeanAqiSulphurDioxide: c.european_aqi_sulphur_dioxide,
 		europeanAqiOzone: c.european_aqi_ozone,
 	});
+}
+
+export function mapToHourlyAirQuality(response: OpenMeteoAirQualityResponse, nowMillis: number = Date.now()): HourlyAirQuality[] {
+	const h = response.hourly;
+	if (!h) return [];
+
+	const parsedTimes = h.time.map(t => parseIsoDateTime(t, 0));
+	const startIndex = parsedTimes.findIndex(t => t >= nowMillis);
+	if (startIndex === -1) return [];
+
+	const endIndex = Math.min(startIndex + 48, h.time.length);
+	const result: HourlyAirQuality[] = [];
+	const seen = new Set<number>();
+	for (let i = startIndex; i < endIndex; i++) {
+		const us = h.us_aqi[i];
+		const eu = h.european_aqi[i];
+		const time = parsedTimes[i];
+		if (us == null || eu == null || seen.has(time)) continue;
+		seen.add(time);
+		result.push({ time, usValue: us, europeanValue: eu });
+	}
+	return result;
 }

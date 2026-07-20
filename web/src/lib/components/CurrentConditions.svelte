@@ -3,9 +3,6 @@
 	import type { WeatherData } from '$lib/domain/weatherData';
 	import { getCardinalDirection } from '$lib/domain/windSpeed';
 	import DetailCard from './DetailCard.svelte';
-	import AirQualityDetailDialog from './AirQualityDetailDialog.svelte';
-	import AqiTierBadge from './AqiTierBadge.svelte';
-	import UvTierBadge from './UvTierBadge.svelte';
 
 	interface Props {
 		data: WeatherData;
@@ -16,36 +13,9 @@
 
 	let { data, metricPrimary, loc, onToggleUnits }: Props = $props();
 
-	let showAirQualityDetail = $state(false);
-
 	function formatTime(epochSec: number): string {
 		const d = new Date(epochSec * 1000);
 		return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-	}
-
-
-	function getUvLabel(uv: number): string {
-		const labels: string[] = $_('uv_labels') as unknown as string[];
-		if (!Array.isArray(labels)) return '';
-		if (uv < 3) return labels[0];
-		if (uv < 6) return labels[1];
-		if (uv < 8) return labels[2];
-		if (uv < 11) return labels[3];
-		return labels[4];
-	}
-
-	const AQI_TIERS = ['good', 'moderate', 'unhealthy', 'very_unhealthy', 'hazardous'];
-
-	function getAqiUnitDual(standard: 'US' | 'EUROPEAN'): [string, string] {
-		const us = $_('air_quality_us_aqi');
-		const eu = $_('air_quality_eu_aqi');
-		return standard === 'EUROPEAN' ? [eu, us] : [us, eu];
-	}
-
-	function getAqiTierLabel(tier: string): string {
-		const labels: string[] = $_('aqi_tier_labels') as unknown as string[];
-		if (!Array.isArray(labels)) return '';
-		return labels[AQI_TIERS.indexOf(tier)] ?? '';
 	}
 
 	function visibilityDisplay(meters: number, metric: boolean): [string, string] {
@@ -181,58 +151,16 @@
 		</span>
 	</div>
 
-	<DetailCard
-		title={$_('detail_uv_index')}
-		value={loc(data.uvIndex.toFixed(1))}
-	>
-		{#snippet subtitleSnippet()}
-			<UvTierBadge uvIndex={data.uvIndex} label={getUvLabel(data.uvIndex)} />
-		{/snippet}
-	</DetailCard>
-	{#if data.airQuality}
-		{@const aqiDual = data.airQuality.displayDual()}
-		{@const aqiUnitDual = getAqiUnitDual(data.airQuality.primaryStandard)}
-		<DetailCard
-			title={$_('detail_air_quality')}
-			value={loc(aqiDual[0])}
-			secondaryValue={loc(aqiDual[1])}
-			unit={aqiUnitDual[0]}
-			secondaryUnit={aqiUnitDual[1]}
-		>
-			{#snippet subtitleSnippet()}
-				<AqiTierBadge
-					tier={data.airQuality!.primaryTier}
-					label={getAqiTierLabel(data.airQuality!.primaryTier)}
-					onClick={() => showAirQualityDetail = true}
-				/>
-			{/snippet}
-		</DetailCard>
-		<div class="full-width-card">
-			<DetailCard
-				title={$_('detail_visibility')}
-				value={loc(visDual[0])}
-				secondaryValue={loc(visDual[1])}
-				{onToggleUnits}
-			/>
-		</div>
-	{:else}
+	<!-- UV Index and Air Quality now live on their own forecast cards -->
+	<div class="full-width-card">
 		<DetailCard
 			title={$_('detail_visibility')}
 			value={loc(visDual[0])}
 			secondaryValue={loc(visDual[1])}
 			{onToggleUnits}
 		/>
-	{/if}
+	</div>
 </div>
-
-{#if showAirQualityDetail && data.airQuality}
-	<AirQualityDetailDialog
-		airQuality={data.airQuality}
-		aqiTierLabel={getAqiTierLabel(data.airQuality.primaryTier)}
-		onClose={() => showAirQualityDetail = false}
-		{loc}
-	/>
-{/if}
 
 <style>
 	.conditions-grid {

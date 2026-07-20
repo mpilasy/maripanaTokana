@@ -3,7 +3,7 @@
 	import DualUnitText from './DualUnitText.svelte';
 
 	interface Props {
-		title: string;
+		title?: string;
 		value: string;
 		secondaryValue?: string;
 		subtitle?: string;
@@ -17,7 +17,9 @@
 </script>
 
 <div class="detail-card">
-	<span class="card-title">{title}</span>
+	{#if title}
+		<span class="card-title">{title}</span>
+	{/if}
 	{#if secondaryValue}
 		<DualUnitText
 			primary={value}

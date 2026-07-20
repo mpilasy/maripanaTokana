@@ -13,9 +13,10 @@
 		localeTag: string;
 		loc: (s: string) => string;
 		onToggleUnits: () => void;
+		utcOffsetSeconds: number;
 	}
 
-	let { forecasts, metricPrimary, localeTag, loc, onToggleUnits }: Props = $props();
+	let { forecasts, metricPrimary, localeTag, loc, onToggleUnits, utcOffsetSeconds }: Props = $props();
 
 	let displayMode = $state('Temperature'); // Temperature, Wind, Precipitation
 
@@ -34,8 +35,8 @@
 	{#each forecasts as item}
 		<div class="daily-row">
 			<div class="day-info">
-				<span class="day-name">{formatDayName(item.date, localeTag)}</span>
-				<span class="day-date">{loc(formatDayMonth(item.date, localeTag))}</span>
+				<span class="day-name">{formatDayName(item.date, localeTag, utcOffsetSeconds)}</span>
+				<span class="day-date">{loc(formatDayMonth(item.date, localeTag, utcOffsetSeconds))}</span>
 			</div>
 			<button class="daily-weather-btn" onclick={toggleMode} aria-label={$_('android_only.cd_cycle_mode')}>
 				{wmoEmoji(item.weatherCode)} {$_(wmoDescriptionKey(item.weatherCode))}

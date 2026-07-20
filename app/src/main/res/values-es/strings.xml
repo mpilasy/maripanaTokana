@@ -44,7 +44,9 @@
     <string name="no_precip">Sin precipitacion</string>
     <string name="section_current_conditions">Condiciones actuales</string>
     <string name="section_hourly_forecast">Pronostico por hora</string>
-    <string name="section_this_week">Pronóstico de 10 días</string>
+    <string name="section_air_quality_forecast">Calidad del aire</string>
+    <string name="section_uv_forecast">UV</string>
+    <string name="section_this_week">Pronóstico de 7 días</string>
     <string name="detail_min_temp">Temp min</string>
     <string name="detail_max_temp">Temp max</string>
     <string name="detail_wind">Viento</string>

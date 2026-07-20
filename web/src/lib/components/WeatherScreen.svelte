@@ -21,7 +21,13 @@
 	import WeatherAlertBanner from './WeatherAlertBanner.svelte';
 	import HourlyForecast from './HourlyForecast.svelte';
 	import DailyForecast from './DailyForecast.svelte';
+	import AirQualityChart from './AirQualityChart.svelte';
+	import DailyUvForecast from './DailyUvForecast.svelte';
 	import CurrentConditions from './CurrentConditions.svelte';
+	import DetailCard from './DetailCard.svelte';
+	import AirQualityDetailDialog from './AirQualityDetailDialog.svelte';
+	import AqiTierBadge from './AqiTierBadge.svelte';
+	import UvTierBadge from './UvTierBadge.svelte';
 	import CollapsibleSection from './CollapsibleSection.svelte';
 	import Controls from './Controls.svelte';
 	import Footer from './Footer.svelte';
@@ -108,6 +114,32 @@
 
 	function loc(s: string): string {
 		return localizeDigits(s, SUPPORTED_LOCALES[$localeIndex]);
+	}
+
+	let showAirQualityDetail = $state(false);
+
+	function getUvLabel(uv: number): string {
+		const labels: string[] = $_('uv_labels') as unknown as string[];
+		if (!Array.isArray(labels)) return '';
+		if (uv < 3) return labels[0];
+		if (uv < 6) return labels[1];
+		if (uv < 8) return labels[2];
+		if (uv < 11) return labels[3];
+		return labels[4];
+	}
+
+	const AQI_TIERS = ['good', 'moderate', 'unhealthy', 'very_unhealthy', 'hazardous'];
+
+	function getAqiUnitDual(standard: 'US' | 'EUROPEAN'): [string, string] {
+		const us = $_('air_quality_us_aqi');
+		const eu = $_('air_quality_eu_aqi');
+		return standard === 'EUROPEAN' ? [eu, us] : [us, eu];
+	}
+
+	function getAqiTierLabel(tier: string): string {
+		const labels: string[] = $_('aqi_tier_labels') as unknown as string[];
+		if (!Array.isArray(labels)) return '';
+		return labels[AQI_TIERS.indexOf(tier)] ?? '';
 	}
 
 	function handleTouchStart(e: TouchEvent) {
@@ -308,6 +340,7 @@
 							localeTag={SUPPORTED_LOCALES[$localeIndex].tag}
 							{loc}
 							onToggleUnits={toggleUnits}
+							utcOffsetSeconds={data.utcOffsetSeconds}
 						/>
 					</CollapsibleSection>
 				{/if}
@@ -315,6 +348,59 @@
 				<CollapsibleSection title={$_('section_current_conditions')} onShare={handleShare}>
 					<CurrentConditions {data} metricPrimary={$metricPrimary} {loc} onToggleUnits={toggleUnits} />
 				</CollapsibleSection>
+
+				{#if data.hourlyAirQuality && data.hourlyAirQuality.length > 0 && data.airQuality}
+					{@const aqiDual = data.airQuality.displayDual()}
+					{@const aqiUnitDual = getAqiUnitDual(data.airQuality.primaryStandard)}
+					<CollapsibleSection title={$_('section_air_quality_forecast')} onShare={handleShare}>
+						<DetailCard
+							value={loc(aqiDual[0])}
+							secondaryValue={loc(aqiDual[1])}
+							unit={aqiUnitDual[0]}
+							secondaryUnit={aqiUnitDual[1]}
+						>
+							{#snippet subtitleSnippet()}
+								<AqiTierBadge
+									tier={data.airQuality!.primaryTier}
+									label={getAqiTierLabel(data.airQuality!.primaryTier)}
+									onClick={() => showAirQualityDetail = true}
+								/>
+							{/snippet}
+						</DetailCard>
+						<div class="section-spacer"></div>
+						<AirQualityChart
+							forecasts={data.hourlyAirQuality}
+							primaryStandard={data.airQuality.primaryStandard}
+						/>
+					</CollapsibleSection>
+					{#if showAirQualityDetail}
+						<AirQualityDetailDialog
+							airQuality={data.airQuality}
+							aqiTierLabel={getAqiTierLabel(data.airQuality.primaryTier)}
+							onClose={() => showAirQualityDetail = false}
+							{loc}
+						/>
+					{/if}
+				{/if}
+
+				{#if data.dailyForecast.length > 0}
+					<CollapsibleSection title={$_('section_uv_forecast')} onShare={handleShare}>
+						<DetailCard
+							value={loc(data.uvIndex.toFixed(1))}
+						>
+							{#snippet subtitleSnippet()}
+								<UvTierBadge uvIndex={data.uvIndex} label={getUvLabel(data.uvIndex)} />
+							{/snippet}
+						</DetailCard>
+						<div class="section-spacer"></div>
+						<DailyUvForecast
+							forecasts={data.dailyForecast}
+							localeTag={SUPPORTED_LOCALES[$localeIndex].tag}
+							{loc}
+							utcOffsetSeconds={data.utcOffsetSeconds}
+						/>
+					</CollapsibleSection>
+				{/if}
 
 				<div class="scroll-bottom-pad"></div>
 			</div>
@@ -356,6 +442,10 @@
 		width: 100%;
 		height: 100%;
 		position: relative;
+	}
+
+	.section-spacer {
+		height: 16px;
 	}
 
 	.bg-marble {

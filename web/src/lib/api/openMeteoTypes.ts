@@ -37,6 +37,7 @@ export interface OpenMeteoDaily {
 	wind_speed_10m_max: number[];
 	wind_direction_10m_dominant: number[];
 	precipitation_sum: number[];
+	uv_index_max: number[];
 }
 
 export interface OpenMeteoHourly {

@@ -13,7 +13,7 @@ const HOURLY_PARAMS = 'temperature_2m,weather_code,precipitation_probability,win
 const DAILY_PARAMS = [
 	'temperature_2m_max', 'temperature_2m_min', 'weather_code',
 	'precipitation_probability_max', 'sunrise', 'sunset',
-	'wind_speed_10m_max', 'wind_direction_10m_dominant', 'precipitation_sum'
+	'wind_speed_10m_max', 'wind_direction_10m_dominant', 'precipitation_sum', 'uv_index_max'
 ].join(',');
 
 export async function fetchWeather(lat: number, lon: number): Promise<OpenMeteoResponse> {
@@ -23,7 +23,7 @@ export async function fetchWeather(lat: number, lon: number): Promise<OpenMeteoR
 		current: CURRENT_PARAMS,
 		hourly: HOURLY_PARAMS,
 		daily: DAILY_PARAMS,
-		forecast_days: '10',
+		forecast_days: '7',
 		timezone: 'auto',
 		wind_speed_unit: 'ms',
 	});

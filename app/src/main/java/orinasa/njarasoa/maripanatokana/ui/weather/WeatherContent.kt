@@ -102,9 +102,11 @@ import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFont
 import orinasa.njarasoa.maripanatokana.ui.theme.SkyBlue
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFontFeatures
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
+import orinasa.njarasoa.maripanatokana.ui.weather.components.AirQualityChart
 import orinasa.njarasoa.maripanatokana.ui.weather.components.AirQualityDetailDialog
 import orinasa.njarasoa.maripanatokana.ui.weather.components.AqiTierBadge
 import orinasa.njarasoa.maripanatokana.ui.weather.components.DailyTemperatureChart
+import orinasa.njarasoa.maripanatokana.ui.weather.components.DailyUvChart
 import orinasa.njarasoa.maripanatokana.ui.weather.components.TemperatureChart
 import orinasa.njarasoa.maripanatokana.ui.weather.components.UvTierBadge
 import orinasa.njarasoa.maripanatokana.ui.weather.components.WeatherAlertBanner
@@ -512,7 +514,7 @@ internal fun WeatherContent(
             // Weekly Forecast
             if (data.dailyForecast.isNotEmpty()) {
                 CollapsibleSection(title = stringResource(R.string.section_this_week), headerGraphicsLayer = headerGraphicsLayer) {
-                    DailyForecastList(data.dailyForecast, metricPrimary, localizeDigits, onToggleUnits)
+                    DailyForecastList(data.dailyForecast, metricPrimary, localizeDigits, onToggleUnits, data.utcOffsetSeconds)
                 }
                 Spacer(modifier = Modifier.height(24.sd(scale)))
             }
@@ -520,6 +522,74 @@ internal fun WeatherContent(
             // Current Conditions (collapsible)
             CollapsibleSection(title = stringResource(R.string.section_current_conditions), headerGraphicsLayer = headerGraphicsLayer) {
                 DetailsContent(data, metricPrimary, timeFormat, localizeDigits, onToggleUnits)
+            }
+
+            // Air Quality Forecast
+            if (data.hourlyAirQuality.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(24.sd(scale)))
+                CollapsibleSection(title = stringResource(R.string.section_air_quality_forecast), headerGraphicsLayer = headerGraphicsLayer) {
+                    Column {
+                        data.airQuality?.let { aqi ->
+                            var showAirQualityDetail by remember { mutableStateOf(false) }
+                            val aqiTierLabels = stringArrayResource(R.array.aqi_tier_labels)
+                            val usAqiLabel = stringResource(R.string.air_quality_us_aqi)
+                            val euAqiLabel = stringResource(R.string.air_quality_eu_aqi)
+                            val (aqiP, aqiS) = aqi.displayDual()
+                            val (unitP, unitS) = if (aqi.primaryStandard == AqiStandard.EUROPEAN) euAqiLabel to usAqiLabel else usAqiLabel to euAqiLabel
+                            DetailCard(
+                                value = localizeDigits(aqiP),
+                                secondaryValue = localizeDigits(aqiS),
+                                subtitleContent = {
+                                    AqiTierBadge(
+                                        tier = aqi.primaryTier,
+                                        label = aqiTierLabels[aqi.primaryTier.ordinal],
+                                        modifier = Modifier.clickable { showAirQualityDetail = true },
+                                    )
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                unit = unitP,
+                                secondaryUnit = unitS,
+                            )
+                            Spacer(modifier = Modifier.height(16.sd(scale)))
+                            if (showAirQualityDetail) {
+                                AirQualityDetailDialog(
+                                    airQuality = aqi,
+                                    onDismissRequest = { showAirQualityDetail = false },
+                                    localizeDigits = localizeDigits,
+                                )
+                            }
+                        }
+                        AirQualityChart(
+                            forecasts = data.hourlyAirQuality,
+                            primaryStandard = data.airQuality?.primaryStandard ?: AqiStandard.US,
+                            modifier = Modifier.fillMaxWidth().height(164.sd(scale)),
+                        )
+                    }
+                }
+            }
+
+            // UV Forecast
+            if (data.dailyForecast.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(24.sd(scale)))
+                CollapsibleSection(title = stringResource(R.string.section_uv_forecast), headerGraphicsLayer = headerGraphicsLayer) {
+                    Column {
+                        val uvLabels = stringArrayResource(R.array.uv_labels)
+                        val uvLabelText = when {
+                            data.uvIndex < 3 -> uvLabels[0]
+                            data.uvIndex < 6 -> uvLabels[1]
+                            data.uvIndex < 8 -> uvLabels[2]
+                            data.uvIndex < 11 -> uvLabels[3]
+                            else -> uvLabels[4]
+                        }
+                        DetailCard(
+                            value = localizeDigits("%.1f".format(Locale.US, data.uvIndex)),
+                            subtitleContent = { UvTierBadge(uvIndex = data.uvIndex, label = uvLabelText) },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        Spacer(modifier = Modifier.height(16.sd(scale)))
+                        DailyUvForecastList(data.dailyForecast, localizeDigits, data.utcOffsetSeconds)
+                    }
+                }
             }
         }
 
@@ -920,11 +990,16 @@ internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: B
 }
 
 @Composable
-internal fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
+internal fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit, utcOffsetSeconds: Int) {
     val appLocale = LocalConfiguration.current.locales[0]
     // Bolt: Memoize SimpleDateFormat
-    val dayFormat = remember(appLocale) { SimpleDateFormat("EEEE", appLocale) }
-    val dayMonthFormat = remember(appLocale) { SimpleDateFormat("d MMM", appLocale) }
+    // Day names must use the forecast location's timezone, not the device's — item.date is an
+    // absolute instant representing local midnight AT THE LOCATION, so formatting it in the
+    // device's default timezone can shift the displayed calendar day when the two zones differ
+    // (e.g. a dev-mode location override far from the device's real timezone).
+    val locationTimeZone = remember(utcOffsetSeconds) { buildLocationTimeZone(utcOffsetSeconds) }
+    val dayFormat = remember(appLocale, locationTimeZone) { SimpleDateFormat("EEEE", appLocale).apply { timeZone = locationTimeZone } }
+    val dayMonthFormat = remember(appLocale, locationTimeZone) { SimpleDateFormat("d MMM", appLocale).apply { timeZone = locationTimeZone } }
     val bodyFont = LocalBodyFont.current
     val fontFeatures = LocalBodyFontFeatures.current
     val scale = LocalScale.current
@@ -1039,13 +1114,86 @@ internal fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Bo
 }
 
 @Composable
+internal fun DailyUvForecastList(forecasts: List<DailyForecast>, localizeDigits: (String) -> String, utcOffsetSeconds: Int) {
+    val appLocale = LocalConfiguration.current.locales[0]
+    // See DailyForecastList's comment: day names must use the forecast location's timezone.
+    val locationTimeZone = remember(utcOffsetSeconds) { buildLocationTimeZone(utcOffsetSeconds) }
+    val dayFormat = remember(appLocale, locationTimeZone) { SimpleDateFormat("EEEE", appLocale).apply { timeZone = locationTimeZone } }
+    val dayMonthFormat = remember(appLocale, locationTimeZone) { SimpleDateFormat("d MMM", appLocale).apply { timeZone = locationTimeZone } }
+    val bodyFont = LocalBodyFont.current
+    val scale = LocalScale.current
+    val uvLabels = stringArrayResource(R.array.uv_labels)
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (forecasts.isNotEmpty()) {
+            DailyUvChart(
+                forecasts = forecasts,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        CardBlue.copy(alpha = 0.3f),
+                        RoundedCornerShape(12.dp)
+                    )
+                    .padding(horizontal = 16.sd(scale), vertical = 12.sd(scale))
+                    .height(74.sd(scale))
+            )
+        }
+        forecasts.forEach { item ->
+            androidx.compose.runtime.key(item.date) {
+                val label = when {
+                    item.uvIndexMax < 3 -> uvLabels[0]
+                    item.uvIndexMax < 6 -> uvLabels[1]
+                    item.uvIndexMax < 8 -> uvLabels[2]
+                    item.uvIndexMax < 11 -> uvLabels[3]
+                    else -> uvLabels[4]
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            CardBlue.copy(alpha = 0.3f),
+                            RoundedCornerShape(12.dp),
+                        )
+                        .padding(horizontal = 16.sd(scale), vertical = 12.sd(scale)),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(modifier = Modifier.width(100.sd(scale))) {
+                        Text(
+                            text = dayFormat.format(Date(item.date)),
+                            fontSize = 14f.s(scale),
+                            fontWeight = FontWeight.Medium,
+                            fontFamily = bodyFont,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Text(
+                            text = localizeDigits(dayMonthFormat.format(Date(item.date))),
+                            fontSize = 10f.s(scale),
+                            fontFamily = bodyFont,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                        )
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                    Text(
+                        text = localizeDigits("%.1f".format(Locale.US, item.uvIndexMax)),
+                        fontSize = 14f.s(scale),
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = bodyFont,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    UvTierBadge(uvIndex = item.uvIndexMax, label = label)
+                }
+            }
+        }
+    }
+}
+
+@Composable
 internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat: SimpleDateFormat, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
     val directions = stringArrayResource(R.array.cardinal_directions)
-    val uvLabels = stringArrayResource(R.array.uv_labels)
     val bodyFont = LocalBodyFont.current
     val fontFeatures = LocalBodyFontFeatures.current
     val scale = LocalScale.current
-    var showAirQualityDetail by remember { mutableStateOf(false) }
     Column {
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -1322,105 +1470,24 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
 
         Spacer(modifier = Modifier.height(16.sd(scale)))
 
-        val uvLabelText = when {
-            data.uvIndex < 3 -> uvLabels[0]
-            data.uvIndex < 6 -> uvLabels[1]
-            data.uvIndex < 8 -> uvLabels[2]
-            data.uvIndex < 11 -> uvLabels[3]
-            else -> uvLabels[4]
-        }
-
-        if (data.airQuality == null) {
-            // UV Index / Visibility (no Air Quality data to pair UV Index with)
-            Row(
-                modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
-                horizontalArrangement = Arrangement.spacedBy(16.sd(scale))
-            ) {
-                DetailCard(
-                    title = stringResource(R.string.detail_uv_index),
-                    value = localizeDigits("%.1f".format(Locale.US, data.uvIndex)),
-                    subtitleContent = { UvTierBadge(uvIndex = data.uvIndex, label = uvLabelText) },
-                    modifier = Modifier.weight(1f).fillMaxHeight()
-                )
-                DetailCard(
-                    title = stringResource(R.string.detail_visibility),
-                    value = localizeDigits(if (metricPrimary) stringResource(R.string.visibility_km).format(Locale.US, data.visibility / 1000.0)
-                            else stringResource(R.string.visibility_mi).format(Locale.US, data.visibility / 1609.34)),
-                    secondaryValue = localizeDigits(if (metricPrimary) stringResource(R.string.visibility_mi).format(Locale.US, data.visibility / 1609.34)
-                                     else stringResource(R.string.visibility_km).format(Locale.US, data.visibility / 1000.0)),
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
-                    onToggleUnits = onToggleUnits,
-                )
-            }
-        }
-
-        // Air Quality (only when available from Open-Meteo)
-        data.airQuality?.let { aqi ->
-            val aqiTierLabels = stringArrayResource(R.array.aqi_tier_labels)
-            val usAqiLabel = stringResource(R.string.air_quality_us_aqi)
-            val euAqiLabel = stringResource(R.string.air_quality_eu_aqi)
-            // UV Index / Air Quality
-            Row(
-                modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
-                horizontalArrangement = Arrangement.spacedBy(16.sd(scale))
-            ) {
-                DetailCard(
-                    title = stringResource(R.string.detail_uv_index),
-                    value = localizeDigits("%.1f".format(Locale.US, data.uvIndex)),
-                    subtitleContent = { UvTierBadge(uvIndex = data.uvIndex, label = uvLabelText) },
-                    modifier = Modifier.weight(1f).fillMaxHeight()
-                )
-                val (aqiP, aqiS) = aqi.displayDual()
-                val (unitP, unitS) = if (aqi.primaryStandard == AqiStandard.EUROPEAN) euAqiLabel to usAqiLabel else usAqiLabel to euAqiLabel
-                DetailCard(
-                    title = stringResource(R.string.detail_air_quality),
-                    value = localizeDigits(aqiP),
-                    secondaryValue = localizeDigits(aqiS),
-                    subtitleContent = {
-                        AqiTierBadge(
-                            tier = aqi.primaryTier,
-                            label = aqiTierLabels[aqi.primaryTier.ordinal],
-                            modifier = Modifier.clickable { showAirQualityDetail = true },
-                        )
-                    },
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
-                    unit = unitP,
-                    secondaryUnit = unitS,
-                )
-            }
-
-            // Visibility (dropped to its own row to make room for Air Quality next to UV Index)
-            Spacer(modifier = Modifier.height(16.sd(scale)))
-            Row(
-                modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
-                horizontalArrangement = Arrangement.spacedBy(16.sd(scale))
-            ) {
-                DetailCard(
-                    title = stringResource(R.string.detail_visibility),
-                    value = localizeDigits(if (metricPrimary) stringResource(R.string.visibility_km).format(Locale.US, data.visibility / 1000.0)
-                            else stringResource(R.string.visibility_mi).format(Locale.US, data.visibility / 1609.34)),
-                    secondaryValue = localizeDigits(if (metricPrimary) stringResource(R.string.visibility_mi).format(Locale.US, data.visibility / 1609.34)
-                                     else stringResource(R.string.visibility_km).format(Locale.US, data.visibility / 1000.0)),
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
-                    onToggleUnits = onToggleUnits,
-                )
-            }
-            if (showAirQualityDetail) {
-                AirQualityDetailDialog(
-                    airQuality = aqi,
-                    onDismissRequest = { showAirQualityDetail = false },
-                    localizeDigits = localizeDigits,
-                )
-            }
-        }
+        // Visibility (UV Index and Air Quality now live on their own forecast cards)
+        DetailCard(
+            title = stringResource(R.string.detail_visibility),
+            value = localizeDigits(if (metricPrimary) stringResource(R.string.visibility_km).format(Locale.US, data.visibility / 1000.0)
+                    else stringResource(R.string.visibility_mi).format(Locale.US, data.visibility / 1609.34)),
+            secondaryValue = localizeDigits(if (metricPrimary) stringResource(R.string.visibility_mi).format(Locale.US, data.visibility / 1609.34)
+                             else stringResource(R.string.visibility_km).format(Locale.US, data.visibility / 1000.0)),
+            modifier = Modifier.fillMaxWidth(),
+            onToggleUnits = onToggleUnits,
+        )
     }
 }
 
 @Composable
 internal fun DetailCard(
-    title: String,
     value: String,
     modifier: Modifier = Modifier,
+    title: String? = null,
     secondaryValue: String? = null,
     subtitle: String? = null,
     subtitleContent: (@Composable () -> Unit)? = null,
@@ -1439,13 +1506,15 @@ internal fun DetailCard(
         Column(
             modifier = Modifier.padding(16.sd(scale))
         ) {
-            Text(
-                text = title,
-                fontSize = 14f.s(scale),
-                fontFamily = bodyFont,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
+            if (title != null) {
+                Text(
+                    text = title,
+                    fontSize = 14f.s(scale),
+                    fontFamily = bodyFont,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
             if (secondaryValue != null) {
                 DualUnitText(
                     primary = value,
@@ -1554,6 +1623,14 @@ private fun formatHourInDeviceTime(epochMillis: Long): String {
     val format = SimpleDateFormat("HH:mm", Locale.US)
     // Default timezone for SimpleDateFormat is the device's local timezone
     return format.format(Date(epochMillis))
+}
+
+private fun buildLocationTimeZone(utcOffsetSeconds: Int): TimeZone {
+    val sign = if (utcOffsetSeconds >= 0) "+" else "-"
+    val absOffset = Math.abs(utcOffsetSeconds)
+    val hh = absOffset / 3600
+    val mm = (absOffset % 3600) / 60
+    return TimeZone.getTimeZone(String.format(Locale.US, "GMT%s%02d:%02d", sign, hh, mm))
 }
 
 private fun formatDMS(value: Double, positive: String, negative: String): String {

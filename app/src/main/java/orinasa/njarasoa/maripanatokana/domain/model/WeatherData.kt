@@ -31,4 +31,5 @@ data class WeatherData(
     val timestamp: Long = System.currentTimeMillis(),
     val utcOffsetSeconds: Int = 0, // location's UTC offset in seconds
     val airQuality: AirQualityIndex? = null,
+    val hourlyAirQuality: List<HourlyAirQuality> = emptyList(),
 )

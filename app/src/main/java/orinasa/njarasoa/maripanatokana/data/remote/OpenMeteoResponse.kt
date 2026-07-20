@@ -43,6 +43,7 @@ data class OpenMeteoDaily(
     @SerialName("wind_speed_10m_max") val windSpeed10mMax: List<Double>,
     @SerialName("wind_direction_10m_dominant") val windDirection10mDominant: List<Int>,
     @SerialName("precipitation_sum") val precipitationSum: List<Double>,
+    @SerialName("uv_index_max") val uvIndexMax: List<Double> = emptyList(),
 )
 
 @Serializable

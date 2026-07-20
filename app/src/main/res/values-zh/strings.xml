@@ -44,7 +44,9 @@
     <string name="no_precip">无降水</string>
     <string name="section_current_conditions">当前状况</string>
     <string name="section_hourly_forecast">逐时预报</string>
-    <string name="section_this_week">10天预报</string>
+    <string name="section_air_quality_forecast">空气质量</string>
+    <string name="section_uv_forecast">紫外线</string>
+    <string name="section_this_week">7天预报</string>
     <string name="detail_min_temp">最低温</string>
     <string name="detail_max_temp">最高温</string>
     <string name="detail_wind">风速</string>

@@ -4,7 +4,7 @@ import { fetchWeather } from '$lib/api/openMeteo';
 import { fetchPirateWeather } from '$lib/api/pirateWeather';
 import { fetchAllAlerts, type AlertSettings } from '$lib/api/externalAlerts';
 import { mapToWeatherData } from '$lib/api/openMeteoMapper';
-import { fetchAirQuality, mapToAirQuality } from '$lib/api/openMeteoAirQuality';
+import { fetchAirQuality, mapToAirQuality, mapToHourlyAirQuality } from '$lib/api/openMeteoAirQuality';
 import { getLocationInfo, type LocationInfo } from '$lib/api/alerts/shared';
 import {
 	getCachedLocation, cacheLocation, movedSignificantly,
@@ -57,7 +57,8 @@ async function fetchAtLocation(lat: number, lon: number, knownName?: string, kno
 	const locationInfoPromise = getLocationInfo(lat, lon);
 	const [response, location, airQualityResponse, locationInfo] = await Promise.all([weatherPromise, namePromise, airQualityResponsePromise, locationInfoPromise]);
 	const airQuality = airQualityResponse ? mapToAirQuality(airQualityResponse, locationInfo.countryCode) : null;
-	const data = { ...mapToWeatherData(response, location.name, knownSubtext || location.subtext), airQuality };
+	const hourlyAirQuality = airQualityResponse ? mapToHourlyAirQuality(airQualityResponse) : [];
+	const data = { ...mapToWeatherData(response, location.name, knownSubtext || location.subtext), airQuality, hourlyAirQuality };
 
 	if (updateAlerts) fetchAlertsForData(lat, lon, locationInfo);
 

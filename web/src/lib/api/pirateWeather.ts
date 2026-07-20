@@ -52,7 +52,7 @@ export async function fetchPirateWeather(lat: number, lon: number, apiKey: strin
 	}));
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const daily: DailyForecast[] = (d.daily?.data ?? []).slice(0, 10).map((day: any) => ({
+	const daily: DailyForecast[] = (d.daily?.data ?? []).slice(0, 7).map((day: any) => ({
 		date: day.time * 1000,
 		tempMax: Temperature.fromCelsius(day.temperatureMax),
 		tempMin: Temperature.fromCelsius(day.temperatureMin),
@@ -61,6 +61,7 @@ export async function fetchPirateWeather(lat: number, lon: number, apiKey: strin
 		windSpeed: WindSpeed.fromMetersPerSecond(day.windSpeed ?? 0),
 		windDeg: day.windBearing ?? 0,
 		precipitation: Precipitation.fromMm(day.precipIntensity ?? 0),
+		uvIndexMax: day.uvIndex ?? 0,
 	}));
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -94,9 +95,9 @@ export async function fetchPirateWeather(lat: number, lon: number, apiKey: strin
 		sunrise: todayRaw ? todayRaw.sunriseTime : 0,
 		sunset: todayRaw ? todayRaw.sunsetTime : 0,
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		dailySunrise: (d.daily?.data ?? []).slice(0, 10).map((day: any) => (day.sunriseTime ?? 0) * 1000),
+		dailySunrise: (d.daily?.data ?? []).slice(0, 7).map((day: any) => (day.sunriseTime ?? 0) * 1000),
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		dailySunset: (d.daily?.data ?? []).slice(0, 10).map((day: any) => (day.sunsetTime ?? 0) * 1000),
+		dailySunset: (d.daily?.data ?? []).slice(0, 7).map((day: any) => (day.sunsetTime ?? 0) * 1000),
 		hourlyForecast: hourly,
 		dailyForecast: daily,
 		alerts: [],
