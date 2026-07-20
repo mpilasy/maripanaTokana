@@ -1,10 +1,10 @@
 import type { WeatherAlert } from '$lib/domain/weatherData';
-import { getLocationInfo } from './shared';
-import { fetchNwsAlerts } from './nws';
+import { getLocationInfo, type LocationInfo } from './shared';
+import { fetchNwsAlerts, isInUS } from './nws';
 import { fetchGdacsAlerts } from './gdacs';
 import { fetchMeteoAlarmAlerts, METEOALARM_COUNTRIES } from './meteoAlarm';
 import { fetchJmaAlerts, isInJapan } from './jma';
-import { fetchEcccAlerts } from './eccc';
+import { fetchEcccAlerts, isInCanada } from './eccc';
 import { fetchBomAlerts, isInAustralia } from './bom';
 import { fetchNhcAlerts } from './nhc';
 import { fetchWmoSwicAlerts } from './wmoSwic';
@@ -34,25 +34,33 @@ export interface AlertSettings {
 export async function fetchAllAlerts(
 	lat: number,
 	lon: number,
-	settings: AlertSettings
+	settings: AlertSettings,
+	locationInfo?: LocationInfo
 ): Promise<WeatherAlert[]> {
 	if (!settings.alertsEnabled) return [];
 
-	const { countryCode, stateCode, subdivisionName } = await getLocationInfo(lat, lon);
+	// Accept a pre-fetched location lookup when the caller already needed one (e.g. for AQI
+	// standard selection) to avoid firing a second, redundant reverse-geocode request.
+	const { countryCode, stateCode, subdivisionName } = locationInfo ?? await getLocationInfo(lat, lon);
 	const cc = countryCode ?? '';
 
+	// Coordinate-based fallbacks so a failed/rate-limited reverse-geocode (cc === '') doesn't
+	// silently suppress a country-gated source — reverse geocoding is an extra network call
+	// that can fail independently of the alert fetch itself.
+	const inUS = cc === 'us' || isInUS(lat, lon);
+	const inCanada = cc === 'ca' || isInCanada(lat, lon);
 	const inAustralia = cc === 'au' || isInAustralia(lat, lon);
 
 	const coveredByRegional =
-		cc === 'us' || cc === 'ca' || inAustralia ||
+		inUS || inCanada || inAustralia ||
 		METEOALARM_COUNTRIES.has(cc) || isInJapan(lat, lon);
 
 	const [nws, gdacs, meteoAlarm, jma, eccc, bom, nhc, wmo] = await Promise.all([
-		(settings.alertsNwsEnabled && cc === 'us') ? fetchNwsAlerts(lat, lon) : Promise.resolve([]),
+		(settings.alertsNwsEnabled && inUS) ? fetchNwsAlerts(lat, lon) : Promise.resolve([]),
 		(settings.alertsGdacsEnabled && !coveredByRegional) ? fetchGdacsAlerts(lat, lon) : Promise.resolve([]),
 		settings.alertsMeteoAlarmEnabled ? fetchMeteoAlarmAlerts(lat, lon, cc, subdivisionName) : Promise.resolve([]),
 		settings.alertsJmaEnabled ? fetchJmaAlerts(lat, lon) : Promise.resolve([]),
-		(settings.alertsEcccEnabled && cc === 'ca') ? fetchEcccAlerts(lat, lon, cc) : Promise.resolve([]),
+		(settings.alertsEcccEnabled && inCanada) ? fetchEcccAlerts(lat, lon, inCanada ? 'ca' : cc) : Promise.resolve([]),
 		(settings.alertsBomEnabled && inAustralia) ? fetchBomAlerts(stateCode) : Promise.resolve([]),
 		settings.alertsNhcEnabled ? fetchNhcAlerts(lat, lon) : Promise.resolve([]),
 		(settings.alertsWmoSwicEnabled && !coveredByRegional) ? fetchWmoSwicAlerts(lat, lon, cc) : Promise.resolve([]),

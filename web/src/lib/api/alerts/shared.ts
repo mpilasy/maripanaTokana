@@ -11,7 +11,13 @@ export function calculateDistance(lat1: number, lon1: number, lat2: number, lon2
 	return EARTH_RADIUS_KM * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-export async function getLocationInfo(lat: number, lon: number): Promise<{ countryCode: string | null; stateCode: string | null; subdivisionName: string | null }> {
+export interface LocationInfo {
+	countryCode: string | null;
+	stateCode: string | null;
+	subdivisionName: string | null;
+}
+
+export async function getLocationInfo(lat: number, lon: number): Promise<LocationInfo> {
 	try {
 		const res = await fetch(
 			`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=8&addressdetails=1`,
@@ -28,8 +34,4 @@ export async function getLocationInfo(lat: number, lon: number): Promise<{ count
 			data.address?.county ?? data.address?.city ?? data.address?.state ?? null;
 		return { countryCode, stateCode, subdivisionName };
 	} catch { return { countryCode: null, stateCode: null, subdivisionName: null }; }
-}
-
-export async function getCountryCode(lat: number, lon: number): Promise<string | null> {
-	return (await getLocationInfo(lat, lon)).countryCode;
 }

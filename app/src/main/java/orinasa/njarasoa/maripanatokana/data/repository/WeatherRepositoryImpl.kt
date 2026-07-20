@@ -9,6 +9,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.jsonPrimitive
 import orinasa.njarasoa.maripanatokana.data.remote.BomApiService
+import orinasa.njarasoa.maripanatokana.data.remote.CountryBoundingBoxes
 import orinasa.njarasoa.maripanatokana.data.remote.EcccApiService
 import orinasa.njarasoa.maripanatokana.data.remote.GdacsApiService
 import orinasa.njarasoa.maripanatokana.data.remote.GeocodingResult
@@ -100,9 +101,15 @@ class WeatherRepositoryImpl @Inject constructor(
             "Australian Capital Territory" to "ACT", "Northern Territory" to "NT"
         )[geoAddress?.adminArea ?: ""]
 
-        val coveredByRegional = countryCode == "us" ||
-            countryCode == "ca" ||
-            countryCode == "au" ||
+        // Coordinate-based fallbacks so a Geocoder failure (e.g. no geocoder backend on some
+        // de-Googled/F-Droid devices) doesn't silently suppress a country-gated source.
+        val inUS = countryCode == "us" || CountryBoundingBoxes.isInUS(lat, lon)
+        val inCanada = countryCode == "ca" || CountryBoundingBoxes.isInCanada(lat, lon)
+        val inAustralia = countryCode == "au" || CountryBoundingBoxes.isInAustralia(lat, lon)
+
+        val coveredByRegional = inUS ||
+            inCanada ||
+            inAustralia ||
             countryCode in METEOALARM_COUNTRIES ||
             JmaAreaCodes.isInJapan(lat, lon)
 
@@ -218,7 +225,7 @@ class WeatherRepositoryImpl @Inject constructor(
             // 5. ECCC (Canada)
             val ecccDeferred = async {
                 if (!settings.alertsEcccEnabled) return@async emptyList<WeatherAlert>()
-                if (countryCode != "ca") return@async emptyList()
+                if (!inCanada) return@async emptyList()
                 try {
                     val delta = 1.0
                     val bbox = String.format(Locale.US, "%.4f,%.4f,%.4f,%.4f", lon - delta, lat - delta, lon + delta, lat + delta)
@@ -248,7 +255,7 @@ class WeatherRepositoryImpl @Inject constructor(
 
             // 7. BOM (Australia)
             val bomDeferred = async {
-                if (!settings.alertsBomEnabled || countryCode != "au") return@async emptyList<WeatherAlert>()
+                if (!settings.alertsBomEnabled || !inAustralia) return@async emptyList<WeatherAlert>()
                 try {
                     val bomParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
                     bomApiService.getWarnings().data
@@ -283,7 +290,29 @@ class WeatherRepositoryImpl @Inject constructor(
                                 else -> AlertLevel.WATCH
                             }
                             val time = storm.advisory?.issuance?.let { try { nhcParser.parse(it)?.time } catch (_: Exception) { null } }
-                            WeatherAlert(level, "NHC: ${storm.name}", storm.headline.ifBlank { storm.name }, "nhc", time, null, storm.advisory?.url)
+
+                            val classificationName = NHC_CLASSIFICATION_NAMES[storm.classification]
+                            val title = if (classificationName != null) "$classificationName ${storm.name}" else "NHC: ${storm.name}"
+
+                            val statsParts = mutableListOf<String>()
+                            if (knots > 0) statsParts.add("winds ~${Math.round(knots * 1.15078)} mph")
+                            storm.pressure.toIntOrNull()?.let { statsParts.add("central pressure $it mb") }
+                            storm.movementSpeed?.let { speed ->
+                                statsParts.add(
+                                    if (speed > 0) "moving ${compassFromDegrees(storm.movementDir ?: 0)} at $speed mph"
+                                    else "stationary"
+                                )
+                            }
+                            val statsSentence = statsParts.joinToString(", ").ifBlank { null }
+                                ?.replaceFirstChar { it.uppercase() }?.plus(".")
+
+                            val distanceKm = Math.round(calculateDistance(lat, lon, storm.lat, storm.lon))
+                            val distanceMi = Math.round(distanceKm * 0.621371)
+                            val distanceSentence = "~$distanceKm km ($distanceMi mi) from your location."
+
+                            val description = listOfNotNull(statsSentence, distanceSentence).joinToString(" ").ifBlank { storm.name }
+
+                            WeatherAlert(level, title, description, "nhc", time, null, storm.advisory?.url)
                         }
                 } catch (_: Exception) { emptyList() }
             }
@@ -349,6 +378,11 @@ class WeatherRepositoryImpl @Inject constructor(
                 Math.sin(dLon / 2) * Math.sin(dLon / 2)
         val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
         return r * c
+    }
+
+    private fun compassFromDegrees(deg: Int): String {
+        val idx = Math.round((((deg % 360) + 360) % 360) / 22.5).toInt() % 16
+        return NHC_COMPASS_DIRECTIONS[idx]
     }
 
     private fun normalizeArea(s: String): String =
@@ -454,6 +488,17 @@ class WeatherRepositoryImpl @Inject constructor(
         private const val GDACS_SEARCH_RADIUS_KM = 500
         private const val GDACS_SEARCH_DAYS = 7
         private const val NHC_SEARCH_RADIUS_KM = 1500
+        private val NHC_CLASSIFICATION_NAMES = mapOf(
+            "TD" to "Tropical Depression", "SD" to "Subtropical Depression",
+            "TS" to "Tropical Storm", "SS" to "Subtropical Storm",
+            "HU" to "Hurricane", "EX" to "Post-Tropical Cyclone",
+            "PTC" to "Potential Tropical Cyclone", "LO" to "Remnant Low",
+            "DB" to "Disturbance", "WV" to "Tropical Wave",
+        )
+        private val NHC_COMPASS_DIRECTIONS = arrayOf(
+            "N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
+            "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW",
+        )
         private val METEOALARM_SLUGS = mapOf(
             "at" to "austria", "ba" to "bosnia-herzegovina", "be" to "belgium",
             "bg" to "bulgaria", "hr" to "croatia", "cy" to "cyprus", "cz" to "czechia",

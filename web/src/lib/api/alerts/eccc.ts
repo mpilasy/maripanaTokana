@@ -1,5 +1,10 @@
 import type { WeatherAlert, AlertLevel } from '$lib/domain/weatherData';
 
+// Coarse fallback for when reverse geocoding fails — mirrors isInAustralia/isInJapan/isInUS.
+export function isInCanada(lat: number, lon: number): boolean {
+	return lat >= 41.0 && lat <= 84.0 && lon >= -141.0 && lon <= -52.0;
+}
+
 export async function fetchEcccAlerts(lat: number, lon: number, countryCode: string): Promise<WeatherAlert[]> {
 	if (countryCode !== 'ca') return [];
 	try {

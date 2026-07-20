@@ -20,7 +20,10 @@ data class NhcStorm(
     val name: String = "",
     val classification: String = "",
     val intensity: String = "",   // max sustained winds in knots
+    val pressure: String = "",    // central pressure in mb
     val headline: String = "",
+    @SerialName("movementDir") val movementDir: Int? = null,   // degrees
+    @SerialName("movementSpeed") val movementSpeed: Int? = null,  // mph
     @SerialName("latitudeNumeric") val lat: Double = 0.0,
     @SerialName("longitudeNumeric") val lon: Double = 0.0,
     @SerialName("publicAdvisory") val advisory: NhcAdvisory? = null,

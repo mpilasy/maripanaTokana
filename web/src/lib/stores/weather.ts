@@ -5,7 +5,7 @@ import { fetchPirateWeather } from '$lib/api/pirateWeather';
 import { fetchAllAlerts, type AlertSettings } from '$lib/api/externalAlerts';
 import { mapToWeatherData } from '$lib/api/openMeteoMapper';
 import { fetchAirQuality, mapToAirQuality } from '$lib/api/openMeteoAirQuality';
-import { getCountryCode } from '$lib/api/alerts/shared';
+import { getLocationInfo, type LocationInfo } from '$lib/api/alerts/shared';
 import {
 	getCachedLocation, cacheLocation, movedSignificantly,
 	getPosition, reverseGeocode
@@ -52,13 +52,14 @@ async function fetchAtLocation(lat: number, lon: number, knownName?: string, kno
 	const weatherPromise = fetchWeather(lat, lon);
 	const airQualityResponsePromise = fetchAirQuality(lat, lon).catch(() => null);
 	// Country decides which AQI standard is primary (european_aqi vs us_aqi) — same lookup
-	// used for alert-source gating in fetchAllAlerts.
-	const countryCodePromise = getCountryCode(lat, lon);
-	const [response, location, airQualityResponse, countryCode] = await Promise.all([weatherPromise, namePromise, airQualityResponsePromise, countryCodePromise]);
-	const airQuality = airQualityResponse ? mapToAirQuality(airQualityResponse, countryCode) : null;
+	// used for alert-source gating in fetchAllAlerts. Fetched once here and passed through to
+	// avoid firing a second, redundant reverse-geocode request from fetchAllAlerts.
+	const locationInfoPromise = getLocationInfo(lat, lon);
+	const [response, location, airQualityResponse, locationInfo] = await Promise.all([weatherPromise, namePromise, airQualityResponsePromise, locationInfoPromise]);
+	const airQuality = airQualityResponse ? mapToAirQuality(airQualityResponse, locationInfo.countryCode) : null;
 	const data = { ...mapToWeatherData(response, location.name, knownSubtext || location.subtext), airQuality };
 
-	if (updateAlerts) fetchAlertsForData(lat, lon);
+	if (updateAlerts) fetchAlertsForData(lat, lon, locationInfo);
 
 	return data;
 }
@@ -73,7 +74,7 @@ function setWeatherData(data: WeatherData) {
 	});
 }
 
-async function fetchAlertsForData(lat: number, lon: number) {
+async function fetchAlertsForData(lat: number, lon: number, locationInfo?: LocationInfo) {
 	try {
 		const settings: AlertSettings = {
 			alertsEnabled: get(alertsEnabled),
@@ -86,7 +87,7 @@ async function fetchAlertsForData(lat: number, lon: number) {
 			alertsBomEnabled: get(alertsBomEnabled),
 			alertsNhcEnabled: get(alertsNhcEnabled),
 		};
-		const alerts = await fetchAllAlerts(lat, lon, settings);
+		const alerts = await fetchAllAlerts(lat, lon, settings, locationInfo);
 		weatherState.update(s => {
 			if (s.kind === 'success') {
 				return { ...s, data: { ...s.data, alerts, alertsLoading: false } };
