@@ -1,0 +1,2 @@
+• Lorsque les alertes proviennent de plusieurs sources, tous leurs badges s'affichent désormais ensemble sur la bannière d'alerte
+• Chaque alerte peut désormais être développée ou réduite individuellement pour afficher ou masquer ses détails complets

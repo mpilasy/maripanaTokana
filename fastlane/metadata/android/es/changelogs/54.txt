@@ -1,0 +1,2 @@
+• Cuando las alertas provienen de varias fuentes, ahora se muestran todas sus etiquetas juntas en el banner de alertas
+• Cada alerta ahora se puede expandir o contraer individualmente para mostrar u ocultar sus detalles completos

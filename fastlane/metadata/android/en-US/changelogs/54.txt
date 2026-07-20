@@ -1,0 +1,2 @@
+• When alerts come from multiple sources, all their badges now show together on the alert banner
+• Each alert can now be expanded/collapsed individually to show or hide its full details

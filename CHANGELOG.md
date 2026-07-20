@@ -6,6 +6,10 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.2.11] - 2026-07-20
+- When alerts come from multiple sources, all their badges now show together on the alert banner.
+- Each alert can now be expanded/collapsed individually to show or hide its full details.
+
 ## [1.2.10] - 2026-07-20
 - Fixed NWS/ECCC/BOM alerts sometimes failing to show when location lookup was unreliable.
 - NHC hurricane/storm alerts now show wind speed, pressure, movement, and distance instead of just the storm's name.
