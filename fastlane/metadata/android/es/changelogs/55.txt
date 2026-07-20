@@ -1,0 +1,4 @@
+• Se añadió una tarjeta de pronóstico de calidad del aire con un gráfico de tendencia de 48 horas
+• Se añadió una tarjeta de pronóstico UV con un gráfico de tendencia de 7 días
+• El pronóstico diario ahora siempre muestra exactamente 7 días
+• Se corrigió que las etiquetas de los días del pronóstico a veces mostraran la fecha incorrecta

@@ -6,6 +6,12 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.2.12] - 2026-07-20
+- Added an Air Quality forecast card with a 48-hour trend chart.
+- Added a UV forecast card with a 7-day trend chart.
+- The daily forecast now always shows exactly 7 days.
+- Fixed forecast day labels sometimes showing the wrong date.
+
 ## [1.2.11] - 2026-07-20
 - When alerts come from multiple sources, all their badges now show together on the alert banner.
 - Each alert can now be expanded/collapsed individually to show or hide its full details.

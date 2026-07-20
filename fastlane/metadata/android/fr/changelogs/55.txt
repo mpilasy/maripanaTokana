@@ -1,0 +1,4 @@
+• Ajout d'une carte de prévision de qualité de l'air avec un graphique de tendance sur 48 heures
+• Ajout d'une carte de prévision UV avec un graphique de tendance sur 7 jours
+• Les prévisions quotidiennes affichent désormais toujours exactement 7 jours
+• Correction d'un bug où les libellés des jours de prévision affichaient parfois la mauvaise date

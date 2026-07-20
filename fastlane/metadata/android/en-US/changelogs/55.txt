@@ -1,0 +1,4 @@
+• Added an Air Quality forecast card with a 48-hour trend chart
+• Added a UV forecast card with a 7-day trend chart
+• The daily forecast now always shows exactly 7 days
+• Fixed forecast day labels sometimes showing the wrong date
