@@ -1,0 +1,2 @@
+• Cards now expand one at a time — opening one collapses any other that was open
+• Switching to a different location now collapses all cards

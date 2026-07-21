@@ -1,0 +1,2 @@
+• Las tarjetas ahora se expanden de una en una: abrir una colapsa cualquier otra que estuviera abierta
+• Cambiar de ubicación ahora colapsa todas las tarjetas

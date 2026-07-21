@@ -1,0 +1,2 @@
+• Les cartes se déploient désormais une à la fois : en ouvrir une referme celle qui était ouverte
+• Changer de lieu referme désormais toutes les cartes
