@@ -1,0 +1,4 @@
+• El pronóstico de 7 días ahora se desplaza horizontalmente como el pronóstico por hora, con un gráfico de tendencia a juego
+• Las condiciones actuales ahora aparecen antes que el pronóstico por hora
+• La tarjeta de pronóstico UV ahora muestra el máximo previsto para hoy en lugar de la lectura en vivo
+• La lectura UV en vivo ha vuelto a las condiciones actuales

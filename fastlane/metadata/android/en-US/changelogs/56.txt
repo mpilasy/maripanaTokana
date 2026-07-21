@@ -1,0 +1,4 @@
+• The 7-Day Forecast now scrolls horizontally like the Hourly Forecast, with a matching trend chart
+• Current Conditions now appears above the Hourly Forecast
+• The UV Forecast card now shows today's forecast high instead of the live reading
+• The live UV reading is back in Current Conditions

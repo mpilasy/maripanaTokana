@@ -6,6 +6,12 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.2.13] - 2026-07-20
+- The 7-Day Forecast now scrolls horizontally like the Hourly Forecast, with a matching trend chart.
+- Current Conditions now appears above the Hourly Forecast.
+- The UV Forecast card now shows today's forecast high instead of the live reading.
+- The live UV reading is back in Current Conditions.
+
 ## [1.2.12] - 2026-07-20
 - Added an Air Quality forecast card with a 48-hour trend chart.
 - Added a UV forecast card with a 7-day trend chart.

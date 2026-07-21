@@ -1,0 +1,4 @@
+• Les prévisions à 7 jours défilent désormais horizontalement comme les prévisions horaires, avec un graphique de tendance assorti
+• Les conditions actuelles apparaissent désormais avant les prévisions horaires
+• La carte de prévision UV affiche désormais le maximum prévu du jour au lieu de la mesure en direct
+• La mesure UV en direct est de retour dans les conditions actuelles
