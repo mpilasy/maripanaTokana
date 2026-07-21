@@ -8,10 +8,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import orinasa.njarasoa.maripanatokana.domain.model.DailyForecast
 import java.util.Calendar
@@ -20,7 +22,11 @@ import java.util.Calendar
 fun DailyTemperatureChart(
     forecasts: List<DailyForecast>,
     metricPrimary: Boolean,
+    itemWidth: Dp,
+    spacing: Dp,
     modifier: Modifier = Modifier,
+    scrollOffset: Float = 0f,
+    totalScrollWidth: Float = 0f,
 ) {
     if (forecasts.isEmpty()) return
 
@@ -66,6 +72,11 @@ fun DailyTemperatureChart(
             val pointsCount = forecasts.size
             if (pointsCount < 2) return@Canvas
 
+            val itemWidthPx = itemWidth.toPx()
+            val spacingPx = spacing.toPx()
+            val xScale = if (totalScrollWidth > 0f) width / totalScrollWidth else 1f
+            fun xFor(i: Int) = (i * (itemWidthPx + spacingPx) + itemWidthPx / 2) * xScale
+
             // Draw horizontal ticks
             horizontalTicks.forEach { temp ->
                 val isMajor = temp % 5 == 0
@@ -80,7 +91,7 @@ fun DailyTemperatureChart(
 
             // Draw Monday vertical lines
             mondayIndices.forEach { idx ->
-                val x = (idx.toFloat() / (pointsCount - 1)) * width
+                val x = xFor(idx)
                 drawLine(
                     color = gridColor.copy(alpha = 0.2f),
                     start = Offset(x, 0f),
@@ -95,13 +106,13 @@ fun DailyTemperatureChart(
             val areaPath = Path()
 
             val maxPoints = maxTemps.mapIndexed { i, temp ->
-                val x = (i.toFloat() / (pointsCount - 1)) * width
+                val x = xFor(i)
                 val y = height - ((temp - paddedMin) / paddedRange * height).toFloat()
                 Offset(x, y)
             }
 
             val minPoints = minTemps.mapIndexed { i, temp ->
-                val x = (i.toFloat() / (pointsCount - 1)) * width
+                val x = xFor(i)
                 val y = height - ((temp - paddedMin) / paddedRange * height).toFloat()
                 Offset(x, y)
             }
@@ -161,12 +172,44 @@ fun DailyTemperatureChart(
                 style = Stroke(width = 2.dp.toPx())
             )
 
-            // Draw dots (as requested)
+            // Draw dots
             maxPoints.forEach { point ->
                 drawCircle(color = Color(0xFFFF7043), radius = 3.dp.toPx(), center = point)
             }
             minPoints.forEach { point ->
                 drawCircle(color = Color(0xFF64B5F6), radius = 3.dp.toPx(), center = point)
+            }
+
+            // Viewport overlay: dim the parts outside the currently visible window
+            if (totalScrollWidth > width) {
+                val vpLeft = (scrollOffset / totalScrollWidth * width).coerceIn(0f, width)
+                val vpRight = ((scrollOffset + width) / totalScrollWidth * width).coerceIn(0f, width)
+                if (vpLeft > 0f) {
+                    drawRect(
+                        color = Color.Black.copy(alpha = 0.35f),
+                        topLeft = Offset(0f, 0f),
+                        size = Size(vpLeft, height)
+                    )
+                }
+                if (vpRight < width) {
+                    drawRect(
+                        color = Color.Black.copy(alpha = 0.35f),
+                        topLeft = Offset(vpRight, 0f),
+                        size = Size(width - vpRight, height)
+                    )
+                }
+                drawLine(
+                    color = gridColor.copy(alpha = 0.7f),
+                    start = Offset(vpLeft, 0f),
+                    end = Offset(vpLeft, height),
+                    strokeWidth = 1.5.dp.toPx()
+                )
+                drawLine(
+                    color = gridColor.copy(alpha = 0.7f),
+                    start = Offset(vpRight, 0f),
+                    end = Offset(vpRight, height),
+                    strokeWidth = 1.5.dp.toPx()
+                )
             }
         }
     }

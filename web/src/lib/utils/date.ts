@@ -93,11 +93,12 @@ const alertTimeFormatters = new Map<string, Intl.DateTimeFormat>();
  * timestamp by the location's offset and format with timeZone: 'UTC' so the result is anchored
  * to the location's wall-clock date regardless of where the browser is.
  */
-export function formatDayName(timestamp: number, localeTag: string, utcOffsetSeconds: number): string {
-	let formatter = dayNameFormatters.get(localeTag);
+export function formatDayName(timestamp: number, localeTag: string, utcOffsetSeconds: number, short = false): string {
+	const key = short ? `${localeTag}:short` : localeTag;
+	let formatter = dayNameFormatters.get(key);
 	if (!formatter) {
-		formatter = new Intl.DateTimeFormat(localeTag, { weekday: 'long', timeZone: 'UTC' });
-		dayNameFormatters.set(localeTag, formatter);
+		formatter = new Intl.DateTimeFormat(localeTag, { weekday: short ? 'short' : 'long', timeZone: 'UTC' });
+		dayNameFormatters.set(key, formatter);
 	}
 	return formatter.format(new Date(timestamp + utcOffsetSeconds * 1000));
 }

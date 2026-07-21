@@ -503,6 +503,12 @@ internal fun WeatherContent(
 
             Spacer(modifier = Modifier.height(24.sd(scale)))
 
+            // Current Conditions (collapsible)
+            CollapsibleSection(title = stringResource(R.string.section_current_conditions), headerGraphicsLayer = headerGraphicsLayer) {
+                DetailsContent(data, metricPrimary, timeFormat, localizeDigits, onToggleUnits)
+            }
+            Spacer(modifier = Modifier.height(24.sd(scale)))
+
             // Hourly Forecast
             if (data.hourlyForecast.isNotEmpty()) {
                 CollapsibleSection(title = stringResource(R.string.section_hourly_forecast), headerGraphicsLayer = headerGraphicsLayer, initialExpanded = true) {
@@ -519,14 +525,8 @@ internal fun WeatherContent(
                 Spacer(modifier = Modifier.height(24.sd(scale)))
             }
 
-            // Current Conditions (collapsible)
-            CollapsibleSection(title = stringResource(R.string.section_current_conditions), headerGraphicsLayer = headerGraphicsLayer) {
-                DetailsContent(data, metricPrimary, timeFormat, localizeDigits, onToggleUnits)
-            }
-
             // Air Quality Forecast
             if (data.hourlyAirQuality.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(24.sd(scale)))
                 CollapsibleSection(title = stringResource(R.string.section_air_quality_forecast), headerGraphicsLayer = headerGraphicsLayer) {
                     Column {
                         data.airQuality?.let { aqi ->
@@ -574,16 +574,17 @@ internal fun WeatherContent(
                 CollapsibleSection(title = stringResource(R.string.section_uv_forecast), headerGraphicsLayer = headerGraphicsLayer) {
                     Column {
                         val uvLabels = stringArrayResource(R.array.uv_labels)
-                        val uvLabelText = when {
-                            data.uvIndex < 3 -> uvLabels[0]
-                            data.uvIndex < 6 -> uvLabels[1]
-                            data.uvIndex < 8 -> uvLabels[2]
-                            data.uvIndex < 11 -> uvLabels[3]
+                        val todayUvMax = data.dailyForecast.firstOrNull()?.uvIndexMax ?: 0.0
+                        val todayUvLabelText = when {
+                            todayUvMax < 3 -> uvLabels[0]
+                            todayUvMax < 6 -> uvLabels[1]
+                            todayUvMax < 8 -> uvLabels[2]
+                            todayUvMax < 11 -> uvLabels[3]
                             else -> uvLabels[4]
                         }
                         DetailCard(
-                            value = localizeDigits("%.1f".format(Locale.US, data.uvIndex)),
-                            subtitleContent = { UvTierBadge(uvIndex = data.uvIndex, label = uvLabelText) },
+                            value = localizeDigits("%.1f".format(Locale.US, todayUvMax)),
+                            subtitleContent = { UvTierBadge(uvIndex = todayUvMax, label = todayUvLabelText) },
                             modifier = Modifier.fillMaxWidth(),
                         )
                         Spacer(modifier = Modifier.height(16.sd(scale)))
@@ -998,117 +999,138 @@ internal fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Bo
     // device's default timezone can shift the displayed calendar day when the two zones differ
     // (e.g. a dev-mode location override far from the device's real timezone).
     val locationTimeZone = remember(utcOffsetSeconds) { buildLocationTimeZone(utcOffsetSeconds) }
-    val dayFormat = remember(appLocale, locationTimeZone) { SimpleDateFormat("EEEE", appLocale).apply { timeZone = locationTimeZone } }
+    val dayFormat = remember(appLocale, locationTimeZone) { SimpleDateFormat("EEE", appLocale).apply { timeZone = locationTimeZone } }
     val dayMonthFormat = remember(appLocale, locationTimeZone) { SimpleDateFormat("d MMM", appLocale).apply { timeZone = locationTimeZone } }
     val bodyFont = LocalBodyFont.current
     val fontFeatures = LocalBodyFontFeatures.current
     val scale = LocalScale.current
     var displayMode by remember { mutableStateOf(ForecastDisplayMode.Temperature) }
 
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        if (forecasts.isNotEmpty()) {
-            DailyTemperatureChart(
-                forecasts = forecasts,
-                metricPrimary = metricPrimary,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        CardBlue.copy(alpha = 0.3f),
-                        RoundedCornerShape(12.dp)
-                    )
-                    .padding(horizontal = 16.sd(scale), vertical = 12.sd(scale))
-                    .height(48.sd(scale))
-            )
-        }
+    val scrollState = rememberScrollState()
+    val itemWidth = 96.sd(scale)
+    val itemSpacing = 12.sd(scale)
+    val density = LocalDensity.current
+    val totalScrollWidthPx = with(density) {
+        (itemWidth * forecasts.size + itemSpacing * (forecasts.size - 1)).toPx()
+    }
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(itemSpacing),
+            modifier = Modifier.horizontalScroll(scrollState).padding(vertical = 8.dp)
+        ) {
         forecasts.forEach { item ->
             // Bolt: Add key to enable smart recomposition
             androidx.compose.runtime.key(item.date) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                    .background(
-                        CardBlue.copy(alpha = 0.3f),
-                        RoundedCornerShape(12.dp),
-                    )
-                    .padding(horizontal = 16.sd(scale), vertical = 12.sd(scale)),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(modifier = Modifier.width(100.sd(scale))) {
-                    Text(
-                        text = dayFormat.format(Date(item.date)),
-                        fontSize = 14f.s(scale),
-                        fontWeight = FontWeight.Medium,
-                        fontFamily = bodyFont,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    Text(
-                        text = localizeDigits(dayMonthFormat.format(Date(item.date))),
-                        fontSize = 10f.s(scale),
-                        fontFamily = bodyFont,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-                    )
-                }
-                Text(
-                    text = "${wmoEmoji(item.weatherCode)} ${stringResource(wmoDescriptionRes(item.weatherCode))}",
-                    fontSize = 12f.s(scale),
-                    fontFamily = bodyFont,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                    modifier = Modifier.weight(1f).clickable(
-                        role = Role.Button,
-                        onClickLabel = stringResource(R.string.cd_cycle_mode),
-                        onClick = {
-                            displayMode = when(displayMode) {
-                                ForecastDisplayMode.Temperature -> ForecastDisplayMode.Wind
-                                ForecastDisplayMode.Wind -> ForecastDisplayMode.Precipitation
-                                ForecastDisplayMode.Precipitation -> ForecastDisplayMode.Temperature
-                                else -> ForecastDisplayMode.Temperature
+                Card(
+                    modifier = Modifier.width(itemWidth),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = CardBlue.copy(alpha = 0.45f)),
+                ) {
+                    Column(
+                        modifier = Modifier.padding(vertical = 12.sd(scale)),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            text = dayFormat.format(Date(item.date)),
+                            fontSize = 12f.s(scale),
+                            fontWeight = FontWeight.Medium,
+                            fontFamily = bodyFont,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        Text(
+                            text = localizeDigits(dayMonthFormat.format(Date(item.date))),
+                            fontSize = 9f.s(scale),
+                            fontFamily = bodyFont,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = wmoEmoji(item.weatherCode),
+                            fontSize = 20f.s(scale),
+                            modifier = Modifier.clickable(
+                                role = Role.Button,
+                                onClickLabel = stringResource(R.string.cd_cycle_mode),
+                                onClick = {
+                                    displayMode = when (displayMode) {
+                                        ForecastDisplayMode.Temperature -> ForecastDisplayMode.Wind
+                                        ForecastDisplayMode.Wind -> ForecastDisplayMode.Precipitation
+                                        ForecastDisplayMode.Precipitation -> ForecastDisplayMode.Temperature
+                                        else -> ForecastDisplayMode.Temperature
+                                    }
+                                }
+                            )
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        when (displayMode) {
+                            ForecastDisplayMode.Temperature -> {
+                                val (maxP, maxS) = item.tempMax.displayDual(metricPrimary)
+                                val (minP, minS) = item.tempMin.displayDual(metricPrimary)
+                                DualUnitText(
+                                    primary = localizeDigits("\u2193$minP \u2191$maxP"),
+                                    secondary = localizeDigits("\u2193$minS \u2191$maxS"),
+                                    primarySize = 13f.s(scale),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    onClick = onToggleUnits,
+                                )
                             }
+                            ForecastDisplayMode.Wind -> {
+                                val (windP, windS) = item.windSpeed.displayDual(metricPrimary)
+                                val directions = stringArrayResource(R.array.cardinal_directions)
+                                val dirIndex = (((item.windDirection % 360 + 360) / 22.5 + 0.5).toInt() % 16)
+                                DualUnitText(
+                                    primary = localizeDigits("$windP ${directions[dirIndex]}"),
+                                    secondary = localizeDigits(windS),
+                                    primarySize = 13f.s(scale),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    onClick = onToggleUnits,
+                                )
+                            }
+                            ForecastDisplayMode.Precipitation -> {
+                                val (rainP, rainS) = item.precipitation.displayDual(metricPrimary)
+                                DualUnitText(
+                                    primary = localizeDigits(rainP),
+                                    secondary = localizeDigits(rainS),
+                                    primarySize = 13f.s(scale),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    onClick = onToggleUnits,
+                                )
+                            }
+                            else -> {}
                         }
-                    ),
-                )
-                Text(
-                    text = if (item.precipProbability > 0) localizeDigits("%d%%".format(Locale.US, item.precipProbability)) else "",
-                    fontSize = 11f.s(scale),
-                    fontFamily = bodyFont,
-                    color = SkyBlue,
-                    style = TextStyle(fontFeatureSettings = fontFeatures),
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                when(displayMode) {
-                    ForecastDisplayMode.Temperature -> {
-                        val (maxP, maxS) = item.tempMax.displayDual(metricPrimary)
-                        val (minP, minS) = item.tempMin.displayDual(metricPrimary)
-                        DualUnitText(
-                            primary = localizeDigits("\u2193$minP \u2191$maxP"),
-                            secondary = localizeDigits("\u2193$minS \u2191$maxS"),
-                            primarySize = 13f.s(scale),
-                            onClick = onToggleUnits,
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = if (item.precipProbability > 0) localizeDigits("%d%%".format(Locale.US, item.precipProbability)) else "",
+                            fontSize = 11f.s(scale),
+                            fontFamily = bodyFont,
+                            color = SkyBlue,
+                            style = TextStyle(fontFeatureSettings = fontFeatures),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth(),
                         )
                     }
-                    ForecastDisplayMode.Wind -> {
-                        val (windP, windS) = item.windSpeed.displayDual(metricPrimary)
-                        val directions = stringArrayResource(R.array.cardinal_directions)
-                        val dirIndex = (((item.windDirection % 360 + 360) / 22.5 + 0.5).toInt() % 16)
-                        DualUnitText(
-                            primary = localizeDigits("$windP ${directions[dirIndex]}"),
-                            secondary = localizeDigits(windS),
-                            primarySize = 13f.s(scale),
-                            onClick = onToggleUnits,
-                        )
-                    }
-                    ForecastDisplayMode.Precipitation -> {
-                        val (rainP, rainS) = item.precipitation.displayDual(metricPrimary)
-                        DualUnitText(
-                            primary = localizeDigits(rainP),
-                            secondary = localizeDigits(rainS),
-                            primarySize = 13f.s(scale),
-                            onClick = onToggleUnits,
-                        )
-                    }
-                    else -> {}
                 }
             }
-            } // End key
+        }
+        }
+
+        if (displayMode == ForecastDisplayMode.Temperature) {
+            DailyTemperatureChart(
+                forecasts = forecasts,
+                metricPrimary = metricPrimary,
+                itemWidth = itemWidth,
+                spacing = itemSpacing,
+                scrollOffset = scrollState.value.toFloat(),
+                totalScrollWidth = totalScrollWidthPx,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.sd(scale))
+                    .padding(bottom = 8.dp)
+            )
         }
     }
 }
@@ -1191,6 +1213,7 @@ internal fun DailyUvForecastList(forecasts: List<DailyForecast>, localizeDigits:
 @Composable
 internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat: SimpleDateFormat, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
     val directions = stringArrayResource(R.array.cardinal_directions)
+    val uvLabels = stringArrayResource(R.array.uv_labels)
     val bodyFont = LocalBodyFont.current
     val fontFeatures = LocalBodyFontFeatures.current
     val scale = LocalScale.current
@@ -1470,16 +1493,34 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
 
         Spacer(modifier = Modifier.height(16.sd(scale)))
 
-        // Visibility (UV Index and Air Quality now live on their own forecast cards)
-        DetailCard(
-            title = stringResource(R.string.detail_visibility),
-            value = localizeDigits(if (metricPrimary) stringResource(R.string.visibility_km).format(Locale.US, data.visibility / 1000.0)
-                    else stringResource(R.string.visibility_mi).format(Locale.US, data.visibility / 1609.34)),
-            secondaryValue = localizeDigits(if (metricPrimary) stringResource(R.string.visibility_mi).format(Locale.US, data.visibility / 1609.34)
-                             else stringResource(R.string.visibility_km).format(Locale.US, data.visibility / 1000.0)),
-            modifier = Modifier.fillMaxWidth(),
-            onToggleUnits = onToggleUnits,
-        )
+        // UV Index (current reading) / Visibility — Air Quality now lives on its own forecast card
+        val uvLabelText = when {
+            data.uvIndex < 3 -> uvLabels[0]
+            data.uvIndex < 6 -> uvLabels[1]
+            data.uvIndex < 8 -> uvLabels[2]
+            data.uvIndex < 11 -> uvLabels[3]
+            else -> uvLabels[4]
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+            horizontalArrangement = Arrangement.spacedBy(16.sd(scale))
+        ) {
+            DetailCard(
+                title = stringResource(R.string.detail_uv_index),
+                value = localizeDigits("%.1f".format(Locale.US, data.uvIndex)),
+                subtitleContent = { UvTierBadge(uvIndex = data.uvIndex, label = uvLabelText) },
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+            )
+            DetailCard(
+                title = stringResource(R.string.detail_visibility),
+                value = localizeDigits(if (metricPrimary) stringResource(R.string.visibility_km).format(Locale.US, data.visibility / 1000.0)
+                        else stringResource(R.string.visibility_mi).format(Locale.US, data.visibility / 1609.34)),
+                secondaryValue = localizeDigits(if (metricPrimary) stringResource(R.string.visibility_mi).format(Locale.US, data.visibility / 1609.34)
+                                 else stringResource(R.string.visibility_km).format(Locale.US, data.visibility / 1000.0)),
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+                onToggleUnits = onToggleUnits,
+            )
+        }
     }
 }
 

@@ -318,6 +318,10 @@
 				<WeatherAlertBanner alerts={data.alerts} />
 				<HeroCard {data} metricPrimary={$metricPrimary} {loc} onToggleUnits={toggleUnits} onShare={handleShare} />
 
+				<CollapsibleSection title={$_('section_current_conditions')} onShare={handleShare}>
+					<CurrentConditions {data} metricPrimary={$metricPrimary} {loc} onToggleUnits={toggleUnits} />
+				</CollapsibleSection>
+
 				{#if data.hourlyForecast.length > 0}
 					<CollapsibleSection title={$_('section_hourly_forecast')} expanded={true} onShare={handleShare}>
 						<HourlyForecast
@@ -344,10 +348,6 @@
 						/>
 					</CollapsibleSection>
 				{/if}
-
-				<CollapsibleSection title={$_('section_current_conditions')} onShare={handleShare}>
-					<CurrentConditions {data} metricPrimary={$metricPrimary} {loc} onToggleUnits={toggleUnits} />
-				</CollapsibleSection>
 
 				{#if data.hourlyAirQuality && data.hourlyAirQuality.length > 0 && data.airQuality}
 					{@const aqiDual = data.airQuality.displayDual()}
@@ -384,12 +384,13 @@
 				{/if}
 
 				{#if data.dailyForecast.length > 0}
+					{@const todayUvMax = data.dailyForecast[0].uvIndexMax}
 					<CollapsibleSection title={$_('section_uv_forecast')} onShare={handleShare}>
 						<DetailCard
-							value={loc(data.uvIndex.toFixed(1))}
+							value={loc(todayUvMax.toFixed(1))}
 						>
 							{#snippet subtitleSnippet()}
-								<UvTierBadge uvIndex={data.uvIndex} label={getUvLabel(data.uvIndex)} />
+								<UvTierBadge uvIndex={todayUvMax} label={getUvLabel(todayUvMax)} />
 							{/snippet}
 						</DetailCard>
 						<div class="section-spacer"></div>

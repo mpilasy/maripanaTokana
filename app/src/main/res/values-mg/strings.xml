@@ -62,8 +62,8 @@
     <string name="detail_sunset">&#x1f31e; Mody</string>
     <string name="detail_cloud_cover">Rahona</string>
     <string name="detail_air_quality">Hadion\'ny rivotra</string>
-    <string name="air_quality_us_aqi">AQI Amerikana</string>
-    <string name="air_quality_eu_aqi">AQI Eoropeana</string>
+    <string name="air_quality_us_aqi">AQI US</string>
+    <string name="air_quality_eu_aqi">AQI EU</string>
     <string name="air_quality_pm2_5">PM2.5</string>
     <string name="air_quality_pm10">PM10</string>
     <string name="air_quality_carbon_monoxide">Etona CO</string>

@@ -3,6 +3,7 @@
 	import type { WeatherData } from '$lib/domain/weatherData';
 	import { getCardinalDirection } from '$lib/domain/windSpeed';
 	import DetailCard from './DetailCard.svelte';
+	import UvTierBadge from './UvTierBadge.svelte';
 
 	interface Props {
 		data: WeatherData;
@@ -16,6 +17,16 @@
 	function formatTime(epochSec: number): string {
 		const d = new Date(epochSec * 1000);
 		return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+	}
+
+	function getUvLabel(uv: number): string {
+		const labels: string[] = $_('uv_labels') as unknown as string[];
+		if (!Array.isArray(labels)) return '';
+		if (uv < 3) return labels[0];
+		if (uv < 6) return labels[1];
+		if (uv < 8) return labels[2];
+		if (uv < 11) return labels[3];
+		return labels[4];
 	}
 
 	function visibilityDisplay(meters: number, metric: boolean): [string, string] {
@@ -151,15 +162,21 @@
 		</span>
 	</div>
 
-	<!-- UV Index and Air Quality now live on their own forecast cards -->
-	<div class="full-width-card">
-		<DetailCard
-			title={$_('detail_visibility')}
-			value={loc(visDual[0])}
-			secondaryValue={loc(visDual[1])}
-			{onToggleUnits}
-		/>
-	</div>
+	<!-- Air Quality now lives on its own forecast card -->
+	<DetailCard
+		title={$_('detail_uv_index')}
+		value={loc(data.uvIndex.toFixed(1))}
+	>
+		{#snippet subtitleSnippet()}
+			<UvTierBadge uvIndex={data.uvIndex} label={getUvLabel(data.uvIndex)} />
+		{/snippet}
+	</DetailCard>
+	<DetailCard
+		title={$_('detail_visibility')}
+		value={loc(visDual[0])}
+		secondaryValue={loc(visDual[1])}
+		{onToggleUnits}
+	/>
 </div>
 
 <style>
@@ -168,10 +185,6 @@
 		grid-template-columns: 1fr 1fr;
 		grid-auto-rows: auto;
 		gap: 16px;
-	}
-
-	.full-width-card {
-		grid-column: 1 / -1;
 	}
 
 	.merged-card {
