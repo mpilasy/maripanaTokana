@@ -171,6 +171,18 @@ internal fun WeatherContent(
         else -> 0.7f
     }
 
+    // Accordion: only one card open at a time; switching to a new location collapses everything.
+    val locationKey = "${data.locationName}|${data.locationSubtext}"
+    var openSectionKey by rememberSaveable { mutableStateOf<String?>("hourly_forecast") }
+    var lastLocationKey by rememberSaveable { mutableStateOf(locationKey) }
+    if (locationKey != lastLocationKey) {
+        lastLocationKey = locationKey
+        openSectionKey = null
+    }
+    fun toggleSection(key: String) {
+        openSectionKey = if (openSectionKey == key) null else key
+    }
+
     // Use dev override coordinates directly when set (reactive via StateFlow), else fall back to cached GPS
     val (displayLat, displayLon) = if (devOverrideLat != null && devOverrideLon != null) {
         devOverrideLat to devOverrideLon
@@ -318,7 +330,12 @@ internal fun WeatherContent(
                 .padding(vertical = 24.sd(scale))
         ) {
             // Weather Alert Banner
-            WeatherAlertBanner(alerts = data.alerts, localizeDigits = localizeDigits)
+            WeatherAlertBanner(
+                alerts = data.alerts,
+                localizeDigits = localizeDigits,
+                expanded = openSectionKey == "alerts",
+                onToggle = { toggleSection("alerts") },
+            )
 
             // Hero Card
             val graphicsLayer = rememberGraphicsLayer()
@@ -504,14 +521,24 @@ internal fun WeatherContent(
             Spacer(modifier = Modifier.height(24.sd(scale)))
 
             // Current Conditions (collapsible)
-            CollapsibleSection(title = stringResource(R.string.section_current_conditions), headerGraphicsLayer = headerGraphicsLayer) {
+            CollapsibleSection(
+                title = stringResource(R.string.section_current_conditions),
+                headerGraphicsLayer = headerGraphicsLayer,
+                expanded = openSectionKey == "current_conditions",
+                onToggle = { toggleSection("current_conditions") },
+            ) {
                 DetailsContent(data, metricPrimary, timeFormat, localizeDigits, onToggleUnits)
             }
             Spacer(modifier = Modifier.height(24.sd(scale)))
 
             // Hourly Forecast
             if (data.hourlyForecast.isNotEmpty()) {
-                CollapsibleSection(title = stringResource(R.string.section_hourly_forecast), headerGraphicsLayer = headerGraphicsLayer, initialExpanded = true) {
+                CollapsibleSection(
+                    title = stringResource(R.string.section_hourly_forecast),
+                    headerGraphicsLayer = headerGraphicsLayer,
+                    expanded = openSectionKey == "hourly_forecast",
+                    onToggle = { toggleSection("hourly_forecast") },
+                ) {
                     HourlyForecastRow(data.hourlyForecast, metricPrimary, data.dailySunrise, data.dailySunset, localizeDigits, onToggleUnits, data.utcOffsetSeconds)
                 }
                 Spacer(modifier = Modifier.height(24.sd(scale)))
@@ -519,7 +546,12 @@ internal fun WeatherContent(
 
             // Weekly Forecast
             if (data.dailyForecast.isNotEmpty()) {
-                CollapsibleSection(title = stringResource(R.string.section_this_week), headerGraphicsLayer = headerGraphicsLayer) {
+                CollapsibleSection(
+                    title = stringResource(R.string.section_this_week),
+                    headerGraphicsLayer = headerGraphicsLayer,
+                    expanded = openSectionKey == "this_week",
+                    onToggle = { toggleSection("this_week") },
+                ) {
                     DailyForecastList(data.dailyForecast, metricPrimary, localizeDigits, onToggleUnits, data.utcOffsetSeconds)
                 }
                 Spacer(modifier = Modifier.height(24.sd(scale)))
@@ -527,7 +559,12 @@ internal fun WeatherContent(
 
             // Air Quality Forecast
             if (data.hourlyAirQuality.isNotEmpty()) {
-                CollapsibleSection(title = stringResource(R.string.section_air_quality_forecast), headerGraphicsLayer = headerGraphicsLayer) {
+                CollapsibleSection(
+                    title = stringResource(R.string.section_air_quality_forecast),
+                    headerGraphicsLayer = headerGraphicsLayer,
+                    expanded = openSectionKey == "air_quality_forecast",
+                    onToggle = { toggleSection("air_quality_forecast") },
+                ) {
                     Column {
                         data.airQuality?.let { aqi ->
                             var showAirQualityDetail by remember { mutableStateOf(false) }
@@ -571,7 +608,12 @@ internal fun WeatherContent(
             // UV Forecast
             if (data.dailyForecast.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(24.sd(scale)))
-                CollapsibleSection(title = stringResource(R.string.section_uv_forecast), headerGraphicsLayer = headerGraphicsLayer) {
+                CollapsibleSection(
+                    title = stringResource(R.string.section_uv_forecast),
+                    headerGraphicsLayer = headerGraphicsLayer,
+                    expanded = openSectionKey == "uv_forecast",
+                    onToggle = { toggleSection("uv_forecast") },
+                ) {
                     Column {
                         val uvLabels = stringArrayResource(R.array.uv_labels)
                         val todayUvMax = data.dailyForecast.firstOrNull()?.uvIndexMax ?: 0.0
@@ -743,10 +785,10 @@ internal fun DualUnitText(
 internal fun CollapsibleSection(
     title: String,
     headerGraphicsLayer: GraphicsLayer,
-    initialExpanded: Boolean = false,
+    expanded: Boolean,
+    onToggle: () -> Unit,
     content: @Composable () -> Unit,
 ) {
-    var expanded by rememberSaveable { mutableStateOf(initialExpanded) }
     val rotation by animateFloatAsState(if (expanded) 180f else 0f, label = "chevron")
     val bodyFont = LocalBodyFont.current
     val graphicsLayer = rememberGraphicsLayer()
@@ -758,7 +800,7 @@ internal fun CollapsibleSection(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { expanded = !expanded }
+                .clickable { onToggle() }
                 .padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {

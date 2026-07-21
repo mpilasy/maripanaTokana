@@ -5,25 +5,20 @@
 <script lang="ts">
 	import { slide } from 'svelte/transition';
 	import type { Snippet } from 'svelte';
-	import { untrack } from 'svelte';
 	import { _ } from 'svelte-i18n';
 
 	interface Props {
 		title: string;
 		expanded?: boolean;
+		onToggle?: () => void;
 		children: Snippet;
 		onShare?: (el: HTMLElement) => void;
 	}
 
-	let { title, expanded = false, children, onShare }: Props = $props();
-	let isExpanded = $state(untrack(() => expanded));
+	let { title, expanded = false, onToggle, children, onShare }: Props = $props();
 	let contentEl = $state<HTMLElement | null>(null);
 
 	let contentId = `content-${idCounter++}`;
-
-	$effect(() => {
-		isExpanded = expanded;
-	});
 
 	function handleShare(e: MouseEvent) {
 		e.stopPropagation();
@@ -39,19 +34,19 @@
 		// but not on the share button. The title-btn handles its own click.
 		const target = e.target as HTMLElement;
 		if (!target.closest('.share-btn') && !target.closest('.title-btn')) {
-			isExpanded = !isExpanded;
+			onToggle?.();
 		}
 	}}>
 		<button
 			type="button"
 			class="title-btn"
-			onclick={() => isExpanded = !isExpanded}
-			aria-expanded={isExpanded}
+			onclick={() => onToggle?.()}
+			aria-expanded={expanded}
 			aria-controls={contentId}
 		>
 			<span class="section-title">{title}</span>
 		</button>
-		{#if isExpanded && onShare}
+		{#if expanded && onShare}
 			<button class="share-btn" onclick={handleShare} aria-label={$_('android_only.cd_share')}>
 				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 					<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
@@ -61,10 +56,10 @@
 			</button>
 		{/if}
 		<span class="spacer"></span>
-		<span class="chevron" class:expanded={isExpanded}>&#9660;</span>
+		<span class="chevron" class:expanded={expanded}>&#9660;</span>
 	</div>
 
-	{#if isExpanded}
+	{#if expanded}
 		<div id={contentId} class="section-content" bind:this={contentEl} transition:slide={{ duration: 300 }}>
 			{@render children()}
 		</div>

@@ -8,10 +8,11 @@
 
 	interface Props {
 		alerts: WeatherAlert[];
+		expanded?: boolean;
+		onToggle?: () => void;
 	}
 
-	let { alerts }: Props = $props();
-	let isExpanded = $state(false);
+	let { alerts, expanded = false, onToggle }: Props = $props();
 	let expandedItems = $state<Set<number>>(new Set());
 
 	function toggleItem(index: number) {
@@ -45,7 +46,7 @@
 	<div class="alert-banner" class:watch={topLevel === 'watch'} class:warning={topLevel === 'warning' || topLevel === 'emergency'}>
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="banner-header" onclick={() => isExpanded = !isExpanded}>
+		<div class="banner-header" onclick={() => onToggle?.()}>
 			<div class="icon-text">
 				<span class="alert-icon">
 					{#if topLevel === 'watch'}
@@ -82,10 +83,10 @@
 				{/if}
 			</div>
 			<span class="spacer"></span>
-			<span class="chevron" class:expanded={isExpanded}>&#9660;</span>
+			<span class="chevron" class:expanded={expanded}>&#9660;</span>
 		</div>
 
-		{#if isExpanded}
+		{#if expanded}
 			<div class="alert-details" transition:slide={{ duration: 300 }}>
 				{#each alerts as alert, index}
 					{@const collapsible = alerts.length > 1}

@@ -118,6 +118,24 @@
 
 	let showAirQualityDetail = $state(false);
 
+	// Accordion: only one card open at a time; switching to a new location collapses everything.
+	let openSection = $state<string | null>('hourly_forecast');
+	let lastLocationKey: string | null = null;
+
+	function toggleSection(key: string) {
+		openSection = openSection === key ? null : key;
+	}
+
+	$effect(() => {
+		const state = $weatherState;
+		if (state.kind !== 'success') return;
+		const key = `${state.data.locationName}|${state.data.locationSubtext ?? ''}`;
+		if (lastLocationKey !== null && key !== lastLocationKey) {
+			openSection = null;
+		}
+		lastLocationKey = key;
+	});
+
 	function getUvLabel(uv: number): string {
 		const labels: string[] = $_('uv_labels') as unknown as string[];
 		if (!Array.isArray(labels)) return '';
@@ -315,15 +333,15 @@
 				ontouchmove={handleTouchMove}
 				ontouchend={handleTouchEnd}
 			>
-				<WeatherAlertBanner alerts={data.alerts} />
+				<WeatherAlertBanner alerts={data.alerts} expanded={openSection === 'alerts'} onToggle={() => toggleSection('alerts')} />
 				<HeroCard {data} metricPrimary={$metricPrimary} {loc} onToggleUnits={toggleUnits} onShare={handleShare} />
 
-				<CollapsibleSection title={$_('section_current_conditions')} onShare={handleShare}>
+				<CollapsibleSection title={$_('section_current_conditions')} expanded={openSection === 'current_conditions'} onToggle={() => toggleSection('current_conditions')} onShare={handleShare}>
 					<CurrentConditions {data} metricPrimary={$metricPrimary} {loc} onToggleUnits={toggleUnits} />
 				</CollapsibleSection>
 
 				{#if data.hourlyForecast.length > 0}
-					<CollapsibleSection title={$_('section_hourly_forecast')} expanded={true} onShare={handleShare}>
+					<CollapsibleSection title={$_('section_hourly_forecast')} expanded={openSection === 'hourly_forecast'} onToggle={() => toggleSection('hourly_forecast')} onShare={handleShare}>
 						<HourlyForecast
 							forecasts={data.hourlyForecast}
 							metricPrimary={$metricPrimary}
@@ -337,7 +355,7 @@
 				{/if}
 
 				{#if data.dailyForecast.length > 0}
-					<CollapsibleSection title={$_('section_this_week')} expanded={true} onShare={handleShare}>
+					<CollapsibleSection title={$_('section_this_week')} expanded={openSection === 'this_week'} onToggle={() => toggleSection('this_week')} onShare={handleShare}>
 						<DailyForecast
 							forecasts={data.dailyForecast}
 							metricPrimary={$metricPrimary}
@@ -352,7 +370,7 @@
 				{#if data.hourlyAirQuality && data.hourlyAirQuality.length > 0 && data.airQuality}
 					{@const aqiDual = data.airQuality.displayDual()}
 					{@const aqiUnitDual = getAqiUnitDual(data.airQuality.primaryStandard)}
-					<CollapsibleSection title={$_('section_air_quality_forecast')} onShare={handleShare}>
+					<CollapsibleSection title={$_('section_air_quality_forecast')} expanded={openSection === 'air_quality_forecast'} onToggle={() => toggleSection('air_quality_forecast')} onShare={handleShare}>
 						<DetailCard
 							value={loc(aqiDual[0])}
 							secondaryValue={loc(aqiDual[1])}
@@ -385,7 +403,7 @@
 
 				{#if data.dailyForecast.length > 0}
 					{@const todayUvMax = data.dailyForecast[0].uvIndexMax}
-					<CollapsibleSection title={$_('section_uv_forecast')} onShare={handleShare}>
+					<CollapsibleSection title={$_('section_uv_forecast')} expanded={openSection === 'uv_forecast'} onToggle={() => toggleSection('uv_forecast')} onShare={handleShare}>
 						<DetailCard
 							value={loc(todayUvMax.toFixed(1))}
 						>

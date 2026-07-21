@@ -80,12 +80,13 @@ private fun AlertSourceBadge(
 fun WeatherAlertBanner(
     alerts: List<WeatherAlert>,
     localizeDigits: (String) -> String,
+    expanded: Boolean,
+    onToggle: () -> Unit,
 ) {
     if (alerts.isEmpty()) return
 
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
-    var expanded by remember { mutableStateOf(false) }
     val scale = LocalScale.current
     val bodyFont = LocalBodyFont.current
     val displayFont = LocalDisplayFont.current
@@ -116,7 +117,7 @@ fun WeatherAlertBanner(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { expanded = !expanded }
+                    .clickable { onToggle() }
                     .padding(12.sd(scale)),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
