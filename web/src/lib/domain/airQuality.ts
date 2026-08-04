@@ -1,6 +1,40 @@
 export type AqiStandard = 'US' | 'EUROPEAN';
 export type AqiTier = 'good' | 'moderate' | 'unhealthy' | 'very_unhealthy' | 'hazardous';
 
+// Ordinals line up with uv_labels[0..3] ("Low"/"Moderate"/"High"/"Very High") — pollen reuses
+// that i18n array instead of a dedicated one, since the wording is identical.
+export type PollenTier = 'low' | 'moderate' | 'high' | 'very_high';
+export const POLLEN_TIERS: PollenTier[] = ['low', 'moderate', 'high', 'very_high'];
+
+// No official breakpoints are published for pollen (unlike AQI). These are commonly-used generic
+// grains/m³ bands applied uniformly across species; treat as an approximation.
+export function pollenTierFor(value: number): PollenTier {
+	if (value < 10) return 'low';
+	if (value < 50) return 'moderate';
+	if (value < 200) return 'high';
+	return 'very_high';
+}
+
+// Pollen concentrations in grains/m³ from Open-Meteo's CAMS-Europe pollen model. Only populated
+// for locations within CAMS-Europe coverage — all null everywhere else.
+export interface PollenReadings {
+	alder: number | null;
+	birch: number | null;
+	grass: number | null;
+	mugwort: number | null;
+	olive: number | null;
+	ragweed: number | null;
+}
+
+export const EMPTY_POLLEN: PollenReadings = {
+	alder: null, birch: null, grass: null, mugwort: null, olive: null, ragweed: null,
+};
+
+export function hasPollenData(pollen: PollenReadings): boolean {
+	return pollen.alder != null || pollen.birch != null || pollen.grass != null
+		|| pollen.mugwort != null || pollen.olive != null || pollen.ragweed != null;
+}
+
 // AirNow AQI category colors (airnow.gov/aqi/aqi-basics) — matches AqiTierBadge.svelte's CSS
 // classes, as actual color values for contexts (e.g. canvas/SVG fills) that need a value rather
 // than a class name.
@@ -74,14 +108,17 @@ export class AirQualityIndex {
 	// air-quality "current" call. Null when a given pollutant isn't covered by the domain for
 	// this location (e.g. ammonia is CAMS-Europe only) or the API omitted it.
 	readonly pollutants: AirQualityPollutants;
+	readonly pollen: PollenReadings;
 
 	private constructor(
 		readonly usValue: number,
 		readonly europeanValue: number,
 		readonly primaryStandard: AqiStandard,
 		pollutants: AirQualityPollutants,
+		pollen: PollenReadings = EMPTY_POLLEN,
 	) {
 		this.pollutants = pollutants;
+		this.pollen = pollen;
 	}
 
 	static tierFor(value: number, standard: AqiStandard): AqiTier {
@@ -128,6 +165,7 @@ export class AirQualityIndex {
 		countryCode: string | null,
 		concentrations: AirQualityConcentrations = EMPTY_CONCENTRATIONS,
 		subIndices: AirQualitySubIndices = EMPTY_SUB_INDICES,
+		pollen: PollenReadings = EMPTY_POLLEN,
 	): AirQualityIndex | null {
 		if (usAqi == null || europeanAqi == null) return null;
 		const standard: AqiStandard = countryCode != null && EUROPEAN_COUNTRY_CODES.has(countryCode) ? 'EUROPEAN' : 'US';
@@ -144,6 +182,6 @@ export class AirQualityIndex {
 			sulphurDioxideTier: tier(subIndices.usAqiSulphurDioxide, subIndices.europeanAqiSulphurDioxide),
 			ozoneTier: tier(subIndices.usAqiOzone, subIndices.europeanAqiOzone),
 		};
-		return new AirQualityIndex(usAqi, europeanAqi, standard, pollutants);
+		return new AirQualityIndex(usAqi, europeanAqi, standard, pollutants, pollen);
 	}
 }

@@ -1,7 +1,9 @@
 <script lang="ts">
-	import { _ } from 'svelte-i18n';
-	import type { AirQualityIndex, AqiTier } from '$lib/domain/airQuality';
+	import { _, json } from 'svelte-i18n';
+	import type { AirQualityIndex, AqiTier, PollenTier } from '$lib/domain/airQuality';
+	import { POLLEN_TIERS, pollenTierFor } from '$lib/domain/airQuality';
 	import AqiTierBadge from './AqiTierBadge.svelte';
+	import PollenTierBadge from './PollenTierBadge.svelte';
 
 	interface Props {
 		airQuality: AirQualityIndex;
@@ -41,6 +43,29 @@
 			] as [string, number | null, AqiTier | null][]
 		).filter(([, value]) => value != null) as [string, number, AqiTier | null][]
 	);
+
+	// Pollen tiers reuse uv_labels (0=Low..3=Very High) rather than a dedicated array — see
+	// pollenTierFor's doc comment in $lib/domain/airQuality.
+	function pollenTierLabel(tier: PollenTier): string {
+		const labels = $json('uv_labels') as string[];
+		if (!Array.isArray(labels)) return '';
+		return labels[POLLEN_TIERS.indexOf(tier)] ?? '';
+	}
+
+	let pollenRows = $derived(
+		(
+			[
+				['pollen_alder', airQuality.pollen.alder],
+				['pollen_birch', airQuality.pollen.birch],
+				['pollen_grass', airQuality.pollen.grass],
+				['pollen_mugwort', airQuality.pollen.mugwort],
+				['pollen_olive', airQuality.pollen.olive],
+				['pollen_ragweed', airQuality.pollen.ragweed],
+			] as [string, number | null][]
+		)
+			.filter(([, value]) => value != null)
+			.map(([key, value]) => [key, value as number, pollenTierFor(value as number)] as [string, number, PollenTier])
+	);
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -72,6 +97,22 @@
 								<AqiTierBadge {tier} label={tierLabel(tier)} compact />
 							{/if}
 							<span class="pollutant-value">{loc(value.toFixed(1))} µg/m³</span>
+						</span>
+					</div>
+				{/each}
+			</div>
+		{/if}
+
+		{#if pollenRows.length > 0}
+			<div class="divider"></div>
+			<h3 class="section-title">{$_('detail_pollen')}</h3>
+			<div class="pollutants">
+				{#each pollenRows as [key, value, tier]}
+					<div class="pollutant-row">
+						<span class="pollutant-label">{$_(key)}</span>
+						<span class="pollutant-value-group">
+							<PollenTierBadge {tier} label={pollenTierLabel(tier)} compact />
+							<span class="pollutant-value">{loc(value.toFixed(1))} grains/m³</span>
 						</span>
 					</div>
 				{/each}
@@ -137,6 +178,13 @@
 		height: 1px;
 		background: rgba(255, 255, 255, 0.15);
 		margin: 16px 0 8px 0;
+	}
+
+	.section-title {
+		font-size: 14px;
+		font-weight: 600;
+		margin: 0 0 4px 0;
+		color: rgba(255, 255, 255, 0.9);
 	}
 
 	.pollutants {

@@ -23,7 +23,7 @@ export async function fetchWeather(lat: number, lon: number): Promise<OpenMeteoR
 		current: CURRENT_PARAMS,
 		hourly: HOURLY_PARAMS,
 		daily: DAILY_PARAMS,
-		forecast_days: '7',
+		forecast_days: '10',
 		timezone: 'auto',
 		wind_speed_unit: 'ms',
 	});

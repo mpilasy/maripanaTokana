@@ -1,4 +1,5 @@
 import { AirQualityIndex } from '../domain/airQuality';
+import type { PollenReadings } from '../domain/airQuality';
 import type { HourlyAirQuality } from '../domain/weatherData';
 import { parseIsoDateTime } from './openMeteoMapper';
 
@@ -35,6 +36,12 @@ export interface OpenMeteoAirQualityCurrent {
 	european_aqi_nitrogen_dioxide: number | null;
 	european_aqi_sulphur_dioxide: number | null;
 	european_aqi_ozone: number | null;
+	alder_pollen: number | null;
+	birch_pollen: number | null;
+	grass_pollen: number | null;
+	mugwort_pollen: number | null;
+	olive_pollen: number | null;
+	ragweed_pollen: number | null;
 }
 
 const BASE_URL = 'https://air-quality-api.open-meteo.com/v1/air-quality';
@@ -45,7 +52,8 @@ export async function fetchAirQuality(lat: number, lon: number): Promise<OpenMet
 		longitude: lon.toString(),
 		current: 'us_aqi,european_aqi,pm2_5,pm10,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,ammonia,dust,' +
 			'us_aqi_pm2_5,us_aqi_pm10,us_aqi_carbon_monoxide,us_aqi_nitrogen_dioxide,us_aqi_sulphur_dioxide,us_aqi_ozone,' +
-			'european_aqi_pm2_5,european_aqi_pm10,european_aqi_nitrogen_dioxide,european_aqi_sulphur_dioxide,european_aqi_ozone',
+			'european_aqi_pm2_5,european_aqi_pm10,european_aqi_nitrogen_dioxide,european_aqi_sulphur_dioxide,european_aqi_ozone,' +
+			'alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen',
 		hourly: 'us_aqi,european_aqi',
 		forecast_days: '3',
 	});
@@ -57,6 +65,14 @@ export async function fetchAirQuality(lat: number, lon: number): Promise<OpenMet
 
 export function mapToAirQuality(response: OpenMeteoAirQualityResponse, countryCode: string | null): AirQualityIndex | null {
 	const c = response.current;
+	const pollen: PollenReadings = {
+		alder: c.alder_pollen,
+		birch: c.birch_pollen,
+		grass: c.grass_pollen,
+		mugwort: c.mugwort_pollen,
+		olive: c.olive_pollen,
+		ragweed: c.ragweed_pollen,
+	};
 	return AirQualityIndex.from(c.us_aqi, c.european_aqi, countryCode, {
 		pm25: c.pm2_5,
 		pm10: c.pm10,
@@ -78,7 +94,7 @@ export function mapToAirQuality(response: OpenMeteoAirQualityResponse, countryCo
 		europeanAqiNitrogenDioxide: c.european_aqi_nitrogen_dioxide,
 		europeanAqiSulphurDioxide: c.european_aqi_sulphur_dioxide,
 		europeanAqiOzone: c.european_aqi_ozone,
-	});
+	}, pollen);
 }
 
 export function mapToHourlyAirQuality(response: OpenMeteoAirQualityResponse, nowMillis: number = Date.now()): HourlyAirQuality[] {

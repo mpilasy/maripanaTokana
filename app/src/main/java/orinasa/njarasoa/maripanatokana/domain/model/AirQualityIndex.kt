@@ -4,6 +4,26 @@ enum class AqiStandard { US, EUROPEAN }
 
 enum class AqiTier { GOOD, MODERATE, UNHEALTHY, VERY_UNHEALTHY, HAZARDOUS }
 
+// Ordinals line up with uv_labels[0..3] ("Low"/"Moderate"/"High"/"Very High") — pollen reuses that
+// array instead of a dedicated one, since the wording is identical and it's already translated.
+enum class PollenTier { LOW, MODERATE, HIGH, VERY_HIGH }
+
+/**
+ * Pollen concentrations in grains/m³ from Open-Meteo's CAMS-Europe pollen model. Only populated
+ * for locations within CAMS-Europe coverage — null (and [hasData] false) everywhere else.
+ */
+data class PollenReadings(
+    val alder: Double? = null,
+    val birch: Double? = null,
+    val grass: Double? = null,
+    val mugwort: Double? = null,
+    val olive: Double? = null,
+    val ragweed: Double? = null,
+) {
+    val hasData: Boolean
+        get() = alder != null || birch != null || grass != null || mugwort != null || olive != null || ragweed != null
+}
+
 data class AirQualityIndex(
     val usValue: Int,
     val europeanValue: Int,
@@ -29,6 +49,7 @@ data class AirQualityIndex(
     val nitrogenDioxideTier: AqiTier? = null,
     val sulphurDioxideTier: AqiTier? = null,
     val ozoneTier: AqiTier? = null,
+    val pollen: PollenReadings = PollenReadings(),
 ) {
     val usTier: AqiTier
         get() = tierFor(usValue, AqiStandard.US)
@@ -75,6 +96,15 @@ data class AirQualityIndex(
             }
         }
 
+        // No official breakpoints are published for pollen (unlike AQI). These are commonly-used
+        // generic grains/m³ bands applied uniformly across species; treat as an approximation.
+        fun pollenTierFor(value: Double): PollenTier = when {
+            value < 10 -> PollenTier.LOW
+            value < 50 -> PollenTier.MODERATE
+            value < 200 -> PollenTier.HIGH
+            else -> PollenTier.VERY_HIGH
+        }
+
         fun from(
             usAqi: Int?,
             europeanAqi: Int?,
@@ -98,6 +128,7 @@ data class AirQualityIndex(
             europeanAqiNitrogenDioxide: Int? = null,
             europeanAqiSulphurDioxide: Int? = null,
             europeanAqiOzone: Int? = null,
+            pollen: PollenReadings = PollenReadings(),
         ): AirQualityIndex? {
             if (usAqi == null || europeanAqi == null) return null
             val standard = if (countryCode != null && countryCode in EUROPEAN_COUNTRY_CODES) AqiStandard.EUROPEAN else AqiStandard.US
@@ -111,6 +142,7 @@ data class AirQualityIndex(
                 nitrogenDioxideTier = tier(usAqiNitrogenDioxide, europeanAqiNitrogenDioxide),
                 sulphurDioxideTier = tier(usAqiSulphurDioxide, europeanAqiSulphurDioxide),
                 ozoneTier = tier(usAqiOzone, europeanAqiOzone),
+                pollen = pollen,
             )
         }
     }

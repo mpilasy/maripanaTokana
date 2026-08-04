@@ -46,7 +46,7 @@
     <string name="section_hourly_forecast">Prévisions horaires</string>
     <string name="section_air_quality_forecast">Qualité de l\'air</string>
     <string name="section_uv_forecast">UV</string>
-    <string name="section_this_week">Prévisions à 7 jours</string>
+    <string name="section_this_week">Prévisions à 10 jours</string>
     <string name="detail_min_temp">Temp. min</string>
     <string name="detail_max_temp">Temp. max</string>
     <string name="detail_wind">Vent</string>
@@ -72,6 +72,13 @@
     <string name="air_quality_ozone">Ozone</string>
     <string name="air_quality_ammonia">Ammoniac</string>
     <string name="air_quality_dust">Poussière</string>
+    <string name="detail_pollen">Pollen</string>
+    <string name="pollen_alder">Aulne</string>
+    <string name="pollen_birch">Bouleau</string>
+    <string name="pollen_grass">Graminées</string>
+    <string name="pollen_mugwort">Armoise</string>
+    <string name="pollen_olive">Olivier</string>
+    <string name="pollen_ragweed">Ambroisie</string>
     <string name="alert_title_thunderstorm">Alerte aux orages</string>
     <string name="alert_desc_thunderstorm">Un orage est en cours ou prévu dans votre région.</string>
     <string name="alert_title_heavy_rain">Alerte pluie forte</string>

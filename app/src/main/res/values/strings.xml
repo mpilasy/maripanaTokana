@@ -46,7 +46,7 @@
     <string name="section_hourly_forecast">Hourly Forecast</string>
     <string name="section_air_quality_forecast">Air Quality</string>
     <string name="section_uv_forecast">UV</string>
-    <string name="section_this_week">7-Day Forecast</string>
+    <string name="section_this_week">10-Day Forecast</string>
     <string name="detail_temperature">Temperature</string>
     <string name="detail_precipitation">Precipitation</string>
     <string name="detail_min_temp">Min Temp</string>
@@ -72,6 +72,13 @@
     <string name="air_quality_ozone">Ozone</string>
     <string name="air_quality_ammonia">Ammonia</string>
     <string name="air_quality_dust">Dust</string>
+    <string name="detail_pollen">Pollen</string>
+    <string name="pollen_alder">Alder</string>
+    <string name="pollen_birch">Birch</string>
+    <string name="pollen_grass">Grass</string>
+    <string name="pollen_mugwort">Mugwort</string>
+    <string name="pollen_olive">Olive</string>
+    <string name="pollen_ragweed">Ragweed</string>
     <string name="alert_title_thunderstorm">Thunderstorm Warning</string>
     <string name="alert_desc_thunderstorm">A thunderstorm is occurring or expected in your area.</string>
     <string name="alert_title_heavy_rain">Heavy Rain Warning</string>
