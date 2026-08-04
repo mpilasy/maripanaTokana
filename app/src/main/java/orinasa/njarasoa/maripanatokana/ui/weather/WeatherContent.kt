@@ -142,6 +142,7 @@ internal fun WeatherContent(
     onLocationClicked: () -> Unit = {},
     onEditLocationClicked: () -> Unit = {},
     onResetToCurrentLocation: () -> Unit = {},
+    onManageLocationsClicked: () -> Unit = {},
     onOpenSettings: () -> Unit = {},
     weatherSource: WeatherSource = WeatherSource.OPEN_METEO,
     showGpsCoordinates: Boolean = false,
@@ -243,6 +244,18 @@ internal fun WeatherContent(
                                 modifier = Modifier.padding(top = 0.dp)
                             )
                         }
+                    }
+
+                    IconButton(
+                        onClick = onManageLocationsClicked,
+                        modifier = Modifier.size(32.sd(scale))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowDown,
+                            contentDescription = stringResource(R.string.cd_manage_locations),
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                            modifier = Modifier.size(18.sd(scale))
+                        )
                     }
 
                     if (expertModeActive) {

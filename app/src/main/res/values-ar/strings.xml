@@ -97,6 +97,10 @@
     <string name="alert_hide_details">Hide details</string>
     <string name="alert_count_title">%1$s تنبيهات</string>
     <string name="credits_weather_data">بيانات الطقس من </string>
+    <string name="locations_title">المواقع</string>
+    <string name="locations_current">الموقع الحالي</string>
+    <string name="locations_remove">إزالة</string>
+    <string name="locations_search_hint">البحث عن مدينة أو رمز بريدي</string>
     <string name="widget_description">الطقس الحالي مع درجة الحرارة بوحدتين</string>
     <string name="widget_description_large">تفاصيل الطقس مع الإحساس بالحرارة والرطوبة والرياح والحد الأدنى/الأقصى</string>
     <string name="cd_change_font">تغيير الخط</string>
@@ -107,6 +111,7 @@
     <string name="cd_collapse">طي</string>
     <string name="cd_expand">توسيع</string>
     <string name="cd_refresh">تحديث</string>
+    <string name="cd_manage_locations">إدارة المواقع</string>
     <string name="detail_no_precip">لا يوجد</string>
     <string name="visibility_km" formatted="false">%.1f km</string>
     <string name="visibility_mi" formatted="false">%.2f mi</string>

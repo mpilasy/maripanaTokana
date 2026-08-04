@@ -97,6 +97,10 @@
 	"alert_hide_details": "Ocultar detalles",
 	"alert_count_title": "{count} alertas",
 	"credits_weather_data": "Datos meteorologicos de ",
+	"locations_title": "Ubicaciones",
+	"locations_current": "Ubicación actual",
+	"locations_remove": "Eliminar",
+	"locations_search_hint": "Buscar ciudad o código postal",
 	"cardinal_directions": [
 		"N",
 		"NNE",
@@ -149,6 +153,7 @@
 		"cd_collapse": "Contraer",
 		"cd_expand": "Expandir",
 		"cd_refresh": "Actualizar",
+		"cd_manage_locations": "Administrar ubicaciones",
 		"detail_no_precip": "Ninguna",
 		"visibility_km": "%.1f km",
 		"visibility_mi": "%.2f mi",

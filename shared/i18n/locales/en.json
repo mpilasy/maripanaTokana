@@ -97,6 +97,10 @@
 	"alert_hide_details": "Hide details",
 	"alert_count_title": "{count} alerts",
 	"credits_weather_data": "Weather data by ",
+	"locations_title": "Locations",
+	"locations_current": "Current Location",
+	"locations_remove": "Remove",
+	"locations_search_hint": "Search city or zip",
 	"cardinal_directions": [
 		"N",
 		"NNE",
@@ -149,6 +153,7 @@
 		"cd_collapse": "Collapse",
 		"cd_expand": "Expand",
 		"cd_refresh": "Refresh",
+		"cd_manage_locations": "Manage locations",
 		"detail_no_precip": "None",
 		"visibility_km": "%.1f km",
 		"visibility_mi": "%.2f mi",

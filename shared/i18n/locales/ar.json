@@ -97,6 +97,10 @@
 	"alert_hide_details": "Hide details",
 	"alert_count_title": "{count} تنبيهات",
 	"credits_weather_data": "بيانات الطقس من ",
+	"locations_title": "المواقع",
+	"locations_current": "الموقع الحالي",
+	"locations_remove": "إزالة",
+	"locations_search_hint": "البحث عن مدينة أو رمز بريدي",
 	"cardinal_directions": [
 		"ش",
 		"ش ش ق",
@@ -149,6 +153,7 @@
 		"cd_collapse": "طي",
 		"cd_expand": "توسيع",
 		"cd_refresh": "تحديث",
+		"cd_manage_locations": "إدارة المواقع",
 		"detail_no_precip": "لا يوجد",
 		"visibility_km": "%.1f km",
 		"visibility_mi": "%.2f mi",

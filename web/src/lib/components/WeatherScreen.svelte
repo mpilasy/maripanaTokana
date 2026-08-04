@@ -12,6 +12,8 @@
 		resetLocationToCurrent
 	} from '$lib/stores/devMode';
 	import LocationOverrideDialog from './LocationOverrideDialog.svelte';
+	import SavedLocationsDialog from './SavedLocationsDialog.svelte';
+	import { showSavedLocationsDialog, openSavedLocationsDialog } from '$lib/stores/savedLocations';
 	import SettingsScreen from './SettingsScreen.svelte';
 	import { metricPrimary, fontIndex, localeIndex, toggleUnits, cycleFont, cycleLanguage } from '$lib/stores/preferences';
 	import { SUPPORTED_LOCALES, localizeDigits } from '$lib/i18n/index';
@@ -260,6 +262,17 @@
 									{data.locationName}
 								{/if}
 							</h1>
+							<!-- svelte-ignore a11y_click_events_have_key_events -->
+							<!-- svelte-ignore a11y_no_static_element_interactions -->
+							<span
+								class="manage-locations-btn"
+								onclick={(e) => { e.stopPropagation(); openSavedLocationsDialog(); }}
+								title="Manage locations"
+							>
+								<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+									<path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/>
+								</svg>
+							</span>
 							{#if $expertModeActive}
 								<!-- svelte-ignore a11y_click_events_have_key_events -->
 								<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -452,6 +465,10 @@
 	<LocationOverrideDialog />
 {/if}
 
+{#if $showSavedLocationsDialog}
+	<SavedLocationsDialog />
+{/if}
+
 {#if showSettings}
 	<SettingsScreen onBack={() => showSettings = false} />
 {/if}
@@ -616,6 +633,22 @@
 	}
 
 	.edit-icon:hover {
+		background: rgba(255, 255, 255, 0.1);
+		color: white;
+	}
+
+	.manage-locations-btn {
+		color: rgba(255, 255, 255, 0.6);
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 4px;
+		border-radius: 50%;
+		transition: background 0.2s, color 0.2s;
+	}
+
+	.manage-locations-btn:hover {
 		background: rgba(255, 255, 255, 0.1);
 		color: white;
 	}

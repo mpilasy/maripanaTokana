@@ -97,6 +97,10 @@
 	"alert_hide_details": "Hide details",
 	"alert_count_title": "{count} 条警报",
 	"credits_weather_data": "天气数据来自 ",
+	"locations_title": "位置",
+	"locations_current": "当前位置",
+	"locations_remove": "移除",
+	"locations_search_hint": "搜索城市或邮编",
 	"cardinal_directions": [
 		"北",
 		"北北东",
@@ -149,6 +153,7 @@
 		"cd_collapse": "收起",
 		"cd_expand": "展开",
 		"cd_refresh": "刷新",
+		"cd_manage_locations": "管理位置",
 		"detail_no_precip": "无",
 		"visibility_km": "%.1f km",
 		"visibility_mi": "%.2f mi",

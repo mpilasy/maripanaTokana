@@ -97,6 +97,10 @@
 	"alert_hide_details": "Afeno",
 	"alert_count_title": "Filazana {count}",
 	"credits_weather_data": "Fankasitrahana:",
+	"locations_title": "Toerana",
+	"locations_current": "Toerana ankehitriny",
+	"locations_remove": "Esory",
+	"locations_search_hint": "Karohy tanàna na kaody paositra",
 	"cardinal_directions": [
 		"N",
 		"NNE",
@@ -149,6 +153,7 @@
 		"cd_collapse": "Akatony",
 		"cd_expand": "Velaro",
 		"cd_refresh": "Havaozy",
+		"cd_manage_locations": "Hitantana ny toerana",
 		"detail_no_precip": "Tsy misy",
 		"visibility_km": "%.1f km",
 		"visibility_mi": "%.2f mi",

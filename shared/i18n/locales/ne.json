@@ -97,6 +97,10 @@
 	"alert_hide_details": "Hide details",
 	"alert_count_title": "{count} अलर्ट",
 	"credits_weather_data": "मौसम डाटा प्रदायक: ",
+	"locations_title": "स्थानहरू",
+	"locations_current": "हालको स्थान",
+	"locations_remove": "हटाउनुहोस्",
+	"locations_search_hint": "सहर वा जिप कोड खोज्नुहोस्",
 	"cardinal_directions": [
 		"N",
 		"NNE",
@@ -149,6 +153,7 @@
 		"cd_collapse": "सानो बनाउनुहोस्",
 		"cd_expand": "विस्तार गर्नुहोस्",
 		"cd_refresh": "रिफ्रेस",
+		"cd_manage_locations": "स्थानहरू व्यवस्थापन गर्नुहोस्",
 		"detail_no_precip": "छैन",
 		"visibility_km": "%.1f km",
 		"visibility_mi": "%.2f mi",

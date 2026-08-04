@@ -97,6 +97,10 @@
     <string name="alert_hide_details">Ocultar detalles</string>
     <string name="alert_count_title">%1$s alertas</string>
     <string name="credits_weather_data">Datos meteorologicos de </string>
+    <string name="locations_title">Ubicaciones</string>
+    <string name="locations_current">Ubicación actual</string>
+    <string name="locations_remove">Eliminar</string>
+    <string name="locations_search_hint">Buscar ciudad o código postal</string>
     <string name="widget_description">Clima actual con temperatura en doble unidad</string>
     <string name="widget_description_large">Detalles del clima con sensacion termica, humedad, viento y min/max</string>
     <string name="cd_change_font">Cambiar fuente</string>
@@ -107,6 +111,7 @@
     <string name="cd_collapse">Contraer</string>
     <string name="cd_expand">Expandir</string>
     <string name="cd_refresh">Actualizar</string>
+    <string name="cd_manage_locations">Administrar ubicaciones</string>
     <string name="detail_no_precip">Ninguna</string>
     <string name="visibility_km" formatted="false">%.1f km</string>
     <string name="visibility_mi" formatted="false">%.2f mi</string>

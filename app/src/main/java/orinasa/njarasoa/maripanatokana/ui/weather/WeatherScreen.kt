@@ -57,6 +57,7 @@ import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 import orinasa.njarasoa.maripanatokana.ui.theme.buildTypography
 import orinasa.njarasoa.maripanatokana.ui.theme.fontPairings
 import orinasa.njarasoa.maripanatokana.ui.weather.components.LocationOverrideDialog
+import orinasa.njarasoa.maripanatokana.ui.weather.components.SavedLocationsDialog
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -116,6 +117,24 @@ fun WeatherScreen(
             onResetToCurrentLocation = { viewModel.clearLocationOverride() },
             searchQuery = { viewModel.searchLocation(it) },
             searchResults = searchResults,
+        )
+    }
+
+    val showSavedLocationsDialog by viewModel.showSavedLocationsDialog.collectAsStateWithLifecycle()
+    val savedLocations by viewModel.savedLocations.collectAsStateWithLifecycle()
+    val activeLocationId by viewModel.activeLocationId.collectAsStateWithLifecycle()
+
+    if (showSavedLocationsDialog) {
+        SavedLocationsDialog(
+            savedLocations = savedLocations,
+            activeLocationId = activeLocationId,
+            searchResults = searchResults,
+            onDismissRequest = { viewModel.setShowSavedLocationsDialog(false) },
+            onSelectCurrentLocation = { viewModel.switchToLocation(null) },
+            onSelectSavedLocation = { id -> viewModel.switchToLocation(id) },
+            onRemoveSavedLocation = { id -> viewModel.removeSavedLocation(id) },
+            onAddSearchResult = { result -> viewModel.addSavedLocation(result) },
+            searchQuery = { viewModel.searchLocation(it) },
         )
     }
 
@@ -346,6 +365,7 @@ fun WeatherScreen(
                             onLocationClicked = viewModel::onLocationClicked,
                             onEditLocationClicked = viewModel::onEditLocationClicked,
                             onResetToCurrentLocation = { viewModel.clearLocationOverride() },
+                            onManageLocationsClicked = viewModel::onManageLocationsClicked,
                             onOpenSettings = { showSettings = true },
                             weatherSource = weatherSource,
                             showGpsCoordinates = showGpsCoordinates,

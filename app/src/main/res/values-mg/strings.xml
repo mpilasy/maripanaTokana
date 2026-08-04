@@ -97,6 +97,10 @@
     <string name="alert_hide_details">Afeno</string>
     <string name="alert_count_title">Filazana %1$s</string>
     <string name="credits_weather_data">Fankasitrahana:</string>
+    <string name="locations_title">Toerana</string>
+    <string name="locations_current">Toerana ankehitriny</string>
+    <string name="locations_remove">Esory</string>
+    <string name="locations_search_hint">Karohy tanàna na kaody paositra</string>
     <string name="widget_description">Toetrandro ankehitriny miaraka amin\'ny mari-pana roa sosony</string>
     <string name="widget_description_large">Antsipiriany momba ny toetrandro: tsapa, hamandoana, rivotra ary ambany/ambony</string>
     <string name="cd_change_font">Ovay ny endri-tsoratra</string>
@@ -107,6 +111,7 @@
     <string name="cd_collapse">Akatony</string>
     <string name="cd_expand">Velaro</string>
     <string name="cd_refresh">Havaozy</string>
+    <string name="cd_manage_locations">Hitantana ny toerana</string>
     <string name="detail_no_precip">Tsy misy</string>
     <string name="visibility_km" formatted="false">%.1f km</string>
     <string name="visibility_mi" formatted="false">%.2f mi</string>
