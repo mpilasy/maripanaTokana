@@ -74,6 +74,8 @@ fun SavedLocationsDialog(
     onRemoveSavedLocation: (String) -> Unit,
     onAddSearchResult: (GeocodingResult) -> Unit,
     searchQuery: (String) -> Unit,
+    advancedModeActive: Boolean = false,
+    onUseTemporarily: (GeocodingResult) -> Unit = {},
 ) {
     var text by remember { mutableStateOf("") }
     val pagerState = rememberPagerState(initialPage = 1, pageCount = { 2 })
@@ -235,20 +237,36 @@ fun SavedLocationsDialog(
                             LazyColumn(modifier = Modifier.fillMaxWidth()) {
                                 items(searchResults) { result ->
                                     Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clickable {
-                                                onAddSearchResult(result)
-                                                text = ""
-                                            }
-                                            .padding(vertical = 12.dp, horizontal = 8.dp)
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        Column {
+                                        Column(
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .clickable {
+                                                    onAddSearchResult(result)
+                                                    text = ""
+                                                }
+                                                .padding(vertical = 12.dp, horizontal = 8.dp)
+                                        ) {
                                             Text(text = result.name, color = MaterialTheme.colorScheme.onSurface)
                                             Text(
                                                 text = result.displayName(),
                                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                                                 style = MaterialTheme.typography.bodySmall,
+                                            )
+                                        }
+                                        if (advancedModeActive) {
+                                            Text(
+                                                text = stringResource(R.string.locations_use_once),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                                modifier = Modifier
+                                                    .clickable {
+                                                        onUseTemporarily(result)
+                                                        text = ""
+                                                    }
+                                                    .padding(horizontal = 8.dp, vertical = 6.dp),
                                             )
                                         }
                                     }

@@ -143,8 +143,6 @@ internal fun WeatherContent(
     onCycleLanguage: () -> Unit,
     onRefresh: () -> Unit,
     onLocationClicked: () -> Unit = {},
-    onEditLocationClicked: () -> Unit = {},
-    onResetToCurrentLocation: () -> Unit = {},
     onManageLocationsClicked: () -> Unit = {},
     onOpenSettings: () -> Unit = {},
     weatherSource: WeatherSource = WeatherSource.OPEN_METEO,
@@ -153,7 +151,6 @@ internal fun WeatherContent(
     onGoToCurrentLocation: () -> Unit = {},
     onSwipeToNextLocation: () -> Unit = {},
     onSwipeToPreviousLocation: () -> Unit = {},
-    advancedModeActive: Boolean = false,
     hasLocationOverride: Boolean = false,
     advancedOverrideLat: Double? = null,
     advancedOverrideLon: Double? = null,
@@ -279,14 +276,14 @@ internal fun WeatherContent(
                         modifier = Modifier.size(32.sd(scale))
                     ) {
                         Icon(
-                            imageVector = Icons.Default.KeyboardArrowDown,
+                            imageVector = Icons.Default.Edit,
                             contentDescription = stringResource(R.string.cd_manage_locations),
                             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                             modifier = Modifier.size(18.sd(scale))
                         )
                     }
 
-                    if (isSavedLocation) {
+                    if (isSavedLocation || hasLocationOverride) {
                         IconButton(
                             onClick = onGoToCurrentLocation,
                             modifier = Modifier.size(32.sd(scale))
@@ -297,34 +294,6 @@ internal fun WeatherContent(
                                 tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                                 modifier = Modifier.size(18.sd(scale))
                             )
-                        }
-                    }
-
-                    if (advancedModeActive) {
-                        IconButton(
-                            onClick = onEditLocationClicked,
-                            modifier = Modifier.size(32.sd(scale))
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Edit,
-                                contentDescription = "Edit Location",
-                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                                modifier = Modifier.size(18.sd(scale))
-                            )
-                        }
-
-                        if (hasLocationOverride) {
-                            IconButton(
-                                onClick = onResetToCurrentLocation,
-                                modifier = Modifier.size(32.sd(scale))
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.LocationOn,
-                                    contentDescription = "Go to current location",
-                                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                                    modifier = Modifier.size(18.sd(scale))
-                                )
-                            }
                         }
                     }
                 }

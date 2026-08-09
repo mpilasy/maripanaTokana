@@ -56,7 +56,6 @@ import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFontFeatures
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 import orinasa.njarasoa.maripanatokana.ui.theme.buildTypography
 import orinasa.njarasoa.maripanatokana.ui.theme.fontPairings
-import orinasa.njarasoa.maripanatokana.ui.weather.components.LocationOverrideDialog
 import orinasa.njarasoa.maripanatokana.ui.weather.components.SavedLocationsDialog
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -104,21 +103,10 @@ fun WeatherScreen(
         if (!isPermissionGranted && !isPermanentlyDenied) requestPermission()
     }
 
-    val showLocationDialog by viewModel.showLocationOverrideDialog.collectAsStateWithLifecycle()
     val searchResults by viewModel.searchResults.collectAsStateWithLifecycle()
     val advancedModeActive by viewModel.advancedModeActive.collectAsStateWithLifecycle()
     val advancedOverrideLat by viewModel.advancedOverrideLat.collectAsStateWithLifecycle()
     val advancedOverrideLon by viewModel.advancedOverrideLon.collectAsStateWithLifecycle()
-
-    if (showLocationDialog) {
-        LocationOverrideDialog(
-            onDismissRequest = { viewModel.setShowLocationOverrideDialog(false) },
-            onLocationSelected = { lat, lon, name -> viewModel.setLocationOverride(lat, lon, name) },
-            onResetToCurrentLocation = { viewModel.clearLocationOverride() },
-            searchQuery = { viewModel.searchLocation(it) },
-            searchResults = searchResults,
-        )
-    }
 
     val showSavedLocationsDialog by viewModel.showSavedLocationsDialog.collectAsStateWithLifecycle()
     val savedLocations by viewModel.savedLocations.collectAsStateWithLifecycle()
@@ -133,11 +121,13 @@ fun WeatherScreen(
             savedLocations = savedLocations,
             activeLocationId = activeLocationId,
             searchResults = searchResults,
+            advancedModeActive = advancedModeActive,
             onDismissRequest = { viewModel.setShowSavedLocationsDialog(false) },
             onSelectCurrentLocation = { viewModel.switchToLocation(null) },
             onSelectSavedLocation = { id -> viewModel.switchToLocation(id) },
             onRemoveSavedLocation = { id -> viewModel.removeSavedLocation(id) },
             onAddSearchResult = { result -> viewModel.addSavedLocation(result) },
+            onUseTemporarily = { result -> viewModel.setLocationOverride(result.latitude, result.longitude, result.displayName()) },
             searchQuery = { viewModel.searchLocation(it) },
         )
     }
@@ -367,14 +357,15 @@ fun WeatherScreen(
                             onCycleLanguage = { viewModel.cycleLanguage() },
                             onRefresh = { viewModel.refresh() },
                             onLocationClicked = viewModel::onLocationClicked,
-                            onEditLocationClicked = viewModel::onEditLocationClicked,
-                            onResetToCurrentLocation = { viewModel.clearLocationOverride() },
                             onManageLocationsClicked = viewModel::onManageLocationsClicked,
                             onOpenSettings = { showSettings = true },
                             weatherSource = weatherSource,
                             showGpsCoordinates = showGpsCoordinates,
                             isSavedLocation = activeLocationId != null,
-                            onGoToCurrentLocation = { viewModel.switchToLocation(null) },
+                            onGoToCurrentLocation = {
+                                if (advancedOverrideLat != null) viewModel.clearLocationOverride()
+                                else viewModel.switchToLocation(null)
+                            },
                             onSwipeToNextLocation = {
                                 if (locationCycleIndex in 0 until locationCycle.lastIndex) {
                                     viewModel.switchToLocation(locationCycle[locationCycleIndex + 1])
@@ -385,7 +376,6 @@ fun WeatherScreen(
                                     viewModel.switchToLocation(locationCycle[locationCycleIndex - 1])
                                 }
                             },
-                            advancedModeActive = advancedModeActive,
                             hasLocationOverride = advancedOverrideLat != null,
                             advancedOverrideLat = advancedOverrideLat,
                             advancedOverrideLon = advancedOverrideLon,

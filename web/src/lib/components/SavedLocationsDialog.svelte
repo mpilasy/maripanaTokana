@@ -5,6 +5,7 @@
 		savedLocations, activeLocationId, showSavedLocationsDialog,
 		switchToLocation, removeSavedLocation, addSavedLocation,
 	} from '$lib/stores/savedLocations';
+	import { advancedModeActive, setLocationOverride } from '$lib/stores/advancedMode';
 
 	let query = $state('');
 	let results = $state<SearchResult[]>([]);
@@ -26,6 +27,13 @@
 
 	function selectResult(result: SearchResult) {
 		addSavedLocation(result);
+		query = '';
+		results = [];
+	}
+
+	function useOnce(result: SearchResult) {
+		const subtext = [result.admin1, result.country].filter(Boolean).join(', ');
+		setLocationOverride(result.latitude, result.longitude, result.name, subtext);
 		query = '';
 		results = [];
 	}
@@ -132,10 +140,17 @@
 
 					<div class="results">
 						{#each results as result}
-							<button class="result-item" onclick={() => selectResult(result)}>
-								<div class="result-name">{result.name}</div>
-								<div class="result-meta">{result.displayName}</div>
-							</button>
+							<div class="result-row">
+								<button class="result-item" onclick={() => selectResult(result)}>
+									<div class="result-name">{result.name}</div>
+									<div class="result-meta">{result.displayName}</div>
+								</button>
+								{#if $advancedModeActive}
+									<button class="use-once-btn" onclick={() => useOnce(result)}>
+										{$_('locations_use_once')}
+									</button>
+								{/if}
+							</div>
 						{/each}
 					</div>
 				</div>
@@ -332,19 +347,41 @@
 		overflow-y: auto;
 	}
 
+	.result-row {
+		display: flex;
+		align-items: center;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+	}
+
 	.result-item {
-		width: 100%;
+		flex: 1;
+		min-width: 0;
 		text-align: left;
 		background: transparent;
 		border: none;
 		padding: 12px 8px;
 		color: white;
 		cursor: pointer;
-		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 	}
 
 	.result-item:hover {
 		background: rgba(255, 255, 255, 0.05);
+	}
+
+	.use-once-btn {
+		flex-shrink: 0;
+		background: transparent;
+		border: none;
+		color: rgba(255, 255, 255, 0.6);
+		font-size: 12px;
+		cursor: pointer;
+		padding: 6px 8px;
+		border-radius: 6px;
+	}
+
+	.use-once-btn:hover {
+		background: rgba(255, 255, 255, 0.1);
+		color: white;
 	}
 
 	.result-name {

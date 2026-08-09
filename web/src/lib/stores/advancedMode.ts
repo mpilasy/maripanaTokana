@@ -1,9 +1,9 @@
 import { writable } from 'svelte/store';
 import { doFetchWeather, restoreGpsWeather } from '$lib/stores/weather';
+import { showSavedLocationsDialog } from '$lib/stores/savedLocations';
 
 export const advancedModeActive = writable(false);
 export const showGpsCoordinates = writable(false);
-export const showLocationOverrideDialog = writable(false);
 
 export interface AdvancedOverrideLocation {
     lat: number;
@@ -54,14 +54,11 @@ export function disableAdvancedMode() {
     }
     advancedModeActive.set(false);
     clearAdvancedModeOverride();
-    showLocationOverrideDialog.set(false);
     restoreGpsWeather();
 }
 
-export function openLocationOverride() {
-    showLocationOverrideDialog.set(true);
-}
-
+/** Sets a temporary (non-saved) location override for the currently displayed weather. Used
+ * from SavedLocationsDialog's "Use once" action when Advanced Mode is on. Expires after 12h. */
 export function setLocationOverride(lat: number, lon: number, name: string, subtext?: string) {
     if (typeof localStorage !== 'undefined') {
         localStorage.setItem('advanced_override_lat', lat.toString());
@@ -75,7 +72,7 @@ export function setLocationOverride(lat: number, lon: number, name: string, subt
         }
     }
     locationOverride.set({ lat, lon, name, subtext });
-    showLocationOverrideDialog.set(false);
+    showSavedLocationsDialog.set(false);
     doFetchWeather();
 }
 
@@ -92,6 +89,5 @@ export function clearAdvancedModeOverride() {
 
 export function resetLocationToCurrent() {
     clearAdvancedModeOverride();
-    showLocationOverrideDialog.set(false);
     doFetchWeather();
 }

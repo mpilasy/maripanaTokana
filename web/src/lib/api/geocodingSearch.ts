@@ -10,8 +10,8 @@ export interface SearchResult {
 }
 
 /**
- * Forward-geocoding search shared by LocationOverrideDialog (Advanced Mode) and
- * SavedLocationsDialog. Supports direct "lat,lon" input, else queries Open-Meteo's geocoding
+ * Forward-geocoding search used by SavedLocationsDialog (including its Advanced Mode "Use once"
+ * temporary-override action). Supports direct "lat,lon" input, else queries Open-Meteo's geocoding
  * API — mirrors Android's SystemGeocoderSource.searchLocations.
  */
 export async function searchLocations(query: string): Promise<SearchResult[]> {

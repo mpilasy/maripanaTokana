@@ -102,6 +102,7 @@
 	"locations_remove": "Supprimer",
 	"locations_search_hint": "Rechercher une ville ou un code postal",
 	"locations_add_title": "Ajouter un emplacement",
+	"locations_use_once": "Utiliser une fois",
 	"cardinal_directions": [
 		"N",
 		"NNE",

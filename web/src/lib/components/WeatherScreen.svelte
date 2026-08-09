@@ -4,14 +4,10 @@
 	import {
 		onLocationClicked,
 		showGpsCoordinates,
-		showLocationOverrideDialog,
-		advancedModeActive,
 		locationOverride,
 		initAdvancedMode,
-		openLocationOverride,
 		resetLocationToCurrent
 	} from '$lib/stores/advancedMode';
-	import LocationOverrideDialog from './LocationOverrideDialog.svelte';
 	import SavedLocationsDialog from './SavedLocationsDialog.svelte';
 	import { showSavedLocationsDialog, openSavedLocationsDialog, activeLocationId, savedLocations, switchToLocation } from '$lib/stores/savedLocations';
 	import SettingsScreen from './SettingsScreen.svelte';
@@ -332,50 +328,24 @@
 							<span
 								class="manage-locations-btn"
 								onclick={(e) => { e.stopPropagation(); openSavedLocationsDialog(); }}
-								title="Manage locations"
+								title={$_('android_only.cd_manage_locations')}
 							>
 								<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-									<path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/>
+									<path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
 								</svg>
 							</span>
-							{#if $activeLocationId !== null}
+							{#if $activeLocationId !== null || $locationOverride !== null}
 								<!-- svelte-ignore a11y_click_events_have_key_events -->
 								<!-- svelte-ignore a11y_no_static_element_interactions -->
 								<span
 									class="goto-current-btn"
-									onclick={(e) => { e.stopPropagation(); switchToLocation(null); }}
+									onclick={(e) => { e.stopPropagation(); if ($locationOverride !== null) resetLocationToCurrent(); else switchToLocation(null); }}
 									title={$_('android_only.cd_go_to_current_location')}
 								>
 									<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
 										<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
 									</svg>
 								</span>
-							{/if}
-							{#if $advancedModeActive}
-								<!-- svelte-ignore a11y_click_events_have_key_events -->
-								<!-- svelte-ignore a11y_no_static_element_interactions -->
-								<span
-									class="edit-icon"
-									onclick={(e) => { e.stopPropagation(); openLocationOverride(); }}
-									title="Change location"
-								>
-									<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-										<path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-									</svg>
-								</span>
-								{#if $locationOverride !== null}
-									<!-- svelte-ignore a11y_click_events_have_key_events -->
-									<!-- svelte-ignore a11y_no_static_element_interactions -->
-									<span
-										class="goto-current-btn"
-										onclick={(e) => { e.stopPropagation(); resetLocationToCurrent(); }}
-										title="Go to current location"
-									>
-										<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-											<path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
-										</svg>
-									</span>
-								{/if}
 							{/if}
 						</div>
 						{#if data.locationSubtext || data.locationName.includes(',')}
@@ -538,10 +508,6 @@
 		</div>
 	{/if}
 </div>
-
-{#if $showLocationOverrideDialog}
-	<LocationOverrideDialog />
-{/if}
 
 {#if $showSavedLocationsDialog}
 	<SavedLocationsDialog />
@@ -726,22 +692,6 @@
 	}
 
 	.goto-current-btn:hover {
-		background: rgba(255, 255, 255, 0.1);
-		color: white;
-	}
-
-	.edit-icon {
-		color: rgba(255, 255, 255, 0.6);
-		cursor: pointer;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding: 4px;
-		border-radius: 50%;
-		transition: background 0.2s, color 0.2s;
-	}
-
-	.edit-icon:hover {
 		background: rgba(255, 255, 255, 0.1);
 		color: white;
 	}

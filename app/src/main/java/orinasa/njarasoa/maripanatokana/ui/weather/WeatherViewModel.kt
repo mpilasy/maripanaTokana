@@ -108,9 +108,6 @@ class WeatherViewModel @Inject constructor(
     private val _showGpsCoordinates = MutableStateFlow(false)
     val showGpsCoordinates: StateFlow<Boolean> = _showGpsCoordinates.asStateFlow()
 
-    private val _showLocationOverrideDialog = MutableStateFlow(false)
-    val showLocationOverrideDialog: StateFlow<Boolean> = _showLocationOverrideDialog.asStateFlow()
-
     private val _searchResults = MutableStateFlow<List<GeocodingResult>>(emptyList())
     val searchResults: StateFlow<List<GeocodingResult>> = _searchResults.asStateFlow()
 
@@ -161,10 +158,6 @@ class WeatherViewModel @Inject constructor(
         // No longer doing anything on double click
     }
 
-    fun onEditLocationClicked() {
-        _showLocationOverrideDialog.value = true
-    }
-
     fun searchLocation(query: String) {
         if (query.isBlank()) {
             _searchResults.value = emptyList()
@@ -202,10 +195,8 @@ class WeatherViewModel @Inject constructor(
         }
     }
 
-    fun setShowLocationOverrideDialog(show: Boolean) {
-        _showLocationOverrideDialog.value = show
-    }
-
+    /** Sets a temporary (non-saved) location override for the currently displayed weather. Used
+     * from SavedLocationsDialog's "Use once" action when Advanced Mode is on. Expires after 12h. */
     fun setLocationOverride(lat: Double, lon: Double, name: String) {
         prefs.edit {
             putFloat("advanced_override_lat", lat.toFloat())
@@ -215,13 +206,13 @@ class WeatherViewModel @Inject constructor(
         }
         _advancedOverrideLat.value = lat
         _advancedOverrideLon.value = lon
-        _showLocationOverrideDialog.value = false
+        _showSavedLocationsDialog.value = false
+        _searchResults.value = emptyList()
         fetchWeather()
     }
 
     fun clearLocationOverride() {
         clearAdvancedModeOverride()
-        _showLocationOverrideDialog.value = false
         fetchWeather()
     }
 
