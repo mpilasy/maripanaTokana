@@ -7,7 +7,7 @@
 	} from '$lib/stores/preferences';
 	import { testPirateWeatherKey } from '$lib/api/pirateWeather';
 	import type { WeatherSource } from '$lib/domain/weatherData';
-	import { expertModeActive, enableExpertMode, disableExpertMode } from '$lib/stores/devMode';
+	import { advancedModeActive, enableAdvancedMode, disableAdvancedMode } from '$lib/stores/advancedMode';
 
 	interface Props { onBack: () => void; }
 	let { onBack }: Props = $props();
@@ -58,26 +58,26 @@
 	</header>
 
 	<div class="section">
-		<label class="toggle-row expert-toggle">
-			<span class="expert-label">Expert mode</span>
+		<label class="toggle-row advanced-toggle">
+			<span class="advanced-label">Advanced mode</span>
 			<input
 				type="checkbox"
-				checked={$expertModeActive}
+				checked={$advancedModeActive}
 				onchange={(e) => {
 					if ((e.currentTarget as HTMLInputElement).checked) {
-						enableExpertMode();
+						enableAdvancedMode();
 					} else {
-						disableExpertMode();
+						disableAdvancedMode();
 					}
 				}}
 			/>
 		</label>
-		{#if !$expertModeActive}
-			<p class="info-text">Enable Expert mode to configure weather source, alerts, and location.</p>
+		{#if !$advancedModeActive}
+			<p class="info-text">Enable Advanced mode to configure weather source, alerts, and location.</p>
 		{/if}
 	</div>
 
-	{#if $expertModeActive}
+	{#if $advancedModeActive}
 	<div class="section">
 		<div class="section-title">WEATHER SOURCE</div>
 
@@ -370,7 +370,7 @@
 		margin: 0;
 	}
 
-	.expert-label {
+	.advanced-label {
 		font-size: 15px;
 		color: white;
 		font-weight: 600;

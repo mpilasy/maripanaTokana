@@ -153,10 +153,10 @@ internal fun WeatherContent(
     onGoToCurrentLocation: () -> Unit = {},
     onSwipeToNextLocation: () -> Unit = {},
     onSwipeToPreviousLocation: () -> Unit = {},
-    expertModeActive: Boolean = false,
+    advancedModeActive: Boolean = false,
     hasLocationOverride: Boolean = false,
-    devOverrideLat: Double? = null,
-    devOverrideLon: Double? = null,
+    advancedOverrideLat: Double? = null,
+    advancedOverrideLon: Double? = null,
 ) {
     val context = LocalContext.current
     val appLocale = LocalConfiguration.current.locales[0]
@@ -192,8 +192,8 @@ internal fun WeatherContent(
     }
 
     // Use dev override coordinates directly when set (reactive via StateFlow), else fall back to cached GPS
-    val (displayLat, displayLon) = if (devOverrideLat != null && devOverrideLon != null) {
-        devOverrideLat to devOverrideLon
+    val (displayLat, displayLon) = if (advancedOverrideLat != null && advancedOverrideLon != null) {
+        advancedOverrideLat to advancedOverrideLon
     } else {
         remember(context) {
             val prefs = context.getSharedPreferences("widget_prefs", android.content.Context.MODE_PRIVATE)
@@ -300,7 +300,7 @@ internal fun WeatherContent(
                         }
                     }
 
-                    if (expertModeActive) {
+                    if (advancedModeActive) {
                         IconButton(
                             onClick = onEditLocationClicked,
                             modifier = Modifier.size(32.sd(scale))
@@ -1094,7 +1094,7 @@ internal fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Bo
     // Day names must use the forecast location's timezone, not the device's — item.date is an
     // absolute instant representing local midnight AT THE LOCATION, so formatting it in the
     // device's default timezone can shift the displayed calendar day when the two zones differ
-    // (e.g. a dev-mode location override far from the device's real timezone).
+    // (e.g. an advanced-mode location override far from the device's real timezone).
     val locationTimeZone = remember(utcOffsetSeconds) { buildLocationTimeZone(utcOffsetSeconds) }
     val dayFormat = remember(appLocale, locationTimeZone) { SimpleDateFormat("EEE", appLocale).apply { timeZone = locationTimeZone } }
     val dayMonthFormat = remember(appLocale, locationTimeZone) { SimpleDateFormat("d MMM", appLocale).apply { timeZone = locationTimeZone } }

@@ -62,7 +62,7 @@ fun LocationOverrideDialog(
                     .fillMaxWidth()
             ) {
                 Text(
-                    text = "Developer Mode",
+                    text = "Advanced Mode",
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )

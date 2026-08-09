@@ -89,7 +89,7 @@ const alertTimeFormatters = new Map<string, Intl.DateTimeFormat>();
  * Day names must use the forecast location's timezone, not the browser's — `timestamp` is an
  * absolute instant representing local midnight AT THE LOCATION, so formatting it in the
  * browser's default timezone can shift the displayed calendar day when the two zones differ
- * (e.g. a dev-mode location override far from the browser's real timezone). We shift the
+ * (e.g. an advanced-mode location override far from the browser's real timezone). We shift the
  * timestamp by the location's offset and format with timeZone: 'UTC' so the result is anchored
  * to the location's wall-clock date regardless of where the browser is.
  */

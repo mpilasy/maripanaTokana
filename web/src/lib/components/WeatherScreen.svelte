@@ -5,12 +5,12 @@
 		onLocationClicked,
 		showGpsCoordinates,
 		showLocationOverrideDialog,
-		expertModeActive,
+		advancedModeActive,
 		locationOverride,
-		initExpertMode,
+		initAdvancedMode,
 		openLocationOverride,
 		resetLocationToCurrent
-	} from '$lib/stores/devMode';
+	} from '$lib/stores/advancedMode';
 	import LocationOverrideDialog from './LocationOverrideDialog.svelte';
 	import SavedLocationsDialog from './SavedLocationsDialog.svelte';
 	import { showSavedLocationsDialog, openSavedLocationsDialog, activeLocationId, savedLocations, switchToLocation } from '$lib/stores/savedLocations';
@@ -49,7 +49,7 @@
 	let browserStrings = $state<Record<string, string> | null>(null);
 
 	onMount(() => {
-		initExpertMode();
+		initAdvancedMode();
 	});
 
 	if (browserLocaleTag) {
@@ -351,7 +351,7 @@
 									</svg>
 								</span>
 							{/if}
-							{#if $expertModeActive}
+							{#if $advancedModeActive}
 								<!-- svelte-ignore a11y_click_events_have_key_events -->
 								<!-- svelte-ignore a11y_no_static_element_interactions -->
 								<span

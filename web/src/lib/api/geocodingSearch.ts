@@ -10,7 +10,7 @@ export interface SearchResult {
 }
 
 /**
- * Forward-geocoding search shared by LocationOverrideDialog (Expert Mode) and
+ * Forward-geocoding search shared by LocationOverrideDialog (Advanced Mode) and
  * SavedLocationsDialog. Supports direct "lat,lon" input, else queries Open-Meteo's geocoding
  * API — mirrors Android's SystemGeocoderSource.searchLocations.
  */

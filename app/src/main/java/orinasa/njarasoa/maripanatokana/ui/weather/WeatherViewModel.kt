@@ -90,20 +90,20 @@ class WeatherViewModel @Inject constructor(
         .map { it.weatherSource }
         .stateIn(viewModelScope, SharingStarted.Eagerly, settingsRepository.current.weatherSource)
 
-    // Expert Mode State (derived from AppSettings)
-    val expertModeActive: StateFlow<Boolean> = settingsRepository.settings
-        .map { it.expertMode }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, settingsRepository.current.expertMode)
+    // Advanced Mode State (derived from AppSettings)
+    val advancedModeActive: StateFlow<Boolean> = settingsRepository.settings
+        .map { it.advancedMode }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, settingsRepository.current.advancedMode)
 
-    private val _devOverrideLat = MutableStateFlow<Double?>(
-        prefs.getFloat("dev_override_lat", Float.NaN).takeUnless { it.isNaN() }?.toDouble()
+    private val _advancedOverrideLat = MutableStateFlow<Double?>(
+        prefs.getFloat("advanced_override_lat", Float.NaN).takeUnless { it.isNaN() }?.toDouble()
     )
-    val devOverrideLat: StateFlow<Double?> = _devOverrideLat.asStateFlow()
+    val advancedOverrideLat: StateFlow<Double?> = _advancedOverrideLat.asStateFlow()
 
-    private val _devOverrideLon = MutableStateFlow<Double?>(
-        prefs.getFloat("dev_override_lon", Float.NaN).takeUnless { it.isNaN() }?.toDouble()
+    private val _advancedOverrideLon = MutableStateFlow<Double?>(
+        prefs.getFloat("advanced_override_lon", Float.NaN).takeUnless { it.isNaN() }?.toDouble()
     )
-    val devOverrideLon: StateFlow<Double?> = _devOverrideLon.asStateFlow()
+    val advancedOverrideLon: StateFlow<Double?> = _advancedOverrideLon.asStateFlow()
 
     private val _showGpsCoordinates = MutableStateFlow(false)
     val showGpsCoordinates: StateFlow<Boolean> = _showGpsCoordinates.asStateFlow()
@@ -128,17 +128,17 @@ class WeatherViewModel @Inject constructor(
     private var fetchJob: Job? = null
     private var searchJob: Job? = null
 
-    // Cached GPS weather data fetched in background during expert mode with override
+    // Cached GPS weather data fetched in background during advanced mode with override
     private var cachedGpsWeatherData: WeatherData? = null
 
     init {
         checkOverrideExpiry()
-        // When expert mode is turned off, clear location override and refresh
+        // When advanced mode is turned off, clear location override and refresh
         viewModelScope.launch {
-            var prev = expertModeActive.value
-            expertModeActive.collect { active ->
+            var prev = advancedModeActive.value
+            advancedModeActive.collect { active ->
                 if (!active && prev) {
-                    clearDevModeOverride()
+                    clearAdvancedModeOverride()
                     fetchWeather()
                 }
                 prev = active
@@ -147,9 +147,9 @@ class WeatherViewModel @Inject constructor(
     }
 
     private fun checkOverrideExpiry() {
-        val setTime = prefs.getLong("expert_override_set_time", 0L)
+        val setTime = prefs.getLong("advanced_override_set_time", 0L)
         if (setTime != 0L && System.currentTimeMillis() - setTime >= 12 * 60 * 60 * 1000L) {
-            clearDevModeOverride()
+            clearAdvancedModeOverride()
         }
     }
 
@@ -208,32 +208,32 @@ class WeatherViewModel @Inject constructor(
 
     fun setLocationOverride(lat: Double, lon: Double, name: String) {
         prefs.edit {
-            putFloat("dev_override_lat", lat.toFloat())
-            putFloat("dev_override_lon", lon.toFloat())
-            putString("dev_override_name", name)
-            putLong("expert_override_set_time", System.currentTimeMillis())
+            putFloat("advanced_override_lat", lat.toFloat())
+            putFloat("advanced_override_lon", lon.toFloat())
+            putString("advanced_override_name", name)
+            putLong("advanced_override_set_time", System.currentTimeMillis())
         }
-        _devOverrideLat.value = lat
-        _devOverrideLon.value = lon
+        _advancedOverrideLat.value = lat
+        _advancedOverrideLon.value = lon
         _showLocationOverrideDialog.value = false
         fetchWeather()
     }
 
     fun clearLocationOverride() {
-        clearDevModeOverride()
+        clearAdvancedModeOverride()
         _showLocationOverrideDialog.value = false
         fetchWeather()
     }
 
-    private fun clearDevModeOverride() {
+    private fun clearAdvancedModeOverride() {
         prefs.edit {
-            remove("dev_override_lat")
-            remove("dev_override_lon")
-            remove("dev_override_name")
-            remove("expert_override_set_time")
+            remove("advanced_override_lat")
+            remove("advanced_override_lon")
+            remove("advanced_override_name")
+            remove("advanced_override_set_time")
         }
-        _devOverrideLat.value = null
-        _devOverrideLon.value = null
+        _advancedOverrideLat.value = null
+        _advancedOverrideLon.value = null
     }
 
     private fun loadSavedLocations(): List<SavedLocation> {
@@ -370,10 +370,10 @@ class WeatherViewModel @Inject constructor(
             // Check 12-hour non-local override expiry
             checkOverrideExpiry()
 
-            if (expertModeActive.value && prefs.contains("dev_override_lat")) {
-                val overrideLat = prefs.getFloat("dev_override_lat", 0f).toDouble()
-                val overrideLon = prefs.getFloat("dev_override_lon", 0f).toDouble()
-                val rawOverrideName = prefs.getString("dev_override_name", "Overridden Location") ?: "Overridden Location"
+            if (advancedModeActive.value && prefs.contains("advanced_override_lat")) {
+                val overrideLat = prefs.getFloat("advanced_override_lat", 0f).toDouble()
+                val overrideLon = prefs.getFloat("advanced_override_lon", 0f).toDouble()
+                val rawOverrideName = prefs.getString("advanced_override_name", "Overridden Location") ?: "Overridden Location"
                 val overrideName = rawOverrideName.split(",")[0].split(";")[0].split("-")[0].trim()
 
                 weatherRepository.getWeather(overrideLat, overrideLon).onSuccess { data ->
@@ -403,10 +403,10 @@ class WeatherViewModel @Inject constructor(
             // Check 12-hour non-local override expiry
             checkOverrideExpiry()
 
-            if (expertModeActive.value && prefs.contains("dev_override_lat")) {
-                val overrideLat = prefs.getFloat("dev_override_lat", 0f).toDouble()
-                val overrideLon = prefs.getFloat("dev_override_lon", 0f).toDouble()
-                val rawOverrideName = prefs.getString("dev_override_name", "Overridden Location") ?: "Overridden Location"
+            if (advancedModeActive.value && prefs.contains("advanced_override_lat")) {
+                val overrideLat = prefs.getFloat("advanced_override_lat", 0f).toDouble()
+                val overrideLon = prefs.getFloat("advanced_override_lon", 0f).toDouble()
+                val rawOverrideName = prefs.getString("advanced_override_name", "Overridden Location") ?: "Overridden Location"
                 val overrideName = rawOverrideName.split(",")[0].split(";")[0].split("-")[0].trim()
 
                 weatherRepository.getWeather(overrideLat, overrideLon).onSuccess { data ->

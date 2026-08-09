@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { setLocationOverride, resetLocationToCurrent } from '$lib/stores/devMode';
+    import { setLocationOverride, resetLocationToCurrent } from '$lib/stores/advancedMode';
     import { searchLocations, type SearchResult } from '$lib/api/geocodingSearch';
 
     let query = $state('');
@@ -28,7 +28,7 @@
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <div class="scrim" role="button" tabindex="0" onclick={() => { resetLocationToCurrent(); }} onkeydown={(e) => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); resetLocationToCurrent(); } }}>
     <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title" aria-describedby="dialog-subtitle" tabindex="-1" onclick={(e) => e.stopPropagation()}>
-        <h2 id="dialog-title" class="title">Developer Mode</h2>
+        <h2 id="dialog-title" class="title">Advanced Mode</h2>
         <h3 id="dialog-subtitle" class="subtitle">Override Location</h3>
 
         <div class="search-container">

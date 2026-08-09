@@ -106,9 +106,9 @@ fun WeatherScreen(
 
     val showLocationDialog by viewModel.showLocationOverrideDialog.collectAsStateWithLifecycle()
     val searchResults by viewModel.searchResults.collectAsStateWithLifecycle()
-    val expertModeActive by viewModel.expertModeActive.collectAsStateWithLifecycle()
-    val devOverrideLat by viewModel.devOverrideLat.collectAsStateWithLifecycle()
-    val devOverrideLon by viewModel.devOverrideLon.collectAsStateWithLifecycle()
+    val advancedModeActive by viewModel.advancedModeActive.collectAsStateWithLifecycle()
+    val advancedOverrideLat by viewModel.advancedOverrideLat.collectAsStateWithLifecycle()
+    val advancedOverrideLon by viewModel.advancedOverrideLon.collectAsStateWithLifecycle()
 
     if (showLocationDialog) {
         LocationOverrideDialog(
@@ -385,10 +385,10 @@ fun WeatherScreen(
                                     viewModel.switchToLocation(locationCycle[locationCycleIndex - 1])
                                 }
                             },
-                            expertModeActive = expertModeActive,
-                            hasLocationOverride = devOverrideLat != null,
-                            devOverrideLat = devOverrideLat,
-                            devOverrideLon = devOverrideLon,
+                            advancedModeActive = advancedModeActive,
+                            hasLocationOverride = advancedOverrideLat != null,
+                            advancedOverrideLat = advancedOverrideLat,
+                            advancedOverrideLon = advancedOverrideLon,
                         )
                     }
                 }

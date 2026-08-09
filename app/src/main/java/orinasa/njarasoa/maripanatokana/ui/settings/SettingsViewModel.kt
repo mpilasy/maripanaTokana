@@ -73,7 +73,7 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun updateExpertMode(enabled: Boolean) = repository.updateExpertMode(enabled)
+    fun updateAdvancedMode(enabled: Boolean) = repository.updateAdvancedMode(enabled)
     fun updateGeocodingSource(source: GeocodingSource) = repository.updateGeocodingSource(source)
     fun updateAlertsEnabled(enabled: Boolean) = repository.updateAlertsEnabled(enabled)
     fun updateAlertsNwsEnabled(enabled: Boolean) = repository.updateAlertsNwsEnabled(enabled)

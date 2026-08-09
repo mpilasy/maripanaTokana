@@ -4,7 +4,7 @@ enum class WeatherSource { OPEN_METEO, PIRATE_WEATHER }
 enum class GeocodingSource { SYSTEM_GEOCODER, NOMINATIM }
 
 data class AppSettings(
-    val expertMode: Boolean = false,
+    val advancedMode: Boolean = false,
     val weatherSource: WeatherSource = WeatherSource.OPEN_METEO,
     val weatherApiKey: String = "",
     val geocodingSource: GeocodingSource = GeocodingSource.SYSTEM_GEOCODER,

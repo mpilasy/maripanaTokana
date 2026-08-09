@@ -57,7 +57,7 @@ import orinasa.njarasoa.maripanatokana.domain.model.SavedLocation
 /**
  * Always-available location switcher: "Current Location" (GPS) plus a persisted list of saved
  * locations, with an inline search (reusing the same forward-geocoding search as
- * LocationOverrideDialog) to add more. Distinct from Expert Mode's LocationOverrideDialog, which
+ * LocationOverrideDialog) to add more. Distinct from Advanced Mode's LocationOverrideDialog, which
  * remains a separate temporary testing override.
  *
  * Two swipeable pages in one dialog: page 0 picks from Current Location + saved locations, page 1

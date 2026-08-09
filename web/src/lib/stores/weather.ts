@@ -18,7 +18,7 @@ import {
 	alertsWmoSwicEnabled, alertsBomEnabled, alertsNhcEnabled,
 } from '$lib/stores/preferences';
 import { SUPPORTED_LOCALES } from '$lib/i18n/locales';
-import { expertModeActive, checkOverrideExpiry } from '$lib/stores/devMode';
+import { advancedModeActive, checkOverrideExpiry } from '$lib/stores/advancedMode';
 import { activeLocationId, savedLocations } from '$lib/stores/savedLocations';
 
 export type WeatherState =
@@ -31,7 +31,7 @@ export const isRefreshing = writable<boolean>(false);
 
 const STALE_MS = 30 * 60 * 1000; // 30 minutes
 
-// Cached GPS weather data fetched in background during dev mode
+// Cached GPS weather data fetched in background during advanced mode
 let cachedGpsWeatherData: WeatherData | null = null;
 
 async function fetchAtLocation(lat: number, lon: number, knownName?: string, knownSubtext?: string, localeTag?: string, updateAlerts = true): Promise<WeatherData> {
@@ -106,7 +106,7 @@ async function fetchAlertsForData(lat: number, lon: number, locationInfo?: Locat
 	}
 }
 
-/** Background-fetch GPS weather and cache it for when dev mode is disabled */
+/** Background-fetch GPS weather and cache it for when advanced mode is disabled */
 function spawnGpsCacheRefresh() {
 	getPosition()
 		.then(async (fresh) => {
@@ -117,10 +117,10 @@ function spawnGpsCacheRefresh() {
 			const subtext = cached?.subtext;
 			const data = await fetchAtLocation(lat, lon, name, subtext, undefined, false);
 			cachedGpsWeatherData = data;
-			// Don't overwrite the location cache while dev mode is active — it would corrupt
+			// Don't overwrite the location cache while advanced mode is active — it would corrupt
 			// the cached_location key and cause updateLocationName to reverse-geocode the
 			// wrong (real GPS) coordinates on language change.
-			if (!get(expertModeActive)) {
+			if (!get(advancedModeActive)) {
 				cacheLocation(lat, lon, data.locationName, data.locationSubtext);
 			}
 		})
@@ -129,7 +129,7 @@ function spawnGpsCacheRefresh() {
 		});
 }
 
-/** Called when dev mode is disabled to immediately show GPS weather */
+/** Called when advanced mode is disabled to immediately show GPS weather */
 export function restoreGpsWeather() {
 	if (cachedGpsWeatherData) {
 		setWeatherData(cachedGpsWeatherData);
@@ -150,12 +150,12 @@ export async function doFetchWeather() {
 	}
 
 	try {
-		if (get(expertModeActive)) {
+		if (get(advancedModeActive)) {
 			checkOverrideExpiry();
-			const lat = localStorage.getItem('dev_override_lat');
-			const lon = localStorage.getItem('dev_override_lon');
-			const name = localStorage.getItem('dev_override_name');
-			const subtext = localStorage.getItem('dev_override_subtext') || undefined;
+			const lat = localStorage.getItem('advanced_override_lat');
+			const lon = localStorage.getItem('advanced_override_lon');
+			const name = localStorage.getItem('advanced_override_name');
+			const subtext = localStorage.getItem('advanced_override_subtext') || undefined;
 			if (lat && lon && name) {
 				const lLat = parseFloat(lat);
 				const lLon = parseFloat(lon);
@@ -223,10 +223,10 @@ export async function doFetchWeather() {
 }
 
 export async function updateLocationName(localeTag: string) {
-	// Use dev override coordinates if present (read from localStorage, not the store, to avoid
-	// stale state). This prevents language switches from reverse-geocoding real GPS coordinates.
-	const overrideLat = typeof localStorage !== 'undefined' ? localStorage.getItem('dev_override_lat') : null;
-	const overrideLon = typeof localStorage !== 'undefined' ? localStorage.getItem('dev_override_lon') : null;
+	// Use advanced mode override coordinates if present (read from localStorage, not the store, to
+	// avoid stale state). This prevents language switches from reverse-geocoding real GPS coordinates.
+	const overrideLat = typeof localStorage !== 'undefined' ? localStorage.getItem('advanced_override_lat') : null;
+	const overrideLon = typeof localStorage !== 'undefined' ? localStorage.getItem('advanced_override_lon') : null;
 	const lat = overrideLat ? parseFloat(overrideLat) : getCachedLocation()?.lat;
 	const lon = overrideLon ? parseFloat(overrideLon) : getCachedLocation()?.lon;
 	if (lat == null || lon == null) return;
