@@ -101,6 +101,7 @@
 	"locations_current": "الموقع الحالي",
 	"locations_remove": "إزالة",
 	"locations_search_hint": "البحث عن مدينة أو رمز بريدي",
+	"locations_add_title": "إضافة موقع",
 	"cardinal_directions": [
 		"ش",
 		"ش ش ق",
@@ -155,6 +156,8 @@
 		"cd_refresh": "تحديث",
 		"cd_manage_locations": "إدارة المواقع",
 		"cd_go_to_current_location": "الانتقال إلى الموقع الحالي",
+		"cd_add_location": "إضافة موقع",
+		"cd_back_to_locations": "العودة إلى المواقع",
 		"detail_no_precip": "لا يوجد",
 		"visibility_km": "%.1f km",
 		"visibility_mi": "%.2f mi",

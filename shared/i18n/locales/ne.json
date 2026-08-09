@@ -101,6 +101,7 @@
 	"locations_current": "हालको स्थान",
 	"locations_remove": "हटाउनुहोस्",
 	"locations_search_hint": "सहर वा जिप कोड खोज्नुहोस्",
+	"locations_add_title": "स्थान थप्नुहोस्",
 	"cardinal_directions": [
 		"N",
 		"NNE",
@@ -155,6 +156,8 @@
 		"cd_refresh": "रिफ्रेस",
 		"cd_manage_locations": "स्थानहरू व्यवस्थापन गर्नुहोस्",
 		"cd_go_to_current_location": "हालको स्थानमा जानुहोस्",
+		"cd_add_location": "स्थान थप्नुहोस्",
+		"cd_back_to_locations": "स्थानहरूमा फर्कनुहोस्",
 		"detail_no_precip": "छैन",
 		"visibility_km": "%.1f km",
 		"visibility_mi": "%.2f mi",

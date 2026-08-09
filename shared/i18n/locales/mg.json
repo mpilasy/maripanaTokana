@@ -101,6 +101,7 @@
 	"locations_current": "Toerana ankehitriny",
 	"locations_remove": "Esory",
 	"locations_search_hint": "Karohy tanàna na kaody paositra",
+	"locations_add_title": "Hanampy toerana",
 	"cardinal_directions": [
 		"N",
 		"NNE",
@@ -155,6 +156,8 @@
 		"cd_refresh": "Havaozy",
 		"cd_manage_locations": "Hitantana ny toerana",
 		"cd_go_to_current_location": "Mankany amin'ny toerana ankehitriny",
+		"cd_add_location": "Hanampy toerana",
+		"cd_back_to_locations": "Hiverina any amin'ny toerana",
 		"detail_no_precip": "Tsy misy",
 		"visibility_km": "%.1f km",
 		"visibility_mi": "%.2f mi",

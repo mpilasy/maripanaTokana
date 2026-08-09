@@ -101,6 +101,7 @@
     <string name="locations_current">Ubicación actual</string>
     <string name="locations_remove">Eliminar</string>
     <string name="locations_search_hint">Buscar ciudad o código postal</string>
+    <string name="locations_add_title">Añadir ubicación</string>
     <string name="widget_description">Clima actual con temperatura en doble unidad</string>
     <string name="widget_description_large">Detalles del clima con sensacion termica, humedad, viento y min/max</string>
     <string name="cd_change_font">Cambiar fuente</string>
@@ -113,6 +114,8 @@
     <string name="cd_refresh">Actualizar</string>
     <string name="cd_manage_locations">Administrar ubicaciones</string>
     <string name="cd_go_to_current_location">Ir a la ubicación actual</string>
+    <string name="cd_add_location">Añadir ubicación</string>
+    <string name="cd_back_to_locations">Volver a ubicaciones</string>
     <string name="detail_no_precip">Ninguna</string>
     <string name="visibility_km" formatted="false">%.1f km</string>
     <string name="visibility_mi" formatted="false">%.2f mi</string>

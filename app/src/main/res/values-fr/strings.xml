@@ -101,6 +101,7 @@
     <string name="locations_current">Position actuelle</string>
     <string name="locations_remove">Supprimer</string>
     <string name="locations_search_hint">Rechercher une ville ou un code postal</string>
+    <string name="locations_add_title">Ajouter un emplacement</string>
     <string name="widget_description">Temps actuel avec temperature en double unite</string>
     <string name="widget_description_large">Details meteo avec ressenti, humidite, vent et min/max</string>
     <string name="cd_change_font">Changer la police</string>
@@ -113,6 +114,8 @@
     <string name="cd_refresh">Actualiser</string>
     <string name="cd_manage_locations">Gérer les emplacements</string>
     <string name="cd_go_to_current_location">Aller à la position actuelle</string>
+    <string name="cd_add_location">Ajouter un emplacement</string>
+    <string name="cd_back_to_locations">Retour aux emplacements</string>
     <string name="detail_no_precip">Aucune</string>
     <string name="visibility_km" formatted="false">%.1f km</string>
     <string name="visibility_mi" formatted="false">%.2f mi</string>

@@ -101,6 +101,7 @@
 	"locations_current": "Position actuelle",
 	"locations_remove": "Supprimer",
 	"locations_search_hint": "Rechercher une ville ou un code postal",
+	"locations_add_title": "Ajouter un emplacement",
 	"cardinal_directions": [
 		"N",
 		"NNE",
@@ -155,6 +156,8 @@
 		"cd_refresh": "Actualiser",
 		"cd_manage_locations": "Gérer les emplacements",
 		"cd_go_to_current_location": "Aller à la position actuelle",
+		"cd_add_location": "Ajouter un emplacement",
+		"cd_back_to_locations": "Retour aux emplacements",
 		"detail_no_precip": "Aucune",
 		"visibility_km": "%.1f km",
 		"visibility_mi": "%.2f mi",

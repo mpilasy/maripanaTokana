@@ -101,6 +101,7 @@
     <string name="locations_current">वर्तमान स्थान</string>
     <string name="locations_remove">हटाएं</string>
     <string name="locations_search_hint">शहर या ज़िप कोड खोजें</string>
+    <string name="locations_add_title">स्थान जोड़ें</string>
     <string name="widget_description">दोहरी इकाई तापमान के साथ वर्तमान मौसम</string>
     <string name="widget_description_large">अनुभव तापमान, आर्द्रता, हवा और न्यूनतम/अधिकतम के साथ मौसम विवरण</string>
     <string name="cd_change_font">फ़ॉन्ट बदलें</string>
@@ -113,6 +114,8 @@
     <string name="cd_refresh">रिफ्रेश</string>
     <string name="cd_manage_locations">स्थान प्रबंधित करें</string>
     <string name="cd_go_to_current_location">वर्तमान स्थान पर जाएं</string>
+    <string name="cd_add_location">स्थान जोड़ें</string>
+    <string name="cd_back_to_locations">स्थानों पर वापस जाएं</string>
     <string name="detail_no_precip">कोई नहीं</string>
     <string name="visibility_km" formatted="false">%.1f km</string>
     <string name="visibility_mi" formatted="false">%.2f mi</string>

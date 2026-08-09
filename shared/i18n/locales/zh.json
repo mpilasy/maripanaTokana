@@ -101,6 +101,7 @@
 	"locations_current": "当前位置",
 	"locations_remove": "移除",
 	"locations_search_hint": "搜索城市或邮编",
+	"locations_add_title": "添加位置",
 	"cardinal_directions": [
 		"北",
 		"北北东",
@@ -155,6 +156,8 @@
 		"cd_refresh": "刷新",
 		"cd_manage_locations": "管理位置",
 		"cd_go_to_current_location": "前往当前位置",
+		"cd_add_location": "添加位置",
+		"cd_back_to_locations": "返回位置列表",
 		"detail_no_precip": "无",
 		"visibility_km": "%.1f km",
 		"visibility_mi": "%.2f mi",

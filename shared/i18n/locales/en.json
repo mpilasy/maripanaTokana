@@ -101,6 +101,7 @@
 	"locations_current": "Current Location",
 	"locations_remove": "Remove",
 	"locations_search_hint": "Search city or zip",
+	"locations_add_title": "Add Location",
 	"cardinal_directions": [
 		"N",
 		"NNE",
@@ -155,6 +156,8 @@
 		"cd_refresh": "Refresh",
 		"cd_manage_locations": "Manage locations",
 		"cd_go_to_current_location": "Go to current location",
+		"cd_add_location": "Add location",
+		"cd_back_to_locations": "Back to locations",
 		"detail_no_precip": "None",
 		"visibility_km": "%.1f km",
 		"visibility_mi": "%.2f mi",

@@ -101,6 +101,7 @@
     <string name="locations_current">Current Location</string>
     <string name="locations_remove">Remove</string>
     <string name="locations_search_hint">Search city or zip</string>
+    <string name="locations_add_title">Add Location</string>
     <string name="widget_description">Current weather with dual-unit temperature</string>
     <string name="widget_description_large">Weather details with feels-like, humidity, wind and min/max</string>
     <string name="cd_change_font">Change font</string>
@@ -113,6 +114,8 @@
     <string name="cd_refresh">Refresh</string>
     <string name="cd_manage_locations">Manage locations</string>
     <string name="cd_go_to_current_location">Go to current location</string>
+    <string name="cd_add_location">Add location</string>
+    <string name="cd_back_to_locations">Back to locations</string>
     <string name="detail_no_precip">None</string>
     <string name="visibility_km" formatted="false">%.1f km</string>
     <string name="visibility_mi" formatted="false">%.2f mi</string>
