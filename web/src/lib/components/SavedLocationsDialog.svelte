@@ -38,6 +38,11 @@
 		results = [];
 	}
 
+	function handleResultClick(result: SearchResult) {
+		if ($advancedModeActive) useOnce(result);
+		else selectResult(result);
+	}
+
 	function close() {
 		showSavedLocationsDialog.set(false);
 	}
@@ -141,13 +146,15 @@
 					<div class="results">
 						{#each results as result}
 							<div class="result-row">
-								<button class="result-item" onclick={() => selectResult(result)}>
+								<button class="result-item" onclick={() => handleResultClick(result)}>
 									<div class="result-name">{result.name}</div>
 									<div class="result-meta">{result.displayName}</div>
 								</button>
 								{#if $advancedModeActive}
-									<button class="use-once-btn" onclick={() => useOnce(result)}>
-										{$_('locations_use_once')}
+									<button class="use-once-btn" onclick={() => selectResult(result)} aria-label={$_('android_only.cd_add_location')}>
+										<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+											<path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/>
+										</svg>
 									</button>
 								{/if}
 							</div>
@@ -373,10 +380,12 @@
 		background: transparent;
 		border: none;
 		color: rgba(255, 255, 255, 0.6);
-		font-size: 12px;
 		cursor: pointer;
-		padding: 6px 8px;
-		border-radius: 6px;
+		padding: 8px;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
 
 	.use-once-btn:hover {

@@ -102,7 +102,6 @@
     <string name="locations_remove">Eliminar</string>
     <string name="locations_search_hint">Buscar ciudad o código postal</string>
     <string name="locations_add_title">Añadir ubicación</string>
-    <string name="locations_use_once">Usar una vez</string>
     <string name="widget_description">Clima actual con temperatura en doble unidad</string>
     <string name="widget_description_large">Detalles del clima con sensacion termica, humedad, viento y min/max</string>
     <string name="cd_change_font">Cambiar fuente</string>

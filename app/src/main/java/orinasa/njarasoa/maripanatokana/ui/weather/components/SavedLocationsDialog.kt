@@ -244,7 +244,7 @@ fun SavedLocationsDialog(
                                             modifier = Modifier
                                                 .weight(1f)
                                                 .clickable {
-                                                    onAddSearchResult(result)
+                                                    if (advancedModeActive) onUseTemporarily(result) else onAddSearchResult(result)
                                                     text = ""
                                                 }
                                                 .padding(vertical = 12.dp, horizontal = 8.dp)
@@ -257,17 +257,13 @@ fun SavedLocationsDialog(
                                             )
                                         }
                                         if (advancedModeActive) {
-                                            Text(
-                                                text = stringResource(R.string.locations_use_once),
-                                                style = MaterialTheme.typography.labelSmall,
-                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                                modifier = Modifier
-                                                    .clickable {
-                                                        onUseTemporarily(result)
-                                                        text = ""
-                                                    }
-                                                    .padding(horizontal = 8.dp, vertical = 6.dp),
-                                            )
+                                            IconButton(onClick = { onAddSearchResult(result); text = "" }) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Add,
+                                                    contentDescription = stringResource(R.string.cd_add_location),
+                                                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                                )
+                                            }
                                         }
                                     }
                                 }
