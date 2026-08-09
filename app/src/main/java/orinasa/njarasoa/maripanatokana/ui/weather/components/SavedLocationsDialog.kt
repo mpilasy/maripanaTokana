@@ -76,7 +76,7 @@ fun SavedLocationsDialog(
     searchQuery: (String) -> Unit,
 ) {
     var text by remember { mutableStateOf("") }
-    val pagerState = rememberPagerState(pageCount = { 2 })
+    val pagerState = rememberPagerState(initialPage = 1, pageCount = { 2 })
     val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(text) {

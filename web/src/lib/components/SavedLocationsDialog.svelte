@@ -9,7 +9,7 @@
 	let query = $state('');
 	let results = $state<SearchResult[]>([]);
 	let timeout: ReturnType<typeof setTimeout>;
-	let page = $state(0); // 0 = pick from Current Location + saved, 1 = search & add
+	let page = $state(1); // 0 = pick from Current Location + saved, 1 = search & add (default)
 	let dragStartX = $state<number | null>(null);
 	let dragDeltaX = $state(0);
 
