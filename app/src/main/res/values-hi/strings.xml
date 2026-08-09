@@ -112,6 +112,7 @@
     <string name="cd_expand">विस्तृत करें</string>
     <string name="cd_refresh">रिफ्रेश</string>
     <string name="cd_manage_locations">स्थान प्रबंधित करें</string>
+    <string name="cd_go_to_current_location">वर्तमान स्थान पर जाएं</string>
     <string name="detail_no_precip">कोई नहीं</string>
     <string name="visibility_km" formatted="false">%.1f km</string>
     <string name="visibility_mi" formatted="false">%.2f mi</string>

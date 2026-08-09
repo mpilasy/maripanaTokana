@@ -112,6 +112,7 @@
     <string name="cd_expand">Expand</string>
     <string name="cd_refresh">Refresh</string>
     <string name="cd_manage_locations">Manage locations</string>
+    <string name="cd_go_to_current_location">Go to current location</string>
     <string name="detail_no_precip">None</string>
     <string name="visibility_km" formatted="false">%.1f km</string>
     <string name="visibility_mi" formatted="false">%.2f mi</string>

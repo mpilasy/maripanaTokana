@@ -154,6 +154,7 @@
 		"cd_expand": "Expand",
 		"cd_refresh": "Refresh",
 		"cd_manage_locations": "Manage locations",
+		"cd_go_to_current_location": "Go to current location",
 		"detail_no_precip": "None",
 		"visibility_km": "%.1f km",
 		"visibility_mi": "%.2f mi",

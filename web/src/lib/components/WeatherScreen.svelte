@@ -13,7 +13,7 @@
 	} from '$lib/stores/devMode';
 	import LocationOverrideDialog from './LocationOverrideDialog.svelte';
 	import SavedLocationsDialog from './SavedLocationsDialog.svelte';
-	import { showSavedLocationsDialog, openSavedLocationsDialog } from '$lib/stores/savedLocations';
+	import { showSavedLocationsDialog, openSavedLocationsDialog, activeLocationId, switchToLocation } from '$lib/stores/savedLocations';
 	import SettingsScreen from './SettingsScreen.svelte';
 	import { metricPrimary, fontIndex, localeIndex, toggleUnits, cycleFont, cycleLanguage } from '$lib/stores/preferences';
 	import { SUPPORTED_LOCALES, localizeDigits } from '$lib/i18n/index';
@@ -273,6 +273,19 @@
 									<path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/>
 								</svg>
 							</span>
+							{#if $activeLocationId !== null}
+								<!-- svelte-ignore a11y_click_events_have_key_events -->
+								<!-- svelte-ignore a11y_no_static_element_interactions -->
+								<span
+									class="goto-current-btn"
+									onclick={(e) => { e.stopPropagation(); switchToLocation(null); }}
+									title={$_('android_only.cd_go_to_current_location')}
+								>
+									<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+										<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+									</svg>
+								</span>
+							{/if}
 							{#if $expertModeActive}
 								<!-- svelte-ignore a11y_click_events_have_key_events -->
 								<!-- svelte-ignore a11y_no_static_element_interactions -->

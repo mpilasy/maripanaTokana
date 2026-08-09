@@ -369,6 +369,8 @@ fun WeatherScreen(
                             onOpenSettings = { showSettings = true },
                             weatherSource = weatherSource,
                             showGpsCoordinates = showGpsCoordinates,
+                            isSavedLocation = activeLocationId != null,
+                            onGoToCurrentLocation = { viewModel.switchToLocation(null) },
                             expertModeActive = expertModeActive,
                             hasLocationOverride = devOverrideLat != null,
                             devOverrideLat = devOverrideLat,

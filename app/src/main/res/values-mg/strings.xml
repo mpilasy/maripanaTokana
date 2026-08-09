@@ -112,6 +112,7 @@
     <string name="cd_expand">Velaro</string>
     <string name="cd_refresh">Havaozy</string>
     <string name="cd_manage_locations">Hitantana ny toerana</string>
+    <string name="cd_go_to_current_location">Mankany amin\'ny toerana ankehitriny</string>
     <string name="detail_no_precip">Tsy misy</string>
     <string name="visibility_km" formatted="false">%.1f km</string>
     <string name="visibility_mi" formatted="false">%.2f mi</string>

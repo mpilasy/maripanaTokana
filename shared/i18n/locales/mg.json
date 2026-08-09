@@ -154,6 +154,7 @@
 		"cd_expand": "Velaro",
 		"cd_refresh": "Havaozy",
 		"cd_manage_locations": "Hitantana ny toerana",
+		"cd_go_to_current_location": "Mankany amin'ny toerana ankehitriny",
 		"detail_no_precip": "Tsy misy",
 		"visibility_km": "%.1f km",
 		"visibility_mi": "%.2f mi",

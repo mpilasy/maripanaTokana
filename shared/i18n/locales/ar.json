@@ -154,6 +154,7 @@
 		"cd_expand": "توسيع",
 		"cd_refresh": "تحديث",
 		"cd_manage_locations": "إدارة المواقع",
+		"cd_go_to_current_location": "الانتقال إلى الموقع الحالي",
 		"detail_no_precip": "لا يوجد",
 		"visibility_km": "%.1f km",
 		"visibility_mi": "%.2f mi",

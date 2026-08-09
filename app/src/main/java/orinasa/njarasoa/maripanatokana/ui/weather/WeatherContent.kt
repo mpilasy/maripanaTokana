@@ -146,6 +146,8 @@ internal fun WeatherContent(
     onOpenSettings: () -> Unit = {},
     weatherSource: WeatherSource = WeatherSource.OPEN_METEO,
     showGpsCoordinates: Boolean = false,
+    isSavedLocation: Boolean = false,
+    onGoToCurrentLocation: () -> Unit = {},
     expertModeActive: Boolean = false,
     hasLocationOverride: Boolean = false,
     devOverrideLat: Double? = null,
@@ -256,6 +258,20 @@ internal fun WeatherContent(
                             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                             modifier = Modifier.size(18.sd(scale))
                         )
+                    }
+
+                    if (isSavedLocation) {
+                        IconButton(
+                            onClick = onGoToCurrentLocation,
+                            modifier = Modifier.size(32.sd(scale))
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.LocationOn,
+                                contentDescription = stringResource(R.string.cd_go_to_current_location),
+                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                                modifier = Modifier.size(18.sd(scale))
+                            )
+                        }
                     }
 
                     if (expertModeActive) {

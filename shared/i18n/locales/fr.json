@@ -154,6 +154,7 @@
 		"cd_expand": "Développer",
 		"cd_refresh": "Actualiser",
 		"cd_manage_locations": "Gérer les emplacements",
+		"cd_go_to_current_location": "Aller à la position actuelle",
 		"detail_no_precip": "Aucune",
 		"visibility_km": "%.1f km",
 		"visibility_mi": "%.2f mi",

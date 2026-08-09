@@ -154,6 +154,7 @@
 		"cd_expand": "विस्तृत करें",
 		"cd_refresh": "रिफ्रेश",
 		"cd_manage_locations": "स्थान प्रबंधित करें",
+		"cd_go_to_current_location": "वर्तमान स्थान पर जाएं",
 		"detail_no_precip": "कोई नहीं",
 		"visibility_km": "%.1f km",
 		"visibility_mi": "%.2f mi",

@@ -112,6 +112,7 @@
     <string name="cd_expand">Développer</string>
     <string name="cd_refresh">Actualiser</string>
     <string name="cd_manage_locations">Gérer les emplacements</string>
+    <string name="cd_go_to_current_location">Aller à la position actuelle</string>
     <string name="detail_no_precip">Aucune</string>
     <string name="visibility_km" formatted="false">%.1f km</string>
     <string name="visibility_mi" formatted="false">%.2f mi</string>
