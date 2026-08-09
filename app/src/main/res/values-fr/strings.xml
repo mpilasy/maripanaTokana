@@ -46,7 +46,7 @@
     <string name="section_hourly_forecast">Prévisions horaires</string>
     <string name="section_air_quality_forecast">Qualité de l\'air</string>
     <string name="section_uv_forecast">UV</string>
-    <string name="section_this_week">Prévisions à 7 jours</string>
+    <string name="section_this_week">Prévisions à 10 jours</string>
     <string name="detail_min_temp">Temp. min</string>
     <string name="detail_max_temp">Temp. max</string>
     <string name="detail_wind">Vent</string>
@@ -72,6 +72,13 @@
     <string name="air_quality_ozone">Ozone</string>
     <string name="air_quality_ammonia">Ammoniac</string>
     <string name="air_quality_dust">Poussière</string>
+    <string name="detail_pollen">Pollen</string>
+    <string name="pollen_alder">Aulne</string>
+    <string name="pollen_birch">Bouleau</string>
+    <string name="pollen_grass">Graminées</string>
+    <string name="pollen_mugwort">Armoise</string>
+    <string name="pollen_olive">Olivier</string>
+    <string name="pollen_ragweed">Ambroisie</string>
     <string name="alert_title_thunderstorm">Alerte aux orages</string>
     <string name="alert_desc_thunderstorm">Un orage est en cours ou prévu dans votre région.</string>
     <string name="alert_title_heavy_rain">Alerte pluie forte</string>
@@ -90,6 +97,10 @@
     <string name="alert_hide_details">Masquer les détails</string>
     <string name="alert_count_title">%1$s alertes</string>
     <string name="credits_weather_data">Données météo par </string>
+    <string name="locations_title">Emplacements</string>
+    <string name="locations_current">Position actuelle</string>
+    <string name="locations_remove">Supprimer</string>
+    <string name="locations_search_hint">Rechercher une ville ou un code postal</string>
     <string name="widget_description">Temps actuel avec temperature en double unite</string>
     <string name="widget_description_large">Details meteo avec ressenti, humidite, vent et min/max</string>
     <string name="cd_change_font">Changer la police</string>
@@ -100,6 +111,7 @@
     <string name="cd_collapse">Réduire</string>
     <string name="cd_expand">Développer</string>
     <string name="cd_refresh">Actualiser</string>
+    <string name="cd_manage_locations">Gérer les emplacements</string>
     <string name="detail_no_precip">Aucune</string>
     <string name="visibility_km" formatted="false">%.1f km</string>
     <string name="visibility_mi" formatted="false">%.2f mi</string>

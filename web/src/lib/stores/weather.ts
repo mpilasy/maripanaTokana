@@ -19,6 +19,7 @@ import {
 } from '$lib/stores/preferences';
 import { SUPPORTED_LOCALES } from '$lib/i18n/locales';
 import { expertModeActive, checkOverrideExpiry } from '$lib/stores/devMode';
+import { activeLocationId, savedLocations } from '$lib/stores/savedLocations';
 
 export type WeatherState =
 	| { kind: 'loading' }
@@ -162,6 +163,17 @@ export async function doFetchWeather() {
 				setWeatherData(data);
 				isRefreshing.set(false);
 				spawnGpsCacheRefresh();
+				return;
+			}
+		}
+
+		const activeSavedId = get(activeLocationId);
+		if (activeSavedId) {
+			const savedLocation = get(savedLocations).find((l) => l.id === activeSavedId);
+			if (savedLocation) {
+				const data = await fetchAtLocation(savedLocation.latitude, savedLocation.longitude, savedLocation.name, savedLocation.subtext);
+				setWeatherData(data);
+				isRefreshing.set(false);
 				return;
 			}
 		}

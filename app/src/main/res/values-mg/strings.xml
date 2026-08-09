@@ -46,7 +46,7 @@
     <string name="section_hourly_forecast">Isan\'ora</string>
     <string name="section_air_quality_forecast">Hadion\'ny rivotra</string>
     <string name="section_uv_forecast">Tara-masoandro</string>
-    <string name="section_this_week">Ny fito andro manaraka</string>
+    <string name="section_this_week">Ny folo andro manaraka</string>
     <string name="detail_temperature">Maripàna</string>
     <string name="detail_precipitation">Orana</string>
     <string name="detail_min_temp">Iva Indrindra</string>
@@ -72,6 +72,13 @@
     <string name="air_quality_ozone">Ôzôna</string>
     <string name="air_quality_ammonia">Amôniaka</string>
     <string name="air_quality_dust">Vovoka</string>
+    <string name="detail_pollen">Vovom-boninkazo</string>
+    <string name="pollen_alder">Aldra</string>
+    <string name="pollen_birch">Bôlô</string>
+    <string name="pollen_grass">Ahitra</string>
+    <string name="pollen_mugwort">Armoiza</string>
+    <string name="pollen_olive">Oliva</string>
+    <string name="pollen_ragweed">Amborezia</string>
     <string name="alert_title_thunderstorm">Tandremo: Orambaratra</string>
     <string name="alert_desc_thunderstorm">Misy na hisy ny orambaratra eo amin\'ny faritra misy anao.</string>
     <string name="alert_title_heavy_rain">Tandremo: Orambe</string>
@@ -90,6 +97,10 @@
     <string name="alert_hide_details">Afeno</string>
     <string name="alert_count_title">Filazana %1$s</string>
     <string name="credits_weather_data">Fankasitrahana:</string>
+    <string name="locations_title">Toerana</string>
+    <string name="locations_current">Toerana ankehitriny</string>
+    <string name="locations_remove">Esory</string>
+    <string name="locations_search_hint">Karohy tanàna na kaody paositra</string>
     <string name="widget_description">Toetrandro ankehitriny miaraka amin\'ny mari-pana roa sosony</string>
     <string name="widget_description_large">Antsipiriany momba ny toetrandro: tsapa, hamandoana, rivotra ary ambany/ambony</string>
     <string name="cd_change_font">Ovay ny endri-tsoratra</string>
@@ -100,6 +111,7 @@
     <string name="cd_collapse">Akatony</string>
     <string name="cd_expand">Velaro</string>
     <string name="cd_refresh">Havaozy</string>
+    <string name="cd_manage_locations">Hitantana ny toerana</string>
     <string name="detail_no_precip">Tsy misy</string>
     <string name="visibility_km" formatted="false">%.1f km</string>
     <string name="visibility_mi" formatted="false">%.2f mi</string>

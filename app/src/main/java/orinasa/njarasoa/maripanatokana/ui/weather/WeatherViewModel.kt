@@ -15,8 +15,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.launch
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.Json
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.data.remote.GeocodingResult
+import orinasa.njarasoa.maripanatokana.domain.model.SavedLocation
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.data.settings.AppSettingsRepository
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherSource
@@ -110,6 +113,17 @@ class WeatherViewModel @Inject constructor(
 
     private val _searchResults = MutableStateFlow<List<GeocodingResult>>(emptyList())
     val searchResults: StateFlow<List<GeocodingResult>> = _searchResults.asStateFlow()
+
+    private val savedLocationListSerializer = ListSerializer(SavedLocation.serializer())
+
+    private val _savedLocations = MutableStateFlow(loadSavedLocations())
+    val savedLocations: StateFlow<List<SavedLocation>> = _savedLocations.asStateFlow()
+
+    private val _activeLocationId = MutableStateFlow(prefs.getString("active_location_id", null))
+    val activeLocationId: StateFlow<String?> = _activeLocationId.asStateFlow()
+
+    private val _showSavedLocationsDialog = MutableStateFlow(false)
+    val showSavedLocationsDialog: StateFlow<Boolean> = _showSavedLocationsDialog.asStateFlow()
 
     private var fetchJob: Job? = null
     private var searchJob: Job? = null
@@ -222,6 +236,68 @@ class WeatherViewModel @Inject constructor(
         _devOverrideLon.value = null
     }
 
+    private fun loadSavedLocations(): List<SavedLocation> {
+        val raw = prefs.getString("saved_locations", null) ?: return emptyList()
+        return runCatching { Json.decodeFromString(savedLocationListSerializer, raw) }.getOrDefault(emptyList())
+    }
+
+    private fun persistSavedLocations(list: List<SavedLocation>) {
+        prefs.edit { putString("saved_locations", Json.encodeToString(savedLocationListSerializer, list)) }
+    }
+
+    fun onManageLocationsClicked() {
+        _showSavedLocationsDialog.value = true
+    }
+
+    fun setShowSavedLocationsDialog(show: Boolean) {
+        _showSavedLocationsDialog.value = show
+        if (!show) _searchResults.value = emptyList()
+    }
+
+    /** Adds a search result as a saved location (or reuses an existing one at the same
+     * coordinates) and immediately switches to it. */
+    fun addSavedLocation(result: GeocodingResult) {
+        val id = "${result.latitude},${result.longitude}"
+        val subtext = listOfNotNull(result.admin1, result.country).joinToString(", ").ifBlank { null }
+        val current = _savedLocations.value
+        val updated = if (current.any { it.id == id }) current else {
+            current + SavedLocation(id = id, name = result.name, subtext = subtext, latitude = result.latitude, longitude = result.longitude)
+        }
+        _savedLocations.value = updated
+        persistSavedLocations(updated)
+        switchToLocation(id)
+    }
+
+    fun removeSavedLocation(id: String) {
+        val updated = _savedLocations.value.filterNot { it.id == id }
+        _savedLocations.value = updated
+        persistSavedLocations(updated)
+        if (_activeLocationId.value == id) switchToLocation(null)
+    }
+
+    /** Switches the active location. Pass null to switch back to GPS ("Current Location"). */
+    fun switchToLocation(id: String?) {
+        _activeLocationId.value = id
+        prefs.edit {
+            if (id == null) remove("active_location_id") else putString("active_location_id", id)
+        }
+        _showSavedLocationsDialog.value = false
+        _searchResults.value = emptyList()
+        fetchWeather()
+    }
+
+    private suspend fun fetchForSavedLocation(location: SavedLocation) {
+        weatherRepository.getWeather(location.latitude, location.longitude).onSuccess { data ->
+            val locationData = data.copy(locationName = location.name, locationSubtext = location.subtext)
+            _uiState.value = WeatherUiState.Success(locationData)
+            fetchAlertsForData(location.latitude, location.longitude)
+        }.onFailure {
+            if (_uiState.value !is WeatherUiState.Success) {
+                _uiState.value = WeatherUiState.Error(R.string.error_fetch_weather)
+            }
+        }
+    }
+
     fun toggleUnits() {
         val newValue = !_metricPrimary.value
         _metricPrimary.value = newValue
@@ -312,7 +388,8 @@ class WeatherViewModel @Inject constructor(
                     }
                 }
             } else {
-                doFetch()
+                val savedLocation = activeLocationId.value?.let { id -> savedLocations.value.find { it.id == id } }
+                if (savedLocation != null) fetchForSavedLocation(savedLocation) else doFetch()
             }
             _isRefreshing.value = false
         }
@@ -344,7 +421,8 @@ class WeatherViewModel @Inject constructor(
                     }
                 }
             } else {
-                doFetch()
+                val savedLocation = activeLocationId.value?.let { id -> savedLocations.value.find { it.id == id } }
+                if (savedLocation != null) fetchForSavedLocation(savedLocation) else doFetch()
             }
             _isRefreshing.value = false
         }

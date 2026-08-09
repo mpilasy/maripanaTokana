@@ -46,7 +46,7 @@
     <string name="section_hourly_forecast">प्रति घंटा पूर्वानुमान</string>
     <string name="section_air_quality_forecast">वायु गुणवत्ता</string>
     <string name="section_uv_forecast">यूवी</string>
-    <string name="section_this_week">7 दिन का पूर्वानुमान</string>
+    <string name="section_this_week">10 दिन का पूर्वानुमान</string>
     <string name="detail_min_temp">न्यूनतम तापमान</string>
     <string name="detail_max_temp">अधिकतम तापमान</string>
     <string name="detail_wind">हवा</string>
@@ -72,6 +72,13 @@
     <string name="air_quality_ozone">ओज़ोन</string>
     <string name="air_quality_ammonia">अमोनिया</string>
     <string name="air_quality_dust">धूल</string>
+    <string name="detail_pollen">पराग</string>
+    <string name="pollen_alder">एल्डर</string>
+    <string name="pollen_birch">बर्च</string>
+    <string name="pollen_grass">घास</string>
+    <string name="pollen_mugwort">मगवर्ट</string>
+    <string name="pollen_olive">जैतून</string>
+    <string name="pollen_ragweed">रैगवीड</string>
     <string name="alert_title_thunderstorm">Thunderstorm Warning</string>
     <string name="alert_desc_thunderstorm">A thunderstorm is occurring or expected in your area.</string>
     <string name="alert_title_heavy_rain">Heavy Rain Warning</string>
@@ -90,6 +97,10 @@
     <string name="alert_hide_details">Hide details</string>
     <string name="alert_count_title">%1$s अलर्ट</string>
     <string name="credits_weather_data">मौसम डेटा प्रदाता </string>
+    <string name="locations_title">स्थान</string>
+    <string name="locations_current">वर्तमान स्थान</string>
+    <string name="locations_remove">हटाएं</string>
+    <string name="locations_search_hint">शहर या ज़िप कोड खोजें</string>
     <string name="widget_description">दोहरी इकाई तापमान के साथ वर्तमान मौसम</string>
     <string name="widget_description_large">अनुभव तापमान, आर्द्रता, हवा और न्यूनतम/अधिकतम के साथ मौसम विवरण</string>
     <string name="cd_change_font">फ़ॉन्ट बदलें</string>
@@ -100,6 +111,7 @@
     <string name="cd_collapse">संक्षिप्त करें</string>
     <string name="cd_expand">विस्तृत करें</string>
     <string name="cd_refresh">रिफ्रेश</string>
+    <string name="cd_manage_locations">स्थान प्रबंधित करें</string>
     <string name="detail_no_precip">कोई नहीं</string>
     <string name="visibility_km" formatted="false">%.1f km</string>
     <string name="visibility_mi" formatted="false">%.2f mi</string>

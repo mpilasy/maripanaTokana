@@ -46,7 +46,7 @@
     <string name="section_hourly_forecast">التوقعات بالساعة</string>
     <string name="section_air_quality_forecast">جودة الهواء</string>
     <string name="section_uv_forecast">الأشعة فوق البنفسجية</string>
-    <string name="section_this_week">توقعات ٧ أيام</string>
+    <string name="section_this_week">توقعات ١٠ أيام</string>
     <string name="detail_min_temp">الحرارة الدنيا</string>
     <string name="detail_max_temp">الحرارة القصوى</string>
     <string name="detail_wind">الرياح</string>
@@ -72,6 +72,13 @@
     <string name="air_quality_ozone">الأوزون</string>
     <string name="air_quality_ammonia">الأمونيا</string>
     <string name="air_quality_dust">الغبار</string>
+    <string name="detail_pollen">حبوب اللقاح</string>
+    <string name="pollen_alder">الألدر</string>
+    <string name="pollen_birch">البتولا</string>
+    <string name="pollen_grass">العشب</string>
+    <string name="pollen_mugwort">الشيح</string>
+    <string name="pollen_olive">الزيتون</string>
+    <string name="pollen_ragweed">الأمبروزيا</string>
     <string name="alert_title_thunderstorm">Thunderstorm Warning</string>
     <string name="alert_desc_thunderstorm">A thunderstorm is occurring or expected in your area.</string>
     <string name="alert_title_heavy_rain">Heavy Rain Warning</string>
@@ -90,6 +97,10 @@
     <string name="alert_hide_details">Hide details</string>
     <string name="alert_count_title">%1$s تنبيهات</string>
     <string name="credits_weather_data">بيانات الطقس من </string>
+    <string name="locations_title">المواقع</string>
+    <string name="locations_current">الموقع الحالي</string>
+    <string name="locations_remove">إزالة</string>
+    <string name="locations_search_hint">البحث عن مدينة أو رمز بريدي</string>
     <string name="widget_description">الطقس الحالي مع درجة الحرارة بوحدتين</string>
     <string name="widget_description_large">تفاصيل الطقس مع الإحساس بالحرارة والرطوبة والرياح والحد الأدنى/الأقصى</string>
     <string name="cd_change_font">تغيير الخط</string>
@@ -100,6 +111,7 @@
     <string name="cd_collapse">طي</string>
     <string name="cd_expand">توسيع</string>
     <string name="cd_refresh">تحديث</string>
+    <string name="cd_manage_locations">إدارة المواقع</string>
     <string name="detail_no_precip">لا يوجد</string>
     <string name="visibility_km" formatted="false">%.1f km</string>
     <string name="visibility_mi" formatted="false">%.2f mi</string>

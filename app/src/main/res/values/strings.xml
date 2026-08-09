@@ -46,7 +46,7 @@
     <string name="section_hourly_forecast">Hourly Forecast</string>
     <string name="section_air_quality_forecast">Air Quality</string>
     <string name="section_uv_forecast">UV</string>
-    <string name="section_this_week">7-Day Forecast</string>
+    <string name="section_this_week">10-Day Forecast</string>
     <string name="detail_temperature">Temperature</string>
     <string name="detail_precipitation">Precipitation</string>
     <string name="detail_min_temp">Min Temp</string>
@@ -72,6 +72,13 @@
     <string name="air_quality_ozone">Ozone</string>
     <string name="air_quality_ammonia">Ammonia</string>
     <string name="air_quality_dust">Dust</string>
+    <string name="detail_pollen">Pollen</string>
+    <string name="pollen_alder">Alder</string>
+    <string name="pollen_birch">Birch</string>
+    <string name="pollen_grass">Grass</string>
+    <string name="pollen_mugwort">Mugwort</string>
+    <string name="pollen_olive">Olive</string>
+    <string name="pollen_ragweed">Ragweed</string>
     <string name="alert_title_thunderstorm">Thunderstorm Warning</string>
     <string name="alert_desc_thunderstorm">A thunderstorm is occurring or expected in your area.</string>
     <string name="alert_title_heavy_rain">Heavy Rain Warning</string>
@@ -90,6 +97,10 @@
     <string name="alert_hide_details">Hide details</string>
     <string name="alert_count_title">%1$s alerts</string>
     <string name="credits_weather_data">Weather data by </string>
+    <string name="locations_title">Locations</string>
+    <string name="locations_current">Current Location</string>
+    <string name="locations_remove">Remove</string>
+    <string name="locations_search_hint">Search city or zip</string>
     <string name="widget_description">Current weather with dual-unit temperature</string>
     <string name="widget_description_large">Weather details with feels-like, humidity, wind and min/max</string>
     <string name="cd_change_font">Change font</string>
@@ -100,6 +111,7 @@
     <string name="cd_collapse">Collapse</string>
     <string name="cd_expand">Expand</string>
     <string name="cd_refresh">Refresh</string>
+    <string name="cd_manage_locations">Manage locations</string>
     <string name="detail_no_precip">None</string>
     <string name="visibility_km" formatted="false">%.1f km</string>
     <string name="visibility_mi" formatted="false">%.2f mi</string>

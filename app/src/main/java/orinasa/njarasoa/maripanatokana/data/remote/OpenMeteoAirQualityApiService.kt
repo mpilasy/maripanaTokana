@@ -4,6 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import orinasa.njarasoa.maripanatokana.domain.model.AirQualityIndex
 import orinasa.njarasoa.maripanatokana.domain.model.HourlyAirQuality
+import orinasa.njarasoa.maripanatokana.domain.model.PollenReadings
 import retrofit2.http.GET
 import retrofit2.http.Query
 
@@ -15,7 +16,8 @@ interface OpenMeteoAirQualityApiService {
         @Query("current") current: String =
             "us_aqi,european_aqi,pm2_5,pm10,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,ammonia,dust," +
                 "us_aqi_pm2_5,us_aqi_pm10,us_aqi_carbon_monoxide,us_aqi_nitrogen_dioxide,us_aqi_sulphur_dioxide,us_aqi_ozone," +
-                "european_aqi_pm2_5,european_aqi_pm10,european_aqi_nitrogen_dioxide,european_aqi_sulphur_dioxide,european_aqi_ozone",
+                "european_aqi_pm2_5,european_aqi_pm10,european_aqi_nitrogen_dioxide,european_aqi_sulphur_dioxide,european_aqi_ozone," +
+                "alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen",
         @Query("hourly") hourly: String = "us_aqi,european_aqi",
         @Query("forecast_days") forecastDays: Int = 3,
     ): OpenMeteoAirQualityResponse
@@ -57,6 +59,12 @@ data class OpenMeteoAirQualityCurrent(
     @SerialName("european_aqi_nitrogen_dioxide") val europeanAqiNitrogenDioxide: Int? = null,
     @SerialName("european_aqi_sulphur_dioxide") val europeanAqiSulphurDioxide: Int? = null,
     @SerialName("european_aqi_ozone") val europeanAqiOzone: Int? = null,
+    @SerialName("alder_pollen") val alderPollen: Double? = null,
+    @SerialName("birch_pollen") val birchPollen: Double? = null,
+    @SerialName("grass_pollen") val grassPollen: Double? = null,
+    @SerialName("mugwort_pollen") val mugwortPollen: Double? = null,
+    @SerialName("olive_pollen") val olivePollen: Double? = null,
+    @SerialName("ragweed_pollen") val ragweedPollen: Double? = null,
 )
 
 data class AirQualityResult(
@@ -88,6 +96,14 @@ fun OpenMeteoAirQualityResponse.toDomain(countryCode: String?): AirQualityResult
         europeanAqiNitrogenDioxide = current.europeanAqiNitrogenDioxide,
         europeanAqiSulphurDioxide = current.europeanAqiSulphurDioxide,
         europeanAqiOzone = current.europeanAqiOzone,
+        pollen = PollenReadings(
+            alder = current.alderPollen,
+            birch = current.birchPollen,
+            grass = current.grassPollen,
+            mugwort = current.mugwortPollen,
+            olive = current.olivePollen,
+            ragweed = current.ragweedPollen,
+        ),
     )
 
     val h = hourly

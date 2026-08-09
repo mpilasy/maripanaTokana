@@ -26,11 +26,14 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.domain.model.AirQualityIndex
+import orinasa.njarasoa.maripanatokana.domain.model.AirQualityIndex.Companion.pollenTierFor
 import orinasa.njarasoa.maripanatokana.domain.model.AqiStandard
 import orinasa.njarasoa.maripanatokana.domain.model.AqiTier
+import orinasa.njarasoa.maripanatokana.domain.model.PollenTier
 import java.util.Locale
 
 private data class PollutantRow(val label: String, val value: Double, val tier: AqiTier?)
+private data class PollenRow(val label: String, val value: Double, val tier: PollenTier)
 
 /**
  * Full breakdown of the Open-Meteo air-quality "current" call: both AQI standards plus every
@@ -58,6 +61,20 @@ fun AirQualityDetailDialog(
         airQuality.ozone?.let { PollutantRow(stringResource(R.string.air_quality_ozone), it, airQuality.ozoneTier) },
         airQuality.ammonia?.let { PollutantRow(stringResource(R.string.air_quality_ammonia), it, null) },
         airQuality.dust?.let { PollutantRow(stringResource(R.string.air_quality_dust), it, null) },
+    )
+
+    // Pollen tiers reuse uv_labels (0=Low..3=Very High) rather than a dedicated array — see
+    // PollenTier's kdoc.
+    val uvLabels = stringArrayResource(R.array.uv_labels)
+    fun pollenTierLabel(tier: PollenTier) = uvLabels[tier.ordinal]
+    val pollen = airQuality.pollen
+    val pollenRows = listOfNotNull(
+        pollen.alder?.let { PollenRow(stringResource(R.string.pollen_alder), it, pollenTierFor(it)) },
+        pollen.birch?.let { PollenRow(stringResource(R.string.pollen_birch), it, pollenTierFor(it)) },
+        pollen.grass?.let { PollenRow(stringResource(R.string.pollen_grass), it, pollenTierFor(it)) },
+        pollen.mugwort?.let { PollenRow(stringResource(R.string.pollen_mugwort), it, pollenTierFor(it)) },
+        pollen.olive?.let { PollenRow(stringResource(R.string.pollen_olive), it, pollenTierFor(it)) },
+        pollen.ragweed?.let { PollenRow(stringResource(R.string.pollen_ragweed), it, pollenTierFor(it)) },
     )
 
     Dialog(onDismissRequest = onDismissRequest) {
@@ -130,6 +147,37 @@ fun AirQualityDetailDialog(
                             }
                             Text(
                                 text = localizeDigits("%.1f".format(Locale.US, row.value)) + " µg/m³",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
+                    }
+                }
+
+                if (pollenRows.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.detail_pollen),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    for (row in pollenRows) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = row.label,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                                modifier = Modifier.weight(1f),
+                            )
+                            PollenTierBadge(tier = row.tier, label = pollenTierLabel(row.tier), fontSize = 10.sp)
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = localizeDigits("%.1f".format(Locale.US, row.value)) + " grains/m³",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurface,
                             )
