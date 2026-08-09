@@ -13,7 +13,7 @@
 	} from '$lib/stores/devMode';
 	import LocationOverrideDialog from './LocationOverrideDialog.svelte';
 	import SavedLocationsDialog from './SavedLocationsDialog.svelte';
-	import { showSavedLocationsDialog, openSavedLocationsDialog, activeLocationId, switchToLocation } from '$lib/stores/savedLocations';
+	import { showSavedLocationsDialog, openSavedLocationsDialog, activeLocationId, savedLocations, switchToLocation } from '$lib/stores/savedLocations';
 	import SettingsScreen from './SettingsScreen.svelte';
 	import { metricPrimary, fontIndex, localeIndex, toggleUnits, cycleFont, cycleLanguage } from '$lib/stores/preferences';
 	import { SUPPORTED_LOCALES, localizeDigits } from '$lib/i18n/index';
@@ -114,6 +114,31 @@
 	let scrollContainer = $state<HTMLElement | null>(null);
 	let headerEl = $state<HTMLElement | null>(null);
 
+	// Swipe-to-cycle-locations: ignored if the gesture started inside a horizontally-scrolling
+	// forecast strip (.cards-scroll), so hourly/daily forecast scrolling is unaffected.
+	let swipeStartX = $state(0);
+	let swipeStartY = $state(0);
+	let swipeDeltaX = $state(0);
+	let swipeDeltaY = $state(0);
+	let swipeExcluded = $state(false);
+	const SWIPE_THRESHOLD_PX = 80;
+
+	function locationCycle(): (string | null)[] {
+		return [null, ...$savedLocations.map((l) => l.id)];
+	}
+
+	function swipeToNext() {
+		const cycle = locationCycle();
+		const idx = cycle.indexOf($activeLocationId);
+		if (idx !== -1 && idx < cycle.length - 1) switchToLocation(cycle[idx + 1]);
+	}
+
+	function swipeToPrevious() {
+		const cycle = locationCycle();
+		const idx = cycle.indexOf($activeLocationId);
+		if (idx > 0) switchToLocation(cycle[idx - 1]);
+	}
+
 	function loc(s: string): string {
 		return localizeDigits(s, SUPPORTED_LOCALES[$localeIndex]);
 	}
@@ -167,11 +192,21 @@
 			pullStartY = e.touches[0].clientY;
 			isPulling = true;
 		}
+		swipeExcluded = (e.target as HTMLElement).closest('.cards-scroll') !== null;
+		swipeStartX = e.touches[0].clientX;
+		swipeStartY = e.touches[0].clientY;
+		swipeDeltaX = 0;
+		swipeDeltaY = 0;
 	}
 
 	function handleTouchMove(e: TouchEvent) {
-		if (!isPulling) return;
-		pullDelta = Math.max(0, e.touches[0].clientY - pullStartY);
+		if (isPulling) {
+			pullDelta = Math.max(0, e.touches[0].clientY - pullStartY);
+		}
+		if (!swipeExcluded) {
+			swipeDeltaX = e.touches[0].clientX - swipeStartX;
+			swipeDeltaY = e.touches[0].clientY - swipeStartY;
+		}
 	}
 
 	function handleTouchEnd() {
@@ -180,6 +215,13 @@
 		}
 		pullDelta = 0;
 		isPulling = false;
+
+		if (!swipeExcluded && Math.abs(swipeDeltaX) > SWIPE_THRESHOLD_PX && Math.abs(swipeDeltaX) > Math.abs(swipeDeltaY)) {
+			if (swipeDeltaX < 0) swipeToNext();
+			else swipeToPrevious();
+		}
+		swipeDeltaX = 0;
+		swipeDeltaY = 0;
 	}
 
 	function handleShare(el: HTMLElement) {

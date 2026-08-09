@@ -12,6 +12,9 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -148,6 +151,8 @@ internal fun WeatherContent(
     showGpsCoordinates: Boolean = false,
     isSavedLocation: Boolean = false,
     onGoToCurrentLocation: () -> Unit = {},
+    onSwipeToNextLocation: () -> Unit = {},
+    onSwipeToPreviousLocation: () -> Unit = {},
     expertModeActive: Boolean = false,
     hasLocationOverride: Boolean = false,
     devOverrideLat: Double? = null,
@@ -196,7 +201,28 @@ internal fun WeatherContent(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    // Swipe-to-cycle-locations: draggable is nested-scroll-aware, so inner horizontal
+    // LazyRows (hourly/daily forecast) still consume drags themselves; only the leftover
+    // (e.g. dragging at a row's scroll edge, or dragging outside any row) reaches here.
+    val density = LocalDensity.current
+    var horizontalDragAccum by remember { mutableStateOf(0f) }
+    val swipeThresholdPx = with(density) { 80.dp.toPx() }
+    val horizontalDragState = rememberDraggableState { delta -> horizontalDragAccum += delta }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .draggable(
+                orientation = Orientation.Horizontal,
+                state = horizontalDragState,
+                onDragStarted = { horizontalDragAccum = 0f },
+                onDragStopped = {
+                    if (horizontalDragAccum <= -swipeThresholdPx) onSwipeToNextLocation()
+                    else if (horizontalDragAccum >= swipeThresholdPx) onSwipeToPreviousLocation()
+                    horizontalDragAccum = 0f
+                },
+            )
+    ) {
     CompositionLocalProvider(LocalScale provides scale) {
     Column(
         modifier = Modifier

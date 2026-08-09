@@ -124,6 +124,10 @@ fun WeatherScreen(
     val savedLocations by viewModel.savedLocations.collectAsStateWithLifecycle()
     val activeLocationId by viewModel.activeLocationId.collectAsStateWithLifecycle()
 
+    // Swipe-to-cycle-locations: Current Location + saved locations, in list order, no wraparound.
+    val locationCycle = remember(savedLocations) { listOf<String?>(null) + savedLocations.map { it.id } }
+    val locationCycleIndex = locationCycle.indexOf(activeLocationId)
+
     if (showSavedLocationsDialog) {
         SavedLocationsDialog(
             savedLocations = savedLocations,
@@ -371,6 +375,16 @@ fun WeatherScreen(
                             showGpsCoordinates = showGpsCoordinates,
                             isSavedLocation = activeLocationId != null,
                             onGoToCurrentLocation = { viewModel.switchToLocation(null) },
+                            onSwipeToNextLocation = {
+                                if (locationCycleIndex in 0 until locationCycle.lastIndex) {
+                                    viewModel.switchToLocation(locationCycle[locationCycleIndex + 1])
+                                }
+                            },
+                            onSwipeToPreviousLocation = {
+                                if (locationCycleIndex > 0) {
+                                    viewModel.switchToLocation(locationCycle[locationCycleIndex - 1])
+                                }
+                            },
                             expertModeActive = expertModeActive,
                             hasLocationOverride = devOverrideLat != null,
                             devOverrideLat = devOverrideLat,
