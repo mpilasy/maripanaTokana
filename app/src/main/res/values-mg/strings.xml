@@ -116,6 +116,8 @@
     <string name="cd_go_to_current_location">Mankany amin\'ny toerana ankehitriny</string>
     <string name="cd_add_location">Hanampy toerana</string>
     <string name="cd_back_to_locations">Hiverina any amin\'ny toerana</string>
+    <string name="cd_previous_location">Toerana teo aloha</string>
+    <string name="cd_next_location">Toerana manaraka</string>
     <string name="detail_no_precip">Tsy misy</string>
     <string name="visibility_km" formatted="false">%.1f km</string>
     <string name="visibility_mi" formatted="false">%.2f mi</string>

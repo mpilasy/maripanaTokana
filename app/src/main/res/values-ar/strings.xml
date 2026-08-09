@@ -116,6 +116,8 @@
     <string name="cd_go_to_current_location">الانتقال إلى الموقع الحالي</string>
     <string name="cd_add_location">إضافة موقع</string>
     <string name="cd_back_to_locations">العودة إلى المواقع</string>
+    <string name="cd_previous_location">الموقع السابق</string>
+    <string name="cd_next_location">الموقع التالي</string>
     <string name="detail_no_precip">لا يوجد</string>
     <string name="visibility_km" formatted="false">%.1f km</string>
     <string name="visibility_mi" formatted="false">%.2f mi</string>

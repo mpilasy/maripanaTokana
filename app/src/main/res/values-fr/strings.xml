@@ -116,6 +116,8 @@
     <string name="cd_go_to_current_location">Aller à la position actuelle</string>
     <string name="cd_add_location">Ajouter un emplacement</string>
     <string name="cd_back_to_locations">Retour aux emplacements</string>
+    <string name="cd_previous_location">Emplacement précédent</string>
+    <string name="cd_next_location">Emplacement suivant</string>
     <string name="detail_no_precip">Aucune</string>
     <string name="visibility_km" formatted="false">%.1f km</string>
     <string name="visibility_mi" formatted="false">%.2f mi</string>

@@ -158,6 +158,8 @@
 		"cd_go_to_current_location": "Mankany amin'ny toerana ankehitriny",
 		"cd_add_location": "Hanampy toerana",
 		"cd_back_to_locations": "Hiverina any amin'ny toerana",
+		"cd_previous_location": "Toerana teo aloha",
+		"cd_next_location": "Toerana manaraka",
 		"detail_no_precip": "Tsy misy",
 		"visibility_km": "%.1f km",
 		"visibility_mi": "%.2f mi",

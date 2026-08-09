@@ -139,6 +139,14 @@
 		if (idx > 0) switchToLocation(cycle[idx - 1]);
 	}
 
+	// Tap alternative to swiping, same no-wraparound boundaries.
+	let canGoToPrevious = $derived(locationCycle().indexOf($activeLocationId) > 0);
+	let canGoToNext = $derived.by(() => {
+		const cycle = locationCycle();
+		const idx = cycle.indexOf($activeLocationId);
+		return idx !== -1 && idx < cycle.length - 1;
+	});
+
 	function loc(s: string): string {
 		return localizeDigits(s, SUPPORTED_LOCALES[$localeIndex]);
 	}
@@ -279,6 +287,21 @@
 		{/if}
 
 		<div class="content-wrapper">
+			{#if canGoToPrevious}
+				<button class="location-nav-btn left" onclick={swipeToPrevious} aria-label={$_('android_only.cd_previous_location')}>
+					<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+						<path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+					</svg>
+				</button>
+			{/if}
+			{#if canGoToNext}
+				<button class="location-nav-btn right" onclick={swipeToNext} aria-label={$_('android_only.cd_next_location')}>
+					<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+						<path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+					</svg>
+				</button>
+			{/if}
+
 			<Controls
 				fontName={fontPairings[$fontIndex].name}
 				currentFlag={SUPPORTED_LOCALES[$localeIndex].flag}
@@ -617,6 +640,37 @@
 	.header {
 		padding-top: 8px;
 		flex-shrink: 0;
+	}
+
+	.location-nav-btn {
+		position: fixed;
+		top: 50%;
+		transform: translateY(-50%);
+		z-index: 2;
+		width: 36px;
+		height: 36px;
+		border-radius: 50%;
+		border: none;
+		background: rgba(255, 255, 255, 0.08);
+		color: rgba(255, 255, 255, 0.5);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: background 0.2s, color 0.2s;
+	}
+
+	.location-nav-btn:hover {
+		background: rgba(255, 255, 255, 0.16);
+		color: white;
+	}
+
+	.location-nav-btn.left {
+		left: 8px;
+	}
+
+	.location-nav-btn.right {
+		right: 8px;
 	}
 
 	.location-primary-row {

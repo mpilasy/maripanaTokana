@@ -158,6 +158,8 @@
 		"cd_go_to_current_location": "हालको स्थानमा जानुहोस्",
 		"cd_add_location": "स्थान थप्नुहोस्",
 		"cd_back_to_locations": "स्थानहरूमा फर्कनुहोस्",
+		"cd_previous_location": "अघिल्लो स्थान",
+		"cd_next_location": "अर्को स्थान",
 		"detail_no_precip": "छैन",
 		"visibility_km": "%.1f km",
 		"visibility_mi": "%.2f mi",

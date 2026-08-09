@@ -158,6 +158,8 @@
 		"cd_go_to_current_location": "Aller à la position actuelle",
 		"cd_add_location": "Ajouter un emplacement",
 		"cd_back_to_locations": "Retour aux emplacements",
+		"cd_previous_location": "Emplacement précédent",
+		"cd_next_location": "Emplacement suivant",
 		"detail_no_precip": "Aucune",
 		"visibility_km": "%.1f km",
 		"visibility_mi": "%.2f mi",

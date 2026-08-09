@@ -158,6 +158,8 @@
 		"cd_go_to_current_location": "前往当前位置",
 		"cd_add_location": "添加位置",
 		"cd_back_to_locations": "返回位置列表",
+		"cd_previous_location": "上一个位置",
+		"cd_next_location": "下一个位置",
 		"detail_no_precip": "无",
 		"visibility_km": "%.1f km",
 		"visibility_mi": "%.2f mi",

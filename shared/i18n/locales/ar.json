@@ -158,6 +158,8 @@
 		"cd_go_to_current_location": "الانتقال إلى الموقع الحالي",
 		"cd_add_location": "إضافة موقع",
 		"cd_back_to_locations": "العودة إلى المواقع",
+		"cd_previous_location": "الموقع السابق",
+		"cd_next_location": "الموقع التالي",
 		"detail_no_precip": "لا يوجد",
 		"visibility_km": "%.1f km",
 		"visibility_mi": "%.2f mi",
