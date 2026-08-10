@@ -41,6 +41,8 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -154,6 +156,8 @@ internal fun WeatherContent(
     onToggleFavorite: () -> Unit = {},
     onSwipeToNextLocation: () -> Unit = {},
     onSwipeToPreviousLocation: () -> Unit = {},
+    canSwipeToNext: Boolean = false,
+    canSwipeToPrevious: Boolean = false,
     hasLocationOverride: Boolean = false,
     advancedOverrideLat: Double? = null,
     advancedOverrideLon: Double? = null,
@@ -752,6 +756,44 @@ internal fun WeatherContent(
         }
     }
     } // end CompositionLocalProvider(LocalScale)
+    if (canSwipeToPrevious) {
+        IconButton(
+            onClick = onSwipeToPreviousLocation,
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .padding(start = 8.dp)
+                .size(36.dp),
+            colors = IconButtonDefaults.iconButtonColors(
+                containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+            ),
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                contentDescription = stringResource(R.string.cd_previous_location),
+                modifier = Modifier.size(20.dp)
+            )
+        }
+    }
+    if (canSwipeToNext) {
+        IconButton(
+            onClick = onSwipeToNextLocation,
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .padding(end = 8.dp)
+                .size(36.dp),
+            colors = IconButtonDefaults.iconButtonColors(
+                containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+            ),
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = stringResource(R.string.cd_next_location),
+                modifier = Modifier.size(20.dp)
+            )
+        }
+    }
     IconButton(
         onClick = onOpenSettings,
         modifier = Modifier

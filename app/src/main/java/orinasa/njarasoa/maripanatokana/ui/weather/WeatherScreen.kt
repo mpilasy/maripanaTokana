@@ -369,6 +369,8 @@ fun WeatherScreen(
                                     viewModel.switchToLocation(locationCycle[locationCycleIndex - 1])
                                 }
                             },
+                            canSwipeToNext = locationCycleIndex in 0 until locationCycle.lastIndex,
+                            canSwipeToPrevious = locationCycleIndex > 0,
                             hasLocationOverride = advancedOverrideLat != null,
                             advancedOverrideLat = advancedOverrideLat,
                             advancedOverrideLon = advancedOverrideLon,
