@@ -1,0 +1,4 @@
+• Changement d'emplacement repensé : les icônes de recherche, favoris (♥) et position actuelle sont désormais dans l'en-tête
+• Rechercher un lieu l'affiche instantanément ; appuyez sur le cœur pour l'ajouter aux favoris
+• Balayez à gauche/droite — ou appuyez sur les nouvelles flèches — pour naviguer entre votre position actuelle et vos favoris
+• Le « Mode expert » s'appelle désormais « Mode avancé » dans les Réglages

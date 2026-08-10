@@ -6,6 +6,12 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.2.15] - 2026-08-09
+- Location switching redesigned: search, favorite (♥), and current-location icons now live in the header.
+- Searching a location previews it instantly; tap the heart icon to save it as a favorite.
+- Swipe left/right — or tap the new arrow buttons — to move between Current Location and your favorites.
+- "Expert Mode" is now called "Advanced Mode" in Settings.
+
 ## [1.2.14] - 2026-07-21
 - Cards now expand one at a time — opening one collapses any other that was open.
 - Switching to a different location now collapses all cards.

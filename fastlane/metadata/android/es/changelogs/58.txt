@@ -1,0 +1,4 @@
+• Rediseñado el cambio de ubicación: los iconos de búsqueda, favoritos (♥) y ubicación actual ahora están en la cabecera
+• Buscar una ubicación la muestra al instante; toca el corazón para guardarla como favorita
+• Desliza a izquierda/derecha — o toca las nuevas flechas — para moverte entre tu ubicación actual y tus favoritos
+• El "Modo experto" ahora se llama "Modo avanzado" en Ajustes

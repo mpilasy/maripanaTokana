@@ -1,0 +1,4 @@
+• Location switching redesigned: search, favorite (♥), and current-location icons now live in the header
+• Searching a location previews it instantly; tap the heart icon to save it as a favorite
+• Swipe left/right — or tap the new arrow buttons — to move between Current Location and your favorites
+• "Expert Mode" is now called "Advanced Mode" in Settings
