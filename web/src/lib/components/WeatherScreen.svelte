@@ -626,7 +626,7 @@
 	}
 
 	.location-nav-btn {
-		position: fixed;
+		position: absolute;
 		top: 50%;
 		transform: translateY(-50%);
 		z-index: 2;
