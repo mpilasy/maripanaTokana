@@ -104,7 +104,6 @@ fun WeatherScreen(
     }
 
     val searchResults by viewModel.searchResults.collectAsStateWithLifecycle()
-    val advancedModeActive by viewModel.advancedModeActive.collectAsStateWithLifecycle()
     val advancedOverrideLat by viewModel.advancedOverrideLat.collectAsStateWithLifecycle()
     val advancedOverrideLon by viewModel.advancedOverrideLon.collectAsStateWithLifecycle()
 
@@ -118,16 +117,9 @@ fun WeatherScreen(
 
     if (showSavedLocationsDialog) {
         SavedLocationsDialog(
-            savedLocations = savedLocations,
-            activeLocationId = activeLocationId,
             searchResults = searchResults,
-            advancedModeActive = advancedModeActive,
             onDismissRequest = { viewModel.setShowSavedLocationsDialog(false) },
-            onSelectCurrentLocation = { viewModel.switchToLocation(null) },
-            onSelectSavedLocation = { id -> viewModel.switchToLocation(id) },
-            onRemoveSavedLocation = { id -> viewModel.removeSavedLocation(id) },
-            onAddSearchResult = { result -> viewModel.addSavedLocation(result) },
-            onUseTemporarily = { result -> viewModel.setLocationOverride(result.latitude, result.longitude, result.displayName()) },
+            onSelectSearchResult = { result -> viewModel.setLocationOverride(result.latitude, result.longitude, result.displayName()) },
             searchQuery = { viewModel.searchLocation(it) },
         )
     }
@@ -362,9 +354,10 @@ fun WeatherScreen(
                             weatherSource = weatherSource,
                             showGpsCoordinates = showGpsCoordinates,
                             isSavedLocation = activeLocationId != null,
-                            onGoToCurrentLocation = {
-                                if (advancedOverrideLat != null) viewModel.clearLocationOverride()
-                                else viewModel.switchToLocation(null)
+                            onGoToCurrentLocation = { viewModel.switchToLocation(null) },
+                            onToggleFavorite = {
+                                if (activeLocationId != null) viewModel.unfavoriteCurrentLocation()
+                                else viewModel.favoriteCurrentLocation()
                             },
                             onSwipeToNextLocation = {
                                 if (locationCycleIndex in 0 until locationCycle.lastIndex) {

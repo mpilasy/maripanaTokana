@@ -18,8 +18,7 @@ import {
 	alertsWmoSwicEnabled, alertsBomEnabled, alertsNhcEnabled,
 } from '$lib/stores/preferences';
 import { SUPPORTED_LOCALES } from '$lib/i18n/locales';
-import { advancedModeActive, checkOverrideExpiry } from '$lib/stores/advancedMode';
-import { activeLocationId, savedLocations } from '$lib/stores/savedLocations';
+import { activeLocationId, savedLocations, locationOverride, checkOverrideExpiry } from '$lib/stores/savedLocations';
 
 export type WeatherState =
 	| { kind: 'loading' }
@@ -31,7 +30,7 @@ export const isRefreshing = writable<boolean>(false);
 
 const STALE_MS = 30 * 60 * 1000; // 30 minutes
 
-// Cached GPS weather data fetched in background during advanced mode
+// Cached GPS weather data fetched in background while previewing another location
 let cachedGpsWeatherData: WeatherData | null = null;
 
 async function fetchAtLocation(lat: number, lon: number, knownName?: string, knownSubtext?: string, localeTag?: string, updateAlerts = true): Promise<WeatherData> {
@@ -106,7 +105,7 @@ async function fetchAlertsForData(lat: number, lon: number, locationInfo?: Locat
 	}
 }
 
-/** Background-fetch GPS weather and cache it for when advanced mode is disabled */
+/** Background-fetch GPS weather and cache it for when the preview is cleared */
 function spawnGpsCacheRefresh() {
 	getPosition()
 		.then(async (fresh) => {
@@ -117,10 +116,10 @@ function spawnGpsCacheRefresh() {
 			const subtext = cached?.subtext;
 			const data = await fetchAtLocation(lat, lon, name, subtext, undefined, false);
 			cachedGpsWeatherData = data;
-			// Don't overwrite the location cache while advanced mode is active — it would corrupt
-			// the cached_location key and cause updateLocationName to reverse-geocode the
+			// Don't overwrite the location cache while previewing another location — it would
+			// corrupt the cached_location key and cause updateLocationName to reverse-geocode the
 			// wrong (real GPS) coordinates on language change.
-			if (!get(advancedModeActive)) {
+			if (!get(locationOverride)) {
 				cacheLocation(lat, lon, data.locationName, data.locationSubtext);
 			}
 		})
@@ -129,7 +128,7 @@ function spawnGpsCacheRefresh() {
 		});
 }
 
-/** Called when advanced mode is disabled to immediately show GPS weather */
+/** Called when a preview is cleared to immediately show GPS weather */
 export function restoreGpsWeather() {
 	if (cachedGpsWeatherData) {
 		setWeatherData(cachedGpsWeatherData);
@@ -150,21 +149,14 @@ export async function doFetchWeather() {
 	}
 
 	try {
-		if (get(advancedModeActive)) {
-			checkOverrideExpiry();
-			const lat = localStorage.getItem('advanced_override_lat');
-			const lon = localStorage.getItem('advanced_override_lon');
-			const name = localStorage.getItem('advanced_override_name');
-			const subtext = localStorage.getItem('advanced_override_subtext') || undefined;
-			if (lat && lon && name) {
-				const lLat = parseFloat(lat);
-				const lLon = parseFloat(lon);
-				const data = await fetchAtLocation(lLat, lLon, name, subtext);
-				setWeatherData(data);
-				isRefreshing.set(false);
-				spawnGpsCacheRefresh();
-				return;
-			}
+		checkOverrideExpiry();
+		const override = get(locationOverride);
+		if (override) {
+			const data = await fetchAtLocation(override.lat, override.lon, override.name, override.subtext);
+			setWeatherData(data);
+			isRefreshing.set(false);
+			spawnGpsCacheRefresh();
+			return;
 		}
 
 		const activeSavedId = get(activeLocationId);

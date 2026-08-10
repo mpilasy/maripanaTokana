@@ -35,8 +35,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Refresh
@@ -149,6 +151,7 @@ internal fun WeatherContent(
     showGpsCoordinates: Boolean = false,
     isSavedLocation: Boolean = false,
     onGoToCurrentLocation: () -> Unit = {},
+    onToggleFavorite: () -> Unit = {},
     onSwipeToNextLocation: () -> Unit = {},
     onSwipeToPreviousLocation: () -> Unit = {},
     hasLocationOverride: Boolean = false,
@@ -276,7 +279,7 @@ internal fun WeatherContent(
                         modifier = Modifier.size(32.sd(scale))
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Edit,
+                            imageVector = Icons.Default.Search,
                             contentDescription = stringResource(R.string.cd_manage_locations),
                             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                             modifier = Modifier.size(18.sd(scale))
@@ -284,6 +287,19 @@ internal fun WeatherContent(
                     }
 
                     if (isSavedLocation || hasLocationOverride) {
+                        IconButton(
+                            onClick = onToggleFavorite,
+                            modifier = Modifier.size(32.sd(scale))
+                        ) {
+                            Icon(
+                                imageVector = if (isSavedLocation) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                contentDescription = stringResource(
+                                    if (isSavedLocation) R.string.cd_remove_favorite else R.string.cd_add_favorite
+                                ),
+                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                                modifier = Modifier.size(18.sd(scale))
+                            )
+                        }
                         IconButton(
                             onClick = onGoToCurrentLocation,
                             modifier = Modifier.size(32.sd(scale))

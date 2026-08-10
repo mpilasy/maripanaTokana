@@ -98,10 +98,7 @@
     <string name="alert_count_title">%1$s 条警报</string>
     <string name="credits_weather_data">天气数据来自 </string>
     <string name="locations_title">位置</string>
-    <string name="locations_current">当前位置</string>
-    <string name="locations_remove">移除</string>
     <string name="locations_search_hint">搜索城市或邮编</string>
-    <string name="locations_add_title">添加位置</string>
     <string name="widget_description">当前天气与双单位温度</string>
     <string name="widget_description_large">天气详情，包含体感温度、湿度、风速和最低/最高温</string>
     <string name="cd_change_font">更换字体</string>
@@ -112,10 +109,10 @@
     <string name="cd_collapse">收起</string>
     <string name="cd_expand">展开</string>
     <string name="cd_refresh">刷新</string>
-    <string name="cd_manage_locations">管理位置</string>
+    <string name="cd_manage_locations">更改位置</string>
     <string name="cd_go_to_current_location">前往当前位置</string>
-    <string name="cd_add_location">添加位置</string>
-    <string name="cd_back_to_locations">返回位置列表</string>
+    <string name="cd_add_favorite">添加到收藏</string>
+    <string name="cd_remove_favorite">从收藏中移除</string>
     <string name="cd_previous_location">上一个位置</string>
     <string name="cd_next_location">下一个位置</string>
     <string name="detail_no_precip">无</string>

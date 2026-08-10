@@ -195,17 +195,21 @@ class WeatherViewModel @Inject constructor(
         }
     }
 
-    /** Sets a temporary (non-saved) location override for the currently displayed weather. Used
-     * from SavedLocationsDialog's "Use once" action when Advanced Mode is on. Expires after 12h. */
+    /** Previews a location without saving it: switches the displayed weather to it, but does not
+     * add it to the saved-locations list. Expires after 12h. Mutually exclusive with
+     * [switchToLocation] — starting a preview clears the active saved-location id, and switching
+     * to a real location clears an active preview. Use [favoriteCurrentLocation] to save it. */
     fun setLocationOverride(lat: Double, lon: Double, name: String) {
         prefs.edit {
             putFloat("advanced_override_lat", lat.toFloat())
             putFloat("advanced_override_lon", lon.toFloat())
             putString("advanced_override_name", name)
             putLong("advanced_override_set_time", System.currentTimeMillis())
+            remove("active_location_id")
         }
         _advancedOverrideLat.value = lat
         _advancedOverrideLon.value = lon
+        _activeLocationId.value = null
         _showSavedLocationsDialog.value = false
         _searchResults.value = emptyList()
         fetchWeather()
@@ -266,8 +270,34 @@ class WeatherViewModel @Inject constructor(
         if (_activeLocationId.value == id) switchToLocation(null)
     }
 
-    /** Switches the active location. Pass null to switch back to GPS ("Current Location"). */
+    /** Promotes the location currently being previewed (via [setLocationOverride]) into a saved
+     * favorite, and switches to it via its saved-location id. No-op if nothing is being previewed. */
+    fun favoriteCurrentLocation() {
+        val lat = _advancedOverrideLat.value ?: return
+        val lon = _advancedOverrideLon.value ?: return
+        val rawName = prefs.getString("advanced_override_name", null) ?: return
+        val parts = rawName.split(",", limit = 2).map { it.trim() }
+        val name = parts.getOrElse(0) { rawName }
+        val subtext = parts.getOrNull(1)?.ifBlank { null }
+        val id = "$lat,$lon"
+        val current = _savedLocations.value
+        if (current.none { it.id == id }) {
+            val updated = current + SavedLocation(id = id, name = name, subtext = subtext, latitude = lat, longitude = lon)
+            _savedLocations.value = updated
+            persistSavedLocations(updated)
+        }
+        switchToLocation(id)
+    }
+
+    /** Unfavorites the currently active saved location, if any. */
+    fun unfavoriteCurrentLocation() {
+        activeLocationId.value?.let { removeSavedLocation(it) }
+    }
+
+    /** Switches the active location. Pass null to switch back to GPS ("Current Location"). Clears
+     * any active preview (see [setLocationOverride]) — the two are mutually exclusive. */
     fun switchToLocation(id: String?) {
+        clearAdvancedModeOverride()
         _activeLocationId.value = id
         prefs.edit {
             if (id == null) remove("active_location_id") else putString("active_location_id", id)
@@ -361,7 +391,7 @@ class WeatherViewModel @Inject constructor(
             // Check 12-hour non-local override expiry
             checkOverrideExpiry()
 
-            if (advancedModeActive.value && prefs.contains("advanced_override_lat")) {
+            if (prefs.contains("advanced_override_lat")) {
                 val overrideLat = prefs.getFloat("advanced_override_lat", 0f).toDouble()
                 val overrideLon = prefs.getFloat("advanced_override_lon", 0f).toDouble()
                 val rawOverrideName = prefs.getString("advanced_override_name", "Overridden Location") ?: "Overridden Location"
@@ -394,7 +424,7 @@ class WeatherViewModel @Inject constructor(
             // Check 12-hour non-local override expiry
             checkOverrideExpiry()
 
-            if (advancedModeActive.value && prefs.contains("advanced_override_lat")) {
+            if (prefs.contains("advanced_override_lat")) {
                 val overrideLat = prefs.getFloat("advanced_override_lat", 0f).toDouble()
                 val overrideLon = prefs.getFloat("advanced_override_lon", 0f).toDouble()
                 val rawOverrideName = prefs.getString("advanced_override_name", "Overridden Location") ?: "Overridden Location"

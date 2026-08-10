@@ -98,10 +98,7 @@
     <string name="alert_count_title">%1$s अलर्ट</string>
     <string name="credits_weather_data">मौसम डाटा प्रदायक: </string>
     <string name="locations_title">स्थानहरू</string>
-    <string name="locations_current">हालको स्थान</string>
-    <string name="locations_remove">हटाउनुहोस्</string>
     <string name="locations_search_hint">सहर वा जिप कोड खोज्नुहोस्</string>
-    <string name="locations_add_title">स्थान थप्नुहोस्</string>
     <string name="widget_description">दुई एकाइमा हालको मौसम तापक्रम</string>
     <string name="widget_description_large">मौसम विवरण: अनुभूत तापक्रम, आर्द्रता, हावा र न्यूनतम/अधिकतम</string>
     <string name="cd_change_font">फन्ट परिवर्तन गर्नुहोस्</string>
@@ -112,10 +109,10 @@
     <string name="cd_collapse">सानो बनाउनुहोस्</string>
     <string name="cd_expand">विस्तार गर्नुहोस्</string>
     <string name="cd_refresh">रिफ्रेस</string>
-    <string name="cd_manage_locations">स्थानहरू व्यवस्थापन गर्नुहोस्</string>
+    <string name="cd_manage_locations">स्थान परिवर्तन गर्नुहोस्</string>
     <string name="cd_go_to_current_location">हालको स्थानमा जानुहोस्</string>
-    <string name="cd_add_location">स्थान थप्नुहोस्</string>
-    <string name="cd_back_to_locations">स्थानहरूमा फर्कनुहोस्</string>
+    <string name="cd_add_favorite">मनपर्ने मा थप्नुहोस्</string>
+    <string name="cd_remove_favorite">मनपर्ने बाट हटाउनुहोस्</string>
     <string name="cd_previous_location">अघिल्लो स्थान</string>
     <string name="cd_next_location">अर्को स्थान</string>
     <string name="detail_no_precip">छैन</string>
