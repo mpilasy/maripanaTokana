@@ -4,6 +4,8 @@
 
 This document describes how maripànaTokana is configured for F-Droid deployment, including the build process, flavors, and maintenance requirements. The app is currently listed on F-Droid as [`orinasa.njarasoa.maripanatokana`](https://f-droid.org/packages/orinasa.njarasoa.maripanatokana/).
 
+A hosted instance of the Web (PWA) version, kept in feature parity with the Android app, is available at [maripana.njarasoa.org](https://maripana.njarasoa.org) — no install needed.
+
 ## Gradle/JDK Configuration for F-Droid CI
 
 F-Droid's build server runs OpenJDK 21. Kotlin 2.x defaults to requesting JetBrains JDK 21 for the compiler daemon. If the build config isn't set up correctly, CI fails. This section documents every setting that matters and why.

@@ -1,5 +1,7 @@
 maripànaTokana dia fampiharana toetr'andro iray milaza ny mombamomba ny toetry ny andro amin'izao fotoana izao, ny vinany ho an'ny ora vitsivitsy manaraka, ary ny vinanin-toetr'andro 10 andro manaraka koa.
 
+Azo jerena ihany koa amin'ny fampiharana Web (tsy mila apetraka) ao amin'ny maripana.njarasoa.org.
+
 <b>Ny mampiavaka azy:</b>
 • Tarehimarika toetr'andro avy amin'ny Open-Meteo (tsy ilana ny API key)
 • Fampisehoana marirefy roa miaraka: metrika sy mpanjanaka aseho miaraka

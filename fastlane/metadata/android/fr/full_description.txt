@@ -1,5 +1,7 @@
 maripànaTokana (Malgache pour "un thermomètre unique") est une application météo affichant les conditions actuelles, les prévisions horaires et les perspectives de 10 jours.
 
+Également disponible en tant qu'application web (sans installation) sur maripana.njarasoa.org.
+
 • Données météorologiques en temps réel d'Open-Meteo (aucune clé API requise)
 • Affichage à double unité : métrique et impérial simultanément
 • 8 langues supportées

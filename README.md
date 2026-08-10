@@ -1,6 +1,6 @@
 # maripànaTokana
 
-**maripànaTokana** (Malagasy for "a single thermometer") is a weather application available for Android and as a [PWA (Web)](./web). It shows current conditions, hourly forecasts, and a 10-day outlook. It always displays both metric and imperial units side by side, and supports 8 languages with 22 font pairings.
+**maripànaTokana** (Malagasy for "a single thermometer") is a weather application available for Android and as a [PWA (Web)](./web). A hosted instance of the Web version is available at **[maripana.njarasoa.org](https://maripana.njarasoa.org)** — no install needed. It shows current conditions, hourly forecasts, and a 10-day outlook. It always displays both metric and imperial units side by side, and supports 8 languages with 22 font pairings.
 
 ## Features
 
@@ -66,6 +66,8 @@
 [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
      alt="Get it on F-Droid"
      height="80">](https://f-droid.org/packages/orinasa.njarasoa.maripanatokana/)
+
+**Web**: No install needed — use the hosted PWA at [maripana.njarasoa.org](https://maripana.njarasoa.org).
 
 The app is distributed in two flavors:
 - **F-Droid**: Uses native Android LocationManager (no Google Play Services dependency)

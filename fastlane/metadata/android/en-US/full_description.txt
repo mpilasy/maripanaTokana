@@ -1,5 +1,7 @@
 maripànaTokana (Malagasy for "a single thermometer") is a phone-only weather app that displays current conditions, hourly forecasts, and a 10-day outlook.
 
+Also available as a web app (no install needed) at maripana.njarasoa.org.
+
 <b>Key Features:</b>
 • Real-time weather from Open-Meteo (no API key needed)
 • Dual-unit display: metric and imperial shown simultaneously
