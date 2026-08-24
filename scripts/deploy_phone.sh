@@ -5,7 +5,7 @@ APP_ID="orinasa.njarasoa.maripanatokana"
 MAIN_ACTIVITY="${APP_ID}/.MainActivity"
 
 # 1. Detect attached phone (non-TV device)
-TARGET_DEVICE="${DEVICE_ID:-${DEVICE:-}}"
+TARGET_DEVICE="${DEVICE_ID:-}"
 
 if [ -z "$TARGET_DEVICE" ]; then
     echo "Detecting attached phone..."
