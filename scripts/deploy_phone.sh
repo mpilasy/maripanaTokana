@@ -54,8 +54,4 @@ else
     exit 1
 fi
 
-# 4. Launch app
-echo "Launching $APP_ID..."
-adb -s "$TARGET_DEVICE" shell am start -n "$MAIN_ACTIVITY" >/dev/null
-
 echo "Done!"
