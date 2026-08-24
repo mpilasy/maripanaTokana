@@ -15,9 +15,15 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.domain.model.DailyForecast
+import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 import java.util.Calendar
 
 // EPA UV Index tier boundaries (see UvTierBadge.colorsFor) — sampling colorsFor() at these
@@ -34,6 +40,9 @@ fun DailyUvChart(
     modifier: Modifier = Modifier,
 ) {
     if (forecasts.isEmpty()) return
+
+    val textMeasurer = rememberTextMeasurer()
+    val displayFont = LocalDisplayFont.current
 
     val uvValues = remember(forecasts) { forecasts.map { it.uvIndexMax } }
     val uvMax = remember(uvValues) { uvValues.maxOrNull() ?: 0.0 }
@@ -115,6 +124,21 @@ fun DailyUvChart(
 
             uvPoints.forEachIndexed { i, point ->
                 drawCircle(color = colorsFor(uvValues[i]).background, radius = 3.dp.toPx(), center = point)
+            }
+
+            // Draw peak UV label below peak point
+            if (uvPoints.isNotEmpty()) {
+                val maxUvVal = uvValues.maxOrNull() ?: 0.0
+                val maxIndices = uvValues.indices.filter { uvValues[it] == maxUvVal }
+                val maxMiddleIdx = maxIndices[maxIndices.size / 2]
+                val peakPoint = uvPoints[maxMiddleIdx]
+                val peakColor = colorsFor(maxUvVal).background
+                val peakText = "UV ${maxUvVal.toInt()}"
+                val peakStyle = TextStyle(color = peakColor, fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont)
+                val peakLayout = textMeasurer.measure(peakText, peakStyle)
+                val textX = (peakPoint.x - peakLayout.size.width / 2f).coerceIn(4.dp.toPx(), width - peakLayout.size.width - 4.dp.toPx())
+                val textY = (peakPoint.y + 4.dp.toPx()).coerceIn(2.dp.toPx(), height - peakLayout.size.height)
+                drawText(peakLayout, topLeft = Offset(textX, textY))
             }
         }
         }

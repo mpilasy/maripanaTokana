@@ -16,11 +16,13 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import orinasa.njarasoa.maripanatokana.domain.model.HourlyForecast
+import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 import java.util.Calendar
 
 @Composable
@@ -35,6 +37,9 @@ fun TemperatureChart(
     totalScrollWidth: Float = 0f,
 ) {
     if (forecasts.isEmpty()) return
+
+    val textMeasurer = rememberTextMeasurer()
+    val displayFont = LocalDisplayFont.current
 
     val temps = remember(forecasts, metricPrimary) {
         forecasts.map { if (metricPrimary) it.temperature.celsius else it.temperature.fahrenheit }
@@ -76,7 +81,6 @@ fun TemperatureChart(
         }.filter { it != -1 }
     }
 
-    val textMeasurer = rememberTextMeasurer()
     val gridColor = MaterialTheme.colorScheme.onSurface
 
     Box(modifier = modifier) {
@@ -196,6 +200,34 @@ fun TemperatureChart(
                     radius = 3.dp.toPx(),
                     center = point
                 )
+            }
+
+            // Draw peak max temperature label (below peak line)
+            val minY = points.minOf { it.y }
+            val maxIndices = points.indices.filter { points[it].y == minY }
+            val maxMiddleIdx = maxIndices[maxIndices.size / 2]
+            val maxPoint = points[maxMiddleIdx]
+            val maxTempObj = forecasts[maxMiddleIdx].temperature
+            val maxTempText = if (metricPrimary) maxTempObj.displayCelsius() else maxTempObj.displayFahrenheit()
+            val maxLabelStyle = TextStyle(color = Color(0xFFFF7043), fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont)
+            val maxLayout = textMeasurer.measure(maxTempText, maxLabelStyle)
+            val maxTextX = (maxPoint.x - maxLayout.size.width / 2f).coerceIn(4.dp.toPx(), totalScrollWidth - maxLayout.size.width - 4.dp.toPx())
+            val maxTextY = (maxPoint.y + 4.dp.toPx()).coerceIn(2.dp.toPx(), height - maxLayout.size.height)
+            drawText(maxLayout, topLeft = Offset(maxTextX, maxTextY))
+
+            // Draw trough min temperature label (above trough line)
+            val maxY = points.maxOf { it.y }
+            val minIndices = points.indices.filter { points[it].y == maxY }
+            val minMiddleIdx = minIndices[minIndices.size / 2]
+            val minPoint = points[minMiddleIdx]
+            val minTempObj = forecasts[minMiddleIdx].temperature
+            val minTempText = if (metricPrimary) minTempObj.displayCelsius() else minTempObj.displayFahrenheit()
+            val minLabelStyle = TextStyle(color = Color(0xFF64B5F6), fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont)
+            val minLayout = textMeasurer.measure(minTempText, minLabelStyle)
+            val minTextX = (minPoint.x - minLayout.size.width / 2f).coerceIn(4.dp.toPx(), totalScrollWidth - minLayout.size.width - 4.dp.toPx())
+            val minTextY = (minPoint.y - minLayout.size.height - 2.dp.toPx()).coerceAtLeast(0f)
+            if (Math.abs(maxPoint.x - minPoint.x) > 30.dp.toPx() || Math.abs(maxTextY - minTextY) > 12.dp.toPx()) {
+                drawText(minLayout, topLeft = Offset(minTextX, minTextY))
             }
 
             // Viewport overlay: dim the parts outside the currently visible window

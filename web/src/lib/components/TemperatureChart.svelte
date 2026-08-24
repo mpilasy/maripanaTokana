@@ -121,6 +121,28 @@
 		return `${linePathStr} L ${points[points.length - 1].x.toFixed(1)} ${height} L ${points[0].x.toFixed(1)} ${height} Z`;
 	});
 
+	let maxPointInfo = $derived.by(() => {
+		if (points.length === 0 || forecasts.length === 0) return null;
+		const minY = Math.min(...points.map(p => p.y));
+		const maxIndices = points.map((p, i) => p.y === minY ? i : -1).filter(i => i !== -1);
+		const midIdx = maxIndices[Math.floor(maxIndices.length / 2)];
+		const pt = points[midIdx];
+		const tempObj = forecasts[midIdx].temperature;
+		const label = metricPrimary ? tempObj.displayCelsius() : tempObj.displayFahrenheit();
+		return { x: pt.x, y: Math.min(height - 4, pt.y + 12), label };
+	});
+
+	let minPointInfo = $derived.by(() => {
+		if (points.length === 0 || forecasts.length === 0) return null;
+		const maxY = Math.max(...points.map(p => p.y));
+		const minIndices = points.map((p, i) => p.y === maxY ? i : -1).filter(i => i !== -1);
+		const midIdx = minIndices[Math.floor(minIndices.length / 2)];
+		const pt = points[midIdx];
+		const tempObj = forecasts[midIdx].temperature;
+		const label = metricPrimary ? tempObj.displayCelsius() : tempObj.displayFahrenheit();
+		return { x: pt.x, y: Math.max(10, pt.y - 2), label };
+	});
+
 	let showViewport = $derived(containerWidth > 0 && totalWidth > containerWidth);
 	let vpLeft = $derived(showViewport ? Math.max(0, scrollLeft / totalWidth * svgWidth) : 0);
 	let vpRight = $derived(showViewport ? Math.min(svgWidth, (scrollLeft + containerWidth) / totalWidth * svgWidth) : svgWidth);
@@ -167,6 +189,13 @@
 	{#each points as point}
 		<circle cx={point.x} cy={point.y} r="3" fill="white" />
 	{/each}
+
+	{#if maxPointInfo}
+		<text x={maxPointInfo.x} y={maxPointInfo.y} text-anchor="middle" font-size="9" font-weight="bold" fill="#FF7043">{maxPointInfo.label}</text>
+	{/if}
+	{#if minPointInfo}
+		<text x={minPointInfo.x} y={minPointInfo.y} text-anchor="middle" font-size="9" font-weight="bold" fill="#64B5F6">{minPointInfo.label}</text>
+	{/if}
 
 	<!-- Viewport overlay: dim the portions outside the visible window -->
 	{#if showViewport}

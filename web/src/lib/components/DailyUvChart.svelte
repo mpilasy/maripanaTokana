@@ -120,6 +120,16 @@
 	}
 
 	let uvPath = $derived(generateMonotonePath(uvPoints));
+
+	let peakUvInfo = $derived.by(() => {
+		if (forecasts.length === 0 || uvPoints.length === 0) return null;
+		const maxVal = Math.max(...forecasts.map(f => f.uvIndexMax));
+		const maxIndices = forecasts.map((f, i) => f.uvIndexMax === maxVal ? i : -1).filter(i => i !== -1);
+		const midIdx = maxIndices[Math.floor(maxIndices.length / 2)];
+		const pt = uvPoints[midIdx];
+		const color = pt.color;
+		return { x: pt.x, y: Math.min(height - 4, pt.y + 12), uv: Math.round(maxVal).toString(), color };
+	});
 </script>
 
 <div class="daily-chart-row" bind:this={container}>
@@ -148,6 +158,10 @@
 			{#each uvPoints as point}
 				<circle cx={point.x} cy={point.y} r="3" fill={point.color} />
 			{/each}
+
+			{#if peakUvInfo}
+				<text x={peakUvInfo.x} y={peakUvInfo.y} text-anchor="middle" font-size="9" font-weight="bold" fill={peakUvInfo.color}>UV {peakUvInfo.uv}</text>
+			{/if}
 		</svg>
 	</div>
 </div>

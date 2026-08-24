@@ -22,10 +22,12 @@ import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.domain.model.AqiStandard
 import orinasa.njarasoa.maripanatokana.domain.model.AqiTier
 import orinasa.njarasoa.maripanatokana.domain.model.HourlyAirQuality
+import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 import java.util.Calendar
 
 /**
@@ -44,6 +46,8 @@ fun AirQualityChart(
     lineColor: Color = Color.White,
 ) {
     if (forecasts.isEmpty()) return
+
+    val textMeasurer = rememberTextMeasurer()
 
     val values = remember(forecasts, primaryStandard) {
         forecasts.map { if (primaryStandard == AqiStandard.EUROPEAN) it.europeanValue else it.usValue }
@@ -85,8 +89,7 @@ fun AirQualityChart(
     val dotColors = remember(forecasts, primaryStandard) {
         forecasts.map { colorsFor(it.tier(primaryStandard)).background }
     }
-
-    val textMeasurer = rememberTextMeasurer()
+    val displayFont = LocalDisplayFont.current
     val gridColor = MaterialTheme.colorScheme.onSurface
 
     Column(modifier = modifier) {
@@ -176,6 +179,21 @@ fun AirQualityChart(
                     radius = 4.dp.toPx(),
                     center = point
                 )
+            }
+
+            // Draw peak AQI label above peak point
+            if (points.isNotEmpty()) {
+                val maxAqiVal = values.maxOrNull() ?: 0
+                val maxIndices = values.indices.filter { values[it] == maxAqiVal }
+                val maxMiddleIdx = maxIndices[maxIndices.size / 2]
+                val peakPoint = points[maxMiddleIdx]
+                val peakColor = dotColors[maxMiddleIdx]
+                val peakText = "AQI $maxAqiVal"
+                val peakStyle = TextStyle(color = peakColor, fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont)
+                val peakLayout = textMeasurer.measure(peakText, peakStyle)
+                val textX = (peakPoint.x - peakLayout.size.width / 2f).coerceIn(4.dp.toPx(), width - peakLayout.size.width - 4.dp.toPx())
+                val textY = (peakPoint.y - peakLayout.size.height - 4.dp.toPx()).coerceAtLeast(0f)
+                drawText(peakLayout, topLeft = Offset(textX, textY))
             }
         }
         }

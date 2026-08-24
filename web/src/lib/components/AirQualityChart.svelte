@@ -122,6 +122,16 @@
 		if (points.length < 2 || !linePathStr) return '';
 		return `${linePathStr} L ${points[points.length - 1].x.toFixed(1)} ${height} L ${points[0].x.toFixed(1)} ${height} Z`;
 	});
+
+	let peakAqiInfo = $derived.by(() => {
+		if (values.length === 0 || points.length === 0) return null;
+		const maxVal = Math.max(...values);
+		const maxIndices = values.map((v, i) => v === maxVal ? i : -1).filter(i => i !== -1);
+		const midIdx = maxIndices[Math.floor(maxIndices.length / 2)];
+		const pt = points[midIdx];
+		const color = dotColors[midIdx];
+		return { x: pt.x, y: Math.max(10, pt.y - 4), aqi: Math.round(maxVal).toString(), color };
+	});
 </script>
 
 <div class="chart-row" bind:this={container}>
@@ -159,6 +169,10 @@
 			{#each points as point, i}
 				<circle cx={point.x} cy={point.y} r="4" fill={dotColors[i]} />
 			{/each}
+
+			{#if peakAqiInfo}
+				<text x={peakAqiInfo.x} y={peakAqiInfo.y} text-anchor="middle" font-size="9" font-weight="bold" fill={peakAqiInfo.color}>AQI {peakAqiInfo.aqi}</text>
+			{/if}
 		</svg>
 	</div>
 </div>
