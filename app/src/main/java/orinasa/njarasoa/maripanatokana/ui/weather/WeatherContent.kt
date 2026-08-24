@@ -394,7 +394,7 @@ internal fun WeatherContent(
                             graphicsLayer.record {
                                 this@drawWithContent.drawContent()
                             }
-                            drawLayer(graphicsLayer)
+                            drawContent()
                         },
                     shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(containerColor = CardBlue.copy(alpha = 0.6f))

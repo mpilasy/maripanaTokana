@@ -1,0 +1,1 @@
+Prise en charge du partage de localisation depuis les cartes, transitions plus fluides et étiquettes sur les graphiques.

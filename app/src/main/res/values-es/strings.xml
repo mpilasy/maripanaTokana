@@ -50,8 +50,8 @@
     <string name="section_activities">Actividades</string>
     <string name="section_nowcast">Pronóstico minuto a minuto</string>
     <string name="nowcast_no_precip">No se esperan precipitaciones en las próximas 2 horas</string>
-    <string name="nowcast_starts_in">Precipitación en ~{minutes} min</string>
-    <string name="nowcast_stopping_in">Precipitación cesará en ~{minutes} min</string>
+    <string name="nowcast_starts_in">Precipitación en ~%1$s min</string>
+    <string name="nowcast_stopping_in">Precipitación cesará en ~%1$s min</string>
     <string name="nowcast_ongoing">Precipitación prevista para las próximas 2 horas</string>
     <string name="activity_running">Carrera a pie</string>
     <string name="activity_laundry">Secado de ropa</string>

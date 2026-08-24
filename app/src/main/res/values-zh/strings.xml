@@ -50,8 +50,8 @@
     <string name="section_activities">生活指数</string>
     <string name="section_nowcast">逐分钟预报</string>
     <string name="nowcast_no_precip">未来 2 小时无降水预报</string>
-    <string name="nowcast_starts_in">预计约 {minutes} 分钟后开始降水</string>
-    <string name="nowcast_stopping_in">预计约 {minutes} 分钟后降水停止</string>
+    <string name="nowcast_starts_in">预计约 %1$s 分钟后开始降水</string>
+    <string name="nowcast_stopping_in">预计约 %1$s 分钟后降水停止</string>
     <string name="nowcast_ongoing">预计未来 2 小时持续降水</string>
     <string name="activity_running">跑步</string>
     <string name="activity_laundry">晾晒衣物</string>

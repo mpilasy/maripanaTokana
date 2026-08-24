@@ -1,0 +1,1 @@
+Soporte para compartir ubicaciones desde mapas, transiciones más fluidas y etiquetas en gráficos de tendencias.

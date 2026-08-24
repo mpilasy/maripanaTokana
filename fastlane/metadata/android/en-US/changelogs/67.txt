@@ -1,0 +1,1 @@
+Added location sharing support to open map links directly, smoother location switching, and peak/trough trend chart labels.
