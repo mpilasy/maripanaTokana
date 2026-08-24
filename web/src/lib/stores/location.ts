@@ -32,7 +32,11 @@ export function movedSignificantly(
 	lat1: number, lon1: number,
 	lat2: number, lon2: number
 ): boolean {
-	return Math.abs(lat1 - lat2) > MOVE_THRESHOLD || Math.abs(lon1 - lon2) > MOVE_THRESHOLD;
+	const dlat = lat1 - lat2;
+	const cosLat = Math.cos(((lat1 + lat2) / 2) * (Math.PI / 180));
+	const dlon = (lon1 - lon2) * cosLat;
+	const result = (dlat * dlat + dlon * dlon) > (MOVE_THRESHOLD * MOVE_THRESHOLD);
+	return result;
 }
 
 export function getPosition(): Promise<{ lat: number; lon: number }> {

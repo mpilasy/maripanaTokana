@@ -1,13 +1,16 @@
 # maripànaTokana
 
-**maripànaTokana** (Malagasy for "a single thermometer") is a weather application available for Android and as a [PWA (Web)](./web). A hosted instance of the Web version is available at **[maripana.njarasoa.org](https://maripana.njarasoa.org)** — no install needed. It shows current conditions, hourly forecasts, and a 10-day outlook. It always displays both metric and imperial units side by side, and supports 8 languages with 22 font pairings.
+**maripànaTokana** (Malagasy for "a single thermometer") is a weather application available for Android and as a [PWA (Web)](./web). A hosted instance of the Web version is available at **[maripana.njarasoa.org](https://maripana.njarasoa.org)** — no install needed. It shows current conditions, hourly forecasts, 7-day forecasts with trend charts, air quality and UV forecast trends, and multi-location favorites. It always displays both metric and imperial units side by side, and supports 8 languages with 22 font pairings.
 
 ## Features
 
 - **Cross-Platform Parity**: Features on the Android and Web versions are kept in sync to provide a consistent experience.
-- **Expert Mode**: Toggle it on in Settings to unlock a 12-hour session with advanced options.
+- **Multi-Location Favorites**: Header location search, favorite locations list (♥), and left/right swipe or arrow navigation between saved places.
+- **Air Quality & UV Forecasts**: 48-hour AQI trend line chart with colored tier dots and 7-day UV trend line chart with severity tier badges.
+- **7-Day Forecast Trend Chart**: Horizontal scrolling daily forecast cards paired with a matching 7-day temperature trend line chart.
+- **Advanced Mode**: Toggle it on in Settings to unlock a 12-hour session with advanced options.
   - **Location Override**: Search for any city or enter specific coordinates to test weather in other regions.
-  - **Quick Reset**: Toggle Expert Mode off in Settings to immediately clear overrides and return to your actual location.
+  - **Quick Reset**: Toggle Advanced Mode off in Settings to immediately clear overrides and return to your actual location.
   - **Search History**: Recent overrides are cached for quick switching.
 - **Enhanced Location Display**:
   - **Two-line Header**: Shows the city/locality on the first line and the region/country on a discreet second line.
@@ -19,6 +22,7 @@
 - GPS location with two-step strategy (instant cached + fresh background)
 - **Dual-unit display**: every measurement shows both metric and imperial simultaneously
 - **Tap to toggle**: tap any value to swap which unit is primary (bold/large) vs secondary (dimmer)
+- **Single-card accordion**: opening one card collapses any other open card; switching locations collapses all cards
 - **8 languages**: Malagasy, Arabic, English, Spanish, French, Hindi, Nepali, Chinese — cycled via flag button in footer
 - **22 font pairings** including Roboto + Lora: cycled via font icon in footer
 - Native digit rendering for Hindi, Arabic, and Nepali

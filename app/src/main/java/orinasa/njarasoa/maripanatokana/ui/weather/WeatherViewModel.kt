@@ -517,11 +517,16 @@ class WeatherViewModel @Inject constructor(
     private fun movedSignificantly(lat: Double, lon: Double): Boolean {
         val oldLat = prefs.getFloat("last_render_lat", Float.MIN_VALUE)
         val oldLon = prefs.getFloat("last_render_lon", Float.MIN_VALUE)
-        if (oldLat == Float.MIN_VALUE) return true
-        val dlat = lat - oldLat
-        val dlon = lon - oldLon
-        // ~5 km threshold (0.045 degrees latitude ≈ 5 km)
-        return dlat * dlat + dlon * dlon > 0.045 * 0.045
+        val isMoved = if (oldLat == Float.MIN_VALUE) {
+            true
+        } else {
+            val dlat = lat - oldLat
+            val cosLat = Math.cos(Math.toRadians((lat + oldLat) / 2.0))
+            val dlon = (lon - oldLon) * cosLat
+            // ~5 km threshold (0.045 degrees latitude ≈ 5 km)
+            dlat * dlat + dlon * dlon > 0.045 * 0.045
+        }
+        return isMoved
     }
 
     private fun saveLocation(lat: Double, lon: Double) {

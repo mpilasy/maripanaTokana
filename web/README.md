@@ -1,12 +1,16 @@
 # maripána Tokana PWA
 
-**maripána Tokana** (Malagasy for "a single thermometer") is a Progressive Web App weather dashboard that shows current conditions, hourly forecasts, and a 10-day outlook. It always displays both metric and imperial units side by side, and supports 8 languages with 22 font pairings.
+**maripána Tokana** (Malagasy for "a single thermometer") is a Progressive Web App weather dashboard that shows current conditions, hourly forecasts, 7-day forecasts with trend charts, air quality and UV forecast trends, and multi-location favorites. It always displays both metric and imperial units side by side, and supports 8 languages with 22 font pairings.
 
 This is the web port of the [Android app](../), built with SvelteKit.
 
 ## Features
 
 - Real-time weather data from [Open-Meteo](https://open-meteo.com) (default, no key) or [Pirate Weather](https://pirateweather.net) (optional, requires API key)
+- **Multi-Location Favorites**: Header location search, favorite places list (♥), and left/right swipe or arrow navigation between saved places
+- **Air Quality & UV Forecasts**: 48-hour AQI trend line chart with colored tier dots and 7-day UV trend line chart with severity tier badges
+- **7-Day Forecast Trend Chart**: Horizontal scrolling daily forecast cards paired with a matching 7-day temperature trend line chart
+- **Single-Card Accordion**: Opening one card collapses any other open card; switching locations collapses all cards
 - **Settings screen**: pluggable weather source, API key test flow, per-source alert toggles, geocoding info
 - **8 alert sources**: NWS (US), GDACS (global), MeteoAlarm (Europe), JMA (Japan), ECCC (Canada), BOM (Australia), NHC (hurricanes), WMO SWIC (global) — each individually toggleable
 - GPS location with two-step strategy (instant cached + fresh background)
@@ -21,15 +25,15 @@ This is the web port of the [Android app](../), built with SvelteKit.
 - Edge-to-edge Blue Marble background
 - **Screenshot sharing**: capture any section as a branded PNG via `html2canvas` + Web Share API (with download fallback)
 - **Installable PWA** with offline support (service worker with NetworkFirst caching)
-- **Expert Mode**: Toggle it on in Settings to unlock a 12-hour session with advanced options.
+- **Advanced Mode**: Toggle it on in Settings to unlock a 12-hour session with advanced options.
   - **Location Override**: Search for any city or enter specific coordinates to test weather in other regions.
-  - **Quick Reset**: Toggle Expert Mode off in Settings to immediately clear overrides and return to your actual location.
+  - **Quick Reset**: Toggle Advanced Mode off in Settings to immediately clear overrides and return to your actual location.
   - **My Location**: Convenient icon next to the search field to reset to device GPS.
 - **Enhanced Location Display**:
   - **Two-line Header**: Shows the city/locality on the first line and the region/country on a discreet second line.
   - **Smart Parsing**: Automatically cleans location names while preserving essential locality names.
   - **DMS Coordinates**: Tap the location to toggle GPS coordinates displayed in Degrees, Minutes, and Seconds (DMS) format across two lines.
-- Collapsible sections with slide animation for hourly, daily, and conditions
+- Collapsible sections with slide animation for hourly, daily, conditions, AQI, and UV
 - **Dual-language error screen**: shows browser language as secondary when different from app language
 - **Single-file build**: CSS inlined into HTML, JS consolidated into one bundle via `manualChunks`
 - Detailed weather information:
@@ -38,12 +42,13 @@ This is the web port of the [Android app](../), built with SvelteKit.
   - Humidity (%) with dew point (°C / °F)
   - Wind speed and direction with cardinal compass (m/s / mph)
   - Wind gusts (when available)
-  - UV index with severity label
+  - UV index with severity label & 7-day trend forecast
+  - Air Quality index with pollutant breakdown dialog & 48h trend forecast
   - Precipitation (rain/snow in mm / inches)
   - Visibility (km / mi)
   - Sunrise/sunset times
   - Hourly forecast (24h horizontal scroll)
-  - 10-day daily forecast
+  - 7-day daily forecast (horizontal scroll + trend chart)
 
 ## Tech Stack
 

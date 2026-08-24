@@ -1,140 +1,70 @@
 # Competitor Feature Parity Plan — Google Weather & WeatherBug
 
-Gap analysis against the two most common mainstream weather apps, and a phased plan to close
-the gaps that are worth closing. Written the same way `AIR_QUALITY_FORECAST_PLAN.md` was: a
-roadmap, not yet implemented. Each phase should get its own per-feature design doc (same style
-as `AIR_QUALITY_FORECAST_PLAN.md`) before implementation starts.
+Gap analysis against the two most common mainstream weather apps, tracking shipped features and the remaining roadmap.
 
-## What we already have (verified against the codebase, not assumed)
+## What We Have (Verified against current v1.2.x codebase)
 
-- **Weather data**: Open-Meteo (default, keyless) + Pirate Weather (optional, user key),
-  switchable in Expert Mode.
-- **Alerts**: 8 official sources (NWS, GDACS, MeteoAlarm, JMA, ECCC, BOM, NHC, WMO SWIC), each
-  individually toggleable, **plus algorithmically derived alerts** (thunderstorm, heavy
-  rain/snow, high wind, extreme heat/cold, high UV) computed client-side from current
-  conditions — this is a feature neither competitor has in this form.
-- **Forecasts**: 24-hour hourly, 7-day daily. (Note: `AGENTS.md` says "10-day outlook" — that's
-  stale; `OpenMeteoApiService.kt` requests `forecast_days=7`. Worth fixing separately.)
-- **Air quality**: US AQI + European AQI (dual standard) with full per-pollutant breakdown and
-  tiering — ahead of WeatherBug's "in-depth look," roughly at parity with Google's AQI card.
-- **UV index**: current + daily max, tiered.
-- **Sunrise/sunset**: current day + 7-day array.
+- **Weather data**: Open-Meteo (default, keyless) + Pirate Weather (optional, user key), switchable in Advanced Mode.
+- **Alerts**: 8 official sources (NWS, GDACS, MeteoAlarm, JMA, ECCC, BOM, NHC, WMO SWIC), each individually toggleable. (Derived/algorithmic alerts were removed in v1.2.1 to prevent false alarms).
+- **Forecasts**: 24-hour hourly, 7-day daily with horizontal scrolling and matching trend chart.
+- **Air quality**: US AQI + European AQI (dual standard) with full per-pollutant breakdown dialog, category tier badges, and a 48-hour AQI trend forecast chart.
+- **Pollen index**: Grass, birch, and alder pollen counts with risk tier badges inside the Air Quality detail dialog.
+- **UV index**: Live reading in Current Conditions, category tier badge, and a 7-day UV trend forecast card.
+- **Multi-location / Saved locations**: Header search, favorite places (♥), and swipe/arrow navigation between Current Location and saved locations.
+- **Sunrise/sunset**: Current day + daily forecast array.
 - **Widgets** (Android only): 4x1 and 4x2 Glance widgets, 30-min WorkManager refresh.
-- **Dual units, 22 fonts, 8 languages incl. RTL/native digits, screenshot sharing, Expert Mode
-  location override** — no competitor has this combination; not part of the gap analysis below.
+- **Dual units, 22 fonts, 8 languages incl. RTL/native digits, screenshot sharing, Advanced Mode location override** — no competitor has this combination.
 
-## Gap analysis
+## Gap Analysis & Status
 
-| Feature | Google Weather | WeatherBug | Us | Gap |
+| Feature | Google Weather | WeatherBug | Us | Status |
 |---|---|---|---|---|
-| Precipitation/storm radar map | Yes (Weather Map, 8h precip animation) | Yes (20+ map layers) | **None** | Large |
-| Minute-by-minute precip nowcast | Yes (Google nowcast, ~12h) | Partial (via radar) | **None** | Large |
-| Push / background severe-weather notifications | Yes | Yes (Spark lightning alerts) | **None** (in-app banner only) | Large |
-| Multi-location / saved locations | Yes | Yes | **None** (single active location) | Large |
-| Pollen index | Yes | Yes | **None** | Medium |
-| Lightning tracking | No | Yes (Spark, signature feature) | **None** | Medium |
-| Historical weather / "on this day" | No | Partial | **None** | Small |
-| Moon phase | No (not prominent) | No (not prominent) | **None** | Small (low priority — neither competitor emphasizes it) |
-| AI-generated natural-language summary | Yes (AI Weather Report) | No | **None** | Small/optional |
-| Life/activity indices (running, drying, etc.) | Partial | No | **None** | Small |
-| Weather cameras / crowdsourced PWS network | No | Yes (Earth Networks sensor network) | **None** | Not pursued (see below) |
-| Air quality (depth) | Yes | Yes | **Yes, ahead** | None |
-| UV index | Yes | Yes | **Yes** | None |
-| Derived/algorithmic alerts | No | No | **Yes** | We're ahead |
+| Multi-location / saved locations | Yes | Yes | **Yes** | **Completed (v1.2.15)** |
+| Air quality forecast (48h trend) | Yes | Yes | **Yes** | **Completed (v1.2.12)** |
+| Pollen index | Yes | Yes | **Yes** (CAMS region) | **Completed (v1.2.5)** |
+| UV forecast (7-day trend) | Yes | Yes | **Yes** | **Completed (v1.2.12)** |
+| Official severe-weather alerts | Yes | Yes | **Yes** (8 sources) | **Completed (v1.1.0)** |
+| Precipitation/storm radar map | Yes (Weather Map, 8h precip animation) | Yes (20+ map layers) | **None** | Open (Phase 3) |
+| Minute-by-minute precip nowcast | Yes (Google nowcast, ~12h) | Partial (via radar) | **None** | Open (Phase 3) |
+| Push / background severe-weather notifications | Yes | Yes (Spark lightning alerts) | **None** (in-app banner only) | Open (Phase 2) |
+| Lightning tracking | No | Yes (Spark, signature feature) | **None** | Open (Phase 4) |
+| Historical weather / "on this day" | No | Partial | **None** | Open (Phase 4) |
+| Moon phase | No (not prominent) | No (not prominent) | **None** | Low priority |
+| AI-generated natural-language summary | Yes (AI Weather Report) | No | **None** | Optional |
+| Life/activity indices (running, drying, etc.) | Partial | No | **None** | Open (Phase 4) |
 
-## Constraints that shape the plan
+## Constraints
 
-1. **Keyless-by-default.** Every new data source must have a free, no-signup default path,
-   matching the existing Open-Meteo/Nominatim pattern. Paid/keyed sources may only be added as
-   optional (same pattern as Pirate Weather).
-2. **F-Droid flavor has no Google Play Services.** No Google Maps SDK, no FCM. Any
-   map-rendering or push-notification feature needs an implementation that works without
-   proprietary blobs on the `fdroid` flavor (`app/src/fdroid/`).
-3. **Feature parity mandate.** Every feature ships on both Android and Web before being
-   considered done (`AGENTS.md` Mandate #1).
-4. **i18n mandate.** New UI strings go in all 8 `shared/i18n/locales/*.json` files, regenerate
-   Android strings via `node shared/i18n/generate-android-strings.js`.
-5. **No backend server we control.** The web app is a stateless SvelteKit frontend + thin proxy
-   routes for CORS-blocked alert feeds — no database, no user accounts. Multi-location and
-   notifications need to be solved client-side/on-device, not via a server we'd have to run.
+1. **Keyless-by-default.** Every new data source must have a free, no-signup default path, matching the existing Open-Meteo/Nominatim pattern. Paid/keyed sources may only be added as optional.
+2. **F-Droid flavor has no Google Play Services.** No Google Maps SDK, no FCM. Any map-rendering or push-notification feature needs an implementation that works without proprietary blobs on `app/src/fdroid/`.
+3. **Feature parity mandate.** Every feature ships on both Android and Web before being considered done (`AGENTS.md` Mandate #1).
+4. **i18n mandate.** New UI strings go in all 8 `shared/i18n/locales/*.json` files, regenerate Android strings via `node shared/i18n/generate-android-strings.js`.
+5. **No backend server we control.** The web app is a stateless SvelteKit frontend + thin proxy routes for CORS-blocked alert feeds — no database, no user accounts.
 
-## Confirmed keyless data sources for the gaps
+## Phased Roadmap
 
-| Gap | Source | Notes |
-|---|---|---|
-| Radar map | [RainViewer](https://www.rainviewer.com/api.html) | Public tile API, no key, 1200+ radars, 5-min refresh, free for personal/community use. |
-| Lightning | [Blitzortung.org](https://en.wikipedia.org/wiki/Blitzortung) | Free, keyless, community lightning network — check attribution/ToS before shipping. |
-| Pollen | Open-Meteo Air Quality API | Already integrated (`OpenMeteoAirQualityApiService.kt`). Supports grass/birch/alder pollen via CAMS — **Europe + global coverage only**, no pollen data for most of the world. Must be shown as "unavailable in your region" gracefully elsewhere. |
-| Minute nowcast | Open-Meteo `minutely_15` parameter | Native 15-min resolution only in North America (HRRR) and Central Europe (ICON-D2/AROME); interpolated from hourly elsewhere — so accuracy varies by region, same caveat as pollen. |
-| Historical weather | Open-Meteo Historical Forecast/Archive API | Keyless, no new integration pattern needed. |
+### Phase 1 — Quick Wins & Usability (COMPLETED)
+1. **Multi-location / saved locations** — **Done (v1.2.15)**: Header location search, favorite locations list, swipe/arrow switching between saved places.
+2. **Pollen index** — **Done (v1.2.5)**: Integrated into Air Quality breakdown dialog for CAMS coverage areas.
+3. **AQI & UV Forecast cards** — **Done (v1.2.12)**: 48-hour AQI trend chart and 7-day UV trend chart.
+4. **7-Day Forecast standardization** — **Done (v1.2.12/v1.2.13)**: 7-day forecast with horizontal scrolling and matching trend line chart.
 
-## Phased roadmap
+### Phase 2 — Proactive Notifications (Safety-Relevant)
+5. **Background severe-weather notifications**: Surface official alerts when the app is backgrounded.
+   - Android: Local notifications via WorkManager widget-refresh job (works identically on `fdroid` and `standard`).
+   - Web: `Notification` API + service-worker periodic sync where supported.
 
-### Phase 1 — cheap wins, no new architecture
-1. **Multi-location / saved locations.** Biggest usability gap, zero new data sources needed
-   (reuses existing weather/geocoding calls per location), pure client-side state
-   (SharedPreferences / localStorage list instead of single value). Do this first — it's the
-   most-requested table-stakes feature and everything else benefits from it existing.
-2. **Pollen index.** Extend the existing `OpenMeteoAirQualityApiService` call (same pattern as
-   `AIR_QUALITY_FORECAST_PLAN.md`'s hourly AQI extension) to also request pollen variables.
-   Show inside the existing Air Quality detail dialog; hide gracefully outside CAMS coverage.
-3. **Fix the stale "10-day" claim** — either bump `forecast_days` to 10 (small quota cost) or
-   correct the docs/UI copy to say 7-day. Cheap, unblocks accurate parity claims later.
+### Phase 3 — Visual Map & Nowcast
+6. **Precipitation radar map**: RainViewer tile API integration (keyless, free tile server). Requires map renderer evaluation (lightweight canvas/OSM approach to keep `fdroid` clean, MapLibre GL for Web).
+7. **Minute-by-minute nowcast**: `minutely_15` precipitation from Open-Meteo as a short sparkline/banner for covered regions.
 
-### Phase 2 — proactive alerts (safety-relevant, do before visual features)
-4. **Background severe-weather notifications.** We already fetch alerts; the gap is surfacing
-   them when the app isn't open. `standard` flavor can use a local notification triggered by the
-   existing WorkManager widget-refresh job (no FCM needed — this is a pull-based check, not a
-   push from a server, so it works identically on `fdroid`). Web: `Notification` API +
-   service-worker periodic sync where supported, degrade silently elsewhere (PWA notification
-   support is inconsistent across browsers — verify before committing to this as a hard
-   requirement).
+### Phase 4 — Differentiators & Extras
+8. **Lightning tracking**: Blitzortung integration + map layer.
+9. **Historical weather / "on this day"**: Open-Meteo Historical Archive API call.
+10. **Life/activity indices**: Derived client-side indices (outdoor running quality, laundry drying time, UV exposure limits).
+11. **Natural-language summary**: Rule-based template generator for daily highlights.
 
-### Phase 3 — the big visual gap
-5. **Precipitation radar map.** RainViewer tiles. This is the single largest architectural
-   addition — neither codebase has any map/tile-rendering code today. Needs its own spike/design
-   doc before implementation: Android tile rendering approach (avoid Google Maps SDK to keep
-   `fdroid` flavor clean — evaluate a lightweight OSM-tile Compose canvas vs. a WebView), Web
-   approach (MapLibre GL or Leaflet, both keyless, both work with `adapter-node`).
-6. **Minute-by-minute nowcast.** Once the radar spike is done, this is comparatively small:
-   consume `minutely_15` precipitation on the existing hourly-forecast API call, show as a short
-   sparkline/banner ("rain starting in 12 min") for the covered regions.
+## Sequencing Summary
 
-### Phase 4 — differentiators, evaluate demand before committing
-7. **Lightning tracking.** Blitzortung integration + a map layer (reuses Phase 3's map
-   infrastructure). WeatherBug's signature feature, but also the most niche — build only if
-   Phase 3's map groundwork makes it cheap, and check Blitzortung's terms before shipping.
-8. **Historical weather / "on this day."** Small, isolated feature — new API call, no shared UI
-   dependency. Good filler task, not urgent.
-9. **Life/activity indices** (running conditions, laundry-drying, UV-safe outdoor time).
-   Derivable entirely from data we already have (UV, precip probability, wind, humidity) via
-   simple rule-based scoring — no new API. Cheap once someone defines the thresholds.
-10. **AI-generated natural-language summary.** Explicitly lower priority: doing this "for real"
-    means either calling an LLM (cost, privacy, and offline-mode conflicts with the app's
-    no-backend philosophy) or a templated/rule-based sentence generator (cheap, keyless, fits
-    the project's constraints, but is "AI" in name only). Recommend the rule-based approach if
-    this is ever pursued, and only after Phase 1–3 land.
-
-### Explicitly not pursuing
-- **Crowdsourced personal-weather-station network** (WeatherBug/Earth Networks' core
-  differentiator) — requires server infrastructure and a user community we don't have. Out of
-  scope indefinitely.
-- **Live weather camera feeds** — no free keyless source exists; skip.
-- **Moon phase** — low priority; it's a pure client-side astronomical calculation (near-zero
-  cost) so it can be slotted into any phase opportunistically, but neither competitor treats it
-  as a headline feature either.
-
-## Suggested sequencing
-
-Multi-location (P1) → pollen + stale-forecast-length fix (P1) → background alert notifications
-(P2) → radar map (P3) → minutely nowcast (P3) → lightning / historical / life-indices, in
-whatever order demand suggests (P4). AI summary last, and only if still wanted after the rest
-ships.
-
-## Process for each feature
-
-Mirror `AIR_QUALITY_FORECAST_PLAN.md`: before writing code, produce a per-feature design doc
-covering the Android implementation (files, domain model changes, API layer, UI composables,
-wiring point) and the Web mirror, plus the i18n keys needed across all 8 locales. Implement
-Android first (per `CLAUDE.md`'s agent-usage guidance — read the source implementation, then
-port), then Web in the same session/PR, never partially.
+- **Completed**: Saved Locations, Pollen Index, AQI Forecast, UV Forecast, 7-Day Trend Chart, Official Alerts (v1.2.x).
+- **Next Up**: Background Alert Notifications (Phase 2) → Precip Radar Map & Nowcast (Phase 3) → Lightning / Historical / Life Indices (Phase 4).

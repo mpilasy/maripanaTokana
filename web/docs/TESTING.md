@@ -49,42 +49,44 @@ npm run dev
 
 ---
 
-## 4. Weather Data Display
+## 4. Weather Data Display & Saved Locations
 
-After granting location, verify the following sections render:
+- [ ] **Saved Locations & Navigation**
+  - [ ] Location header displays city name and region subtext
+  - [ ] Heart icon (♥) saves current location to favorites
+  - [ ] Search icon opens `SavedLocationsDialog` (search, list, reorder, delete)
+  - [ ] Swipe or tap arrow buttons to navigate between saved places
 
-### Hero Card
-- [ ] Weather emoji (day/night appropriate)
-- [ ] Weather description text (localized)
-- [ ] Current temperature in large text (e.g., `24.3°C`)
-- [ ] Secondary unit below primary (e.g., `75.7°F` dimmed)
-- [ ] "Feels like" label with dual-unit temperature
-- [ ] Precipitation display (rain/snow emoji + amount, or "no precipitation")
-- [ ] Share button (top-right corner)
-- [ ] "(c) Orinasa Njarasoa" watermark at bottom
+- [ ] **Single-Card Accordion Rule**
+  - [ ] Opening any collapsible section automatically collapses any previously open section
+  - [ ] Switching location automatically collapses all sections
 
-### Hourly Forecast (collapsible, expanded by default)
-- [ ] Horizontal scrollable row of hourly cards
-- [ ] Each card: time (HH:mm), weather emoji, temperature, precip probability
-- [ ] Scroll snap works (cards snap into position)
-- [ ] Day/night emoji changes correctly based on sunrise/sunset
-- [ ] Share button next to section title (visible when expanded)
+- [ ] **Hero Card**
+  - [ ] Weather emoji (day/night appropriate)
+  - [ ] Weather description text (localized)
+  - [ ] Current temperature in large text
+  - [ ] Secondary unit below primary
+  - [ ] "Feels like" label with dual-unit temperature
+  - [ ] Share button & copyright watermark
 
-### Daily Forecast (collapsible, collapsed by default)
-- [ ] Click section header to expand
-- [ ] 10 rows with: day name, date, weather emoji + description, precip %, hi/lo temps
-- [ ] Day names localized to current language
-- [ ] Share button next to section title (visible when expanded)
+- [ ] **Current Conditions (Card)**
+  - [ ] Renders above Hourly Forecast
+  - [ ] 2-column detail grid: Min/Max temp, Wind & Gusts, Pressure, Humidity & Dew Point
+  - [ ] Air Quality badge (tap to open detailed breakdown & Pollen tier badges)
+  - [ ] UV index with severity tier badge
 
-### Current Conditions (collapsible, collapsed by default)
-- [ ] Min/Max temperature cards
-- [ ] Wind speed + direction (cardinal compass) and wind gust (if available)
-- [ ] Pressure (hPa primary if metric)
-- [ ] Humidity (%) + dew point
-- [ ] UV index with severity label (Low/Moderate/High/Very High/Extreme)
-- [ ] Visibility (km/mi)
-- [ ] Sunrise/sunset times
-- [ ] Share button next to section title (visible when expanded)
+- [ ] **Hourly Forecast (collapsible)**
+  - [ ] Horizontal scrollable row of hourly cards
+  - [ ] Each card: time (HH:mm), weather emoji, temperature, precip %
+
+- [ ] **Air Quality Forecast (collapsible)**
+  - [ ] Displays 48-hour trend line chart with colored AQI tier dots
+
+- [ ] **UV Forecast (collapsible)**
+  - [ ] Displays 7-day trend line chart with daily UV maximums
+
+- [ ] **7-Day Forecast (collapsible)**
+  - [ ] Horizontal scrolling daily forecast cards with matching 7-day trend line chart
 
 ---
 

@@ -110,31 +110,39 @@ ls -lh app/build/outputs/apk/fdroid/debug/app-fdroid-debug.apk
 
 ### UI & Navigation
 
-- [ ] **Weather Screen Layout**
-  - [ ] Hero card displays prominently
-  - [ ] Location name visible at top
-  - [ ] Date and update time shown
-  - [ ] All detail cards visible and readable
-  - [ ] No text truncation or overflow
+- [ ] **Location & Saved Places**
+  - [ ] Location header shows city name and subtext
+  - [ ] Heart icon (♥) toggles saving current location to favorites
+  - [ ] Search icon opens SavedLocationsDialog (search, list, reorder, delete)
+  - [ ] Swipe left/right or tap arrows to cycle between Current Location and saved places
+
+- [ ] **Single-Card Accordion Rule**
+  - [ ] Expanding one section automatically collapses any open section
+  - [ ] Changing location automatically collapses all open sections
+
+- [ ] **Current Conditions (Card)**
+  - [ ] Displays above Hourly Forecast
+  - [ ] 2-column detail grid visible and readable
+  - [ ] AQI badge (tap for detailed pollutant breakdown & pollen)
+  - [ ] UV badge with severity tier
 
 - [ ] **Hourly Forecast**
-  - [ ] Hourly forecast section expands/collapses
-  - [ ] Each hourly item shows: time, weather icon, temperature
-  - [ ] Horizontal scroll works smoothly
-  - [ ] Temperature shows dual units
-
-- [ ] **10-Day Forecast**
-  - [ ] 10-day section expands/collapses
-  - [ ] Each day shows: day name, date, weather description, temp
-  - [ ] Scrollable if exceeds screen height
-  - [ ] Temperature shows dual units
-  - [ ] Precipitation probability shown
-
-- [ ] **Current Conditions (Collapsible)**
   - [ ] Section expands/collapses
-  - [ ] All detail cards display properly
-  - [ ] Cards are organized clearly
-  - [ ] Values readable with good contrast
+  - [ ] Each hourly item shows: time, weather icon, temperature, precip %
+  - [ ] Horizontal scroll works smoothly
+
+- [ ] **Air Quality Forecast**
+  - [ ] Section expands/collapses
+  - [ ] Displays 48-hour trend line chart with color-coded tier dots
+
+- [ ] **UV Forecast**
+  - [ ] Section expands/collapses
+  - [ ] Displays 7-day trend line chart showing daily UV maximums
+
+- [ ] **7-Day Forecast**
+  - [ ] Section expands/collapses
+  - [ ] Horizontal scrolling row of daily cards matching 7-day trend chart
+  - [ ] Shows day, date, weather description, hi/lo temperatures
 
 ### Language Support
 

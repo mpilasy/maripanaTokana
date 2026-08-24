@@ -4,7 +4,7 @@
 
 ## What This Project Is
 
-A cross-platform weather app (Android + Web PWA) that shows current conditions, hourly forecasts, and 10-day outlook. Every measurement displays both metric and imperial units simultaneously. Supports 8 languages with native digit rendering and 22 font pairings.
+A cross-platform weather app (Android + Web PWA) that shows current conditions, hourly forecasts, 7-day forecasts with trend charts, air quality and UV forecast trends, and multi-location favorites. Every measurement displays both metric and imperial units simultaneously. Supports 8 languages with native digit rendering and 22 font pairings.
 
 - **Package:** `orinasa.njarasoa.maripanatokana`
 - **License:** MIT
@@ -160,6 +160,9 @@ node shared/i18n/generate-android-strings.js   # JSON → Android XML strings
 ## Core Features (Both Platforms)
 
 - **Dual Units with Toggle:** Every measurement shows both metric and imperial. Tap any value to swap primary (bold/large) vs secondary (smaller/dimmer). Preference persisted.
+- **Multi-Location Favorites:** Header location search, favorite places (♥), and left/right swipe or arrow navigation between saved locations.
+- **Air Quality & UV Forecasts:** 48-hour AQI trend line chart with color-coded tier dots and 7-day UV trend line chart.
+- **Single-Card Accordion:** Opening one section collapses any other that was open; switching locations collapses all cards.
 - **Font Cycling:** 22 bundled font pairings cycled via footer icon. Index 0 = system default.
 - **Language Cycling:** 8 languages (mg, ar, en, es, fr, hi, ne, zh) cycled via footer flag button. Default: Malagasy (mg, index 0).
 - **Native Digit Rendering:** Arabic (Eastern Arabic ٠-٩), Hindi/Nepali (Devanagari ०-९). All numeric formatting uses ASCII internally; native digits applied via character replacement at display time.
@@ -168,7 +171,7 @@ node shared/i18n/generate-android-strings.js   # JSON → Android XML strings
 - **Auto-Refresh:** Re-fetches weather on app resume if data >30 min old.
 - **Pull-to-Refresh:** Swipe gesture to manually refresh.
 - **Screenshot Sharing:** Capture hero card or any section as branded PNG with watermark.
-- **Expert Mode:** Toggle in Settings → 12-hour session unlocking location override, pluggable weather/geocoding sources, and per-alert-source toggles. DMS coordinate display.
+- **Advanced Mode:** Toggle in Settings → 12-hour session unlocking location override, pluggable weather/geocoding sources, and per-alert-source toggles. DMS coordinate display.
 - **Dual-Language Error Screen:** Shows secondary translation when app locale differs from system/browser locale.
 - **Widgets (Android only):** 4x1 compact and 4x2 with 3-day forecast. WorkManager background updates.
 
