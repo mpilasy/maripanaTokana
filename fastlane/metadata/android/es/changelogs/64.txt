@@ -1,0 +1,1 @@
+• Gráfico de predicción lluvia suavizado con eje horizontal de 30 minutos

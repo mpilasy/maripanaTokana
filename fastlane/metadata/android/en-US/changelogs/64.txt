@@ -1,0 +1,1 @@
+• Smooth Monotone Cubic Spline nowcast chart with 30-minute time axis
