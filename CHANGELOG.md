@@ -6,6 +6,9 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.2.20] - 2026-08-23
+- Refined Malagasy nowcast headline phrasing for 2-hour clear forecast.
+
 ## [1.2.19] - 2026-08-23
 - Updated Minute-by-Minute Nowcast sparkline to display 10-minute intervals over 2 hours.
 - Interpolated precipitation sampling across Open-Meteo and Pirate Weather sources.
