@@ -1,0 +1,2 @@
+• Añadido gráfico de pronóstico minuto a minuto: previsión de precipitación a 2 horas en intervalos de 15 minutos
+• Indicador dinámico de inicio y fin de lluvia

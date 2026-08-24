@@ -1,0 +1,2 @@
+• Added Minute-by-Minute Nowcast card: 2-hour precipitation forecast sparkline with 15-minute resolution
+• Dynamic precipitation start/stop headline indicator

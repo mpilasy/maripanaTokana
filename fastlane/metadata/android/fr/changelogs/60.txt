@@ -1,0 +1,2 @@
+• Ajout du graphique de prévisions minute par minute : évolution des précipitations sur 2 heures par tranches de 15 minutes
+• Indicateur dynamique de début et de fin des précipitations

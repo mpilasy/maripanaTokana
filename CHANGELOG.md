@@ -6,6 +6,10 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.2.17] - 2026-08-23
+- Added Minute-by-Minute Nowcast card: 2-hour precipitation forecast sparkline with 15-minute resolution.
+- Dynamic precipitation start/stop headline indicator.
+
 ## [1.2.16] - 2026-08-23
 - Added Life & Activity Indices section: Running conditions, Outdoor Laundry Drying Time, and Sun Protection / UV Safety.
 - High-latitude location degree distance precision fix for auto-refresh logic.
