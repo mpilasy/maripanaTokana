@@ -577,6 +577,22 @@ internal fun WeatherContent(
             }
             Spacer(modifier = Modifier.height(24.sd(scale)))
 
+            // Minutely Nowcast (collapsible)
+            if (data.minutelyForecast.isNotEmpty()) {
+                CollapsibleSection(
+                    title = stringResource(R.string.section_nowcast),
+                    headerGraphicsLayer = headerGraphicsLayer,
+                    expanded = openSectionKey == "nowcast",
+                    onToggle = { toggleSection("nowcast") },
+                ) {
+                    orinasa.njarasoa.maripanatokana.ui.weather.components.NowcastCard(
+                        items = data.minutelyForecast,
+                        isMetricPrimary = metricPrimary
+                    )
+                }
+                Spacer(modifier = Modifier.height(24.sd(scale)))
+            }
+
             // Hourly Forecast
             if (data.hourlyForecast.isNotEmpty()) {
                 CollapsibleSection(

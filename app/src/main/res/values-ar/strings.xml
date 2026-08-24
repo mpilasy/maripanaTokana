@@ -47,7 +47,12 @@
     <string name="section_air_quality_forecast">جودة الهواء</string>
     <string name="section_uv_forecast">الأشعة فوق البنفسجية</string>
     <string name="section_this_week">توقعات ١٠ أيام</string>
-    <string name="section_activities">الأنشطة</string>
+    <string name="section_activities">مؤشرات الأنشطة</string>
+    <string name="section_nowcast">توقعات دقيقة بدقيقة</string>
+    <string name="nowcast_no_precip">لا تتوفر توقعات بهطول الأمطار خلال الساعتين القادمتين</string>
+    <string name="nowcast_starts_in">من المتوقع بدء الهطول خلال ~{minutes} دقيقة</string>
+    <string name="nowcast_stopping_in">من المتوقع توقف الهطول خلال ~{minutes} دقيقة</string>
+    <string name="nowcast_ongoing">هطول أمطار متوقع خلال الساعتين القادمتين</string>
     <string name="activity_running">الركض</string>
     <string name="activity_laundry">تجفيف الغسيل</string>
     <string name="activity_uv_safety">الحماية من الشمس</string>

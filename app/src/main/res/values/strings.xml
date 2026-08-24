@@ -48,6 +48,11 @@
     <string name="section_uv_forecast">UV</string>
     <string name="section_this_week">10-Day Forecast</string>
     <string name="section_activities">Activities</string>
+    <string name="section_nowcast">Minutely Nowcast</string>
+    <string name="nowcast_no_precip">No precipitation expected in the next 2 hours</string>
+    <string name="nowcast_starts_in">Precipitation starting in ~{minutes} min</string>
+    <string name="nowcast_stopping_in">Precipitation stopping in ~{minutes} min</string>
+    <string name="nowcast_ongoing">Precipitation expected for the next 2 hours</string>
     <string name="activity_running">Running</string>
     <string name="activity_laundry">Drying Laundry</string>
     <string name="activity_uv_safety">Sun Protection</string>

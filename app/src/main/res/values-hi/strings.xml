@@ -47,7 +47,12 @@
     <string name="section_air_quality_forecast">वायु गुणवत्ता</string>
     <string name="section_uv_forecast">यूवी</string>
     <string name="section_this_week">10 दिन का पूर्वानुमान</string>
-    <string name="section_activities">गतिविधियां</string>
+    <string name="section_activities">गतिविधियों के सूचकांक</string>
+    <string name="section_nowcast">मिनट दर मिनट पूर्वानुमान</string>
+    <string name="nowcast_no_precip">अगले 2 घंटों में कोई बारिश की संभावना नहीं है</string>
+    <string name="nowcast_starts_in">~{minutes} मिनट में बारिश शुरू होने की संभावना है</string>
+    <string name="nowcast_stopping_in">~{minutes} मिनट में बारिश रुकने की संभावना है</string>
+    <string name="nowcast_ongoing">अगले 2 घंटों तक बारिश जारी रहने की संभावना है</string>
     <string name="activity_running">दौड़ना</string>
     <string name="activity_laundry">कपड़े सुखाना</string>
     <string name="activity_uv_safety">धूप से सुरक्षा</string>

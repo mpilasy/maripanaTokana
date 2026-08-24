@@ -1,4 +1,4 @@
-import type { WeatherData, HourlyForecast, DailyForecast } from '$lib/domain/weatherData';
+import type { WeatherData, HourlyForecast, DailyForecast, MinutelyForecast } from '$lib/domain/weatherData';
 import { Temperature } from '$lib/domain/temperature';
 import { WindSpeed } from '$lib/domain/windSpeed';
 import { Pressure } from '$lib/domain/pressure';
@@ -30,7 +30,7 @@ export async function testPirateWeatherKey(apiKey: string): Promise<void> {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function fetchPirateWeather(lat: number, lon: number, apiKey: string, locationName: string, locationSubtext?: string): Promise<WeatherData> {
 	const res = await fetch(
-		`https://api.pirateweather.net/forecast/${encodeURIComponent(apiKey)}/${lat},${lon}?units=si&exclude=minutely,alerts`
+		`https://api.pirateweather.net/forecast/${encodeURIComponent(apiKey)}/${lat},${lon}?units=si&exclude=alerts`
 	);
 	if (!res.ok) throw new Error(`Pirate Weather ${res.status}`);
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -67,6 +67,12 @@ export async function fetchPirateWeather(lat: number, lon: number, apiKey: strin
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const todayRaw: any = d.daily?.data?.[0];
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const minutelyForecast: MinutelyForecast[] = (d.minutely?.data ?? []).map((m: any) => ({
+		time: m.time * 1000,
+		precipitation: Precipitation.fromMm(m.precipIntensity ?? 0),
+	}));
+
 	return {
 		temperature: Temperature.fromCelsius(c.temperature),
 		feelsLike: Temperature.fromCelsius(c.apparentTemperature),
@@ -99,6 +105,7 @@ export async function fetchPirateWeather(lat: number, lon: number, apiKey: strin
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		dailySunset: (d.daily?.data ?? []).slice(0, 10).map((day: any) => (day.sunsetTime ?? 0) * 1000),
 		hourlyForecast: hourly,
+		minutelyForecast,
 		dailyForecast: daily,
 		alerts: [],
 		alertsLoading: true,

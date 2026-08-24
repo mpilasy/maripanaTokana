@@ -5,6 +5,12 @@ export interface OpenMeteoResponse {
 	current: OpenMeteoCurrent;
 	daily: OpenMeteoDaily;
 	hourly: OpenMeteoHourly;
+	minutely_15?: OpenMeteoMinutely15;
+}
+
+export interface OpenMeteoMinutely15 {
+	time: string[];
+	precipitation: number[];
 }
 
 export interface OpenMeteoCurrent {

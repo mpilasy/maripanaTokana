@@ -74,6 +74,19 @@ export function mapToWeatherData(response: OpenMeteoResponse, locationName: stri
 		};
 	});
 
+	const m15 = response.minutely_15;
+	const parsedM15Times = m15 ? m15.time.map((t) => parseIsoDateTime(t, response.utc_offset_seconds)) : [];
+	const startM15Index = parsedM15Times.findIndex((t) => t >= nowMillis - 15 * 60 * 1000);
+	const minutelyForecast = (m15 && startM15Index !== -1)
+		? m15.time.slice(startM15Index, startM15Index + 12).map((_, i) => {
+				const actualIndex = startM15Index + i;
+				return {
+					time: parsedM15Times[actualIndex],
+					precipitation: Precipitation.fromMm(m15.precipitation[actualIndex] ?? 0),
+				};
+			})
+		: [];
+
 	return {
 		utcOffsetSeconds: response.utc_offset_seconds,
 		temperature: Temperature.fromCelsius(c.temperature_2m),
@@ -101,6 +114,7 @@ export function mapToWeatherData(response: OpenMeteoResponse, locationName: stri
 		dailySunrise: dailySunriseMillis,
 		dailySunset: dailySunsetMillis,
 		hourlyForecast,
+		minutelyForecast,
 		dailyForecast,
 		alerts: [],
 		alertsLoading: true,

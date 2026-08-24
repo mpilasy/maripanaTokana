@@ -47,6 +47,11 @@ export interface DailyForecast {
 	uvIndexMax: number;
 }
 
+export interface MinutelyForecast {
+	time: number; // epoch millis
+	precipitation: Precipitation;
+}
+
 export interface WeatherData {
 	temperature: Temperature;
 	feelsLike: Temperature;
@@ -80,4 +85,5 @@ export interface WeatherData {
 	utcOffsetSeconds: number; // location's UTC offset in seconds
 	airQuality?: AirQualityIndex | null;
 	hourlyAirQuality?: HourlyAirQuality[];
+	minutelyForecast?: MinutelyForecast[];
 }

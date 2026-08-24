@@ -100,6 +100,18 @@ fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = 
         )
     }.distinctBy { it.date }
 
+    val minutelyForecastList = minutely15?.let { m15 ->
+        val parsedM15Times = m15.time.map { parseIsoDateTime(it, utcOffsetSeconds) }
+        val startM15Index = parsedM15Times.indexOfFirst { it >= nowMillis - 15 * 60 * 1000L }.takeIf { it != -1 } ?: 0
+        val endM15Index = minOf(startM15Index + 12, m15.time.size)
+        (startM15Index until endM15Index).map { i ->
+            orinasa.njarasoa.maripanatokana.domain.model.MinutelyForecast(
+                time = parsedM15Times[i],
+                precipitation = Precipitation.fromMm(m15.precipitation.getOrElse(i) { 0.0 }),
+            )
+        }
+    } ?: emptyList()
+
     return WeatherData(
         utcOffsetSeconds = utcOffsetSeconds,
         temperature = Temperature.fromCelsius(c.temperature),
@@ -126,6 +138,7 @@ fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = 
         dailySunrise = dailySunriseMillis,
         dailySunset = dailySunsetMillis,
         hourlyForecast = hourlyForecast,
+        minutelyForecast = minutelyForecastList,
         dailyForecast = dailyForecast,
         alerts = emptyList(),
     )

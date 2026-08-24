@@ -9,6 +9,13 @@ data class OpenMeteoResponse(
     @SerialName("current") val current: OpenMeteoCurrent,
     @SerialName("daily") val daily: OpenMeteoDaily,
     @SerialName("hourly") val hourly: OpenMeteoHourly,
+    @SerialName("minutely_15") val minutely15: OpenMeteoMinutely15? = null,
+)
+
+@Serializable
+data class OpenMeteoMinutely15(
+    @SerialName("time") val time: List<String> = emptyList(),
+    @SerialName("precipitation") val precipitation: List<Double> = emptyList(),
 )
 
 @Serializable

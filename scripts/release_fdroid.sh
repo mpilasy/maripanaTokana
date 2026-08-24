@@ -48,9 +48,9 @@ for loc in "${LOCALES[@]}"; do
     fi
 done
 
-# 4. Commit version bump
-echo "2. Committing version bump..."
-git add app/build.gradle.kts web/package.json web/package-lock.json web/src/lib/components/Footer.svelte CHANGELOG.md fastlane/metadata/android/*/changelogs/${NEW_CODE}.txt
+# 4. Commit version bump & feature changes
+echo "2. Committing version bump & pending changes..."
+git add -A
 git commit -m "Bump to v${NEW_VERSION}"
 
 BUMP_COMMIT=$(git rev-parse HEAD)

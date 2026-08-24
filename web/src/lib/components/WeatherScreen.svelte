@@ -23,6 +23,7 @@
 	import AirQualityChart from './AirQualityChart.svelte';
 	import DailyUvForecast from './DailyUvForecast.svelte';
 	import CurrentConditions from './CurrentConditions.svelte';
+	import NowcastCard from './NowcastCard.svelte';
 	import DetailCard from './DetailCard.svelte';
 	import AirQualityDetailDialog from './AirQualityDetailDialog.svelte';
 	import AqiTierBadge from './AqiTierBadge.svelte';
@@ -419,6 +420,12 @@
 				<CollapsibleSection title={$_('section_current_conditions')} expanded={openSection === 'current_conditions'} onToggle={() => toggleSection('current_conditions')} onShare={handleShare}>
 					<CurrentConditions {data} metricPrimary={$metricPrimary} {loc} onToggleUnits={toggleUnits} />
 				</CollapsibleSection>
+
+				{#if data.minutelyForecast && data.minutelyForecast.length > 0}
+					<CollapsibleSection title={$_('section_nowcast')} expanded={openSection === 'nowcast'} onToggle={() => toggleSection('nowcast')} onShare={handleShare}>
+						<NowcastCard items={data.minutelyForecast} localizeDigits={loc} />
+					</CollapsibleSection>
+				{/if}
 
 				{#if data.hourlyForecast.length > 0}
 					<CollapsibleSection title={$_('section_hourly_forecast')} expanded={openSection === 'hourly_forecast'} onToggle={() => toggleSection('hourly_forecast')} onShare={handleShare}>
