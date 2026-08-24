@@ -6,6 +6,10 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.2.16] - 2026-08-23
+- Added Life & Activity Indices section: Running conditions, Outdoor Laundry Drying Time, and Sun Protection / UV Safety.
+- High-latitude location degree distance precision fix for auto-refresh logic.
+
 ## [1.2.15] - 2026-08-09
 - Location switching redesigned: search, favorite (♥), and current-location icons now live in the header.
 - Searching a location previews it instantly; tap the heart icon to save it as a favorite.

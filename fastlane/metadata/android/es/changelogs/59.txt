@@ -1,0 +1,2 @@
+• Añadida la sección de Índices de Actividad: carrera a pie, secado de ropa al aire libre y protección solar
+• Mejora de precisión en la distancia de ubicación para latitudes altas

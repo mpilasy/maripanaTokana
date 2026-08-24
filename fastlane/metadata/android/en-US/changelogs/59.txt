@@ -1,0 +1,2 @@
+• Added Life & Activity Indices section: Running conditions, Outdoor Laundry Drying Time, and Sun Protection / UV Safety
+• High-latitude location degree distance precision fix for auto-refresh
