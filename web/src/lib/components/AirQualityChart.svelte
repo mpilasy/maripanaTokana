@@ -130,7 +130,7 @@
 		const midIdx = maxIndices[Math.floor(maxIndices.length / 2)];
 		const pt = points[midIdx];
 		const color = dotColors[midIdx];
-		return { x: pt.x, y: Math.max(10, pt.y - 4), aqi: Math.round(maxVal).toString(), color };
+		return { x: pt.x, y: Math.min(height - 4, pt.y + 12), aqi: Math.round(maxVal).toString(), color };
 	});
 </script>
 

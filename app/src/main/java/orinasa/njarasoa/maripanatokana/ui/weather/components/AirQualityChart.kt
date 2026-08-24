@@ -181,7 +181,7 @@ fun AirQualityChart(
                 )
             }
 
-            // Draw peak AQI label above peak point
+            // Draw peak AQI label below peak point
             if (points.isNotEmpty()) {
                 val maxAqiVal = values.maxOrNull() ?: 0
                 val maxIndices = values.indices.filter { values[it] == maxAqiVal }
@@ -192,7 +192,7 @@ fun AirQualityChart(
                 val peakStyle = TextStyle(color = peakColor, fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont)
                 val peakLayout = textMeasurer.measure(peakText, peakStyle)
                 val textX = (peakPoint.x - peakLayout.size.width / 2f).coerceIn(4.dp.toPx(), width - peakLayout.size.width - 4.dp.toPx())
-                val textY = (peakPoint.y - peakLayout.size.height - 4.dp.toPx()).coerceAtLeast(0f)
+                val textY = (peakPoint.y + 4.dp.toPx()).coerceIn(2.dp.toPx(), height - peakLayout.size.height)
                 drawText(peakLayout, topLeft = Offset(textX, textY))
             }
         }
