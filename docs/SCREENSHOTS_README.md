@@ -158,52 +158,13 @@ See `.github/workflows/fdroid-build.yml` for details.
 
 ### Automation Script
 
-Create `capture_screenshots.sh` to automate:
+Use the built-in automation script `./scripts/capture_screenshots.sh`:
 
 ```bash
-#!/bin/bash
-# Captures screenshots for all languages
-
-LANGUAGES=(
-  "en_US:English US"
-  "mg:Malagasy"
-  "ar:Arabic"
-  "es:Spanish"
-  "fr:French"
-  "hi:Hindi"
-  "ne:Nepali"
-  "zh_CN:Chinese"
-)
-
-for lang_info in "${LANGUAGES[@]}"; do
-  IFS=':' read -r lang_code lang_name <<< "$lang_info"
-
-  echo "Capturing screenshots for $lang_name ($lang_code)..."
-
-  # Change device language (requires developer mode)
-  # adb shell settings put system system_locale $lang_code
-
-  # Clear app data
-  adb shell pm clear orinasa.njarasoa.maripanatokana
-
-  # Launch app
-  adb shell am start -n orinasa.njarasoa.maripanatokana/.MainActivity
-
-  sleep 5  # Wait for app to load
-
-  # Capture 5 screenshots
-  for i in {1..5}; do
-    adb shell screencap -p /sdcard/screen_$i.png
-    adb pull /sdcard/screen_$i.png \
-      "fastlane/metadata/android/${lang_code}/images/phoneScreenshots/$i.png"
-    echo "  Captured screen $i"
-  done
-
-  echo "✓ Completed $lang_name"
-done
-
-echo "All screenshots captured!"
+./scripts/capture_screenshots.sh
 ```
+
+The script automatically handles building the F-Droid flavor, setting system locales, launching the app, capturing 5 screenshots per locale, pulling them into `fastlane/metadata/android/{locale}/images/phoneScreenshots/`, and reporting missing locale assets.
 
 ### Checking Screenshot Status
 

@@ -419,14 +419,21 @@ adb shell pm list packages | grep gms
 
 ### For Future Versions
 
-1. Update `versionCode` and `versionName` in `app/build.gradle.kts`
-2. Create corresponding changelog files in all 8 languages: `fastlane/metadata/android/*/changelogs/{versionCode}.txt`
-3. Add new build entry to `metadata/orinasa.njarasoa.maripanatokana.yml` (keep previous entries)
-4. Update `CurrentVersion` and `CurrentVersionCode` in the YAML
-5. Commit everything, then note the commit hash
-6. Fill in the `commit:` field in the new build entry with the full commit hash
-7. Commit the filled-in hash, then create git tag: `git tag v{version} {commit-hash}`
-8. Push commits and tag: `git push && git push origin v{version}`
+Use the automated release script:
+```bash
+./scripts/release_fdroid.sh [VERSION_NAME] [VERSION_CODE]
+# Example: ./scripts/release_fdroid.sh 1.2.25 68
+```
+
+The script automatically performs:
+1. Version string updates in `app/build.gradle.kts`, `web/package.json`, and `web/src/lib/components/Footer.svelte`.
+2. Version sync validation via `python3 scripts/check_version_sync.py`.
+3. Existence check for changelogs in all 8 languages under `fastlane/metadata/android/*/changelogs/`.
+4. Git commit for version bump & feature changes (`Bump to vX.Y.Z`).
+5. Git tag creation on the bump commit (`vX.Y.Z`).
+6. F-Droid metadata YAML update via `python3 scripts/update_metadata.py`.
+7. Metadata commit with `[skip ci]`.
+8. Git push to `main` and tag `vX.Y.Z` to trigger GitHub CI.
 
 **Step 9 is obsolete — do not do it.** The original inclusion MR (`!33362`, `add-maripanatokana` branch on the `mpilasy/fdroiddata` fork) merged into `fdroid/fdroiddata` on 2026-06-18. Since then, F-Droid's own bot detects new tags (`AutoUpdateMode: Version` + `UpdateCheckMode: Tags` in the metadata) and opens its own `bot: Update maripànaTokana to {versionCode}` MR directly against `fdroid/fdroiddata`, auto-merged within the hour. It runs roughly once a day (observed ~04:20-04:30 UTC in recent cycles) — a tag pushed after that day's run won't show up in fdroiddata until the next cycle. Pushing to the old fork branch now has zero effect: that MR is closed and nothing polls the branch. Check status with:
 ```
