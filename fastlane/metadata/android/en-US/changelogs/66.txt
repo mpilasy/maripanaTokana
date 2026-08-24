@@ -1,0 +1,1 @@
+Refined max and min legend label placements on minute-by-minute Nowcast graph.

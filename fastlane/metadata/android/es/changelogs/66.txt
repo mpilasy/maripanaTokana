@@ -1,0 +1,1 @@
+Posicionamiento mejorado de las etiquetas de máximo y mínimo en el gráfico minuto a minuto.
