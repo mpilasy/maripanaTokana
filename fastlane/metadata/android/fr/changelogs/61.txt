@@ -1,0 +1,2 @@
+• Amélioration du graphique minute par minute pour le Web PWA (support Pirate Weather et précision du premier intervalle)
+• Affinement des traductions en malgache pour l'indicateur de précipitations

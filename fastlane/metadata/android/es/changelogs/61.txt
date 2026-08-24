@@ -1,0 +1,2 @@
+• Pronóstico minuto a minuto mejorado para Web PWA (soporte para Pirate Weather y precisión de inicio)
+• Ajuste de traducción al malgache para el indicador de lluvia

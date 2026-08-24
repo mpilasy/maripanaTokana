@@ -1,0 +1,2 @@
+• Enhanced Minute-by-Minute Nowcast for Web PWA: added Pirate Weather minutely forecast support and start index slice precision
+• Malagasy translation refinement for nowcast status
