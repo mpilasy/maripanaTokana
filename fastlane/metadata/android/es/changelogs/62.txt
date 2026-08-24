@@ -1,0 +1,2 @@
+• Actualizado el gráfico minuto a minuto para mostrar intervalos de 10 minutos durante 2 horas
+• Muestreo interpolado de precipitación entre Open-Meteo y Pirate Weather

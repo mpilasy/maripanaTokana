@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.domain.model.MinutelyForecast
+import orinasa.njarasoa.maripanatokana.domain.model.Precipitation
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFont
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 import java.text.SimpleDateFormat
@@ -33,6 +34,49 @@ import java.util.Locale
 private fun formatTime(epochMillis: Long): String {
     val formatter = SimpleDateFormat("HH:mm", Locale.US)
     val result = formatter.format(Date(epochMillis))
+    return result
+}
+
+private fun interpolatePrecip(sorted: List<MinutelyForecast>, targetTime: Long): Double {
+    val result = when {
+        sorted.isEmpty() -> 0.0
+        targetTime <= sorted.first().time -> sorted.first().precipitation.mm
+        targetTime >= sorted.last().time -> sorted.last().precipitation.mm
+        else -> {
+            val idx = sorted.indexOfLast { it.time <= targetTime }
+            if (idx != -1 && idx < sorted.size - 1) {
+                val t1 = sorted[idx].time
+                val t2 = sorted[idx + 1].time
+                val p1 = sorted[idx].precipitation.mm
+                val p2 = sorted[idx + 1].precipitation.mm
+                if (t2 > t1) {
+                    val ratio = (targetTime - t1).toDouble() / (t2 - t1).toDouble()
+                    p1 + ratio * (p2 - p1)
+                } else {
+                    p1
+                }
+            } else if (idx != -1) {
+                sorted[idx].precipitation.mm
+            } else {
+                0.0
+            }
+        }
+    }
+    return result
+}
+
+private fun sampleEvery10Minutes(rawItems: List<MinutelyForecast>, nowMillis: Long): List<MinutelyForecast> {
+    val result = if (rawItems.isEmpty()) {
+        emptyList()
+    } else {
+        val sorted = rawItems.sortedBy { it.time }
+        val startTime = (nowMillis / (10 * 60 * 1000L)) * (10 * 60 * 1000L)
+        (0..12).map { k ->
+            val targetTime = startTime + (k * 10 * 60 * 1000L)
+            val precip = interpolatePrecip(sorted, targetTime)
+            MinutelyForecast(targetTime, Precipitation.fromMm(precip))
+        }
+    }
     return result
 }
 
@@ -66,8 +110,9 @@ fun NowcastCard(
     modifier: Modifier = Modifier,
 ) {
     val nowMillis = System.currentTimeMillis()
-    val headlineRes = computeHeadlineText(items, nowMillis)
-    val minutesUntil = computeMinutesUntilStart(items, nowMillis)
+    val displayItems = sampleEvery10Minutes(items, nowMillis)
+    val headlineRes = computeHeadlineText(displayItems, nowMillis)
+    val minutesUntil = computeMinutesUntilStart(displayItems, nowMillis)
     
     val headlineText = if (headlineRes == R.string.nowcast_starts_in) {
         stringResource(headlineRes, minutesUntil)
@@ -75,7 +120,6 @@ fun NowcastCard(
         stringResource(headlineRes)
     }
 
-    val displayItems = items.take(12)
     val maxPrecipMm = displayItems.maxOfOrNull { it.precipitation.mm }?.coerceAtLeast(0.5) ?: 1.0
 
     Column(
@@ -122,7 +166,7 @@ fun NowcastCard(
                     ) {
                         Box(
                             modifier = Modifier
-                                .width(12.dp)
+                                .width(8.dp)
                                 .height((60 * fraction).dp)
                                 .clip(RoundedCornerShape(4.dp))
                                 .background(barColor)
@@ -131,7 +175,7 @@ fun NowcastCard(
                         Text(
                             text = formatTime(item.time),
                             fontFamily = LocalDisplayFont.current,
-                            fontSize = 9.sp,
+                            fontSize = 8.sp,
                             color = Color(0xB3FFFFFF)
                         )
                     }

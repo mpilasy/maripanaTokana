@@ -1,0 +1,2 @@
+• Updated Minute-by-Minute Nowcast sparkline to display 10-minute intervals over 2 hours
+• Interpolated precipitation sampling across Open-Meteo and Pirate Weather sources

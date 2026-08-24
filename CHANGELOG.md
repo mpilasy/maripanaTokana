@@ -6,6 +6,10 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.2.19] - 2026-08-23
+- Updated Minute-by-Minute Nowcast sparkline to display 10-minute intervals over 2 hours.
+- Interpolated precipitation sampling across Open-Meteo and Pirate Weather sources.
+
 ## [1.2.18] - 2026-08-23
 - Enhanced Minute-by-Minute Nowcast for Web PWA: added Pirate Weather minutely forecast support and start index slice precision.
 - Malagasy translation refinement for nowcast status.

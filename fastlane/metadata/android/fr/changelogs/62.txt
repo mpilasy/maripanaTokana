@@ -1,0 +1,2 @@
+• Mise à jour du graphique minute par minute pour afficher des intervalles de 10 minutes sur 2 heures
+• Échantillonnage interpolé des précipitations pour Open-Meteo et Pirate Weather
