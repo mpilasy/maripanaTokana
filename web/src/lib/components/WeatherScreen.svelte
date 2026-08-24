@@ -28,6 +28,8 @@
 	import AqiTierBadge from './AqiTierBadge.svelte';
 	import UvTierBadge from './UvTierBadge.svelte';
 	import CollapsibleSection from './CollapsibleSection.svelte';
+	import ActivitiesCard from './ActivitiesCard.svelte';
+	import { computeActivityIndices } from '$lib/domain/activityIndices';
 	import Controls from './Controls.svelte';
 	import Footer from './Footer.svelte';
 	import { captureAndShare } from '$lib/share';
@@ -498,6 +500,10 @@
 						/>
 					</CollapsibleSection>
 				{/if}
+
+				<CollapsibleSection title={$_('section_activities')} expanded={openSection === 'activities'} onToggle={() => toggleSection('activities')} onShare={handleShare}>
+					<ActivitiesCard indices={computeActivityIndices(data)} />
+				</CollapsibleSection>
 
 				<div class="scroll-bottom-pad"></div>
 			</div>

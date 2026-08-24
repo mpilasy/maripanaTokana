@@ -47,6 +47,14 @@
     <string name="section_air_quality_forecast">Air Quality</string>
     <string name="section_uv_forecast">UV</string>
     <string name="section_this_week">10-Day Forecast</string>
+    <string name="section_activities">Activities</string>
+    <string name="activity_running">Running</string>
+    <string name="activity_laundry">Drying Laundry</string>
+    <string name="activity_uv_safety">Sun Protection</string>
+    <string name="activity_tier_excellent">Excellent</string>
+    <string name="activity_tier_good">Good</string>
+    <string name="activity_tier_fair">Fair</string>
+    <string name="activity_tier_poor">Poor</string>
     <string name="detail_temperature">Temperature</string>
     <string name="detail_precipitation">Precipitation</string>
     <string name="detail_min_temp">Min Temp</string>

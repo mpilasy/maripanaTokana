@@ -47,6 +47,14 @@
     <string name="section_air_quality_forecast">جودة الهواء</string>
     <string name="section_uv_forecast">الأشعة فوق البنفسجية</string>
     <string name="section_this_week">توقعات ١٠ أيام</string>
+    <string name="section_activities">الأنشطة</string>
+    <string name="activity_running">الركض</string>
+    <string name="activity_laundry">تجفيف الغسيل</string>
+    <string name="activity_uv_safety">الحماية من الشمس</string>
+    <string name="activity_tier_excellent">ممتاز</string>
+    <string name="activity_tier_good">جيد</string>
+    <string name="activity_tier_fair">مقبول</string>
+    <string name="activity_tier_poor">سيئ</string>
     <string name="detail_min_temp">الحرارة الدنيا</string>
     <string name="detail_max_temp">الحرارة القصوى</string>
     <string name="detail_wind">الرياح</string>

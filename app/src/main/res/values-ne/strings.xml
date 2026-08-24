@@ -47,6 +47,14 @@
     <string name="section_air_quality_forecast">वायु गुणस्तर</string>
     <string name="section_uv_forecast">UV</string>
     <string name="section_this_week">१० दिनको पूर्वानुमान</string>
+    <string name="section_activities">गतिविधिहरू</string>
+    <string name="activity_running">दौडनु</string>
+    <string name="activity_laundry">लुगा सुकाउनु</string>
+    <string name="activity_uv_safety">घामबाट सुरक्षा</string>
+    <string name="activity_tier_excellent">उत्कृष्ट</string>
+    <string name="activity_tier_good">राम्रो</string>
+    <string name="activity_tier_fair">सामान्य</string>
+    <string name="activity_tier_poor">खराब</string>
     <string name="detail_min_temp">न्यूनतम तापक्रम</string>
     <string name="detail_max_temp">अधिकतम तापक्रम</string>
     <string name="detail_wind">हावा</string>

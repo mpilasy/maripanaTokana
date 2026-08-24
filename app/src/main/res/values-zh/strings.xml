@@ -47,6 +47,14 @@
     <string name="section_air_quality_forecast">空气质量</string>
     <string name="section_uv_forecast">紫外线</string>
     <string name="section_this_week">10天预报</string>
+    <string name="section_activities">活动指数</string>
+    <string name="activity_running">跑步</string>
+    <string name="activity_laundry">晾晒衣物</string>
+    <string name="activity_uv_safety">防晒保护</string>
+    <string name="activity_tier_excellent">极佳</string>
+    <string name="activity_tier_good">良好</string>
+    <string name="activity_tier_fair">一般</string>
+    <string name="activity_tier_poor">较差</string>
     <string name="detail_min_temp">最低温</string>
     <string name="detail_max_temp">最高温</string>
     <string name="detail_wind">风速</string>

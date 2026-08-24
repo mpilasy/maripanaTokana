@@ -60,6 +60,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
+import orinasa.njarasoa.maripanatokana.domain.model.ActivityIndices
+import orinasa.njarasoa.maripanatokana.ui.weather.components.ActivitiesCard
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
@@ -677,6 +679,18 @@ internal fun WeatherContent(
                         DailyUvForecastList(data.dailyForecast, localizeDigits, data.utcOffsetSeconds)
                     }
                 }
+            }
+
+            // Activities Index
+            Spacer(modifier = Modifier.height(24.sd(scale)))
+            CollapsibleSection(
+                title = stringResource(R.string.section_activities),
+                headerGraphicsLayer = headerGraphicsLayer,
+                expanded = openSectionKey == "activities",
+                onToggle = { toggleSection("activities") },
+            ) {
+                val activityIndices = remember(data) { ActivityIndices.fromWeatherData(data) }
+                ActivitiesCard(indices = activityIndices)
             }
         }
 

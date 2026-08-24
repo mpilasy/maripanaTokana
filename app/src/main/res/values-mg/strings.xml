@@ -47,6 +47,14 @@
     <string name="section_air_quality_forecast">Hadion\'ny rivotra</string>
     <string name="section_uv_forecast">Tara-masoandro</string>
     <string name="section_this_week">Ny folo andro manaraka</string>
+    <string name="section_activities">Asa sy lalao</string>
+    <string name="activity_running">Hazakazaka</string>
+    <string name="activity_laundry">Fanahazan-damba</string>
+    <string name="activity_uv_safety">Aro-masoandro</string>
+    <string name="activity_tier_excellent">Tsara dia tsara</string>
+    <string name="activity_tier_good">Tsara</string>
+    <string name="activity_tier_fair">Antonony</string>
+    <string name="activity_tier_poor">Ratsy</string>
     <string name="detail_temperature">Maripàna</string>
     <string name="detail_precipitation">Orana</string>
     <string name="detail_min_temp">Iva Indrindra</string>
