@@ -45,9 +45,8 @@ INSTALL_OUTPUT=$(adb -s "$TARGET_DEVICE" install -r "$APK" 2>&1 || true)
 if echo "$INSTALL_OUTPUT" | grep -q "Success"; then
     echo "Installed successfully."
 elif echo "$INSTALL_OUTPUT" | grep -q "INSTALL_FAILED_UPDATE_INCOMPATIBLE"; then
-    echo "Signature mismatch detected — reinstalling to update..."
-    adb -s "$TARGET_DEVICE" uninstall "$APP_ID"
-    adb -s "$TARGET_DEVICE" install "$APK"
+    echo "Signature mismatch detected — attempting downgrade install with -r -d to preserve user data..."
+    adb -s "$TARGET_DEVICE" install -r -d "$APK"
     echo "Installed successfully."
 else
     echo "Installation failed:" >&2

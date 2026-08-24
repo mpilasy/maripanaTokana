@@ -2,6 +2,8 @@
 	import { _ } from 'svelte-i18n';
 	import type { MinutelyForecast } from '$lib/domain/weatherData';
 	import { Precipitation } from '$lib/domain/precipitation';
+	import { metricPrimary } from '$lib/stores/preferences';
+	import { onMount } from 'svelte';
 
 	interface Props {
 		items: MinutelyForecast[];
@@ -10,67 +12,41 @@
 
 	let { items, localizeDigits }: Props = $props();
 
-	function interpolatePrecip(sorted: MinutelyForecast[], targetTime: number): number {
-		let result = 0;
-		if (sorted.length === 0) {
-			result = 0;
-		} else if (targetTime <= sorted[0].time) {
-			result = sorted[0].precipitation.mm;
-		} else if (targetTime >= sorted[sorted.length - 1].time) {
-			result = sorted[sorted.length - 1].precipitation.mm;
-		} else {
-			const idx = sorted.findLastIndex((i) => i.time <= targetTime);
-			if (idx !== -1 && idx < sorted.length - 1) {
-				const t1 = sorted[idx].time;
-				const t2 = sorted[idx + 1].time;
-				const p1 = sorted[idx].precipitation.mm;
-				const p2 = sorted[idx + 1].precipitation.mm;
-				if (t2 > t1) {
-					const ratio = (targetTime - t1) / (t2 - t1);
-					result = p1 + ratio * (p2 - p1);
-				} else {
-					result = p1;
-				}
-			} else if (idx !== -1) {
-				result = sorted[idx].precipitation.mm;
-			} else {
-				result = 0;
-			}
-		}
-		return result;
-	}
+	let containerWidth = $state(100);
+	let container: HTMLDivElement | undefined = $state();
 
-	function sampleEvery10Minutes(rawItems: MinutelyForecast[]): MinutelyForecast[] {
-		let result: MinutelyForecast[] = [];
-		if (rawItems.length === 0) {
-			result = [];
-		} else {
-			const sorted = [...rawItems].sort((a, b) => a.time - b.time);
-			const now = Date.now();
-			const startTime = Math.floor(now / (10 * 60 * 1000)) * (10 * 60 * 1000);
-			const points: MinutelyForecast[] = [];
-			for (let k = 0; k <= 12; k++) {
-				const targetTime = startTime + k * 10 * 60 * 1000;
-				const precipMm = interpolatePrecip(sorted, targetTime);
-				points.push({
-					time: targetTime,
-					precipitation: Precipitation.fromMm(precipMm),
-				});
+	onMount(() => {
+		if (!container) return;
+		const observer = new ResizeObserver((entries) => {
+			for (const entry of entries) {
+				containerWidth = entry.contentRect.width;
 			}
-			result = points;
-		}
-		return result;
-	}
+		});
+		observer.observe(container);
+		return () => observer.disconnect();
+	});
 
-	let displayItems = $derived(sampleEvery10Minutes(items));
+	let nowMs = $state(Date.now());
+	let displayItems = $derived(items.filter((i) => i.time >= nowMs - 15 * 60 * 1000 && i.time <= nowMs + 2 * 3600 * 1000));
+	let hasPrecipitation = $derived(displayItems.some((i) => i.precipitation.mm > 0.05));
 	let maxPrecipMm = $derived(Math.max(...displayItems.map((i) => i.precipitation.mm), 0.5));
+	let maxPrecipObj = $derived(Precipitation.fromMm(maxPrecipMm));
+	let yLabelText = $derived(localizeDigits($metricPrimary ? maxPrecipObj.displayMetric() : maxPrecipObj.displayImperial()));
+	let yZeroText = $derived(localizeDigits($metricPrimary ? '0.0 mm' : '0.00 in'));
 
 	let firstPrecipIndex = $derived(displayItems.findIndex((i) => i.precipitation.mm > 0.05));
-	let minutesUntilStart = $derived(firstPrecipIndex > 0 ? firstPrecipIndex * 10 : 0);
+	let minutesUntilStart = $derived.by(() => {
+		let result = 0;
+		if (firstPrecipIndex > 0 && displayItems.length > 0) {
+			const diffMs = displayItems[firstPrecipIndex].time - nowMs;
+			result = Math.max(1, Math.round(diffMs / (60 * 1000)));
+		}
+		return result;
+	});
 
 	let headlineText = $derived.by(() => {
 		let result = '';
-		if (displayItems.length === 0 || displayItems.every((i) => i.precipitation.mm <= 0.05)) {
+		if (displayItems.length === 0 || !hasPrecipitation) {
 			result = $_('nowcast_no_precip');
 		} else if (firstPrecipIndex === 0) {
 			result = $_('nowcast_ongoing');
@@ -88,6 +64,103 @@
 		const mm = d.getMinutes().toString().padStart(2, '0');
 		return localizeDigits(`${hh}:${mm}`);
 	}
+
+	function generate30MinTicks(startTime: number, endTime: number): number[] {
+		let result: number[] = [];
+		if (endTime <= startTime) {
+			result = [];
+		} else {
+			const intervalMs = 30 * 60 * 1000;
+			const firstTick = Math.ceil(startTime / intervalMs) * intervalMs;
+			const ticks: number[] = [];
+			let curr = firstTick;
+			while (curr <= endTime) {
+				ticks.push(curr);
+				curr += intervalMs;
+			}
+			result = ticks;
+		}
+		return result;
+	}
+
+	let startTime = $derived(displayItems.length ? displayItems[0].time : 0);
+	let endTime = $derived(displayItems.length ? displayItems[displayItems.length - 1].time : 1);
+	let durationMs = $derived(Math.max(1, endTime - startTime));
+	let ticks30Min = $derived(generate30MinTicks(startTime, endTime));
+
+	const height = 70;
+	let points = $derived.by(() => {
+		if (displayItems.length <= 1) return [];
+		return displayItems.map((item) => {
+			const ratioX = (item.time - startTime) / durationMs;
+			const x = ratioX * containerWidth;
+			const fraction = Math.max(0, Math.min(1, item.precipitation.mm / maxPrecipMm));
+			const y = height - 2 - fraction * (height - 14);
+			return { x, y };
+		});
+	});
+
+	let pathD = $derived.by(() => {
+		const n = points.length;
+		if (n <= 1) return '';
+		if (n === 2) return `M ${points[0].x} ${points[0].y} L ${points[1].x} ${points[1].y}`;
+
+		const dx = new Float64Array(n - 1);
+		const dy = new Float64Array(n - 1);
+		const ms = new Float64Array(n - 1);
+
+		for (let i = 0; i < n - 1; i++) {
+			dx[i] = Math.max(0.0001, points[i + 1].x - points[i].x);
+			dy[i] = points[i + 1].y - points[i].y;
+			ms[i] = dy[i] / dx[i];
+		}
+
+		const ds = new Float64Array(n);
+		ds[0] = ms[0];
+		ds[n - 1] = ms[n - 2];
+
+		for (let i = 1; i < n - 1; i++) {
+			if (ms[i - 1] * ms[i] <= 0) {
+				ds[i] = 0;
+			} else {
+				ds[i] = (ms[i - 1] + ms[i]) / 2;
+			}
+		}
+
+		for (let i = 0; i < n - 1; i++) {
+			if (ms[i] === 0) {
+				ds[i] = 0;
+				ds[i + 1] = 0;
+			} else {
+				const alpha = ds[i] / ms[i];
+				const beta = ds[i + 1] / ms[i];
+				const dist = alpha * alpha + beta * beta;
+				if (dist > 9) {
+					const tau = 3 / Math.sqrt(dist);
+					ds[i] = tau * alpha * ms[i];
+					ds[i + 1] = tau * beta * ms[i];
+				}
+			}
+		}
+
+		let d = `M ${points[0].x} ${points[0].y}`;
+		for (let i = 0; i < n - 1; i++) {
+			const h = dx[i];
+			const p1 = points[i];
+			const p2 = points[i + 1];
+			const cp1X = p1.x + h / 3;
+			const cp1Y = p1.y + (ds[i] * h) / 3;
+			const cp2X = p2.x - h / 3;
+			const cp2Y = p2.y - (ds[i + 1] * h) / 3;
+			d += ` C ${cp1X} ${cp1Y}, ${cp2X} ${cp2Y}, ${p2.x} ${p2.y}`;
+		}
+		return d;
+	});
+
+	let areaPathD = $derived.by(() => {
+		if (points.length === 0 || !pathD) return '';
+		return `${pathD} L ${points[points.length - 1].x} ${height - 2} L ${points[0].x} ${height - 2} Z`;
+	});
 </script>
 
 <div class="nowcast-card">
@@ -96,21 +169,41 @@
 		<span class="headline">{headlineText}</span>
 	</div>
 
-	{#if displayItems.length > 0}
-		<div class="sparkline-container">
-			{#each displayItems as item}
-				{@const fraction = Math.max(0.05, Math.min(1.0, item.precipitation.mm / maxPrecipMm))}
-				{@const isRaining = item.precipitation.mm > 0.05}
-				<div class="bar-column">
-					<div class="bar-wrapper">
-						<div
-							class="bar {isRaining ? 'active' : ''}"
-							style="height: {fraction * 100}%"
-						></div>
-					</div>
-					<span class="time-label">{formatTime(item.time)}</span>
+	{#if hasPrecipitation && displayItems.length > 1}
+		<div class="chart-section">
+			<!-- Vertical Y-axis scale header -->
+			<div class="y-axis-labels">
+				<span class="y-label max-label">{yLabelText}</span>
+				<span class="y-label zero-label">{yZeroText}</span>
+			</div>
+
+			<div class="chart-container" bind:this={container}>
+				<svg width="100%" height={height} viewBox="0 0 {containerWidth} {height}" preserveAspectRatio="none">
+					<defs>
+						<linearGradient id="nowcastGradient" x1="0" y1="0" x2="0" y2="1">
+							<stop offset="0%" stop-color="#38bdf8" stop-opacity="0.4" />
+							<stop offset="100%" stop-color="#38bdf8" stop-opacity="0" />
+						</linearGradient>
+					</defs>
+					{#if points.length > 0}
+						<!-- Top dashed guideline -->
+						<line x1="0" y1="6" x2={containerWidth} y2="6" stroke="rgba(255, 255, 255, 0.2)" stroke-dasharray="4 4" />
+						<!-- Bottom baseline -->
+						<line x1="0" y1={height - 2} x2={containerWidth} y2={height - 2} stroke="rgba(255, 255, 255, 0.2)" />
+						
+						<!-- Area fill and Monotone Cubic Spline line stroke -->
+						<path d={areaPathD} fill="url(#nowcastGradient)" />
+						<path d={pathD} fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+					{/if}
+				</svg>
+
+				<!-- 30-minute horizontal X-axis labels -->
+				<div class="x-axis-labels">
+					{#each ticks30Min as tickTime}
+						<span class="x-label">{formatTime(tickTime)}</span>
+					{/each}
 				</div>
-			{/each}
+			</div>
 		</div>
 	{/if}
 </div>
@@ -124,7 +217,7 @@
 		padding: 16px;
 		display: flex;
 		flex-direction: column;
-		gap: 16px;
+		gap: 12px;
 	}
 
 	.header-row {
@@ -143,48 +236,53 @@
 		font-weight: 500;
 	}
 
-	.sparkline-container {
-		display: flex;
-		justify-content: space-between;
-		align-items: flex-end;
-		height: 90px;
-		width: 100%;
-		gap: 2px;
-	}
-
-	.bar-column {
-		flex: 1;
+	.chart-section {
 		display: flex;
 		flex-direction: column;
-		align-items: center;
-		height: 100%;
-		justify-content: flex-end;
-	}
-
-	.bar-wrapper {
-		height: 60px;
+		gap: 4px;
 		width: 100%;
+	}
+
+	.y-axis-labels {
 		display: flex;
-		align-items: flex-end;
-		justify-content: center;
+		justify-content: space-between;
+		align-items: center;
+		width: 100%;
 	}
 
-	.bar {
-		width: 6px;
-		border-radius: 3px;
-		background: rgba(255, 255, 255, 0.2);
-		transition: height 0.3s ease;
+	.y-label {
+		font-size: 0.65rem;
+		font-family: inherit;
 	}
 
-	.bar.active {
-		background: #38bdf8;
-		box-shadow: 0 0 6px rgba(56, 189, 248, 0.4);
+	.max-label {
+		color: rgba(255, 255, 255, 0.8);
 	}
 
-	.time-label {
+	.zero-label {
+		color: rgba(255, 255, 255, 0.4);
+	}
+
+	.chart-container {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		width: 100%;
+	}
+
+	svg {
+		overflow: visible;
+	}
+
+	.x-axis-labels {
+		display: flex;
+		justify-content: space-between;
+		width: 100%;
+	}
+
+	.x-label {
 		font-size: 0.6rem;
 		color: rgba(255, 255, 255, 0.7);
-		margin-top: 6px;
 		white-space: nowrap;
 	}
 </style>
