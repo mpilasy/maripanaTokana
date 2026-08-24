@@ -6,6 +6,7 @@ For F-Droid build issues, read [docs/FDROID.md](./docs/FDROID.md) before touchin
 
 ## Key Rules
 
+- NEVER create git commits or push unless explicitly instructed by the user (e.g. "commit", "push").
 - Do NOT add `Co-Authored-By` or any AI attribution to commit messages.
 - Do NOT add `id("org.jetbrains.kotlin.android")` to `app/build.gradle.kts` — causes extension conflict.
 - Do NOT add foojay-resolver to `settings.gradle.kts` — F-Droid blocks it.
