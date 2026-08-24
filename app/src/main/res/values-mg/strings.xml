@@ -48,7 +48,7 @@
     <string name="section_uv_forecast">Tara-masoandro</string>
     <string name="section_this_week">Ny folo andro manaraka</string>
     <string name="section_activities">Asa sy lalao</string>
-    <string name="section_nowcast">Vinavina isa-minitra</string>
+    <string name="section_nowcast">Orana isa-minitra</string>
     <string name="nowcast_no_precip">Tsy hisy orana ny adiny roa manaraka</string>
     <string name="nowcast_starts_in">Hanomboka ny orana afaka ~{minutes} min</string>
     <string name="nowcast_stopping_in">Hijanona ny orana afaka ~{minutes} min</string>

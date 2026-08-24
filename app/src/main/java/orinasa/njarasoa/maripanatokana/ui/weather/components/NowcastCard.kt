@@ -104,6 +104,10 @@ fun NowcastCard(
     val maxPrecipObj = Precipitation.fromMm(maxPrecipMm)
     val yLabelText = if (isMetricPrimary) maxPrecipObj.displayMetric() else maxPrecipObj.displayImperial()
 
+    val minPrecipMm = displayItems.minOfOrNull { it.precipitation.mm } ?: 0.0
+    val minPrecipObj = Precipitation.fromMm(minPrecipMm)
+    val yMinLabelText = if (isMetricPrimary) minPrecipObj.displayMetric() else minPrecipObj.displayImperial()
+
     val textMeasurer = rememberTextMeasurer()
     val timeLabelStyle = TextStyle(
         color = Color(0xB3FFFFFF),
@@ -242,7 +246,7 @@ fun NowcastCard(
 
                 val maxTextLayout = textMeasurer.measure(yLabelText, maxLabelStyle)
                 val maxTextX = (maxPoint.x - maxTextLayout.size.width / 2f).coerceIn(4.dp.toPx(), width - maxTextLayout.size.width - 4.dp.toPx())
-                val maxTextY = (maxPoint.y - maxTextLayout.size.height - 2.dp.toPx()).coerceIn(2.dp.toPx(), chartHeight - maxTextLayout.size.height)
+                val maxTextY = (maxPoint.y + 4.dp.toPx()).coerceIn(2.dp.toPx(), chartHeight - maxTextLayout.size.height)
                 drawText(maxTextLayout, topLeft = Offset(maxTextX, maxTextY))
 
                 // Position min legend right at the baseline min point (middle if multiple)
@@ -252,10 +256,9 @@ fun NowcastCard(
                 val minPoint = points[minMiddleIdx]
 
                 // Only draw min legend if it doesn't overlap horizontally with max legend
-                val yZeroText = if (isMetricPrimary) "0.0 mm" else "0.00 in"
-                val minTextLayout = textMeasurer.measure(yZeroText, minLabelStyle)
+                val minTextLayout = textMeasurer.measure(yMinLabelText, minLabelStyle)
                 val minTextX = (minPoint.x - minTextLayout.size.width / 2f).coerceIn(4.dp.toPx(), width - minTextLayout.size.width - 4.dp.toPx())
-                val minTextY = chartHeight - minTextLayout.size.height - 2.dp.toPx()
+                val minTextY = (minPoint.y - minTextLayout.size.height - 2.dp.toPx()).coerceAtLeast(0f)
                 
                 val horizontalOverlap = Math.abs((maxTextX + maxTextLayout.size.width / 2f) - (minTextX + minTextLayout.size.width / 2f)) < 40.dp.toPx()
                 if (!horizontalOverlap || Math.abs(maxTextY - minTextY) > 12.dp.toPx()) {

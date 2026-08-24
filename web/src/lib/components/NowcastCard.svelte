@@ -31,8 +31,10 @@
 	let hasPrecipitation = $derived(displayItems.some((i) => i.precipitation.mm > 0.05));
 	let maxPrecipMm = $derived(Math.max(...displayItems.map((i) => i.precipitation.mm), 0.1));
 	let maxPrecipObj = $derived(Precipitation.fromMm(maxPrecipMm));
-	let yLabelText = $derived(localizeDigits($metricPrimary ? maxPrecipObj.displayMetric() : maxPrecipObj.displayImperial()));
-	let yZeroText = $derived(localizeDigits($metricPrimary ? '0.0 mm' : '0.00 in'));
+	let yMaxLabelText = $derived(localizeDigits($metricPrimary ? maxPrecipObj.displayMetric() : maxPrecipObj.displayImperial()));
+	let minPrecipMm = $derived(displayItems.length ? Math.min(...displayItems.map((i) => i.precipitation.mm)) : 0);
+	let minPrecipObj = $derived(Precipitation.fromMm(minPrecipMm));
+	let yMinLabelText = $derived(localizeDigits($metricPrimary ? minPrecipObj.displayMetric() : minPrecipObj.displayImperial()));
 
 	let firstPrecipIndex = $derived(displayItems.findIndex((i) => i.precipitation.mm > 0.05));
 	let minutesUntilStart = $derived.by(() => {
@@ -166,7 +168,7 @@
 		const midIdx = maxIndices[Math.floor(maxIndices.length / 2)];
 		const pt = points[midIdx];
 		const x = Math.max(20, Math.min(containerWidth - 20, pt.x));
-		const y = Math.max(12, Math.min(chartHeight - 12, pt.y - 4));
+		const y = Math.min(chartHeight - 4, pt.y + 12);
 		return { x, y };
 	});
 
@@ -177,7 +179,7 @@
 		const midIdx = minIndices[Math.floor(minIndices.length / 2)];
 		const pt = points[midIdx];
 		const x = Math.max(20, Math.min(containerWidth - 20, pt.x));
-		const y = chartHeight - 4;
+		const y = Math.max(10, pt.y - 2);
 		return { x, y };
 	});
 
@@ -232,12 +234,12 @@
 
 						<!-- Max legend on peak curve point -->
 						{#if maxPointInfo}
-							<text x={maxPointInfo.x} y={maxPointInfo.y} text-anchor="middle" font-size="9" font-weight="bold" fill="#38bdf8">{yLabelText}</text>
+							<text x={maxPointInfo.x} y={maxPointInfo.y} text-anchor="middle" font-size="9" font-weight="bold" fill="#38bdf8">{yMaxLabelText}</text>
 						{/if}
 
 						<!-- Min legend on baseline min point -->
 						{#if minPointInfo && showMinLegend}
-							<text x={minPointInfo.x} y={minPointInfo.y} text-anchor="middle" font-size="9" fill="rgba(255, 255, 255, 0.4)">{yZeroText}</text>
+							<text x={minPointInfo.x} y={minPointInfo.y} text-anchor="middle" font-size="9" fill="rgba(255, 255, 255, 0.4)">{yMinLabelText}</text>
 						{/if}
 					{/if}
 				</svg>
