@@ -27,7 +27,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Generate i18n strings
         run: node shared/i18n/generate-android-strings.js
@@ -92,7 +92,7 @@ jobs:
           cp "metadata/$APP_ID.yml" "metadata/$APP_ID.yml.orig"
           fdroid rewritemeta "$APP_ID"
           if ! diff -q "metadata/$APP_ID.yml.orig" "metadata/$APP_ID.yml" > /dev/null; then
-            echo "::warning::fdroid rewritemeta reformatted metadata/$APP_ID.yml; discarding its formatting changes and keeping update_metadata.py's canonical output. Diff was:"
+            echo "Notice: fdroid rewritemeta reformatted metadata/$APP_ID.yml; discarding its formatting changes and keeping update_metadata.py's canonical output. Diff was:"
             diff "metadata/$APP_ID.yml.orig" "metadata/$APP_ID.yml" || true
             mv "metadata/$APP_ID.yml.orig" "metadata/$APP_ID.yml"
           else
