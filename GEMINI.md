@@ -43,3 +43,5 @@ Use the right model for the job to save cost and context:
 - **New i18n keys**: Add to all 8 JSON files in `shared/i18n/locales/`. Missing keys will show raw key strings at runtime.
 - **Widget changes**: Widgets use standalone Retrofit (no Hilt). Test widget code paths separately from main app code.
 - **F-Droid metadata**: The local copy is in `metadata/orinasa.njarasoa.maripanatokana.yml`. The app is already merged into `fdroid/fdroiddata` (inclusion MR `!33362` merged 2026-06-18) — do NOT push to the old fork branch, it's dead. F-Droid's bot auto-detects new tags and opens/merges its own MR (~daily, see `docs/FDROID.md`).
+- **F-Droid Releases**: Use `./scripts/release_fdroid.sh` to automate releases. The `vX.Y.Z` tag MUST point to the `Bump to vX.Y.Z` commit (WITHOUT `[skip ci]`), so GitHub Actions triggers `fdroid-build.yml`. The metadata commit (`Update F-Droid metadata for vX.Y.Z [skip ci]`) is committed after tagging.
+- **CI / Build Polling**: NEVER poll status in a rapid loop (e.g. every 2-5 seconds). GitHub Actions `F-Droid Build` takes ~5 minutes. Calculate elapsed build duration and set a timer or check status ONCE after the expected duration.
