@@ -60,29 +60,67 @@
 	let midnightIndices = $derived(forecasts.map((f, i) => new Date(f.time).getHours() === 0 ? i : -1).filter(i => i !== -1));
 	let noonIndices = $derived(forecasts.map((f, i) => new Date(f.time).getHours() === 12 ? i : -1).filter(i => i !== -1));
 
-	let linePath = $derived(() => {
-		if (points.length < 2) return '';
-		let d = `M ${points[0].x} ${points[0].y}`;
-		for (let i = 1; i < points.length; i++) {
-			const prev = points[i - 1];
-			const curr = points[i];
-			const cp1x = prev.x + (curr.x - prev.x) / 2;
-			d += ` C ${cp1x} ${prev.y} ${cp1x} ${curr.y} ${curr.x} ${curr.y}`;
-		}
-		return d;
-	});
+	function generateMonotonePath(pts: { x: number; y: number }[]): string {
+		const n = pts.length;
+		if (n < 2) return '';
+		if (n === 2) return `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)} L ${pts[1].x.toFixed(1)} ${pts[1].y.toFixed(1)}`;
 
-	let fillPath = $derived(() => {
-		if (points.length < 2) return '';
-		let d = `M ${points[0].x} ${height} L ${points[0].x} ${points[0].y}`;
-		for (let i = 1; i < points.length; i++) {
-			const prev = points[i - 1];
-			const curr = points[i];
-			const cp1x = prev.x + (curr.x - prev.x) / 2;
-			d += ` C ${cp1x} ${prev.y} ${cp1x} ${curr.y} ${curr.x} ${curr.y}`;
+		const dx = new Float64Array(n - 1);
+		const dy = new Float64Array(n - 1);
+		const ms = new Float64Array(n - 1);
+
+		for (let i = 0; i < n - 1; i++) {
+			dx[i] = Math.max(0.0001, pts[i + 1].x - pts[i].x);
+			dy[i] = pts[i + 1].y - pts[i].y;
+			ms[i] = dy[i] / dx[i];
 		}
-		d += ` L ${points[points.length - 1].x} ${height} Z`;
+
+		const ds = new Float64Array(n);
+		ds[0] = ms[0];
+		ds[n - 1] = ms[n - 2];
+
+		for (let i = 1; i < n - 1; i++) {
+			if (ms[i - 1] * ms[i] <= 0) {
+				ds[i] = 0;
+			} else {
+				ds[i] = (ms[i - 1] + ms[i]) / 2;
+			}
+		}
+
+		for (let i = 0; i < n - 1; i++) {
+			if (ms[i] === 0) {
+				ds[i] = 0;
+				ds[i + 1] = 0;
+			} else {
+				const alpha = ds[i] / ms[i];
+				const beta = ds[i + 1] / ms[i];
+				const dist = alpha * alpha + beta * beta;
+				if (dist > 9) {
+					const tau = 3 / Math.sqrt(dist);
+					ds[i] = tau * alpha * ms[i];
+					ds[i + 1] = tau * beta * ms[i];
+				}
+			}
+		}
+
+		let d = `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+		for (let i = 0; i < n - 1; i++) {
+			const h = dx[i];
+			const p1 = pts[i];
+			const p2 = pts[i + 1];
+			const cp1X = (p1.x + h / 3).toFixed(1);
+			const cp1Y = (p1.y + (ds[i] * h) / 3).toFixed(1);
+			const cp2X = (p2.x - h / 3).toFixed(1);
+			const cp2Y = (p2.y - (ds[i + 1] * h) / 3).toFixed(1);
+			d += ` C ${cp1X} ${cp1Y}, ${cp2X} ${cp2Y}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+		}
 		return d;
+	}
+
+	let linePathStr = $derived(generateMonotonePath(points));
+	let fillPathStr = $derived.by(() => {
+		if (points.length < 2 || !linePathStr) return '';
+		return `${linePathStr} L ${points[points.length - 1].x.toFixed(1)} ${height} L ${points[0].x.toFixed(1)} ${height} Z`;
 	});
 </script>
 
@@ -111,10 +149,12 @@
 				<text x={x} y="9" text-anchor="middle" font-size="8" fill="white" fill-opacity="0.45">12:00</text>
 			{/each}
 
-			{#if fillPath()}
-				<path d={fillPath()} fill="url(#aqiFillGradient)" />
+			{#if fillPathStr}
+				<path d={fillPathStr} fill="url(#aqiFillGradient)" />
 			{/if}
-			<path d={linePath()} fill="none" stroke="white" stroke-width="2" />
+			{#if linePathStr}
+				<path d={linePathStr} fill="none" stroke="white" stroke-width="2" />
+			{/if}
 
 			{#each points as point, i}
 				<circle cx={point.x} cy={point.y} r="4" fill={dotColors[i]} />

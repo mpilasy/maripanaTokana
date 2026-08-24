@@ -143,40 +143,33 @@ fun TemperatureChart(
                 drawText(layout, topLeft = Offset(x - layout.size.width / 2f, 2.dp.toPx()))
             }
 
-            val path = Path()
-            val fillPath = Path()
-
             val points = temps.mapIndexed { i, temp ->
                 val x = (i * (itemWidthPx + spacingPx) + itemWidthPx / 2) * xScale
                 val y = height - ((temp - paddedMin) / paddedRange * height).toFloat()
-                x to y
+                Offset(x, y)
             }
 
-            points.forEachIndexed { i, (x, y) ->
-                if (i == 0) {
-                    path.moveTo(x, y)
-                    fillPath.moveTo(x, height)
-                    fillPath.lineTo(x, y)
-                } else {
-                    val (prevX, prevY) = points[i - 1]
-                    // Cubic bezier for super smooth look
-                    val cp1x = prevX + (x - prevX) / 2f
-                    path.cubicTo(
-                        cp1x, prevY,
-                        cp1x, y,
-                        x, y
-                    )
-                    fillPath.cubicTo(
-                        cp1x, prevY,
-                        cp1x, y,
-                        x, y
-                    )
+            val controlPoints = computeMonotoneCubicControlPoints(points)
+
+            val path = Path().apply {
+                moveTo(points[0].x, points[0].y)
+                for (i in 0 until controlPoints.size) {
+                    val cp = controlPoints[i]
+                    val pNext = points[i + 1]
+                    cubicTo(cp.cp1.x, cp.cp1.y, cp.cp2.x, cp.cp2.y, pNext.x, pNext.y)
                 }
-                
-                if (i == pointsCount - 1) {
-                    fillPath.lineTo(x, height)
-                    fillPath.close()
+            }
+
+            val fillPath = Path().apply {
+                moveTo(points[0].x, height)
+                lineTo(points[0].x, points[0].y)
+                for (i in 0 until controlPoints.size) {
+                    val cp = controlPoints[i]
+                    val pNext = points[i + 1]
+                    cubicTo(cp.cp1.x, cp.cp1.y, cp.cp2.x, cp.cp2.y, pNext.x, pNext.y)
                 }
+                lineTo(points.last().x, height)
+                close()
             }
 
             // Draw area fill
@@ -197,11 +190,11 @@ fun TemperatureChart(
             )
 
             // Draw dots at each hour
-            points.forEach { (x, y) ->
+            points.forEach { point ->
                 drawCircle(
                     color = lineColor,
                     radius = 3.dp.toPx(),
-                    center = Offset(x, y)
+                    center = point
                 )
             }
 

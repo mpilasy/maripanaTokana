@@ -577,8 +577,8 @@ internal fun WeatherContent(
             }
             Spacer(modifier = Modifier.height(24.sd(scale)))
 
-            // Minutely Nowcast (collapsible)
-            if (data.minutelyForecast.isNotEmpty()) {
+            // Minutely Nowcast (collapsible, Open-Meteo source only)
+            if (weatherSource == WeatherSource.OPEN_METEO && data.minutelyForecast.isNotEmpty()) {
                 CollapsibleSection(
                     title = stringResource(R.string.section_nowcast),
                     headerGraphicsLayer = headerGraphicsLayer,

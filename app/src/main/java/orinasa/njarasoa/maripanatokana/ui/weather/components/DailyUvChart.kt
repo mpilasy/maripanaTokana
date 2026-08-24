@@ -96,14 +96,14 @@ fun DailyUvChart(
                 Offset(x, y)
             }
 
-            val uvPath = Path()
-            uvPoints.forEachIndexed { i, point ->
-                if (i == 0) {
-                    uvPath.moveTo(point.x, point.y)
-                } else {
-                    val prev = uvPoints[i - 1]
-                    val cp1x = prev.x + (point.x - prev.x) / 2f
-                    uvPath.cubicTo(cp1x, prev.y, cp1x, point.y, point.x, point.y)
+            val controlPoints = computeMonotoneCubicControlPoints(uvPoints)
+
+            val uvPath = Path().apply {
+                moveTo(uvPoints[0].x, uvPoints[0].y)
+                for (i in 0 until controlPoints.size) {
+                    val cp = controlPoints[i]
+                    val pNext = uvPoints[i + 1]
+                    cubicTo(cp.cp1.x, cp.cp1.y, cp.cp2.x, cp.cp2.y, pNext.x, pNext.y)
                 }
             }
 

@@ -126,30 +126,33 @@ fun AirQualityChart(
                 drawText(layout, topLeft = Offset(x - layout.size.width / 2f, 2.dp.toPx()))
             }
 
-            val path = Path()
-            val fillPath = Path()
-
             val points = values.mapIndexed { i, value ->
                 val x = (i.toFloat() / (pointsCount - 1)) * width
                 val y = height - ((value - paddedMin) / paddedRange * height).toFloat()
                 Offset(x, y)
             }
 
-            points.forEachIndexed { i, point ->
-                if (i == 0) {
-                    path.moveTo(point.x, point.y)
-                    fillPath.moveTo(point.x, height)
-                    fillPath.lineTo(point.x, point.y)
-                } else {
-                    val prev = points[i - 1]
-                    val cp1x = prev.x + (point.x - prev.x) / 2f
-                    path.cubicTo(cp1x, prev.y, cp1x, point.y, point.x, point.y)
-                    fillPath.cubicTo(cp1x, prev.y, cp1x, point.y, point.x, point.y)
+            val controlPoints = computeMonotoneCubicControlPoints(points)
+
+            val path = Path().apply {
+                moveTo(points[0].x, points[0].y)
+                for (i in 0 until controlPoints.size) {
+                    val cp = controlPoints[i]
+                    val pNext = points[i + 1]
+                    cubicTo(cp.cp1.x, cp.cp1.y, cp.cp2.x, cp.cp2.y, pNext.x, pNext.y)
                 }
-                if (i == pointsCount - 1) {
-                    fillPath.lineTo(point.x, height)
-                    fillPath.close()
+            }
+
+            val fillPath = Path().apply {
+                moveTo(points[0].x, height)
+                lineTo(points[0].x, points[0].y)
+                for (i in 0 until controlPoints.size) {
+                    val cp = controlPoints[i]
+                    val pNext = points[i + 1]
+                    cubicTo(cp.cp1.x, cp.cp1.y, cp.cp2.x, cp.cp2.y, pNext.x, pNext.y)
                 }
+                lineTo(points.last().x, height)
+                close()
             }
 
             drawPath(

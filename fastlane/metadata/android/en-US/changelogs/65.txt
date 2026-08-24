@@ -1,0 +1,1 @@
+Refined minute-by-minute Nowcast graph and trend curves.

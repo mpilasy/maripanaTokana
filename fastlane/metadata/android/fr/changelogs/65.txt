@@ -1,0 +1,1 @@
+Graphique de prévision minute par minute et courbes de tendance affinés.

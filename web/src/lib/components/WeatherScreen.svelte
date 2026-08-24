@@ -12,7 +12,7 @@
 		locationOverride, initLocationOverride, favoriteCurrentLocation, unfavoriteCurrentLocation
 	} from '$lib/stores/savedLocations';
 	import SettingsScreen from './SettingsScreen.svelte';
-	import { metricPrimary, fontIndex, localeIndex, toggleUnits, cycleFont, cycleLanguage } from '$lib/stores/preferences';
+	import { metricPrimary, fontIndex, localeIndex, weatherSource, toggleUnits, cycleFont, cycleLanguage } from '$lib/stores/preferences';
 	import { SUPPORTED_LOCALES, localizeDigits } from '$lib/i18n/index';
 	import { fontPairings } from '$lib/fonts';
 	import { formatDate, formatLocationCurrentTime, isRemoteTimezone } from '$lib/utils/date';
@@ -421,7 +421,7 @@
 					<CurrentConditions {data} metricPrimary={$metricPrimary} {loc} onToggleUnits={toggleUnits} />
 				</CollapsibleSection>
 
-				{#if data.minutelyForecast && data.minutelyForecast.length > 0}
+				{#if $weatherSource === 'OPEN_METEO' && data.minutelyForecast && data.minutelyForecast.length > 0}
 					<CollapsibleSection title={$_('section_nowcast')} expanded={openSection === 'nowcast'} onToggle={() => toggleSection('nowcast')} onShare={handleShare}>
 						<NowcastCard items={data.minutelyForecast} localizeDigits={loc} />
 					</CollapsibleSection>

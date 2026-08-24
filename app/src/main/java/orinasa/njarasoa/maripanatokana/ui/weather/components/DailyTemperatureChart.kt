@@ -101,10 +101,6 @@ fun DailyTemperatureChart(
                 )
             }
 
-            val maxPath = Path()
-            val minPath = Path()
-            val areaPath = Path()
-
             val maxPoints = maxTemps.mapIndexed { i, temp ->
                 val x = xFor(i)
                 val y = height - ((temp - paddedMin) / paddedRange * height).toFloat()
@@ -117,39 +113,41 @@ fun DailyTemperatureChart(
                 Offset(x, y)
             }
 
-            maxPoints.forEachIndexed { i, point ->
-                if (i == 0) {
-                    maxPath.moveTo(point.x, point.y)
-                    areaPath.moveTo(point.x, point.y)
-                } else {
-                    val prev = maxPoints[i - 1]
-                    val cp1x = prev.x + (point.x - prev.x) / 2f
-                    maxPath.cubicTo(cp1x, prev.y, cp1x, point.y, point.x, point.y)
-                    areaPath.cubicTo(cp1x, prev.y, cp1x, point.y, point.x, point.y)
+            val maxControlPoints = computeMonotoneCubicControlPoints(maxPoints)
+            val minControlPoints = computeMonotoneCubicControlPoints(minPoints)
+
+            val maxPath = Path().apply {
+                moveTo(maxPoints[0].x, maxPoints[0].y)
+                for (i in 0 until maxControlPoints.size) {
+                    val cp = maxControlPoints[i]
+                    val pNext = maxPoints[i + 1]
+                    cubicTo(cp.cp1.x, cp.cp1.y, cp.cp2.x, cp.cp2.y, pNext.x, pNext.y)
                 }
             }
 
-            // Go back along min points to close area
-            for (i in minPoints.indices.reversed()) {
-                val point = minPoints[i]
-                if (i == minPoints.size - 1) {
-                    areaPath.lineTo(point.x, point.y)
-                } else {
-                    val next = minPoints[i + 1]
-                    val cp1x = point.x + (next.x - point.x) / 2f
-                    areaPath.cubicTo(cp1x, next.y, cp1x, point.y, point.x, point.y)
+            val minPath = Path().apply {
+                moveTo(minPoints[0].x, minPoints[0].y)
+                for (i in 0 until minControlPoints.size) {
+                    val cp = minControlPoints[i]
+                    val pNext = minPoints[i + 1]
+                    cubicTo(cp.cp1.x, cp.cp1.y, cp.cp2.x, cp.cp2.y, pNext.x, pNext.y)
                 }
             }
-            areaPath.close()
 
-            minPoints.forEachIndexed { i, point ->
-                if (i == 0) {
-                    minPath.moveTo(point.x, point.y)
-                } else {
-                    val prev = minPoints[i - 1]
-                    val cp1x = prev.x + (point.x - prev.x) / 2f
-                    minPath.cubicTo(cp1x, prev.y, cp1x, point.y, point.x, point.y)
+            val areaPath = Path().apply {
+                moveTo(maxPoints[0].x, maxPoints[0].y)
+                for (i in 0 until maxControlPoints.size) {
+                    val cp = maxControlPoints[i]
+                    val pNext = maxPoints[i + 1]
+                    cubicTo(cp.cp1.x, cp.cp1.y, cp.cp2.x, cp.cp2.y, pNext.x, pNext.y)
                 }
+                lineTo(minPoints.last().x, minPoints.last().y)
+                for (i in minControlPoints.indices.reversed()) {
+                    val cp = minControlPoints[i]
+                    val pPrev = minPoints[i]
+                    cubicTo(cp.cp2.x, cp.cp2.y, cp.cp1.x, cp.cp1.y, pPrev.x, pPrev.y)
+                }
+                close()
             }
 
             // Draw area fill

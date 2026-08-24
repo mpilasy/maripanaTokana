@@ -1,0 +1,1 @@
+Mejorado gráfico de predicción minuto a minuto y curvas de tendencia.
