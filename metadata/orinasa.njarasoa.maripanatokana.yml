@@ -37,7 +37,7 @@ Binaries:
 Builds:
   - versionName: 1.2.17
     versionCode: 60
-    commit: cd92903e3b65f0a5d105bcaa8c76a28de2a034e7
+    commit: 44f9fb66c18f2fdb5c099e251fd3e959a26bee31
     subdir: app
     gradle:
       - fdroid
