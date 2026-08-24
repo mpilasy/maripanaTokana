@@ -9,8 +9,9 @@
 	import SavedLocationsDialog from './SavedLocationsDialog.svelte';
 	import {
 		showSavedLocationsDialog, openSavedLocationsDialog, activeLocationId, savedLocations, switchToLocation,
-		locationOverride, initLocationOverride, favoriteCurrentLocation, unfavoriteCurrentLocation
+		locationOverride, initLocationOverride, setLocationOverride, favoriteCurrentLocation, unfavoriteCurrentLocation
 	} from '$lib/stores/savedLocations';
+	import { parseLocationText } from '$lib/domain/sharedLocationParser';
 	import SettingsScreen from './SettingsScreen.svelte';
 	import { metricPrimary, fontIndex, localeIndex, weatherSource, toggleUnits, cycleFont, cycleLanguage } from '$lib/stores/preferences';
 	import { SUPPORTED_LOCALES, localizeDigits } from '$lib/i18n/index';
@@ -51,6 +52,18 @@
 	onMount(() => {
 		initAdvancedMode();
 		initLocationOverride();
+
+		if (typeof window !== 'undefined') {
+			const params = new URLSearchParams(window.location.search);
+			const sharedText = params.get('text') || params.get('url') || params.get('q') || params.get('loc') || params.get('title');
+			if (sharedText) {
+				const parsed = parseLocationText(sharedText);
+				if (parsed) {
+					const name = parsed.name || `${parsed.latitude.toFixed(4)}, ${parsed.longitude.toFixed(4)}`;
+					setLocationOverride(parsed.latitude, parsed.longitude, name);
+				}
+			}
+		}
 	});
 
 	if (browserLocaleTag) {

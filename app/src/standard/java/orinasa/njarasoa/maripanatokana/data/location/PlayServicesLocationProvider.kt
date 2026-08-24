@@ -4,6 +4,7 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Location provider using Google Play Services FusedLocationProviderClient.
@@ -31,13 +32,17 @@ class PlayServicesLocationProvider(
 
     override suspend fun getFreshLocation(): Result<Pair<Double, Double>> {
         return try {
-            val location = fusedLocationClient.getCurrentLocation(
-                Priority.PRIORITY_BALANCED_POWER_ACCURACY,
-                CancellationTokenSource().token
-            ).await()
+            val location = withTimeoutOrNull(10_000L) {
+                fusedLocationClient.getCurrentLocation(
+                    Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+                    CancellationTokenSource().token
+                ).await()
+            }
 
-            if (location != null) {
-                Result.success(Pair(location.latitude, location.longitude))
+            val finalLocation = location ?: try { fusedLocationClient.lastLocation.await() } catch (_: Exception) { null }
+
+            if (finalLocation != null) {
+                Result.success(Pair(finalLocation.latitude, finalLocation.longitude))
             } else {
                 Result.failure(Exception("Unable to get location"))
             }

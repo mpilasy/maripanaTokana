@@ -1,5 +1,5 @@
 import { writable, get } from 'svelte/store';
-import { doFetchWeather } from '$lib/stores/weather';
+import { doFetchWeather, weatherState } from '$lib/stores/weather';
 
 export interface SavedLocation {
 	id: string;
@@ -78,6 +78,7 @@ export function initLocationOverride() {
  * starting a preview clears the active saved-location id, and switching to a real location clears
  * an active preview. Use favoriteCurrentLocation to save it. */
 export function setLocationOverride(lat: number, lon: number, name: string, subtext?: string) {
+	weatherState.set({ kind: 'loading' });
 	if (typeof localStorage !== 'undefined') {
 		localStorage.setItem('advanced_override_lat', lat.toString());
 		localStorage.setItem('advanced_override_lon', lon.toString());
@@ -152,6 +153,7 @@ export function unfavoriteCurrentLocation() {
 /** Switches the active location. Pass null to switch back to GPS ("Current Location"). Clears
  * any active preview (see setLocationOverride) — the two are mutually exclusive. */
 export function switchToLocation(id: string | null) {
+	weatherState.set({ kind: 'loading' });
 	clearAdvancedModeOverride();
 	activeLocationId.set(id);
 	if (typeof localStorage !== 'undefined') {

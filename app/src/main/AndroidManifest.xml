@@ -33,6 +33,30 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+                <data android:mimeType="text/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="geo" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" />
+                <data android:host="maps.app.goo.gl" />
+                <data android:host="goo.gl" />
+                <data android:host="maps.google.com" />
+                <data android:host="www.google.com" android:pathPrefix="/maps" />
+                <data android:host="www.openstreetmap.org" />
+                <data android:host="maps.apple.com" />
+            </intent-filter>
         </activity>
         <receiver
             android:name=".widget.WeatherWidgetReceiver"
