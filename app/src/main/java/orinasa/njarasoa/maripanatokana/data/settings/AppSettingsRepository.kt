@@ -2,6 +2,7 @@ package orinasa.njarasoa.maripanatokana.data.settings
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -51,42 +52,55 @@ class AppSettingsRepository @Inject constructor(
         alertsNhcEnabled = prefs.getBoolean("settings_alerts_nhc", true),
     )
 
-    fun updateWeatherSource(source: WeatherSource) =
-        prefs.edit().putString("settings_weather_source", source.name).apply()
+    fun updateWeatherSource(source: WeatherSource) {
+        prefs.edit { putString("settings_weather_source", source.name) }
+    }
 
-    fun updateWeatherApiKey(key: String) =
-        prefs.edit().putString("settings_weather_api_key", key).apply()
+    fun updateWeatherApiKey(key: String) {
+        prefs.edit { putString("settings_weather_api_key", key) }
+    }
 
-    fun updateGeocodingSource(source: GeocodingSource) =
-        prefs.edit().putString("settings_geocoding_source", source.name).apply()
+    fun updateGeocodingSource(source: GeocodingSource) {
+        prefs.edit { putString("settings_geocoding_source", source.name) }
+    }
 
-    fun updateAlertsEnabled(enabled: Boolean) =
-        prefs.edit().putBoolean("settings_alerts_enabled", enabled).apply()
+    fun updateAlertsEnabled(enabled: Boolean) {
+        prefs.edit { putBoolean("settings_alerts_enabled", enabled) }
+    }
 
-    fun updateAlertsNwsEnabled(enabled: Boolean) =
-        prefs.edit().putBoolean("settings_alerts_nws", enabled).apply()
+    fun updateAlertsNwsEnabled(enabled: Boolean) {
+        prefs.edit { putBoolean("settings_alerts_nws", enabled) }
+    }
 
-    fun updateAlertsGdacsEnabled(enabled: Boolean) =
-        prefs.edit().putBoolean("settings_alerts_gdacs", enabled).apply()
+    fun updateAlertsGdacsEnabled(enabled: Boolean) {
+        prefs.edit { putBoolean("settings_alerts_gdacs", enabled) }
+    }
 
-    fun updateAlertsMeteoAlarmEnabled(enabled: Boolean) =
-        prefs.edit().putBoolean("settings_alerts_meteoalarm", enabled).apply()
+    fun updateAlertsMeteoAlarmEnabled(enabled: Boolean) {
+        prefs.edit { putBoolean("settings_alerts_meteoalarm", enabled) }
+    }
 
-    fun updateAlertsJmaEnabled(enabled: Boolean) =
-        prefs.edit().putBoolean("settings_alerts_jma", enabled).apply()
+    fun updateAlertsJmaEnabled(enabled: Boolean) {
+        prefs.edit { putBoolean("settings_alerts_jma", enabled) }
+    }
 
-    fun updateAlertsEcccEnabled(enabled: Boolean) =
-        prefs.edit().putBoolean("settings_alerts_eccc", enabled).apply()
+    fun updateAlertsEcccEnabled(enabled: Boolean) {
+        prefs.edit { putBoolean("settings_alerts_eccc", enabled) }
+    }
 
-    fun updateAlertsWmoSwicEnabled(enabled: Boolean) =
-        prefs.edit().putBoolean("settings_alerts_wmoswic", enabled).apply()
+    fun updateAlertsWmoSwicEnabled(enabled: Boolean) {
+        prefs.edit { putBoolean("settings_alerts_wmoswic", enabled) }
+    }
 
-    fun updateAlertsBomEnabled(enabled: Boolean) =
-        prefs.edit().putBoolean("settings_alerts_bom", enabled).apply()
+    fun updateAlertsBomEnabled(enabled: Boolean) {
+        prefs.edit { putBoolean("settings_alerts_bom", enabled) }
+    }
 
-    fun updateAlertsNhcEnabled(enabled: Boolean) =
-        prefs.edit().putBoolean("settings_alerts_nhc", enabled).apply()
+    fun updateAlertsNhcEnabled(enabled: Boolean) {
+        prefs.edit { putBoolean("settings_alerts_nhc", enabled) }
+    }
 
-    fun updateAdvancedMode(enabled: Boolean) =
-        prefs.edit().putBoolean("settings_advanced_mode", enabled).apply()
+    fun updateAdvancedMode(enabled: Boolean) {
+        prefs.edit { putBoolean("settings_advanced_mode", enabled) }
+    }
 }
