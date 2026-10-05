@@ -81,7 +81,7 @@ PORT=8080 node build/index.js  # Custom port
 
 ## Deployment (Docker)
 
-Multi-stage Docker build: Node 22 builds the Svelte app, Node 22 runs it.
+Multi-stage Docker build: Node 24 builds the Svelte app, Node 24 runs it.
 
 ```bash
 docker compose up -d --build    # Build and run on port 3080 (default)
