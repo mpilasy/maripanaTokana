@@ -8,7 +8,7 @@ on:
 
 jobs:
   i18n:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -22,7 +22,7 @@ jobs:
         run: node scripts/check_i18n_parity.js
 
   android:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -52,7 +52,7 @@ jobs:
         continue-on-error: true  # Lint baseline not yet established
 
   web:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     defaults:
       run:
         working-directory: web
