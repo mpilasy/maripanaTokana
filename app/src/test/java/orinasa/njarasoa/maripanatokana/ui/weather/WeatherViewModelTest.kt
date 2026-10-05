@@ -17,9 +17,11 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.data.settings.AppSettingsRepository
 import orinasa.njarasoa.maripanatokana.domain.model.AppSettings
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
@@ -157,5 +159,22 @@ class WeatherViewModelTest {
         // So checking if duration < 6000 asserts parallel execution of T2 Loc vs T1.
 
         assertTrue("Duration should be optimized (parallel). Got $duration ms, expected < 6000 ms", duration < 6000)
+    }
+
+    @Test
+    fun cachedLocationWeatherFailureShowsFetchError() = runTest(testDispatcher) {
+        // Fresh fix is within 5 km of the cached one, and weather always fails.
+        every { sharedPreferences.getFloat("last_render_lat", any()) } returns 10.0f
+        every { sharedPreferences.getFloat("last_render_lon", any()) } returns 20.0f
+        coEvery { weatherRepository.getWeather(any(), any()) } returns Result.failure(Exception("boom"))
+        coEvery { locationRepository.getFreshLocation() } coAnswers {
+            delay(3000)
+            Result.success(10.0 to 20.0)
+        }
+
+        viewModel.refresh()
+        advanceUntilIdle()
+
+        assertEquals(WeatherUiState.Error(R.string.error_fetch_weather), viewModel.uiState.value)
     }
 }

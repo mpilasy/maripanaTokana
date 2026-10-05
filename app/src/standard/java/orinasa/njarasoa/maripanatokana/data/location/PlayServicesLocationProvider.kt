@@ -23,6 +23,8 @@ class PlayServicesLocationProvider(
             } else {
                 Result.failure(Exception("No cached location"))
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: SecurityException) {
             Result.failure(Exception("Location permission not granted"))
         } catch (e: Exception) {
@@ -39,13 +41,21 @@ class PlayServicesLocationProvider(
                 ).await()
             }
 
-            val finalLocation = location ?: try { fusedLocationClient.lastLocation.await() } catch (_: Exception) { null }
+            val finalLocation = location ?: try {
+                fusedLocationClient.lastLocation.await()
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                null
+            }
 
             if (finalLocation != null) {
                 Result.success(Pair(finalLocation.latitude, finalLocation.longitude))
             } else {
                 Result.failure(Exception("Unable to get location"))
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: SecurityException) {
             Result.failure(Exception("Location permission not granted"))
         } catch (e: Exception) {

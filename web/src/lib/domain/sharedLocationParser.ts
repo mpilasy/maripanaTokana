@@ -11,7 +11,7 @@ export function parseLocationText(text: string | null | undefined): ParsedLocati
 		const geoMatch = parseGeoUri(input);
 		const dmsMatch = parseDmsCoordinates(input);
 		const urlCoords = parseUrlCoordinates(input);
-		const rawCoords = parseRawCoordinates(input);
+		const rawCoords = parseRawCoordinates(input) || parseCoordinateInput(input);
 
 		const coords = geoMatch || dmsMatch || urlCoords || rawCoords;
 		if (coords) {
@@ -66,6 +66,15 @@ function parseRawCoordinates(input: string): { latitude: number; longitude: numb
 		}
 	}
 	return result;
+}
+
+/** Whole-string "lat, lon" with integer or decimal values, range-checked. */
+export function parseCoordinateInput(input: string): { latitude: number; longitude: number } | null {
+	const match = input.trim().match(/^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)$/);
+	if (!match) return null;
+	const lat = parseFloat(match[1]);
+	const lon = parseFloat(match[2]);
+	return isValidCoordinate(lat, lon) ? { latitude: lat, longitude: lon } : null;
 }
 
 function parseDmsCoordinates(input: string): { latitude: number; longitude: number } | null {

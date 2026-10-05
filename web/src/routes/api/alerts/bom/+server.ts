@@ -8,6 +8,12 @@ function fetchBomJson(): Promise<unknown> {
 			'https://api.weather.bom.gov.au/v1/warnings',
 			{},
 			(res) => {
+				if (!res.statusCode || res.statusCode < 200 || res.statusCode >= 300) {
+					res.resume();
+					reject(new Error(`BOM API status ${res.statusCode}`));
+					return;
+				}
+				res.setEncoding('utf8');
 				let raw = '';
 				res.on('data', (chunk: string) => { raw += chunk; });
 				res.on('end', () => {

@@ -4,6 +4,7 @@ import android.content.Context
 import android.location.Geocoder
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
@@ -60,6 +61,8 @@ class WeatherRepositoryImpl @Inject constructor(
     override suspend fun searchLocation(query: String): Result<List<GeocodingResult>> {
         return try {
             Result.success(geocodingSelector.current().searchLocations(query, currentLocale()))
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -71,6 +74,8 @@ class WeatherRepositoryImpl @Inject constructor(
 
             val (locationName, locationSubtext) = try {
                 geocodingSelector.current().reverseGeocode(lat, lon, currentLocale())
+            } catch (e: CancellationException) {
+                throw e
             } catch (_: Exception) {
                 "%.2f, %.2f".format(Locale.US, lat, lon) to null
             }
@@ -81,6 +86,8 @@ class WeatherRepositoryImpl @Inject constructor(
                 alertsLoading = true,
                 // derived alerts from the source are preserved and passed to fetchAlerts later
             ))
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -128,6 +135,8 @@ class WeatherRepositoryImpl @Inject constructor(
                         }
                         WeatherAlert(level, p.event, p.description + (p.instruction?.let { "\n\n$it" } ?: ""), "nws", time, p.headline, f.id)
                     }
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     emptyList()
                 }
@@ -169,6 +178,8 @@ class WeatherRepositoryImpl @Inject constructor(
                             val reportUrl = try { p.url?.get("report")?.jsonPrimitive?.content } catch (_: Exception) { null }
                             WeatherAlert(level, "GDACS: ${p.eventtype} - ${p.name}", p.description, "gdacs", time, null, reportUrl)
                         }
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     emptyList()
                 }
@@ -184,7 +195,11 @@ class WeatherRepositoryImpl @Inject constructor(
                     ?: geoAddress?.adminArea?.takeIf { it.isNotBlank() }
                 try {
                     parseMeteoAlarmAtom(meteoAlarmApiService.getAlerts(slug).string(), subdivision)
-                } catch (_: Exception) { emptyList() }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (_: Exception) {
+                    emptyList()
+                }
             }
 
             // 4. JMA (Japan)
@@ -219,7 +234,11 @@ class WeatherRepositoryImpl @Inject constructor(
                     warningMap.map { (warnName, pair) ->
                         WeatherAlert(pair.first, warnName, pair.second.joinToString(", "), "jma", null, null, null)
                     }
-                } catch (_: Exception) { emptyList() }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (_: Exception) {
+                    emptyList()
+                }
             }
 
             // 5. ECCC (Canada)
@@ -239,7 +258,11 @@ class WeatherRepositoryImpl @Inject constructor(
                         val time = p.publicationDatetime?.let { try { ecccParser.parse(it)?.time } catch (_: Exception) { null } }
                         WeatherAlert(level, p.alertNameEn.ifBlank { "ECCC Alert" }, p.alertTextEn, "eccc", time, null, null)
                     }
-                } catch (_: Exception) { emptyList() }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (_: Exception) {
+                    emptyList()
+                }
             }
 
             // 6. WMO SWIC (Global, skipped when a regional source covers the area)
@@ -250,7 +273,11 @@ class WeatherRepositoryImpl @Inject constructor(
                     wmoSwicApiService.getAlerts(code).Warning.map { w ->
                         WeatherAlert(AlertLevel.WARNING, w.Summary.ifBlank { "WMO SWIC Warning" }, w.Detail.ifBlank { w.Summary }, "wmoswic", null, w.City.ifBlank { null }, w.Url.ifBlank { null })
                     }
-                } catch (_: Exception) { emptyList() }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (_: Exception) {
+                    emptyList()
+                }
             }
 
             // 7. BOM (Australia)
@@ -271,7 +298,11 @@ class WeatherRepositoryImpl @Inject constructor(
                             val area = if (w.state.isNotBlank()) "${w.state}: ${w.title}" else w.title
                             WeatherAlert(level, eventType, area, "bom", time, null, null)
                         }
-                } catch (_: Exception) { emptyList() }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (_: Exception) {
+                    emptyList()
+                }
             }
 
             // 8. NHC — National Hurricane Center (Atlantic + Eastern Pacific basins, proximity-filtered)
@@ -314,7 +345,11 @@ class WeatherRepositoryImpl @Inject constructor(
 
                             WeatherAlert(level, title, description, "nhc", time, null, storm.advisory?.url)
                         }
-                } catch (_: Exception) { emptyList() }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (_: Exception) {
+                    emptyList()
+                }
             }
 
             val nwsAlerts = nwsDeferred.await()
@@ -364,6 +399,8 @@ class WeatherRepositoryImpl @Inject constructor(
                 if (keys.add(key)) combinedAlerts.add(item)
             }
             Result.success(combinedAlerts)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Result.failure(e)
         }

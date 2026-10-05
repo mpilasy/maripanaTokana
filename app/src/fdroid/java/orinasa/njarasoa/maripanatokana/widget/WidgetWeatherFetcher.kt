@@ -37,8 +37,8 @@ object WidgetWeatherFetcher : BaseWidgetWeatherFetcher() {
             if (location != null) {
                 return Pair(location.latitude, location.longitude)
             }
-        } catch (_: SecurityException) {
-            // Background context lacks location permission — fall through to SharedPreferences
+        } catch (_: Exception) {
+            // No permission or provider failure (SecurityException etc.) — fall through to SharedPreferences
         }
 
         // Fall back to last coordinates saved by the main app

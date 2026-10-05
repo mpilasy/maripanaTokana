@@ -4,6 +4,7 @@ import android.content.Context
 import android.location.Geocoder
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoAirQualityApiService
@@ -28,6 +29,8 @@ class OpenMeteoWeatherSource @Inject constructor(
         val airQualityDeferred = async {
             try {
                 airQualityApiService.getAirQuality(latitude = lat, longitude = lon)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 null
             }
@@ -38,6 +41,8 @@ class OpenMeteoWeatherSource @Inject constructor(
             try {
                 @Suppress("DEPRECATION")
                 Geocoder(context, Locale.US).getFromLocation(lat, lon, 1)?.firstOrNull()?.countryCode?.lowercase()
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 null
             }

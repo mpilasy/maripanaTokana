@@ -3,6 +3,7 @@ package orinasa.njarasoa.maripanatokana.data.source
 import android.content.Context
 import android.location.Geocoder
 import dagger.hilt.android.qualifiers.ApplicationContext
+import orinasa.njarasoa.maripanatokana.data.location.shortPlaceName
 import orinasa.njarasoa.maripanatokana.data.remote.GeocodingResult
 import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoGeocodingService
 import java.util.Locale
@@ -24,7 +25,7 @@ class SystemGeocoderSource @Inject constructor(
             ?: addr?.subAdminArea
             ?: addr?.adminArea
             ?: "%.2f, %.2f".format(Locale.US, lat, lon)
-        val name = rawName.split(",")[0].split(";")[0].split("-")[0].trim()
+        val name = shortPlaceName(rawName)
         val subtext = if (addr != null) {
             val parts = mutableListOf<String>()
             if (addr.adminArea != null && !name.contains(addr.adminArea) && !addr.adminArea.contains(name) && !rawName.contains(addr.adminArea)) {

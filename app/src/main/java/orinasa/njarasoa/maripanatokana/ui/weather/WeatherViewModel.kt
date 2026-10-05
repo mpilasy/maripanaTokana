@@ -26,9 +26,12 @@ import orinasa.njarasoa.maripanatokana.domain.model.WeatherSource
 import orinasa.njarasoa.maripanatokana.domain.repository.LocationRepository
 import orinasa.njarasoa.maripanatokana.domain.repository.WeatherRepository
 import orinasa.njarasoa.maripanatokana.ui.theme.fontPairings
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import orinasa.njarasoa.maripanatokana.data.location.SharedLocationParser
+import orinasa.njarasoa.maripanatokana.data.location.parseCoordinates
+import orinasa.njarasoa.maripanatokana.data.location.shortPlaceName
 import java.util.Locale
 import javax.inject.Inject
 
@@ -128,6 +131,9 @@ class WeatherViewModel @Inject constructor(
 
     private var fetchJob: Job? = null
     private var searchJob: Job? = null
+    private var alertJob: Job? = null
+    // Coordinates of the weather currently displayed; alert results for other coordinates are dropped
+    private var alertCoords: Pair<Double, Double>? = null
 
     // Cached GPS weather data fetched in background during advanced mode with override
     private var cachedGpsWeatherData: WeatherData? = null
@@ -174,24 +180,19 @@ class WeatherViewModel @Inject constructor(
             kotlinx.coroutines.delay(500) // Debounce
 
             // Check for direct coordinates
-            val coordsPattern = Regex("^(-?\\d+\\.\\d+)\\s*,\\s*(-?\\d+\\.\\d+)$")
-            val match = coordsPattern.find(query.trim())
-            if (match != null) {
-                val (latStr, lonStr) = match.destructured
-                val lat = latStr.toDoubleOrNull()
-                val lon = lonStr.toDoubleOrNull()
-                if (lat != null && lon != null) {
-                     _searchResults.value = listOf(
-                         GeocodingResult(
-                             id = 0,
-                             name = "$lat, $lon",
-                             latitude = lat,
-                             longitude = lon,
-                             country = "Coordinates"
-                         )
-                     )
-                     return@launch
-                }
+            val coords = parseCoordinates(query)
+            if (coords != null) {
+                val (lat, lon) = coords
+                _searchResults.value = listOf(
+                    GeocodingResult(
+                        id = 0,
+                        name = "$lat, $lon",
+                        latitude = lat,
+                        longitude = lon,
+                        country = "Coordinates"
+                    )
+                )
+                return@launch
             }
 
             weatherRepository.searchLocation(query).onSuccess { results ->
@@ -393,6 +394,8 @@ class WeatherViewModel @Inject constructor(
                         prefs.edit { putString("location_name", data.locationName) }
                     }
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (_: Exception) {
                 // Silently fail - this is a best-effort background refresh
             }
@@ -400,17 +403,17 @@ class WeatherViewModel @Inject constructor(
     }
 
     private fun fetchAlertsForData(lat: Double, lon: Double) {
-        viewModelScope.launch {
+        alertJob?.cancel()
+        alertCoords = lat to lon
+        alertJob = viewModelScope.launch {
             weatherRepository.fetchAlerts(lat, lon).onSuccess { alerts ->
                 val current = _uiState.value
-                if (current is WeatherUiState.Success && !current.data.locationName.contains(",")) {
-                    _uiState.value = WeatherUiState.Success(current.data.copy(alerts = alerts, alertsLoading = false))
-                } else if (current is WeatherUiState.Success) {
+                if (current is WeatherUiState.Success && alertCoords == lat to lon) {
                     _uiState.value = WeatherUiState.Success(current.data.copy(alerts = alerts, alertsLoading = false))
                 }
             }.onFailure {
                 val current = _uiState.value
-                if (current is WeatherUiState.Success) {
+                if (current is WeatherUiState.Success && alertCoords == lat to lon) {
                     _uiState.value = WeatherUiState.Success(current.data.copy(alertsLoading = false))
                 }
             }
@@ -426,13 +429,51 @@ class WeatherViewModel @Inject constructor(
     fun fetchWeather() {
         fetchJob?.cancel()
         fetchJob = viewModelScope.launch {
-            if (!isResolvingSharedLocation) {
-                // Only show loading if we don't already have data
-                if (_uiState.value !is WeatherUiState.Success) {
-                    _uiState.value = WeatherUiState.Loading
-                } else {
-                    _isRefreshing.value = true
+            try {
+                if (!isResolvingSharedLocation) {
+                    // Only show loading if we don't already have data
+                    if (_uiState.value !is WeatherUiState.Success) {
+                        _uiState.value = WeatherUiState.Loading
+                    } else {
+                        _isRefreshing.value = true
+                    }
+
+                    // Check 12-hour non-local override expiry
+                    checkOverrideExpiry()
+
+                    if (prefs.contains("advanced_override_lat")) {
+                        val overrideLat = prefs.getFloat("advanced_override_lat", 0f).toDouble()
+                        val overrideLon = prefs.getFloat("advanced_override_lon", 0f).toDouble()
+                        val rawOverrideName = prefs.getString("advanced_override_name", "Overridden Location") ?: "Overridden Location"
+                        val overrideName = shortPlaceName(rawOverrideName)
+
+                        weatherRepository.getWeather(overrideLat, overrideLon).onSuccess { data ->
+                            val overrideData = data.copy(locationName = overrideName)
+                            _uiState.value = WeatherUiState.Success(overrideData)
+                            fetchAlertsForData(overrideLat, overrideLon)
+                            // Spawn background GPS cache refresh
+                            spawnGpsCacheRefresh()
+                        }.onFailure {
+                            if (_uiState.value !is WeatherUiState.Success) {
+                                _uiState.value = WeatherUiState.Error(R.string.error_fetch_weather)
+                            }
+                        }
+                    } else {
+                        val savedLocation = activeLocationId.value?.let { id -> savedLocations.value.find { it.id == id } }
+                        if (savedLocation != null) fetchForSavedLocation(savedLocation) else doFetch()
+                    }
                 }
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
+    }
+
+    fun refresh() {
+        fetchJob?.cancel()
+        fetchJob = viewModelScope.launch {
+            try {
+                _isRefreshing.value = true
 
                 // Check 12-hour non-local override expiry
                 checkOverrideExpiry()
@@ -441,7 +482,7 @@ class WeatherViewModel @Inject constructor(
                     val overrideLat = prefs.getFloat("advanced_override_lat", 0f).toDouble()
                     val overrideLon = prefs.getFloat("advanced_override_lon", 0f).toDouble()
                     val rawOverrideName = prefs.getString("advanced_override_name", "Overridden Location") ?: "Overridden Location"
-                    val overrideName = rawOverrideName.split(",")[0].split(";")[0].split("-")[0].trim()
+                    val overrideName = shortPlaceName(rawOverrideName)
 
                     weatherRepository.getWeather(overrideLat, overrideLon).onSuccess { data ->
                         val overrideData = data.copy(locationName = overrideName)
@@ -458,41 +499,9 @@ class WeatherViewModel @Inject constructor(
                     val savedLocation = activeLocationId.value?.let { id -> savedLocations.value.find { it.id == id } }
                     if (savedLocation != null) fetchForSavedLocation(savedLocation) else doFetch()
                 }
+            } finally {
                 _isRefreshing.value = false
             }
-        }
-    }
-
-    fun refresh() {
-        fetchJob?.cancel()
-        fetchJob = viewModelScope.launch {
-            _isRefreshing.value = true
-
-            // Check 12-hour non-local override expiry
-            checkOverrideExpiry()
-
-            if (prefs.contains("advanced_override_lat")) {
-                val overrideLat = prefs.getFloat("advanced_override_lat", 0f).toDouble()
-                val overrideLon = prefs.getFloat("advanced_override_lon", 0f).toDouble()
-                val rawOverrideName = prefs.getString("advanced_override_name", "Overridden Location") ?: "Overridden Location"
-                val overrideName = rawOverrideName.split(",")[0].split(";")[0].split("-")[0].trim()
-
-                weatherRepository.getWeather(overrideLat, overrideLon).onSuccess { data ->
-                    val overrideData = data.copy(locationName = overrideName)
-                    _uiState.value = WeatherUiState.Success(overrideData)
-                    fetchAlertsForData(overrideLat, overrideLon)
-                    // Spawn background GPS cache refresh
-                    spawnGpsCacheRefresh()
-                }.onFailure {
-                    if (_uiState.value !is WeatherUiState.Success) {
-                        _uiState.value = WeatherUiState.Error(R.string.error_fetch_weather)
-                    }
-                }
-            } else {
-                val savedLocation = activeLocationId.value?.let { id -> savedLocations.value.find { it.id == id } }
-                if (savedLocation != null) fetchForSavedLocation(savedLocation) else doFetch()
-            }
-            _isRefreshing.value = false
         }
     }
 
@@ -505,21 +514,23 @@ class WeatherViewModel @Inject constructor(
     }
 
     private suspend fun doFetch() {
+        var locationObtained = false
         val completed = withTimeoutOrNull(45_000L) {
             kotlinx.coroutines.coroutineScope {
                 // Step 1: try cached location for instant render
-                var usedCached = false
+                var cachedWeatherDisplayed = false
                 var freshWeatherDisplayed = false
 
                 launch {
                     locationRepository.getLastLocation().onSuccess { (lat, lon) ->
-                        usedCached = true
+                        locationObtained = true
                         saveLocation(lat, lon)
                         weatherRepository.getWeather(lat, lon).onSuccess { data ->
                             if (!freshWeatherDisplayed) {
                                 val displayData = data.copy(locationSubtext = null)
                                 prefs.edit().putString("location_name", displayData.locationName).apply()
                                 _uiState.value = WeatherUiState.Success(displayData)
+                                cachedWeatherDisplayed = true
                                 fetchAlertsForData(lat, lon)
                             }
                         }
@@ -530,8 +541,9 @@ class WeatherViewModel @Inject constructor(
                 launch {
                     locationRepository.getFreshLocation()
                         .onSuccess { (lat, lon) ->
+                            locationObtained = true
                             saveLocation(lat, lon)
-                            if (!usedCached || movedSignificantly(lat, lon)) {
+                            if (!cachedWeatherDisplayed || movedSignificantly(lat, lon)) {
                                 weatherRepository.getWeather(lat, lon)
                                     .onSuccess { data ->
                                         freshWeatherDisplayed = true
@@ -541,14 +553,14 @@ class WeatherViewModel @Inject constructor(
                                         fetchAlertsForData(lat, lon)
                                     }
                                     .onFailure {
-                                        if (!usedCached) {
+                                        if (!cachedWeatherDisplayed) {
                                             _uiState.value = WeatherUiState.Error(R.string.error_fetch_weather)
                                         }
                                     }
                             }
                         }
                         .onFailure {
-                            if (!usedCached) {
+                            if (!cachedWeatherDisplayed) {
                                 _uiState.value = WeatherUiState.Error(R.string.error_get_location)
                             }
                         }
@@ -557,7 +569,9 @@ class WeatherViewModel @Inject constructor(
         }
         // Safety net: if the entire fetch timed out, guarantee we exit Loading.
         if (completed == null && _uiState.value is WeatherUiState.Loading) {
-            _uiState.value = WeatherUiState.Error(R.string.error_get_location)
+            _uiState.value = WeatherUiState.Error(
+                if (locationObtained) R.string.error_fetch_weather else R.string.error_get_location
+            )
         }
     }
 

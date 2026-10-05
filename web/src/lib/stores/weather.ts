@@ -30,10 +30,16 @@ export const isRefreshing = writable<boolean>(false);
 
 const STALE_MS = 30 * 60 * 1000; // 30 minutes
 
+// Incremented on every doFetchWeather; results of older fetches (including their alerts) are dropped.
+let fetchGeneration = 0;
+
+// Open-Meteo snaps response coordinates to a ~10 km grid, so compare with a tolerance.
+const SAME_LOCATION_DEG = 0.1;
+
 // Cached GPS weather data fetched in background while previewing another location
 let cachedGpsWeatherData: WeatherData | null = null;
 
-async function fetchAtLocation(lat: number, lon: number, knownName?: string, knownSubtext?: string, localeTag?: string, updateAlerts = true): Promise<WeatherData> {
+async function fetchAtLocation(lat: number, lon: number, knownName?: string, knownSubtext?: string, localeTag?: string, alertsGeneration: number | null = fetchGeneration): Promise<WeatherData> {
 	const src = get(weatherSource);
 	const apiKey = get(weatherApiKey);
 
@@ -44,7 +50,7 @@ async function fetchAtLocation(lat: number, lon: number, knownName?: string, kno
 	if (src === 'PIRATE_WEATHER' && apiKey) {
 		const location = await namePromise;
 		const data = await fetchPirateWeather(lat, lon, apiKey, location.name, knownSubtext ?? location.subtext);
-		if (updateAlerts) fetchAlertsForData(lat, lon);
+		if (alertsGeneration !== null) fetchAlertsForData(lat, lon, alertsGeneration);
 		return data;
 	}
 
@@ -60,7 +66,7 @@ async function fetchAtLocation(lat: number, lon: number, knownName?: string, kno
 	const hourlyAirQuality = airQualityResponse ? mapToHourlyAirQuality(airQualityResponse) : [];
 	const data = { ...mapToWeatherData(response, location.name, knownSubtext || location.subtext), airQuality, hourlyAirQuality };
 
-	if (updateAlerts) fetchAlertsForData(lat, lon, locationInfo);
+	if (alertsGeneration !== null) fetchAlertsForData(lat, lon, alertsGeneration, locationInfo);
 
 	return data;
 }
@@ -68,14 +74,16 @@ async function fetchAtLocation(lat: number, lon: number, knownName?: string, kno
 function setWeatherData(data: WeatherData) {
 	weatherState.update(s => {
 		const existingAlerts =
-			s.kind === 'success' && s.data.locationName === data.locationName
+			s.kind === 'success'
+			&& Math.abs(s.data.latitude - data.latitude) < SAME_LOCATION_DEG
+			&& Math.abs(s.data.longitude - data.longitude) < SAME_LOCATION_DEG
 				? s.data.alerts
 				: [];
 		return { kind: 'success', data: { ...data, alerts: existingAlerts } };
 	});
 }
 
-async function fetchAlertsForData(lat: number, lon: number, locationInfo?: LocationInfo) {
+async function fetchAlertsForData(lat: number, lon: number, generation: number, locationInfo?: LocationInfo) {
 	try {
 		const settings: AlertSettings = {
 			alertsEnabled: get(alertsEnabled),
@@ -89,6 +97,7 @@ async function fetchAlertsForData(lat: number, lon: number, locationInfo?: Locat
 			alertsNhcEnabled: get(alertsNhcEnabled),
 		};
 		const alerts = await fetchAllAlerts(lat, lon, settings, locationInfo);
+		if (generation !== fetchGeneration) return;
 		weatherState.update(s => {
 			if (s.kind === 'success') {
 				return { ...s, data: { ...s.data, alerts, alertsLoading: false } };
@@ -96,6 +105,7 @@ async function fetchAlertsForData(lat: number, lon: number, locationInfo?: Locat
 			return s;
 		});
 	} catch {
+		if (generation !== fetchGeneration) return;
 		weatherState.update(s => {
 			if (s.kind === 'success') {
 				return { ...s, data: { ...s.data, alertsLoading: false } };
@@ -114,7 +124,7 @@ function spawnGpsCacheRefresh() {
 			const lon = fresh.lon;
 			const name = cached?.name;
 			const subtext = cached?.subtext;
-			const data = await fetchAtLocation(lat, lon, name, subtext, undefined, false);
+			const data = await fetchAtLocation(lat, lon, name, subtext, undefined, null);
 			cachedGpsWeatherData = data;
 			// Don't overwrite the location cache while previewing another location — it would
 			// corrupt the cached_location key and cause updateLocationName to reverse-geocode the
@@ -141,6 +151,7 @@ export function restoreGpsWeather() {
 }
 
 export async function doFetchWeather() {
+	const gen = ++fetchGeneration;
 	const current = get(weatherState);
 	if (current.kind !== 'success') {
 		weatherState.set({ kind: 'loading' });
@@ -153,6 +164,7 @@ export async function doFetchWeather() {
 		const override = get(locationOverride);
 		if (override) {
 			const data = await fetchAtLocation(override.lat, override.lon, override.name, override.subtext);
+			if (gen !== fetchGeneration) return;
 			setWeatherData(data);
 			isRefreshing.set(false);
 			spawnGpsCacheRefresh();
@@ -164,6 +176,7 @@ export async function doFetchWeather() {
 			const savedLocation = get(savedLocations).find((l) => l.id === activeSavedId);
 			if (savedLocation) {
 				const data = await fetchAtLocation(savedLocation.latitude, savedLocation.longitude, savedLocation.name, savedLocation.subtext);
+				if (gen !== fetchGeneration) return;
 				setWeatherData(data);
 				isRefreshing.set(false);
 				return;
@@ -181,17 +194,27 @@ export async function doFetchWeather() {
 		// Start getting fresh location concurrently
 		const freshLocationPromise = getPosition();
 
+		let cachedShown = false;
 		if (cachedFetchPromise) {
-			data = await cachedFetchPromise;
-			setWeatherData(data);
+			try {
+				data = await cachedFetchPromise;
+				if (gen !== fetchGeneration) return;
+				setWeatherData(data);
+				cachedShown = true;
+			} catch {
+				// Cached-location weather failed; still try the fresh position below
+				if (gen !== fetchGeneration) return;
+			}
 		}
 
 		// Step 2: get fresh location
 		const fresh = await freshLocationPromise;
+		if (gen !== fetchGeneration) return;
 
 		// Re-fetch if moved significantly or if we had no cached location
-		if (!cached || movedSignificantly(cached.lat, cached.lon, fresh.lat, fresh.lon)) {
+		if (!cached || !cachedShown || movedSignificantly(cached.lat, cached.lon, fresh.lat, fresh.lon)) {
 			data = await fetchAtLocation(fresh.lat, fresh.lon, undefined, undefined, localeTag);
+			if (gen !== fetchGeneration) return;
 			setWeatherData(data);
 			cacheLocation(fresh.lat, fresh.lon, data.locationName, data.locationSubtext);
 		} else {
@@ -199,6 +222,7 @@ export async function doFetchWeather() {
 			cacheLocation(fresh.lat, fresh.lon, cached.name, cached.subtext);
 		}
 	} catch (err) {
+		if (gen !== fetchGeneration) return;
 		const current = get(weatherState);
 		// Only show error if we don't already have data
 		if (current.kind !== 'success') {
@@ -210,7 +234,7 @@ export async function doFetchWeather() {
 			});
 		}
 	} finally {
-		isRefreshing.set(false);
+		if (gen === fetchGeneration) isRefreshing.set(false);
 	}
 }
 

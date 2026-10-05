@@ -37,6 +37,8 @@ class NativeLocationProvider(
             } else {
                 Result.failure(Exception("No cached location"))
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: SecurityException) {
             Result.failure(Exception("Location permission not granted"))
         } catch (e: Exception) {
@@ -52,6 +54,8 @@ class NativeLocationProvider(
             } else {
                 Result.failure(Exception("Unable to get location"))
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: SecurityException) {
             Result.failure(Exception("Location permission not granted"))
         } catch (e: Exception) {
@@ -122,6 +126,8 @@ class NativeLocationProvider(
                 } catch (_: SecurityException) {
                     // Provider requires a permission we don't have; try the next one
                 } catch (e: Exception) {
+                    locationManager.removeUpdates(locationListener)
+                    handlerThread.quitSafely()
                     close(e)
                     return@callbackFlow
                 }

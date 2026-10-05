@@ -50,7 +50,7 @@ class MainActivity : ComponentActivity() {
             }
         })
 
-        handleSharedIntent(intent)
+        if (savedInstanceState == null) handleSharedIntent(intent)
 
         setContent {
             MaripanaTokanaTheme {

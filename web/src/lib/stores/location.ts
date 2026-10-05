@@ -58,6 +58,11 @@ export interface GeocodedLocation {
 	subtext?: string;
 }
 
+/** First segment of a place name, split on ',', ';' or ' - ' (not bare hyphens: "Saint-Denis"). */
+export function shortPlaceName(raw: string): string {
+	return raw.split(/[,;]|\s-\s/)[0].trim();
+}
+
 export async function reverseGeocode(lat: number, lon: number, localeTag?: string): Promise<GeocodedLocation> {
 	try {
 		const headers: Record<string, string> = { 'User-Agent': 'maripanaTokana-PWA/1.0' };
@@ -71,7 +76,7 @@ export async function reverseGeocode(lat: number, lon: number, localeTag?: strin
 		const addr = data.address;
 		
 		const rawName = addr?.city || addr?.town || addr?.village || addr?.county || addr?.state || `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
-		const name = rawName.split(/[,;\-]/)[0].trim();
+		const name = shortPlaceName(rawName);
 		
 		const subParts = [];
 		if (addr?.state && !name.includes(addr.state) && !addr.state.includes(name)) subParts.push(addr.state);

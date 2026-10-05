@@ -102,24 +102,18 @@
 	];
 	let acquiringIndex = $state(0);
 	let elapsedSeconds = $state(0);
-	let acquiringInterval: ReturnType<typeof setInterval> | null = null;
 
 	$effect(() => {
-		if ($weatherState.kind === 'loading') {
-			acquiringIndex = 0;
-			elapsedSeconds = 0;
-			acquiringInterval = setInterval(() => {
-				elapsedSeconds++;
-				if (elapsedSeconds % 2 === 0) {
-					acquiringIndex = (acquiringIndex + 1) % acquiringStrings.length;
-				}
-			}, 1000);
-		} else {
-			if (acquiringInterval) {
-				clearInterval(acquiringInterval);
-				acquiringInterval = null;
+		if ($weatherState.kind !== 'loading') return;
+		acquiringIndex = 0;
+		elapsedSeconds = 0;
+		const id = setInterval(() => {
+			elapsedSeconds++;
+			if (elapsedSeconds % 2 === 0) {
+				acquiringIndex = (acquiringIndex + 1) % acquiringStrings.length;
 			}
-		}
+		}, 1000);
+		return () => clearInterval(id);
 	});
 
 	let pullStartY = $state(0);
