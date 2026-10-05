@@ -135,6 +135,7 @@ Suggested order: Phase 0 first (cheap, and catches regressions from everything a
 - **Where:** `A/ui/weather/WeatherViewModel.kt:507-562`.
 - **Failure:** `usedCached` is set when a last-known location exists, *before* its weather loads. If that weather request fails and the fresh fix is within 5 km, step 2 skips its fetch. Nothing sets a state for 45 s, then the screen shows `error_get_location` (the wrong message).
 - **Fix:** set the flag only after cached weather is displayed (rename to `cachedWeatherDisplayed`). Use `error_fetch_weather` for the timeout fallback when a location was obtained.
+- **Audit findings (2026-10-05):** Race conditions remain in `doFetch()` where fresh GPS failure triggers `refreshFailed` or flashes an error screen over valid cached weather (A.3).
 
 ### 1.7 Shared location re-applied on recreation
 - **Where:** `A/MainActivity.kt:53`. `handleSharedIntent(intent)` runs in every `onCreate`. The manifest declares no `configChanges`, so rotation, dark-mode toggle and process restore all recreate the Activity with the original share intent.
@@ -201,6 +202,7 @@ Suggested order: Phase 0 first (cheap, and catches regressions from everything a
 ### 2.1 Android app has no offline cache
 - **Problem:** `WeatherRepositoryImpl.getWeather` always hits the network. Launching the app offline (or in a dead zone) shows the error screen, even though the widget already keeps a cached forecast (`A/widget/BaseWidgetWeatherFetcher.kt:60-74`).
 - **Fix:** persist the last successful `WeatherData` per location key (GPS / saved id / preview), plus the timestamp. On launch, show it immediately with a "data from HH:MM" label, then refresh. A JSON file in `filesDir` is enough; no database needed. Web gets this partly through the service worker API cache; make it explicit there too (localStorage snapshot of the last success).
+- **Audit findings (2026-10-05):** Implementation has two critical defects: web snapshot prototype restoration fails under minification (A.1), and Android cache file writes have a concurrent race condition on shared `tmp.json` (A.2).
 
 ### 2.2 Silent refresh failures
 - **Where:** Android `fetchWeather`/`refresh`/`fetchForSavedLocation` `onFailure` branches only act when nothing is on screen. Web `doFetchWeather` `catch` does the same.
@@ -336,6 +338,100 @@ Suggested order: Phase 0 first (cheap, and catches regressions from everything a
 - `A/ui/weather/WeatherContent.kt` (1839 lines) and `web/src/lib/components/WeatherScreen.svelte` (903 lines) are hard to review.
 - `WeatherViewModel.fetchWeather` and `refresh` duplicate ~30 lines.
 - Extract pieces only when a fix above touches them; no standalone refactor.
+
+---
+
+## Post-Implementation Adversarial Audit (2026-10-05)
+
+Deep audit of commits `88d3de8` through `f746b7d` and working tree changes. Verified with live code analysis and production build artifact inspection.
+
+**Verification of this audit (2026-10-05).** Each claim was re-checked against the code and the production bundle.
+
+| Item | Verdict | Action |
+|---|---|---|
+| A.1 | Confirmed, critical: the built client bundle minifies `Temperature` to `class ie`, so no `__class` tag is written | Fix now |
+| A.2 | Confirmed: one shared `tmp.json` for all keys | Fix now |
+| A.3 | Confirmed on both platforms | Fix now |
+| A.4 | Confirmed; medium rather than high, since Play Services times the request out itself | Fix now |
+| A.5 | Confirmed but rare: missing providers already return false from `isProviderEnabled`; predates this branch | Deferred |
+| A.6 | Confirmed; predates this branch | Fix now |
+| A.7 | Low: on API 26+ bitmap pixel memory is freed with the object | Deferred |
+| A.8 | Partly: `"%.1f".format` uses the device locale rather than the app locale; native digits are missing for ar, hi and ne | Fix now |
+| A.9 | True, cosmetic | Deferred |
+| A.10 | True, low | Deferred |
+| A.11 | True, low | Deferred |
+
+Emulator testing (commit `7ad4d2b`) separately found and fixed three bugs:
+- Settings switches didn't update in release builds, because the prefs listener was garbage-collected after R8.
+- NWS was queried outside the US.
+- The share-sheet preview was denied access to the image.
+
+### A.1 [CRITICAL] Web: Production minification breaks `weatherSnapshot` prototype reconstruction
+- **Where:** `web/src/lib/stores/weatherSnapshot.ts:16-34`.
+- **Problem:** `replacer` uses `(original as object).constructor?.name` to index `CLASSES`. In production builds (`npm run build`), Vite/esbuild minifies class names (e.g. `Temperature` $\to$ `ie`, `Pressure` $\to$ `Qr`). At runtime, `original.constructor.name` is `"Qr"`, while `CLASSES` keys are strings (`"Pressure"`). `CLASSES[name]` returns `undefined`, so `__class` is never saved. On reload, `loadSnapshot` deserializes plain untyped objects without prototype methods.
+- **Failure:** On startup, `doFetchWeather` displays the cached snapshot. Components calling methods like `data.temperature.displayDual()`, `displayCelsius()`, or `primaryFirst()` throw `TypeError: data.temperature.displayDual is not a function`, crashing the entire app on load. Vitest failed to catch this because test runners do not minify class names.
+- **Fix:** Serialize domain values with explicit schema tags or restore domain value class instances via static factory methods (e.g. `Temperature.fromCelsius(...)`) in `loadSnapshot()` instead of relying on `constructor.name`.
+
+### A.2 [CRITICAL] Android: Concurrent cache writes corrupt `WeatherCache`
+- **Where:** `A/data/repository/WeatherCache.kt:24-33`.
+- **Problem:** `save(key, data)` hardcodes `val tmp = File(dir, "tmp.json")` without file locking or synchronization.
+- **Failure:** `WeatherViewModel.publish()` dispatches `weatherCache.save()` on `Dispatchers.IO`. If two background fetches complete concurrently (e.g., GPS background refresh via `spawnGpsCacheRefresh()` and a user switching saved locations), both coroutines write to `tmp.json` simultaneously. One write overwrites the other, causing `tmp.renameTo(file(key))` to fail or rename Location B's data into Location A's cache file.
+- **Fix:** Use unique temporary files per key (e.g. `File(dir, "$key.tmp")`) or `File.createTempFile("weather", ".tmp", dir)` and synchronize cache writes.
+
+### A.3 [HIGH] Android & Web: `doFetch` race condition marks successful weather as `refreshFailed`
+- **Where:** `A/ui/weather/WeatherViewModel.kt:520-574` and `web/src/lib/stores/weather.ts:207-256`.
+- **Problem:**
+  - Android: Step 1 (cached location) and Step 2 (fresh GPS) run in parallel coroutines. If Step 1 succeeds and displays weather, but Step 2's fresh GPS fix fails or times out later, Step 2 calls `onWeatherFailure()` which sets `_refreshFailed.value = true` because `_uiState.value` is already `Success`. If Step 2 fails fast before Step 1 finishes weather network request, it flashes `WeatherUiState.Error(R.string.error_get_location)` before Step 1 overwrites it with `Success`.
+  - Web: Step 1 renders cached-location weather, then `const fresh = await freshLocationPromise` rejects on GPS timeout or permission refusal. The outer `catch` block catches the rejection while `current.kind === 'success'`, setting `refreshFailed = true`.
+- **Failure:** A user indoors or in poor satellite reception sees a persistent "Couldn't refresh" error banner even though fresh weather for their location was just fetched successfully.
+- **Fix:** Fresh GPS failure should not mark the fetch as failed when cached-location weather has just been displayed successfully. Only flag `refreshFailed` if both cached and fresh attempts fail, or if a manual user refresh fails.
+
+### A.4 [HIGH] Android: Leaked `CancellationTokenSource` in `PlayServicesLocationProvider`
+- **Where:** `app/src/standard/.../data/location/PlayServicesLocationProvider.kt:47-52`.
+- **Problem:** `CancellationTokenSource().token` is passed inline to `getCurrentLocation(...)` inside `withTimeoutOrNull(10_000L)`.
+- **Failure:** When `withTimeoutOrNull` expires, the coroutine cancels, but `cts.cancel()` is never called. Play Services continues tracking GPS in the background until its internal timeout expires, draining battery.
+- **Fix:** Enclose `getCurrentLocation` in `try { ... } finally { cts.cancel() }`.
+
+### A.5 [HIGH] Android (F-Droid): Exception in `NativeLocationProvider` aborts multi-provider fallback
+- **Where:** `app/src/fdroid/.../data/location/NativeLocationProvider.kt:138-144`.
+- **Problem:** Inside the provider registration loop (`GPS_PROVIDER`, `NETWORK_PROVIDER`, `PASSIVE_PROVIDER`), the `catch (e: Exception)` block calls `locationManager.removeUpdates(...)`, `handlerThread.quitSafely()`, `close(e)`, and `return@callbackFlow`.
+- **Failure:** If `GPS_PROVIDER` throws `IllegalArgumentException` or any runtime error on customized or restricted devices, the loop immediately terminates, completely preventing `NETWORK_PROVIDER` and `PASSIVE_PROVIDER` from registering.
+- **Fix:** Catch exceptions per provider, log, and continue to the next provider instead of terminating the flow.
+
+### A.6 [MEDIUM] Android: `OpenMeteoWeatherSource` bypasses `CountryResolver`
+- **Where:** `A/data/source/OpenMeteoWeatherSource.kt:42-52`.
+- **Problem:** `WeatherRepositoryImpl` uses `CountryResolver` (Geocoder with Nominatim fallback), but `OpenMeteoWeatherSource` still calls `Geocoder(context, Locale.US).getFromLocation(...)` directly for AQI standard selection (`US_AQI` vs `European AQI`).
+- **Failure:** On de-Googled devices without a system geocoder, AQI standard detection always fails and defaults to US AQI, even in European countries.
+- **Fix:** Inject and use `CountryResolver` in `OpenMeteoWeatherSource`.
+
+### A.7 [MEDIUM] Android: Share card bitmap allocated in `combineBitmaps` is never recycled
+- **Where:** `A/ui/weather/WeatherContent.kt:1772-1821`.
+- **Problem:** `combineBitmaps` creates a composite ARGB_8888 bitmap. `shareCardBitmap` compresses it to PNG but never calls `recycle()`.
+- **Failure:** Multiple consecutive shares accumulate large uncompressed bitmaps (5–10MB each) in native memory until GC runs.
+- **Fix:** Call `bitmap.recycle()` after `compress()`.
+
+### A.8 [MEDIUM] Chart accessibility summaries violate `Locale.US` and lack digit localization
+- **Where:** `A/ui/weather/components/DailyUvChart.kt:74`, `AirQualityChart.kt:99`, `TemperatureChart.kt:93-95`, and `web/src/lib/components/DailyUvChart.svelte:39`.
+- **Problem:**
+  - `DailyUvChart.kt` uses `"%.1f".format(maxUv)` without `Locale.US`.
+  - Android chart descriptions are passed to `stringResource` without `localizeDigits()`, reading ASCII digits to TalkBack in Arabic, Hindi, and Nepali.
+  - Web `DailyUvChart.svelte` uses `toFixed(1)` (producing ASCII decimal points in French/Spanish/Malagasy) and does not call `loc()`.
+- **Fix:** Enforce `Locale.US` in format strings and apply `localizeDigits()` / `loc()` to all numeric values before passing to summary strings.
+
+### A.9 [MEDIUM] UI Inconsistency: `refresh_failed` display parity
+- **Where:** `A/ui/weather/WeatherContent.kt:356-370` vs `web/src/lib/components/HeroCard.svelte:52-54`.
+- **Problem:** Android displays `refresh_failed` as an additional line under `updated_time`, while Web replaces `updated_time` inside the refresh button.
+- **Fix:** Align visual presentation across both platforms.
+
+### A.10 [LOW] Web: Unauthenticated `/api/csp-report` logging endpoint lacks rate-limiting
+- **Where:** `web/src/routes/api/csp-report/+server.ts:5-14`.
+- **Problem:** Public unauthenticated endpoint logs parsed JSON directly to stdout with `console.warn`.
+- **Fix:** Add basic throttling / rate limiting to avoid log flooding.
+
+### A.11 [LOW] Tooling: `check_i18n_parity.js` blind to array length mismatches
+- **Where:** `scripts/check_i18n_parity.js:12-18`.
+- **Problem:** Arrays like `cardinal_directions` and `uv_labels` are treated as leaf values without checking element count across locales.
+- **Fix:** Validate that array keys have identical lengths across all locales.
 
 ---
 
