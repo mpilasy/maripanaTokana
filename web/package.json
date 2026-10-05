@@ -26,5 +26,10 @@
 		"typescript": "^5.9.3",
 		"vite": "^7.3.6",
 		"vitest": "^4.1.11"
+	},
+	"overrides": {
+		"svelte-i18n": {
+			"esbuild": "^0.25.0"
+		}
 	}
 }
