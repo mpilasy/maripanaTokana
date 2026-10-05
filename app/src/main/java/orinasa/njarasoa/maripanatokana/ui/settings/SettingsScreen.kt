@@ -209,7 +209,6 @@ fun SettingsScreen(
             AlertCheckRow("ECCC (Canada)", settings.alertsEcccEnabled) { viewModel.updateAlertsEcccEnabled(it) }
             AlertCheckRow("BOM (Australia)", settings.alertsBomEnabled) { viewModel.updateAlertsBomEnabled(it) }
             AlertCheckRow("NHC (Atlantic & Pacific hurricanes)", settings.alertsNhcEnabled) { viewModel.updateAlertsNhcEnabled(it) }
-            AlertCheckRow("WMO SWIC (global)", settings.alertsWmoSwicEnabled) { viewModel.updateAlertsWmoSwicEnabled(it) }
         }
 
         Spacer(Modifier.height(32.dp))

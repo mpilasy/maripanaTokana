@@ -3,7 +3,7 @@
 		weatherSource, weatherApiKey,
 		alertsEnabled, alertsNwsEnabled, alertsGdacsEnabled,
 		alertsMeteoAlarmEnabled, alertsJmaEnabled, alertsEcccEnabled,
-		alertsWmoSwicEnabled, alertsBomEnabled, alertsNhcEnabled,
+		alertsBomEnabled, alertsNhcEnabled,
 	} from '$lib/stores/preferences';
 	import { testPirateWeatherKey } from '$lib/api/pirateWeather';
 	import type { WeatherSource } from '$lib/domain/weatherData';
@@ -160,10 +160,6 @@
 			<label class="check-row">
 				<input type="checkbox" bind:checked={$alertsNhcEnabled} />
 				<span>NHC (Atlantic &amp; Pacific hurricanes)</span>
-			</label>
-			<label class="check-row">
-				<input type="checkbox" bind:checked={$alertsWmoSwicEnabled} />
-				<span>WMO SWIC (global)</span>
 			</label>
 		{/if}
 	</div>

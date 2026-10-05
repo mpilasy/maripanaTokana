@@ -20,7 +20,6 @@ import orinasa.njarasoa.maripanatokana.data.remote.MeteoAlarmApiService
 import orinasa.njarasoa.maripanatokana.data.remote.NhcApiService
 import orinasa.njarasoa.maripanatokana.data.remote.NominatimApiService
 import orinasa.njarasoa.maripanatokana.data.remote.NwsApiService
-import orinasa.njarasoa.maripanatokana.data.remote.WmoSwicApiService
 import orinasa.njarasoa.maripanatokana.data.settings.AppSettingsRepository
 import orinasa.njarasoa.maripanatokana.data.source.GeocodingSourceSelector
 import orinasa.njarasoa.maripanatokana.data.source.WeatherSourceSelector
@@ -44,7 +43,6 @@ class WeatherRepositoryImpl @Inject constructor(
     private val meteoAlarmApiService: MeteoAlarmApiService,
     private val jmaApiService: JmaApiService,
     private val ecccApiService: EcccApiService,
-    private val wmoSwicApiService: WmoSwicApiService,
     private val bomApiService: BomApiService,
     private val nhcApiService: NhcApiService,
     private val settingsRepository: AppSettingsRepository,
@@ -279,22 +277,7 @@ class WeatherRepositoryImpl @Inject constructor(
                 }
             }
 
-            // 6. WMO SWIC (Global, skipped when a regional source covers the area)
-            val wmoDeferred = async {
-                if (!settings.alertsWmoSwicEnabled || coveredByRegional) return@async emptyList<WeatherAlert>()
-                val code = countryCode?.uppercase() ?: return@async emptyList()
-                try {
-                    wmoSwicApiService.getAlerts(code).Warning.map { w ->
-                        WeatherAlert(AlertLevel.WARNING, w.Summary.ifBlank { "WMO SWIC Warning" }, w.Detail.ifBlank { w.Summary }, "wmoswic", null, w.City.ifBlank { null }, w.Url.ifBlank { null })
-                    }
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (_: Exception) {
-                    emptyList()
-                }
-            }
-
-            // 7. BOM (Australia)
+            // 6. BOM (Australia)
             val bomDeferred = async {
                 if (!settings.alertsBomEnabled || !inAustralia) return@async emptyList<WeatherAlert>()
                 try {
@@ -319,7 +302,7 @@ class WeatherRepositoryImpl @Inject constructor(
                 }
             }
 
-            // 8. NHC — National Hurricane Center (Atlantic + Eastern Pacific basins, proximity-filtered)
+            // 7. NHC — National Hurricane Center (Atlantic + Eastern Pacific basins, proximity-filtered)
             val nhcDeferred = async {
                 if (!settings.alertsNhcEnabled) return@async emptyList<WeatherAlert>()
                 try {
@@ -371,13 +354,12 @@ class WeatherRepositoryImpl @Inject constructor(
             val meteoAlarmAlerts = meteoAlarmDeferred.await()
             val jmaAlerts = jmaDeferred.await()
             val ecccAlerts = ecccDeferred.await()
-            val wmoAlerts = wmoDeferred.await()
             val bomAlerts = bomDeferred.await()
             val nhcAlerts = nhcDeferred.await()
 
             val combinedAlerts = ArrayList<WeatherAlert>(
                 nwsAlerts.size + gdacsAlerts.size + meteoAlarmAlerts.size + jmaAlerts.size +
-                    ecccAlerts.size + wmoAlerts.size + bomAlerts.size + nhcAlerts.size
+                    ecccAlerts.size + bomAlerts.size + nhcAlerts.size
             )
             val keys = HashSet<String>()
             for (item in nwsAlerts) {
@@ -397,10 +379,6 @@ class WeatherRepositoryImpl @Inject constructor(
                 if (keys.add(key)) combinedAlerts.add(item)
             }
             for (item in ecccAlerts) {
-                val key = item.titleKey + item.source
-                if (keys.add(key)) combinedAlerts.add(item)
-            }
-            for (item in wmoAlerts) {
                 val key = item.titleKey + item.source
                 if (keys.add(key)) combinedAlerts.add(item)
             }

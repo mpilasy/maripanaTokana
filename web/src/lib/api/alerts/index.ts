@@ -7,7 +7,6 @@ import { fetchJmaAlerts, isInJapan } from './jma';
 import { fetchEcccAlerts, isInCanada } from './eccc';
 import { fetchBomAlerts, isInAustralia } from './bom';
 import { fetchNhcAlerts } from './nhc';
-import { fetchWmoSwicAlerts } from './wmoSwic';
 
 export { fetchNwsAlerts } from './nws';
 export { fetchGdacsAlerts } from './gdacs';
@@ -16,7 +15,6 @@ export { fetchJmaAlerts } from './jma';
 export { fetchEcccAlerts } from './eccc';
 export { fetchBomAlerts } from './bom';
 export { fetchNhcAlerts } from './nhc';
-export { fetchWmoSwicAlerts } from './wmoSwic';
 export { calculateDistance } from './shared';
 
 export interface AlertSettings {
@@ -26,7 +24,6 @@ export interface AlertSettings {
 	alertsMeteoAlarmEnabled: boolean;
 	alertsJmaEnabled: boolean;
 	alertsEcccEnabled: boolean;
-	alertsWmoSwicEnabled: boolean;
 	alertsBomEnabled: boolean;
 	alertsNhcEnabled: boolean;
 }
@@ -55,7 +52,7 @@ export async function fetchAllAlerts(
 		inUS || inCanada || inAustralia ||
 		METEOALARM_COUNTRIES.has(cc) || isInJapan(lat, lon);
 
-	const [nws, gdacs, meteoAlarm, jma, eccc, bom, nhc, wmo] = await Promise.all([
+	const [nws, gdacs, meteoAlarm, jma, eccc, bom, nhc] = await Promise.all([
 		(settings.alertsNwsEnabled && inUS) ? fetchNwsAlerts(lat, lon) : Promise.resolve([]),
 		(settings.alertsGdacsEnabled && !coveredByRegional) ? fetchGdacsAlerts(lat, lon) : Promise.resolve([]),
 		settings.alertsMeteoAlarmEnabled ? fetchMeteoAlarmAlerts(lat, lon, cc, subdivisionName) : Promise.resolve([]),
@@ -63,10 +60,9 @@ export async function fetchAllAlerts(
 		(settings.alertsEcccEnabled && inCanada) ? fetchEcccAlerts(lat, lon, inCanada ? 'ca' : cc) : Promise.resolve([]),
 		(settings.alertsBomEnabled && inAustralia) ? fetchBomAlerts(stateCode) : Promise.resolve([]),
 		settings.alertsNhcEnabled ? fetchNhcAlerts(lat, lon) : Promise.resolve([]),
-		(settings.alertsWmoSwicEnabled && !coveredByRegional) ? fetchWmoSwicAlerts(lat, lon, cc) : Promise.resolve([]),
 	]);
 
-	const sourceAlerts = [...nws, ...gdacs, ...meteoAlarm, ...jma, ...eccc, ...bom, ...nhc, ...wmo];
+	const sourceAlerts = [...nws, ...gdacs, ...meteoAlarm, ...jma, ...eccc, ...bom, ...nhc];
 
 	return sourceAlerts.filter((a, i, self) =>
 		i === self.findIndex(t => t.title === a.title && t.source === a.source)

@@ -104,6 +104,8 @@ Suggested order: Phase 0 first (cheap, and catches regressions from everything a
 
 ## Phase 1 — Correctness bugs
 
+**Status (2026-10-05):** all items except 1.11 are done (commits `268611c`, `08821af`). 1.11 was resolved by removing WMO SWIC.
+
 ### 1.1 Swallowed cancellation overwrites newer state
 - **Where:** 44 `catch (e: Exception)` / `catch (_: Exception)` / `runCatching` sites across `A/` and the flavor source sets. Key path: `app/src/fdroid/.../data/location/NativeLocationProvider.kt` `getFreshLocation()` catches `Exception`, which includes the `CancellationException` that `requestLocationUpdate()` deliberately rethrows.
 - **Failure:** the user switches to a saved location while GPS acquisition is running. `fetchJob` is cancelled, the location provider converts the cancellation into `Result.failure`, and `doFetch`'s `onFailure` (`A/ui/weather/WeatherViewModel.kt:551-554`) sets `Error(error_get_location)` *after* the new location's data was shown, if no cached location was used.
@@ -190,6 +192,11 @@ Suggested order: Phase 0 first (cheap, and catches regressions from everything a
 ---
 
 ## Phase 2 — Resilience, offline & error UX
+
+**Status (2026-10-05):**
+- **Done** (`67ff726`): 2.1, 2.2, 2.3, 2.5, 2.6, 2.7.
+- **2.8 partial:** Android ignores fixes older than 24 h, but the `last_known_location` note isn't shown yet. That needs `LocationProvider` to return the fix age.
+- **2.4 open:** per-source alert status and logging. It is scheduled after the WMO removal, since both touch the alert code.
 
 ### 2.1 Android app has no offline cache
 - **Problem:** `WeatherRepositoryImpl.getWeather` always hits the network. Launching the app offline (or in a dead zone) shows the error screen, even though the widget already keeps a cached forecast (`A/widget/BaseWidgetWeatherFetcher.kt:60-74`).

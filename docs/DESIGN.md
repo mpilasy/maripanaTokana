@@ -206,7 +206,7 @@ Prevents type mixing at compile time. `displayDual(metricPrimary)` returns a tup
 - `HourlyAirQuality`: 48-hour hourly AQI trend forecast data used by `AirQualityChart`.
 
 ### `WeatherData.kt`
-Holds the complete weather snapshot: current conditions, 8 official weather alerts, hourly forecast (24h), daily 7-day forecast array, AQI index & 48h AQI forecast, UV index & 7-day UV forecast, and sunrise/sunset times.
+Holds the complete weather snapshot: current conditions, 7 official weather alerts, hourly forecast (24h), daily 7-day forecast array, AQI index & 48h AQI forecast, UV index & 7-day UV forecast, and sunrise/sunset times.
 
 ---
 
@@ -296,13 +296,13 @@ Renamed from "Expert Mode" in v1.2.15. Toggleable in Settings (`ui/settings/Sett
 Settings screen (`SettingsScreen.kt`) controls:
 - **Weather Source**: Open-Meteo (default, keyless) or Pirate Weather (optional API key with inline test flow).
 - **Geocoding Source**: System Geocoder vs Nominatim.
-- **Alert Toggles**: Master alerts switch + individual source toggles for all 8 official providers.
+- **Alert Toggles**: Master alerts switch + individual source toggles for all 7 official providers.
 
 ---
 
 ## 14. Weather Alerts
 
-Official alerts are fetched from 8 upstream sources: NWS (US), GDACS (global), MeteoAlarm (Europe), JMA (Japan), ECCC (Canada), BOM (Australia), NHC (hurricanes), and WMO SWIC (global).
+Official alerts are fetched from 7 upstream sources: NWS (US), GDACS (global), MeteoAlarm (Europe), JMA (Japan), ECCC (Canada), BOM (Australia), and NHC (hurricanes).
 - **Derived alerts removed**: Derived/algorithmic alerts were removed in v1.2.1 to prevent false alarms.
 - **Multiple Alerts UI**: Multi-source alerts display merged source badges on the banner, with individual expand/collapse triggers per alert.
 

@@ -12,7 +12,7 @@ This is the web port of the [Android app](../), built with SvelteKit.
 - **7-Day Forecast Trend Chart**: Horizontal scrolling daily forecast cards paired with a matching 7-day temperature trend line chart
 - **Single-Card Accordion**: Opening one card collapses any other open card; switching locations collapses all cards
 - **Settings screen**: pluggable weather source, API key test flow, per-source alert toggles, geocoding info
-- **8 alert sources**: NWS (US), GDACS (global), MeteoAlarm (Europe), JMA (Japan), ECCC (Canada), BOM (Australia), NHC (hurricanes), WMO SWIC (global) — each individually toggleable
+- **7 alert sources**: NWS (US), GDACS (global), MeteoAlarm (Europe), JMA (Japan), ECCC (Canada), BOM (Australia), NHC (hurricanes) — each individually toggleable
 - GPS location with two-step strategy (instant cached + fresh background)
 - **Dual-unit display**: every measurement shows both metric and imperial simultaneously
 - **Tap to toggle**: tap any value to swap which unit is primary (bold/large) vs secondary (dimmer)
@@ -103,14 +103,13 @@ docker-compose.yml  # Container config (port)
 
 ### CORS Proxy Routes
 
-Five alert sources lack `Access-Control-Allow-Origin` headers and cannot be called from the browser directly. SvelteKit server routes proxy them:
+Four alert sources lack `Access-Control-Allow-Origin` headers and cannot be called from the browser directly. SvelteKit server routes proxy them:
 
 | Route | Upstream |
 |---|---|
 | `/api/alerts/meteoalarm?country=XX` | feeds.meteoalarm.org |
 | `/api/alerts/bom` | api.weather.bom.gov.au |
 | `/api/alerts/nhc` | nhc.noaa.gov |
-| `/api/alerts/wmoswic?country=XX` | severe.worldweather.wmo.int |
 | `/api/alerts/eccc?bbox=...` | api.weather.gc.ca |
 
 NWS, GDACS, and JMA have CORS and are called directly from the browser.

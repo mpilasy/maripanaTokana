@@ -6,7 +6,6 @@ export {
 	fetchEcccAlerts,
 	fetchBomAlerts,
 	fetchNhcAlerts,
-	fetchWmoSwicAlerts,
 	fetchAllAlerts,
 	calculateDistance,
 	type AlertSettings,

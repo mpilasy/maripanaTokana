@@ -274,7 +274,7 @@ Test both widgets (if configured):
 
 - [ ] **Alert Toggles**
   - [ ] Master alerts toggle disables all alert fetching
-  - [ ] Each of the 9 per-source checkboxes (NWS, GDACS, MeteoAlarm, JMA, ECCC, BOM, NHC, WMO SWIC, Derived) can be toggled independently
+  - [ ] Each of the 8 per-source checkboxes (NWS, GDACS, MeteoAlarm, JMA, ECCC, BOM, NHC, Derived) can be toggled independently
   - [ ] Disabled sources show no banner even in regions they cover
   - [ ] Toggles persist across app restarts
 

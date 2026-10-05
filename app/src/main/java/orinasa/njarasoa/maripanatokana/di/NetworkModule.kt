@@ -21,7 +21,6 @@ import orinasa.njarasoa.maripanatokana.data.remote.NwsApiService
 import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoAirQualityApiService
 import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoApiService
 import orinasa.njarasoa.maripanatokana.data.remote.PirateWeatherApiService
-import orinasa.njarasoa.maripanatokana.data.remote.WmoSwicApiService
 import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
@@ -196,15 +195,4 @@ object NetworkModule {
             .create(BomApiService::class.java)
     }
 
-    @Provides
-    @Singleton
-    fun provideWmoSwicApiService(okHttpClient: OkHttpClient, json: Json): WmoSwicApiService {
-        val contentType = "application/json".toMediaType()
-        return Retrofit.Builder()
-            .baseUrl("https://severe.worldweather.wmo.int/")
-            .client(okHttpClient)
-            .addConverterFactory(json.asConverterFactory(contentType))
-            .build()
-            .create(WmoSwicApiService::class.java)
-    }
 }

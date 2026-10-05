@@ -17,7 +17,7 @@ import {
 	weatherSource, weatherApiKey,
 	alertsEnabled, alertsNwsEnabled, alertsGdacsEnabled,
 	alertsMeteoAlarmEnabled, alertsJmaEnabled, alertsEcccEnabled,
-	alertsWmoSwicEnabled, alertsBomEnabled, alertsNhcEnabled,
+	alertsBomEnabled, alertsNhcEnabled,
 } from '$lib/stores/preferences';
 import { SUPPORTED_LOCALES } from '$lib/i18n/locales';
 import { activeLocationId, savedLocations, locationOverride, checkOverrideExpiry } from '$lib/stores/savedLocations';
@@ -106,7 +106,6 @@ async function fetchAlertsForData(lat: number, lon: number, generation: number, 
 			alertsMeteoAlarmEnabled: get(alertsMeteoAlarmEnabled),
 			alertsJmaEnabled: get(alertsJmaEnabled),
 			alertsEcccEnabled: get(alertsEcccEnabled),
-			alertsWmoSwicEnabled: get(alertsWmoSwicEnabled),
 			alertsBomEnabled: get(alertsBomEnabled),
 			alertsNhcEnabled: get(alertsNhcEnabled),
 		};

@@ -14,7 +14,6 @@ data class AppSettings(
     val alertsMeteoAlarmEnabled: Boolean = true,
     val alertsJmaEnabled: Boolean = true,
     val alertsEcccEnabled: Boolean = true,
-    val alertsWmoSwicEnabled: Boolean = true,
     val alertsBomEnabled: Boolean = true,
     val alertsNhcEnabled: Boolean = true,
 )

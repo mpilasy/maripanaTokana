@@ -38,7 +38,6 @@ export const alertsGdacsEnabled = persistedWritable<boolean>('alerts_gdacs', tru
 export const alertsMeteoAlarmEnabled = persistedWritable<boolean>('alerts_meteoalarm', true);
 export const alertsJmaEnabled = persistedWritable<boolean>('alerts_jma', true);
 export const alertsEcccEnabled = persistedWritable<boolean>('alerts_eccc', true);
-export const alertsWmoSwicEnabled = persistedWritable<boolean>('alerts_wmoswic', true);
 export const alertsBomEnabled = persistedWritable<boolean>('alerts_bom', true);
 export const alertsNhcEnabled = persistedWritable<boolean>('alerts_nhc', true);
 

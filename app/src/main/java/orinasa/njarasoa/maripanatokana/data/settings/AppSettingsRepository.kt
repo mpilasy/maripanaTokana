@@ -47,7 +47,6 @@ class AppSettingsRepository @Inject constructor(
         alertsMeteoAlarmEnabled = prefs.getBoolean("settings_alerts_meteoalarm", true),
         alertsJmaEnabled = prefs.getBoolean("settings_alerts_jma", true),
         alertsEcccEnabled = prefs.getBoolean("settings_alerts_eccc", true),
-        alertsWmoSwicEnabled = prefs.getBoolean("settings_alerts_wmoswic", true),
         alertsBomEnabled = prefs.getBoolean("settings_alerts_bom", true),
         alertsNhcEnabled = prefs.getBoolean("settings_alerts_nhc", true),
     )
@@ -86,10 +85,6 @@ class AppSettingsRepository @Inject constructor(
 
     fun updateAlertsEcccEnabled(enabled: Boolean) {
         prefs.edit { putBoolean("settings_alerts_eccc", enabled) }
-    }
-
-    fun updateAlertsWmoSwicEnabled(enabled: Boolean) {
-        prefs.edit { putBoolean("settings_alerts_wmoswic", enabled) }
     }
 
     fun updateAlertsBomEnabled(enabled: Boolean) {

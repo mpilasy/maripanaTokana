@@ -6,7 +6,7 @@
 
 ## Shared Tech
 - **Weather API:** [Open-Meteo](https://open-meteo.com) (default, no key) or [Pirate Weather](https://pirateweather.net) (optional, user-supplied API key)
-- **Alert Sources (8):** NWS, GDACS, MeteoAlarm, JMA, ECCC, BOM, NHC, WMO SWIC — each individually toggleable. Four (MeteoAlarm, BOM, NHC, WMO SWIC) require server-side CORS proxy routes in `src/routes/api/alerts/`.
+- **Alert Sources (7):** NWS, GDACS, MeteoAlarm, JMA, ECCC, BOM, NHC — each individually toggleable. Three (MeteoAlarm, BOM, NHC) require server-side CORS proxy routes in `src/routes/api/alerts/`.
 - **Reverse Geocoding:** [Nominatim](https://nominatim.openstreetmap.org) — free, no API key
 - **Screenshots:** `html2canvas` — captures DOM sections, composites onto branded canvas, shares via Web Share API
 - **i18n:** 8 languages (mg, ar, en, es, fr, hi, ne, zh) with ~76 keys + 2 arrays (`cardinal_directions`, `uv_labels`). Default: Malagasy (mg, index 0). Use `$json('key')` for arrays, `$_('key')` for strings.
@@ -29,7 +29,7 @@ web/
 │   │   ├── fonts.ts        # 22 FontPairing definitions + Google Fonts URLs
 │   │   └── share.ts        # html2canvas capture + Web Share API / download fallback
 │   ├── routes/
-│   │   ├── api/alerts/     # CORS proxy routes: meteoalarm, bom, nhc, wmoswic
+│   │   ├── api/alerts/     # CORS proxy routes: meteoalarm, bom, nhc
 │   │   ├── +page.svelte
 │   │   └── +layout.svelte
 │   ├── hooks.server.ts     # /svelte → / redirect

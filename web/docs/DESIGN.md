@@ -40,7 +40,7 @@ For the Android app's design documentation, see [`docs/DESIGN.md`](../../docs/DE
 | Screenshots | **html2canvas** | DOM-to-canvas capture for sharing |
 | Weather API | **Open-Meteo** (default) / **Pirate Weather** (optional) | Weather data |
 | Geocoding | **Nominatim** / Open-Meteo Geocoding API | Reverse geocoding & location search |
-| Alerts | 8 official sources (NWS, GDACS, MeteoAlarm, JMA, ECCC, BOM, NHC, WMO SWIC) | Proxied server-side (`routes/api/alerts/`) where CORS is missing |
+| Alerts | 7 official sources (NWS, GDACS, MeteoAlarm, JMA, ECCC, BOM, NHC) | Proxied server-side (`routes/api/alerts/`) where CORS is missing |
 | Server | **Node.js** (via adapter-node) | Serves the built app directly |
 
 ---
@@ -57,7 +57,7 @@ web/
 │   ├── routes/                           # URL-mapped pages
 │   │   ├── +layout.svelte                # Root layout: fonts, RTL, i18n init
 │   │   ├── +page.svelte                  # Home page: mounts WeatherScreen
-│   │   └── api/alerts/                   # CORS proxy endpoints (meteoalarm, bom, nhc, wmoswic, eccc)
+│   │   └── api/alerts/                   # CORS proxy endpoints (meteoalarm, bom, nhc, eccc)
 │   └── lib/                              # All app code ($lib alias)
 │       ├── api/                          # Network layer
 │       │   ├── openMeteo.ts              # Open-Meteo client & mapper
@@ -227,7 +227,7 @@ Renamed from "Expert Mode" in v1.2.15. Managed via `stores/advancedMode.ts`:
 
 ## 14. Weather Alerts
 
-8 official alert sources (NWS, GDACS, MeteoAlarm, JMA, ECCC, BOM, NHC, WMO SWIC). CORS-blocked upstreams are proxied via `src/routes/api/alerts/*/+server.ts`. Derived/algorithmic alerts were removed in v1.2.1. Multiple alerts display with expandable details per alert.
+7 official alert sources (NWS, GDACS, MeteoAlarm, JMA, ECCC, BOM, NHC). CORS-blocked upstreams are proxied via `src/routes/api/alerts/*/+server.ts`. Derived/algorithmic alerts were removed in v1.2.1. Multiple alerts display with expandable details per alert.
 
 ---
 
