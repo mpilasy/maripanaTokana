@@ -6,11 +6,11 @@ export class Pressure {
 	}
 
 	displayHPa(): string {
-		return `${Math.round(this.hPa)} hPa`;
+		return Number.isFinite(this.hPa) ? `${Math.round(this.hPa)} hPa` : '-- hPa';
 	}
 
 	displayInHg(): string {
-		return `${this.inHg.toFixed(2)} inHg`;
+		return Number.isFinite(this.inHg) ? `${this.inHg.toFixed(2)} inHg` : '-- inHg';
 	}
 
 	displayDual(metricPrimary: boolean): [string, string] {

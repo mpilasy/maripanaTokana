@@ -12,9 +12,9 @@ value class Pressure private constructor(val hPa: Double) {
     val inHg: Double
         get() = hPa * 0.02953
 
-    fun displayHPa(): String = "%.0f hPa".format(Locale.US, hPa)
+    fun displayHPa(): String = if (hPa.isFinite()) "%.0f hPa".format(Locale.US, hPa) else "-- hPa"
 
-    fun displayInHg(): String = "%.2f inHg".format(Locale.US, inHg)
+    fun displayInHg(): String = if (inHg.isFinite()) "%.2f inHg".format(Locale.US, inHg) else "-- inHg"
 
     /** Dual-unit display: "1013 hPa / 29.92 inHg" */
     fun displayDual(): String = "${displayHPa()} / ${displayInHg()}"

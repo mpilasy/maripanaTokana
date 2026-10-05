@@ -36,7 +36,7 @@
 			<div class="daily-card">
 				<span class="day-name">{formatDayName(item.date, localeTag, utcOffsetSeconds, true)}</span>
 				<span class="day-date">{loc(formatDayMonth(item.date, localeTag, utcOffsetSeconds))}</span>
-				<button class="emoji-btn" onclick={toggleMode} aria-label={$_('android_only.cd_cycle_mode')}>
+				<button class="emoji-btn" onclick={toggleMode} aria-label={$_('cd_cycle_mode')}>
 					{wmoEmoji(item.weatherCode)}
 				</button>
 				{#if displayMode === 'Temperature'}

@@ -14,11 +14,13 @@ value class Temperature private constructor(val celsius: Double) {
         get() = celsius * 9.0 / 5.0 + 32.0
 
     fun displayCelsius(decimals: Int = 0): String =
-        if (decimals > 0) "%.${decimals}f°C".format(Locale.US, celsius)
+        if (!celsius.isFinite()) "--°C"
+        else if (decimals > 0) "%.${decimals}f°C".format(Locale.US, celsius)
         else "%d°C".format(Locale.US, celsius.roundToInt())
 
     fun displayFahrenheit(decimals: Int = 0): String =
-        if (decimals > 0) "%.${decimals}f°F".format(Locale.US, fahrenheit)
+        if (!fahrenheit.isFinite()) "--°F"
+        else if (decimals > 0) "%.${decimals}f°F".format(Locale.US, fahrenheit)
         else "%d°F".format(Locale.US, fahrenheit.roundToInt())
 
     /** Dual-unit display as required by spec: "2°C / 36°F" */

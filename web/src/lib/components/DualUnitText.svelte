@@ -28,7 +28,7 @@
 		class="dual-unit clickable"
 		style:text-align={align}
 		onclick={onClick}
-		aria-label={$_('android_only.cd_toggle_units')}
+		aria-label={$_('cd_toggle_units')}
 	>
 		{@render content()}
 	</button>

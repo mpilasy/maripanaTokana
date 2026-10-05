@@ -12,9 +12,9 @@ value class WindSpeed private constructor(val metersPerSecond: Double) {
     val mph: Double
         get() = metersPerSecond * 2.23694
 
-    fun displayMetric(): String = "%.1f m/s".format(Locale.US, metersPerSecond)
+    fun displayMetric(): String = if (metersPerSecond.isFinite()) "%.1f m/s".format(Locale.US, metersPerSecond) else "-- m/s"
 
-    fun displayImperial(): String = "%.1f mph".format(Locale.US, mph)
+    fun displayImperial(): String = if (mph.isFinite()) "%.1f mph".format(Locale.US, mph) else "-- mph"
 
     /** Dual-unit display: "5.2 m/s / 11.6 mph" */
     fun displayDual(): String = "${displayMetric()} / ${displayImperial()}"

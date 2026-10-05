@@ -494,9 +494,9 @@ internal fun WeatherContent(
                             Column(horizontalAlignment = Alignment.End) {
                                 val (windP, windS) = data.windSpeed.displayDual(metricPrimary)
                                 val directions = stringArrayResource(R.array.cardinal_directions)
-                                val dirIndex = ((data.windDeg % 360 + 360) % 360 * 16 / 360) % 16
+                                val dirLabel = data.windDeg?.let { directions[((it % 360 + 360) % 360 * 16 / 360) % 16] } ?: "--"
                                 DualUnitText(
-                                    primary = localizeDigits("$windP ${directions[dirIndex]}"),
+                                    primary = localizeDigits("$windP $dirLabel"),
                                     secondary = localizeDigits(windS),
                                     onClick = onToggleUnits,
                                 )
@@ -1433,7 +1433,7 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
                     }
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
-                        text = "${stringResource(R.string.detail_cloud_cover)}: ${localizeDigits("%d%%".format(Locale.US, data.cloudCover))}",
+                        text = "${stringResource(R.string.detail_cloud_cover)}: ${data.cloudCover?.let { localizeDigits("%d%%".format(Locale.US, it)) } ?: "--"}",
                         fontSize = 12f.s(scale),
                         fontFamily = bodyFont,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
@@ -1487,7 +1487,7 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
             colors = CardDefaults.cardColors(containerColor = CardBlue.copy(alpha = 0.6f))
         ) {
             val (windP, windS) = data.windSpeed.displayDual(metricPrimary)
-            val dirIndex = ((data.windDeg % 360 + 360) % 360 * 16 / 360) % 16
+            val dirLabel = data.windDeg?.let { directions[((it % 360 + 360) % 360 * 16 / 360) % 16] }
             Row(
                 modifier = Modifier.fillMaxWidth().padding(16.sd(scale)),
                 verticalAlignment = Alignment.CenterVertically,
@@ -1495,7 +1495,7 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
                 Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.Start) {
                     DualUnitText(primary = localizeDigits(windP), secondary = localizeDigits(windS), primarySize = 20f.s(scale), onClick = onToggleUnits)
                     Text(
-                        text = localizeDigits("${directions[dirIndex]} (%d\u00B0)".format(Locale.US, data.windDeg)),
+                        text = data.windDeg?.let { localizeDigits("$dirLabel (%d\u00B0)".format(Locale.US, it)) } ?: "--",
                         fontSize = 12f.s(scale),
                         fontFamily = bodyFont,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
@@ -1613,7 +1613,7 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = localizeDigits("%d%%".format(Locale.US, data.humidity)),
+                        text = data.humidity?.let { localizeDigits("%d%%".format(Locale.US, it)) } ?: "--",
                         fontSize = 20f.s(scale),
                         fontWeight = FontWeight.Bold,
                         fontFamily = LocalDisplayFont.current,
@@ -1648,11 +1648,14 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
         Spacer(modifier = Modifier.height(16.sd(scale)))
 
         // UV Index (current reading) / Visibility — Air Quality now lives on its own forecast card
+        val currentUv = data.uvIndex
+        val visibility = data.visibility
         val uvLabelText = when {
-            data.uvIndex < 3 -> uvLabels[0]
-            data.uvIndex < 6 -> uvLabels[1]
-            data.uvIndex < 8 -> uvLabels[2]
-            data.uvIndex < 11 -> uvLabels[3]
+            currentUv == null -> ""
+            currentUv < 3 -> uvLabels[0]
+            currentUv < 6 -> uvLabels[1]
+            currentUv < 8 -> uvLabels[2]
+            currentUv < 11 -> uvLabels[3]
             else -> uvLabels[4]
         }
         Row(
@@ -1661,16 +1664,16 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
         ) {
             DetailCard(
                 title = stringResource(R.string.detail_uv_index),
-                value = localizeDigits("%.1f".format(Locale.US, data.uvIndex)),
-                subtitleContent = { UvTierBadge(uvIndex = data.uvIndex, label = uvLabelText) },
+                value = currentUv?.let { localizeDigits("%.1f".format(Locale.US, it)) } ?: "--",
+                subtitleContent = currentUv?.let { uv -> @Composable { UvTierBadge(uvIndex = uv, label = uvLabelText) } },
                 modifier = Modifier.weight(1f).fillMaxHeight(),
             )
             DetailCard(
                 title = stringResource(R.string.detail_visibility),
-                value = localizeDigits(if (metricPrimary) stringResource(R.string.visibility_km).format(Locale.US, data.visibility / 1000.0)
-                        else stringResource(R.string.visibility_mi).format(Locale.US, data.visibility / 1609.34)),
-                secondaryValue = localizeDigits(if (metricPrimary) stringResource(R.string.visibility_mi).format(Locale.US, data.visibility / 1609.34)
-                                 else stringResource(R.string.visibility_km).format(Locale.US, data.visibility / 1000.0)),
+                value = visibility?.let { localizeDigits(if (metricPrimary) stringResource(R.string.visibility_km).format(Locale.US, it / 1000.0)
+                        else stringResource(R.string.visibility_mi).format(Locale.US, it / 1609.34)) } ?: "--",
+                secondaryValue = visibility?.let { localizeDigits(if (metricPrimary) stringResource(R.string.visibility_mi).format(Locale.US, it / 1609.34)
+                                 else stringResource(R.string.visibility_km).format(Locale.US, it / 1000.0)) },
                 modifier = Modifier.weight(1f).fillMaxHeight(),
                 onToggleUnits = onToggleUnits,
             )

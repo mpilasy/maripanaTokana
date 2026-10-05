@@ -15,10 +15,10 @@ data class ActivityIndices(
     companion object {
         fun fromWeatherData(data: WeatherData): ActivityIndices {
             val tempC = data.temperature.celsius
-            val humidity = data.humidity
+            val humidity = data.humidity ?: 70 // neutral when unavailable
             val windMs = data.windSpeed.metersPerSecond
             val precipMm = (data.rain?.mm ?: 0.0) + (data.snow?.mm ?: 0.0)
-            val uv = data.uvIndex
+            val uv = data.uvIndex ?: 6.0 // neutral (FAIR) when unavailable
 
             val runningTier = if (precipMm > 0.0 || tempC < 0.0 || tempC > 32.0 || windMs > 12.0) {
                 ActivityTier.POOR

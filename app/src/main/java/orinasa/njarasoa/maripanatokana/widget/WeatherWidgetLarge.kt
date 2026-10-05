@@ -185,7 +185,7 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
                 )
                 DetailCell(
                     label = context.getString(R.string.widget_humidity),
-                    value = "${data.humidity}%",
+                    value = data.humidity?.let { "$it%" } ?: "--",
                     modifier = GlanceModifier.defaultWeight(),
                 )
                 val (windP, windS) = data.windSpeed.displayDual(metricPrimary)

@@ -10,26 +10,26 @@ export interface OpenMeteoResponse {
 
 export interface OpenMeteoMinutely15 {
 	time: string[];
-	precipitation: number[];
+	precipitation: (number | null)[];
 }
 
 export interface OpenMeteoCurrent {
 	temperature_2m: number;
-	apparent_temperature: number;
-	relative_humidity_2m: number;
-	dew_point_2m: number;
-	wind_speed_10m: number;
-	wind_direction_10m: number;
-	wind_gusts_10m: number;
-	pressure_msl: number;
-	precipitation: number;
-	rain: number;
-	snowfall: number;
-	visibility: number;
+	apparent_temperature: number | null;
+	relative_humidity_2m: number | null;
+	dew_point_2m: number | null;
+	wind_speed_10m: number | null;
+	wind_direction_10m: number | null;
+	wind_gusts_10m: number | null;
+	pressure_msl: number | null;
+	precipitation: number | null;
+	rain: number | null;
+	snowfall: number | null;
+	visibility: number | null;
 	weather_code: number;
 	is_day: number;
-	uv_index: number;
-	cloud_cover: number;
+	uv_index: number | null;
+	cloud_cover: number | null;
 }
 
 export interface OpenMeteoDaily {
@@ -37,22 +37,22 @@ export interface OpenMeteoDaily {
 	temperature_2m_max: number[];
 	temperature_2m_min: number[];
 	weather_code: number[];
-	precipitation_probability_max: number[];
+	precipitation_probability_max: (number | null)[];
 	sunrise: string[];
 	sunset: string[];
-	wind_speed_10m_max: number[];
-	wind_direction_10m_dominant: number[];
-	precipitation_sum: number[];
-	uv_index_max: number[];
+	wind_speed_10m_max: (number | null)[];
+	wind_direction_10m_dominant: (number | null)[];
+	precipitation_sum: (number | null)[];
+	uv_index_max: (number | null)[];
 }
 
 export interface OpenMeteoHourly {
 	time: string[];
 	temperature_2m: number[];
 	weather_code: number[];
-	precipitation_probability: number[];
-	wind_speed_10m: number[];
-	wind_direction_10m: number[];
-	pressure_msl: number[];
-	precipitation: number[];
+	precipitation_probability: (number | null)[];
+	wind_speed_10m: (number | null)[];
+	wind_direction_10m: (number | null)[];
+	pressure_msl: (number | null)[];
+	precipitation: (number | null)[];
 }

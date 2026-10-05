@@ -6,11 +6,11 @@ export class Precipitation {
 	}
 
 	displayMetric(): string {
-		return `${this.mm.toFixed(1)} mm`;
+		return Number.isFinite(this.mm) ? `${this.mm.toFixed(1)} mm` : '-- mm';
 	}
 
 	displayImperial(): string {
-		return `${this.inches.toFixed(2)} in`;
+		return Number.isFinite(this.inches) ? `${this.inches.toFixed(2)} in` : '-- in';
 	}
 
 	displayDual(metricPrimary: boolean): [string, string] {

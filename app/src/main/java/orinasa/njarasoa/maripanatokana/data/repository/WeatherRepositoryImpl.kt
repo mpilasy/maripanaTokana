@@ -18,6 +18,7 @@ import orinasa.njarasoa.maripanatokana.data.remote.JmaApiService
 import orinasa.njarasoa.maripanatokana.data.remote.JmaAreaCodes
 import orinasa.njarasoa.maripanatokana.data.remote.MeteoAlarmApiService
 import orinasa.njarasoa.maripanatokana.data.remote.NhcApiService
+import orinasa.njarasoa.maripanatokana.data.remote.NominatimApiService
 import orinasa.njarasoa.maripanatokana.data.remote.NwsApiService
 import orinasa.njarasoa.maripanatokana.data.remote.WmoSwicApiService
 import orinasa.njarasoa.maripanatokana.data.settings.AppSettingsRepository
@@ -49,7 +50,25 @@ class WeatherRepositoryImpl @Inject constructor(
     private val settingsRepository: AppSettingsRepository,
     private val weatherSourceSelector: WeatherSourceSelector,
     private val geocodingSelector: GeocodingSourceSelector,
+    nominatimApiService: NominatimApiService,
 ) : WeatherRepository {
+
+    private val countryResolver = CountryResolver(
+        geocoder = { lat, lon ->
+            @Suppress("DEPRECATION")
+            Geocoder(context, Locale.US).getFromLocation(lat, lon, 1)?.firstOrNull()?.let { a ->
+                a.countryCode?.takeIf { it.isNotBlank() }?.let {
+                    CountryInfo(
+                        countryCode = it.lowercase(),
+                        subdivision = a.subAdminArea?.takeIf { s -> s.isNotBlank() }
+                            ?: a.adminArea?.takeIf { s -> s.isNotBlank() },
+                        adminArea = a.adminArea,
+                    )
+                }
+            }
+        },
+        nominatim = nominatimApiService,
+    )
 
     private val prefs get() = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
 
@@ -97,16 +116,13 @@ class WeatherRepositoryImpl @Inject constructor(
         val settings = settingsRepository.current
         if (!settings.alertsEnabled) return@coroutineScope Result.success(emptyList())
 
-        val geoAddress = try {
-            @Suppress("DEPRECATION")
-            Geocoder(context, Locale.US).getFromLocation(lat, lon, 1)?.firstOrNull()
-        } catch (_: Exception) { null }
-        val countryCode = geoAddress?.countryCode?.lowercase()
+        val countryInfo = countryResolver.resolve(lat, lon)
+        val countryCode = countryInfo?.countryCode
         val australianStateCode = mapOf(
             "New South Wales" to "NSW", "Victoria" to "VIC", "Queensland" to "QLD",
             "Western Australia" to "WA", "South Australia" to "SA", "Tasmania" to "TAS",
             "Australian Capital Territory" to "ACT", "Northern Territory" to "NT"
-        )[geoAddress?.adminArea ?: ""]
+        )[countryInfo?.adminArea ?: ""]
 
         // Coordinate-based fallbacks so a Geocoder failure (e.g. no geocoder backend on some
         // de-Googled/F-Droid devices) doesn't silently suppress a country-gated source.
@@ -190,9 +206,7 @@ class WeatherRepositoryImpl @Inject constructor(
                 if (!settings.alertsMeteoAlarmEnabled) return@async emptyList<WeatherAlert>()
                 val code = countryCode ?: return@async emptyList()
                 val slug = METEOALARM_SLUGS[code] ?: return@async emptyList()
-                // subAdminArea = county/département; adminArea = region — prefer the more granular one
-                val subdivision = geoAddress?.subAdminArea?.takeIf { it.isNotBlank() }
-                    ?: geoAddress?.adminArea?.takeIf { it.isNotBlank() }
+                val subdivision = countryInfo?.subdivision
                 try {
                     parseMeteoAlarmAtom(meteoAlarmApiService.getAlerts(slug).string(), subdivision)
                 } catch (e: CancellationException) {

@@ -12,9 +12,9 @@ value class Precipitation private constructor(val mm: Double) {
     val inches: Double
         get() = mm * 0.03937
 
-    fun displayMetric(): String = "%.1f mm".format(Locale.US, mm)
+    fun displayMetric(): String = if (mm.isFinite()) "%.1f mm".format(Locale.US, mm) else "-- mm"
 
-    fun displayImperial(): String = "%.2f in".format(Locale.US, inches)
+    fun displayImperial(): String = if (inches.isFinite()) "%.2f in".format(Locale.US, inches) else "-- in"
 
     /** Dual-unit display: "2.5 mm / 0.10 in" */
     fun displayDual(): String = "${displayMetric()} / ${displayImperial()}"

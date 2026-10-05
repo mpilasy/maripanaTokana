@@ -25,6 +25,7 @@ data class NominatimAddress(
     @SerialName("county") val county: String? = null,
     @SerialName("state") val state: String? = null,
     @SerialName("country") val country: String? = null,
+    @SerialName("country_code") val countryCode: String? = null,
 )
 
 interface NominatimApiService {

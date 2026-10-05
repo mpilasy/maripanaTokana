@@ -75,11 +75,11 @@ fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = 
             time = epoch,
             temperature = Temperature.fromCelsius(hourly.temperature2m.getOrElse(i) { 0.0 }),
             weatherCode = hourly.weatherCode.getOrElse(i) { 0 },
-            precipProbability = hourly.precipitationProbability.getOrElse(i) { 0 },
-            windSpeed = WindSpeed.fromMetersPerSecond(hourly.windSpeed10m.getOrElse(i) { 0.0 }),
-            windDirection = hourly.windDirection10m.getOrElse(i) { 0 },
-            pressure = Pressure.fromHPa(hourly.pressureMsl.getOrElse(i) { 1013.0 }),
-            precipitation = Precipitation.fromMm(hourly.precipitation.getOrElse(i) { 0.0 }),
+            precipProbability = hourly.precipitationProbability.getOrNull(i) ?: 0,
+            windSpeed = WindSpeed.fromMetersPerSecond(hourly.windSpeed10m.getOrNull(i) ?: Double.NaN),
+            windDirection = hourly.windDirection10m.getOrNull(i) ?: 0,
+            pressure = Pressure.fromHPa(hourly.pressureMsl.getOrNull(i) ?: Double.NaN),
+            precipitation = Precipitation.fromMm(hourly.precipitation.getOrNull(i) ?: Double.NaN),
         )
     }.distinctBy { it.time }
 
@@ -92,11 +92,11 @@ fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = 
             tempMax = Temperature.fromCelsius(daily.temperatureMax[i]),
             tempMin = Temperature.fromCelsius(daily.temperatureMin[i]),
             weatherCode = if (i == 0) c.weatherCode else daily.weatherCode[i],
-            precipProbability = daily.precipitationProbabilityMax[i],
-            windSpeed = WindSpeed.fromMetersPerSecond(daily.windSpeed10mMax.getOrElse(i) { 0.0 }),
-            windDirection = daily.windDirection10mDominant.getOrElse(i) { 0 },
-            precipitation = Precipitation.fromMm(daily.precipitationSum.getOrElse(i) { 0.0 }),
-            uvIndexMax = daily.uvIndexMax.getOrElse(i) { 0.0 },
+            precipProbability = daily.precipitationProbabilityMax.getOrNull(i) ?: 0,
+            windSpeed = WindSpeed.fromMetersPerSecond(daily.windSpeed10mMax.getOrNull(i) ?: Double.NaN),
+            windDirection = daily.windDirection10mDominant.getOrNull(i) ?: 0,
+            precipitation = Precipitation.fromMm(daily.precipitationSum.getOrNull(i) ?: Double.NaN),
+            uvIndexMax = daily.uvIndexMax.getOrNull(i) ?: 0.0,
         )
     }.distinctBy { it.date }
 
@@ -107,7 +107,7 @@ fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = 
         (startM15Index until endM15Index).map { i ->
             orinasa.njarasoa.maripanatokana.domain.model.MinutelyForecast(
                 time = parsedM15Times[i],
-                precipitation = Precipitation.fromMm(m15.precipitation.getOrElse(i) { 0.0 }),
+                precipitation = Precipitation.fromMm(m15.precipitation.getOrNull(i) ?: 0.0),
             )
         }
     } ?: emptyList()
@@ -115,24 +115,24 @@ fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = 
     return WeatherData(
         utcOffsetSeconds = utcOffsetSeconds,
         temperature = Temperature.fromCelsius(c.temperature),
-        feelsLike = Temperature.fromCelsius(c.apparentTemperature),
+        feelsLike = Temperature.fromCelsius(c.apparentTemperature ?: Double.NaN),
         tempMin = Temperature.fromCelsius(daily.temperatureMin.firstOrNull() ?: c.temperature),
         tempMax = Temperature.fromCelsius(daily.temperatureMax.firstOrNull() ?: c.temperature),
         weatherCode = c.weatherCode,
         iconCode = wmoIconCode(c.weatherCode, isDay),
         locationName = locationName,
         locationSubtext = locationSubtext,
-        pressure = Pressure.fromHPa(c.pressureMsl),
+        pressure = Pressure.fromHPa(c.pressureMsl ?: Double.NaN),
         humidity = c.relativeHumidity,
-        dewPoint = Temperature.fromCelsius(c.dewPoint),
-        windSpeed = WindSpeed.fromMetersPerSecond(c.windSpeed),
+        dewPoint = Temperature.fromCelsius(c.dewPoint ?: Double.NaN),
+        windSpeed = WindSpeed.fromMetersPerSecond(c.windSpeed ?: Double.NaN),
         windDeg = c.windDirection,
-        windGust = if (c.windGusts > 0) WindSpeed.fromMetersPerSecond(c.windGusts) else null,
-        rain = if (c.rain > 0) Precipitation.fromMm(c.rain) else null,
-        snow = if (c.snowfall > 0) Precipitation.fromMm(c.snowfall) else null,
+        windGust = c.windGusts?.takeIf { it > 0 }?.let { WindSpeed.fromMetersPerSecond(it) },
+        rain = c.rain?.takeIf { it > 0 }?.let { Precipitation.fromMm(it) },
+        snow = c.snowfall?.takeIf { it > 0 }?.let { Precipitation.fromMm(it) },
         cloudCover = c.cloudCover,
         uvIndex = c.uvIndex,
-        visibility = c.visibility.toInt(),
+        visibility = c.visibility?.toInt(),
         sunrise = sunriseEpoch,
         sunset = sunsetEpoch,
         dailySunrise = dailySunriseMillis,

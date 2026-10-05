@@ -6,11 +6,11 @@ export class WindSpeed {
 	}
 
 	displayMetric(): string {
-		return `${this.metersPerSecond.toFixed(1)} m/s`;
+		return Number.isFinite(this.metersPerSecond) ? `${this.metersPerSecond.toFixed(1)} m/s` : '-- m/s';
 	}
 
 	displayImperial(): string {
-		return `${this.mph.toFixed(1)} mph`;
+		return Number.isFinite(this.mph) ? `${this.mph.toFixed(1)} mph` : '-- mph';
 	}
 
 	displayDual(metricPrimary: boolean): [string, string] {

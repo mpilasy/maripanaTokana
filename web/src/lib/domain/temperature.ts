@@ -6,12 +6,14 @@ export class Temperature {
 	}
 
 	displayCelsius(decimals = 0): string {
+		if (!Number.isFinite(this.celsius)) return '--°C';
 		return decimals > 0
 			? `${this.celsius.toFixed(decimals)}°C`
 			: `${Math.round(this.celsius)}°C`;
 	}
 
 	displayFahrenheit(decimals = 0): string {
+		if (!Number.isFinite(this.fahrenheit)) return '--°F';
 		return decimals > 0
 			? `${this.fahrenheit.toFixed(decimals)}°F`
 			: `${Math.round(this.fahrenheit)}°F`;

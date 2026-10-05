@@ -10,16 +10,16 @@ data class WeatherData(
     val locationName: String,
     val locationSubtext: String? = null,
     val pressure: Pressure,
-    val humidity: Int, // percentage
+    val humidity: Int?, // percentage
     val dewPoint: Temperature,
     val windSpeed: WindSpeed,
-    val windDeg: Int, // degrees
+    val windDeg: Int?, // degrees
     val windGust: WindSpeed?,
     val rain: Precipitation?,
     val snow: Precipitation?,
-    val cloudCover: Int, // percentage
-    val uvIndex: Double,
-    val visibility: Int, // meters
+    val cloudCover: Int?, // percentage
+    val uvIndex: Double?,
+    val visibility: Int?, // meters
     val sunrise: Long, // epoch seconds
     val sunset: Long, // epoch seconds
     val dailySunrise: List<Long> = emptyList(), // epoch millis per day

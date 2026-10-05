@@ -112,8 +112,6 @@
     <string name="credits_weather_data">Weather data by </string>
     <string name="locations_title">Locations</string>
     <string name="locations_search_hint">Search city or zip</string>
-    <string name="widget_description">Current weather with dual-unit temperature</string>
-    <string name="widget_description_large">Weather details with feels-like, humidity, wind and min/max</string>
     <string name="cd_change_font">Change font</string>
     <string name="cd_change_language">Change language</string>
     <string name="cd_toggle_units">Toggle units</string>
@@ -128,6 +126,8 @@
     <string name="cd_remove_favorite">Remove from favorites</string>
     <string name="cd_previous_location">Previous location</string>
     <string name="cd_next_location">Next location</string>
+    <string name="widget_description">Current weather with dual-unit temperature</string>
+    <string name="widget_description_large">Weather details with feels-like, humidity, wind and min/max</string>
     <string name="detail_no_precip">None</string>
     <string name="visibility_km" formatted="false">%.1f km</string>
     <string name="visibility_mi" formatted="false">%.2f mi</string>
