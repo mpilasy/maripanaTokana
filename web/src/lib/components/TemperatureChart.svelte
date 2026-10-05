@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import type { HourlyForecast } from '$lib/domain/weatherData';
 
 	interface Props {
@@ -14,6 +15,14 @@
 	let { forecasts, metricPrimary, itemWidth, itemSpacing, height = 40, scrollLeft = 0, containerWidth = 0 }: Props = $props();
 
 	let temps = $derived(forecasts.map(f => metricPrimary ? f.temperature.celsius : f.temperature.fahrenheit));
+	let ariaLabel = $derived.by(() => {
+		const valid = forecasts.map(f => f.temperature).filter(t => Number.isFinite(t.celsius));
+		if (valid.length === 0) return undefined;
+		const hi = valid.reduce((a, b) => (b.celsius > a.celsius ? b : a));
+		const lo = valid.reduce((a, b) => (b.celsius < a.celsius ? b : a));
+		const show = (t: typeof hi) => metricPrimary ? t.displayCelsius() : t.displayFahrenheit();
+		return $_('chart_temperature_summary', { values: { high: show(hi), low: show(lo) } });
+	});
 	let minTemp = $derived(Math.min(...temps));
 	let maxTemp = $derived(Math.max(...temps));
 	let tempRange = $derived(maxTemp - minTemp === 0 ? 1 : maxTemp - minTemp);
@@ -148,7 +157,7 @@
 	let vpRight = $derived(showViewport ? Math.min(svgWidth, (scrollLeft + containerWidth) / totalWidth * svgWidth) : svgWidth);
 </script>
 
-<svg width={svgWidth} {height} viewBox="0 0 {svgWidth} {height}" class="temp-chart">
+<svg width={svgWidth} {height} viewBox="0 0 {svgWidth} {height}" class="temp-chart" role={ariaLabel ? 'img' : undefined} aria-label={ariaLabel}>
 	<defs>
 		<linearGradient id="fillGradient" x1="0" y1="0" x2="0" y2="1">
 			<stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.15" />

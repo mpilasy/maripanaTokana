@@ -15,6 +15,9 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
@@ -66,7 +69,13 @@ fun DailyUvChart(
     }
 
     val gridColor = MaterialTheme.colorScheme.onSurface
-    Column(modifier = modifier) {
+    val maxUv = uvValues.filter { !it.isNaN() }.maxOrNull()
+    val summaryModifier = if (maxUv != null) {
+        val description = stringResource(R.string.chart_uv_summary, "%.1f".format(maxUv))
+        Modifier.semantics { contentDescription = description }
+    } else Modifier
+
+    Column(modifier = modifier.then(summaryModifier)) {
         TierLegend(legendEntries, modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp))
         Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
         Canvas(modifier = Modifier.fillMaxSize()) {

@@ -2,7 +2,7 @@
 	import type { HourlyAirQuality } from '$lib/domain/weatherData';
 	import type { AqiStandard, AqiTier } from '$lib/domain/airQuality';
 	import { AirQualityIndex, AQI_TIER_COLORS } from '$lib/domain/airQuality';
-	import { json } from 'svelte-i18n';
+	import { _, json } from 'svelte-i18n';
 	import { onMount } from 'svelte';
 	import TierLegend from './TierLegend.svelte';
 
@@ -35,6 +35,11 @@
 	});
 
 	let values = $derived(forecasts.map(f => primaryStandard === 'EUROPEAN' ? f.europeanValue : f.usValue));
+	let ariaLabel = $derived.by(() => {
+		const valid = values.filter(v => Number.isFinite(v));
+		if (valid.length === 0) return undefined;
+		return $_('chart_air_quality_summary', { values: { max: Math.round(Math.max(...valid)) } });
+	});
 	let minValue = $derived(values.length ? Math.min(...values) : 0);
 	let maxValue = $derived(values.length ? Math.max(...values) : 0);
 	let valueRange = $derived(maxValue - minValue === 0 ? 1 : maxValue - minValue);
@@ -137,7 +142,7 @@
 <div class="chart-row" bind:this={container}>
 	<TierLegend entries={legendEntries} />
 	<div class="chart-wrapper" style="height: {height}px;">
-		<svg width="100%" height="100%" viewBox="0 0 {containerWidth} {height}">
+		<svg width="100%" height="100%" viewBox="0 0 {containerWidth} {height}" role={ariaLabel ? 'img' : undefined} aria-label={ariaLabel}>
 			<defs>
 				<linearGradient id="aqiFillGradient" x1="0" y1="0" x2="0" y2="1">
 					<stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.12" />

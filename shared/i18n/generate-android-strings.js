@@ -29,6 +29,10 @@ const PLACEHOLDER_ORDER = {
 	nowcast_stopping_in: ['minutes'],
 	alert_sources_unavailable: ['sources'],
 	refresh_failed: ['time'],
+	chart_temperature_summary: ['high', 'low'],
+	chart_daily_temperature_summary: ['high', 'low'],
+	chart_uv_summary: ['max'],
+	chart_air_quality_summary: ['max'],
 };
 
 // Keys that use printf-style format specifiers (%.1f etc) — not our {name} placeholders

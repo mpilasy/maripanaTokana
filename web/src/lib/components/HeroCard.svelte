@@ -125,7 +125,7 @@
 				align="end"
 				onClick={onToggleUnits}
 			/>
-			<span class="wind-direction">{loc(getCardinalDirection(data.windDeg, $json('cardinal_directions')))}</span>
+			<span class="wind-direction">{data.windDeg != null ? loc(getCardinalDirection(data.windDeg, $json('cardinal_directions'))) : '--'}</span>
 		</div>
 	</div>
 

@@ -45,6 +45,10 @@
     <string name="error_server">Service météo indisponible. Réessayez plus tard</string>
     <string name="error_invalid_api_key">Clé API Pirate Weather invalide</string>
     <string name="refresh_failed">Actualisation impossible · données de %1$s</string>
+    <string name="chart_temperature_summary">Température, prochaines 24 heures : maximum %1$s, minimum %2$s</string>
+    <string name="chart_daily_temperature_summary">Températures quotidiennes : maximum %1$s, minimum %2$s</string>
+    <string name="chart_uv_summary">Indice UV : maximum %1$s</string>
+    <string name="chart_air_quality_summary">Indice de qualité de l\'air : maximum %1$s</string>
     <string name="alert_sources_unavailable">Sources d\'alertes indisponibles : %1$s</string>
     <string name="last_known_location">Dernière position connue utilisée</string>
     <string name="updated_time">Mis à jour %1$s</string>

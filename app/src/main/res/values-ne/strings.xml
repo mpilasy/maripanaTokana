@@ -45,6 +45,10 @@
     <string name="error_server">मौसम सेवा उपलब्ध छैन। पछि फेरि प्रयास गर्नुहोस्</string>
     <string name="error_invalid_api_key">Pirate Weather API कुञ्जी अमान्य छ</string>
     <string name="refresh_failed">रिफ्रेश गर्न सकिएन · %1$s को डेटा</string>
+    <string name="chart_temperature_summary">तापक्रम, अर्को २४ घण्टा: अधिकतम %1$s, न्यूनतम %2$s</string>
+    <string name="chart_daily_temperature_summary">दैनिक तापक्रम: उच्चतम %1$s, न्यूनतम %2$s</string>
+    <string name="chart_uv_summary">यूभी सूचकांक: अधिकतम %1$s</string>
+    <string name="chart_air_quality_summary">वायु गुणस्तर सूचकांक: अधिकतम %1$s</string>
     <string name="alert_sources_unavailable">सतर्कता स्रोतहरू उपलब्ध छैनन्: %1$s</string>
     <string name="last_known_location">अन्तिम ज्ञात स्थान प्रयोग गरिँदै</string>
     <string name="updated_time">&#x1f552; अद्यावधिक: %1$s</string>

@@ -45,6 +45,10 @@
     <string name="error_server">خدمة الطقس غير متاحة. حاول مرة أخرى لاحقًا</string>
     <string name="error_invalid_api_key">مفتاح Pirate Weather API غير صالح</string>
     <string name="refresh_failed">تعذر التحديث · بيانات من %1$s</string>
+    <string name="chart_temperature_summary">درجة الحرارة خلال الـ 24 ساعة القادمة: الأعلى %1$s، الأدنى %2$s</string>
+    <string name="chart_daily_temperature_summary">درجات الحرارة اليومية: الأعلى %1$s، الأدنى %2$s</string>
+    <string name="chart_uv_summary">مؤشر الأشعة فوق البنفسجية: الحد الأقصى %1$s</string>
+    <string name="chart_air_quality_summary">مؤشر جودة الهواء: الحد الأقصى %1$s</string>
     <string name="alert_sources_unavailable">مصادر التنبيهات غير متاحة: %1$s</string>
     <string name="last_known_location">استخدام آخر موقع معروف</string>
     <string name="updated_time">&#x1f552; تم التحديث: %1$s</string>

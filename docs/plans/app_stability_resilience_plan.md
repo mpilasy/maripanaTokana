@@ -303,6 +303,13 @@ Suggested order: Phase 0 first (cheap, and catches regressions from everything a
 
 ## Phase 5 — Polish, tests, maintainability
 
+**Status (2026-10-05):**
+- **5.1 done:** no redundant bitmap copies, unique share filenames, cleanup of files older than 1 h.
+- **5.2 done** for the temperature, daily temperature, UV and air-quality charts on both platforms. The nowcast chart has no summary yet, though the nowcast text next to it carries the same information.
+- **5.3:** tests landed with each fix (Android unit tests; 22 vitest tests on web).
+- **5.4:** opportunistic, not started.
+- **Also done:** web shows `--` for missing humidity, wind direction, cloud cover, UV and visibility, matching Android.
+
 ### 5.1 Share bitmaps
 - **Where:** `A/ui/weather/WeatherContent.kt:1748-1760`, `:1765`.
 - **Problem:** `combineBitmaps` copies both inputs, so 5 ARGB_8888 bitmaps are alive at once. Output always goes to `shared_images/weather.png`, so a second share can overwrite a file still being read.

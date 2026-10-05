@@ -63,16 +63,16 @@ export interface WeatherData {
 	latitude: number;
 	longitude: number;
 	pressure: Pressure;
-	humidity: number;
+	humidity: number | null;
 	dewPoint: Temperature;
 	windSpeed: WindSpeed;
-	windDeg: number;
+	windDeg: number | null;
 	windGust: WindSpeed | null;
 	rain: Precipitation | null;
 	snow: Precipitation | null;
-	uvIndex: number;
-	cloudCover: number; // percent 0-100
-	visibility: number; // meters
+	uvIndex: number | null;
+	cloudCover: number | null; // percent 0-100
+	visibility: number | null; // meters
 	sunrise: number; // epoch seconds
 	sunset: number; // epoch seconds
 	dailySunrise: number[]; // epoch millis per day

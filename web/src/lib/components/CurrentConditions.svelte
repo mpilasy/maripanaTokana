@@ -29,7 +29,8 @@
 		return labels[4];
 	}
 
-	function visibilityDisplay(meters: number, metric: boolean): [string, string] {
+	function visibilityDisplay(meters: number | null, metric: boolean): [string, string] {
+		if (meters == null) return ['--', '--'];
 		const km = (meters / 1000).toFixed(1);
 		const mi = (meters / 1609.34).toFixed(2);
 		return metric
@@ -83,7 +84,7 @@
 				<span class="tp-primary">{$_('no_precip')}</span>
 			{/if}
 			<span class="feels-label">{$_('detail_cloud_cover')}</span>
-			<span class="feels-primary">{loc(`${data.cloudCover}%`)}</span>
+			<span class="feels-primary">{data.cloudCover != null ? loc(`${data.cloudCover}%`) : '--'}</span>
 		</div>
 	</div>
 
@@ -116,7 +117,7 @@
 				<span class="merged-primary">{loc(windDual[0])}</span>
 				<span class="merged-secondary">{loc(windDual[1])}</span>
 			</span>
-			<span class="wind-subtitle">{loc(`${getCardinalDirection(data.windDeg, $json('cardinal_directions'))} (${data.windDeg}°)`)}</span>
+			<span class="wind-subtitle">{data.windDeg != null ? loc(`${getCardinalDirection(data.windDeg, $json('cardinal_directions'))} (${data.windDeg}°)`) : '--'}</span>
 		</div>
 		<span class="merged-label wind-label">{$_('detail_wind')}</span>
 		<div class="wind-side wind-side-end">
@@ -152,7 +153,7 @@
 	<!-- Humidity + Dew point combined card -->
 	<div class="detail-card humidity-card">
 		<span class="card-title">{$_('detail_humidity')}</span>
-		<span class="card-value">{loc(`${data.humidity}%`)}</span>
+		<span class="card-value">{data.humidity != null ? loc(`${data.humidity}%`) : '--'}</span>
 		<span class="dew-label">{$_('detail_dewpoint')}</span>
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -165,10 +166,12 @@
 	<!-- Air Quality now lives on its own forecast card -->
 	<DetailCard
 		title={$_('detail_uv_index')}
-		value={loc(data.uvIndex.toFixed(1))}
+		value={data.uvIndex != null ? loc(data.uvIndex.toFixed(1)) : '--'}
 	>
 		{#snippet subtitleSnippet()}
-			<UvTierBadge uvIndex={data.uvIndex} label={getUvLabel(data.uvIndex)} />
+			{#if data.uvIndex != null}
+				<UvTierBadge uvIndex={data.uvIndex} label={getUvLabel(data.uvIndex)} />
+			{/if}
 		{/snippet}
 	</DetailCard>
 	<DetailCard

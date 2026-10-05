@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import type { DailyForecast as DailyForecastType } from '$lib/domain/weatherData';
 
 	interface Props {
@@ -13,6 +14,15 @@
 
 	let { forecasts, metricPrimary, itemWidth, itemSpacing, height = 48, scrollLeft = 0, containerWidth = 0 }: Props = $props();
 
+	let ariaLabel = $derived.by(() => {
+		const highs = forecasts.map(f => f.tempMax).filter(t => Number.isFinite(t.celsius));
+		const lows = forecasts.map(f => f.tempMin).filter(t => Number.isFinite(t.celsius));
+		if (highs.length === 0 || lows.length === 0) return undefined;
+		const hi = highs.reduce((a, b) => (b.celsius > a.celsius ? b : a));
+		const lo = lows.reduce((a, b) => (b.celsius < a.celsius ? b : a));
+		const show = (t: typeof hi) => metricPrimary ? t.displayCelsius() : t.displayFahrenheit();
+		return $_('chart_daily_temperature_summary', { values: { high: show(hi), low: show(lo) } });
+	});
 	let maxTemps = $derived(forecasts.map(f => metricPrimary ? f.tempMax.celsius : f.tempMax.fahrenheit));
 	let minTemps = $derived(forecasts.map(f => metricPrimary ? f.tempMin.celsius : f.tempMin.fahrenheit));
 
@@ -120,7 +130,7 @@
 	let vpRight = $derived(showViewport ? Math.min(svgWidth, (scrollLeft + containerWidth) / totalWidth * svgWidth) : svgWidth);
 </script>
 
-<svg width={svgWidth} {height} viewBox="0 0 {svgWidth} {height}" class="daily-chart">
+<svg width={svgWidth} {height} viewBox="0 0 {svgWidth} {height}" class="daily-chart" role={ariaLabel ? 'img' : undefined} aria-label={ariaLabel}>
 	<!-- Horizontal Ticks -->
 	{#each horizontalTicks() as tick}
 		{@const isMajor = tick.temp % 5 === 0}

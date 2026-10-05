@@ -2,7 +2,7 @@
 	import type { DailyForecast as DailyForecastType } from '$lib/domain/weatherData';
 	import type { UvTier } from '$lib/domain/uv';
 	import { uvColorFor, UV_TIER_COLORS } from '$lib/domain/uv';
-	import { json } from 'svelte-i18n';
+	import { _, json } from 'svelte-i18n';
 	import { onMount } from 'svelte';
 	import TierLegend from './TierLegend.svelte';
 
@@ -33,6 +33,11 @@
 		return () => observer.disconnect();
 	});
 
+	let ariaLabel = $derived.by(() => {
+		const valid = forecasts.map(f => f.uvIndexMax).filter(v => Number.isFinite(v));
+		if (valid.length === 0) return undefined;
+		return $_('chart_uv_summary', { values: { max: Math.max(...valid).toFixed(1) } });
+	});
 	let uvValues = $derived(forecasts.map(f => f.uvIndexMax));
 	let uvMax = $derived(uvValues.length ? Math.max(...uvValues) : 0);
 	let paddedMax = $derived(uvMax > 0 ? uvMax * 1.2 : 1);
@@ -135,7 +140,7 @@
 <div class="daily-chart-row" bind:this={container}>
 	<TierLegend entries={legendEntries} />
 	<div class="chart-wrapper" style="height: {height}px;">
-		<svg width="100%" height="100%" viewBox="0 0 {containerWidth} {height}">
+		<svg width="100%" height="100%" viewBox="0 0 {containerWidth} {height}" role={ariaLabel ? 'img' : undefined} aria-label={ariaLabel}>
 			<!-- Horizontal Ticks -->
 			{#each horizontalTicks() as tick}
 				{@const isMajor = tick.value % 5 === 0}

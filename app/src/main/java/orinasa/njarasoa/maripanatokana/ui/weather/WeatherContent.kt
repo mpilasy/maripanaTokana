@@ -4,6 +4,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import androidx.core.graphics.createBitmap
 import android.net.Uri
+import android.os.Build
 import androidx.core.net.toUri
 import android.graphics.Canvas
 import androidx.compose.animation.AnimatedVisibility
@@ -1769,8 +1770,9 @@ internal fun DetailCard(
 }
 
 internal suspend fun combineBitmaps(header: Bitmap, content: Bitmap): Bitmap = withContext(Dispatchers.Default) {
-    val h = header.copy(Bitmap.Config.ARGB_8888, false)
-    val c = content.copy(Bitmap.Config.ARGB_8888, false)
+    // Hardware bitmaps can't be drawn onto a software canvas; copy only those, then recycle the copies.
+    val h = softwareBitmap(header)
+    val c = softwareBitmap(content)
     val padding = 24
     val width = maxOf(h.width, c.width) + padding * 2
     val height = h.height + padding + c.height + padding * 2
@@ -1779,13 +1781,23 @@ internal suspend fun combineBitmaps(header: Bitmap, content: Bitmap): Bitmap = w
     canvas.drawColor(DarkNavyColorInt)
     canvas.drawBitmap(h, padding.toFloat(), padding.toFloat(), null)
     canvas.drawBitmap(c, padding.toFloat(), (h.height + padding * 2).toFloat(), null)
+    if (h !== header) h.recycle()
+    if (c !== content) c.recycle()
     result
 }
+
+private fun softwareBitmap(source: Bitmap): Bitmap =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && source.config == Bitmap.Config.HARDWARE) {
+        source.copy(Bitmap.Config.ARGB_8888, false)
+    } else source
 
 internal suspend fun shareCardBitmap(context: android.content.Context, bitmap: Bitmap) {
     val uri = withContext(Dispatchers.IO) {
         val dir = File(context.cacheDir, "shared_images").also { it.mkdirs() }
-        val file = File(dir, "weather.png")
+        // Prune stale files only; a share target may still be reading a recent one.
+        val cutoff = System.currentTimeMillis() - 60 * 60 * 1000L
+        dir.listFiles()?.forEach { if (it.lastModified() < cutoff) it.delete() }
+        val file = File(dir, "weather_${System.currentTimeMillis()}.png")
         file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
 
         // PNG's "eXIf" chunk carries EXIF just like JPEG does; ExifInterface writes it directly.

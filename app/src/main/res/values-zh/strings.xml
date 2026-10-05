@@ -45,6 +45,10 @@
     <string name="error_server">天气服务不可用，请稍后再试</string>
     <string name="error_invalid_api_key">Pirate Weather API 密钥无效</string>
     <string name="refresh_failed">刷新失败 · 数据来自 %1$s</string>
+    <string name="chart_temperature_summary">未来 24 小时气温：最高 %1$s，最低 %2$s</string>
+    <string name="chart_daily_temperature_summary">每日气温：最高 %1$s，最低 %2$s</string>
+    <string name="chart_uv_summary">紫外线指数：最大 %1$s</string>
+    <string name="chart_air_quality_summary">空气质量指数：最大 %1$s</string>
     <string name="alert_sources_unavailable">预警来源不可用：%1$s</string>
     <string name="last_known_location">正在使用上次已知位置</string>
     <string name="updated_time">&#x1f552; 已更新: %1$s</string>

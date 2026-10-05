@@ -45,6 +45,10 @@
     <string name="error_server">Tsy misy ny serivisy toetrandro. Andramo indray any aoriana</string>
     <string name="error_invalid_api_key">Diso ny fanalahidin\'ny API Pirate Weather</string>
     <string name="refresh_failed">Tsy nahomby ny fanavaozana · angona tamin\'ny %1$s</string>
+    <string name="chart_temperature_summary">Hafanana, 24 ora ho avy: ambony indrindra %1$s, ambany indrindra %2$s</string>
+    <string name="chart_daily_temperature_summary">Hafanana isan\'andro: ambony indrindra %1$s, ambany indrindra %2$s</string>
+    <string name="chart_uv_summary">Tondro UV: faratampony %1$s</string>
+    <string name="chart_air_quality_summary">Tondron\'ny kalitaon\'ny rivotra: faratampony %1$s</string>
     <string name="alert_sources_unavailable">Tsy azo ny loharanon\'ny fampitandremana: %1$s</string>
     <string name="last_known_location">Ny toerana fantatra farany no ampiasaina</string>
     <string name="updated_time">Nalaina tamin\'ny %1$s</string>

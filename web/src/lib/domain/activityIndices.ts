@@ -10,10 +10,10 @@ export interface ActivityIndices {
 
 export function computeActivityIndices(data: WeatherData): ActivityIndices {
 	const tempC = data.temperature.celsius;
-	const humidity = data.humidity;
+	const humidity = data.humidity ?? 70; // neutral when unavailable
 	const windMs = data.windSpeed.metersPerSecond;
 	const precipMm = (data.rain?.mm ?? 0) + (data.snow?.mm ?? 0);
-	const uv = data.uvIndex;
+	const uv = data.uvIndex ?? 6.0; // neutral (FAIR) when unavailable
 
 	let runningTier: ActivityTier = 'FAIR';
 	if (precipMm > 0 || tempC < 0 || tempC > 32 || windMs > 12) {
