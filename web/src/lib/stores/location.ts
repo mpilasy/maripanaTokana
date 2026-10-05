@@ -63,30 +63,103 @@ export function shortPlaceName(raw: string): string {
 	return raw.split(/[,;]|\s-\s/)[0].trim();
 }
 
-export async function reverseGeocode(lat: number, lon: number, localeTag?: string): Promise<GeocodedLocation> {
+export interface LocationLookup {
+	name: string;
+	subtext?: string;
+	countryCode: string | null;
+	stateCode: string | null;
+	subdivisionName: string | null;
+}
+
+const GEOCODE_TTL_MS = 24 * 60 * 60 * 1000;
+const GEOCODE_STORAGE_PREFIX = 'geocode_';
+const geocodeMemory = new Map<string, { at: number; value: LocationLookup }>();
+const geocodeInflight = new Map<string, Promise<LocationLookup | null>>();
+
+function geocodeKey(lat: number, lon: number, localeTag?: string): string {
+	return `${lat.toFixed(2)},${lon.toFixed(2)},${localeTag ?? ''}`;
+}
+
+function readGeocodeCache(key: string): LocationLookup | null {
+	const now = Date.now();
+	const mem = geocodeMemory.get(key);
+	if (mem && now - mem.at < GEOCODE_TTL_MS) return mem.value;
 	try {
-		const headers: Record<string, string> = { 'User-Agent': 'maripanaTokana-PWA/1.0' };
-		if (localeTag) headers['Accept-Language'] = `${localeTag},en;q=0.5`;
-		const res = await fetch(
-			`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
-			{ headers, signal: AbortSignal.timeout(10_000) }
-		);
-		if (!res.ok) throw new Error('Geocoding failed');
-		const data = await res.json();
-		const addr = data.address;
-		
-		const rawName = addr?.city || addr?.town || addr?.village || addr?.county || addr?.state || `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
-		const name = shortPlaceName(rawName);
-		
-		const subParts = [];
-		if (addr?.state && !name.includes(addr.state) && !addr.state.includes(name)) subParts.push(addr.state);
-		if (addr?.country) subParts.push(addr.country);
-		
-		return {
-			name,
-			subtext: subParts.length > 0 ? subParts.join(', ') : undefined
-		};
+		const raw = localStorage.getItem(GEOCODE_STORAGE_PREFIX + key);
+		if (!raw) return null;
+		const entry = JSON.parse(raw) as { at: number; value: LocationLookup };
+		if (now - entry.at >= GEOCODE_TTL_MS) return null;
+		geocodeMemory.set(key, entry);
+		return entry.value;
 	} catch {
-		return { name: `${lat.toFixed(2)}, ${lon.toFixed(2)}` };
+		return null;
 	}
+}
+
+function writeGeocodeCache(key: string, value: LocationLookup) {
+	const entry = { at: Date.now(), value };
+	geocodeMemory.set(key, entry);
+	try { localStorage.setItem(GEOCODE_STORAGE_PREFIX + key, JSON.stringify(entry)); } catch { /* ignore */ }
+}
+
+/**
+ * Single Nominatim reverse call yielding display name/subtext and country/subdivision info.
+ * Cached 24h (memory + localStorage) by coords rounded to 2 decimals + locale. Returns null on failure (not cached).
+ */
+export function lookupLocation(lat: number, lon: number, localeTag?: string): Promise<LocationLookup | null> {
+	const key = geocodeKey(lat, lon, localeTag);
+	const hit = readGeocodeCache(key);
+	if (hit) return Promise.resolve(hit);
+	const pending = geocodeInflight.get(key);
+	if (pending) return pending;
+	const p = (async () => {
+		try {
+			// Browsers forbid setting User-Agent; Nominatim identifies browser apps by Referer.
+			const headers: Record<string, string> = {};
+			if (localeTag) headers['Accept-Language'] = `${localeTag},en;q=0.5`;
+			const res = await fetch(
+				`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=10&addressdetails=1`,
+				{ headers, signal: AbortSignal.timeout(10_000) }
+			);
+			if (!res.ok) return null;
+			const data = await res.json();
+			const addr = data.address;
+
+			const rawName = addr?.city || addr?.town || addr?.village || addr?.county || addr?.state || `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
+			const name = shortPlaceName(rawName);
+
+			const subParts = [];
+			if (addr?.state && !name.includes(addr.state) && !addr.state.includes(name)) subParts.push(addr.state);
+			if (addr?.country) subParts.push(addr.country);
+
+			const iso: string | undefined = addr?.['ISO3166-2-lvl4'];
+			const value: LocationLookup = {
+				name,
+				subtext: subParts.length > 0 ? subParts.join(', ') : undefined,
+				countryCode: addr?.country_code?.toLowerCase() ?? null,
+				stateCode: iso?.split('-')[1] ?? null,
+				// county matches département-level (NUTS3) in most MeteoAlarm countries
+				subdivisionName: addr?.county ?? addr?.city ?? addr?.state ?? null
+			};
+			writeGeocodeCache(key, value);
+			return value;
+		} catch {
+			return null;
+		} finally {
+			geocodeInflight.delete(key);
+		}
+	})();
+	geocodeInflight.set(key, p);
+	return p;
+}
+
+export async function reverseGeocode(lat: number, lon: number, localeTag?: string): Promise<GeocodedLocation> {
+	const r = await lookupLocation(lat, lon, localeTag);
+	return r ? { name: r.name, subtext: r.subtext } : { name: `${lat.toFixed(2)}, ${lon.toFixed(2)}` };
+}
+
+/** Test helper. */
+export function _clearGeocodeCache() {
+	geocodeMemory.clear();
+	geocodeInflight.clear();
 }

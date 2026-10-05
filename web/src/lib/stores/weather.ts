@@ -47,6 +47,7 @@ async function fetchAtLocation(lat: number, lon: number, knownName?: string, kno
 	const src = get(weatherSource);
 	const apiKey = get(weatherApiKey);
 
+	// One shared (cached) Nominatim lookup feeds both the display name and country info.
 	const namePromise = knownName
 		? Promise.resolve({ name: knownName, subtext: knownSubtext })
 		: reverseGeocode(lat, lon, localeTag);
@@ -64,7 +65,7 @@ async function fetchAtLocation(lat: number, lon: number, knownName?: string, kno
 	// Country decides which AQI standard is primary (european_aqi vs us_aqi) — same lookup
 	// used for alert-source gating in fetchAllAlerts. Fetched once here and passed through to
 	// avoid firing a second, redundant reverse-geocode request from fetchAllAlerts.
-	const locationInfoPromise = getLocationInfo(lat, lon);
+	const locationInfoPromise = getLocationInfo(lat, lon, localeTag);
 	const [response, location, airQualityResponse, locationInfo] = await Promise.all([weatherPromise, namePromise, airQualityResponsePromise, locationInfoPromise]);
 	const airQuality = airQualityResponse ? mapToAirQuality(airQualityResponse, locationInfo.countryCode) : null;
 	const hourlyAirQuality = airQualityResponse ? mapToHourlyAirQuality(airQualityResponse) : [];

@@ -1,5 +1,6 @@
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { proxyResponse } from '$lib/server/proxy';
 import { USER_AGENT } from '$lib/api/alerts/shared';
 
 export const GET: RequestHandler = async ({ url }) => {
@@ -7,15 +8,10 @@ export const GET: RequestHandler = async ({ url }) => {
 	if (!bbox || !/^-?[\d.]+,-?[\d.]+,-?[\d.]+,-?[\d.]+$/.test(bbox)) {
 		throw error(400, 'Missing or invalid bbox');
 	}
-	try {
-		const res = await fetch(
-			`https://api.weather.gc.ca/collections/weather-alerts/items?bbox=${bbox}&f=json`,
-			{ headers: { 'User-Agent': USER_AGENT }, signal: AbortSignal.timeout(8_000) }
-		);
-		if (!res.ok) return Response.json({ features: [] });
-		const data = await res.json();
-		return Response.json(data);
-	} catch {
-		return Response.json({ features: [] });
-	}
+	const upstream = `https://api.weather.gc.ca/collections/weather-alerts/items?bbox=${bbox}&f=json`;
+	return proxyResponse(upstream, async () => {
+		const res = await fetch(upstream, { headers: { 'User-Agent': USER_AGENT }, signal: AbortSignal.timeout(8_000) });
+		if (!res.ok) throw new Error(`ECCC status ${res.status}`);
+		return res.text();
+	}, 'application/json', JSON.stringify({ features: [] }));
 };

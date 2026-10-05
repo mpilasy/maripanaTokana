@@ -1,3 +1,5 @@
+import { lookupLocation } from '$lib/stores/location';
+
 export const USER_AGENT = 'maripanaTokana (mpilasy@duck.com)';
 
 const EARTH_RADIUS_KM = 6371;
@@ -17,21 +19,9 @@ export interface LocationInfo {
 	subdivisionName: string | null;
 }
 
-export async function getLocationInfo(lat: number, lon: number): Promise<LocationInfo> {
-	try {
-		const res = await fetch(
-			`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=8&addressdetails=1`,
-			{ headers: { 'User-Agent': USER_AGENT }, signal: AbortSignal.timeout(10_000) }
-		);
-		if (!res.ok) return { countryCode: null, stateCode: null, subdivisionName: null };
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const data: any = await res.json();
-		const countryCode = data.address?.country_code?.toLowerCase() ?? null;
-		const iso: string | undefined = data.address?.['ISO3166-2-lvl4'];
-		const stateCode = iso?.split('-')[1] ?? null;
-		// county matches département-level (NUTS3) in most MeteoAlarm countries
-		const subdivisionName: string | null =
-			data.address?.county ?? data.address?.city ?? data.address?.state ?? null;
-		return { countryCode, stateCode, subdivisionName };
-	} catch { return { countryCode: null, stateCode: null, subdivisionName: null }; }
+export async function getLocationInfo(lat: number, lon: number, localeTag?: string): Promise<LocationInfo> {
+	const r = await lookupLocation(lat, lon, localeTag);
+	return r
+		? { countryCode: r.countryCode, stateCode: r.stateCode, subdivisionName: r.subdivisionName }
+		: { countryCode: null, stateCode: null, subdivisionName: null };
 }

@@ -1,12 +1,11 @@
 import type { RequestHandler } from './$types';
+import { proxyResponse } from '$lib/server/proxy';
 
-export const GET: RequestHandler = async () => {
-	try {
-		const res = await fetch('https://www.nhc.noaa.gov/CurrentStorms.json', { signal: AbortSignal.timeout(8_000) });
-		if (!res.ok) return Response.json({ activeStorms: [] }, { status: 502 });
-		const data = await res.json();
-		return Response.json(data);
-	} catch {
-		return Response.json({ activeStorms: [] }, { status: 502 });
-	}
-};
+const NHC_URL = 'https://www.nhc.noaa.gov/CurrentStorms.json';
+
+export const GET: RequestHandler = () =>
+	proxyResponse(NHC_URL, async () => {
+		const res = await fetch(NHC_URL, { signal: AbortSignal.timeout(8_000) });
+		if (!res.ok) throw new Error(`NHC status ${res.status}`);
+		return res.text();
+	}, 'application/json', JSON.stringify({ activeStorms: [] }));

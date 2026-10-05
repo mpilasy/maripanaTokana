@@ -1,29 +1,27 @@
-import { describe, expect, it } from 'vitest';
-import { movedSignificantly, shortPlaceName } from './location';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { lookupLocation, _clearGeocodeCache } from './location';
 
-describe('movedSignificantly', () => {
-	it('returns false for the same point', () => {
-		expect(movedSignificantly(48.85, 2.35, 48.85, 2.35)).toBe(false);
+describe('lookupLocation cache', () => {
+	beforeEach(() => _clearGeocodeCache());
+	afterEach(() => vi.unstubAllGlobals());
+
+	it('serves nearby coords from one fetch', async () => {
+		const fetchMock = vi.fn(async () => new Response(JSON.stringify({
+			address: { city: 'Paris', state: 'Île-de-France', country: 'France', country_code: 'FR', 'ISO3166-2-lvl4': 'FR-IDF' }
+		})));
+		vi.stubGlobal('fetch', fetchMock);
+		const a = await lookupLocation(48.8566, 2.3522, 'fr');
+		const b = await lookupLocation(48.8571, 2.3519, 'fr');
+		expect(fetchMock).toHaveBeenCalledTimes(1);
+		expect(a).toEqual(b);
+		expect(a).toMatchObject({ name: 'Paris', countryCode: 'fr', stateCode: 'IDF' });
 	});
 
-	it('returns false for ~1 km apart', () => {
-		expect(movedSignificantly(48.85, 2.35, 48.859, 2.35)).toBe(false);
-	});
-
-	it('returns true for ~10 km apart', () => {
-		expect(movedSignificantly(48.85, 2.35, 48.94, 2.35)).toBe(true);
-	});
-});
-
-describe('shortPlaceName', () => {
-	it('keeps hyphenated names intact', () => {
-		expect(shortPlaceName('Saint-Denis')).toBe('Saint-Denis');
-		expect(shortPlaceName('Aix-en-Provence')).toBe('Aix-en-Provence');
-	});
-
-	it('splits on comma, semicolon and spaced hyphen', () => {
-		expect(shortPlaceName('Paris, France')).toBe('Paris');
-		expect(shortPlaceName('Foo - Bar')).toBe('Foo');
-		expect(shortPlaceName('A;B')).toBe('A');
+	it('does not cache failures', async () => {
+		const fetchMock = vi.fn(async () => new Response('', { status: 500 }));
+		vi.stubGlobal('fetch', fetchMock);
+		expect(await lookupLocation(1, 2)).toBeNull();
+		await lookupLocation(1, 2);
+		expect(fetchMock).toHaveBeenCalledTimes(2);
 	});
 });

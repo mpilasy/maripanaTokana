@@ -1,11 +1,14 @@
 import https from 'node:https';
 import type { RequestHandler } from './$types';
+import { proxyResponse } from '$lib/server/proxy';
+
+const BOM_URL = 'https://api.weather.bom.gov.au/v1/warnings';
 
 // BOM API has HTTP/2 issues (INTERNAL_ERROR). Use node:https to force HTTP/1.1.
-function fetchBomJson(): Promise<unknown> {
+function fetchBomJson(): Promise<string> {
 	return new Promise((resolve, reject) => {
 		const req = https.get(
-			'https://api.weather.bom.gov.au/v1/warnings',
+			BOM_URL,
 			{},
 			(res) => {
 				if (!res.statusCode || res.statusCode < 200 || res.statusCode >= 300) {
@@ -17,8 +20,8 @@ function fetchBomJson(): Promise<unknown> {
 				let raw = '';
 				res.on('data', (chunk: string) => { raw += chunk; });
 				res.on('end', () => {
-					try { resolve(JSON.parse(raw)); }
-					catch { resolve({ data: [] }); }
+					try { JSON.parse(raw); resolve(raw); }
+					catch { reject(new Error('BOM API invalid JSON')); }
 				});
 			}
 		);
@@ -27,11 +30,5 @@ function fetchBomJson(): Promise<unknown> {
 	});
 }
 
-export const GET: RequestHandler = async () => {
-	try {
-		const data = await fetchBomJson();
-		return Response.json(data);
-	} catch {
-		return Response.json({ data: [] });
-	}
-};
+export const GET: RequestHandler = () =>
+	proxyResponse(BOM_URL, fetchBomJson, 'application/json', JSON.stringify({ data: [] }));

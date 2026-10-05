@@ -21,10 +21,18 @@ FROM node:22-alpine
 WORKDIR /app
 COPY --from=build /app/build ./build
 
-ENV PORT=80
+ENV NODE_ENV=production
+ENV PORT=3000
 ENV HOST=0.0.0.0
 # adapter-node compresses responses with brotli/gzip by default
 ENV COMPRESS=true
 
-EXPOSE 80
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD wget -qO- http://127.0.0.1:3000/ >/dev/null || exit 1
+
+# Run as non-root user
+USER node
+
 CMD ["node", "build/index.js"]

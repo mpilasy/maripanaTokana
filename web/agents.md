@@ -58,7 +58,7 @@ docker compose up -d --build          # Default port 3080
 PORT=8080 docker compose up -d --build  # Custom port via env
 ```
 - **Dockerfile:** Multi-stage — builds in `node:22-alpine`, runs via `node:22-alpine` (`CMD ["node", "build/index.js"]`)
-- **docker-compose.yml:** Container `maripanaTokana.web`, port `${PORT:-3080}:80`, `restart: unless-stopped`
+- **docker-compose.yml:** Container `maripanaTokana.web`, port `${PORT:-3080}:3000`, `restart: unless-stopped`
 - App served at `/` via SvelteKit adapter-node (Node.js HTTP server)
 - `/svelte` → 301 redirect to `/` handled by `src/hooks.server.ts`
 - Designed to sit behind a reverse proxy (e.g., Nginx Proxy Manager) that handles TLS

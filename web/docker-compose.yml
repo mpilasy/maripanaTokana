@@ -7,4 +7,4 @@ services:
     container_name: maripanaTokana.web
     restart: unless-stopped
     ports:
-      - "${PORT:-3080}:80"
+      - "${PORT:-3080}:3000"

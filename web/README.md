@@ -93,7 +93,7 @@ To use a custom port:
 PORT=8080 docker compose up -d --build
 ```
 
-The container (`maripanaTokana.web`) exposes port 80, mapped to host port `$PORT` (default 3080). The app is served at `/`.
+The container (`maripanaTokana.web`) exposes port 3000, mapped to host port `$PORT` (default 3080). The app is served at `/`.
 
 ```
 Dockerfile          # Multi-stage: node build → node serve (node:22-alpine)
