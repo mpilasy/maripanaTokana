@@ -1,5 +1,6 @@
 package orinasa.njarasoa.maripanatokana.data.source
 
+import orinasa.njarasoa.maripanatokana.util.AppLog
 import android.content.Context
 import android.location.Geocoder
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -32,6 +33,7 @@ class OpenMeteoWeatherSource @Inject constructor(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
+                AppLog.w("OpenMeteo", "air quality failed", e)
                 null
             }
         }
@@ -44,6 +46,7 @@ class OpenMeteoWeatherSource @Inject constructor(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
+                AppLog.w("OpenMeteo", "country lookup failed", e)
                 null
             }
         }

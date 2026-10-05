@@ -1,5 +1,6 @@
 package orinasa.njarasoa.maripanatokana.data.repository
 
+import orinasa.njarasoa.maripanatokana.util.AppLog
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -35,7 +36,8 @@ class CountryResolver(
             geocoder(lat, lon)
         } catch (e: CancellationException) {
             throw e
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            AppLog.w("CountryResolver", "geocoder failed", e)
             null
         }
     }
@@ -52,7 +54,8 @@ class CountryResolver(
         }
     } catch (e: CancellationException) {
         throw e
-    } catch (_: Exception) {
+    } catch (e: Exception) {
+        AppLog.w("CountryResolver", "nominatim failed", e)
         null
     }
 

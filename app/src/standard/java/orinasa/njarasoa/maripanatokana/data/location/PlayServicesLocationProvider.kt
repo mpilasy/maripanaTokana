@@ -1,5 +1,6 @@
 package orinasa.njarasoa.maripanatokana.data.location
 
+import orinasa.njarasoa.maripanatokana.util.AppLog
 import android.location.Location
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.Priority
@@ -36,6 +37,7 @@ class PlayServicesLocationProvider(
         } catch (e: SecurityException) {
             Result.failure(Exception("Location permission not granted"))
         } catch (e: Exception) {
+            AppLog.w("PlayLocation", "location request failed", e)
             Result.failure(e)
         }
     }
@@ -67,6 +69,7 @@ class PlayServicesLocationProvider(
         } catch (e: SecurityException) {
             Result.failure(Exception("Location permission not granted"))
         } catch (e: Exception) {
+            AppLog.w("PlayLocation", "location request failed", e)
             Result.failure(e)
         }
     }

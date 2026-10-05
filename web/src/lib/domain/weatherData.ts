@@ -81,6 +81,7 @@ export interface WeatherData {
 	dailyForecast: DailyForecast[];
 	alerts: WeatherAlert[];
 	alertsLoading?: boolean;
+	failedAlertSources?: string[]; // display names of alert sources whose fetch failed; absent in old snapshots
 	timestamp: number; // epoch millis
 	utcOffsetSeconds: number; // location's UTC offset in seconds
 	airQuality?: AirQualityIndex | null;

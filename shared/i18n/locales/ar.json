@@ -45,6 +45,7 @@
 	"error_server": "خدمة الطقس غير متاحة. حاول مرة أخرى لاحقًا",
 	"error_invalid_api_key": "مفتاح Pirate Weather API غير صالح",
 	"refresh_failed": "تعذر التحديث · بيانات من {time}",
+	"alert_sources_unavailable": "مصادر التنبيهات غير متاحة: {sources}",
 	"last_known_location": "استخدام آخر موقع معروف",
 	"updated_time": "🕒 تم التحديث: {time}",
 	"feels_like": "الإحساس بالحرارة",

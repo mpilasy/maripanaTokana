@@ -409,10 +409,10 @@ class WeatherViewModel @Inject constructor(
         alertJob?.cancel()
         alertCoords = lat to lon
         alertJob = viewModelScope.launch {
-            weatherRepository.fetchAlerts(lat, lon).onSuccess { alerts ->
+            weatherRepository.fetchAlerts(lat, lon).onSuccess { result ->
                 val current = _uiState.value
                 if (current is WeatherUiState.Success && alertCoords == lat to lon) {
-                    _uiState.value = WeatherUiState.Success(current.data.copy(alerts = alerts, alertsLoading = false))
+                    _uiState.value = WeatherUiState.Success(current.data.copy(alerts = result.alerts, failedAlertSources = result.failedSources, alertsLoading = false))
                 }
             }.onFailure {
                 val current = _uiState.value

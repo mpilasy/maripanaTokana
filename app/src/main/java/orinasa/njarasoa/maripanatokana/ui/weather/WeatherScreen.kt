@@ -76,6 +76,7 @@ fun WeatherScreen(
     val uiState by viewModel.uiState.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
     val refreshFailed by viewModel.refreshFailed.collectAsState()
+    val advancedModeActive by viewModel.advancedModeActive.collectAsState()
     val metricPrimary by viewModel.metricPrimary.collectAsState()
     val fontIndex by viewModel.fontIndex.collectAsState()
     val localeIndex by viewModel.localeIndex.collectAsState()
@@ -339,6 +340,7 @@ fun WeatherScreen(
                             data = state.data,
                             metricPrimary = metricPrimary,
                             refreshFailed = refreshFailed,
+                            advancedMode = advancedModeActive,
                             fontName = pairing.name,
                             currentFlag = supportedLocales[localeIndex].flag,
                             localizeDigits = supportedLocales[localeIndex]::localizeDigits,

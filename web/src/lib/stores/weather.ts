@@ -109,11 +109,11 @@ async function fetchAlertsForData(lat: number, lon: number, generation: number, 
 			alertsBomEnabled: get(alertsBomEnabled),
 			alertsNhcEnabled: get(alertsNhcEnabled),
 		};
-		const alerts = await fetchAllAlerts(lat, lon, settings, locationInfo);
+		const { alerts, failedSources } = await fetchAllAlerts(lat, lon, settings, locationInfo);
 		if (generation !== fetchGeneration) return;
 		weatherState.update(s => {
 			if (s.kind === 'success') {
-				return { ...s, data: { ...s.data, alerts, alertsLoading: false } };
+				return { ...s, data: { ...s.data, alerts, failedAlertSources: failedSources, alertsLoading: false } };
 			}
 			return s;
 		});

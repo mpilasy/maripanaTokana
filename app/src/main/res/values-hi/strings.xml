@@ -44,7 +44,8 @@
     <string name="error_rate_limited">बहुत अधिक अनुरोध। कुछ मिनट बाद पुनः प्रयास करें</string>
     <string name="error_server">मौसम सेवा उपलब्ध नहीं है। बाद में पुनः प्रयास करें</string>
     <string name="error_invalid_api_key">Pirate Weather API कुंजी अमान्य है</string>
-    <string name="refresh_failed">रिफ्रेश नहीं हो सका · {time} का डेटा</string>
+    <string name="refresh_failed">रिफ्रेश नहीं हो सका · %1$s का डेटा</string>
+    <string name="alert_sources_unavailable">अलर्ट स्रोत उपलब्ध नहीं: %1$s</string>
     <string name="last_known_location">अंतिम ज्ञात स्थान का उपयोग हो रहा है</string>
     <string name="updated_time">अपडेट किया %1$s</string>
     <string name="feels_like">अनुभव</string>

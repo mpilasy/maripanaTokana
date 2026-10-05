@@ -28,13 +28,18 @@ export interface AlertSettings {
 	alertsNhcEnabled: boolean;
 }
 
+export interface AlertsResult {
+	alerts: WeatherAlert[];
+	failedSources: string[];
+}
+
 export async function fetchAllAlerts(
 	lat: number,
 	lon: number,
 	settings: AlertSettings,
 	locationInfo?: LocationInfo
-): Promise<WeatherAlert[]> {
-	if (!settings.alertsEnabled) return [];
+): Promise<AlertsResult> {
+	if (!settings.alertsEnabled) return { alerts: [], failedSources: [] };
 
 	// Accept a pre-fetched location lookup when the caller already needed one (e.g. for AQI
 	// standard selection) to avoid firing a second, redundant reverse-geocode request.
@@ -52,19 +57,31 @@ export async function fetchAllAlerts(
 		inUS || inCanada || inAustralia ||
 		METEOALARM_COUNTRIES.has(cc) || isInJapan(lat, lon);
 
-	const [nws, gdacs, meteoAlarm, jma, eccc, bom, nhc] = await Promise.all([
-		(settings.alertsNwsEnabled && inUS) ? fetchNwsAlerts(lat, lon) : Promise.resolve([]),
-		(settings.alertsGdacsEnabled && !coveredByRegional) ? fetchGdacsAlerts(lat, lon) : Promise.resolve([]),
-		settings.alertsMeteoAlarmEnabled ? fetchMeteoAlarmAlerts(lat, lon, cc, subdivisionName) : Promise.resolve([]),
-		settings.alertsJmaEnabled ? fetchJmaAlerts(lat, lon) : Promise.resolve([]),
-		(settings.alertsEcccEnabled && inCanada) ? fetchEcccAlerts(lat, lon, inCanada ? 'ca' : cc) : Promise.resolve([]),
-		(settings.alertsBomEnabled && inAustralia) ? fetchBomAlerts(stateCode) : Promise.resolve([]),
-		settings.alertsNhcEnabled ? fetchNhcAlerts(lat, lon) : Promise.resolve([]),
-	]);
+	const sources: [string, Promise<WeatherAlert[]> | null][] = [
+		['NWS', (settings.alertsNwsEnabled && inUS) ? fetchNwsAlerts(lat, lon) : null],
+		['GDACS', (settings.alertsGdacsEnabled && !coveredByRegional) ? fetchGdacsAlerts(lat, lon) : null],
+		['MeteoAlarm', settings.alertsMeteoAlarmEnabled ? fetchMeteoAlarmAlerts(lat, lon, cc, subdivisionName) : null],
+		['JMA', settings.alertsJmaEnabled ? fetchJmaAlerts(lat, lon) : null],
+		['ECCC', (settings.alertsEcccEnabled && inCanada) ? fetchEcccAlerts(lat, lon, 'ca') : null],
+		['BOM', (settings.alertsBomEnabled && inAustralia) ? fetchBomAlerts(stateCode) : null],
+		['NHC', settings.alertsNhcEnabled ? fetchNhcAlerts(lat, lon) : null],
+	];
+	const active = sources.filter((s): s is [string, Promise<WeatherAlert[]>] => s[1] !== null);
+	const results = await Promise.allSettled(active.map(([, p]) => p));
 
-	const sourceAlerts = [...nws, ...gdacs, ...meteoAlarm, ...jma, ...eccc, ...bom, ...nhc];
+	const sourceAlerts: WeatherAlert[] = [];
+	const failedSources: string[] = [];
+	results.forEach((r, i) => {
+		if (r.status === 'fulfilled') {
+			sourceAlerts.push(...r.value);
+		} else {
+			failedSources.push(active[i][0]);
+			console.warn(`${active[i][0]} alerts unavailable:`, r.reason instanceof Error ? r.reason.message : 'fetch failed');
+		}
+	});
 
-	return sourceAlerts.filter((a, i, self) =>
+	const alerts = sourceAlerts.filter((a, i, self) =>
 		i === self.findIndex(t => t.title === a.title && t.source === a.source)
 	);
+	return { alerts, failedSources };
 }

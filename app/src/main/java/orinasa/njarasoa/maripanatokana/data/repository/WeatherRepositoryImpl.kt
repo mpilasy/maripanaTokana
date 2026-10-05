@@ -26,8 +26,10 @@ import orinasa.njarasoa.maripanatokana.data.source.WeatherSourceSelector
 import orinasa.njarasoa.maripanatokana.domain.model.AlertLevel
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherAlert
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
+import orinasa.njarasoa.maripanatokana.domain.repository.AlertsResult
 import orinasa.njarasoa.maripanatokana.domain.repository.WeatherRepository
 import orinasa.njarasoa.maripanatokana.ui.weather.supportedLocales
+import orinasa.njarasoa.maripanatokana.util.AppLog
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import java.io.StringReader
@@ -93,7 +95,8 @@ class WeatherRepositoryImpl @Inject constructor(
                 geocodingSelector.current().reverseGeocode(lat, lon, currentLocale())
             } catch (e: CancellationException) {
                 throw e
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                AppLog.w(TAG, "reverse geocode failed", e)
                 "%.2f, %.2f".format(Locale.US, lat, lon) to null
             }
 
@@ -106,13 +109,14 @@ class WeatherRepositoryImpl @Inject constructor(
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
+            AppLog.w(TAG, "getWeather failed", e)
             Result.failure(e)
         }
     }
 
-    override suspend fun fetchAlerts(lat: Double, lon: Double): Result<List<WeatherAlert>> = coroutineScope {
+    override suspend fun fetchAlerts(lat: Double, lon: Double): Result<AlertsResult> = coroutineScope {
         val settings = settingsRepository.current
-        if (!settings.alertsEnabled) return@coroutineScope Result.success(emptyList())
+        if (!settings.alertsEnabled) return@coroutineScope Result.success(AlertsResult(emptyList(), emptyList()))
 
         val countryInfo = countryResolver.resolve(lat, lon)
         val countryCode = countryInfo?.countryCode
@@ -134,6 +138,8 @@ class WeatherRepositoryImpl @Inject constructor(
             countryCode in METEOALARM_COUNTRIES ||
             JmaAreaCodes.isInJapan(lat, lon)
 
+        val failed = java.util.concurrent.CopyOnWriteArrayList<String>()
+
         try {
             // 1. Official NWS Alerts
             val nwsDeferred = async {
@@ -152,6 +158,8 @@ class WeatherRepositoryImpl @Inject constructor(
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
+                    failed.add("NWS")
+                    AppLog.w(TAG, "NWS alerts failed", e)
                     emptyList()
                 }
             }
@@ -195,6 +203,8 @@ class WeatherRepositoryImpl @Inject constructor(
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
+                    failed.add("GDACS")
+                    AppLog.w(TAG, "GDACS alerts failed", e)
                     emptyList()
                 }
             }
@@ -209,7 +219,9 @@ class WeatherRepositoryImpl @Inject constructor(
                     parseMeteoAlarmAtom(meteoAlarmApiService.getAlerts(slug).string(), subdivision)
                 } catch (e: CancellationException) {
                     throw e
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    failed.add("MeteoAlarm")
+                    AppLog.w(TAG, "MeteoAlarm alerts failed", e)
                     emptyList()
                 }
             }
@@ -248,7 +260,9 @@ class WeatherRepositoryImpl @Inject constructor(
                     }
                 } catch (e: CancellationException) {
                     throw e
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    failed.add("JMA")
+                    AppLog.w(TAG, "JMA alerts failed", e)
                     emptyList()
                 }
             }
@@ -272,7 +286,9 @@ class WeatherRepositoryImpl @Inject constructor(
                     }
                 } catch (e: CancellationException) {
                     throw e
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    failed.add("ECCC")
+                    AppLog.w(TAG, "ECCC alerts failed", e)
                     emptyList()
                 }
             }
@@ -297,7 +313,9 @@ class WeatherRepositoryImpl @Inject constructor(
                         }
                 } catch (e: CancellationException) {
                     throw e
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    failed.add("BOM")
+                    AppLog.w(TAG, "BOM alerts failed", e)
                     emptyList()
                 }
             }
@@ -344,7 +362,9 @@ class WeatherRepositoryImpl @Inject constructor(
                         }
                 } catch (e: CancellationException) {
                     throw e
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    failed.add("NHC")
+                    AppLog.w(TAG, "NHC alerts failed", e)
                     emptyList()
                 }
             }
@@ -390,7 +410,7 @@ class WeatherRepositoryImpl @Inject constructor(
                 val key = item.titleKey + item.source
                 if (keys.add(key)) combinedAlerts.add(item)
             }
-            Result.success(combinedAlerts)
+            Result.success(AlertsResult(combinedAlerts, ALERT_SOURCE_ORDER.filter { it in failed }))
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -513,6 +533,8 @@ class WeatherRepositoryImpl @Inject constructor(
     }
 
     companion object {
+        private const val TAG = "WeatherRepo"
+        private val ALERT_SOURCE_ORDER = listOf("NWS", "GDACS", "MeteoAlarm", "JMA", "ECCC", "BOM", "NHC")
         private const val EARTH_RADIUS_KM = 6371.0
         private const val GDACS_SEARCH_RADIUS_KM = 500
         private const val GDACS_SEARCH_DAYS = 7

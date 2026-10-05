@@ -27,6 +27,8 @@ const PLACEHOLDER_ORDER = {
 	alert_count_title: ['count'],
 	nowcast_starts_in: ['minutes'],
 	nowcast_stopping_in: ['minutes'],
+	alert_sources_unavailable: ['sources'],
+	refresh_failed: ['time'],
 };
 
 // Keys that use printf-style format specifiers (%.1f etc) — not our {name} placeholders
@@ -56,12 +58,15 @@ function escapeXml(s) {
  * Convert {name} placeholders to Android %N$s format.
  */
 function convertPlaceholders(key, value) {
-	const order = PLACEHOLDER_ORDER[key];
-	if (!order) return value;
+	const order = PLACEHOLDER_ORDER[key] || [];
 
 	let result = value;
 	for (let i = 0; i < order.length; i++) {
 		result = result.replace(`{${order[i]}}`, `%${i + 1}$s`);
+	}
+	const leftover = result.match(/\{[a-z_]+\}/);
+	if (leftover) {
+		throw new Error(`Unconverted placeholder ${leftover[0]} in "${key}" — add it to PLACEHOLDER_ORDER`);
 	}
 	return result;
 }

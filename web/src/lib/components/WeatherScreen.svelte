@@ -4,7 +4,8 @@
 	import {
 		onLocationClicked,
 		showGpsCoordinates,
-		initAdvancedMode
+		initAdvancedMode,
+		advancedModeActive
 	} from '$lib/stores/advancedMode';
 	import SavedLocationsDialog from './SavedLocationsDialog.svelte';
 	import {
@@ -422,6 +423,9 @@
 				ontouchend={handleTouchEnd}
 			>
 				<WeatherAlertBanner alerts={data.alerts} expanded={openSection === 'alerts'} onToggle={() => toggleSection('alerts')} />
+				{#if $advancedModeActive && (data.failedAlertSources?.length ?? 0) > 0}
+					<div class="alert-sources-unavailable">{$_('alert_sources_unavailable', { values: { sources: data.failedAlertSources?.join(', ') } })}</div>
+				{/if}
 				<HeroCard {data} metricPrimary={$metricPrimary} {loc} onToggleUnits={toggleUnits} onShare={handleShare} />
 
 				<CollapsibleSection title={$_('section_current_conditions')} expanded={openSection === 'current_conditions'} onToggle={() => toggleSection('current_conditions')} onShare={handleShare}>
@@ -555,6 +559,12 @@
 {/if}
 
 <style>
+	.alert-sources-unavailable {
+		font-size: 12px;
+		color: rgba(255, 255, 255, 0.5);
+		padding: 0 4px 8px;
+	}
+
 	.weather-screen {
 		width: 100%;
 		height: 100%;

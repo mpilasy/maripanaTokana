@@ -80,39 +80,37 @@ function jmaWarningName(code: string): string {
 
 export async function fetchJmaAlerts(lat: number, lon: number): Promise<WeatherAlert[]> {
 	if (!isInJapan(lat, lon)) return [];
-	try {
-		const areaCode = nearestPrefectureCode(lat, lon);
-		const res = await fetch(`https://www.jma.go.jp/bosai/warning/data/warning/${areaCode}.json`, { signal: AbortSignal.timeout(10_000) });
-		if (!res.ok) return [];
+	const areaCode = nearestPrefectureCode(lat, lon);
+	const res = await fetch(`https://www.jma.go.jp/bosai/warning/data/warning/${areaCode}.json`, { signal: AbortSignal.timeout(10_000) });
+	if (!res.ok) throw new Error(`HTTP ${res.status}`);
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const data: any = await res.json();
+	const warningMap = new Map<string, { level: AlertLevel; areas: Set<string> }>();
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	for (const areaType of (data.areaTypes ?? [])) {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const data: any = await res.json();
-		const warningMap = new Map<string, { level: AlertLevel; areas: Set<string> }>();
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		for (const areaType of (data.areaTypes ?? [])) {
+		for (const area of (areaType.areas ?? [])) {
+			const areaName = prefectureName(area.code ?? '');
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			for (const area of (areaType.areas ?? [])) {
-				const areaName = prefectureName(area.code ?? '');
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				for (const w of (area.warnings ?? [])) {
-					if (w.status !== '発表' && w.status !== '継続') continue;
-					const level: AlertLevel = w.code === '01' ? 'emergency'
-						: (parseInt(w.code) <= 8) ? 'warning' : 'watch';
-					const warnName = jmaWarningName(w.code);
-					const existing = warningMap.get(warnName);
-					if (!existing) {
-						const areas = new Set<string>();
-						if (areaName) areas.add(areaName);
-						warningMap.set(warnName, { level, areas });
-					} else {
-						if (areaName) existing.areas.add(areaName);
-						const levels: AlertLevel[] = ['watch', 'warning', 'emergency'];
-						if (levels.indexOf(level) > levels.indexOf(existing.level)) existing.level = level;
-					}
+			for (const w of (area.warnings ?? [])) {
+				if (w.status !== '発表' && w.status !== '継続') continue;
+				const level: AlertLevel = w.code === '01' ? 'emergency'
+					: (parseInt(w.code) <= 8) ? 'warning' : 'watch';
+				const warnName = jmaWarningName(w.code);
+				const existing = warningMap.get(warnName);
+				if (!existing) {
+					const areas = new Set<string>();
+					if (areaName) areas.add(areaName);
+					warningMap.set(warnName, { level, areas });
+				} else {
+					if (areaName) existing.areas.add(areaName);
+					const levels: AlertLevel[] = ['watch', 'warning', 'emergency'];
+					if (levels.indexOf(level) > levels.indexOf(existing.level)) existing.level = level;
 				}
 			}
 		}
-		return Array.from(warningMap.entries()).map(([title, { level, areas }]) => ({
-			level, title, description: Array.from(areas).join(', '), source: 'jma' as const,
-		}));
-	} catch { return []; }
+	}
+	return Array.from(warningMap.entries()).map(([title, { level, areas }]) => ({
+		level, title, description: Array.from(areas).join(', '), source: 'jma' as const,
+	}));
 }

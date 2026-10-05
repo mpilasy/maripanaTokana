@@ -44,7 +44,8 @@
     <string name="error_rate_limited">Trop de requêtes. Réessayez dans quelques minutes</string>
     <string name="error_server">Service météo indisponible. Réessayez plus tard</string>
     <string name="error_invalid_api_key">Clé API Pirate Weather invalide</string>
-    <string name="refresh_failed">Actualisation impossible · données de {time}</string>
+    <string name="refresh_failed">Actualisation impossible · données de %1$s</string>
+    <string name="alert_sources_unavailable">Sources d\'alertes indisponibles : %1$s</string>
     <string name="last_known_location">Dernière position connue utilisée</string>
     <string name="updated_time">Mis à jour %1$s</string>
     <string name="feels_like">Ressenti</string>

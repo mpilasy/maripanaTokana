@@ -1,5 +1,6 @@
 package orinasa.njarasoa.maripanatokana.data.repository
 
+import orinasa.njarasoa.maripanatokana.util.AppLog
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.serialization.json.Json
@@ -26,14 +27,15 @@ class WeatherCache(private val dir: File) {
             val tmp = File(dir, "tmp.json")
             tmp.writeText(json.encodeToString(WeatherData.serializer(), data.copy(alertsLoading = false)))
             tmp.renameTo(file(key))
-        } catch (_: Exception) {
-            // best-effort
+        } catch (e: Exception) {
+            AppLog.w("WeatherCache", "save failed", e)
         }
     }
 
     fun load(key: String): WeatherData? = try {
         file(key).takeIf { it.exists() }?.let { json.decodeFromString(WeatherData.serializer(), it.readText()) }
-    } catch (_: Exception) {
+    } catch (e: Exception) {
+        AppLog.w("WeatherCache", "load failed", e)
         null
     }
 }

@@ -45,6 +45,7 @@
 	"error_server": "Service météo indisponible. Réessayez plus tard",
 	"error_invalid_api_key": "Clé API Pirate Weather invalide",
 	"refresh_failed": "Actualisation impossible · données de {time}",
+	"alert_sources_unavailable": "Sources d'alertes indisponibles : {sources}",
 	"last_known_location": "Dernière position connue utilisée",
 	"updated_time": "Mis à jour {time}",
 	"feels_like": "Ressenti",

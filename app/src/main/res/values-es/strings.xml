@@ -44,7 +44,8 @@
     <string name="error_rate_limited">Demasiadas solicitudes. Intenta de nuevo en unos minutos</string>
     <string name="error_server">Servicio del clima no disponible. Intenta mas tarde</string>
     <string name="error_invalid_api_key">Clave API de Pirate Weather no valida</string>
-    <string name="refresh_failed">No se pudo actualizar · datos de las {time}</string>
+    <string name="refresh_failed">No se pudo actualizar · datos de las %1$s</string>
+    <string name="alert_sources_unavailable">Fuentes de alertas no disponibles: %1$s</string>
     <string name="last_known_location">Usando la ultima ubicacion conocida</string>
     <string name="updated_time">&#x1f552; Actualizado: %1$s</string>
     <string name="feels_like">Sensacion termica</string>

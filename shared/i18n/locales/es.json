@@ -45,6 +45,7 @@
 	"error_server": "Servicio del clima no disponible. Intenta mas tarde",
 	"error_invalid_api_key": "Clave API de Pirate Weather no valida",
 	"refresh_failed": "No se pudo actualizar · datos de las {time}",
+	"alert_sources_unavailable": "Fuentes de alertas no disponibles: {sources}",
 	"last_known_location": "Usando la ultima ubicacion conocida",
 	"updated_time": "🕒 Actualizado: {time}",
 	"feels_like": "Sensacion termica",

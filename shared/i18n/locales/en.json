@@ -45,6 +45,7 @@
 	"error_server": "Weather service unavailable. Try again later",
 	"error_invalid_api_key": "Invalid Pirate Weather API key",
 	"refresh_failed": "Couldn't refresh · data from {time}",
+	"alert_sources_unavailable": "Alert sources unavailable: {sources}",
 	"last_known_location": "Using last known location",
 	"updated_time": "🕒 Updated: {time}",
 	"feels_like": "Feels Like",

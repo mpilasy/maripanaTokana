@@ -164,6 +164,7 @@ internal fun WeatherContent(
     advancedOverrideLat: Double? = null,
     advancedOverrideLon: Double? = null,
     refreshFailed: Boolean = false,
+    advancedMode: Boolean = false,
 ) {
     val context = LocalContext.current
     val appLocale = LocalConfiguration.current.locales[0]
@@ -392,6 +393,15 @@ internal fun WeatherContent(
                 expanded = openSectionKey == "alerts",
                 onToggle = { toggleSection("alerts") },
             )
+            if (advancedMode && data.failedAlertSources.isNotEmpty()) {
+                Text(
+                    text = stringResource(R.string.alert_sources_unavailable, data.failedAlertSources.joinToString(", ")),
+                    fontSize = 11f.s(scale),
+                    fontFamily = bodyFont,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
+                )
+            }
 
             // Hero Card
             val graphicsLayer = rememberGraphicsLayer()

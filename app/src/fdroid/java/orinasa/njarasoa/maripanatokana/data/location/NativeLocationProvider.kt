@@ -1,5 +1,6 @@
 package orinasa.njarasoa.maripanatokana.data.location
 
+import orinasa.njarasoa.maripanatokana.util.AppLog
 import android.annotation.SuppressLint
 import android.content.Context
 import android.location.Location
@@ -46,6 +47,7 @@ class NativeLocationProvider(
         } catch (e: SecurityException) {
             Result.failure(Exception("Location permission not granted"))
         } catch (e: Exception) {
+            AppLog.w("NativeLocation", "location request failed", e)
             Result.failure(e)
         }
     }
@@ -63,6 +65,7 @@ class NativeLocationProvider(
         } catch (e: SecurityException) {
             Result.failure(Exception("Location permission not granted"))
         } catch (e: Exception) {
+            AppLog.w("NativeLocation", "location request failed", e)
             Result.failure(e)
         }
     }
@@ -133,6 +136,7 @@ class NativeLocationProvider(
                 } catch (_: SecurityException) {
                     // Provider requires a permission we don't have; try the next one
                 } catch (e: Exception) {
+            AppLog.w("NativeLocation", "location request failed", e)
                     locationManager.removeUpdates(locationListener)
                     handlerThread.quitSafely()
                     close(e)

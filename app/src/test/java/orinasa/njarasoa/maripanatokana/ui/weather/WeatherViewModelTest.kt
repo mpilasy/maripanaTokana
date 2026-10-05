@@ -21,6 +21,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import orinasa.njarasoa.maripanatokana.domain.repository.AlertsResult
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.data.repository.WeatherCache
 import orinasa.njarasoa.maripanatokana.data.settings.AppSettingsRepository
@@ -88,7 +89,7 @@ class WeatherViewModelTest {
             Result.success(10.1 to 20.1)
         }
 
-        coEvery { weatherRepository.fetchAlerts(any(), any()) } returns Result.success(emptyList())
+        coEvery { weatherRepository.fetchAlerts(any(), any()) } returns Result.success(AlertsResult(emptyList(), emptyList()))
 
         viewModel = WeatherViewModel(weatherRepository, locationRepository, settingsRepository, weatherCache, context)
     }

@@ -28,54 +28,52 @@ function compassFromDegrees(deg: number): string {
 }
 
 export async function fetchNhcAlerts(lat: number, lon: number): Promise<WeatherAlert[]> {
-	try {
-		const res = await fetch('/api/alerts/nhc', { signal: AbortSignal.timeout(10_000) });
-		if (!res.ok) return [];
+	const res = await fetch('/api/alerts/nhc', { signal: AbortSignal.timeout(10_000) });
+	if (!res.ok) throw new Error(`HTTP ${res.status}`);
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const data: any = await res.json();
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	return (data.activeStorms ?? [])
+		.filter((s: any) => {
+			const sLat = s.latitudeNumeric;
+			const sLon = s.longitudeNumeric;
+			if (sLat == null || sLon == null) return false;
+			return calculateDistance(lat, lon, sLat, sLon) < SEARCH_RADIUS_KM;
+		})
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const data: any = await res.json();
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		return (data.activeStorms ?? [])
-			.filter((s: any) => {
-				const sLat = s.latitudeNumeric;
-				const sLon = s.longitudeNumeric;
-				if (sLat == null || sLon == null) return false;
-				return calculateDistance(lat, lon, sLat, sLon) < SEARCH_RADIUS_KM;
-			})
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			.map((s: any) => {
-				const knots = parseInt(s.intensity ?? '', 10) || 0;
-				const level: AlertLevel = s.classification === 'HU' && knots >= 96 ? 'emergency'
-					: (s.classification === 'HU' || s.classification === 'TS') ? 'warning' : 'watch';
+		.map((s: any) => {
+			const knots = parseInt(s.intensity ?? '', 10) || 0;
+			const level: AlertLevel = s.classification === 'HU' && knots >= 96 ? 'emergency'
+				: (s.classification === 'HU' || s.classification === 'TS') ? 'warning' : 'watch';
 
-				const classificationName = CLASSIFICATION_NAMES[s.classification] ?? s.classification;
-				const title = classificationName ? `${classificationName} ${s.name}` : `NHC: ${s.name}`;
+			const classificationName = CLASSIFICATION_NAMES[s.classification] ?? s.classification;
+			const title = classificationName ? `${classificationName} ${s.name}` : `NHC: ${s.name}`;
 
-				const statsParts: string[] = [];
-				if (knots > 0) statsParts.push(`winds ~${Math.round(knots * KNOTS_TO_MPH)} mph`);
-				const pressure = parseInt(s.pressure ?? '', 10);
-				if (!isNaN(pressure)) statsParts.push(`central pressure ${pressure} mb`);
-				if (typeof s.movementSpeed === 'number') {
-					statsParts.push(s.movementSpeed > 0
-						? `moving ${compassFromDegrees(s.movementDir ?? 0)} at ${s.movementSpeed} mph`
-						: 'stationary');
-				}
-				const joined = statsParts.join(', ');
-				const statsSentence = joined ? joined.charAt(0).toUpperCase() + joined.slice(1) + '.' : '';
+			const statsParts: string[] = [];
+			if (knots > 0) statsParts.push(`winds ~${Math.round(knots * KNOTS_TO_MPH)} mph`);
+			const pressure = parseInt(s.pressure ?? '', 10);
+			if (!isNaN(pressure)) statsParts.push(`central pressure ${pressure} mb`);
+			if (typeof s.movementSpeed === 'number') {
+				statsParts.push(s.movementSpeed > 0
+					? `moving ${compassFromDegrees(s.movementDir ?? 0)} at ${s.movementSpeed} mph`
+					: 'stationary');
+			}
+			const joined = statsParts.join(', ');
+			const statsSentence = joined ? joined.charAt(0).toUpperCase() + joined.slice(1) + '.' : '';
 
-				const distanceKm = Math.round(calculateDistance(lat, lon, s.latitudeNumeric, s.longitudeNumeric));
-				const distanceMi = Math.round(distanceKm * KM_TO_MI);
-				const distanceSentence = `~${distanceKm} km (${distanceMi} mi) from your location.`;
+			const distanceKm = Math.round(calculateDistance(lat, lon, s.latitudeNumeric, s.longitudeNumeric));
+			const distanceMi = Math.round(distanceKm * KM_TO_MI);
+			const distanceSentence = `~${distanceKm} km (${distanceMi} mi) from your location.`;
 
-				const description = [statsSentence, distanceSentence].filter(Boolean).join(' ') || s.name || '';
+			const description = [statsSentence, distanceSentence].filter(Boolean).join(' ') || s.name || '';
 
-				return {
-					level,
-					title,
-					description,
-					source: 'nhc' as const,
-					time: s.advisory?.issuance ? new Date(s.advisory.issuance).getTime() : undefined,
-					link: s.advisory?.url,
-				};
-			});
-	} catch { return []; }
+			return {
+				level,
+				title,
+				description,
+				source: 'nhc' as const,
+				time: s.advisory?.issuance ? new Date(s.advisory.issuance).getTime() : undefined,
+				link: s.advisory?.url,
+			};
+		});
 }

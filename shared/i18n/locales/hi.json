@@ -45,6 +45,7 @@
 	"error_server": "मौसम सेवा उपलब्ध नहीं है। बाद में पुनः प्रयास करें",
 	"error_invalid_api_key": "Pirate Weather API कुंजी अमान्य है",
 	"refresh_failed": "रिफ्रेश नहीं हो सका · {time} का डेटा",
+	"alert_sources_unavailable": "अलर्ट स्रोत उपलब्ध नहीं: {sources}",
 	"last_known_location": "अंतिम ज्ञात स्थान का उपयोग हो रहा है",
 	"updated_time": "अपडेट किया {time}",
 	"feels_like": "अनुभव",

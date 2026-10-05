@@ -45,6 +45,7 @@
 	"error_server": "Tsy misy ny serivisy toetrandro. Andramo indray any aoriana",
 	"error_invalid_api_key": "Diso ny fanalahidin'ny API Pirate Weather",
 	"refresh_failed": "Tsy nahomby ny fanavaozana · angona tamin'ny {time}",
+	"alert_sources_unavailable": "Tsy azo ny loharanon'ny fampitandremana: {sources}",
 	"last_known_location": "Ny toerana fantatra farany no ampiasaina",
 	"updated_time": "Nalaina tamin'ny {time}",
 	"feels_like": "Ohatry ny",
