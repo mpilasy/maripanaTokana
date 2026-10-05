@@ -6,6 +6,16 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.3.0] - 2026-10-05
+- Works offline: the last forecast is shown when there is no connection, and a "Couldn't refresh" line explains why (offline, invalid API key, rate limit, server error).
+- Clearer error messages instead of a generic failure.
+- Fixed: settings not updating in release builds, wrong weekday names on the large widget, Settings closing on rotation, duplicate search results.
+- Settings screen translated into all 8 languages; Malagasy and Nepali dates on the web app.
+- Location and Pirate Weather API key are excluded from cloud backups.
+- Removed the WMO SWIC alert source (its service no longer exists); 7 alert sources remain.
+- Web: self-hosted fonts (no Google Fonts), security headers, cached alert proxies, offline app shell.
+- Stability: fixes for fetch races, cancellation handling, malformed weather data and alert desync.
+
 ## [1.2.20] - 2026-08-23
 - Refined Malagasy nowcast headline phrasing for 2-hour clear forecast.
 
