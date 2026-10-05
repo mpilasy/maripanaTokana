@@ -18,6 +18,9 @@
 
 	let { forecasts, metricPrimary, localeTag, loc, onToggleUnits, utcOffsetSeconds }: Props = $props();
 
+	const weekdayNames = $derived($json('weekday_names') as string[] | undefined);
+	const monthNames = $derived($json('month_names') as string[] | undefined);
+
 	let displayMode = $state('Temperature'); // Temperature, Wind, Precipitation
 	let scrollLeft = $state(0);
 	let containerWidth = $state(0);
@@ -34,8 +37,8 @@
 	<div class="cards-row">
 		{#each forecasts as item}
 			<div class="daily-card">
-				<span class="day-name">{formatDayName(item.date, localeTag, utcOffsetSeconds, true)}</span>
-				<span class="day-date">{loc(formatDayMonth(item.date, localeTag, utcOffsetSeconds))}</span>
+				<span class="day-name">{formatDayName(item.date, localeTag, utcOffsetSeconds, true, weekdayNames)}</span>
+				<span class="day-date">{loc(formatDayMonth(item.date, localeTag, utcOffsetSeconds, monthNames))}</span>
 				<button class="emoji-btn" onclick={toggleMode} aria-label={$_('cd_cycle_mode')}>
 					{wmoEmoji(item.weatherCode)}
 				</button>

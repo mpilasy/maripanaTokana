@@ -24,7 +24,7 @@
 	const AQI_TIERS = ['good', 'moderate', 'unhealthy', 'very_unhealthy', 'hazardous'];
 
 	function tierLabel(tier: AqiTier): string {
-		const labels: string[] = $_('aqi_tier_labels') as unknown as string[];
+		const labels: string[] = $json('aqi_tier_labels') as string[];
 		if (!Array.isArray(labels)) return '';
 		return labels[AQI_TIERS.indexOf(tier)] ?? '';
 	}

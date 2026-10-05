@@ -138,6 +138,37 @@
     <string name="cd_remove_favorite">从收藏中移除</string>
     <string name="cd_previous_location">上一个位置</string>
     <string name="cd_next_location">下一个位置</string>
+    <string name="settings_title">设置</string>
+    <string name="settings_back">返回</string>
+    <string name="settings_advanced_mode">高级模式</string>
+    <string name="settings_advanced_off_desc">开启后可访问天气来源、预警和位置设置</string>
+    <string name="settings_advanced_on_desc">所有设置和位置覆盖均可使用</string>
+    <string name="settings_section_weather_source">天气来源</string>
+    <string name="settings_open_meteo_default">Open-Meteo（默认）</string>
+    <string name="settings_pirate_weather">Pirate Weather</string>
+    <string name="settings_requires_api_key">需要 API 密钥</string>
+    <string name="settings_api_key">API 密钥</string>
+    <string name="settings_test">测试</string>
+    <string name="settings_saved">✓ 已保存</string>
+    <string name="settings_key_invalid">API 密钥无效</string>
+    <string name="settings_key_forbidden">API 密钥被禁止</string>
+    <string name="settings_key_rate_limited">超出请求限制 — 密钥可能仍然有效</string>
+    <string name="settings_api_error">API 错误（HTTP %1$s）</string>
+    <string name="settings_network_error">网络错误 — 请检查网络连接</string>
+    <string name="settings_section_alerts">预警</string>
+    <string name="settings_show_alerts">显示天气预警</string>
+    <string name="settings_alert_nws">NWS 预警（美国）</string>
+    <string name="settings_alert_gdacs">GDACS 预警（全球灾害）</string>
+    <string name="settings_alert_meteoalarm">MeteoAlarm（欧洲）</string>
+    <string name="settings_alert_jma">JMA（日本）</string>
+    <string name="settings_alert_eccc">ECCC（加拿大）</string>
+    <string name="settings_alert_bom">BOM（澳大利亚）</string>
+    <string name="settings_alert_nhc">NHC（大西洋和太平洋飓风）</string>
+    <string name="settings_section_location">位置 / 地理编码</string>
+    <string name="settings_geocoder_system">系统地理编码器</string>
+    <string name="settings_geocoder_nominatim">Nominatim (OpenStreetMap)</string>
+    <string name="settings_geocoder_nominatim_desc">适用于所有版本（包括 F-Droid），无需 API 密钥</string>
+    <string name="settings_web_geocoding_info">网页版使用 Nominatim (OpenStreetMap) 进行反向地理编码 — 无需 API 密钥。</string>
     <string name="widget_description">当前天气与双单位温度</string>
     <string name="widget_description_large">天气详情，包含体感温度、湿度、风速和最低/最高温</string>
     <string name="detail_no_precip">无</string>
@@ -153,6 +184,29 @@
     <string name="widget_wind">风速</string>
     <string name="widget_min_max">最低 %1$s (%2$s) · 最高 %3$s (%4$s)</string>
     <string name="acquiring_location">我们在哪里？</string>
+    <string-array name="weekday_names">
+        <item>星期日</item>
+        <item>星期一</item>
+        <item>星期二</item>
+        <item>星期三</item>
+        <item>星期四</item>
+        <item>星期五</item>
+        <item>星期六</item>
+    </string-array>
+    <string-array name="month_names">
+        <item>一月</item>
+        <item>二月</item>
+        <item>三月</item>
+        <item>四月</item>
+        <item>五月</item>
+        <item>六月</item>
+        <item>七月</item>
+        <item>八月</item>
+        <item>九月</item>
+        <item>十月</item>
+        <item>十一月</item>
+        <item>十二月</item>
+    </string-array>
     <string-array name="cardinal_directions">
         <item>北</item>
         <item>北北东</item>

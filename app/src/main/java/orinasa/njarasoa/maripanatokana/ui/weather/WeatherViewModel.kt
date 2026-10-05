@@ -21,6 +21,7 @@ import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.data.remote.GeocodingResult
 import orinasa.njarasoa.maripanatokana.data.repository.WeatherCache
 import orinasa.njarasoa.maripanatokana.data.source.toFetchError
+import orinasa.njarasoa.maripanatokana.domain.model.FetchError
 import orinasa.njarasoa.maripanatokana.domain.model.SavedLocation
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.data.settings.AppSettingsRepository
@@ -91,6 +92,16 @@ class WeatherViewModel @Inject constructor(
     private val _refreshFailed = MutableStateFlow(false)
     /** True when a refresh failed while older data is still on screen; reset on the next success. */
     val refreshFailed: StateFlow<Boolean> = _refreshFailed.asStateFlow()
+
+    private val _refreshError = MutableStateFlow<FetchError?>(null)
+    /** Classified reason for [refreshFailed]; null when unknown or Generic. */
+    val refreshError: StateFlow<FetchError?> = _refreshError.asStateFlow()
+
+    private fun flagRefreshFailed(e: Throwable?) {
+        _refreshError.value = e?.toFetchError(weatherSource.value == WeatherSource.PIRATE_WEATHER)
+            ?.takeIf { it != FetchError.Generic }
+        _refreshFailed.value = true
+    }
 
     private val _metricPrimary = MutableStateFlow(prefs.getBoolean("metric_primary", true))
     val metricPrimary: StateFlow<Boolean> = _metricPrimary.asStateFlow()
@@ -437,7 +448,7 @@ class WeatherViewModel @Inject constructor(
                 if (!isResolvingSharedLocation) {
                     // Only show loading if we don't already have data
                     if (_uiState.value !is WeatherUiState.Success) {
-                        _refreshFailed.value = false
+                        _refreshFailed.value = false; _refreshError.value = null
                         // Show the last successful data for this location right away, then refresh
                         val cached = withContext(Dispatchers.IO) { loadCached() }
                         if (cached != null) {
@@ -565,7 +576,7 @@ class WeatherViewModel @Inject constructor(
                                         fetchAlertsForData(lat, lon)
                                     }
                                     .onFailure {
-                                        if (_uiState.value is WeatherUiState.Success) _refreshFailed.value = true
+                                        if (_uiState.value is WeatherUiState.Success) flagRefreshFailed(it)
                                         else weatherError = it
                                     }
                             }
@@ -581,11 +592,11 @@ class WeatherViewModel @Inject constructor(
                     if (locationObtained) R.string.error_fetch_weather else R.string.error_get_location
                 )
             } else if (_uiState.value is WeatherUiState.Success && !displayedThisRun) {
-                _refreshFailed.value = true
+                flagRefreshFailed(null)
             }
         } else if (!displayedThisRun) {
             if (_uiState.value is WeatherUiState.Success) {
-                if (weatherError != null) _refreshFailed.value = true
+                if (weatherError != null) flagRefreshFailed(weatherError)
             } else {
                 _uiState.value = WeatherUiState.Error(
                     weatherError?.toFetchError(weatherSource.value == WeatherSource.PIRATE_WEATHER)?.messageResId
@@ -598,14 +609,14 @@ class WeatherViewModel @Inject constructor(
     /** Shows [data] as the current weather and persists it as the last good result for [cacheKey]. */
     private fun publish(cacheKey: String, data: WeatherData) {
         _uiState.value = WeatherUiState.Success(data)
-        _refreshFailed.value = false
+        _refreshFailed.value = false; _refreshError.value = null
         viewModelScope.launch(Dispatchers.IO) { weatherCache.save(cacheKey, data) }
     }
 
     /** With data on screen, keep it and flag the failed refresh; otherwise show a classified error. */
     private fun onWeatherFailure(e: Throwable, fallbackResId: Int? = null) {
         if (_uiState.value is WeatherUiState.Success) {
-            _refreshFailed.value = true
+            flagRefreshFailed(e)
         } else {
             _uiState.value = WeatherUiState.Error(
                 fallbackResId ?: e.toFetchError(weatherSource.value == WeatherSource.PIRATE_WEATHER).messageResId

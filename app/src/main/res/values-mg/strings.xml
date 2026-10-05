@@ -138,6 +138,37 @@
     <string name="cd_remove_favorite">Esory amin\'ny tiana</string>
     <string name="cd_previous_location">Toerana teo aloha</string>
     <string name="cd_next_location">Toerana manaraka</string>
+    <string name="settings_title">Fanamboarana</string>
+    <string name="settings_back">Hiverina</string>
+    <string name="settings_advanced_mode">Fomba mandroso</string>
+    <string name="settings_advanced_off_desc">Alefaso mba hahafahana manova ny loharanon-toetr\'andro, ny fampitandremana ary ny toerana</string>
+    <string name="settings_advanced_on_desc">Misy ny fanamboarana rehetra sy ny fanovana toerana</string>
+    <string name="settings_section_weather_source">Loharanon-toetr\'andro</string>
+    <string name="settings_open_meteo_default">Open-Meteo (mahazatra)</string>
+    <string name="settings_pirate_weather">Pirate Weather</string>
+    <string name="settings_requires_api_key">Ilaina ny fanalahidy API</string>
+    <string name="settings_api_key">Fanalahidy API</string>
+    <string name="settings_test">Andramo</string>
+    <string name="settings_saved">✓ Voatahiry</string>
+    <string name="settings_key_invalid">Tsy mety ny fanalahidy API</string>
+    <string name="settings_key_forbidden">Voasakana ny fanalahidy API</string>
+    <string name="settings_key_rate_limited">Tapitra ny fetra fangatahana — mety ho marina ihany ny fanalahidy</string>
+    <string name="settings_api_error">Hadisoana API (HTTP %1$s)</string>
+    <string name="settings_network_error">Hadisoana tamin\'ny tambajotra — jereo ny fifandraisanao</string>
+    <string name="settings_section_alerts">Fampitandremana</string>
+    <string name="settings_show_alerts">Asehoy ny fampitandremana momba ny toetr\'andro</string>
+    <string name="settings_alert_nws">Fampitandremana NWS (Etazonia)</string>
+    <string name="settings_alert_gdacs">Fampitandremana GDACS (loza eran-tany)</string>
+    <string name="settings_alert_meteoalarm">MeteoAlarm (Eoropa)</string>
+    <string name="settings_alert_jma">JMA (Japon)</string>
+    <string name="settings_alert_eccc">ECCC (Kanada)</string>
+    <string name="settings_alert_bom">BOM (Aostralia)</string>
+    <string name="settings_alert_nhc">NHC (rivotra mahery Atlantika sy Pasifika)</string>
+    <string name="settings_section_location">Toerana / Geocoding</string>
+    <string name="settings_geocoder_system">Geocoder an\'ny rafitra</string>
+    <string name="settings_geocoder_nominatim">Nominatim (OpenStreetMap)</string>
+    <string name="settings_geocoder_nominatim_desc">Mandeha amin\'ny dikan-tsoratra rehetra, anisan\'izany ny F-Droid, tsy mila fanalahidy API</string>
+    <string name="settings_web_geocoding_info">Ny dikan-tranonkala dia mampiasa Nominatim (OpenStreetMap) amin\'ny geocoding mivadika — tsy mila fanalahidy API.</string>
     <string name="widget_description">Toetrandro ankehitriny miaraka amin\'ny mari-pana roa sosony</string>
     <string name="widget_description_large">Antsipiriany momba ny toetrandro: tsapa, hamandoana, rivotra ary ambany/ambony</string>
     <string name="detail_no_precip">Tsy misy</string>
@@ -153,6 +184,29 @@
     <string name="widget_wind">Rivotra</string>
     <string name="widget_min_max">Ambany %1$s (%2$s) · Ambony %3$s (%4$s)</string>
     <string name="acquiring_location">Aiza isika?</string>
+    <string-array name="weekday_names">
+        <item>Alahady</item>
+        <item>Alatsinainy</item>
+        <item>Talata</item>
+        <item>Alarobia</item>
+        <item>Alakamisy</item>
+        <item>Zoma</item>
+        <item>Asabotsy</item>
+    </string-array>
+    <string-array name="month_names">
+        <item>Janoary</item>
+        <item>Febroary</item>
+        <item>Martsa</item>
+        <item>Aprily</item>
+        <item>Mey</item>
+        <item>Jona</item>
+        <item>Jolay</item>
+        <item>Aogositra</item>
+        <item>Septambra</item>
+        <item>Oktobra</item>
+        <item>Novambra</item>
+        <item>Desambra</item>
+    </string-array>
     <string-array name="cardinal_directions">
         <item>N</item>
         <item>NNE</item>

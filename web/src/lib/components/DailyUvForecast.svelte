@@ -14,6 +14,11 @@
 
 	let { forecasts, localeTag, loc, utcOffsetSeconds }: Props = $props();
 
+	const weekdayNames = $derived($json('weekday_names') as string[] | undefined);
+	const monthNames = $derived($json('month_names') as string[] | undefined);
+
+	const hasUv = (v: number | null): v is number => v != null && Number.isFinite(v);
+
 	function uvLabel(uvIndex: number, labels: string[]): string {
 		if (uvIndex < 3) return labels[0];
 		if (uvIndex < 6) return labels[1];
@@ -30,11 +35,13 @@
 	{#each forecasts as item}
 		<div class="daily-row">
 			<div class="day-info">
-				<span class="day-name">{formatDayName(item.date, localeTag, utcOffsetSeconds)}</span>
-				<span class="day-date">{loc(formatDayMonth(item.date, localeTag, utcOffsetSeconds))}</span>
+				<span class="day-name">{formatDayName(item.date, localeTag, utcOffsetSeconds, false, weekdayNames)}</span>
+				<span class="day-date">{loc(formatDayMonth(item.date, localeTag, utcOffsetSeconds, monthNames))}</span>
 			</div>
-			<span class="uv-value">{loc(item.uvIndexMax.toFixed(1))}</span>
-			<UvTierBadge uvIndex={item.uvIndexMax} label={uvLabel(item.uvIndexMax, $json('uv_labels') as string[])} />
+			<span class="uv-value">{hasUv(item.uvIndexMax) ? loc(item.uvIndexMax.toFixed(1)) : '--'}</span>
+			{#if hasUv(item.uvIndexMax)}
+				<UvTierBadge uvIndex={item.uvIndexMax} label={uvLabel(item.uvIndexMax, $json('uv_labels') as string[])} />
+			{/if}
 		</div>
 	{/each}
 </div>

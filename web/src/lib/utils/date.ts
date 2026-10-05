@@ -8,17 +8,34 @@ export function formatTime(timestamp: number): string {
 // Cache for date formatters to avoid expensive instantiations
 const dateFormatters = new Map<string, Intl.DateTimeFormat>();
 
-export function formatDate(timestamp: number, localeTag: string): string {
+export function formatDate(timestamp: number, localeTag: string, weekdayNames?: string[], monthNames?: string[]): string {
 	const d = new Date(timestamp);
-	let formatter = dateFormatters.get(localeTag);
-	if (!formatter) {
-		formatter = new Intl.DateTimeFormat(localeTag, {
-			weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-			hour: 'numeric', minute: '2-digit'
-		});
-		dateFormatters.set(localeTag, formatter);
+
+	// Check if Intl supports this locale
+	const intlSupported = Intl.DateTimeFormat.supportedLocalesOf([localeTag]).length > 0;
+
+	if (intlSupported || !weekdayNames || !monthNames) {
+		// Use standard Intl for supported locales
+		let formatter = dateFormatters.get(localeTag);
+		if (!formatter) {
+			formatter = new Intl.DateTimeFormat(localeTag, {
+				weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+				hour: 'numeric', minute: '2-digit'
+			});
+			dateFormatters.set(localeTag, formatter);
+		}
+		return formatter.format(d);
 	}
-	return formatter.format(d);
+
+	// Build from arrays for unsupported locales (mg, ne)
+	const weekday = weekdayNames[d.getDay()];
+	const month = monthNames[d.getMonth()];
+	const day = d.getDate();
+	const year = d.getFullYear();
+	const hours = String(d.getHours()).padStart(2, '0');
+	const minutes = String(d.getMinutes()).padStart(2, '0');
+
+	return `${weekday}, ${day} ${month} ${year} ${hours}:${minutes}`;
 }
 
 /**
@@ -93,23 +110,56 @@ const alertTimeFormatters = new Map<string, Intl.DateTimeFormat>();
  * timestamp by the location's offset and format with timeZone: 'UTC' so the result is anchored
  * to the location's wall-clock date regardless of where the browser is.
  */
-export function formatDayName(timestamp: number, localeTag: string, utcOffsetSeconds: number, short = false): string {
-	const key = short ? `${localeTag}:short` : localeTag;
-	let formatter = dayNameFormatters.get(key);
-	if (!formatter) {
-		formatter = new Intl.DateTimeFormat(localeTag, { weekday: short ? 'short' : 'long', timeZone: 'UTC' });
-		dayNameFormatters.set(key, formatter);
+export function formatDayName(timestamp: number, localeTag: string, utcOffsetSeconds: number, short = false, weekdayNames?: string[]): string {
+	const adjustedDate = new Date(timestamp + utcOffsetSeconds * 1000);
+
+	// Check if Intl supports this locale
+	const intlSupported = Intl.DateTimeFormat.supportedLocalesOf([localeTag]).length > 0;
+
+	if (intlSupported || !weekdayNames) {
+		// Use standard Intl for supported locales
+		const key = short ? `${localeTag}:short` : localeTag;
+		let formatter = dayNameFormatters.get(key);
+		if (!formatter) {
+			formatter = new Intl.DateTimeFormat(localeTag, { weekday: short ? 'short' : 'long', timeZone: 'UTC' });
+			dayNameFormatters.set(key, formatter);
+		}
+		return formatter.format(adjustedDate);
 	}
-	return formatter.format(new Date(timestamp + utcOffsetSeconds * 1000));
+
+	// Build from array for unsupported locales (mg, ne)
+	const dayIndex = adjustedDate.getUTCDay();
+	if (short) {
+		// For Latin-script locales (mg), use first 3 letters; for Devanagari (ne), use full name
+		const name = weekdayNames[dayIndex];
+		return localeTag === 'ne' ? name : name.substring(0, 3);
+	}
+	return weekdayNames[dayIndex];
 }
 
-export function formatDayMonth(timestamp: number, localeTag: string, utcOffsetSeconds: number): string {
-	let formatter = dayMonthFormatters.get(localeTag);
-	if (!formatter) {
-		formatter = new Intl.DateTimeFormat(localeTag, { day: 'numeric', month: 'short', timeZone: 'UTC' });
-		dayMonthFormatters.set(localeTag, formatter);
+export function formatDayMonth(timestamp: number, localeTag: string, utcOffsetSeconds: number, monthNames?: string[]): string {
+	const adjustedDate = new Date(timestamp + utcOffsetSeconds * 1000);
+
+	// Check if Intl supports this locale
+	const intlSupported = Intl.DateTimeFormat.supportedLocalesOf([localeTag]).length > 0;
+
+	if (intlSupported || !monthNames) {
+		// Use standard Intl for supported locales
+		let formatter = dayMonthFormatters.get(localeTag);
+		if (!formatter) {
+			formatter = new Intl.DateTimeFormat(localeTag, { day: 'numeric', month: 'short', timeZone: 'UTC' });
+			dayMonthFormatters.set(localeTag, formatter);
+		}
+		return formatter.format(adjustedDate);
 	}
-	return formatter.format(new Date(timestamp + utcOffsetSeconds * 1000));
+
+	// Build from array for unsupported locales (mg, ne)
+	const day = adjustedDate.getUTCDate();
+	const month = monthNames[adjustedDate.getUTCMonth()];
+
+	// Use first 3 letters for Latin-script locales (mg), but for Devanagari (ne) it might not work, so use full
+	const shortMonth = localeTag === 'ne' ? month : month.substring(0, 3);
+	return `${day} ${shortMonth}`;
 }
 
 export function formatAlertTime(timestamp: number, localeTag: string): string {

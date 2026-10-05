@@ -6,6 +6,8 @@
 		alertsBomEnabled, alertsNhcEnabled,
 	} from '$lib/stores/preferences';
 	import { testPirateWeatherKey } from '$lib/api/pirateWeather';
+	import { _ } from 'svelte-i18n';
+	import { HttpError } from '$lib/api/http';
 	import type { WeatherSource } from '$lib/domain/weatherData';
 	import { advancedModeActive, enableAdvancedMode, disableAdvancedMode } from '$lib/stores/advancedMode';
 
@@ -36,12 +38,13 @@
 			weatherApiKey.set(pendingApiKey.trim());
 			testState = 'success';
 		} catch (e: unknown) {
-			const code = e instanceof Error ? e.message : 'unknown';
+			const status = e instanceof HttpError ? e.status : null;
 			testState = {
-				error: code === '401' ? 'Invalid API key'
-					: code === '403' ? 'Forbidden'
-					: code === '429' ? 'Rate limited'
-					: `Error ${code}`
+				error: status === null ? $_('settings_network_error')
+					: status === 401 ? $_('settings_key_invalid')
+					: status === 403 ? $_('settings_key_forbidden')
+					: status === 429 ? $_('settings_key_rate_limited')
+					: $_('settings_api_error', { values: { code: status } })
 			};
 		}
 	}
@@ -49,17 +52,17 @@
 
 <div class="settings">
 	<header>
-		<button class="back-btn" onclick={onBack} aria-label="Back">
+		<button class="back-btn" onclick={onBack} aria-label={$_('settings_back')}>
 			<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
 				<path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
 			</svg>
 		</button>
-		<h2>Settings</h2>
+		<h2>{$_('settings_title')}</h2>
 	</header>
 
 	<div class="section">
 		<label class="toggle-row advanced-toggle">
-			<span class="advanced-label">Advanced mode</span>
+			<span class="advanced-label">{$_('settings_advanced_mode')}</span>
 			<input
 				type="checkbox"
 				checked={$advancedModeActive}
@@ -73,13 +76,13 @@
 			/>
 		</label>
 		{#if !$advancedModeActive}
-			<p class="info-text">Enable Advanced mode to configure weather source, alerts, and location.</p>
+			<p class="info-text">{$_('settings_advanced_off_desc')}</p>
 		{/if}
 	</div>
 
 	{#if $advancedModeActive}
 	<div class="section">
-		<div class="section-title">WEATHER SOURCE</div>
+		<div class="section-title">{$_('settings_section_weather_source')}</div>
 
 		{#each (['OPEN_METEO', 'PIRATE_WEATHER'] as WeatherSource[]) as src}
 			<label class="radio-row">
@@ -91,9 +94,9 @@
 					onchange={() => selectSource(src)}
 				/>
 				<span class="radio-label">
-					<span class="radio-main">{src === 'OPEN_METEO' ? 'Open-Meteo (default)' : 'Pirate Weather'}</span>
+					<span class="radio-main">{src === 'OPEN_METEO' ? $_('settings_open_meteo_default') : $_('settings_pirate_weather')}</span>
 					{#if src === 'PIRATE_WEATHER'}
-						<small class="radio-sub">Requires API key</small>
+						<small class="radio-sub">{$_('settings_requires_api_key')}</small>
 					{/if}
 				</span>
 			</label>
@@ -103,7 +106,7 @@
 			<input
 				type="password"
 				class="api-key-input"
-				placeholder="API Key"
+				placeholder={$_('settings_api_key')}
 				value={pendingApiKey}
 				oninput={(e) => { pendingApiKey = (e.currentTarget as HTMLInputElement).value; testState = 'idle'; }}
 			/>
@@ -114,10 +117,10 @@
 						onclick={testKey}
 						disabled={testState === 'loading'}
 					>
-						{testState === 'loading' ? '…' : 'Test'}
+						{testState === 'loading' ? '…' : $_('settings_test')}
 					</button>
 					{#if testState === 'success'}
-						<span class="status ok">✓ Saved</span>
+						<span class="status ok">{$_('settings_saved')}</span>
 					{:else if typeof testState === 'object'}
 						<span class="status err">{testState.error}</span>
 					{/if}
@@ -127,46 +130,46 @@
 	</div>
 
 	<div class="section">
-		<div class="section-title">ALERTS</div>
+		<div class="section-title">{$_('settings_section_alerts')}</div>
 		<label class="toggle-row">
-			<span>Show weather alerts</span>
+			<span>{$_('settings_show_alerts')}</span>
 			<input type="checkbox" bind:checked={$alertsEnabled} />
 		</label>
 		{#if $alertsEnabled}
 			<label class="check-row">
 				<input type="checkbox" bind:checked={$alertsNwsEnabled} />
-				<span>NWS alerts (USA)</span>
+				<span>{$_('settings_alert_nws')}</span>
 			</label>
 			<label class="check-row">
 				<input type="checkbox" bind:checked={$alertsGdacsEnabled} />
-				<span>GDACS alerts (global disasters)</span>
+				<span>{$_('settings_alert_gdacs')}</span>
 			</label>
 			<label class="check-row">
 				<input type="checkbox" bind:checked={$alertsMeteoAlarmEnabled} />
-				<span>MeteoAlarm (Europe)</span>
+				<span>{$_('settings_alert_meteoalarm')}</span>
 			</label>
 			<label class="check-row">
 				<input type="checkbox" bind:checked={$alertsJmaEnabled} />
-				<span>JMA (Japan)</span>
+				<span>{$_('settings_alert_jma')}</span>
 			</label>
 			<label class="check-row">
 				<input type="checkbox" bind:checked={$alertsEcccEnabled} />
-				<span>ECCC (Canada)</span>
+				<span>{$_('settings_alert_eccc')}</span>
 			</label>
 			<label class="check-row">
 				<input type="checkbox" bind:checked={$alertsBomEnabled} />
-				<span>BOM (Australia)</span>
+				<span>{$_('settings_alert_bom')}</span>
 			</label>
 			<label class="check-row">
 				<input type="checkbox" bind:checked={$alertsNhcEnabled} />
-				<span>NHC (Atlantic &amp; Pacific hurricanes)</span>
+				<span>{$_('settings_alert_nhc')}</span>
 			</label>
 		{/if}
 	</div>
 
 	<div class="section">
-		<div class="section-title">LOCATION / GEOCODING</div>
-		<p class="info-text">Web version uses Nominatim (OpenStreetMap) for reverse geocoding — no API key required.</p>
+		<div class="section-title">{$_('settings_section_location')}</div>
+		<p class="info-text">{$_('settings_web_geocoding_info')}</p>
 	</div>
 	{/if}
 </div>
@@ -224,6 +227,7 @@
 		font-size: 11px;
 		font-weight: 600;
 		letter-spacing: 1px;
+		text-transform: uppercase;
 		color: rgba(255, 255, 255, 0.35);
 		margin-bottom: 12px;
 	}

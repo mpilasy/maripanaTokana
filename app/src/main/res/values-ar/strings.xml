@@ -138,6 +138,37 @@
     <string name="cd_remove_favorite">إزالة من المفضلة</string>
     <string name="cd_previous_location">الموقع السابق</string>
     <string name="cd_next_location">الموقع التالي</string>
+    <string name="settings_title">الإعدادات</string>
+    <string name="settings_back">رجوع</string>
+    <string name="settings_advanced_mode">الوضع المتقدم</string>
+    <string name="settings_advanced_off_desc">فعّله للوصول إلى إعدادات مصدر الطقس والتنبيهات والموقع</string>
+    <string name="settings_advanced_on_desc">جميع الإعدادات وتغيير الموقع متاحة</string>
+    <string name="settings_section_weather_source">مصدر الطقس</string>
+    <string name="settings_open_meteo_default">Open-Meteo (الافتراضي)</string>
+    <string name="settings_pirate_weather">Pirate Weather</string>
+    <string name="settings_requires_api_key">يتطلب مفتاح API</string>
+    <string name="settings_api_key">مفتاح API</string>
+    <string name="settings_test">اختبار</string>
+    <string name="settings_saved">✓ تم الحفظ</string>
+    <string name="settings_key_invalid">مفتاح API غير صالح</string>
+    <string name="settings_key_forbidden">مفتاح API محظور</string>
+    <string name="settings_key_rate_limited">تم تجاوز حد الطلبات — قد يكون المفتاح صالحًا</string>
+    <string name="settings_api_error">خطأ API (HTTP %1$s)</string>
+    <string name="settings_network_error">خطأ في الشبكة — تحقق من اتصالك</string>
+    <string name="settings_section_alerts">التنبيهات</string>
+    <string name="settings_show_alerts">عرض تنبيهات الطقس</string>
+    <string name="settings_alert_nws">تنبيهات NWS (الولايات المتحدة)</string>
+    <string name="settings_alert_gdacs">تنبيهات GDACS (الكوارث العالمية)</string>
+    <string name="settings_alert_meteoalarm">MeteoAlarm (أوروبا)</string>
+    <string name="settings_alert_jma">JMA (اليابان)</string>
+    <string name="settings_alert_eccc">ECCC (كندا)</string>
+    <string name="settings_alert_bom">BOM (أستراليا)</string>
+    <string name="settings_alert_nhc">NHC (أعاصير الأطلسي والمحيط الهادئ)</string>
+    <string name="settings_section_location">الموقع / الترميز الجغرافي</string>
+    <string name="settings_geocoder_system">المُرمِّز الجغرافي للنظام</string>
+    <string name="settings_geocoder_nominatim">Nominatim (OpenStreetMap)</string>
+    <string name="settings_geocoder_nominatim_desc">يعمل على جميع الإصدارات بما فيها F-Droid، ولا يتطلب مفتاح API</string>
+    <string name="settings_web_geocoding_info">يستخدم إصدار الويب Nominatim (OpenStreetMap) للترميز الجغرافي العكسي — لا يتطلب مفتاح API.</string>
     <string name="widget_description">الطقس الحالي مع درجة الحرارة بوحدتين</string>
     <string name="widget_description_large">تفاصيل الطقس مع الإحساس بالحرارة والرطوبة والرياح والحد الأدنى/الأقصى</string>
     <string name="detail_no_precip">لا يوجد</string>
@@ -153,6 +184,29 @@
     <string name="widget_wind">الرياح</string>
     <string name="widget_min_max">الأدنى %1$s (%2$s) · الأقصى %3$s (%4$s)</string>
     <string name="acquiring_location">أين نحن؟</string>
+    <string-array name="weekday_names">
+        <item>الأحد</item>
+        <item>الاثنين</item>
+        <item>الثلاثاء</item>
+        <item>الأربعاء</item>
+        <item>الخميس</item>
+        <item>الجمعة</item>
+        <item>السبت</item>
+    </string-array>
+    <string-array name="month_names">
+        <item>يناير</item>
+        <item>فبراير</item>
+        <item>مارس</item>
+        <item>إبريل</item>
+        <item>مايو</item>
+        <item>يونيو</item>
+        <item>يوليو</item>
+        <item>أغسطس</item>
+        <item>سبتمبر</item>
+        <item>أكتوبر</item>
+        <item>نوفمبر</item>
+        <item>ديسمبر</item>
+    </string-array>
     <string-array name="cardinal_directions">
         <item>ش</item>
         <item>ش ش ق</item>

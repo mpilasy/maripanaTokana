@@ -1,4 +1,4 @@
-import { HttpError, retryOnce } from './http';
+import { HttpError, netFetch, retryOnce } from './http';
 import type { WeatherData, HourlyForecast, DailyForecast, MinutelyForecast } from '$lib/domain/weatherData';
 import { Temperature } from '$lib/domain/temperature';
 import { WindSpeed } from '$lib/domain/windSpeed';
@@ -22,7 +22,7 @@ function iconToWmoCode(icon: string): number {
 }
 
 export async function testPirateWeatherKey(apiKey: string): Promise<void> {
-	const res = await fetch(
+	const res = await netFetch(
 		`https://api.pirateweather.net/forecast/${encodeURIComponent(apiKey)}/0,0?units=si&exclude=hourly,daily,minutely,alerts`,
 		{ signal: AbortSignal.timeout(10_000) }
 	);
@@ -33,7 +33,7 @@ export async function testPirateWeatherKey(apiKey: string): Promise<void> {
 export async function fetchPirateWeather(lat: number, lon: number, apiKey: string, locationName: string, locationSubtext?: string): Promise<WeatherData> {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const d: any = await retryOnce(async () => {
-		const res = await fetch(
+		const res = await netFetch(
 			`https://api.pirateweather.net/forecast/${encodeURIComponent(apiKey)}/${lat},${lon}?units=si&exclude=alerts`,
 			{ signal: AbortSignal.timeout(10_000) }
 		);
@@ -66,7 +66,7 @@ export async function fetchPirateWeather(lat: number, lon: number, apiKey: strin
 		windSpeed: WindSpeed.fromMetersPerSecond(day.windSpeed ?? 0),
 		windDeg: day.windBearing ?? 0,
 		precipitation: Precipitation.fromMm(day.precipIntensity ?? 0),
-		uvIndexMax: day.uvIndex ?? 0,
+		uvIndexMax: day.uvIndex ?? null,
 	}));
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any

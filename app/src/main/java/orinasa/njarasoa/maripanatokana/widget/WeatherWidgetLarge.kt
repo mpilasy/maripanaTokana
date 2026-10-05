@@ -40,7 +40,6 @@ import orinasa.njarasoa.maripanatokana.data.remote.wmoEmoji
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.widget.theme.WidgetColorProviders
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -144,7 +143,7 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = tempPrimary,
+                    text = ltr(tempPrimary),
                     style = TextStyle(
                         color = WidgetColorProviders.onSurface,
                         fontSize = 20.sp,
@@ -153,7 +152,7 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
                 )
                 Spacer(modifier = GlanceModifier.width(4.dp))
                 Text(
-                    text = tempSecondary,
+                    text = ltr(tempSecondary),
                     style = TextStyle(
                         color = WidgetColorProviders.onSurfaceVariant,
                         fontSize = 14.sp,
@@ -179,8 +178,8 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
                 val (flP, flS) = data.feelsLike.displayDual(metricPrimary)
                 DetailCell(
                     label = context.getString(R.string.widget_feels_like),
-                    value = flP,
-                    secondaryValue = flS,
+                    value = ltr(flP),
+                    secondaryValue = ltr(flS),
                     modifier = GlanceModifier.defaultWeight(),
                 )
                 DetailCell(
@@ -202,15 +201,13 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
             // -- 3-day forecast row --
             val forecasts = data.dailyForecast.drop(1).take(3) // skip today, next 3 days
             if (forecasts.isNotEmpty()) {
-                val dayFormat = remember { SimpleDateFormat("EEE", Locale.getDefault()) }
-                val cal = Calendar.getInstance()
+                val appLocale = context.resources.configuration.locales[0]
                 Row(
                     modifier = GlanceModifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     for (day in forecasts) {
-                        cal.timeInMillis = day.date * 1000
-                        val dayName = dayFormat.format(cal.time)
+                        val dayName = widgetDayName(day.date, data.utcOffsetSeconds, appLocale)
                         val emoji = wmoEmoji(day.weatherCode)
                         val hi = day.tempMax.displayDual(metricPrimary).first
                         val lo = day.tempMin.displayDual(metricPrimary).first
@@ -231,7 +228,7 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
                                 style = TextStyle(fontSize = 14.sp),
                             )
                             Text(
-                                text = "$lo / $hi",
+                                text = ltr("$lo / $hi"),
                                 style = TextStyle(
                                     color = WidgetColorProviders.onSurface,
                                     fontSize = 10.sp,

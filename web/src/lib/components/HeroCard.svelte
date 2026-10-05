@@ -3,7 +3,7 @@
 	import type { WeatherData } from '$lib/domain/weatherData';
 	import { getCardinalDirection } from '$lib/domain/windSpeed';
 	import { wmoEmoji, wmoDescriptionKey } from '$lib/api/wmoWeatherCode';
-	import { doFetchWeather, refreshFailed } from '$lib/stores/weather';
+	import { doFetchWeather, refreshFailed, refreshError } from '$lib/stores/weather';
 	import { formatTime } from '$lib/utils/date';
 	import DualUnitText from './DualUnitText.svelte';
 
@@ -38,7 +38,7 @@
 <div class="hero-card" bind:this={cardEl}>
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="card-actions">
+	<div class="card-actions" class:failed={$refreshFailed}>
 		{#if onShare}
 			<button class="share-btn" onclick={handleShare} aria-label={$_('cd_share')}>
 				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -58,7 +58,10 @@
 			</button>
 			{#if $refreshFailed}
 				<button type="button" class="refresh-failed" onclick={() => doFetchWeather()}>
-					{$_('refresh_failed', { values: { time: loc(formatTime(data.timestamp)) } })}
+					<span>{$_('refresh_failed', { values: { time: loc(formatTime(data.timestamp)) } })}</span>
+					{#if $refreshError}
+						<span class="refresh-reason">{$_($refreshError)}</span>
+					{/if}
 				</button>
 			{/if}
 		</div>
@@ -155,6 +158,20 @@
 		gap: 8px;
 	}
 
+	/* While a refresh failure is shown the (possibly long) text needs room: put the row in flow. */
+	.card-actions.failed {
+		position: static;
+		margin: -12px -12px 8px;
+		align-items: flex-start;
+		justify-content: flex-end;
+	}
+
+	.card-actions.failed .updated-group {
+		flex: 1;
+		min-width: 0;
+		align-items: flex-end;
+	}
+
 	.share-btn {
 		background: rgba(255,255,255,0.1);
 		border: none;
@@ -229,10 +246,16 @@
 		border-radius: 4px;
 		transition: color 0.2s, background 0.2s;
 		font-family: inherit;
-		white-space: nowrap;
+		white-space: normal;
+		text-align: end;
 		display: flex;
-		align-items: center;
-		justify-content: center;
+		flex-direction: column;
+		align-items: flex-end;
+		gap: 2px;
+	}
+
+	.refresh-reason {
+		opacity: 0.8;
 	}
 
 	.refresh-failed:hover {

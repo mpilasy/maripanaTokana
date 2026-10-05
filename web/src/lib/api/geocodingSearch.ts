@@ -11,6 +11,18 @@ export interface SearchResult {
 	displayName: string;
 }
 
+/** Drop results with the same name at (nearly) the same place; the API often lists a city twice. */
+export function dedupeResults(items: SearchResult[]): SearchResult[] {
+	const kept: SearchResult[] = [];
+	for (const r of items) {
+		const dup = kept.some((k) =>
+			k.displayName.toLowerCase() === r.displayName.toLowerCase()
+			&& Math.abs(k.latitude - r.latitude) < 0.1 && Math.abs(k.longitude - r.longitude) < 0.1);
+		if (!dup) kept.push(r);
+	}
+	return kept;
+}
+
 /**
  * Forward-geocoding search used by SavedLocationsDialog (including its Advanced Mode "Use once"
  * temporary-override action). Supports direct "lat,lon" input, URLs, DMS, or queries Open-Meteo's geocoding
@@ -52,7 +64,7 @@ export async function searchLocations(query: string): Promise<SearchResult[]> {
 					);
 					if (filtered.length > 0) mapped = filtered;
 				}
-				results = mapped;
+				results = dedupeResults(mapped);
 			}
 		} catch {
 			results = [];

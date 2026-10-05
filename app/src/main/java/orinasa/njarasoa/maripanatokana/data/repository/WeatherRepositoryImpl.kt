@@ -26,6 +26,7 @@ import orinasa.njarasoa.maripanatokana.domain.model.WeatherAlert
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.repository.AlertsResult
 import orinasa.njarasoa.maripanatokana.domain.repository.WeatherRepository
+import orinasa.njarasoa.maripanatokana.data.remote.dedupeByPlace
 import orinasa.njarasoa.maripanatokana.ui.weather.supportedLocales
 import orinasa.njarasoa.maripanatokana.util.AppLog
 import org.xmlpull.v1.XmlPullParser
@@ -60,7 +61,7 @@ class WeatherRepositoryImpl @Inject constructor(
 
     override suspend fun searchLocation(query: String): Result<List<GeocodingResult>> {
         return try {
-            Result.success(geocodingSelector.current().searchLocations(query, currentLocale()))
+            Result.success(geocodingSelector.current().searchLocations(query, currentLocale()).dedupeByPlace())
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {

@@ -20,7 +20,7 @@
 	}
 
 	function getUvLabel(uv: number): string {
-		const labels: string[] = $_('uv_labels') as unknown as string[];
+		const labels: string[] = $json('uv_labels') as string[];
 		if (!Array.isArray(labels)) return '';
 		if (uv < 3) return labels[0];
 		if (uv < 6) return labels[1];

@@ -20,6 +20,7 @@ const ANDROID_RES = join(__dirname, '..', '..', 'app', 'src', 'main', 'res');
 // Keys with a single placeholder get %1$s, keys with multiple get %1$s, %2$s, etc.
 const PLACEHOLDER_ORDER = {
 	updated_time: ['time'],
+	settings_api_error: ['code'],
 	hash_version: ['hash'],
 	widget_today_in: ['location'],
 	widget_now_in: ['location'],

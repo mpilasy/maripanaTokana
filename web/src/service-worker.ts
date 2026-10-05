@@ -42,8 +42,13 @@ sw.addEventListener('fetch', (event) => {
 			fetch(event.request)
 				.then((response) => {
 					if (response.ok) {
-						const clone = response.clone();
-						caches.open(CACHE_API).then((cache) => cache.put(event.request, clone));
+						// Stamp the cache time so the client can tell replayed data from fresh data.
+						const headers = new Headers(response.headers);
+						headers.set('X-SW-Cached-At', String(Date.now()));
+						const stamped = response.clone().arrayBuffer().then(
+							(body) => new Response(body, { status: response.status, statusText: response.statusText, headers })
+						);
+						stamped.then((copy) => caches.open(CACHE_API).then((cache) => cache.put(event.request, copy))).catch(() => {});
 					}
 					return response;
 				})

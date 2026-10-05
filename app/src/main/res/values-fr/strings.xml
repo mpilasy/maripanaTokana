@@ -138,6 +138,37 @@
     <string name="cd_remove_favorite">Retirer des favoris</string>
     <string name="cd_previous_location">Emplacement précédent</string>
     <string name="cd_next_location">Emplacement suivant</string>
+    <string name="settings_title">Paramètres</string>
+    <string name="settings_back">Retour</string>
+    <string name="settings_advanced_mode">Mode avancé</string>
+    <string name="settings_advanced_off_desc">Activez pour accéder aux réglages de la source météo, des alertes et de la localisation</string>
+    <string name="settings_advanced_on_desc">Tous les réglages et la modification de position sont disponibles</string>
+    <string name="settings_section_weather_source">Source météo</string>
+    <string name="settings_open_meteo_default">Open-Meteo (par défaut)</string>
+    <string name="settings_pirate_weather">Pirate Weather</string>
+    <string name="settings_requires_api_key">Clé API requise</string>
+    <string name="settings_api_key">Clé API</string>
+    <string name="settings_test">Tester</string>
+    <string name="settings_saved">✓ Enregistrée</string>
+    <string name="settings_key_invalid">Clé API invalide</string>
+    <string name="settings_key_forbidden">Clé API refusée</string>
+    <string name="settings_key_rate_limited">Limite de requêtes dépassée — la clé est peut-être valide</string>
+    <string name="settings_api_error">Erreur API (HTTP %1$s)</string>
+    <string name="settings_network_error">Erreur réseau — vérifiez votre connexion</string>
+    <string name="settings_section_alerts">Alertes</string>
+    <string name="settings_show_alerts">Afficher les alertes météo</string>
+    <string name="settings_alert_nws">Alertes NWS (États-Unis)</string>
+    <string name="settings_alert_gdacs">Alertes GDACS (catastrophes mondiales)</string>
+    <string name="settings_alert_meteoalarm">MeteoAlarm (Europe)</string>
+    <string name="settings_alert_jma">JMA (Japon)</string>
+    <string name="settings_alert_eccc">ECCC (Canada)</string>
+    <string name="settings_alert_bom">BOM (Australie)</string>
+    <string name="settings_alert_nhc">NHC (ouragans Atlantique et Pacifique)</string>
+    <string name="settings_section_location">Localisation / Géocodage</string>
+    <string name="settings_geocoder_system">Géocodeur système</string>
+    <string name="settings_geocoder_nominatim">Nominatim (OpenStreetMap)</string>
+    <string name="settings_geocoder_nominatim_desc">Fonctionne sur toutes les versions, y compris F-Droid, sans clé API</string>
+    <string name="settings_web_geocoding_info">La version web utilise Nominatim (OpenStreetMap) pour le géocodage inverse — aucune clé API requise.</string>
     <string name="widget_description">Temps actuel avec temperature en double unite</string>
     <string name="widget_description_large">Details meteo avec ressenti, humidite, vent et min/max</string>
     <string name="detail_no_precip">Aucune</string>
@@ -153,6 +184,29 @@
     <string name="widget_wind">Vent</string>
     <string name="widget_min_max">Min %1$s (%2$s) · Max %3$s (%4$s)</string>
     <string name="acquiring_location">Où sommes-nous ?</string>
+    <string-array name="weekday_names">
+        <item>dimanche</item>
+        <item>lundi</item>
+        <item>mardi</item>
+        <item>mercredi</item>
+        <item>jeudi</item>
+        <item>vendredi</item>
+        <item>samedi</item>
+    </string-array>
+    <string-array name="month_names">
+        <item>janvier</item>
+        <item>février</item>
+        <item>mars</item>
+        <item>avril</item>
+        <item>mai</item>
+        <item>juin</item>
+        <item>juillet</item>
+        <item>août</item>
+        <item>septembre</item>
+        <item>octobre</item>
+        <item>novembre</item>
+        <item>décembre</item>
+    </string-array>
     <string-array name="cardinal_directions">
         <item>N</item>
         <item>NNE</item>

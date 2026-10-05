@@ -57,6 +57,7 @@ import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 import orinasa.njarasoa.maripanatokana.ui.theme.buildTypography
 import orinasa.njarasoa.maripanatokana.ui.theme.fontPairings
 import orinasa.njarasoa.maripanatokana.ui.weather.components.SavedLocationsDialog
+import androidx.compose.runtime.saveable.rememberSaveable
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -66,7 +67,7 @@ fun WeatherScreen(
     viewModel: WeatherViewModel = hiltViewModel(),
     permissionHandler: PermissionHandler
 ) {
-    var showSettings by remember { mutableStateOf(false) }
+    var showSettings by rememberSaveable { mutableStateOf(false) }
 
     if (showSettings) {
         SettingsScreen(onBack = { showSettings = false })
@@ -76,6 +77,7 @@ fun WeatherScreen(
     val uiState by viewModel.uiState.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
     val refreshFailed by viewModel.refreshFailed.collectAsState()
+    val refreshError by viewModel.refreshError.collectAsState()
     val advancedModeActive by viewModel.advancedModeActive.collectAsState()
     val metricPrimary by viewModel.metricPrimary.collectAsState()
     val fontIndex by viewModel.fontIndex.collectAsState()
@@ -340,6 +342,7 @@ fun WeatherScreen(
                             data = state.data,
                             metricPrimary = metricPrimary,
                             refreshFailed = refreshFailed,
+                            refreshError = refreshError,
                             advancedMode = advancedModeActive,
                             fontName = pairing.name,
                             currentFlag = supportedLocales[localeIndex].flag,

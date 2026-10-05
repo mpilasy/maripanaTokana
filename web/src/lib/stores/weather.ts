@@ -1,6 +1,6 @@
 import { writable, get } from 'svelte/store';
 import type { WeatherData } from '$lib/domain/weatherData';
-import { classifyError } from '$lib/api/http';
+import { classifyError, HttpError } from '$lib/api/http';
 import { saveSnapshot, loadSnapshot } from '$lib/stores/weatherSnapshot';
 import { fetchWeather } from '$lib/api/openMeteo';
 import { fetchPirateWeather } from '$lib/api/pirateWeather';
@@ -31,6 +31,13 @@ export const weatherState = writable<WeatherState>({ kind: 'loading' });
 export const isRefreshing = writable<boolean>(false);
 /** True when a refresh failed while older data is still on screen. */
 export const refreshFailed = writable<boolean>(false);
+/** i18n key explaining why the last refresh failed (invalid key, offline, ...); null when generic or no failure. */
+export const refreshError = writable<string | null>(null);
+
+/** Only informative failures get shown next to the generic "couldn't refresh" line. */
+export function refreshErrorReason(key: string): string | null {
+	return key === 'error_fetch_weather' ? null : key;
+}
 
 const STALE_MS = 30 * 60 * 1000; // 30 minutes
 
@@ -69,7 +76,12 @@ async function fetchAtLocation(lat: number, lon: number, knownName?: string, kno
 	const [response, location, airQualityResponse, locationInfo] = await Promise.all([weatherPromise, namePromise, airQualityResponsePromise, locationInfoPromise]);
 	const airQuality = airQualityResponse ? mapToAirQuality(airQualityResponse, locationInfo.countryCode) : null;
 	const hourlyAirQuality = airQualityResponse ? mapToHourlyAirQuality(airQualityResponse) : [];
-	const data = { ...mapToWeatherData(response, location.name, knownSubtext || location.subtext), airQuality, hourlyAirQuality };
+	const data: WeatherData = { ...mapToWeatherData(response, location.name, knownSubtext || location.subtext), airQuality, hourlyAirQuality };
+	// The service worker replayed an old cached response (network failed): show its real age, not "now".
+	if (response.cachedAt) {
+		data.timestamp = response.cachedAt;
+		data.staleFromCache = true;
+	}
 
 	if (alertsGeneration !== null) fetchAlertsForData(lat, lon, alertsGeneration, locationInfo);
 
@@ -84,8 +96,10 @@ function currentSnapshotKey(): string {
 	return 'gps';
 }
 
-function setWeatherData(data: WeatherData) {
-	refreshFailed.set(false);
+function setWeatherData(fetched: WeatherData) {
+	const { staleFromCache, ...data } = fetched;
+	refreshFailed.set(!!staleFromCache);
+	refreshError.set(staleFromCache ? 'error_offline' : null);
 	saveSnapshot(currentSnapshotKey(), { ...data, alerts: [], alertsLoading: true });
 	weatherState.update(s => {
 		const existingAlerts =
@@ -214,17 +228,22 @@ export async function doFetchWeather() {
 
 		// Start getting fresh location concurrently
 		const freshLocationPromise = getPosition();
+		freshLocationPromise.catch(() => {}); // handled below; avoid unhandled rejection on early exit
 
 		let cachedShown = false;
+		let cachedError: unknown = null;
 		if (cachedFetchPromise) {
 			try {
 				data = await cachedFetchPromise;
 				if (gen !== fetchGeneration) return;
 				setWeatherData(data);
 				cachedShown = true;
-			} catch {
-				// Cached-location weather failed; still try the fresh position below
+			} catch (err) {
 				if (gen !== fetchGeneration) return;
+				// A 4xx (bad key, rate limit) would fail identically for any location: don't ask again.
+				if (err instanceof HttpError && err.status < 500) throw err;
+				// Otherwise still try the fresh position below
+				cachedError = err;
 			}
 		}
 
@@ -244,6 +263,9 @@ export async function doFetchWeather() {
 		if (gen !== fetchGeneration) return;
 
 		// Re-fetch if moved significantly or if we had no cached location
+		// Cached-location fetch failed and we haven't moved: the same request would just fail again.
+		if (cachedError && cached && !movedSignificantly(cached.lat, cached.lon, fresh.lat, fresh.lon)) throw cachedError;
+
 		if (!cached || !cachedShown || movedSignificantly(cached.lat, cached.lon, fresh.lat, fresh.lon)) {
 			data = await fetchAtLocation(fresh.lat, fresh.lon, undefined, undefined, localeTag);
 			if (gen !== fetchGeneration) return;
@@ -256,13 +278,12 @@ export async function doFetchWeather() {
 	} catch (err) {
 		if (gen !== fetchGeneration) return;
 		const current = get(weatherState);
+		const message = classifyError(err, get(weatherSource) === 'PIRATE_WEATHER' ? [401, 403] : []);
 		if (current.kind !== 'success') {
-			weatherState.set({
-				kind: 'error',
-				message: classifyError(err, get(weatherSource) === 'PIRATE_WEATHER' ? [401, 403] : []),
-			});
+			weatherState.set({ kind: 'error', message });
 		} else {
 			refreshFailed.set(true);
+			refreshError.set(refreshErrorReason(message));
 		}
 	} finally {
 		if (gen === fetchGeneration) isRefreshing.set(false);

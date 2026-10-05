@@ -33,3 +33,7 @@ interface OpenMeteoGeocodingService {
         @Query("format") format: String = "json"
     ): GeocodingResponse
 }
+
+/** Drops repeated hits for the same place (same name, coordinates equal to ~2 decimals), keeping the first. */
+fun List<GeocodingResult>.dedupeByPlace(): List<GeocodingResult> =
+    distinctBy { Triple(it.name.trim().lowercase(), Math.round(it.latitude * 100), Math.round(it.longitude * 100)) }

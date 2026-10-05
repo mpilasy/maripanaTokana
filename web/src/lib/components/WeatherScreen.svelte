@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { _ } from 'svelte-i18n';
+	import { _, json } from 'svelte-i18n';
 	import { weatherState, isRefreshing, doFetchWeather, updateLocationName } from '$lib/stores/weather';
 	import {
 		onLocationClicked,
@@ -14,7 +14,7 @@
 	} from '$lib/stores/savedLocations';
 	import { parseLocationText } from '$lib/domain/sharedLocationParser';
 	import SettingsScreen from './SettingsScreen.svelte';
-	import { metricPrimary, fontIndex, localeIndex, weatherSource, toggleUnits, cycleFont, cycleLanguage } from '$lib/stores/preferences';
+	import { metricPrimary, fontIndex, localeIndex, weatherSource, weatherApiKey, toggleUnits, cycleFont, cycleLanguage } from '$lib/stores/preferences';
 	import { SUPPORTED_LOCALES, localizeDigits } from '$lib/i18n/index';
 	import { fontPairings } from '$lib/fonts';
 	import { formatDate, formatLocationCurrentTime, isRemoteTimezone } from '$lib/utils/date';
@@ -39,6 +39,9 @@
 	import { onMount } from 'svelte';
 
 	let showSettings = $state(false);
+
+	const weekdayNames = $derived($json('weekday_names') as string[] | undefined);
+	const monthNames = $derived($json('month_names') as string[] | undefined);
 
 	// Browser locale detection for secondary language on error screen
 	function findBrowserLocaleTag(): string | null {
@@ -181,7 +184,7 @@
 	});
 
 	function getUvLabel(uv: number): string {
-		const labels: string[] = $_('uv_labels') as unknown as string[];
+		const labels: string[] = $json('uv_labels') as string[];
 		if (!Array.isArray(labels)) return '';
 		if (uv < 3) return labels[0];
 		if (uv < 6) return labels[1];
@@ -199,7 +202,7 @@
 	}
 
 	function getAqiTierLabel(tier: string): string {
-		const labels: string[] = $_('aqi_tier_labels') as unknown as string[];
+		const labels: string[] = $json('aqi_tier_labels') as string[];
 		if (!Array.isArray(labels)) return '';
 		return labels[AQI_TIERS.indexOf(tier)] ?? '';
 	}
@@ -256,6 +259,18 @@
 		if (idx === prevLocaleIndex) return;
 		prevLocaleIndex = idx;
 		updateLocationName(SUPPORTED_LOCALES[idx].tag);
+	});
+
+	// Refetch when the weather source or API key changes (skips the initial value).
+	let prevSource = $weatherSource;
+	let prevApiKey = $weatherApiKey;
+	$effect(() => {
+		const src = $weatherSource;
+		const key = $weatherApiKey;
+		if (src === prevSource && key === prevApiKey) return;
+		prevSource = src;
+		prevApiKey = key;
+		doFetchWeather();
 	});
 
 	function formatDMS(value: number, positive: string, negative: string): string {
@@ -394,7 +409,7 @@
 					</div>
 					<div class="date-row">
 						<p class="date">
-							{$_('updated_time', { values: { time: loc(formatDate(data.timestamp, SUPPORTED_LOCALES[$localeIndex].tag)) } })}
+							{$_('updated_time', { values: { time: loc(formatDate(data.timestamp, SUPPORTED_LOCALES[$localeIndex].tag, weekdayNames, monthNames)) } })}
 						</p>
 						{#if isRemoteTimezone(data.utcOffsetSeconds)}
 							<p class="location-time">Local: {loc(formatLocationCurrentTime(data.utcOffsetSeconds, SUPPORTED_LOCALES[$localeIndex].tag))}</p>
@@ -402,7 +417,8 @@
 						<button
 							class="gear-btn"
 							onclick={(e) => { e.stopPropagation(); showSettings = true; }}
-							aria-label="Settings"
+							aria-label={$_('settings_title')}
+							title={$_('settings_title')}
 						>
 							<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
 								<path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
@@ -503,10 +519,12 @@
 					{@const todayUvMax = data.dailyForecast[0].uvIndexMax}
 					<CollapsibleSection title={$_('section_uv_forecast')} expanded={openSection === 'uv_forecast'} onToggle={() => toggleSection('uv_forecast')} onShare={handleShare}>
 						<DetailCard
-							value={loc(todayUvMax.toFixed(1))}
+							value={todayUvMax != null && Number.isFinite(todayUvMax) ? loc(todayUvMax.toFixed(1)) : '--'}
 						>
 							{#snippet subtitleSnippet()}
-								<UvTierBadge uvIndex={todayUvMax} label={getUvLabel(todayUvMax)} />
+								{#if todayUvMax != null && Number.isFinite(todayUvMax)}
+									<UvTierBadge uvIndex={todayUvMax} label={getUvLabel(todayUvMax)} />
+								{/if}
 							{/snippet}
 						</DetailCard>
 						<div class="section-spacer"></div>
@@ -544,6 +562,12 @@
 				{$_('error_retry')}
 				{#if showSecondary && browserStrings}
 					<span class="btn-secondary">{browserStrings.error_retry}</span>
+				{/if}
+			</button>
+			<button class="settings-btn" onclick={() => showSettings = true}>
+				{$_('open_settings')}
+				{#if showSecondary && browserStrings}
+					<span class="btn-secondary">{browserStrings.open_settings}</span>
 				{/if}
 			</button>
 		</div>
@@ -890,6 +914,20 @@
 		cursor: pointer;
 		transition: background 0.2s, transform 0.1s;
 		box-shadow: 0 4px 20px rgba(255,255,255,0.25);
+	}
+
+	.error-state button.settings-btn {
+		margin-top: 8px;
+		padding: 12px 36px;
+		font-size: 16px;
+		background: transparent;
+		color: white;
+		border: 1px solid rgba(255, 255, 255, 0.5);
+		box-shadow: none;
+	}
+
+	.error-state button.settings-btn:hover {
+		background: rgba(255, 255, 255, 0.1);
 	}
 
 	.error-state button:hover {

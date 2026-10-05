@@ -437,6 +437,31 @@ Emulator testing (commit `7ad4d2b`) separately found and fixed three bugs:
 
 ---
 
+## Regression pass (2026-10-05)
+
+Full manual regression on the Android emulator (F-Droid release build, 12 flows) and on the web production build in headless Chromium (11 flows). No crashes on either platform, and no CSP violations during real browsing. Failures found and fixed:
+- **Regressions from this branch (web):**
+  - API-key test showed "Error HTTP 401".
+  - The "Couldn't refresh" line overlapped the temperature in Malagasy.
+  - Parse errors were reported as offline.
+  - Data served from the service-worker cache looked fresh.
+  - A missing UV value showed as 0.0.
+- **Refresh-failure reason (both platforms):** the line now names the cause (invalid key, offline, rate limit, server error).
+- **Existing bugs:**
+  - Large widget showed the wrong weekdays (timestamp scaled twice).
+  - Settings closed on rotation.
+  - Web error screen had no route to Settings.
+  - Web didn't refetch after a weather-source switch.
+  - Pirate Weather was fetched twice.
+  - Duplicate search results.
+- **Polish:**
+  - Settings screen translated (31 keys).
+  - Gear button label translated.
+  - Malagasy and Nepali dates on web (`weekday_names`/`month_names`).
+  - Arabic temperature/unit ordering (LTR isolates).
+  - `$json` for array keys.
+- **Not reproduced:** Comfortaa text running under the footer.
+
 ## Rejected findings (verified false — do not re-raise)
 
 - **GDACS needs a web proxy for CORS:** GDACS returns `Access-Control-Allow-Origin: *`.

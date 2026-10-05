@@ -138,6 +138,37 @@
     <string name="cd_remove_favorite">मनपर्ने बाट हटाउनुहोस्</string>
     <string name="cd_previous_location">अघिल्लो स्थान</string>
     <string name="cd_next_location">अर्को स्थान</string>
+    <string name="settings_title">सेटिङहरू</string>
+    <string name="settings_back">पछाडि</string>
+    <string name="settings_advanced_mode">उन्नत मोड</string>
+    <string name="settings_advanced_off_desc">मौसम स्रोत, अलर्ट र स्थान सेटिङ पहुँच गर्न सक्रिय गर्नुहोस्</string>
+    <string name="settings_advanced_on_desc">सबै सेटिङ र स्थान परिवर्तन उपलब्ध छ</string>
+    <string name="settings_section_weather_source">मौसम स्रोत</string>
+    <string name="settings_open_meteo_default">Open-Meteo (पूर्वनिर्धारित)</string>
+    <string name="settings_pirate_weather">Pirate Weather</string>
+    <string name="settings_requires_api_key">API कुञ्जी आवश्यक</string>
+    <string name="settings_api_key">API कुञ्जी</string>
+    <string name="settings_test">जाँच गर्नुहोस्</string>
+    <string name="settings_saved">✓ सुरक्षित गरियो</string>
+    <string name="settings_key_invalid">अमान्य API कुञ्जी</string>
+    <string name="settings_key_forbidden">API कुञ्जी निषेधित</string>
+    <string name="settings_key_rate_limited">अनुरोध सीमा नाघ्यो — कुञ्जी अझै मान्य हुन सक्छ</string>
+    <string name="settings_api_error">API त्रुटि (HTTP %1$s)</string>
+    <string name="settings_network_error">नेटवर्क त्रुटि — आफ्नो जडान जाँच गर्नुहोस्</string>
+    <string name="settings_section_alerts">अलर्टहरू</string>
+    <string name="settings_show_alerts">मौसम अलर्ट देखाउनुहोस्</string>
+    <string name="settings_alert_nws">NWS अलर्ट (अमेरिका)</string>
+    <string name="settings_alert_gdacs">GDACS अलर्ट (विश्वव्यापी विपद्)</string>
+    <string name="settings_alert_meteoalarm">MeteoAlarm (युरोप)</string>
+    <string name="settings_alert_jma">JMA (जापान)</string>
+    <string name="settings_alert_eccc">ECCC (क्यानडा)</string>
+    <string name="settings_alert_bom">BOM (अस्ट्रेलिया)</string>
+    <string name="settings_alert_nhc">NHC (एट्लान्टिक र प्रशान्त चक्रवात)</string>
+    <string name="settings_section_location">स्थान / जियोकोडिङ</string>
+    <string name="settings_geocoder_system">प्रणाली जियोकोडर</string>
+    <string name="settings_geocoder_nominatim">Nominatim (OpenStreetMap)</string>
+    <string name="settings_geocoder_nominatim_desc">F-Droid सहित सबै बिल्डमा काम गर्छ, API कुञ्जी आवश्यक छैन</string>
+    <string name="settings_web_geocoding_info">वेब संस्करणले रिभर्स जियोकोडिङका लागि Nominatim (OpenStreetMap) प्रयोग गर्छ — API कुञ्जी आवश्यक छैन।</string>
     <string name="widget_description">दुई एकाइमा हालको मौसम तापक्रम</string>
     <string name="widget_description_large">मौसम विवरण: अनुभूत तापक्रम, आर्द्रता, हावा र न्यूनतम/अधिकतम</string>
     <string name="detail_no_precip">छैन</string>
@@ -153,6 +184,29 @@
     <string name="widget_wind">हावा</string>
     <string name="widget_min_max">न्यू. %1$s (%2$s) · अधि. %3$s (%4$s)</string>
     <string name="acquiring_location">हामी कहाँ छौं?</string>
+    <string-array name="weekday_names">
+        <item>आइतबार</item>
+        <item>सोमबार</item>
+        <item>मंगलबार</item>
+        <item>बुधबार</item>
+        <item>बिहीबार</item>
+        <item>शुक्रबार</item>
+        <item>शनिबार</item>
+    </string-array>
+    <string-array name="month_names">
+        <item>जनवरी</item>
+        <item>फेब्रुअरी</item>
+        <item>मार्च</item>
+        <item>अप्रैल</item>
+        <item>मई</item>
+        <item>जुन</item>
+        <item>जुलाई</item>
+        <item>अगस्त</item>
+        <item>सितंबर</item>
+        <item>अक्तूबर</item>
+        <item>नवंबर</item>
+        <item>दिसंबर</item>
+    </string-array>
     <string-array name="cardinal_directions">
         <item>N</item>
         <item>NNE</item>

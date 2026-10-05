@@ -1,6 +1,7 @@
 package orinasa.njarasoa.maripanatokana.ui.weather
 
 import android.content.Intent
+import orinasa.njarasoa.maripanatokana.domain.model.FetchError
 import android.graphics.Bitmap
 import androidx.core.graphics.createBitmap
 import android.net.Uri
@@ -165,6 +166,7 @@ internal fun WeatherContent(
     advancedOverrideLat: Double? = null,
     advancedOverrideLon: Double? = null,
     refreshFailed: Boolean = false,
+    refreshError: FetchError? = null,
     advancedMode: Boolean = false,
 ) {
     val context = LocalContext.current
@@ -361,7 +363,8 @@ internal fun WeatherContent(
                 )
                 if (refreshFailed) {
                     Text(
-                        text = stringResource(R.string.refresh_failed, localizeDigits(screenTimeFormat.format(Date(data.timestamp)))),
+                        text = stringResource(R.string.refresh_failed, localizeDigits(screenTimeFormat.format(Date(data.timestamp)))) +
+                            (refreshError?.let { " \u00B7 " + stringResource(it.messageResId) } ?: ""),
                         fontSize = 13f.s(scale),
                         fontFamily = bodyFont,
                         color = MaterialTheme.colorScheme.error,
@@ -856,7 +859,7 @@ internal fun WeatherContent(
     ) {
         Icon(
             imageVector = Icons.Default.Settings,
-            contentDescription = "Settings",
+            contentDescription = stringResource(R.string.settings_title),
             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
             modifier = Modifier.size(24.dp)
         )
@@ -888,6 +891,8 @@ internal fun DualUnitText(
     ) {
         Text(
             text = buildAnnotatedString {
+                // LTR isolate so RTL locales (Arabic) keep "16.1°C" in number-then-unit order.
+                append('\u2066')
                 withStyle(SpanStyle(fontSize = primarySize, fontWeight = FontWeight.Bold, fontFamily = displayFont, color = resolvedColor)) {
                     append(primary)
                 }
@@ -896,11 +901,13 @@ internal fun DualUnitText(
                         append(" $primaryUnit")
                     }
                 }
+                append('\u2069')
             },
             style = TextStyle(fontFeatureSettings = fontFeatures),
         )
         Text(
             text = buildAnnotatedString {
+                append('\u2066')
                 withStyle(SpanStyle(fontSize = primarySize * 0.75f, fontWeight = FontWeight.Normal, fontFamily = displayFont, color = resolvedColor.copy(alpha = 0.55f))) {
                     append(secondary)
                 }
@@ -909,6 +916,7 @@ internal fun DualUnitText(
                         append(" $secondaryUnit")
                     }
                 }
+                append('\u2069')
             },
             style = TextStyle(fontFeatureSettings = fontFeatures),
         )
@@ -1863,7 +1871,7 @@ private fun formatHourInDeviceTime(epochMillis: Long): String {
     return format.format(Date(epochMillis))
 }
 
-private fun buildLocationTimeZone(utcOffsetSeconds: Int): TimeZone {
+internal fun buildLocationTimeZone(utcOffsetSeconds: Int): TimeZone {
     val sign = if (utcOffsetSeconds >= 0) "+" else "-"
     val absOffset = Math.abs(utcOffsetSeconds)
     val hh = absOffset / 3600

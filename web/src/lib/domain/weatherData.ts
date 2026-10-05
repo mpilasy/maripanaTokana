@@ -44,7 +44,7 @@ export interface DailyForecast {
 	windSpeed: WindSpeed;
 	windDeg: number;
 	precipitation: Precipitation;
-	uvIndexMax: number;
+	uvIndexMax: number | null;
 }
 
 export interface MinutelyForecast {
@@ -83,6 +83,8 @@ export interface WeatherData {
 	alertsLoading?: boolean;
 	failedAlertSources?: string[]; // display names of alert sources whose fetch failed; absent in old snapshots
 	timestamp: number; // epoch millis
+	/** True when the data was replayed from the offline cache rather than freshly fetched. Not persisted. */
+	staleFromCache?: boolean;
 	utcOffsetSeconds: number; // location's UTC offset in seconds
 	airQuality?: AirQualityIndex | null;
 	hourlyAirQuality?: HourlyAirQuality[];

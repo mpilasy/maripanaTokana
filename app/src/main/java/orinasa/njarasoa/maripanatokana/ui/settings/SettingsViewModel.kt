@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.data.remote.PirateWeatherApiService
 import orinasa.njarasoa.maripanatokana.data.settings.AppSettingsRepository
 import orinasa.njarasoa.maripanatokana.domain.model.AppSettings
@@ -19,7 +20,7 @@ sealed class ApiKeyTestState {
     object Idle : ApiKeyTestState()
     object Loading : ApiKeyTestState()
     object Success : ApiKeyTestState()
-    data class Failure(val message: String) : ApiKeyTestState()
+    data class Failure(val messageRes: Int, val code: Int? = null) : ApiKeyTestState()
 }
 
 @HiltViewModel
@@ -59,16 +60,14 @@ class SettingsViewModel @Inject constructor(
                 repository.updateWeatherApiKey(key)
                 _testState.value = ApiKeyTestState.Success
             } catch (e: HttpException) {
-                _testState.value = ApiKeyTestState.Failure(
-                    when (e.code()) {
-                        401 -> "Invalid API key"
-                        403 -> "API key forbidden"
-                        429 -> "Rate limit exceeded — key may still be valid"
-                        else -> "API error (HTTP ${e.code()})"
-                    }
-                )
+                _testState.value = when (e.code()) {
+                    401 -> ApiKeyTestState.Failure(R.string.settings_key_invalid)
+                    403 -> ApiKeyTestState.Failure(R.string.settings_key_forbidden)
+                    429 -> ApiKeyTestState.Failure(R.string.settings_key_rate_limited)
+                    else -> ApiKeyTestState.Failure(R.string.settings_api_error, e.code())
+                }
             } catch (_: Exception) {
-                _testState.value = ApiKeyTestState.Failure("Network error — check your connection")
+                _testState.value = ApiKeyTestState.Failure(R.string.settings_network_error)
             }
         }
     }

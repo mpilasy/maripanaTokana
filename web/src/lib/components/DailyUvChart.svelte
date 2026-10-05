@@ -35,14 +35,15 @@
 		return () => observer.disconnect();
 	});
 
+	let validValues = $derived(forecasts.map(f => f.uvIndexMax).filter((v): v is number => v != null && Number.isFinite(v)));
 	const loc = (s: string) => localizeDigits(s, SUPPORTED_LOCALES[$localeIndex]);
 	let ariaLabel = $derived.by(() => {
-		const valid = forecasts.map(f => f.uvIndexMax).filter(v => Number.isFinite(v));
+		const valid = validValues;
 		if (valid.length === 0) return undefined;
 		return $_('chart_uv_summary', { values: { max: loc(Math.max(...valid).toFixed(1)) } });
 	});
 	let uvValues = $derived(forecasts.map(f => f.uvIndexMax));
-	let uvMax = $derived(uvValues.length ? Math.max(...uvValues) : 0);
+	let uvMax = $derived(validValues.length ? Math.max(...validValues) : 0);
 	let paddedMax = $derived(uvMax > 0 ? uvMax * 1.2 : 1);
 
 	function getX(index: number, total: number) {
@@ -54,7 +55,7 @@
 		return height - (uv / paddedMax * height);
 	}
 
-	let uvPoints = $derived(uvValues.map((uv, i) => ({ x: getX(i, forecasts.length), y: getY(uv), color: uvColorFor(uv) })));
+	let uvPoints = $derived(uvValues.flatMap((uv, i) => uv != null && Number.isFinite(uv) ? [{ x: getX(i, forecasts.length), y: getY(uv), color: uvColorFor(uv), uv }] : []));
 
 	let horizontalTicks = $derived(() => {
 		const ticks = [];
@@ -130,9 +131,9 @@
 	let uvPath = $derived(generateMonotonePath(uvPoints));
 
 	let peakUvInfo = $derived.by(() => {
-		if (forecasts.length === 0 || uvPoints.length === 0) return null;
-		const maxVal = Math.max(...forecasts.map(f => f.uvIndexMax));
-		const maxIndices = forecasts.map((f, i) => f.uvIndexMax === maxVal ? i : -1).filter(i => i !== -1);
+		if (validValues.length === 0 || uvPoints.length === 0) return null;
+		const maxVal = Math.max(...validValues);
+		const maxIndices = uvPoints.map((p, i) => p.uv === maxVal ? i : -1).filter(i => i !== -1);
 		const midIdx = maxIndices[Math.floor(maxIndices.length / 2)];
 		const pt = uvPoints[midIdx];
 		const color = pt.color;

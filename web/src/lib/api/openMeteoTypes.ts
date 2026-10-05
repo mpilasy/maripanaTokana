@@ -1,4 +1,6 @@
 export interface OpenMeteoResponse {
+	/** Epoch millis when this response was cached by the service worker; set only when replayed from cache. */
+	cachedAt?: number;
 	latitude: number;
 	longitude: number;
 	utc_offset_seconds: number;

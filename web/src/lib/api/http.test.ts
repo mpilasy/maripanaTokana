@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { HttpError, classifyError, retryOnce } from './http';
+import { HttpError, NetworkError, classifyError, netFetch, retryOnce } from './http';
 
 describe('classifyError', () => {
 	it('maps HTTP statuses', () => {
@@ -11,10 +11,28 @@ describe('classifyError', () => {
 	});
 
 	it('maps network and timeout errors', () => {
-		expect(classifyError(new TypeError('Failed to fetch'))).toBe('error_offline');
+		expect(classifyError(new NetworkError())).toBe('error_offline');
 		expect(classifyError(new DOMException('t', 'TimeoutError'))).toBe('error_timeout');
 		expect(classifyError(new DOMException('a', 'AbortError'))).toBe('error_timeout');
 		expect(classifyError(new Error('x'))).toBe('error_fetch_weather');
+	});
+
+	it('does not treat parse/mapping TypeErrors as offline', () => {
+		expect(classifyError(new TypeError("Cannot read properties of undefined (reading 'x')"))).toBe('error_fetch_weather');
+	});
+});
+
+describe('netFetch', () => {
+	it('wraps fetch TypeErrors in NetworkError but passes timeouts through', async () => {
+		const orig = globalThis.fetch;
+		try {
+			globalThis.fetch = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'));
+			await expect(netFetch('http://x')).rejects.toBeInstanceOf(NetworkError);
+			globalThis.fetch = vi.fn().mockRejectedValue(new DOMException('t', 'TimeoutError'));
+			await expect(netFetch('http://x')).rejects.toMatchObject({ name: 'TimeoutError' });
+		} finally {
+			globalThis.fetch = orig;
+		}
 	});
 });
 
@@ -25,10 +43,16 @@ describe('retryOnce', () => {
 		expect(fn).toHaveBeenCalledTimes(2);
 	});
 
-	it('retries once on network TypeError and gives up after one retry', async () => {
-		const fn = vi.fn().mockRejectedValue(new TypeError('net'));
-		await expect(retryOnce(fn, 0)).rejects.toBeInstanceOf(TypeError);
+	it('retries once on NetworkError and gives up after one retry', async () => {
+		const fn = vi.fn().mockRejectedValue(new NetworkError());
+		await expect(retryOnce(fn, 0)).rejects.toBeInstanceOf(NetworkError);
 		expect(fn).toHaveBeenCalledTimes(2);
+	});
+
+	it('does not retry parse TypeErrors', async () => {
+		const fn = vi.fn().mockRejectedValue(new TypeError('bad shape'));
+		await expect(retryOnce(fn, 0)).rejects.toBeInstanceOf(TypeError);
+		expect(fn).toHaveBeenCalledTimes(1);
 	});
 
 	it('does not retry 4xx or timeouts', async () => {

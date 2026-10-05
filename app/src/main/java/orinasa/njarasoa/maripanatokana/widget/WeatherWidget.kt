@@ -168,7 +168,7 @@ private fun WeatherWidgetContent(data: WeatherData, metricPrimary: Boolean) {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = tempPrimary,
+                    text = ltr(tempPrimary),
                     style = TextStyle(
                         color = WidgetColorProviders.onSurface,
                         fontSize = 20.sp,
@@ -177,7 +177,7 @@ private fun WeatherWidgetContent(data: WeatherData, metricPrimary: Boolean) {
                 )
                 Spacer(modifier = GlanceModifier.width(4.dp))
                 Text(
-                    text = tempSecondary,
+                    text = ltr(tempSecondary),
                     style = TextStyle(
                         color = WidgetColorProviders.onSurfaceVariant,
                         fontSize = 14.sp,

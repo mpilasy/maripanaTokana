@@ -7,12 +7,30 @@ export class HttpError extends Error {
 	}
 }
 
+/** A fetch() call failed at the network level (offline, DNS, CORS, connection reset). */
+export class NetworkError extends Error {
+	constructor(cause?: unknown) {
+		super('Network request failed', { cause });
+		this.name = 'NetworkError';
+	}
+}
+
+/** fetch() that turns the TypeError it throws on network failure into a NetworkError. Timeouts/aborts pass through. */
+export async function netFetch(input: string, init?: RequestInit): Promise<Response> {
+	try {
+		return await fetch(input, init);
+	} catch (err) {
+		if (err instanceof TypeError) throw new NetworkError(err);
+		throw err;
+	}
+}
+
 /** Run `fn` once more after `delayMs` on a network failure or 5xx. Not for 4xx or timeouts. */
 export async function retryOnce<T>(fn: () => Promise<T>, delayMs = 1000): Promise<T> {
 	try {
 		return await fn();
 	} catch (err) {
-		const transient = err instanceof TypeError || (err instanceof HttpError && err.status >= 500);
+		const transient = err instanceof NetworkError || (err instanceof HttpError && err.status >= 500);
 		if (!transient) throw err;
 		await new Promise((resolve) => setTimeout(resolve, delayMs));
 		return fn();
@@ -32,7 +50,7 @@ export function classifyError(err: unknown, authStatuses: number[] = []): string
 		if (err.status >= 500) return 'error_server';
 		return 'error_fetch_weather';
 	}
-	if (err instanceof TypeError || (typeof navigator !== 'undefined' && navigator.onLine === false)) {
+	if (err instanceof NetworkError || (typeof navigator !== 'undefined' && navigator.onLine === false)) {
 		return 'error_offline';
 	}
 	return 'error_fetch_weather';

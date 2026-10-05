@@ -41,12 +41,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.domain.model.GeocodingSource
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherSource
 
@@ -76,10 +78,10 @@ fun SettingsScreen(
         // Header
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
             IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
+                Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.settings_back), tint = MaterialTheme.colorScheme.onSurface)
             }
             Spacer(Modifier.width(8.dp))
-            Text("Settings", color = MaterialTheme.colorScheme.onSurface, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.settings_title), color = MaterialTheme.colorScheme.onSurface, fontSize = 20.sp, fontWeight = FontWeight.Bold)
         }
 
         Spacer(Modifier.height(24.dp))
@@ -90,10 +92,10 @@ fun SettingsScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("Advanced mode", color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.settings_advanced_mode), color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                 Text(
-                    if (settings.advancedMode) "All settings and location override available"
-                    else "Enable to access weather source, alerts, and location settings",
+                    if (settings.advancedMode) stringResource(R.string.settings_advanced_on_desc)
+                    else stringResource(R.string.settings_advanced_off_desc),
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                     fontSize = 12.sp
                 )
@@ -113,7 +115,7 @@ fun SettingsScreen(
         Spacer(Modifier.height(32.dp))
 
         // — Weather Source —
-        SectionHeader("Weather Source")
+        SectionHeader(stringResource(R.string.settings_section_weather_source))
         Column(Modifier.selectableGroup()) {
             WeatherSource.entries.forEach { source ->
                 val selected = settings.weatherSource == source
@@ -133,7 +135,7 @@ fun SettingsScreen(
                     Column {
                         Text(source.displayName(), color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp)
                         if (source.requiresApiKey()) {
-                            Text("Requires API key", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 12.sp)
+                            Text(stringResource(R.string.settings_requires_api_key), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 12.sp)
                         }
                     }
                 }
@@ -144,7 +146,7 @@ fun SettingsScreen(
             OutlinedTextField(
                 value = pendingApiKey,
                 onValueChange = { viewModel.updatePendingApiKey(it) },
-                label = { Text("API Key", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)) },
+                label = { Text(stringResource(R.string.settings_api_key), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)) },
                 singleLine = true,
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -170,15 +172,15 @@ fun SettingsScreen(
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                             )
                         } else {
-                            Text("Test", color = MaterialTheme.colorScheme.onSurface)
+                            Text(stringResource(R.string.settings_test), color = MaterialTheme.colorScheme.onSurface)
                         }
                     }
                     Spacer(Modifier.width(12.dp))
                     when (val state = testState) {
                         is ApiKeyTestState.Success ->
-                            Text("✓ Saved", color = Color(0xFF66BB6A), fontSize = 13.sp)
+                            Text(stringResource(R.string.settings_saved), color = Color(0xFF66BB6A), fontSize = 13.sp)
                         is ApiKeyTestState.Failure ->
-                            Text(state.message, color = MaterialTheme.colorScheme.error, fontSize = 13.sp)
+                            Text(if (state.code != null) stringResource(state.messageRes, state.code) else stringResource(state.messageRes), color = MaterialTheme.colorScheme.error, fontSize = 13.sp)
                         else -> {}
                     }
                 }
@@ -189,12 +191,12 @@ fun SettingsScreen(
         Spacer(Modifier.height(32.dp))
 
         // — Alerts —
-        SectionHeader("Alerts")
+        SectionHeader(stringResource(R.string.settings_section_alerts))
         Row(
             Modifier.fillMaxWidth().padding(vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("Show weather alerts", color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp, modifier = Modifier.weight(1f))
+            Text(stringResource(R.string.settings_show_alerts), color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp, modifier = Modifier.weight(1f))
             Switch(
                 checked = settings.alertsEnabled,
                 onCheckedChange = { viewModel.updateAlertsEnabled(it) },
@@ -202,19 +204,19 @@ fun SettingsScreen(
             )
         }
         if (settings.alertsEnabled) {
-            AlertCheckRow("NWS alerts (USA)", settings.alertsNwsEnabled) { viewModel.updateAlertsNwsEnabled(it) }
-            AlertCheckRow("GDACS alerts (global disasters)", settings.alertsGdacsEnabled) { viewModel.updateAlertsGdacsEnabled(it) }
-            AlertCheckRow("MeteoAlarm (Europe)", settings.alertsMeteoAlarmEnabled) { viewModel.updateAlertsMeteoAlarmEnabled(it) }
-            AlertCheckRow("JMA (Japan)", settings.alertsJmaEnabled) { viewModel.updateAlertsJmaEnabled(it) }
-            AlertCheckRow("ECCC (Canada)", settings.alertsEcccEnabled) { viewModel.updateAlertsEcccEnabled(it) }
-            AlertCheckRow("BOM (Australia)", settings.alertsBomEnabled) { viewModel.updateAlertsBomEnabled(it) }
-            AlertCheckRow("NHC (Atlantic & Pacific hurricanes)", settings.alertsNhcEnabled) { viewModel.updateAlertsNhcEnabled(it) }
+            AlertCheckRow(stringResource(R.string.settings_alert_nws), settings.alertsNwsEnabled) { viewModel.updateAlertsNwsEnabled(it) }
+            AlertCheckRow(stringResource(R.string.settings_alert_gdacs), settings.alertsGdacsEnabled) { viewModel.updateAlertsGdacsEnabled(it) }
+            AlertCheckRow(stringResource(R.string.settings_alert_meteoalarm), settings.alertsMeteoAlarmEnabled) { viewModel.updateAlertsMeteoAlarmEnabled(it) }
+            AlertCheckRow(stringResource(R.string.settings_alert_jma), settings.alertsJmaEnabled) { viewModel.updateAlertsJmaEnabled(it) }
+            AlertCheckRow(stringResource(R.string.settings_alert_eccc), settings.alertsEcccEnabled) { viewModel.updateAlertsEcccEnabled(it) }
+            AlertCheckRow(stringResource(R.string.settings_alert_bom), settings.alertsBomEnabled) { viewModel.updateAlertsBomEnabled(it) }
+            AlertCheckRow(stringResource(R.string.settings_alert_nhc), settings.alertsNhcEnabled) { viewModel.updateAlertsNhcEnabled(it) }
         }
 
         Spacer(Modifier.height(32.dp))
 
         // — Geocoding Source —
-        SectionHeader("Location / Geocoding")
+        SectionHeader(stringResource(R.string.settings_section_location))
         Column(Modifier.selectableGroup()) {
             GeocodingSource.entries.forEach { source ->
                 val selected = settings.geocodingSource == source
@@ -234,7 +236,7 @@ fun SettingsScreen(
                     Column {
                         Text(source.displayName(), color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp)
                         if (source == GeocodingSource.NOMINATIM) {
-                            Text("Works on all builds including F-Droid, no API key required", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 12.sp)
+                            Text(stringResource(R.string.settings_geocoder_nominatim_desc), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 12.sp)
                         }
                     }
                 }
@@ -274,14 +276,16 @@ private fun AlertCheckRow(label: String, checked: Boolean, onChecked: (Boolean) 
     }
 }
 
+@Composable
 private fun WeatherSource.displayName() = when (this) {
-    WeatherSource.OPEN_METEO -> "Open-Meteo (default)"
-    WeatherSource.PIRATE_WEATHER -> "Pirate Weather"
+    WeatherSource.OPEN_METEO -> stringResource(R.string.settings_open_meteo_default)
+    WeatherSource.PIRATE_WEATHER -> stringResource(R.string.settings_pirate_weather)
 }
 
 private fun WeatherSource.requiresApiKey() = this == WeatherSource.PIRATE_WEATHER
 
+@Composable
 private fun GeocodingSource.displayName() = when (this) {
-    GeocodingSource.SYSTEM_GEOCODER -> "System Geocoder"
-    GeocodingSource.NOMINATIM -> "Nominatim (OpenStreetMap)"
+    GeocodingSource.SYSTEM_GEOCODER -> stringResource(R.string.settings_geocoder_system)
+    GeocodingSource.NOMINATIM -> stringResource(R.string.settings_geocoder_nominatim)
 }

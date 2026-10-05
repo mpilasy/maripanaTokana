@@ -70,7 +70,7 @@ export function mapToWeatherData(response: OpenMeteoResponse, locationName: stri
 			windSpeed: WindSpeed.fromMetersPerSecond(d.wind_speed_10m_max?.[i] ?? NaN),
 			windDeg: d.wind_direction_10m_dominant?.[i] ?? 0,
 			precipitation: Precipitation.fromMm(d.precipitation_sum?.[i] ?? NaN),
-			uvIndexMax: d.uv_index_max?.[i] ?? 0,
+			uvIndexMax: d.uv_index_max?.[i] ?? null,
 		};
 	});
 
