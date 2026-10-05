@@ -138,6 +138,8 @@ Components (.svelte) → Stores (writable/derived) → API (fetch) → Open-Mete
 ./gradlew assembleStandardRelease   # Standard flavor (with Play Services)
 ```
 
+**Local Android builds/tests:** JDK 21 required (e.g., Temurin 21). Auto-provisioning is disabled for F-Droid; point Gradle at it via `org.gradle.java.installations.paths=/path/to/jdk-21` in `~/.gradle/gradle.properties` (user-level). Also run `node scripts/check_i18n_parity.js` to verify all locales have complete key coverage.
+
 ### Web
 
 ```bash
