@@ -26,13 +26,12 @@ class AppSettingsRepository @Inject constructor(
     val settings: StateFlow<AppSettings> = _settings.asStateFlow()
     val current: AppSettings get() = _settings.value
 
-    private val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-        if (key?.startsWith("settings_") == true) _settings.value = load()
-    }
-
-    init {
-        prefs.registerOnSharedPreferenceChangeListener(listener)
-        privatePrefs.registerOnSharedPreferenceChangeListener(listener)
+    // Refresh the state directly after each write. A SharedPreferences change listener is held
+    // weakly by Android, and R8 can turn the listener field into a local, so in release builds it
+    // was garbage-collected and settings changes never reached the UI.
+    private fun edit(target: SharedPreferences, block: SharedPreferences.Editor.() -> Unit) {
+        target.edit(action = block)
+        _settings.value = load()
     }
 
     private fun load() = AppSettings(
@@ -55,50 +54,50 @@ class AppSettingsRepository @Inject constructor(
     )
 
     fun updateWeatherSource(source: WeatherSource) {
-        prefs.edit { putString("settings_weather_source", source.name) }
+        edit(prefs) { putString("settings_weather_source", source.name) }
     }
 
     fun updateWeatherApiKey(key: String) {
-        privatePrefs.edit { putString("settings_weather_api_key", key) }
+        edit(privatePrefs) { putString("settings_weather_api_key", key) }
     }
 
     fun updateGeocodingSource(source: GeocodingSource) {
-        prefs.edit { putString("settings_geocoding_source", source.name) }
+        edit(prefs) { putString("settings_geocoding_source", source.name) }
     }
 
     fun updateAlertsEnabled(enabled: Boolean) {
-        prefs.edit { putBoolean("settings_alerts_enabled", enabled) }
+        edit(prefs) { putBoolean("settings_alerts_enabled", enabled) }
     }
 
     fun updateAlertsNwsEnabled(enabled: Boolean) {
-        prefs.edit { putBoolean("settings_alerts_nws", enabled) }
+        edit(prefs) { putBoolean("settings_alerts_nws", enabled) }
     }
 
     fun updateAlertsGdacsEnabled(enabled: Boolean) {
-        prefs.edit { putBoolean("settings_alerts_gdacs", enabled) }
+        edit(prefs) { putBoolean("settings_alerts_gdacs", enabled) }
     }
 
     fun updateAlertsMeteoAlarmEnabled(enabled: Boolean) {
-        prefs.edit { putBoolean("settings_alerts_meteoalarm", enabled) }
+        edit(prefs) { putBoolean("settings_alerts_meteoalarm", enabled) }
     }
 
     fun updateAlertsJmaEnabled(enabled: Boolean) {
-        prefs.edit { putBoolean("settings_alerts_jma", enabled) }
+        edit(prefs) { putBoolean("settings_alerts_jma", enabled) }
     }
 
     fun updateAlertsEcccEnabled(enabled: Boolean) {
-        prefs.edit { putBoolean("settings_alerts_eccc", enabled) }
+        edit(prefs) { putBoolean("settings_alerts_eccc", enabled) }
     }
 
     fun updateAlertsBomEnabled(enabled: Boolean) {
-        prefs.edit { putBoolean("settings_alerts_bom", enabled) }
+        edit(prefs) { putBoolean("settings_alerts_bom", enabled) }
     }
 
     fun updateAlertsNhcEnabled(enabled: Boolean) {
-        prefs.edit { putBoolean("settings_alerts_nhc", enabled) }
+        edit(prefs) { putBoolean("settings_alerts_nhc", enabled) }
     }
 
     fun updateAdvancedMode(enabled: Boolean) {
-        prefs.edit { putBoolean("settings_advanced_mode", enabled) }
+        edit(prefs) { putBoolean("settings_advanced_mode", enabled) }
     }
 }

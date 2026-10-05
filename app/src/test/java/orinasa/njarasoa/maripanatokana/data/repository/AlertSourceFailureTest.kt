@@ -54,4 +54,14 @@ class AlertSourceFailureTest {
         val result = repo(AppSettings(alertsNwsEnabled = false)).fetchAlerts(25.76, -80.19).getOrThrow()
         assertEquals(emptyList<String>(), result.failedSources)
     }
+
+    @Test
+    fun `NWS is not queried outside the US`() = runTest {
+        coEvery { nominatim.reverse(any(), any(), any(), any()) } throws java.io.IOException("offline")
+        coEvery { nws.getActiveAlerts(any()) } throws java.io.IOException("boom")
+        // Antananarivo, with the global sources (GDACS, NHC) disabled so only NWS could fail.
+        val settings = AppSettings(alertsGdacsEnabled = false, alertsNhcEnabled = false)
+        val result = repo(settings).fetchAlerts(-18.88, 47.51).getOrThrow()
+        assertEquals(emptyList<String>(), result.failedSources)
+    }
 }

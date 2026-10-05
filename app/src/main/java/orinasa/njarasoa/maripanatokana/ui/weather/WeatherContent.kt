@@ -1813,6 +1813,8 @@ internal suspend fun shareCardBitmap(context: android.content.Context, bitmap: B
     val intent = Intent(Intent.ACTION_SEND).apply {
         type = "image/png"
         putExtra(Intent.EXTRA_STREAM, uri)
+        // ClipData lets the read grant reach the chooser itself, so it can show the preview
+        clipData = android.content.ClipData.newRawUri(null, uri)
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
     context.startActivity(Intent.createChooser(intent, null))

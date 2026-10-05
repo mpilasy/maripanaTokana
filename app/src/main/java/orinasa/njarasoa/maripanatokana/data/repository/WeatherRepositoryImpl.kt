@@ -143,7 +143,7 @@ class WeatherRepositoryImpl @Inject constructor(
         try {
             // 1. Official NWS Alerts
             val nwsDeferred = async {
-                if (!settings.alertsNwsEnabled) return@async emptyList<WeatherAlert>()
+                if (!settings.alertsNwsEnabled || !inUS) return@async emptyList<WeatherAlert>()
                 try {
                     val point = String.format(Locale.US, "%.4f,%.4f", lat, lon)
                     val nwsParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
