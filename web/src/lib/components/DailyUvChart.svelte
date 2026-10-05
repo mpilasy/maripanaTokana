@@ -2,6 +2,8 @@
 	import type { DailyForecast as DailyForecastType } from '$lib/domain/weatherData';
 	import type { UvTier } from '$lib/domain/uv';
 	import { uvColorFor, UV_TIER_COLORS } from '$lib/domain/uv';
+	import { SUPPORTED_LOCALES, localizeDigits } from '$lib/i18n/index';
+	import { localeIndex } from '$lib/stores/preferences';
 	import { _, json } from 'svelte-i18n';
 	import { onMount } from 'svelte';
 	import TierLegend from './TierLegend.svelte';
@@ -33,10 +35,11 @@
 		return () => observer.disconnect();
 	});
 
+	const loc = (s: string) => localizeDigits(s, SUPPORTED_LOCALES[$localeIndex]);
 	let ariaLabel = $derived.by(() => {
 		const valid = forecasts.map(f => f.uvIndexMax).filter(v => Number.isFinite(v));
 		if (valid.length === 0) return undefined;
-		return $_('chart_uv_summary', { values: { max: Math.max(...valid).toFixed(1) } });
+		return $_('chart_uv_summary', { values: { max: loc(Math.max(...valid).toFixed(1)) } });
 	});
 	let uvValues = $derived(forecasts.map(f => f.uvIndexMax));
 	let uvMax = $derived(uvValues.length ? Math.max(...uvValues) : 0);

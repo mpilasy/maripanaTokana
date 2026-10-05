@@ -229,7 +229,18 @@ export async function doFetchWeather() {
 		}
 
 		// Step 2: get fresh location
-		const fresh = await freshLocationPromise;
+		let fresh: Awaited<typeof freshLocationPromise>;
+		try {
+			fresh = await freshLocationPromise;
+		} catch (err) {
+			if (gen !== fetchGeneration) return;
+			// Cached-location weather is already on screen; a failed GPS fix is not a failed refresh.
+			if (cachedShown) {
+				console.warn('Fresh position failed; keeping cached-location weather', err);
+				return;
+			}
+			throw err;
+		}
 		if (gen !== fetchGeneration) return;
 
 		// Re-fetch if moved significantly or if we had no cached location

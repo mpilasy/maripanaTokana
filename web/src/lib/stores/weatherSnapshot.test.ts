@@ -43,7 +43,25 @@ describe('weather snapshot', () => {
 	it('returns null for a different key or corrupt data', () => {
 		saveSnapshot('gps', sample);
 		expect(loadSnapshot('preview')).toBeNull();
-		store.set('weather_snapshot', '{bad');
+		store.set('weather_snapshot_v2', '{bad');
+		expect(loadSnapshot('gps')).toBeNull();
+	});
+
+	it('survives minified (renamed) class names', () => {
+		const original = Object.getOwnPropertyDescriptor(Temperature, 'name')!;
+		Object.defineProperty(Temperature, 'name', { value: 'ie', configurable: true });
+		try {
+			saveSnapshot('gps', sample);
+			const out = loadSnapshot('gps')!;
+			expect(out.temperature.displayCelsius()).toBe('22\u00b0C');
+			expect(out.hourlyForecast[0].temperature.displayDual(true)).toEqual(['5\u00b0C', '41\u00b0F']);
+		} finally {
+			Object.defineProperty(Temperature, 'name', original);
+		}
+	});
+
+	it('ignores a snapshot whose temperature is a plain object', () => {
+		store.set('weather_snapshot_v2', JSON.stringify({ key: 'gps', data: { timestamp: 1, temperature: { celsius: 1 } } }));
 		expect(loadSnapshot('gps')).toBeNull();
 	});
 });

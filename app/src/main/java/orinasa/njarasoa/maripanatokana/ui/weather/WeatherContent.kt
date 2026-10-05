@@ -682,6 +682,7 @@ internal fun WeatherContent(
                         AirQualityChart(
                             forecasts = data.hourlyAirQuality,
                             primaryStandard = data.airQuality?.primaryStandard ?: AqiStandard.US,
+                            localizeDigits = localizeDigits,
                             modifier = Modifier.fillMaxWidth().height(164.sd(scale)),
                         )
                     }
@@ -1151,6 +1152,7 @@ internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: B
         if (displayMode == ForecastDisplayMode.Temperature) {
             TemperatureChart(
                 forecasts = forecasts,
+                localizeDigits = localizeDigits,
                 metricPrimary = metricPrimary,
                 itemWidth = itemWidth,
                 spacing = itemSpacing,
@@ -1296,6 +1298,7 @@ internal fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Bo
         if (displayMode == ForecastDisplayMode.Temperature) {
             DailyTemperatureChart(
                 forecasts = forecasts,
+                localizeDigits = localizeDigits,
                 metricPrimary = metricPrimary,
                 itemWidth = itemWidth,
                 spacing = itemSpacing,
@@ -1325,6 +1328,7 @@ internal fun DailyUvForecastList(forecasts: List<DailyForecast>, localizeDigits:
         if (forecasts.isNotEmpty()) {
             DailyUvChart(
                 forecasts = forecasts,
+                localizeDigits = localizeDigits,
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(

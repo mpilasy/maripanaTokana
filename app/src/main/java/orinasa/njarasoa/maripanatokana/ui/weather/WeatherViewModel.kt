@@ -519,6 +519,10 @@ class WeatherViewModel @Inject constructor(
 
     private suspend fun doFetch() {
         var locationObtained = false
+        // Outcomes are recorded here and the final error is decided once both steps finish, so a
+        // fast failure in one step can't flash an Error while the other is still in flight.
+        var displayedThisRun = false
+        var weatherError: Throwable? = null
         val completed = withTimeoutOrNull(45_000L) {
             kotlinx.coroutines.coroutineScope {
                 // Step 1: try cached location for instant render
@@ -529,15 +533,18 @@ class WeatherViewModel @Inject constructor(
                     locationRepository.getLastLocation().onSuccess { (lat, lon) ->
                         locationObtained = true
                         saveLocation(lat, lon)
-                        weatherRepository.getWeather(lat, lon).onSuccess { data ->
-                            if (!freshWeatherDisplayed) {
-                                val displayData = data.copy(locationSubtext = null)
-                                privatePrefs.edit().putString("location_name", displayData.locationName).apply()
-                                publish("gps", displayData)
-                                cachedWeatherDisplayed = true
-                                fetchAlertsForData(lat, lon)
+                        weatherRepository.getWeather(lat, lon)
+                            .onSuccess { data ->
+                                if (!freshWeatherDisplayed) {
+                                    val displayData = data.copy(locationSubtext = null)
+                                    privatePrefs.edit().putString("location_name", displayData.locationName).apply()
+                                    publish("gps", displayData)
+                                    cachedWeatherDisplayed = true
+                                    displayedThisRun = true
+                                    fetchAlertsForData(lat, lon)
+                                }
                             }
-                        }
+                            .onFailure { weatherError = it }
                     }
                 }
 
@@ -551,25 +558,40 @@ class WeatherViewModel @Inject constructor(
                                 weatherRepository.getWeather(lat, lon)
                                     .onSuccess { data ->
                                         freshWeatherDisplayed = true
+                                        displayedThisRun = true
                                         val displayData = data.copy(locationSubtext = null)
                                         privatePrefs.edit().putString("location_name", displayData.locationName).apply()
                                         publish("gps", displayData)
                                         fetchAlertsForData(lat, lon)
                                     }
-                                    .onFailure { onWeatherFailure(it) }
+                                    .onFailure {
+                                        if (_uiState.value is WeatherUiState.Success) _refreshFailed.value = true
+                                        else weatherError = it
+                                    }
                             }
                         }
-                        .onFailure { onWeatherFailure(it, R.string.error_get_location) }
+                    // A failed fresh fix is not a refresh failure: step 1 may still show weather.
                 }
             }
         }
-        // Safety net: if the entire fetch timed out, guarantee we exit Loading.
-        if (completed == null && _uiState.value is WeatherUiState.Loading) {
-            _uiState.value = WeatherUiState.Error(
-                if (locationObtained) R.string.error_fetch_weather else R.string.error_get_location
-            )
-        } else if (completed == null && _uiState.value is WeatherUiState.Success) {
-            _refreshFailed.value = true
+        if (completed == null) {
+            // Safety net: if the entire fetch timed out, guarantee we exit Loading.
+            if (_uiState.value is WeatherUiState.Loading) {
+                _uiState.value = WeatherUiState.Error(
+                    if (locationObtained) R.string.error_fetch_weather else R.string.error_get_location
+                )
+            } else if (_uiState.value is WeatherUiState.Success && !displayedThisRun) {
+                _refreshFailed.value = true
+            }
+        } else if (!displayedThisRun) {
+            if (_uiState.value is WeatherUiState.Success) {
+                if (weatherError != null) _refreshFailed.value = true
+            } else {
+                _uiState.value = WeatherUiState.Error(
+                    weatherError?.toFetchError(weatherSource.value == WeatherSource.PIRATE_WEATHER)?.messageResId
+                        ?: R.string.error_get_location
+                )
+            }
         }
     }
 

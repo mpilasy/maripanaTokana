@@ -4,8 +4,13 @@ import orinasa.njarasoa.maripanatokana.util.AppLog
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import android.content.Context
+import android.location.Geocoder
+import dagger.hilt.android.qualifiers.ApplicationContext
 import orinasa.njarasoa.maripanatokana.data.remote.NominatimApiService
 import java.util.Locale
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /** [subdivision] is the most granular of county/state; [adminArea] is the state/region only. */
 data class CountryInfo(val countryCode: String, val subdivision: String?, val adminArea: String?)
@@ -14,10 +19,31 @@ data class CountryInfo(val countryCode: String, val subdivision: String?, val ad
  * Resolves country/subdivision for alert gating: platform Geocoder first, Nominatim as fallback.
  * Successful results are cached by coordinates rounded to ~1 km to respect Nominatim's usage policy.
  */
+@Singleton
 class CountryResolver(
     private val geocoder: (Double, Double) -> CountryInfo?,
     private val nominatim: NominatimApiService,
 ) {
+    @Inject constructor(
+        @ApplicationContext context: Context,
+        nominatim: NominatimApiService,
+    ) : this(
+        geocoder = { lat, lon ->
+            @Suppress("DEPRECATION")
+            Geocoder(context, Locale.US).getFromLocation(lat, lon, 1)?.firstOrNull()?.let { a ->
+                a.countryCode?.takeIf { it.isNotBlank() }?.let {
+                    CountryInfo(
+                        countryCode = it.lowercase(),
+                        subdivision = a.subAdminArea?.takeIf { s -> s.isNotBlank() }
+                            ?: a.adminArea?.takeIf { s -> s.isNotBlank() },
+                        adminArea = a.adminArea,
+                    )
+                }
+            }
+        },
+        nominatim = nominatim,
+    )
+
     private val cache = object : LinkedHashMap<String, CountryInfo>(16, 0.75f, true) {
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, CountryInfo>?) = size > MAX_ENTRIES
     }

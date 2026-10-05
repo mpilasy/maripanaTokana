@@ -44,11 +44,16 @@ class PlayServicesLocationProvider(
 
     override suspend fun getFreshLocation(): Result<Pair<Double, Double>> {
         return try {
-            val location = withTimeoutOrNull(10_000L) {
-                fusedLocationClient.getCurrentLocation(
-                    Priority.PRIORITY_BALANCED_POWER_ACCURACY,
-                    CancellationTokenSource().token
-                ).await()
+            val cts = CancellationTokenSource()
+            val location = try {
+                withTimeoutOrNull(10_000L) {
+                    fusedLocationClient.getCurrentLocation(
+                        Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+                        cts.token
+                    ).await()
+                }
+            } finally {
+                cts.cancel()
             }
 
             val finalLocation = location ?: try {

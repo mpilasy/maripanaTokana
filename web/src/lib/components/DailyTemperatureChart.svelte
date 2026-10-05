@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { SUPPORTED_LOCALES, localizeDigits } from '$lib/i18n/index';
+	import { localeIndex } from '$lib/stores/preferences';
 	import { _ } from 'svelte-i18n';
 	import type { DailyForecast as DailyForecastType } from '$lib/domain/weatherData';
 
@@ -14,6 +16,7 @@
 
 	let { forecasts, metricPrimary, itemWidth, itemSpacing, height = 48, scrollLeft = 0, containerWidth = 0 }: Props = $props();
 
+	const loc = (s: string) => localizeDigits(s, SUPPORTED_LOCALES[$localeIndex]);
 	let ariaLabel = $derived.by(() => {
 		const highs = forecasts.map(f => f.tempMax).filter(t => Number.isFinite(t.celsius));
 		const lows = forecasts.map(f => f.tempMin).filter(t => Number.isFinite(t.celsius));
@@ -21,7 +24,7 @@
 		const hi = highs.reduce((a, b) => (b.celsius > a.celsius ? b : a));
 		const lo = lows.reduce((a, b) => (b.celsius < a.celsius ? b : a));
 		const show = (t: typeof hi) => metricPrimary ? t.displayCelsius() : t.displayFahrenheit();
-		return $_('chart_daily_temperature_summary', { values: { high: show(hi), low: show(lo) } });
+		return $_('chart_daily_temperature_summary', { values: { high: loc(show(hi)), low: loc(show(lo)) } });
 	});
 	let maxTemps = $derived(forecasts.map(f => metricPrimary ? f.tempMax.celsius : f.tempMax.fahrenheit));
 	let minTemps = $derived(forecasts.map(f => metricPrimary ? f.tempMin.celsius : f.tempMin.fahrenheit));

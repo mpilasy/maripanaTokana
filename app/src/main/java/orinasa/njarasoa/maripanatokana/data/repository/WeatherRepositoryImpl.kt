@@ -1,7 +1,6 @@
 package orinasa.njarasoa.maripanatokana.data.repository
 
 import android.content.Context
-import android.location.Geocoder
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CancellationException
@@ -18,7 +17,6 @@ import orinasa.njarasoa.maripanatokana.data.remote.JmaApiService
 import orinasa.njarasoa.maripanatokana.data.remote.JmaAreaCodes
 import orinasa.njarasoa.maripanatokana.data.remote.MeteoAlarmApiService
 import orinasa.njarasoa.maripanatokana.data.remote.NhcApiService
-import orinasa.njarasoa.maripanatokana.data.remote.NominatimApiService
 import orinasa.njarasoa.maripanatokana.data.remote.NwsApiService
 import orinasa.njarasoa.maripanatokana.data.settings.AppSettingsRepository
 import orinasa.njarasoa.maripanatokana.data.source.GeocodingSourceSelector
@@ -50,25 +48,8 @@ class WeatherRepositoryImpl @Inject constructor(
     private val settingsRepository: AppSettingsRepository,
     private val weatherSourceSelector: WeatherSourceSelector,
     private val geocodingSelector: GeocodingSourceSelector,
-    nominatimApiService: NominatimApiService,
+    private val countryResolver: CountryResolver,
 ) : WeatherRepository {
-
-    private val countryResolver = CountryResolver(
-        geocoder = { lat, lon ->
-            @Suppress("DEPRECATION")
-            Geocoder(context, Locale.US).getFromLocation(lat, lon, 1)?.firstOrNull()?.let { a ->
-                a.countryCode?.takeIf { it.isNotBlank() }?.let {
-                    CountryInfo(
-                        countryCode = it.lowercase(),
-                        subdivision = a.subAdminArea?.takeIf { s -> s.isNotBlank() }
-                            ?: a.adminArea?.takeIf { s -> s.isNotBlank() },
-                        adminArea = a.adminArea,
-                    )
-                }
-            }
-        },
-        nominatim = nominatimApiService,
-    )
 
     private val prefs get() = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
 

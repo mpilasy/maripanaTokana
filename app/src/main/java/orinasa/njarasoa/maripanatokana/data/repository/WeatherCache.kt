@@ -19,19 +19,27 @@ class WeatherCache(private val dir: File) {
         allowSpecialFloatingPointValues = true
     }
 
-    private fun file(key: String) = File(dir, key.replace(Regex("[^A-Za-z0-9._-]"), "_") + ".json")
+    private fun sanitize(key: String) = key.replace(Regex("[^A-Za-z0-9._-]"), "_")
 
+    private fun file(key: String) = File(dir, sanitize(key) + ".json")
+
+    @Synchronized
     fun save(key: String, data: WeatherData) {
         try {
             dir.mkdirs()
-            val tmp = File(dir, "tmp.json")
+            val tmp = File(dir, sanitize(key) + ".json.tmp")
             tmp.writeText(json.encodeToString(WeatherData.serializer(), data.copy(alertsLoading = false)))
-            tmp.renameTo(file(key))
+            val target = file(key)
+            if (!tmp.renameTo(target)) {
+                tmp.copyTo(target, overwrite = true)
+                tmp.delete()
+            }
         } catch (e: Exception) {
             AppLog.w("WeatherCache", "save failed", e)
         }
     }
 
+    @Synchronized
     fun load(key: String): WeatherData? = try {
         file(key).takeIf { it.exists() }?.let { json.decodeFromString(WeatherData.serializer(), it.readText()) }
     } catch (e: Exception) {

@@ -2,6 +2,8 @@
 	import type { HourlyAirQuality } from '$lib/domain/weatherData';
 	import type { AqiStandard, AqiTier } from '$lib/domain/airQuality';
 	import { AirQualityIndex, AQI_TIER_COLORS } from '$lib/domain/airQuality';
+	import { SUPPORTED_LOCALES, localizeDigits } from '$lib/i18n/index';
+	import { localeIndex } from '$lib/stores/preferences';
 	import { _, json } from 'svelte-i18n';
 	import { onMount } from 'svelte';
 	import TierLegend from './TierLegend.svelte';
@@ -35,10 +37,11 @@
 	});
 
 	let values = $derived(forecasts.map(f => primaryStandard === 'EUROPEAN' ? f.europeanValue : f.usValue));
+	const loc = (s: string) => localizeDigits(s, SUPPORTED_LOCALES[$localeIndex]);
 	let ariaLabel = $derived.by(() => {
 		const valid = values.filter(v => Number.isFinite(v));
 		if (valid.length === 0) return undefined;
-		return $_('chart_air_quality_summary', { values: { max: Math.round(Math.max(...valid)) } });
+		return $_('chart_air_quality_summary', { values: { max: loc(String(Math.round(Math.max(...valid)))) } });
 	});
 	let minValue = $derived(values.length ? Math.min(...values) : 0);
 	let maxValue = $derived(values.length ? Math.max(...values) : 0);

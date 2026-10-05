@@ -349,17 +349,19 @@ Deep audit of commits `88d3de8` through `f746b7d` and working tree changes. Veri
 
 | Item | Verdict | Action |
 |---|---|---|
-| A.1 | Confirmed, critical: the built client bundle minifies `Temperature` to `class ie`, so no `__class` tag is written | Fix now |
-| A.2 | Confirmed: one shared `tmp.json` for all keys | Fix now |
-| A.3 | Confirmed on both platforms | Fix now |
-| A.4 | Confirmed; medium rather than high, since Play Services times the request out itself | Fix now |
+| A.1 | Confirmed, critical: the built client bundle minifies `Temperature` to `class ie`, so no `__class` tag is written | Fixed |
+| A.2 | Confirmed: one shared `tmp.json` for all keys | Fixed |
+| A.3 | Confirmed on both platforms | Fixed |
+| A.4 | Confirmed; medium rather than high, since Play Services times the request out itself | Fixed |
 | A.5 | Confirmed but rare: missing providers already return false from `isProviderEnabled`; predates this branch | Deferred |
-| A.6 | Confirmed; predates this branch | Fix now |
+| A.6 | Confirmed; predates this branch | Fixed |
 | A.7 | Low: on API 26+ bitmap pixel memory is freed with the object | Deferred |
-| A.8 | Partly: `"%.1f".format` uses the device locale rather than the app locale; native digits are missing for ar, hi and ne | Fix now |
+| A.8 | Partly: `"%.1f".format` uses the device locale rather than the app locale; native digits are missing for ar, hi and ne | Fixed |
 | A.9 | True, cosmetic | Deferred |
 | A.10 | True, low | Deferred |
 | A.11 | True, low | Deferred |
+
+A.1 was reproduced end to end against the production build in headless Chromium. With the pre-fix build, the offline reload threw `TypeError: e.data.temperature.displayDualMixed is not a function`; with the fix it rendered the snapshot with no exceptions.
 
 Emulator testing (commit `7ad4d2b`) separately found and fixed three bugs:
 - Settings switches didn't update in release builds, because the prefs listener was garbage-collected after R8.

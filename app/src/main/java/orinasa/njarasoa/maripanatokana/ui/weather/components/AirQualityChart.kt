@@ -47,6 +47,7 @@ fun AirQualityChart(
     primaryStandard: AqiStandard,
     modifier: Modifier = Modifier,
     lineColor: Color = Color.White,
+    localizeDigits: (String) -> String = { it },
 ) {
     if (forecasts.isEmpty()) return
 
@@ -96,7 +97,7 @@ fun AirQualityChart(
     val gridColor = MaterialTheme.colorScheme.onSurface
 
     val summaryModifier = if (values.isNotEmpty()) {
-        val description = stringResource(R.string.chart_air_quality_summary, maxValue.toString())
+        val description = stringResource(R.string.chart_air_quality_summary, localizeDigits(maxValue.toString()))
         Modifier.semantics { contentDescription = description }
     } else Modifier
 

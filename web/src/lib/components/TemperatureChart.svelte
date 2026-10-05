@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { SUPPORTED_LOCALES, localizeDigits } from '$lib/i18n/index';
+	import { localeIndex } from '$lib/stores/preferences';
 	import { _ } from 'svelte-i18n';
 	import type { HourlyForecast } from '$lib/domain/weatherData';
 
@@ -15,13 +17,14 @@
 	let { forecasts, metricPrimary, itemWidth, itemSpacing, height = 40, scrollLeft = 0, containerWidth = 0 }: Props = $props();
 
 	let temps = $derived(forecasts.map(f => metricPrimary ? f.temperature.celsius : f.temperature.fahrenheit));
+	const loc = (s: string) => localizeDigits(s, SUPPORTED_LOCALES[$localeIndex]);
 	let ariaLabel = $derived.by(() => {
 		const valid = forecasts.map(f => f.temperature).filter(t => Number.isFinite(t.celsius));
 		if (valid.length === 0) return undefined;
 		const hi = valid.reduce((a, b) => (b.celsius > a.celsius ? b : a));
 		const lo = valid.reduce((a, b) => (b.celsius < a.celsius ? b : a));
 		const show = (t: typeof hi) => metricPrimary ? t.displayCelsius() : t.displayFahrenheit();
-		return $_('chart_temperature_summary', { values: { high: show(hi), low: show(lo) } });
+		return $_('chart_temperature_summary', { values: { high: loc(show(hi)), low: loc(show(lo)) } });
 	});
 	let minTemp = $derived(Math.min(...temps));
 	let maxTemp = $derived(Math.max(...temps));

@@ -66,4 +66,17 @@ class WeatherCacheTest {
         dir.resolve("gps.json").writeText("{not json")
         assertNull(cache.load("gps"))
     }
+
+    @Test
+    fun concurrentSavesForDifferentKeysDoNotMix() {
+        val cache = WeatherCache(tmp.newFolder("e"))
+        val threads = listOf("a", "b").map { key ->
+            Thread { repeat(50) { cache.save(key, data("city-$key")) } }
+        }
+        threads.forEach { it.start() }
+        threads.forEach { it.join() }
+
+        assertEquals("city-a", cache.load("a")!!.locationName)
+        assertEquals("city-b", cache.load("b")!!.locationName)
+    }
 }

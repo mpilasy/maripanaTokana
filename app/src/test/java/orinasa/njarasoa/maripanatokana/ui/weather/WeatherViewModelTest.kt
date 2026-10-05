@@ -10,6 +10,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.currentTime
@@ -181,5 +182,38 @@ class WeatherViewModelTest {
         advanceUntilIdle()
 
         assertEquals(WeatherUiState.Error(R.string.error_fetch_weather), viewModel.uiState.value)
+    }
+
+    @Test
+    fun freshLocationFailureAfterCachedWeatherKeepsSuccessWithoutRefreshFailed() = runTest(testDispatcher) {
+        coEvery { locationRepository.getFreshLocation() } coAnswers {
+            delay(3000)
+            Result.failure(Exception("no gps"))
+        }
+
+        viewModel.refresh()
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value is WeatherUiState.Success)
+        assertEquals(false, viewModel.refreshFailed.value)
+    }
+
+    @Test
+    fun freshLocationFailureBeforeSlowCachedWeatherNeverEmitsError() = runTest(testDispatcher) {
+        coEvery { locationRepository.getFreshLocation() } coAnswers {
+            delay(50)
+            Result.failure(Exception("no gps"))
+        }
+        // Default getWeather takes 2000 ms and succeeds.
+        val states = mutableListOf<WeatherUiState>()
+        val collector = backgroundScope.launch(testDispatcher) { viewModel.uiState.collect { states.add(it) } }
+
+        viewModel.refresh()
+        advanceUntilIdle()
+        collector.cancel()
+
+        assertTrue("states=$states", states.none { it is WeatherUiState.Error })
+        assertTrue(viewModel.uiState.value is WeatherUiState.Success)
+        assertEquals(false, viewModel.refreshFailed.value)
     }
 }

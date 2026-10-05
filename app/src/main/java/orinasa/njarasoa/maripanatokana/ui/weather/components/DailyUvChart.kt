@@ -28,6 +28,7 @@ import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.domain.model.DailyForecast
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 import java.util.Calendar
+import java.util.Locale
 
 // EPA UV Index tier boundaries (see UvTierBadge.colorsFor) — sampling colorsFor() at these
 // values reuses the single source of truth for tier colors instead of re-declaring the hexes.
@@ -41,6 +42,7 @@ private val UV_TIER_SAMPLE_VALUES = listOf(0.0, 3.0, 6.0, 8.0, 11.0)
 fun DailyUvChart(
     forecasts: List<DailyForecast>,
     modifier: Modifier = Modifier,
+    localizeDigits: (String) -> String = { it },
 ) {
     if (forecasts.isEmpty()) return
 
@@ -71,7 +73,7 @@ fun DailyUvChart(
     val gridColor = MaterialTheme.colorScheme.onSurface
     val maxUv = uvValues.filter { !it.isNaN() }.maxOrNull()
     val summaryModifier = if (maxUv != null) {
-        val description = stringResource(R.string.chart_uv_summary, "%.1f".format(maxUv))
+        val description = stringResource(R.string.chart_uv_summary, localizeDigits("%.1f".format(Locale.US, maxUv)))
         Modifier.semantics { contentDescription = description }
     } else Modifier
 

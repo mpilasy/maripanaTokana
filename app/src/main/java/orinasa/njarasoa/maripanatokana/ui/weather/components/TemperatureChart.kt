@@ -39,6 +39,7 @@ fun TemperatureChart(
     lineColor: Color = Color.White,
     scrollOffset: Float = 0f,
     totalScrollWidth: Float = 0f,
+    localizeDigits: (String) -> String = { it },
 ) {
     if (forecasts.isEmpty()) return
 
@@ -92,7 +93,7 @@ fun TemperatureChart(
     val summaryModifier = if (highTemp != null && lowTemp != null) {
         val high = if (metricPrimary) highTemp.displayCelsius() else highTemp.displayFahrenheit()
         val low = if (metricPrimary) lowTemp.displayCelsius() else lowTemp.displayFahrenheit()
-        val description = stringResource(R.string.chart_temperature_summary, high, low)
+        val description = stringResource(R.string.chart_temperature_summary, localizeDigits(high), localizeDigits(low))
         Modifier.semantics { contentDescription = description }
     } else Modifier
 
