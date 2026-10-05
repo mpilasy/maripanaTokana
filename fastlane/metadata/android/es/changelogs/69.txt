@@ -1,0 +1,1 @@
+Se actualizaron las bibliotecas en las que se basa la aplicación (Jetpack Compose, Hilt, Glance, WorkManager, entre otras) para mejorar la estabilidad y la seguridad. Sin cambios en las funciones.

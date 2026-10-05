@@ -1,0 +1,1 @@
+Updated the libraries the app is built on (Jetpack Compose, Hilt, Glance, WorkManager and others) for better stability and security. No change to features.

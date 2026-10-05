@@ -1,0 +1,1 @@
+更新了应用所依赖的库（Jetpack Compose、Hilt、Glance、WorkManager 等），提升稳定性和安全性。功能无变化。

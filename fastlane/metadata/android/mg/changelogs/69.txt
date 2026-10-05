@@ -1,0 +1,1 @@
+Nohavaozina ireo tranomboky iorenan'ny rindranasa (Jetpack Compose, Hilt, Glance, WorkManager sy ny sisa) mba ho azo antoka sy milamina kokoa. Tsy misy fiovana amin'ny asa ataony.
