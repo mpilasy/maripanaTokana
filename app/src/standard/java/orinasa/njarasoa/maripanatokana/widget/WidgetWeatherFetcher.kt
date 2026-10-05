@@ -39,7 +39,7 @@ object WidgetWeatherFetcher : BaseWidgetWeatherFetcher() {
         }
 
         // Fall back to last coordinates saved by the main app
-        val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
+        val prefs = context.getSharedPreferences("private_prefs", Context.MODE_PRIVATE)
         val lat = prefs.getFloat("lat", Float.MIN_VALUE)
         val lon = prefs.getFloat("lon", Float.MIN_VALUE)
         if (lat == Float.MIN_VALUE) return null

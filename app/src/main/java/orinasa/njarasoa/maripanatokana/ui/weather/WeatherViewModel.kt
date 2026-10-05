@@ -80,6 +80,7 @@ class WeatherViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val prefs = appContext.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
+    private val privatePrefs = appContext.getSharedPreferences("private_prefs", Context.MODE_PRIVATE)
 
     private val _uiState = MutableStateFlow<WeatherUiState>(WeatherUiState.PermissionRequired)
     val uiState: StateFlow<WeatherUiState> = _uiState.asStateFlow()
@@ -110,12 +111,12 @@ class WeatherViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, settingsRepository.current.advancedMode)
 
     private val _advancedOverrideLat = MutableStateFlow<Double?>(
-        prefs.getFloat("advanced_override_lat", Float.NaN).takeUnless { it.isNaN() }?.toDouble()
+        privatePrefs.getFloat("advanced_override_lat", Float.NaN).takeUnless { it.isNaN() }?.toDouble()
     )
     val advancedOverrideLat: StateFlow<Double?> = _advancedOverrideLat.asStateFlow()
 
     private val _advancedOverrideLon = MutableStateFlow<Double?>(
-        prefs.getFloat("advanced_override_lon", Float.NaN).takeUnless { it.isNaN() }?.toDouble()
+        privatePrefs.getFloat("advanced_override_lon", Float.NaN).takeUnless { it.isNaN() }?.toDouble()
     )
     val advancedOverrideLon: StateFlow<Double?> = _advancedOverrideLon.asStateFlow()
 
@@ -162,7 +163,7 @@ class WeatherViewModel @Inject constructor(
     }
 
     private fun checkOverrideExpiry() {
-        val setTime = prefs.getLong("advanced_override_set_time", 0L)
+        val setTime = privatePrefs.getLong("advanced_override_set_time", 0L)
         if (setTime != 0L && System.currentTimeMillis() - setTime >= 12 * 60 * 60 * 1000L) {
             clearAdvancedModeOverride()
         }
@@ -214,13 +215,13 @@ class WeatherViewModel @Inject constructor(
      * to a real location clears an active preview. Use [favoriteCurrentLocation] to save it. */
     fun setLocationOverride(lat: Double, lon: Double, name: String) {
         _uiState.value = WeatherUiState.Loading
-        prefs.edit {
+        privatePrefs.edit {
             putFloat("advanced_override_lat", lat.toFloat())
             putFloat("advanced_override_lon", lon.toFloat())
             putString("advanced_override_name", name)
             putLong("advanced_override_set_time", System.currentTimeMillis())
-            remove("active_location_id")
         }
+        prefs.edit { remove("active_location_id") }
         _advancedOverrideLat.value = lat
         _advancedOverrideLon.value = lon
         _activeLocationId.value = null
@@ -273,7 +274,7 @@ class WeatherViewModel @Inject constructor(
     }
 
     private fun clearAdvancedModeOverride() {
-        prefs.edit {
+        privatePrefs.edit {
             remove("advanced_override_lat")
             remove("advanced_override_lon")
             remove("advanced_override_name")
@@ -327,7 +328,7 @@ class WeatherViewModel @Inject constructor(
     fun favoriteCurrentLocation() {
         val lat = _advancedOverrideLat.value ?: return
         val lon = _advancedOverrideLon.value ?: return
-        val rawName = prefs.getString("advanced_override_name", null) ?: return
+        val rawName = privatePrefs.getString("advanced_override_name", null) ?: return
         val parts = rawName.split(",", limit = 2).map { it.trim() }
         val name = parts.getOrElse(0) { rawName }
         val subtext = parts.getOrNull(1)?.ifBlank { null }
@@ -394,7 +395,7 @@ class WeatherViewModel @Inject constructor(
                     saveLocation(lat, lon)
                     weatherRepository.getWeather(lat, lon).onSuccess { data ->
                         cachedGpsWeatherData = data.copy(locationSubtext = null)
-                        prefs.edit { putString("location_name", data.locationName) }
+                        privatePrefs.edit { putString("location_name", data.locationName) }
                     }
                 }
             } catch (e: CancellationException) {
@@ -452,10 +453,10 @@ class WeatherViewModel @Inject constructor(
                     // Check 12-hour non-local override expiry
                     checkOverrideExpiry()
 
-                    if (prefs.contains("advanced_override_lat")) {
-                        val overrideLat = prefs.getFloat("advanced_override_lat", 0f).toDouble()
-                        val overrideLon = prefs.getFloat("advanced_override_lon", 0f).toDouble()
-                        val rawOverrideName = prefs.getString("advanced_override_name", "Overridden Location") ?: "Overridden Location"
+                    if (privatePrefs.contains("advanced_override_lat")) {
+                        val overrideLat = privatePrefs.getFloat("advanced_override_lat", 0f).toDouble()
+                        val overrideLon = privatePrefs.getFloat("advanced_override_lon", 0f).toDouble()
+                        val rawOverrideName = privatePrefs.getString("advanced_override_name", "Overridden Location") ?: "Overridden Location"
                         val overrideName = shortPlaceName(rawOverrideName)
 
                         weatherRepository.getWeather(overrideLat, overrideLon).onSuccess { data ->
@@ -485,10 +486,10 @@ class WeatherViewModel @Inject constructor(
                 // Check 12-hour non-local override expiry
                 checkOverrideExpiry()
 
-                if (prefs.contains("advanced_override_lat")) {
-                    val overrideLat = prefs.getFloat("advanced_override_lat", 0f).toDouble()
-                    val overrideLon = prefs.getFloat("advanced_override_lon", 0f).toDouble()
-                    val rawOverrideName = prefs.getString("advanced_override_name", "Overridden Location") ?: "Overridden Location"
+                if (privatePrefs.contains("advanced_override_lat")) {
+                    val overrideLat = privatePrefs.getFloat("advanced_override_lat", 0f).toDouble()
+                    val overrideLon = privatePrefs.getFloat("advanced_override_lon", 0f).toDouble()
+                    val rawOverrideName = privatePrefs.getString("advanced_override_name", "Overridden Location") ?: "Overridden Location"
                     val overrideName = shortPlaceName(rawOverrideName)
 
                     weatherRepository.getWeather(overrideLat, overrideLon).onSuccess { data ->
@@ -531,7 +532,7 @@ class WeatherViewModel @Inject constructor(
                         weatherRepository.getWeather(lat, lon).onSuccess { data ->
                             if (!freshWeatherDisplayed) {
                                 val displayData = data.copy(locationSubtext = null)
-                                prefs.edit().putString("location_name", displayData.locationName).apply()
+                                privatePrefs.edit().putString("location_name", displayData.locationName).apply()
                                 publish("gps", displayData)
                                 cachedWeatherDisplayed = true
                                 fetchAlertsForData(lat, lon)
@@ -551,7 +552,7 @@ class WeatherViewModel @Inject constructor(
                                     .onSuccess { data ->
                                         freshWeatherDisplayed = true
                                         val displayData = data.copy(locationSubtext = null)
-                                        prefs.edit().putString("location_name", displayData.locationName).apply()
+                                        privatePrefs.edit().putString("location_name", displayData.locationName).apply()
                                         publish("gps", displayData)
                                         fetchAlertsForData(lat, lon)
                                     }
@@ -591,8 +592,8 @@ class WeatherViewModel @Inject constructor(
     }
 
     private fun loadCached(): WeatherData? {
-        if (prefs.contains("advanced_override_lat")) {
-            val name = shortPlaceName(prefs.getString("advanced_override_name", "Overridden Location") ?: "Overridden Location")
+        if (privatePrefs.contains("advanced_override_lat")) {
+            val name = shortPlaceName(privatePrefs.getString("advanced_override_name", "Overridden Location") ?: "Overridden Location")
             // A single "preview" slot: only reuse it if it holds this same place
             return weatherCache.load("preview")?.takeIf { it.locationName == name }
         }
@@ -601,8 +602,8 @@ class WeatherViewModel @Inject constructor(
     }
 
     private fun movedSignificantly(lat: Double, lon: Double): Boolean {
-        val oldLat = prefs.getFloat("last_render_lat", Float.MIN_VALUE)
-        val oldLon = prefs.getFloat("last_render_lon", Float.MIN_VALUE)
+        val oldLat = privatePrefs.getFloat("last_render_lat", Float.MIN_VALUE)
+        val oldLon = privatePrefs.getFloat("last_render_lon", Float.MIN_VALUE)
         val isMoved = if (oldLat == Float.MIN_VALUE) {
             true
         } else {
@@ -616,7 +617,7 @@ class WeatherViewModel @Inject constructor(
     }
 
     private fun saveLocation(lat: Double, lon: Double) {
-        prefs.edit()
+        privatePrefs.edit()
             .putFloat("lat", lat.toFloat())
             .putFloat("lon", lon.toFloat())
             .putFloat("last_render_lat", lat.toFloat())

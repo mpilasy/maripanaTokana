@@ -204,7 +204,7 @@ internal fun WeatherContent(
         advancedOverrideLat to advancedOverrideLon
     } else {
         remember(context) {
-            val prefs = context.getSharedPreferences("widget_prefs", android.content.Context.MODE_PRIVATE)
+            val prefs = context.getSharedPreferences("private_prefs", android.content.Context.MODE_PRIVATE)
             prefs.getFloat("lat", 0f).toDouble() to prefs.getFloat("lon", 0f).toDouble()
         }
     }

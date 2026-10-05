@@ -35,7 +35,7 @@
 	$effect(() => {
 		const pairing = fontPairings[$fontIndex];
 		if (pairing) {
-			fontUrl = pairing.googleFontsUrl ?? '';
+			fontUrl = pairing.fontCssUrl ?? '';
 			displayFamily = pairing.displayFamily;
 			bodyFamily = pairing.bodyFamily;
 			fontFeatures = pairing.bodyFontFeatures ?? 'normal';

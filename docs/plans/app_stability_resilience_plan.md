@@ -196,7 +196,7 @@ Suggested order: Phase 0 first (cheap, and catches regressions from everything a
 **Status (2026-10-05):**
 - **Done** (`67ff726`): 2.1, 2.2, 2.3, 2.5, 2.6, 2.7.
 - **2.8 partial:** Android ignores fixes older than 24 h, but the `last_known_location` note isn't shown yet. That needs `LocationProvider` to return the fix age.
-- **2.4 open:** per-source alert status and logging. It is scheduled after the WMO removal, since both touch the alert code.
+- **2.4 done** (`96a3236`): per-source alert status (shown in advanced mode) and debug logging.
 
 ### 2.1 Android app has no offline cache
 - **Problem:** `WeatherRepositoryImpl.getWeather` always hits the network. Launching the app offline (or in a dead zone) shows the error screen, even though the widget already keeps a cached forecast (`A/widget/BaseWidgetWeatherFetcher.kt:60-74`).
@@ -241,6 +241,8 @@ Suggested order: Phase 0 first (cheap, and catches regressions from everything a
 
 ## Phase 3 — Web server & deployment
 
+**Status (2026-10-05): done** (`f2949d5`). The CSP ships as report-only, with violations logged by `/api/csp-report`. Switch `reportOnly` to `directives` in `svelte.config.js` once a browser session shows no violations.
+
 ### 3.1 Proxies hit upstream on every request
 - **Where:** all `web/src/routes/api/alerts/*/+server.ts`. Every client load re-downloads the full BOM national warnings list, the NHC storms list, MeteoAlarm country feeds, and so on.
 - **Fix:** a small in-memory TTL cache (5–10 min) keyed by URL in a shared helper, plus `Cache-Control: public, max-age=300` on responses. This cuts upstream load, rate-limit risk, and latency.
@@ -267,6 +269,12 @@ Suggested order: Phase 0 first (cheap, and catches regressions from everything a
 ---
 
 ## Phase 4 — Privacy & security
+
+**Status (2026-10-05): done.**
+- 4.1: sensitive keys moved to `private_prefs` with a one-time migration. That file and `weather_cache/` are excluded from backup and device transfer.
+- 4.2: moot, since WMO SWIC was removed.
+- 4.3: fonts self-hosted under `web/static/fonts`, OFL licenses included.
+- 4.4: the resolver follows https redirects only and caps the body at 256 KB.
 
 ### 4.1 Cloud backup includes location and API key
 - **Where:** `app/src/main/AndroidManifest.xml` has `allowBackup="true"`. `res/xml/backup_rules.xml` and `data_extraction_rules.xml` are unmodified templates, so everything is backed up. The single `widget_prefs` file holds GPS coordinates (`lat`, `lon`, `last_render_*`), saved locations, and `settings_weather_api_key`.

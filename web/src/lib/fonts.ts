@@ -3,7 +3,7 @@ export interface FontPairing {
 	displayFamily: string;
 	bodyFamily: string;
 	bodyFontFeatures?: string;
-	googleFontsUrl?: string;
+	fontCssUrl?: string;
 }
 
 export const fontPairings: FontPairing[] = [
@@ -18,105 +18,105 @@ export const fontPairings: FontPairing[] = [
 		name: 'Orbitron + Outfit',
 		displayFamily: "'Orbitron', sans-serif",
 		bodyFamily: "'Outfit', sans-serif",
-		googleFontsUrl: 'https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Outfit:wght@400;700&display=swap',
+		fontCssUrl: '/fonts/orbitron-outfit.css',
 	},
 	// 2
 	{
 		name: 'Rajdhani + Inter',
 		displayFamily: "'Rajdhani', sans-serif",
 		bodyFamily: "'Inter', sans-serif",
-		googleFontsUrl: 'https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;700&family=Inter:wght@400;700&display=swap',
+		fontCssUrl: '/fonts/rajdhani-inter.css',
 	},
 	// 3
 	{
 		name: 'Oxanium + Nunito',
 		displayFamily: "'Oxanium', sans-serif",
 		bodyFamily: "'Nunito', sans-serif",
-		googleFontsUrl: 'https://fonts.googleapis.com/css2?family=Oxanium:wght@400;700&family=Nunito:wght@400;700&display=swap',
+		fontCssUrl: '/fonts/oxanium-nunito.css',
 	},
 	// 4
 	{
 		name: 'Space Grotesk + DM Sans',
 		displayFamily: "'Space Grotesk', sans-serif",
 		bodyFamily: "'DM Sans', sans-serif",
-		googleFontsUrl: 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=DM+Sans:wght@400;700&display=swap',
+		fontCssUrl: '/fonts/space-grotesk-dm-sans.css',
 	},
 	// 5
 	{
 		name: 'Sora + Source Sans',
 		displayFamily: "'Sora', sans-serif",
 		bodyFamily: "'Source Sans 3', sans-serif",
-		googleFontsUrl: 'https://fonts.googleapis.com/css2?family=Sora:wght@400;700&family=Source+Sans+3:wght@400;700&display=swap',
+		fontCssUrl: '/fonts/sora-source-sans.css',
 	},
 	// 6
 	{
 		name: 'Manrope + Rubik',
 		displayFamily: "'Manrope', sans-serif",
 		bodyFamily: "'Rubik', sans-serif",
-		googleFontsUrl: 'https://fonts.googleapis.com/css2?family=Manrope:wght@400;700&family=Rubik:wght@400;700&display=swap',
+		fontCssUrl: '/fonts/manrope-rubik.css',
 	},
 	// 7
 	{
 		name: 'Josefin Sans + Lato',
 		displayFamily: "'Josefin Sans', sans-serif",
 		bodyFamily: "'Lato', sans-serif",
-		googleFontsUrl: 'https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;700&family=Lato:wght@400;700&display=swap',
+		fontCssUrl: '/fonts/josefin-sans-lato.css',
 	},
 	// 8
 	{
 		name: 'Cormorant + Fira Sans',
 		displayFamily: "'Cormorant Garamond', serif",
 		bodyFamily: "'Fira Sans', sans-serif",
-		googleFontsUrl: 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;700&family=Fira+Sans:wght@400;700&display=swap',
+		fontCssUrl: '/fonts/cormorant-fira-sans.css',
 	},
 	// 9
 	{
 		name: 'Playfair + Work Sans',
 		displayFamily: "'Playfair Display', serif",
 		bodyFamily: "'Work Sans', sans-serif",
-		googleFontsUrl: 'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Work+Sans:wght@400;700&display=swap',
+		fontCssUrl: '/fonts/playfair-work-sans.css',
 	},
 	// 10
 	{
 		name: 'Quicksand + Nunito Sans',
 		displayFamily: "'Quicksand', sans-serif",
 		bodyFamily: "'Nunito Sans', sans-serif",
-		googleFontsUrl: 'https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700&family=Nunito+Sans:wght@400;700&display=swap',
+		fontCssUrl: '/fonts/quicksand-nunito-sans.css',
 	},
 	// 11
 	{
 		name: 'Comfortaa + Karla',
 		displayFamily: "'Comfortaa', sans-serif",
 		bodyFamily: "'Karla', sans-serif",
-		googleFontsUrl: 'https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=Karla:wght@400;700&display=swap',
+		fontCssUrl: '/fonts/comfortaa-karla.css',
 	},
 	// 12
 	{
 		name: 'Baloo 2 + Poppins',
 		displayFamily: "'Baloo 2', sans-serif",
 		bodyFamily: "'Poppins', sans-serif",
-		googleFontsUrl: 'https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&family=Poppins:wght@400;700&display=swap',
+		fontCssUrl: '/fonts/baloo-2-poppins.css',
 	},
 	// 13
 	{
 		name: 'Exo 2 + Barlow',
 		displayFamily: "'Exo 2', sans-serif",
 		bodyFamily: "'Barlow', sans-serif",
-		googleFontsUrl: 'https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700&family=Barlow:wght@400;700&display=swap',
+		fontCssUrl: '/fonts/exo-2-barlow.css',
 	},
 	// 14
 	{
 		name: 'Michroma + Saira',
 		displayFamily: "'Michroma', sans-serif",
 		bodyFamily: "'Saira', sans-serif",
-		googleFontsUrl: 'https://fonts.googleapis.com/css2?family=Michroma&family=Saira:wght@400;700&display=swap',
+		fontCssUrl: '/fonts/michroma-saira.css',
 	},
 	// 15
 	{
 		name: 'Jost + Atkinson',
 		displayFamily: "'Jost', sans-serif",
 		bodyFamily: "'Atkinson Hyperlegible', sans-serif",
-		googleFontsUrl: 'https://fonts.googleapis.com/css2?family=Jost:wght@400;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap',
+		fontCssUrl: '/fonts/jost-atkinson.css',
 	},
 	// 16
 	{
@@ -124,7 +124,7 @@ export const fontPairings: FontPairing[] = [
 		displayFamily: 'system-ui, sans-serif',
 		bodyFamily: "'Fira Code', monospace",
 		bodyFontFeatures: '"tnum"',
-		googleFontsUrl: 'https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap',
+		fontCssUrl: '/fonts/roboto-fira-code.css',
 	},
 	// 17
 	{
@@ -132,7 +132,7 @@ export const fontPairings: FontPairing[] = [
 		displayFamily: "'Montserrat', sans-serif",
 		bodyFamily: "'Open Sans', sans-serif",
 		bodyFontFeatures: '"tnum"',
-		googleFontsUrl: 'https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Open+Sans:wght@400;700&display=swap',
+		fontCssUrl: '/fonts/montserrat-open-sans.css',
 	},
 	// 18
 	{
@@ -140,7 +140,7 @@ export const fontPairings: FontPairing[] = [
 		displayFamily: "'Space Grotesk', sans-serif",
 		bodyFamily: "'Space Mono', monospace",
 		bodyFontFeatures: '"tnum"',
-		googleFontsUrl: 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Space+Mono:wght@400;700&display=swap',
+		fontCssUrl: '/fonts/space-grotesk-space-mono.css',
 	},
 	// 19
 	{
@@ -148,7 +148,7 @@ export const fontPairings: FontPairing[] = [
 		displayFamily: "'Plus Jakarta Sans', sans-serif",
 		bodyFamily: "'Inter', sans-serif",
 		bodyFontFeatures: '"tnum"',
-		googleFontsUrl: 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700&family=Inter:wght@400;700&display=swap',
+		fontCssUrl: '/fonts/plus-jakarta-sans-inter.css',
 	},
 	// 20
 	{
@@ -156,13 +156,13 @@ export const fontPairings: FontPairing[] = [
 		displayFamily: "'Archivo', sans-serif",
 		bodyFamily: "'Archivo Narrow', sans-serif",
 		bodyFontFeatures: '"tnum"',
-		googleFontsUrl: 'https://fonts.googleapis.com/css2?family=Archivo:wght@400;700&family=Archivo+Narrow:wght@400;700&display=swap',
+		fontCssUrl: '/fonts/archivo-archivo-narrow.css',
 	},
 	// 21
 	{
 		name: 'Roboto + Lora',
 		displayFamily: 'system-ui, sans-serif',
 		bodyFamily: "'Lora', serif",
-		googleFontsUrl: 'https://fonts.googleapis.com/css2?family=Lora:wght@400;700&display=swap',
+		fontCssUrl: '/fonts/roboto-lora.css',
 	},
 ];

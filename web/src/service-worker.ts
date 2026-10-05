@@ -8,7 +8,6 @@ import { build, files, version } from '$service-worker';
 const sw = self as unknown as ServiceWorkerGlobalScope;
 const CACHE_APP = `app-${version}`;
 const CACHE_API = 'api-cache';
-const CACHE_FONTS = 'font-cache';
 
 const APP_ASSETS = new Set([...build, ...files]);
 
@@ -23,7 +22,7 @@ sw.addEventListener('activate', (event) => {
 		caches.keys().then((keys) =>
 			Promise.all(
 				keys
-					.filter((key) => key !== CACHE_APP && key !== CACHE_API && key !== CACHE_FONTS)
+					.filter((key) => key !== CACHE_APP && key !== CACHE_API)
 					.map((key) => caches.delete(key))
 			)
 		).then(() => sw.clients.claim())
@@ -49,23 +48,6 @@ sw.addEventListener('fetch', (event) => {
 					return response;
 				})
 				.catch(() => caches.match(event.request).then((r) => r || new Response('Offline', { status: 503 })))
-		);
-		return;
-	}
-
-	// Google Fonts: CacheFirst
-	if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
-		event.respondWith(
-			caches.match(event.request).then((cached) => {
-				if (cached) return cached;
-				return fetch(event.request).then((response) => {
-					if (response.ok) {
-						const clone = response.clone();
-						caches.open(CACHE_FONTS).then((cache) => cache.put(event.request, clone));
-					}
-					return response;
-				});
-			})
 		);
 		return;
 	}

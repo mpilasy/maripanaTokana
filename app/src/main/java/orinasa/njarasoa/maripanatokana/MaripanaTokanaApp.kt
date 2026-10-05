@@ -15,6 +15,7 @@ class MaripanaTokanaApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        PrefsMigration.migrate(this)
 
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)

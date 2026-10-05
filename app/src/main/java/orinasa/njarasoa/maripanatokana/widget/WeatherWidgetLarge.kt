@@ -50,7 +50,7 @@ class WeatherWidgetLarge : GlanceAppWidget() {
         val data = WidgetWeatherFetcher.fetch(context)
         val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
         val metricPrimary = prefs.getBoolean("metric_primary", true)
-        val hasCachedLocation = prefs.getFloat("lat", Float.MIN_VALUE) != Float.MIN_VALUE
+        val hasCachedLocation = context.getSharedPreferences("private_prefs", Context.MODE_PRIVATE).getFloat("lat", Float.MIN_VALUE) != Float.MIN_VALUE
 
         provideContent {
             GlanceTheme {

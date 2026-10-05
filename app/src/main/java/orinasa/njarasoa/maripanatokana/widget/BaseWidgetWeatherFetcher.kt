@@ -36,7 +36,7 @@ open class BaseWidgetWeatherFetcher(private val baseUrl: String = "https://api.o
 
     @SuppressLint("MissingPermission")
     suspend fun fetchInternal(context: Context, getCoordinates: suspend () -> Pair<Double, Double>?): WeatherData? {
-        val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
+        val prefs = context.getSharedPreferences("private_prefs", Context.MODE_PRIVATE)
         return try {
             val (lat, lon) = getCoordinates() ?: throw Exception("No coordinates")
 

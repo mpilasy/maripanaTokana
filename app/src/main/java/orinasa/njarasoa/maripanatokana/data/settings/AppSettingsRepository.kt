@@ -20,6 +20,8 @@ class AppSettingsRepository @Inject constructor(
 ) {
     private val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
 
+    private val privatePrefs = context.getSharedPreferences("private_prefs", Context.MODE_PRIVATE)
+
     private val _settings = MutableStateFlow(load())
     val settings: StateFlow<AppSettings> = _settings.asStateFlow()
     val current: AppSettings get() = _settings.value
@@ -30,6 +32,7 @@ class AppSettingsRepository @Inject constructor(
 
     init {
         prefs.registerOnSharedPreferenceChangeListener(listener)
+        privatePrefs.registerOnSharedPreferenceChangeListener(listener)
     }
 
     private fun load() = AppSettings(
@@ -37,7 +40,7 @@ class AppSettingsRepository @Inject constructor(
         weatherSource = prefs.getString("settings_weather_source", null)
             ?.let { runCatching { WeatherSource.valueOf(it) }.getOrNull() }
             ?: WeatherSource.OPEN_METEO,
-        weatherApiKey = prefs.getString("settings_weather_api_key", "") ?: "",
+        weatherApiKey = privatePrefs.getString("settings_weather_api_key", "") ?: "",
         geocodingSource = prefs.getString("settings_geocoding_source", null)
             ?.let { runCatching { GeocodingSource.valueOf(it) }.getOrNull() }
             ?: DefaultSettings.geocodingSource,
@@ -56,7 +59,7 @@ class AppSettingsRepository @Inject constructor(
     }
 
     fun updateWeatherApiKey(key: String) {
-        prefs.edit { putString("settings_weather_api_key", key) }
+        privatePrefs.edit { putString("settings_weather_api_key", key) }
     }
 
     fun updateGeocodingSource(source: GeocodingSource) {

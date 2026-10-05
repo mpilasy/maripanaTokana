@@ -155,6 +155,19 @@ object SharedLocationParser {
         return result
     }
 
+    private const val MAX_BODY_BYTES = 256 * 1024
+
+    private fun readBounded(stream: java.io.InputStream, maxBytes: Int): String = stream.use {
+        val out = java.io.ByteArrayOutputStream()
+        val buf = ByteArray(8192)
+        while (out.size() < maxBytes) {
+            val n = it.read(buf, 0, minOf(buf.size, maxBytes - out.size()))
+            if (n < 0) break
+            out.write(buf, 0, n)
+        }
+        out.toString(Charsets.UTF_8.name())
+    }
+
     private fun resolveUrlRedirect(urlString: String): String? {
         var result: String? = null
         var currentUrl = urlString
@@ -178,12 +191,19 @@ object SharedLocationParser {
                 val locationHeader = connection.getHeaderField("Location")
 
                 if ((statusCode in 300..399) && !locationHeader.isNullOrBlank()) {
-                    currentUrl = locationHeader
-                    hops++
+                    val next = try { URL(connection.url, locationHeader).toString() } catch (_: Exception) { locationHeader }
                     connection.disconnect()
+                    if (next.startsWith("https://", ignoreCase = true)) {
+                        currentUrl = next
+                        hops++
+                    } else {
+                        // Never follow a redirect to a non-HTTPS target.
+                        result = currentUrl
+                        hops = maxHops
+                    }
                 } else {
                     if (statusCode == 200) {
-                        val bodyText = connection.inputStream.bufferedReader().use { it.readText() }
+                        val bodyText = readBounded(connection.inputStream, MAX_BODY_BYTES)
                         val metaMatch = Regex("""content=["']([^"']*@(-?\d+\.\d+),(-?\d+\.\d+)[^"']*)["']""", RegexOption.IGNORE_CASE).find(bodyText)
                         if (metaMatch != null) {
                             currentUrl = metaMatch.groupValues[1]
