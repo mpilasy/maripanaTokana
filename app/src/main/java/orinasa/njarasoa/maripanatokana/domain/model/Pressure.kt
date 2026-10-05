@@ -1,11 +1,13 @@
 package orinasa.njarasoa.maripanatokana.domain.model
 
+import kotlinx.serialization.Serializable
 import java.util.Locale
 
 /**
  * Value object encapsulating atmospheric pressure. Stores the canonical value in hPa;
  * inHg is always derived so both units are available once a value is set.
  */
+@Serializable
 @JvmInline
 value class Pressure private constructor(val hPa: Double) {
 

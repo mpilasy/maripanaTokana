@@ -1,5 +1,7 @@
 import { writable, get } from 'svelte/store';
 import type { WeatherData } from '$lib/domain/weatherData';
+import { classifyError } from '$lib/api/http';
+import { saveSnapshot, loadSnapshot } from '$lib/stores/weatherSnapshot';
 import { fetchWeather } from '$lib/api/openMeteo';
 import { fetchPirateWeather } from '$lib/api/pirateWeather';
 import { fetchAllAlerts, type AlertSettings } from '$lib/api/externalAlerts';
@@ -27,6 +29,8 @@ export type WeatherState =
 
 export const weatherState = writable<WeatherState>({ kind: 'loading' });
 export const isRefreshing = writable<boolean>(false);
+/** True when a refresh failed while older data is still on screen. */
+export const refreshFailed = writable<boolean>(false);
 
 const STALE_MS = 30 * 60 * 1000; // 30 minutes
 
@@ -71,7 +75,17 @@ async function fetchAtLocation(lat: number, lon: number, knownName?: string, kno
 	return data;
 }
 
+/** Snapshot key for the location the next fetch will show: preview, saved id, or GPS. */
+function currentSnapshotKey(): string {
+	if (get(locationOverride)) return 'preview';
+	const id = get(activeLocationId);
+	if (id && get(savedLocations).some((l) => l.id === id)) return id;
+	return 'gps';
+}
+
 function setWeatherData(data: WeatherData) {
+	refreshFailed.set(false);
+	saveSnapshot(currentSnapshotKey(), { ...data, alerts: [], alertsLoading: true });
 	weatherState.update(s => {
 		const existingAlerts =
 			s.kind === 'success'
@@ -154,7 +168,14 @@ export async function doFetchWeather() {
 	const gen = ++fetchGeneration;
 	const current = get(weatherState);
 	if (current.kind !== 'success') {
-		weatherState.set({ kind: 'loading' });
+		// Show the last saved snapshot (original timestamp) while the fetch runs
+		const snapshot = loadSnapshot(currentSnapshotKey());
+		if (snapshot) {
+			weatherState.set({ kind: 'success', data: snapshot });
+			isRefreshing.set(true);
+		} else {
+			weatherState.set({ kind: 'loading' });
+		}
 	} else {
 		isRefreshing.set(true);
 	}
@@ -224,14 +245,13 @@ export async function doFetchWeather() {
 	} catch (err) {
 		if (gen !== fetchGeneration) return;
 		const current = get(weatherState);
-		// Only show error if we don't already have data
 		if (current.kind !== 'success') {
 			weatherState.set({
 				kind: 'error',
-				message: err instanceof GeolocationPositionError
-					? 'error_get_location'
-					: 'error_fetch_weather',
+				message: classifyError(err, get(weatherSource) === 'PIRATE_WEATHER' ? [401, 403] : []),
 			});
+		} else {
+			refreshFailed.set(true);
 		}
 	} finally {
 		if (gen === fetchGeneration) isRefreshing.set(false);

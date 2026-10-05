@@ -58,7 +58,7 @@ export async function fetchAirQuality(lat: number, lon: number): Promise<OpenMet
 		forecast_days: '3',
 	});
 
-	const res = await fetch(`${BASE_URL}?${params}`);
+	const res = await fetch(`${BASE_URL}?${params}`, { signal: AbortSignal.timeout(10_000) });
 	if (!res.ok) throw new Error(`Open-Meteo Air Quality API error: ${res.status}`);
 	return res.json();
 }

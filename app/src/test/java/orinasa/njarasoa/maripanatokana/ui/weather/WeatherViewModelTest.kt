@@ -22,6 +22,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import orinasa.njarasoa.maripanatokana.R
+import orinasa.njarasoa.maripanatokana.data.repository.WeatherCache
 import orinasa.njarasoa.maripanatokana.data.settings.AppSettingsRepository
 import orinasa.njarasoa.maripanatokana.domain.model.AppSettings
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
@@ -35,6 +36,7 @@ class WeatherViewModelTest {
     private lateinit var locationRepository: LocationRepository
     private lateinit var weatherRepository: WeatherRepository
     private lateinit var settingsRepository: AppSettingsRepository
+    private lateinit var weatherCache: WeatherCache
     private lateinit var context: Context
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var editor: SharedPreferences.Editor
@@ -47,6 +49,8 @@ class WeatherViewModelTest {
         locationRepository = mockk()
         weatherRepository = mockk()
         settingsRepository = mockk()
+        weatherCache = mockk(relaxed = true)
+        every { weatherCache.load(any()) } returns null
         context = mockk()
         sharedPreferences = mockk()
         editor = mockk(relaxed = true)
@@ -86,7 +90,7 @@ class WeatherViewModelTest {
 
         coEvery { weatherRepository.fetchAlerts(any(), any()) } returns Result.success(emptyList())
 
-        viewModel = WeatherViewModel(weatherRepository, locationRepository, settingsRepository, context)
+        viewModel = WeatherViewModel(weatherRepository, locationRepository, settingsRepository, weatherCache, context)
     }
 
     @After

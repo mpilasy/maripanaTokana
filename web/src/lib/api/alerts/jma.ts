@@ -82,7 +82,7 @@ export async function fetchJmaAlerts(lat: number, lon: number): Promise<WeatherA
 	if (!isInJapan(lat, lon)) return [];
 	try {
 		const areaCode = nearestPrefectureCode(lat, lon);
-		const res = await fetch(`https://www.jma.go.jp/bosai/warning/data/warning/${areaCode}.json`);
+		const res = await fetch(`https://www.jma.go.jp/bosai/warning/data/warning/${areaCode}.json`, { signal: AbortSignal.timeout(10_000) });
 		if (!res.ok) return [];
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const data: any = await res.json();

@@ -163,6 +163,7 @@ internal fun WeatherContent(
     hasLocationOverride: Boolean = false,
     advancedOverrideLat: Double? = null,
     advancedOverrideLon: Double? = null,
+    refreshFailed: Boolean = false,
 ) {
     val context = LocalContext.current
     val appLocale = LocalConfiguration.current.locales[0]
@@ -356,6 +357,15 @@ internal fun WeatherContent(
                     fontFamily = bodyFont,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                 )
+                if (refreshFailed) {
+                    Text(
+                        text = stringResource(R.string.refresh_failed, localizeDigits(screenTimeFormat.format(Date(data.timestamp)))),
+                        fontSize = 13f.s(scale),
+                        fontFamily = bodyFont,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.clickable { onRefresh() },
+                    )
+                }
                 if (isRemoteTimezone(data.utcOffsetSeconds)) {
                     Text(
                         text = "\uD83D\uDD53 Local: ${localizeDigits(formatLocationCurrentTime(data.utcOffsetSeconds, appLocale))}",

@@ -1,5 +1,8 @@
 package orinasa.njarasoa.maripanatokana.domain.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class HourlyForecast(
     val time: Long,
     val temperature: Temperature,

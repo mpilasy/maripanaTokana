@@ -19,6 +19,8 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.data.remote.GeocodingResult
+import orinasa.njarasoa.maripanatokana.data.repository.WeatherCache
+import orinasa.njarasoa.maripanatokana.data.source.toFetchError
 import orinasa.njarasoa.maripanatokana.domain.model.SavedLocation
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.data.settings.AppSettingsRepository
@@ -73,6 +75,7 @@ class WeatherViewModel @Inject constructor(
     private val weatherRepository: WeatherRepository,
     private val locationRepository: LocationRepository,
     private val settingsRepository: AppSettingsRepository,
+    private val weatherCache: WeatherCache,
     @ApplicationContext private val appContext: Context,
 ) : ViewModel() {
 
@@ -83,6 +86,10 @@ class WeatherViewModel @Inject constructor(
 
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
+    private val _refreshFailed = MutableStateFlow(false)
+    /** True when a refresh failed while older data is still on screen; reset on the next success. */
+    val refreshFailed: StateFlow<Boolean> = _refreshFailed.asStateFlow()
 
     private val _metricPrimary = MutableStateFlow(prefs.getBoolean("metric_primary", true))
     val metricPrimary: StateFlow<Boolean> = _metricPrimary.asStateFlow()
@@ -356,13 +363,9 @@ class WeatherViewModel @Inject constructor(
     private suspend fun fetchForSavedLocation(location: SavedLocation) {
         weatherRepository.getWeather(location.latitude, location.longitude).onSuccess { data ->
             val locationData = data.copy(locationName = location.name, locationSubtext = location.subtext)
-            _uiState.value = WeatherUiState.Success(locationData)
+            publish(location.id, locationData)
             fetchAlertsForData(location.latitude, location.longitude)
-        }.onFailure {
-            if (_uiState.value !is WeatherUiState.Success) {
-                _uiState.value = WeatherUiState.Error(R.string.error_fetch_weather)
-            }
-        }
+        }.onFailure { onWeatherFailure(it) }
     }
 
     fun toggleUnits() {
@@ -433,7 +436,15 @@ class WeatherViewModel @Inject constructor(
                 if (!isResolvingSharedLocation) {
                     // Only show loading if we don't already have data
                     if (_uiState.value !is WeatherUiState.Success) {
-                        _uiState.value = WeatherUiState.Loading
+                        _refreshFailed.value = false
+                        // Show the last successful data for this location right away, then refresh
+                        val cached = withContext(Dispatchers.IO) { loadCached() }
+                        if (cached != null) {
+                            _uiState.value = WeatherUiState.Success(cached)
+                            _isRefreshing.value = true
+                        } else {
+                            _uiState.value = WeatherUiState.Loading
+                        }
                     } else {
                         _isRefreshing.value = true
                     }
@@ -449,15 +460,11 @@ class WeatherViewModel @Inject constructor(
 
                         weatherRepository.getWeather(overrideLat, overrideLon).onSuccess { data ->
                             val overrideData = data.copy(locationName = overrideName)
-                            _uiState.value = WeatherUiState.Success(overrideData)
+                            publish("preview", overrideData)
                             fetchAlertsForData(overrideLat, overrideLon)
                             // Spawn background GPS cache refresh
                             spawnGpsCacheRefresh()
-                        }.onFailure {
-                            if (_uiState.value !is WeatherUiState.Success) {
-                                _uiState.value = WeatherUiState.Error(R.string.error_fetch_weather)
-                            }
-                        }
+                        }.onFailure { onWeatherFailure(it) }
                     } else {
                         val savedLocation = activeLocationId.value?.let { id -> savedLocations.value.find { it.id == id } }
                         if (savedLocation != null) fetchForSavedLocation(savedLocation) else doFetch()
@@ -486,15 +493,11 @@ class WeatherViewModel @Inject constructor(
 
                     weatherRepository.getWeather(overrideLat, overrideLon).onSuccess { data ->
                         val overrideData = data.copy(locationName = overrideName)
-                        _uiState.value = WeatherUiState.Success(overrideData)
+                        publish("preview", overrideData)
                         fetchAlertsForData(overrideLat, overrideLon)
                         // Spawn background GPS cache refresh
                         spawnGpsCacheRefresh()
-                    }.onFailure {
-                        if (_uiState.value !is WeatherUiState.Success) {
-                            _uiState.value = WeatherUiState.Error(R.string.error_fetch_weather)
-                        }
-                    }
+                    }.onFailure { onWeatherFailure(it) }
                 } else {
                     val savedLocation = activeLocationId.value?.let { id -> savedLocations.value.find { it.id == id } }
                     if (savedLocation != null) fetchForSavedLocation(savedLocation) else doFetch()
@@ -529,7 +532,7 @@ class WeatherViewModel @Inject constructor(
                             if (!freshWeatherDisplayed) {
                                 val displayData = data.copy(locationSubtext = null)
                                 prefs.edit().putString("location_name", displayData.locationName).apply()
-                                _uiState.value = WeatherUiState.Success(displayData)
+                                publish("gps", displayData)
                                 cachedWeatherDisplayed = true
                                 fetchAlertsForData(lat, lon)
                             }
@@ -549,21 +552,13 @@ class WeatherViewModel @Inject constructor(
                                         freshWeatherDisplayed = true
                                         val displayData = data.copy(locationSubtext = null)
                                         prefs.edit().putString("location_name", displayData.locationName).apply()
-                                        _uiState.value = WeatherUiState.Success(displayData)
+                                        publish("gps", displayData)
                                         fetchAlertsForData(lat, lon)
                                     }
-                                    .onFailure {
-                                        if (!cachedWeatherDisplayed) {
-                                            _uiState.value = WeatherUiState.Error(R.string.error_fetch_weather)
-                                        }
-                                    }
+                                    .onFailure { onWeatherFailure(it) }
                             }
                         }
-                        .onFailure {
-                            if (!cachedWeatherDisplayed) {
-                                _uiState.value = WeatherUiState.Error(R.string.error_get_location)
-                            }
-                        }
+                        .onFailure { onWeatherFailure(it, R.string.error_get_location) }
                 }
             }
         }
@@ -572,7 +567,37 @@ class WeatherViewModel @Inject constructor(
             _uiState.value = WeatherUiState.Error(
                 if (locationObtained) R.string.error_fetch_weather else R.string.error_get_location
             )
+        } else if (completed == null && _uiState.value is WeatherUiState.Success) {
+            _refreshFailed.value = true
         }
+    }
+
+    /** Shows [data] as the current weather and persists it as the last good result for [cacheKey]. */
+    private fun publish(cacheKey: String, data: WeatherData) {
+        _uiState.value = WeatherUiState.Success(data)
+        _refreshFailed.value = false
+        viewModelScope.launch(Dispatchers.IO) { weatherCache.save(cacheKey, data) }
+    }
+
+    /** With data on screen, keep it and flag the failed refresh; otherwise show a classified error. */
+    private fun onWeatherFailure(e: Throwable, fallbackResId: Int? = null) {
+        if (_uiState.value is WeatherUiState.Success) {
+            _refreshFailed.value = true
+        } else {
+            _uiState.value = WeatherUiState.Error(
+                fallbackResId ?: e.toFetchError(weatherSource.value == WeatherSource.PIRATE_WEATHER).messageResId
+            )
+        }
+    }
+
+    private fun loadCached(): WeatherData? {
+        if (prefs.contains("advanced_override_lat")) {
+            val name = shortPlaceName(prefs.getString("advanced_override_name", "Overridden Location") ?: "Overridden Location")
+            // A single "preview" slot: only reuse it if it holds this same place
+            return weatherCache.load("preview")?.takeIf { it.locationName == name }
+        }
+        val saved = activeLocationId.value?.let { id -> savedLocations.value.find { it.id == id } }
+        return weatherCache.load(saved?.id ?: "gps")
     }
 
     private fun movedSignificantly(lat: Double, lon: Double): Boolean {

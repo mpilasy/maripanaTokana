@@ -39,6 +39,13 @@
     <string name="error_retry">Retry</string>
     <string name="error_fetch_weather">Failed to fetch weather</string>
     <string name="error_get_location">Failed to get location</string>
+    <string name="error_offline">No internet connection</string>
+    <string name="error_timeout">The weather service took too long to respond</string>
+    <string name="error_rate_limited">Too many requests. Try again in a few minutes</string>
+    <string name="error_server">Weather service unavailable. Try again later</string>
+    <string name="error_invalid_api_key">Invalid Pirate Weather API key</string>
+    <string name="refresh_failed">Couldn\'t refresh · data from {time}</string>
+    <string name="last_known_location">Using last known location</string>
     <string name="updated_time">&#x1f552; Updated: %1$s</string>
     <string name="feels_like">Feels Like</string>
     <string name="no_precip">No precip</string>

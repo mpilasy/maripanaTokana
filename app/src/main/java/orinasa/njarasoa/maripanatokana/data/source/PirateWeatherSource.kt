@@ -16,5 +16,7 @@ class PirateWeatherSource @Inject constructor(
     override val displayName = "Pirate Weather"
 
     override suspend fun getForecast(lat: Double, lon: Double): WeatherData =
-        apiService.getForecast(apiKey = settingsRepository.current.weatherApiKey, lat = lat, lon = lon).toDomain()
+        retryOnce {
+            apiService.getForecast(apiKey = settingsRepository.current.weatherApiKey, lat = lat, lon = lon)
+        }.toDomain()
 }

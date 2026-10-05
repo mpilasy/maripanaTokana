@@ -1,5 +1,6 @@
 package orinasa.njarasoa.maripanatokana.domain.model
 
+import kotlinx.serialization.Serializable
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -7,6 +8,7 @@ import kotlin.math.roundToInt
  * Value object encapsulating a temperature. Stores the canonical value in Celsius;
  * Fahrenheit is always derived so both units are available once a value is set.
  */
+@Serializable
 @JvmInline
 value class Temperature private constructor(val celsius: Double) {
 

@@ -20,11 +20,16 @@ export const GET: RequestHandler = async ({ url }) => {
 	}
 	const slug = COUNTRY_SLUGS[country];
 	if (!slug) throw error(404, 'No MeteoAlarm feed for this country');
-	const res = await fetch(
-		`https://feeds.meteoalarm.org/feeds/meteoalarm-legacy-atom-${slug}`,
-		{ headers: { 'User-Agent': USER_AGENT } }
-	);
-	if (!res.ok) throw error(res.status, 'MeteoAlarm fetch failed');
-	const text = await res.text();
-	return new Response(text, { headers: { 'Content-Type': 'application/xml' } });
+	try {
+		const res = await fetch(
+			`https://feeds.meteoalarm.org/feeds/meteoalarm-legacy-atom-${slug}`,
+			{ headers: { 'User-Agent': USER_AGENT }, signal: AbortSignal.timeout(8_000) }
+		);
+		if (!res.ok) throw error(res.status, 'MeteoAlarm fetch failed');
+		const text = await res.text();
+		return new Response(text, { headers: { 'Content-Type': 'application/xml' } });
+	} catch (e) {
+		if (e && typeof e === 'object' && 'status' in e) throw e;
+		throw error(502, 'MeteoAlarm unreachable');
+	}
 };

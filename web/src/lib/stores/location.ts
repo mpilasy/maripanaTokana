@@ -69,7 +69,7 @@ export async function reverseGeocode(lat: number, lon: number, localeTag?: strin
 		if (localeTag) headers['Accept-Language'] = `${localeTag},en;q=0.5`;
 		const res = await fetch(
 			`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
-			{ headers }
+			{ headers, signal: AbortSignal.timeout(10_000) }
 		);
 		if (!res.ok) throw new Error('Geocoding failed');
 		const data = await res.json();

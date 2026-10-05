@@ -21,7 +21,7 @@ export async function getLocationInfo(lat: number, lon: number): Promise<Locatio
 	try {
 		const res = await fetch(
 			`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=8&addressdetails=1`,
-			{ headers: { 'User-Agent': USER_AGENT } }
+			{ headers: { 'User-Agent': USER_AGENT }, signal: AbortSignal.timeout(10_000) }
 		);
 		if (!res.ok) return { countryCode: null, stateCode: null, subdivisionName: null };
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any

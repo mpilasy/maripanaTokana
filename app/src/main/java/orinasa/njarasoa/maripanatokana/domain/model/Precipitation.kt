@@ -1,11 +1,13 @@
 package orinasa.njarasoa.maripanatokana.domain.model
 
+import kotlinx.serialization.Serializable
 import java.util.Locale
 
 /**
  * Value object encapsulating precipitation (rain/snow). Stores the canonical value in mm;
  * inches is always derived so both units are available once a value is set.
  */
+@Serializable
 @JvmInline
 value class Precipitation private constructor(val mm: Double) {
 

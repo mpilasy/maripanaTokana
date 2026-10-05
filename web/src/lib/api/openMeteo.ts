@@ -1,3 +1,4 @@
+import { HttpError, retryOnce } from './http';
 import type { OpenMeteoResponse } from './openMeteoTypes';
 
 const BASE_URL = 'https://api.open-meteo.com/v1/forecast';
@@ -29,7 +30,9 @@ export async function fetchWeather(lat: number, lon: number): Promise<OpenMeteoR
 		wind_speed_unit: 'ms',
 	});
 
-	const res = await fetch(`${BASE_URL}?${params}`);
-	if (!res.ok) throw new Error(`Open-Meteo API error: ${res.status}`);
-	return res.json();
+	return retryOnce(async () => {
+		const res = await fetch(`${BASE_URL}?${params}`, { signal: AbortSignal.timeout(10_000) });
+		if (!res.ok) throw new HttpError(res.status, `Open-Meteo API error: ${res.status}`);
+		return res.json();
+	});
 }

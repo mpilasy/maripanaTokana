@@ -29,7 +29,7 @@ function compassFromDegrees(deg: number): string {
 
 export async function fetchNhcAlerts(lat: number, lon: number): Promise<WeatherAlert[]> {
 	try {
-		const res = await fetch('/api/alerts/nhc');
+		const res = await fetch('/api/alerts/nhc', { signal: AbortSignal.timeout(10_000) });
 		if (!res.ok) return [];
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const data: any = await res.json();

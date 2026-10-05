@@ -36,7 +36,7 @@ export async function searchLocations(query: string): Promise<SearchResult[]> {
 		const qualifier = commaIndex >= 0 ? trimmed.slice(commaIndex + 1).trim().toLowerCase() : '';
 
 		try {
-			const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(namePart)}&count=20&language=en&format=json`);
+			const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(namePart)}&count=20&language=en&format=json`, { signal: AbortSignal.timeout(10_000) });
 			const data = await res.json();
 			if (data.results) {
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any

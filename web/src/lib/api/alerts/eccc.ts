@@ -9,7 +9,7 @@ export async function fetchEcccAlerts(lat: number, lon: number, countryCode: str
 	if (countryCode !== 'ca') return [];
 	try {
 		const bbox = `${lon - 1},${lat - 1},${lon + 1},${lat + 1}`;
-		const res = await fetch(`/api/alerts/eccc?bbox=${bbox}`);
+		const res = await fetch(`/api/alerts/eccc?bbox=${bbox}`, { signal: AbortSignal.timeout(10_000) });
 		if (!res.ok) return [];
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const data: any = await res.json();

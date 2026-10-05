@@ -16,6 +16,10 @@ class NativeLocationProvider(
     private val context: Context,
 ) : LocationProvider {
 
+    private companion object {
+        const val MAX_FIX_AGE_MS = 24 * 60 * 60 * 1000L
+    }
+
     private val locationManager: LocationManager =
         context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
@@ -32,7 +36,7 @@ class NativeLocationProvider(
                 else -> null
             }
 
-            if (location != null) {
+            if (location != null && !location.isStale()) {
                 Result.success(Pair(location.latitude, location.longitude))
             } else {
                 Result.failure(Exception("No cached location"))
@@ -87,8 +91,11 @@ class NativeLocationProvider(
         )
         return providers.mapNotNull { provider ->
             try { locationManager.getLastKnownLocation(provider) } catch (_: Exception) { null }
-        }.maxByOrNull { it.time }
+        }.filterNot { it.isStale() }.maxByOrNull { it.time }
     }
+
+    // Fixes older than 24h (e.g. from before a flight) are not trusted as a location.
+    private fun Location.isStale() = System.currentTimeMillis() - time > MAX_FIX_AGE_MS
 
     @SuppressLint("MissingPermission")
     private suspend fun requestLocationUpdate(): Location? {

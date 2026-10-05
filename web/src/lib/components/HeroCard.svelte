@@ -3,7 +3,7 @@
 	import type { WeatherData } from '$lib/domain/weatherData';
 	import { getCardinalDirection } from '$lib/domain/windSpeed';
 	import { wmoEmoji, wmoDescriptionKey } from '$lib/api/wmoWeatherCode';
-	import { doFetchWeather } from '$lib/stores/weather';
+	import { doFetchWeather, refreshFailed } from '$lib/stores/weather';
 	import { formatTime } from '$lib/utils/date';
 	import DualUnitText from './DualUnitText.svelte';
 
@@ -49,7 +49,9 @@
 			</button>
 		{/if}
 		<button type="button" class="updated" onclick={() => doFetchWeather()} aria-label={$_('cd_refresh')}>
-			<span>{$_('updated_time', { values: { time: loc(formatTime(data.timestamp)) } })}</span>
+			<span>{$refreshFailed
+				? $_('refresh_failed', { values: { time: loc(formatTime(data.timestamp)) } })
+				: $_('updated_time', { values: { time: loc(formatTime(data.timestamp)) } })}</span>
 			<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
 				<path d="M23 4v6h-6"/>
 				<path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>

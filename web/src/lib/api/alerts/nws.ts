@@ -15,7 +15,8 @@ export function isInUS(lat: number, lon: number): boolean {
 export async function fetchNwsAlerts(lat: number, lon: number): Promise<WeatherAlert[]> {
 	try {
 		const res = await fetch(`https://api.weather.gov/alerts/active?point=${lat},${lon}`, {
-			headers: { 'Accept': 'application/geo+json', 'User-Agent': USER_AGENT }
+			headers: { 'Accept': 'application/geo+json', 'User-Agent': USER_AGENT },
+			signal: AbortSignal.timeout(10_000)
 		});
 		if (!res.ok) return [];
 		const data: NwsAlertResponse = await res.json();

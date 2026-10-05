@@ -27,7 +27,7 @@ function areaMatches(areaDesc: string, subdivision: string): boolean {
 export async function fetchMeteoAlarmAlerts(lat: number, lon: number, countryCode: string, subdivisionName: string | null = null): Promise<WeatherAlert[]> {
 	if (!METEOALARM_COUNTRIES.has(countryCode)) return [];
 	try {
-		const res = await fetch(`/api/alerts/meteoalarm?country=${countryCode}`);
+		const res = await fetch(`/api/alerts/meteoalarm?country=${countryCode}`, { signal: AbortSignal.timeout(10_000) });
 		if (!res.ok) return [];
 		const text = await res.text();
 		const parser = new DOMParser();

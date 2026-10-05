@@ -3,7 +3,7 @@ import type { WeatherAlert, AlertLevel } from '$lib/domain/weatherData';
 export async function fetchWmoSwicAlerts(lat: number, lon: number, countryCode: string): Promise<WeatherAlert[]> {
 	if (!countryCode) return [];
 	try {
-		const res = await fetch(`/api/alerts/wmoswic?country=${countryCode.toUpperCase()}`);
+		const res = await fetch(`/api/alerts/wmoswic?country=${countryCode.toUpperCase()}`, { signal: AbortSignal.timeout(10_000) });
 		if (!res.ok) return [];
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const data: any = await res.json();

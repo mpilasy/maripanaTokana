@@ -1,5 +1,6 @@
 package orinasa.njarasoa.maripanatokana.data.location
 
+import android.location.Location
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
@@ -15,10 +16,17 @@ class PlayServicesLocationProvider(
     private val fusedLocationClient: FusedLocationProviderClient,
 ) : LocationProvider {
 
+    // Fixes older than 24h (e.g. from before a flight) are not trusted as a location.
+    private fun Location.isStale() = System.currentTimeMillis() - time > MAX_FIX_AGE_MS
+
+    private companion object {
+        const val MAX_FIX_AGE_MS = 24 * 60 * 60 * 1000L
+    }
+
     override suspend fun getLastLocation(): Result<Pair<Double, Double>> {
         return try {
             val location = fusedLocationClient.lastLocation.await()
-            if (location != null) {
+            if (location != null && !location.isStale()) {
                 Result.success(Pair(location.latitude, location.longitude))
             } else {
                 Result.failure(Exception("No cached location"))
@@ -49,7 +57,7 @@ class PlayServicesLocationProvider(
                 null
             }
 
-            if (finalLocation != null) {
+            if (finalLocation != null && (finalLocation === location || !finalLocation.isStale())) {
                 Result.success(Pair(finalLocation.latitude, finalLocation.longitude))
             } else {
                 Result.failure(Exception("Unable to get location"))

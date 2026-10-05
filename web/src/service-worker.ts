@@ -3,7 +3,7 @@
 /// <reference lib="esnext" />
 /// <reference lib="webworker" />
 
-import { base, build, files, version } from '$service-worker';
+import { build, files, version } from '$service-worker';
 
 const sw = self as unknown as ServiceWorkerGlobalScope;
 const CACHE_APP = `app-${version}`;
@@ -38,12 +38,14 @@ sw.addEventListener('fetch', (event) => {
 	if (event.request.method !== 'GET') return;
 
 	// API calls: NetworkFirst
-	if (url.hostname === 'api.open-meteo.com' || url.hostname === 'nominatim.openstreetmap.org') {
+	if (url.hostname === 'api.open-meteo.com' || url.hostname === 'air-quality-api.open-meteo.com' || url.hostname === 'nominatim.openstreetmap.org') {
 		event.respondWith(
 			fetch(event.request)
 				.then((response) => {
-					const clone = response.clone();
-					caches.open(CACHE_API).then((cache) => cache.put(event.request, clone));
+					if (response.ok) {
+						const clone = response.clone();
+						caches.open(CACHE_API).then((cache) => cache.put(event.request, clone));
+					}
 					return response;
 				})
 				.catch(() => caches.match(event.request).then((r) => r || new Response('Offline', { status: 503 })))
@@ -57,11 +59,33 @@ sw.addEventListener('fetch', (event) => {
 			caches.match(event.request).then((cached) => {
 				if (cached) return cached;
 				return fetch(event.request).then((response) => {
-					const clone = response.clone();
-					caches.open(CACHE_FONTS).then((cache) => cache.put(event.request, clone));
+					if (response.ok) {
+						const clone = response.clone();
+						caches.open(CACHE_FONTS).then((cache) => cache.put(event.request, clone));
+					}
 					return response;
 				});
 			})
+		);
+		return;
+	}
+
+	// Page navigations: NetworkFirst; the page is server-rendered so cache it under its URL and '/'
+	if (url.origin === sw.location.origin && event.request.mode === 'navigate') {
+		event.respondWith(
+			fetch(event.request)
+				.then((response) => {
+					if (response.ok) {
+						const clone = response.clone();
+						const clone2 = response.clone();
+						caches.open(CACHE_APP).then((cache) => {
+							cache.put(event.request, clone);
+							cache.put('/', clone2);
+						});
+					}
+					return response;
+				})
+				.catch(() => caches.match(event.request).then((r) => r || caches.match('/')).then((r) => r || new Response('Offline', { status: 503 })))
 		);
 		return;
 	}
@@ -72,13 +96,13 @@ sw.addEventListener('fetch', (event) => {
 			fetch(event.request)
 				.then((response) => {
 					// Update cache with fresh response
-					if (APP_ASSETS.has(url.pathname)) {
+					if (response.ok && APP_ASSETS.has(url.pathname)) {
 						const clone = response.clone();
 						caches.open(CACHE_APP).then((cache) => cache.put(event.request, clone));
 					}
 					return response;
 				})
-				.catch(() => caches.match(event.request).then((r) => r || caches.match(base + '/index.html')).then((r) => r || new Response('Offline', { status: 503 })))
+				.catch(() => caches.match(event.request).then((r) => r || new Response('Offline', { status: 503 })))
 		);
 	}
 });

@@ -11,7 +11,8 @@ export async function fetchGdacsAlerts(lat: number, lon: number): Promise<Weathe
 		const fromDate = new Date(Date.now() - SEARCH_DAYS * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
 		const res = await fetch(
-			`https://www.gdacs.org/gdacsapi/api/events/geteventlist/SEARCH?fromdate=${fromDate}&todate=${toDate}&alertlevel=green;orange;red`
+			`https://www.gdacs.org/gdacsapi/api/events/geteventlist/SEARCH?fromdate=${fromDate}&todate=${toDate}&alertlevel=green;orange;red`,
+			{ signal: AbortSignal.timeout(10_000) }
 		);
 		if (!res.ok) return [];
 		const data: GdacsAlertResponse = await res.json();

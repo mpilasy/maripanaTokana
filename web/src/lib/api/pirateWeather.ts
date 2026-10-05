@@ -1,3 +1,4 @@
+import { HttpError, retryOnce } from './http';
 import type { WeatherData, HourlyForecast, DailyForecast, MinutelyForecast } from '$lib/domain/weatherData';
 import { Temperature } from '$lib/domain/temperature';
 import { WindSpeed } from '$lib/domain/windSpeed';
@@ -22,19 +23,23 @@ function iconToWmoCode(icon: string): number {
 
 export async function testPirateWeatherKey(apiKey: string): Promise<void> {
 	const res = await fetch(
-		`https://api.pirateweather.net/forecast/${encodeURIComponent(apiKey)}/0,0?units=si&exclude=hourly,daily,minutely,alerts`
+		`https://api.pirateweather.net/forecast/${encodeURIComponent(apiKey)}/0,0?units=si&exclude=hourly,daily,minutely,alerts`,
+		{ signal: AbortSignal.timeout(10_000) }
 	);
-	if (!res.ok) throw new Error(String(res.status));
+	if (!res.ok) throw new HttpError(res.status);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function fetchPirateWeather(lat: number, lon: number, apiKey: string, locationName: string, locationSubtext?: string): Promise<WeatherData> {
-	const res = await fetch(
-		`https://api.pirateweather.net/forecast/${encodeURIComponent(apiKey)}/${lat},${lon}?units=si&exclude=alerts`
-	);
-	if (!res.ok) throw new Error(`Pirate Weather ${res.status}`);
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const d: any = await res.json();
+	const d: any = await retryOnce(async () => {
+		const res = await fetch(
+			`https://api.pirateweather.net/forecast/${encodeURIComponent(apiKey)}/${lat},${lon}?units=si&exclude=alerts`,
+			{ signal: AbortSignal.timeout(10_000) }
+		);
+		if (!res.ok) throw new HttpError(res.status, `Pirate Weather ${res.status}`);
+		return res.json();
+	});
 
 	const c = d.currently;
 	const offsetSec = Math.round((d.offset ?? 0) * 3600);

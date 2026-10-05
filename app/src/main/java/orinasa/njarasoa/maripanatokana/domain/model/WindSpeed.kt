@@ -1,11 +1,13 @@
 package orinasa.njarasoa.maripanatokana.domain.model
 
+import kotlinx.serialization.Serializable
 import java.util.Locale
 
 /**
  * Value object encapsulating wind speed. Stores the canonical value in m/s;
  * mph is always derived so both units are available once a value is set.
  */
+@Serializable
 @JvmInline
 value class WindSpeed private constructor(val metersPerSecond: Double) {
 

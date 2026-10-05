@@ -10,7 +10,7 @@ export const GET: RequestHandler = async ({ url }) => {
 	try {
 		const res = await fetch(
 			`https://api.weather.gc.ca/collections/weather-alerts/items?bbox=${bbox}&f=json`,
-			{ headers: { 'User-Agent': USER_AGENT } }
+			{ headers: { 'User-Agent': USER_AGENT }, signal: AbortSignal.timeout(8_000) }
 		);
 		if (!res.ok) return Response.json({ features: [] });
 		const data = await res.json();

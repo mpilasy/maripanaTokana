@@ -6,7 +6,7 @@ export function isInAustralia(lat: number, lon: number): boolean {
 
 export async function fetchBomAlerts(stateCode: string | null): Promise<WeatherAlert[]> {
 	try {
-		const res = await fetch('/api/alerts/bom');
+		const res = await fetch('/api/alerts/bom', { signal: AbortSignal.timeout(10_000) });
 		if (!res.ok) return [];
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const data: any = await res.json();

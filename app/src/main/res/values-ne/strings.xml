@@ -39,6 +39,13 @@
     <string name="error_retry">पुन: प्रयास</string>
     <string name="error_fetch_weather">मौसम प्राप्त गर्न असफल</string>
     <string name="error_get_location">स्थान प्राप्त गर्न असफल</string>
+    <string name="error_offline">इन्टरनेट जडान छैन</string>
+    <string name="error_timeout">मौसम सेवाले जवाफ दिन धेरै समय लियो</string>
+    <string name="error_rate_limited">धेरै अनुरोध। केही मिनेटपछि फेरि प्रयास गर्नुहोस्</string>
+    <string name="error_server">मौसम सेवा उपलब्ध छैन। पछि फेरि प्रयास गर्नुहोस्</string>
+    <string name="error_invalid_api_key">Pirate Weather API कुञ्जी अमान्य छ</string>
+    <string name="refresh_failed">रिफ्रेश गर्न सकिएन · {time} को डेटा</string>
+    <string name="last_known_location">अन्तिम ज्ञात स्थान प्रयोग गरिँदै</string>
     <string name="updated_time">&#x1f552; अद्यावधिक: %1$s</string>
     <string name="feels_like">अनुभूत तापक्रम</string>
     <string name="no_precip">वर्षा छैन</string>

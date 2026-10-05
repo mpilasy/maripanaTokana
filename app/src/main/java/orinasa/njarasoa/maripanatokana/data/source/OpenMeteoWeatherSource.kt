@@ -25,7 +25,7 @@ class OpenMeteoWeatherSource @Inject constructor(
     override val displayName = "Open-Meteo (default)"
 
     override suspend fun getForecast(lat: Double, lon: Double): WeatherData = coroutineScope {
-        val forecastDeferred = async { apiService.getForecast(latitude = lat, longitude = lon) }
+        val forecastDeferred = async { retryOnce { apiService.getForecast(latitude = lat, longitude = lon) } }
         val airQualityDeferred = async {
             try {
                 airQualityApiService.getAirQuality(latitude = lat, longitude = lon)

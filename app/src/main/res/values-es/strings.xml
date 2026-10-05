@@ -39,6 +39,13 @@
     <string name="error_retry">Reintentar</string>
     <string name="error_fetch_weather">No se pudo obtener el clima</string>
     <string name="error_get_location">No se pudo obtener la ubicacion</string>
+    <string name="error_offline">Sin conexion a Internet</string>
+    <string name="error_timeout">El servicio del clima tardo demasiado en responder</string>
+    <string name="error_rate_limited">Demasiadas solicitudes. Intenta de nuevo en unos minutos</string>
+    <string name="error_server">Servicio del clima no disponible. Intenta mas tarde</string>
+    <string name="error_invalid_api_key">Clave API de Pirate Weather no valida</string>
+    <string name="refresh_failed">No se pudo actualizar · datos de las {time}</string>
+    <string name="last_known_location">Usando la ultima ubicacion conocida</string>
     <string name="updated_time">&#x1f552; Actualizado: %1$s</string>
     <string name="feels_like">Sensacion termica</string>
     <string name="no_precip">Sin precipitacion</string>

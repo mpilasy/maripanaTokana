@@ -1,5 +1,7 @@
 package orinasa.njarasoa.maripanatokana.domain.model
 
+import kotlinx.serialization.Serializable
+
 enum class AqiStandard { US, EUROPEAN }
 
 enum class AqiTier { GOOD, MODERATE, UNHEALTHY, VERY_UNHEALTHY, HAZARDOUS }
@@ -12,6 +14,7 @@ enum class PollenTier { LOW, MODERATE, HIGH, VERY_HIGH }
  * Pollen concentrations in grains/m³ from Open-Meteo's CAMS-Europe pollen model. Only populated
  * for locations within CAMS-Europe coverage — null (and [hasData] false) everywhere else.
  */
+@Serializable
 data class PollenReadings(
     val alder: Double? = null,
     val birch: Double? = null,
@@ -24,6 +27,7 @@ data class PollenReadings(
         get() = alder != null || birch != null || grass != null || mugwort != null || olive != null || ragweed != null
 }
 
+@Serializable
 data class AirQualityIndex(
     val usValue: Int,
     val europeanValue: Int,
