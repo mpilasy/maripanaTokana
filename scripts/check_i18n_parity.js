@@ -21,6 +21,25 @@ function flattenKeys(obj, prefix = '') {
 	return keys;
 }
 
+// Helper to extract arrays from nested objects
+function extractArrays(obj, prefix = '') {
+	const arrays = {};
+
+	for (const [key, value] of Object.entries(obj)) {
+		const fullKey = prefix ? `${prefix}.${key}` : key;
+
+		if (Array.isArray(value)) {
+			// Record array length
+			arrays[fullKey] = value.length;
+		} else if (value !== null && typeof value === 'object') {
+			// Recurse into nested objects
+			Object.assign(arrays, extractArrays(value, fullKey));
+		}
+	}
+
+	return arrays;
+}
+
 function main() {
 	const localesDir = path.join(__dirname, '..', 'shared', 'i18n', 'locales');
 
@@ -52,6 +71,12 @@ function main() {
 		flattenedLocales[locale] = flattenKeys(data);
 	}
 
+	// Extract arrays per locale
+	const arraysPerLocale = {};
+	for (const [locale, data] of Object.entries(locales)) {
+		arraysPerLocale[locale] = extractArrays(data);
+	}
+
 	// Compute union of all keys
 	const allKeys = new Set();
 	for (const keys of Object.values(flattenedLocales)) {
@@ -70,6 +95,43 @@ function main() {
 	}
 
 	if (hasMissing) {
+		process.exit(1);
+	}
+
+	// Check array lengths across locales
+	let arrayMismatch = false;
+	const localeNames = Object.keys(arraysPerLocale).sort();
+	const allArrayKeys = new Set();
+	for (const arrays of Object.values(arraysPerLocale)) {
+		Object.keys(arrays).forEach(k => allArrayKeys.add(k));
+	}
+
+	for (const arrayKey of [...allArrayKeys].sort()) {
+		const lengths = {};
+		for (const locale of localeNames) {
+			lengths[locale] = arraysPerLocale[locale][arrayKey] ?? 'missing';
+		}
+
+		// Check if all lengths are the same (excluding missing)
+		const definedLengths = localeNames
+			.filter(l => typeof lengths[l] === 'number')
+			.map(l => lengths[l]);
+
+		if (definedLengths.length > 0) {
+			const firstLength = definedLengths[0];
+			const allSame = definedLengths.every(l => l === firstLength);
+
+			if (!allSame) {
+				console.log(`Array length mismatch for key "${arrayKey}":`);
+				for (const locale of localeNames) {
+					console.log(`  ${locale}: ${lengths[locale]}`);
+				}
+				arrayMismatch = true;
+			}
+		}
+	}
+
+	if (arrayMismatch) {
 		process.exit(1);
 	}
 

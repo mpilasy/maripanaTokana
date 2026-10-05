@@ -136,11 +136,7 @@ class NativeLocationProvider(
                 } catch (_: SecurityException) {
                     // Provider requires a permission we don't have; try the next one
                 } catch (e: Exception) {
-            AppLog.w("NativeLocation", "location request failed", e)
-                    locationManager.removeUpdates(locationListener)
-                    handlerThread.quitSafely()
-                    close(e)
-                    return@callbackFlow
+                    AppLog.w("NativeLocation", "provider $provider failed", e)
                 }
             }
             if (!registered) close()

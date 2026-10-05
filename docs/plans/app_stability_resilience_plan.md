@@ -353,13 +353,13 @@ Deep audit of commits `88d3de8` through `f746b7d` and working tree changes. Veri
 | A.2 | Confirmed: one shared `tmp.json` for all keys | Fixed |
 | A.3 | Confirmed on both platforms | Fixed |
 | A.4 | Confirmed; medium rather than high, since Play Services times the request out itself | Fixed |
-| A.5 | Confirmed but rare: missing providers already return false from `isProviderEnabled`; predates this branch | Deferred |
+| A.5 | Confirmed but rare: missing providers already return false from `isProviderEnabled`; predates this branch | Fixed |
 | A.6 | Confirmed; predates this branch | Fixed |
-| A.7 | Low: on API 26+ bitmap pixel memory is freed with the object | Deferred |
+| A.7 | Low: on API 26+ bitmap pixel memory is freed with the object | Fixed |
 | A.8 | Partly: `"%.1f".format` uses the device locale rather than the app locale; native digits are missing for ar, hi and ne | Fixed |
-| A.9 | True, cosmetic | Deferred |
-| A.10 | True, low | Deferred |
-| A.11 | True, low | Deferred |
+| A.9 | True, cosmetic | Fixed |
+| A.10 | True, low | Fixed |
+| A.11 | True, low | Fixed |
 
 A.1 was reproduced end to end against the production build in headless Chromium. With the pre-fix build, the offline reload threw `TypeError: e.data.temperature.displayDualMixed is not a function`; with the fix it rendered the snapshot with no exceptions.
 

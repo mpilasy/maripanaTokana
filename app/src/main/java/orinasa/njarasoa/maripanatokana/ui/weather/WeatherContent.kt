@@ -1812,6 +1812,8 @@ internal suspend fun shareCardBitmap(context: android.content.Context, bitmap: B
         exif.setAttribute(ExifInterface.TAG_DATETIME_DIGITIZED, exifDateTime)
         exif.saveAttributes()
 
+        bitmap.recycle()
+
         FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
     }
     val intent = Intent(Intent.ACTION_SEND).apply {

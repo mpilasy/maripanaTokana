@@ -48,15 +48,20 @@
 				</svg>
 			</button>
 		{/if}
-		<button type="button" class="updated" onclick={() => doFetchWeather()} aria-label={$_('cd_refresh')}>
-			<span>{$refreshFailed
-				? $_('refresh_failed', { values: { time: loc(formatTime(data.timestamp)) } })
-				: $_('updated_time', { values: { time: loc(formatTime(data.timestamp)) } })}</span>
-			<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-				<path d="M23 4v6h-6"/>
-				<path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-			</svg>
-		</button>
+		<div class="updated-group">
+			<button type="button" class="updated" onclick={() => doFetchWeather()} aria-label={$_('cd_refresh')}>
+				<span>{$_('updated_time', { values: { time: loc(formatTime(data.timestamp)) } })}</span>
+				<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M23 4v6h-6"/>
+					<path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+				</svg>
+			</button>
+			{#if $refreshFailed}
+				<button type="button" class="refresh-failed" onclick={() => doFetchWeather()}>
+					{$_('refresh_failed', { values: { time: loc(formatTime(data.timestamp)) } })}
+				</button>
+			{/if}
+		</div>
 	</div>
 
 	<div class="hero-top">
@@ -205,6 +210,42 @@
 	}
 
 	.updated:active {
+		transform: scale(0.98);
+	}
+
+	.updated-group {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+	}
+
+	.refresh-failed {
+		font-size: 11px;
+		color: #ff6b6b;
+		cursor: pointer;
+		background: transparent;
+		border: none;
+		padding: 4px 6px;
+		border-radius: 4px;
+		transition: color 0.2s, background 0.2s;
+		font-family: inherit;
+		white-space: nowrap;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.refresh-failed:hover {
+		color: #ff8787;
+		background: rgba(255, 107, 107, 0.1);
+	}
+
+	.refresh-failed:focus-visible {
+		outline: 1px solid #ff6b6b;
+		outline-offset: 2px;
+	}
+
+	.refresh-failed:active {
 		transform: scale(0.98);
 	}
 
