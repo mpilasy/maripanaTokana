@@ -134,6 +134,7 @@
     <string name="cd_refresh">Refresh</string>
     <string name="cd_manage_locations">Change location</string>
     <string name="cd_go_to_current_location">Go to current location</string>
+    <string name="cd_roman_name">Switch between local script and Latin letters</string>
     <string name="cd_add_favorite">Add to favorites</string>
     <string name="cd_remove_favorite">Remove from favorites</string>
     <string name="cd_previous_location">Previous location</string>

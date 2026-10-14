@@ -215,6 +215,7 @@
 	"cd_refresh": "Actualiser",
 	"cd_manage_locations": "Changer l'emplacement",
 	"cd_go_to_current_location": "Aller à la position actuelle",
+	"cd_roman_name": "Basculer entre écriture locale et alphabet latin",
 	"cd_add_favorite": "Ajouter aux favoris",
 	"cd_remove_favorite": "Retirer des favoris",
 	"cd_previous_location": "Emplacement précédent",

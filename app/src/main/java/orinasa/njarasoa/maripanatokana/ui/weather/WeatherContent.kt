@@ -274,6 +274,10 @@ internal fun WeatherContent(
         // Fixed header: full-width location block (captured into share images) with the action
         // buttons overlaid on the name line (not captured); only the name shrinks to make room.
         val headerGraphicsLayer = rememberGraphicsLayer()
+        // Local script by default; resets for each location
+        var showRoman by remember(data.latitude, data.longitude, data.locationName) { mutableStateOf(false) }
+        val locationName = if (showRoman) data.romanName ?: data.locationName else data.locationName
+        val locationSubtext = if (showRoman && data.romanName != null) data.romanSubtext else data.locationSubtext
         var headerActionsWidth by remember { mutableIntStateOf(0) }
         val density = LocalDensity.current
         Box(
@@ -298,23 +302,42 @@ internal fun WeatherContent(
                     onClickLabel = "Toggle GPS coordinates"
                 )
             ) {
-                Text(
-                    text = data.locationName,
-                    fontSize = 30f.s(scale),
-                    lineHeight = 36f.s(scale),
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = displayFont,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(end = with(density) { headerActionsWidth.toDp() }),
-                )
+                ) {
+                    Text(
+                        text = locationName,
+                        fontSize = 30f.s(scale),
+                        lineHeight = 36f.s(scale),
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = displayFont,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false),
+                    )
+                    // Discreet switch between the local script and Latin letters
+                    if (data.romanName != null) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_translate),
+                            contentDescription = stringResource(R.string.cd_roman_name),
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = if (showRoman) 0.85f else 0.45f),
+                            modifier = Modifier
+                                .padding(start = 6.dp)
+                                .clip(CircleShape)
+                                .clickable(role = Role.Button) { showRoman = !showRoman }
+                                .padding(4.dp)
+                                .size(18.dp),
+                        )
+                    }
+                }
                 val isRemote = isRemoteTimezone(data.utcOffsetSeconds)
-                if (data.locationSubtext != null || isRemote) {
+                if (locationSubtext != null || isRemote) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        if (data.locationSubtext != null) {
+                        if (locationSubtext != null) {
                             Text(
-                                text = data.locationSubtext,
+                                text = locationSubtext,
                                 fontSize = 14f.s(scale),
                                 fontFamily = bodyFont,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),

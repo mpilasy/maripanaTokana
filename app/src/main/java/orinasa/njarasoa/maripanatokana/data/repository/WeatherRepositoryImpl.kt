@@ -9,6 +9,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.jsonPrimitive
 import orinasa.njarasoa.maripanatokana.data.location.PlusCode
+import orinasa.njarasoa.maripanatokana.data.location.isLatinScript
 import orinasa.njarasoa.maripanatokana.data.remote.BomApiService
 import orinasa.njarasoa.maripanatokana.data.remote.CountryBoundingBoxes
 import orinasa.njarasoa.maripanatokana.data.remote.EcccApiService
@@ -70,6 +71,15 @@ class WeatherRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    override suspend fun romanPlaceName(lat: Double, lon: Double): Pair<String, String?>? = try {
+        geocodingSelector.current().reverseGeocode(lat, lon, Locale.ENGLISH).takeIf { isLatinScript(it.first) }
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        AppLog.w(TAG, "roman reverse geocode failed", e)
+        null
     }
 
     /** A full code is its own location; a short one is resolved near the place named with it. */

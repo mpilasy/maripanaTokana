@@ -215,6 +215,7 @@
 	"cd_refresh": "Refresh",
 	"cd_manage_locations": "Change location",
 	"cd_go_to_current_location": "Go to current location",
+	"cd_roman_name": "Switch between local script and Latin letters",
 	"cd_add_favorite": "Add to favorites",
 	"cd_remove_favorite": "Remove from favorites",
 	"cd_previous_location": "Previous location",

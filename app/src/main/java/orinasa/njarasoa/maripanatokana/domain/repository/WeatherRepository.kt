@@ -11,4 +11,6 @@ interface WeatherRepository {
     suspend fun getWeather(lat: Double, lon: Double): Result<WeatherData>
     suspend fun fetchAlerts(lat: Double, lon: Double): Result<AlertsResult>
     suspend fun searchLocation(query: String): Result<List<GeocodingResult>>
+    /** Place name and region in Latin letters, or null when the geocoder has none. */
+    suspend fun romanPlaceName(lat: Double, lon: Double): Pair<String, String?>?
 }

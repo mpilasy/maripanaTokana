@@ -133,6 +133,8 @@
 	let scrollContainer = $state<HTMLElement | null>(null);
 	let headerEl = $state<HTMLElement | null>(null);
 	let headerActionsWidth = $state(0);
+	// Location whose name is currently shown in Latin letters (null: local script)
+	let romanShownFor = $state<string | null>(null);
 
 	// Swipe-to-cycle-locations: ignored if the gesture started inside a horizontally-scrolling
 	// forecast strip (.cards-scroll), so hourly/daily forecast scrolling is unaffected.
@@ -305,6 +307,10 @@
 
 	{:else if $weatherState.kind === 'success'}
 		{@const data = $weatherState.data}
+		{@const romanKey = `${data.latitude},${data.longitude},${data.locationName}`}
+		{@const showRoman = !!data.romanName && romanShownFor === romanKey}
+		{@const name = showRoman ? data.romanName! : data.locationName}
+		{@const subtext = showRoman ? data.romanSubtext : data.locationSubtext}
 		<!-- Pull indicator -->
 		{#if pullDelta > 0}
 			<div class="pull-indicator" style:transform="translateY({Math.min(pullDelta, 100)}px)">
@@ -325,18 +331,29 @@
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<div class="header-main" bind:this={headerEl} onclick={onLocationClicked}>
-					<h1 class="location-name" style:padding-inline-end="{headerActionsWidth}px">
-						{#if !data.locationSubtext && data.locationName.includes(',')}
-							{data.locationName.split(',')[0].trim()}
-						{:else}
-							{data.locationName}
+					<div class="name-row" style:padding-inline-end="{headerActionsWidth}px">
+						<h1 class="location-name">
+							{#if !subtext && name.includes(',')}
+								{name.split(',')[0].trim()}
+							{:else}
+								{name}
+							{/if}
+						</h1>
+						{#if data.romanName}
+							<!-- Discreet switch between the local script and Latin letters; resets per location -->
+							<button type="button" class="script-toggle" class:active={showRoman} aria-label={$_('cd_roman_name')}
+								onclick={(e) => { e.stopPropagation(); romanShownFor = showRoman ? null : romanKey; }}>
+								<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+									<path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
+								</svg>
+							</button>
 						{/if}
-					</h1>
-					{#if data.locationSubtext || data.locationName.includes(',') || isRemoteTimezone(data.utcOffsetSeconds)}
+					</div>
+					{#if subtext || name.includes(',') || isRemoteTimezone(data.utcOffsetSeconds)}
 						<div class="subtext-row">
-							{#if data.locationSubtext || data.locationName.includes(',')}
+							{#if subtext || name.includes(',')}
 								<p class="location-subtext">
-									{data.locationSubtext || data.locationName.split(',').slice(1).join(',').trim()}
+									{subtext || name.split(',').slice(1).join(',').trim()}
 								</p>
 							{/if}
 							{#if isRemoteTimezone(data.utcOffsetSeconds)}
@@ -686,7 +703,30 @@
 		cursor: pointer;
 	}
 
+	.name-row {
+		display: flex;
+		align-items: center;
+		min-width: 0;
+	}
+
+	.script-toggle {
+		flex: none;
+		display: flex;
+		margin-inline-start: 6px;
+		padding: 4px;
+		border: none;
+		border-radius: 50%;
+		background: transparent;
+		color: rgba(255, 255, 255, 0.45);
+		cursor: pointer;
+	}
+
+	.script-toggle.active {
+		color: rgba(255, 255, 255, 0.85);
+	}
+
 	.location-name {
+		min-width: 0;
 		font-family: var(--font-display);
 		font-size: 30px;
 		line-height: 36px;

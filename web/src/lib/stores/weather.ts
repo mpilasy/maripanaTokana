@@ -10,8 +10,9 @@ import { fetchAirQuality, mapToAirQuality, mapToHourlyAirQuality } from '$lib/ap
 import { getLocationInfo, type LocationInfo } from '$lib/api/alerts/shared';
 import {
 	getCachedLocation, cacheLocation, movedSignificantly,
-	getPosition, reverseGeocode
+	getPosition, reverseGeocode, lookupLocation
 } from '$lib/stores/location';
+import { isLatinScript } from '$lib/domain/script';
 import {
 	localeIndex,
 	weatherSource, weatherApiKey,
@@ -115,8 +116,27 @@ function setWeatherData(fetched: WeatherData) {
 			&& Math.abs(s.data.longitude - data.longitude) < SAME_LOCATION_DEG
 				? s.data.alerts
 				: [];
-		return { kind: 'success', data: { ...data, alerts: existingAlerts } };
+		// A refresh of the same place keeps the Latin-letter name already found for it
+		const roman = s.kind === 'success' && s.data.romanName && s.data.locationName === data.locationName && s.data.latitude === data.latitude
+			? { romanName: s.data.romanName, romanSubtext: s.data.romanSubtext }
+			: {};
+		return { kind: 'success', data: { ...data, ...roman, alerts: existingAlerts } };
 	});
+	lookUpRomanName();
+}
+
+/** For a name in a non-Latin script, finds its Latin-letter version in the background. */
+async function lookUpRomanName() {
+	const s = get(weatherState);
+	if (s.kind !== 'success' || s.data.romanName || isLatinScript(s.data.locationName)) return;
+	const { latitude, longitude, locationName } = s.data;
+	const r = await lookupLocation(latitude, longitude, 'en');
+	if (!r || !isLatinScript(r.name) || r.name === locationName) return;
+	weatherState.update((cur) =>
+		cur.kind === 'success' && cur.data.latitude === latitude && cur.data.locationName === locationName
+			? { kind: 'success', data: { ...cur.data, romanName: r.name, romanSubtext: r.subtext } }
+			: cur
+	);
 }
 
 async function fetchAlertsForData(lat: number, lon: number, generation: number, locationInfo?: LocationInfo) {

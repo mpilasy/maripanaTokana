@@ -34,6 +34,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import orinasa.njarasoa.maripanatokana.data.location.PlusCode
 import orinasa.njarasoa.maripanatokana.data.location.SharedLocationParser
+import orinasa.njarasoa.maripanatokana.data.location.isLatinScript
 import orinasa.njarasoa.maripanatokana.data.location.parseCoordinates
 import orinasa.njarasoa.maripanatokana.data.location.shortPlaceName
 import java.util.Locale
@@ -627,9 +628,30 @@ class WeatherViewModel @Inject constructor(
 
     /** Shows [data] as the current weather and persists it as the last good result for [cacheKey]. */
     private fun publish(cacheKey: String, data: WeatherData) {
-        _uiState.value = WeatherUiState.Success(data)
+        // A refresh of the same place keeps the Latin-letter name already found for it
+        val previous = (_uiState.value as? WeatherUiState.Success)?.data
+        val shown = if (data.romanName == null && previous?.romanName != null &&
+            previous.locationName == data.locationName && previous.latitude == data.latitude
+        ) data.copy(romanName = previous.romanName, romanSubtext = previous.romanSubtext) else data
+        _uiState.value = WeatherUiState.Success(shown)
         _refreshFailed.value = false; _refreshError.value = null
-        viewModelScope.launch(Dispatchers.IO) { weatherCache.save(cacheKey, data) }
+        viewModelScope.launch(Dispatchers.IO) { weatherCache.save(cacheKey, shown) }
+        lookUpRomanName(cacheKey, shown)
+    }
+
+    /** For a name in a non-Latin script, finds its Latin-letter version in the background. */
+    private fun lookUpRomanName(cacheKey: String, data: WeatherData) {
+        val lat = data.latitude ?: return
+        val lon = data.longitude ?: return
+        if (data.romanName != null || isLatinScript(data.locationName)) return
+        viewModelScope.launch {
+            val (name, subtext) = weatherRepository.romanPlaceName(lat, lon) ?: return@launch
+            val current = (_uiState.value as? WeatherUiState.Success)?.data
+            if (current?.latitude != lat || current.locationName != data.locationName || name == data.locationName) return@launch
+            val updated = current.copy(romanName = name, romanSubtext = subtext)
+            _uiState.value = WeatherUiState.Success(updated)
+            withContext(Dispatchers.IO) { weatherCache.save(cacheKey, updated) }
+        }
     }
 
     /** With data on screen, keep it and flag the failed refresh; otherwise show a classified error. */

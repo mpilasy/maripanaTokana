@@ -12,6 +12,9 @@ data class WeatherData(
     val iconCode: String,
     val locationName: String,
     val locationSubtext: String? = null,
+    // Latin-letter name and region when locationName is in another script (e.g. 東京 -> Tokyo)
+    val romanName: String? = null,
+    val romanSubtext: String? = null,
     val pressure: Pressure,
     val humidity: Int?, // percentage
     val dewPoint: Temperature,

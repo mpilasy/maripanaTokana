@@ -60,6 +60,9 @@ export interface WeatherData {
 	weatherCode: number;
 	locationName: string;
 	locationSubtext?: string;
+	/** Latin-letter name and region when locationName is in another script (e.g. 東京 -> Tokyo). */
+	romanName?: string;
+	romanSubtext?: string;
 	latitude: number;
 	longitude: number;
 	pressure: Pressure;
