@@ -136,6 +136,8 @@
     <string name="cd_go_to_current_location">हालको स्थानमा जानुहोस्</string>
     <string name="cd_roman_name">स्थानीय लिपि र ल्याटिन अक्षरबीच बदल्नुहोस्</string>
     <string name="cd_plus_code">Plus Code देखाउनुहोस्</string>
+    <string name="current_location">हालको स्थान</string>
+    <string name="plus_code_copied">Plus Code कपी गरियो</string>
     <string name="cd_add_favorite">मनपर्ने मा थप्नुहोस्</string>
     <string name="cd_remove_favorite">मनपर्ने बाट हटाउनुहोस्</string>
     <string name="cd_previous_location">अघिल्लो स्थान</string>

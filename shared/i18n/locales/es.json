@@ -217,6 +217,8 @@
 	"cd_go_to_current_location": "Ir a la ubicación actual",
 	"cd_roman_name": "Cambiar entre escritura local y alfabeto latino",
 	"cd_plus_code": "Mostrar Plus Code",
+	"current_location": "Ubicación actual",
+	"plus_code_copied": "Plus Code copiado",
 	"cd_add_favorite": "Añadir a favoritos",
 	"cd_remove_favorite": "Quitar de favoritos",
 	"cd_previous_location": "Ubicación anterior",

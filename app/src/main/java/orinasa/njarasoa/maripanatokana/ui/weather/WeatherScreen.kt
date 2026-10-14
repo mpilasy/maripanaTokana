@@ -419,6 +419,10 @@ private fun WeatherMainScreen(
                             canSwipeToPrevious = locationCycleIndex > 0,
                             locationCount = locationCycle.size,
                             locationIndex = locationCycleIndex,
+                            locationNames = listOf<String?>(null) + savedLocations.map { it.name },
+                            onSelectLocation = { i ->
+                                if (i != locationCycleIndex) viewModel.switchToLocation(locationCycle[i])
+                            },
                             hasLocationOverride = advancedOverrideLat != null,
                             advancedOverrideLat = advancedOverrideLat,
                             advancedOverrideLon = advancedOverrideLon,

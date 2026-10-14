@@ -37,6 +37,17 @@ describe('plusCode', () => {
 		expect(findPlusCode('6gcrpr6c+24')).toEqual({ code: '6GCRPR6C+24', isFull: true, locality: '' });
 	});
 
+	it('accepts codes typed without the plus', () => {
+		expect(findPlusCode('5hh93g')).toEqual({ code: '5HH9+3G', isFull: false, locality: '' });
+		expect(findPlusCode('PR6C43 Nairobi')).toEqual({ code: 'PR6C+43', isFull: false, locality: 'Nairobi' });
+		expect(findPlusCode('6GCRPR6C24')).toEqual({ code: '6GCRPR6C+24', isFull: true, locality: '' });
+	});
+
+	it('does not take postcodes or words for codes', () => {
+		expect(findPlusCode('562345')).toBeNull();
+		expect(findPlusCode('Rhythm')).toBeNull();
+	});
+
 	it('ignores text without a code', () => {
 		expect(findPlusCode('Nairobi')).toBeNull();
 		expect(findPlusCode('1+1')).toBeNull();

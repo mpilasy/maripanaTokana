@@ -16,13 +16,23 @@ object PlusCode {
     private val FULL = Regex("""(?<![A-Z0-9])[$ALPHABET]{8}\+[$ALPHABET]{2,}(?![A-Z0-9])""", RegexOption.IGNORE_CASE)
     private val SHORT = Regex("""(?<![A-Z0-9])(?:[$ALPHABET]{4}|[$ALPHABET]{6})\+[$ALPHABET]{2,}(?![A-Z0-9])""", RegexOption.IGNORE_CASE)
 
+    // Typed without the "+": a whole word of 6-7 (short) or 10-11 (full) code characters that
+    // mixes letters and digits, so all-digit postcodes and plain words don't match
+    private val NO_PLUS = Regex("""(?<![A-Z0-9+])(?=[$ALPHABET]*[0-9])(?=[$ALPHABET]*[A-Z])(?:[$ALPHABET]{10,11}|[$ALPHABET]{6,7})(?![A-Z0-9+])""", RegexOption.IGNORE_CASE)
+
     fun find(text: String): Match? {
         val full = FULL.find(text)
-        val m = full ?: SHORT.find(text) ?: return null
-        val code = m.value.uppercase()
-        if (full != null && !isValidFullPrefix(code)) return null
+        val m = full ?: SHORT.find(text) ?: NO_PLUS.find(text) ?: return null
+        val raw = m.value.uppercase()
+        val code = when {
+            '+' in raw -> raw
+            raw.length >= 10 -> raw.substring(0, 8) + "+" + raw.substring(8)
+            else -> raw.substring(0, 4) + "+" + raw.substring(4)
+        }
+        val isFull = code.indexOf('+') == 8
+        if (isFull && !isValidFullPrefix(code)) return null
         val locality = text.removeRange(m.range).trim(' ', ',', '\n', '\t')
-        return Match(code, full != null, locality)
+        return Match(code, isFull, locality)
     }
 
     /** Standard 10-digit code (about 14 m x 14 m) for a point, e.g. "6GCRPR6C+24". */

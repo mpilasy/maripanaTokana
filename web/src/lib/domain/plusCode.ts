@@ -15,15 +15,20 @@ export interface PlusCodeMatch {
 const FULL = new RegExp(`(?<![A-Z0-9])[${ALPHABET}]{8}\\+[${ALPHABET}]{2,}(?![A-Z0-9])`, 'i');
 const SHORT = new RegExp(`(?<![A-Z0-9])(?:[${ALPHABET}]{4}|[${ALPHABET}]{6})\\+[${ALPHABET}]{2,}(?![A-Z0-9])`, 'i');
 
+// Typed without the "+": a whole word of 6-7 (short) or 10-11 (full) code characters that
+// mixes letters and digits, so all-digit postcodes and plain words don't match
+const NO_PLUS = new RegExp(`(?<![A-Z0-9+])(?=[${ALPHABET}]*[0-9])(?=[${ALPHABET}]*[A-Z])(?:[${ALPHABET}]{10,11}|[${ALPHABET}]{6,7})(?![A-Z0-9+])`, 'i');
+
 export function findPlusCode(text: string): PlusCodeMatch | null {
-	const full = text.match(FULL);
-	const m = full ?? text.match(SHORT);
+	const m = text.match(FULL) ?? text.match(SHORT) ?? text.match(NO_PLUS);
 	if (!m || m.index === undefined) return null;
-	const code = m[0].toUpperCase();
+	const raw = m[0].toUpperCase();
+	const code = raw.includes('+') ? raw : raw.length >= 10 ? `${raw.slice(0, 8)}+${raw.slice(8)}` : `${raw.slice(0, 4)}+${raw.slice(4)}`;
+	const isFull = code.indexOf('+') === 8;
 	// First digit encodes latitude in 20° bands (max 9), second longitude (max 18)
-	if (full && (ALPHABET.indexOf(code[0]) >= 9 || ALPHABET.indexOf(code[1]) >= 18)) return null;
+	if (isFull && (ALPHABET.indexOf(code[0]) >= 9 || ALPHABET.indexOf(code[1]) >= 18)) return null;
 	const locality = (text.slice(0, m.index) + text.slice(m.index + m[0].length)).replace(/^[\s,]+|[\s,]+$/g, '');
-	return { code, isFull: !!full, locality };
+	return { code, isFull, locality };
 }
 
 /** Centre of a full code's area. */

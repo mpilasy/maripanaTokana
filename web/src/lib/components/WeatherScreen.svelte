@@ -14,6 +14,7 @@
 	} from '$lib/stores/savedLocations';
 	import { parseLocationText } from '$lib/domain/sharedLocationParser';
 	import { encodePlusCode, findPlusCode } from '$lib/domain/plusCode';
+	import { longPress } from '$lib/actions/longPress';
 	import { searchLocations } from '$lib/api/geocodingSearch';
 	import SettingsScreen from './SettingsScreen.svelte';
 	import AboutScreen from './AboutScreen.svelte';
@@ -135,14 +136,28 @@
 	let headerActionsWidth = $state(0);
 	// Location whose name is currently shown in Latin letters (null: local script)
 	let romanShownFor = $state<string | null>(null);
-	// Plus Code tooltip opened by tap; any other tap closes it
+	// Plus Code tooltip opened by tap; any other tap closes it. Holding the icon or code copies it.
 	let plusCodeOpen = $state(false);
+	let plusCodeCopied = $state(false);
+	// Location list opened by holding a pager arrow
+	let pickerOpen = $state(false);
 	$effect(() => {
-		if (!plusCodeOpen) return;
-		const close = () => (plusCodeOpen = false);
+		if (!plusCodeOpen && !pickerOpen) return;
+		const close = () => { plusCodeOpen = false; pickerOpen = false; };
 		window.addEventListener('click', close);
 		return () => window.removeEventListener('click', close);
 	});
+
+	async function copyPlusCode(code: string) {
+		try {
+			await navigator.clipboard.writeText(code);
+		} catch {
+			return;
+		}
+		plusCodeOpen = true;
+		plusCodeCopied = true;
+		setTimeout(() => (plusCodeCopied = false), 1500);
+	}
 
 	// Swipe-to-cycle-locations: ignored if the gesture started inside a horizontally-scrolling
 	// forecast strip (.cards-scroll), so hourly/daily forecast scrolling is unaffected.
@@ -383,12 +398,19 @@
 							<!-- Grid icon: the point's Plus Code (a grid cell) in a tooltip, on hover or tap -->
 							<span class="plus-code">
 								<button type="button" class="plus-code-btn" aria-label={$_('cd_plus_code')} aria-expanded={plusCodeOpen}
-									onclick={(e) => { e.stopPropagation(); plusCodeOpen = !plusCodeOpen; }}>
+									onclick={(e) => { e.stopPropagation(); plusCodeOpen = !plusCodeOpen; }}
+									use:longPress={() => copyPlusCode(encodePlusCode(data.latitude, data.longitude))}>
 									<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
 										<path d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM8 20H4v-4h4v4zm0-6H4v-4h4v4zm0-6H4V4h4v4zm6 12h-4v-4h4v4zm0-6h-4v-4h4v4zm0-6h-4V4h4v4zm6 12h-4v-4h4v4zm0-6h-4v-4h4v4zm0-6h-4V4h4v4z"/>
 									</svg>
 								</button>
-								<span class="plus-code-tip" class:open={plusCodeOpen} role="tooltip" dir="ltr">Plus Code {encodePlusCode(data.latitude, data.longitude)}</span>
+								<!-- svelte-ignore a11y_click_events_have_key_events -->
+								<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+								<span class="plus-code-tip" class:open={plusCodeOpen || plusCodeCopied} role="tooltip" dir={plusCodeCopied ? 'auto' : 'ltr'}
+									onclick={(e) => e.stopPropagation()}
+									use:longPress={() => copyPlusCode(encodePlusCode(data.latitude, data.longitude))}>
+									{plusCodeCopied ? $_('plus_code_copied') : `Plus Code ${encodePlusCode(data.latitude, data.longitude)}`}
+								</span>
 							</span>
 						</div>
 					{/if}
@@ -439,8 +461,10 @@
 
 			<!-- Saved-location pager: ‹ • ● • › -->
 			{#if locationCycle().length > 1}
+				<!-- Holding either arrow lists every location to jump straight to one (works at the ends too) -->
 				<div class="location-pager" dir="ltr">
-					<button class="pager-arrow" onclick={swipeToPrevious} disabled={!canGoToPrevious} aria-label={$_('cd_previous_location')}>
+					<button class="pager-arrow" class:disabled={!canGoToPrevious} aria-disabled={!canGoToPrevious} aria-label={$_('cd_previous_location')}
+						onclick={swipeToPrevious} use:longPress={() => (pickerOpen = true)}>
 						<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
 					</button>
 					<div class="pager-dots">
@@ -448,9 +472,28 @@
 							<span class="pager-dot" class:active={id === $activeLocationId}></span>
 						{/each}
 					</div>
-					<button class="pager-arrow" onclick={swipeToNext} disabled={!canGoToNext} aria-label={$_('cd_next_location')}>
+					<button class="pager-arrow" class:disabled={!canGoToNext} aria-disabled={!canGoToNext} aria-label={$_('cd_next_location')}
+						onclick={swipeToNext} use:longPress={() => (pickerOpen = true)}>
 						<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>
 					</button>
+					{#if pickerOpen}
+						<div class="location-picker" role="menu" dir={SUPPORTED_LOCALES[$localeIndex].tag === 'ar' ? 'rtl' : 'ltr'}>
+							{#each locationCycle() as id (id ?? 'current')}
+								{@const isCurrent = id === $activeLocationId && !$locationOverride}
+								<button type="button" role="menuitem" class="picker-item" class:current={isCurrent}
+									onclick={(e) => { e.stopPropagation(); pickerOpen = false; if (!isCurrent) switchToLocation(id); }}>
+									<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+										{#if id === null}
+											<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+										{:else}
+											<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+										{/if}
+									</svg>
+									{id === null ? $_('current_location') : ($savedLocations.find((l) => l.id === id)?.name ?? id)}
+								</button>
+							{/each}
+						</div>
+					{/if}
 				</div>
 			{/if}
 
@@ -912,6 +955,7 @@
 	}
 
 	.location-pager {
+		position: relative;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -932,9 +976,61 @@
 		cursor: pointer;
 	}
 
-	.pager-arrow:disabled {
+	/* Long-press targets: no text selection or callout on touch */
+	.pager-arrow, .plus-code-btn, .plus-code-tip {
+		-webkit-touch-callout: none;
+		user-select: none;
+	}
+
+	.pager-arrow.disabled {
 		color: rgba(255, 255, 255, 0.15);
 		cursor: default;
+	}
+
+	.location-picker {
+		position: absolute;
+		top: 100%;
+		left: 50%;
+		translate: -50% 0;
+		z-index: 20;
+		min-width: 200px;
+		max-height: 60vh;
+		overflow-y: auto;
+		padding: 6px 0;
+		border-radius: 16px;
+		border: 1px solid var(--hairline);
+		background: #1A1565;
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+	}
+
+	.picker-item {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		width: 100%;
+		padding: 12px 16px;
+		border: none;
+		background: transparent;
+		color: rgba(255, 255, 255, 0.85);
+		font-family: var(--font-body);
+		font-size: 15px;
+		text-align: start;
+		white-space: nowrap;
+		cursor: pointer;
+	}
+
+	.picker-item svg {
+		flex: none;
+		color: rgba(255, 255, 255, 0.6);
+	}
+
+	.picker-item:hover {
+		background: var(--surface-tile);
+	}
+
+	.picker-item.current {
+		color: white;
+		font-weight: 700;
 	}
 
 	.pager-dots {

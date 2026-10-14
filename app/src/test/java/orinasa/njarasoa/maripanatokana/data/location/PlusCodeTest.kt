@@ -57,6 +57,20 @@ class PlusCodeTest {
     }
 
     @Test
+    fun `accepts codes typed without the plus`() {
+        assertEquals(PlusCode.Match("5HH9+3G", false, ""), PlusCode.find("5hh93g"))
+        assertEquals(PlusCode.Match("PR6C+43", false, "Nairobi"), PlusCode.find("PR6C43 Nairobi"))
+        assertEquals(PlusCode.Match("6GCRPR6C+24", true, ""), PlusCode.find("6GCRPR6C24"))
+    }
+
+    @Test
+    fun `does not take postcodes or words for codes`() {
+        assertNull(PlusCode.find("562345"))
+        assertNull(PlusCode.find("Rhythm"))
+        assertNull(PlusCode.find("CWC8R9X2Q4M"))
+    }
+
+    @Test
     fun `ignores text without a code`() {
         assertNull(PlusCode.find("Nairobi"))
         assertNull(PlusCode.find("1+1"))

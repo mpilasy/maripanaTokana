@@ -49,6 +49,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.border
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.TooltipBox
@@ -194,6 +199,8 @@ internal fun WeatherContent(
     canSwipeToPrevious: Boolean = false,
     locationCount: Int = 1,
     locationIndex: Int = 0,
+    locationNames: List<String?> = emptyList(), // pager order; null = current (GPS) location
+    onSelectLocation: (Int) -> Unit = {},
     hasLocationOverride: Boolean = false,
     advancedOverrideLat: Double? = null,
     advancedOverrideLon: Double? = null,
@@ -482,8 +489,10 @@ internal fun WeatherContent(
 
         // Saved-location pager: \u2039 \u2022 \u25CF \u2022 \u203A
         if (locationCount > 1) {
+            // Holding either arrow lists every location to jump straight to one
+            var pickerOpen by remember { mutableStateOf(false) }
+            Box(modifier = Modifier.fillMaxWidth().padding(top = 8.sd(scale)), contentAlignment = Alignment.Center) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 8.sd(scale)),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -492,6 +501,7 @@ internal fun WeatherContent(
                     contentDescription = stringResource(R.string.cd_previous_location),
                     enabled = canSwipeToPrevious,
                     onClick = onSwipeToPreviousLocation,
+                    onLongClick = { pickerOpen = true },
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     repeat(locationCount) { i ->
@@ -512,7 +522,43 @@ internal fun WeatherContent(
                     contentDescription = stringResource(R.string.cd_next_location),
                     enabled = canSwipeToNext,
                     onClick = onSwipeToNextLocation,
+                    onLongClick = { pickerOpen = true },
                 )
+            }
+            DropdownMenu(
+                expanded = pickerOpen,
+                onDismissRequest = { pickerOpen = false },
+                containerColor = Color(0xFF1A1565), // same as the location dialog
+                shape = RoundedCornerShape(16.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Hairline),
+            ) {
+                // A search preview isn't in the list, so nothing is marked as current then
+                val currentIndex = if (hasLocationOverride) -1 else locationIndex
+                locationNames.forEachIndexed { i, name ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = name ?: stringResource(R.string.current_location),
+                                fontFamily = bodyFont,
+                                fontWeight = if (i == currentIndex) FontWeight.Bold else FontWeight.Normal,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (i == currentIndex) 1f else 0.85f),
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = if (name == null) Icons.Default.LocationOn else Icons.Default.Favorite,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                modifier = Modifier.size(18.dp),
+                            )
+                        },
+                        onClick = {
+                            pickerOpen = false
+                            onSelectLocation(i)
+                        },
+                    )
+                }
+            }
             }
         }
 
@@ -978,22 +1024,36 @@ private fun HeaderAction(
 }
 
 @Composable
+@OptIn(ExperimentalFoundationApi::class)
 private fun LocationPagerArrow(
     imageVector: androidx.compose.ui.graphics.vector.ImageVector,
     contentDescription: String,
     enabled: Boolean,
     onClick: () -> Unit,
+    onLongClick: () -> Unit,
 ) {
-    IconButton(
-        onClick = onClick,
-        enabled = enabled,
-        modifier = Modifier.size(32.dp),
-        colors = IconButtonDefaults.iconButtonColors(
-            contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-            disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f),
-        ),
+    val haptic = LocalHapticFeedback.current
+    // Long-press works even at the end of the list, where the tap does nothing
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(32.dp)
+            .clip(CircleShape)
+            .combinedClickable(
+                role = Role.Button,
+                onClick = { if (enabled) onClick() },
+                onLongClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onLongClick()
+                },
+            ),
     ) {
-        Icon(imageVector = imageVector, contentDescription = contentDescription, modifier = Modifier.size(20.dp))
+        Icon(
+            imageVector = imageVector,
+            contentDescription = contentDescription,
+            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = if (enabled) 0.7f else 0.15f),
+            modifier = Modifier.size(20.dp),
+        )
     }
 }
 
@@ -1912,18 +1972,36 @@ private fun formatDMS(value: Double, positive: String, negative: String): String
     return "%d\u00B0%02d'%02d\"%s".format(Locale.US, degrees, minutes, seconds, direction)
 }
 
-/** Grid icon beside the coordinates; tapping it shows the point's Plus Code (a grid cell) in a tooltip. */
-@OptIn(ExperimentalMaterial3Api::class)
+/** Grid icon beside the coordinates; tapping it shows the point's Plus Code (a grid cell) in a
+ * tooltip, holding the icon or the code copies it. */
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 private fun PlusCodeInfo(lat: Double, lon: Double, modifier: Modifier = Modifier) {
     val code = remember(lat, lon) { PlusCode.encode(lat, lon) }
     val tooltipState = rememberTooltipState(isPersistent = true)
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
+    val copiedMessage = stringResource(R.string.plus_code_copied)
+    val copy = {
+        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+        val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Plus Code", code))
+        // Android 13+ confirms clipboard writes itself
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.TIRAMISU) {
+            android.widget.Toast.makeText(context, copiedMessage, android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
     TooltipBox(
         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
         tooltip = {
             PlainTooltip {
-                Text("Plus Code  $code", style = LocalTextStyle.current.copy(textDirection = TextDirection.Ltr))
+                // Holding the code copies it
+                Text(
+                    "Plus Code  $code",
+                    style = LocalTextStyle.current.copy(textDirection = TextDirection.Ltr),
+                    modifier = Modifier.combinedClickable(onClick = {}, onLongClick = copy),
+                )
             }
         },
         state = tooltipState,
@@ -1935,7 +2013,11 @@ private fun PlusCodeInfo(lat: Double, lon: Double, modifier: Modifier = Modifier
             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
             modifier = Modifier
                 .clip(CircleShape)
-                .clickable(role = Role.Button) { scope.launch { tooltipState.show() } }
+                .combinedClickable(
+                    role = Role.Button,
+                    onClick = { scope.launch { tooltipState.show() } },
+                    onLongClick = copy,
+                )
                 .padding(4.dp)
                 .size(18.dp),
         )
