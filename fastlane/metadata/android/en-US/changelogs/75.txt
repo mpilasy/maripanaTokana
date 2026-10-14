@@ -1,0 +1,1 @@
+- Refined Malagasy translations for location search.

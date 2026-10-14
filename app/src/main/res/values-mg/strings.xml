@@ -123,7 +123,7 @@
     <string name="alert_count_title">Filazana %1$s</string>
     <string name="credits_weather_data">Fankasitrahana:</string>
     <string name="locations_title">Toerana</string>
-    <string name="locations_search_hint">Karohy tanàna na kaody paositra</string>
+    <string name="locations_search_hint">Mitadiava tanàna na kaody paositra</string>
     <string name="cd_change_font">Ovay ny endri-tsoratra</string>
     <string name="cd_change_language">Ovay ny fiteny</string>
     <string name="cd_toggle_units">Ovay ny mari-drefy</string>
@@ -175,7 +175,7 @@
     <string name="about_source_code">Kaody loharano</string>
     <string name="about_section_weather">Angona momba ny toetr\'andro</string>
     <string name="about_section_air_quality">Hadion\'ny rivotra</string>
-    <string name="about_section_geocoding">Anaran-toerana sy fikarohana</string>
+    <string name="about_section_geocoding">Anaran-toerana sy fitadiavana</string>
     <string name="about_section_alerts">Fampitandremana momba ny toetr\'andro</string>
     <string name="about_section_imagery">Sary ambadika</string>
     <string name="about_section_fonts">Endri-tsoratra</string>

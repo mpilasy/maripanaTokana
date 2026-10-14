@@ -1,0 +1,1 @@
+- Mejoras en las traducciones al malgache para la búsqueda de ubicaciones.
