@@ -1,0 +1,1 @@
+- Versión de mantenimiento; sin cambios en las funciones.

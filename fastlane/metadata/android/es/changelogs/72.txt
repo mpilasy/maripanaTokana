@@ -1,1 +1,0 @@
-- Mantenimiento interno y mejoras de scripts.
