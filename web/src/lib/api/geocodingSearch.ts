@@ -9,6 +9,8 @@ export interface SearchResult {
 	admin2?: string;
 	country?: string;
 	displayName: string;
+	/** Region or country rather than a town or city (GeoNames ADM or PCL feature code) */
+	isArea?: boolean;
 }
 
 /** Drop results with the same name at (nearly) the same place; the API often lists a city twice. */
@@ -55,6 +57,7 @@ export async function searchLocations(query: string): Promise<SearchResult[]> {
 				let mapped: SearchResult[] = data.results.map((r: any) => ({
 					...r,
 					displayName: [r.name, r.admin1, r.country].filter(Boolean).join(', '),
+					isArea: /^(ADM|PCL)/.test(r.feature_code ?? ''),
 				}));
 				if (qualifier) {
 					const filtered = mapped.filter((r) =>

@@ -13,6 +13,7 @@ data class NominatimPlace(
     @SerialName("lon") val lon: String = "0",
     @SerialName("name") val name: String = "",
     @SerialName("display_name") val displayName: String = "",
+    @SerialName("place_rank") val placeRank: Int = 30, // 4 country, 8 state, 12 county, 16 city, 30 building
     @SerialName("address") val address: NominatimAddress = NominatimAddress(),
 )
 

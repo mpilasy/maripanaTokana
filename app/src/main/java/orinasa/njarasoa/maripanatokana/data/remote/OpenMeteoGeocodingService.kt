@@ -1,5 +1,6 @@
 package orinasa.njarasoa.maripanatokana.data.remote
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import retrofit2.http.GET
 import retrofit2.http.Query
@@ -18,7 +19,10 @@ data class GeocodingResult(
     val country: String? = null,
     val admin1: String? = null,
     val admin2: String? = null,
+    @SerialName("feature_code") val featureCode: String? = null, // GeoNames code: PPL* town, ADM*/PCL* region or country
 ) {
+    val isArea: Boolean get() = featureCode?.startsWith("ADM") == true || featureCode?.startsWith("PCL") == true
+
     fun displayName(): String {
         return listOfNotNull(name, admin1, country).joinToString(", ")
     }
