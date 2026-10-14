@@ -1,0 +1,2 @@
+- L'écran principal garde sa position de défilement au retour des Réglages ou de À propos.
+- La page des licences des polices s'ouvre sans à-coups.

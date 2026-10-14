@@ -1,0 +1,2 @@
+- The main screen keeps its scroll position when you come back from Settings or About.
+- The font licences page opens without stutter.

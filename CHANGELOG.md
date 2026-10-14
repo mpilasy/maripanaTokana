@@ -6,6 +6,12 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.4.1] - 2026-10-13
+- The main screen keeps its scroll position when you come back from Settings or About.
+- The font licences page loads its text in the background, so it opens without stutter.
+- Web: Settings, About and dialogs stay inside the app frame on desktop; the air-quality dialog dims the whole screen.
+- Web: the "Updated" line shows a short date ("Mon 12 Oct, 14:30") when data is not from today, matching Android.
+
 ## [1.4.0] - 2026-10-13
 - New look: redesigned main screen with a cleaner header, a new current-weather card, glass sections and an even tile grid (Android and web).
 - New About page listing every data source, font and library with its licence, including the bundled font licences (Settings → About, or tap the footer credits).

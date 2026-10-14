@@ -1,0 +1,2 @@
+- La pantalla principal mantiene su posición de desplazamiento al volver de Ajustes o Acerca de.
+- La página de licencias de fuentes se abre sin tirones.
