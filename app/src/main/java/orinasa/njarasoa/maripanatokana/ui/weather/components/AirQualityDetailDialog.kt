@@ -23,7 +23,6 @@ import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.domain.model.AirQualityIndex
 import orinasa.njarasoa.maripanatokana.domain.model.AirQualityIndex.Companion.pollenTierFor
@@ -77,7 +76,7 @@ fun AirQualityDetailDialog(
         pollen.ragweed?.let { PollenRow(stringResource(R.string.pollen_ragweed), it, pollenTierFor(it)) },
     )
 
-    Dialog(onDismissRequest = onDismissRequest) {
+    LocalizedDialog(onDismissRequest = onDismissRequest) {
         Card(
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),

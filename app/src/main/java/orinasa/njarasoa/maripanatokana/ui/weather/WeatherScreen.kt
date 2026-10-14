@@ -73,18 +73,53 @@ fun WeatherScreen(
     // Hoisted so the main screen's scroll position survives a trip through Settings/About.
     val mainScrollState = rememberSaveable(saver = ScrollState.Saver) { ScrollState(0) }
 
-    if (showAbout) {
-        AboutScreen(onBack = { showAbout = false })
-    } else if (showSettings) {
-        SettingsScreen(onBack = { showSettings = false }, onOpenAbout = { showAbout = true })
-    } else {
-        WeatherMainScreen(
-            viewModel = viewModel,
-            permissionHandler = permissionHandler,
-            scrollState = mainScrollState,
-            onOpenSettings = { showSettings = true },
-            onOpenAbout = { showAbout = true },
-        )
+    // App language, font and layout direction for every screen and dialog: the Activity's own
+    // resources keep the language it was launched with, so anything outside these providers
+    // stays in that language after a mid-session switch.
+    val fontIndex by viewModel.fontIndex.collectAsState()
+    val localeIndex by viewModel.localeIndex.collectAsState()
+    val pairing = fontPairings[fontIndex]
+    val localeTag = supportedLocales[localeIndex].tag
+    val baseContext = LocalContext.current
+    val currentConfig = LocalConfiguration.current
+    val localizedContext = remember(localeTag, baseContext, currentConfig) {
+        val locale = java.util.Locale.forLanguageTag(localeTag)
+        val config = android.content.res.Configuration(currentConfig)
+        config.setLocale(locale)
+        val resContext = baseContext.createConfigurationContext(config)
+        object : android.content.ContextWrapper(baseContext) {
+            override fun getResources() = resContext.resources
+        }
+    }
+
+    val layoutDirection = if (androidx.core.text.TextUtilsCompat.getLayoutDirectionFromLocale(
+            java.util.Locale.forLanguageTag(localeTag)
+        ) == android.view.View.LAYOUT_DIRECTION_RTL) androidx.compose.ui.unit.LayoutDirection.Rtl
+        else androidx.compose.ui.unit.LayoutDirection.Ltr
+
+    CompositionLocalProvider(
+        LocalContext provides localizedContext,
+        LocalConfiguration provides localizedContext.resources.configuration,
+        LocalDisplayFont provides pairing.display,
+        LocalBodyFont provides pairing.body,
+        LocalBodyFontFeatures provides pairing.bodyFontFeatures,
+        androidx.compose.ui.platform.LocalLayoutDirection provides layoutDirection,
+    ) {
+        MaterialTheme(typography = buildTypography(pairing)) {
+        if (showAbout) {
+            AboutScreen(onBack = { showAbout = false })
+        } else if (showSettings) {
+            SettingsScreen(onBack = { showSettings = false }, onOpenAbout = { showAbout = true })
+        } else {
+            WeatherMainScreen(
+                viewModel = viewModel,
+                permissionHandler = permissionHandler,
+                scrollState = mainScrollState,
+                onOpenSettings = { showSettings = true },
+                onOpenAbout = { showAbout = true },
+            )
+        }
+        }
     }
 }
 
@@ -107,19 +142,8 @@ private fun WeatherMainScreen(
     val localeIndex by viewModel.localeIndex.collectAsState()
 
     val pairing = fontPairings[fontIndex]
-    val localeTag = supportedLocales[localeIndex].tag
     val baseContext = LocalContext.current
     val currentConfig = LocalConfiguration.current
-    val localizedContext = remember(localeTag, baseContext, currentConfig) {
-        val locale = java.util.Locale.forLanguageTag(localeTag)
-        val config = android.content.res.Configuration(currentConfig)
-        config.setLocale(locale)
-        val resContext = baseContext.createConfigurationContext(config)
-        object : android.content.ContextWrapper(baseContext) {
-            override fun getResources() = resContext.resources
-        }
-    }
-
     val requestPermission = permissionHandler.rememberPermissionRequester {
         viewModel.fetchWeather()
     }
@@ -177,20 +201,6 @@ private fun WeatherMainScreen(
     val isLoading = uiState is WeatherUiState.Loading
     LaunchedEffect(isLoading) { if (isLoading) scrollState.scrollTo(0) }
 
-    val layoutDirection = if (androidx.core.text.TextUtilsCompat.getLayoutDirectionFromLocale(
-            java.util.Locale.forLanguageTag(localeTag)
-        ) == android.view.View.LAYOUT_DIRECTION_RTL) androidx.compose.ui.unit.LayoutDirection.Rtl
-        else androidx.compose.ui.unit.LayoutDirection.Ltr
-
-    CompositionLocalProvider(
-        LocalContext provides localizedContext,
-        LocalConfiguration provides localizedContext.resources.configuration,
-        LocalDisplayFont provides pairing.display,
-        LocalBodyFont provides pairing.body,
-        LocalBodyFontFeatures provides pairing.bodyFontFeatures,
-        androidx.compose.ui.platform.LocalLayoutDirection provides layoutDirection,
-    ) {
-        MaterialTheme(typography = buildTypography(pairing)) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -508,6 +518,4 @@ private fun WeatherMainScreen(
                 }
             }
         }
-        } // end MaterialTheme(typography)
-    }
 }
