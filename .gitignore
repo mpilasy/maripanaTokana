@@ -50,3 +50,4 @@ web/**/tsconfig.tsbuildinfo
 /.cursorrules
 /.github/copilot-instructions.md
 web/agents.md
+/docs/plans/*-adversarial-review.md
