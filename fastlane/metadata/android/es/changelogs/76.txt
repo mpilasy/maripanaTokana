@@ -1,0 +1,1 @@
+- La búsqueda de ubicaciones muestra una ciudad antes que la región del mismo nombre (p. ej. Kidal) y marca regiones y países con un icono de mapa.

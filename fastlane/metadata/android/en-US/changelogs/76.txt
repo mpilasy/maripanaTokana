@@ -1,0 +1,1 @@
+- Location search lists a town before the region of the same name (e.g. Kidal), and marks regions and countries with a map icon.

@@ -1,0 +1,1 @@
+- La recherche de lieux affiche une ville avant la région du même nom (ex. Kidal) et signale les régions et pays par une icône de carte.
