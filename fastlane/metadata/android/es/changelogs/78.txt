@@ -1,0 +1,2 @@
+- Mantén pulsada una flecha de ubicación para ver tus favoritos e ir directamente a uno.
+- Mantén pulsado el Plus Code (icono de cuadrícula) para copiarlo. Los Plus Codes también funcionan sin el «+» (5hh93g).

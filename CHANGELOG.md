@@ -6,6 +6,11 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.4.8] - 2026-10-14
+- Holding either location-pager arrow lists the current location and all favorites to jump straight to one, including from the end of the list (Android and web).
+- Holding the Plus Code grid icon, or the code in its tooltip, copies the code to the clipboard (Android and web).
+- Plus Codes typed without the "+" are recognised (`5hh93g` -> `5HH9+3G`) when the word mixes letters and digits.
+
 ## [1.4.7] - 2026-10-14
 - Plus Codes (Open Location Code): search with a full code, or a short one with or without a place (`PR6C+43 Nairobi`); also from shared text. A grid icon beside the coordinates shows the location's 10-digit code (Android and web).
 - Place names in a non-Latin script get a discreet icon to switch name and region to Latin letters (القاهرة ↔ Cairo); it resets per location.

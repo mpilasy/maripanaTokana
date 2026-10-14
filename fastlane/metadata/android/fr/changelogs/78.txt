@@ -1,0 +1,2 @@
+- Maintenez une flèche de lieu pour lister vos favoris et aller directement à l'un d'eux.
+- Maintenez le Plus Code (icône de grille) pour le copier. Les Plus Codes fonctionnent aussi sans le « + » (5hh93g).
