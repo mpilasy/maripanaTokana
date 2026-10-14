@@ -346,8 +346,9 @@
 							const url = `https://www.openstreetmap.org/?mlat=${data.latitude}&mlon=${data.longitude}#map=15/${data.latitude}/${data.longitude}`;
 							window.open(url, '_blank');
 						}}>
-							<span>{formatDMS(data.latitude, 'N', 'S')}</span>
-							<span>{formatDMS(data.longitude, 'E', 'W')}</span>
+							<!-- dir="ltr" keeps 45°00'21"N intact in RTL languages -->
+							<span dir="ltr">{formatDMS(data.latitude, 'N', 'S')}</span>
+							<span dir="ltr">{formatDMS(data.longitude, 'E', 'W')}</span>
 						</div>
 					{/if}
 					<button type="button" class="updated" onclick={(e) => { e.stopPropagation(); doFetchWeather(); }} aria-label={$_('cd_refresh')}>

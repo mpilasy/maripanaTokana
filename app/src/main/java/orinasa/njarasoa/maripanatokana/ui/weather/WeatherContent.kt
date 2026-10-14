@@ -60,6 +60,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -102,6 +103,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
@@ -350,6 +352,7 @@ internal fun WeatherContent(
                     ) {
                         Text(
                             text = formatDMS(displayLat, "N", "S"),
+                            style = LocalTextStyle.current.copy(textDirection = TextDirection.Ltr), // keep 45°00'21"N intact in RTL
                             fontSize = 20f.s(scale),
                             fontWeight = FontWeight.Bold,
                             fontFamily = displayFont,
@@ -357,6 +360,7 @@ internal fun WeatherContent(
                         )
                         Text(
                             text = formatDMS(displayLon, "E", "W"),
+                            style = LocalTextStyle.current.copy(textDirection = TextDirection.Ltr), // keep 45°00'21"N intact in RTL
                             fontSize = 20f.s(scale),
                             fontWeight = FontWeight.Bold,
                             fontFamily = displayFont,
