@@ -13,6 +13,8 @@
 		locationOverride, initLocationOverride, setLocationOverride, favoriteCurrentLocation, unfavoriteCurrentLocation
 	} from '$lib/stores/savedLocations';
 	import { parseLocationText } from '$lib/domain/sharedLocationParser';
+	import { encodePlusCode, findPlusCode } from '$lib/domain/plusCode';
+	import { searchLocations } from '$lib/api/geocodingSearch';
 	import SettingsScreen from './SettingsScreen.svelte';
 	import AboutScreen from './AboutScreen.svelte';
 	import { metricPrimary, fontIndex, localeIndex, weatherSource, weatherApiKey, toggleUnits, cycleFont, cycleLanguage } from '$lib/stores/preferences';
@@ -66,6 +68,10 @@
 				if (parsed) {
 					const name = parsed.name || `${parsed.latitude.toFixed(4)}, ${parsed.longitude.toFixed(4)}`;
 					setLocationOverride(parsed.latitude, parsed.longitude, name);
+				} else if (findPlusCode(sharedText)) {
+					searchLocations(sharedText).then(([r]) => {
+						if (r) setLocationOverride(r.latitude, r.longitude, r.name, [r.admin1, r.country].filter(Boolean).join(', ') || undefined);
+					});
 				}
 			}
 		}
@@ -349,6 +355,7 @@
 							<!-- dir="ltr" keeps 45°00'21"N intact in RTL languages -->
 							<span dir="ltr">{formatDMS(data.latitude, 'N', 'S')}</span>
 							<span dir="ltr">{formatDMS(data.longitude, 'E', 'W')}</span>
+							<span dir="ltr" class="plus-code">{encodePlusCode(data.latitude, data.longitude)}</span>
 						</div>
 					{/if}
 					<button type="button" class="updated" onclick={(e) => { e.stopPropagation(); doFetchWeather(); }} aria-label={$_('cd_refresh')}>
@@ -723,13 +730,22 @@
 
 	.coords {
 		display: flex;
-		gap: 12px;
+		flex-wrap: wrap;
+		align-items: baseline;
+		column-gap: 12px;
 		font-family: var(--font-display);
 		font-weight: 700;
 		font-size: 20px;
 		color: rgba(255, 255, 255, 0.8);
 		margin-top: 8px;
 		cursor: pointer;
+	}
+
+	/* Plus Code of the same point, smaller; wraps to its own line on narrow screens */
+	.plus-code {
+		font-size: 14px;
+		font-weight: 400;
+		color: rgba(255, 255, 255, 0.6);
 	}
 
 	.updated {

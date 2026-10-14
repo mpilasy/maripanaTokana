@@ -63,7 +63,7 @@ async function fetchAtLocation(lat: number, lon: number, knownName?: string, kno
 		const location = await namePromise;
 		const data = await fetchPirateWeather(lat, lon, apiKey, location.name, knownSubtext ?? location.subtext);
 		if (alertsGeneration !== null) fetchAlertsForData(lat, lon, alertsGeneration);
-		return data;
+		return { ...data, latitude: lat, longitude: lon };
 	}
 
 	// Open-Meteo path
@@ -76,7 +76,8 @@ async function fetchAtLocation(lat: number, lon: number, knownName?: string, kno
 	const [response, location, airQualityResponse, locationInfo] = await Promise.all([weatherPromise, namePromise, airQualityResponsePromise, locationInfoPromise]);
 	const airQuality = airQualityResponse ? mapToAirQuality(airQualityResponse, locationInfo.countryCode) : null;
 	const hourlyAirQuality = airQualityResponse ? mapToHourlyAirQuality(airQualityResponse) : [];
-	const data: WeatherData = { ...mapToWeatherData(response, location.name, knownSubtext || location.subtext), airQuality, hourlyAirQuality };
+	// The requested point, not the forecast grid cell Open-Meteo snaps it to (as on Android)
+	const data: WeatherData = { ...mapToWeatherData(response, location.name, knownSubtext || location.subtext), latitude: lat, longitude: lon, airQuality, hourlyAirQuality };
 	// The service worker replayed an old cached response (network failed): show its real age, not "now".
 	if (response.cachedAt) {
 		data.timestamp = response.cachedAt;

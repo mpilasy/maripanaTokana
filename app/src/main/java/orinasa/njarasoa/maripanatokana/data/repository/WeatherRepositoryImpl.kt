@@ -8,6 +8,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.jsonPrimitive
+import orinasa.njarasoa.maripanatokana.data.location.PlusCode
 import orinasa.njarasoa.maripanatokana.data.remote.BomApiService
 import orinasa.njarasoa.maripanatokana.data.remote.CountryBoundingBoxes
 import orinasa.njarasoa.maripanatokana.data.remote.EcccApiService
@@ -61,12 +62,27 @@ class WeatherRepositoryImpl @Inject constructor(
 
     override suspend fun searchLocation(query: String): Result<List<GeocodingResult>> {
         return try {
-            Result.success(geocodingSelector.current().searchLocations(query, currentLocale()).dedupeByPlace())
+            val plusCode = PlusCode.find(query)
+            if (plusCode != null) Result.success(searchPlusCode(plusCode))
+            else Result.success(geocodingSelector.current().searchLocations(query, currentLocale()).dedupeByPlace())
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    /** A full code is its own location; a short one is resolved near the place named with it. */
+    private suspend fun searchPlusCode(match: PlusCode.Match): List<GeocodingResult> {
+        if (match.isFull) {
+            val (lat, lon) = PlusCode.decode(match.code)
+            return listOf(GeocodingResult(id = 0, name = match.code, latitude = lat, longitude = lon))
+        }
+        if (match.locality.isBlank()) return emptyList()
+        val place = geocodingSelector.current().searchLocations(match.locality, currentLocale()).firstOrNull()
+            ?: return emptyList()
+        val (lat, lon) = PlusCode.recoverNearest(match.code, place.latitude, place.longitude)
+        return listOf(place.copy(id = 0, latitude = lat, longitude = lon, featureCode = null))
     }
 
     override suspend fun getWeather(lat: Double, lon: Double): Result<WeatherData> = withContext(Dispatchers.IO) {

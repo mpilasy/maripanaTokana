@@ -1,4 +1,7 @@
+import { get } from 'svelte/store';
 import { parseLocationText } from '$lib/domain/sharedLocationParser';
+import { decodePlusCode, findPlusCode, recoverNearest, type PlusCodeMatch } from '$lib/domain/plusCode';
+import { weatherState } from '$lib/stores/weather';
 
 export interface SearchResult {
 	id: number;
@@ -33,6 +36,8 @@ export function dedupeResults(items: SearchResult[]): SearchResult[] {
 export async function searchLocations(query: string): Promise<SearchResult[]> {
 	let results: SearchResult[] = [];
 	const trimmed = query.trim();
+	const plusCode = findPlusCode(trimmed);
+	if (plusCode) return searchPlusCode(plusCode);
 	const parsed = parseLocationText(trimmed);
 
 	if (parsed) {
@@ -74,4 +79,24 @@ export async function searchLocations(query: string): Promise<SearchResult[]> {
 		}
 	}
 	return results;
+}
+
+/**
+ * A full code is its own location. A short one is resolved near the place named with it, or,
+ * with no place given, near the location on screen (as Google Maps does with its map view).
+ */
+async function searchPlusCode(match: PlusCodeMatch): Promise<SearchResult[]> {
+	if (match.isFull) {
+		const { latitude, longitude } = decodePlusCode(match.code);
+		return [{ id: 0, name: match.code, latitude, longitude, displayName: match.code }];
+	}
+	if (match.locality) {
+		const place = (await searchLocations(match.locality))[0];
+		if (!place) return [];
+		return [{ ...place, id: 0, isArea: false, ...recoverNearest(match.code, place.latitude, place.longitude) }];
+	}
+	const shown = get(weatherState);
+	if (shown.kind !== 'success') return [];
+	const { latitude, longitude } = recoverNearest(match.code, shown.data.latitude, shown.data.longitude);
+	return [{ id: 0, name: match.code, latitude, longitude, admin1: shown.data.locationName, displayName: `${match.code}, ${shown.data.locationName}` }];
 }

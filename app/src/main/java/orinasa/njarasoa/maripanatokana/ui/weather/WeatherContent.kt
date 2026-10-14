@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -117,6 +118,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import orinasa.njarasoa.maripanatokana.BuildConfig
 import orinasa.njarasoa.maripanatokana.R
+import orinasa.njarasoa.maripanatokana.data.location.PlusCode
 import orinasa.njarasoa.maripanatokana.data.remote.wmoDescriptionRes
 import orinasa.njarasoa.maripanatokana.data.remote.wmoEmoji
 import orinasa.njarasoa.maripanatokana.domain.model.AqiStandard
@@ -340,7 +342,8 @@ internal fun WeatherContent(
 
                 if (showGpsCoordinates) {
                     Spacer(modifier = Modifier.height(8.dp))
-                    Row(
+                    // Flows so the Plus Code drops to its own line on narrow screens
+                    FlowRow(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
@@ -357,6 +360,7 @@ internal fun WeatherContent(
                             fontWeight = FontWeight.Bold,
                             fontFamily = displayFont,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                            modifier = Modifier.alignByBaseline(),
                         )
                         Text(
                             text = formatDMS(displayLon, "E", "W"),
@@ -365,6 +369,16 @@ internal fun WeatherContent(
                             fontWeight = FontWeight.Bold,
                             fontFamily = displayFont,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                            modifier = Modifier.alignByBaseline(),
+                        )
+                        // Plus Code of the same point, smaller
+                        Text(
+                            text = remember(displayLat, displayLon) { PlusCode.encode(displayLat, displayLon) },
+                            style = LocalTextStyle.current.copy(textDirection = TextDirection.Ltr),
+                            fontSize = 14f.s(scale),
+                            fontFamily = displayFont,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            modifier = Modifier.alignByBaseline(),
                         )
                     }
                 }

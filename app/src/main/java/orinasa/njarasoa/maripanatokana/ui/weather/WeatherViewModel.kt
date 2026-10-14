@@ -32,6 +32,7 @@ import orinasa.njarasoa.maripanatokana.ui.theme.fontPairings
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import orinasa.njarasoa.maripanatokana.data.location.PlusCode
 import orinasa.njarasoa.maripanatokana.data.location.SharedLocationParser
 import orinasa.njarasoa.maripanatokana.data.location.parseCoordinates
 import orinasa.njarasoa.maripanatokana.data.location.shortPlaceName
@@ -211,6 +212,19 @@ class WeatherViewModel @Inject constructor(
                         country = "Coordinates"
                     )
                 )
+                return@launch
+            }
+
+            // A short Plus Code with no place given: read it near the location on screen
+            val plusCode = PlusCode.find(query)
+            if (plusCode != null && !plusCode.isFull && plusCode.locality.isBlank()) {
+                val shown = (_uiState.value as? WeatherUiState.Success)?.data
+                val refLat = shown?.latitude
+                val refLon = shown?.longitude
+                _searchResults.value = if (refLat == null || refLon == null) emptyList() else {
+                    val (lat, lon) = PlusCode.recoverNearest(plusCode.code, refLat, refLon)
+                    listOf(GeocodingResult(id = 0, name = plusCode.code, latitude = lat, longitude = lon, admin1 = shown.locationName))
+                }
                 return@launch
             }
 
