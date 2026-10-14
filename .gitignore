@@ -41,6 +41,12 @@ web/**/tsconfig.tsbuildinfo
 /*.json
 !package.json
 
-# Local AI-tool notes (kept locally, not committed)
+# Local AI-tool notes & configs (kept locally, not committed)
 /.jules/
 /.Jules/
+/AGENTS.md
+/CLAUDE.md
+/GEMINI.md
+/.cursorrules
+/.github/copilot-instructions.md
+web/agents.md

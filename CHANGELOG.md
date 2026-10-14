@@ -6,6 +6,9 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.4.2] - 2026-10-13
+- Internal maintenance and repository script environment cleanups.
+
 ## [1.4.1] - 2026-10-13
 - The main screen keeps its scroll position when you come back from Settings or About.
 - The font licences page loads its text in the background, so it opens without stutter.

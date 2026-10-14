@@ -67,7 +67,7 @@ disable_providers() {
 }
 
 # ── build ─────────────────────────────────────────────────────────────────────
-JAVA_HOME_AS=${JAVA_HOME_AS:-/home/tahiry/.local/share/JetBrains/Toolbox/apps/android-studio/jbr}
+JAVA_HOME_AS=${JAVA_HOME_AS:-${HOME}/.local/share/JetBrains/Toolbox/apps/android-studio/jbr}
 echo "Building fdroid release APK..."
 JAVA_HOME=$JAVA_HOME_AS ./gradlew :app:assembleFdroidRelease \
     -Porg.gradle.java.installations.paths="$JAVA_HOME_AS" -q
