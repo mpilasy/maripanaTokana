@@ -1,0 +1,3 @@
+- Nouveau design : écran principal repensé avec un en-tête épuré, une nouvelle carte météo actuelle, des sections en verre et une grille de tuiles régulière.
+- Nouvelle page À propos listant chaque source de données, police et bibliothèque avec sa licence (Réglages → À propos, ou touchez les crédits en bas).
+- Corrigé : la température passait sur deux lignes en espagnol et en français.

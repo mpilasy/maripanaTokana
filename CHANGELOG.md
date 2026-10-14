@@ -6,6 +6,13 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.4.0] - 2026-10-13
+- New look: redesigned main screen with a cleaner header, a new current-weather card, glass sections and an even tile grid (Android and web).
+- New About page listing every data source, font and library with its licence, including the bundled font licences (Settings → About, or tap the footer credits).
+- Fixed: temperature wrapping onto two lines in Spanish and French.
+- Updated F-Droid screenshots for all 8 languages.
+- Updated Kotlin to 2.2.21; web: Svelte 5.57.2, Vite 7.3.7.
+
 ## [1.3.1] - 2026-10-05
 - Updated libraries for stability and security: Jetpack Compose 1.11, Hilt 2.60.1, Glance 1.2.0, WorkManager 2.12.0, ExifInterface 1.4.2. No feature changes.
 - Web: patched a build-tool advisory (esbuild).

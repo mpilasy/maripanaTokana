@@ -1,0 +1,3 @@
+- New look: redesigned main screen with a cleaner header, a new current-weather card, glass sections and an even tile grid.
+- New About page listing every data source, font and library with its licence (Settings → About, or tap the footer credits).
+- Fixed: temperature wrapping onto two lines in Spanish and French.

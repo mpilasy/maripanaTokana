@@ -1,0 +1,3 @@
+- Nuevo diseño: pantalla principal renovada con una cabecera más limpia, una nueva tarjeta del tiempo actual, secciones de cristal y una cuadrícula de mosaicos uniforme.
+- Nueva página Acerca de con cada fuente de datos, fuente tipográfica y biblioteca y su licencia (Ajustes → Acerca de, o toca los créditos del pie).
+- Corregido: la temperatura se partía en dos líneas en español y francés.
