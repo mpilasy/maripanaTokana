@@ -1,5 +1,5 @@
 import { writable, get } from 'svelte/store';
-import { doFetchWeather, weatherState } from '$lib/stores/weather';
+import { doFetchWeather, keepShownWeather, weatherState } from '$lib/stores/weather';
 
 export interface SavedLocation {
 	id: string;
@@ -141,7 +141,12 @@ export function favoriteCurrentLocation() {
 		savedLocations.set(updated);
 		persistSavedLocations(updated);
 	}
-	switchToLocation(id);
+	// The same place is already on screen: keep it under the saved id instead of reloading
+	if (get(weatherState).kind !== 'success') return switchToLocation(id);
+	clearAdvancedModeOverride();
+	activeLocationId.set(id);
+	if (typeof localStorage !== 'undefined') localStorage.setItem(ACTIVE_LOCATION_KEY, id);
+	keepShownWeather();
 }
 
 /** Unfavorites the currently active saved location, if any. */

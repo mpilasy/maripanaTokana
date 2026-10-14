@@ -96,6 +96,12 @@ function currentSnapshotKey(): string {
 	return 'gps';
 }
 
+/** Files the weather on screen under the now-current location (a preview just favorited) without refetching. */
+export function keepShownWeather() {
+	const s = get(weatherState);
+	if (s.kind === 'success') saveSnapshot(currentSnapshotKey(), { ...s.data, alerts: [], alertsLoading: true });
+}
+
 function setWeatherData(fetched: WeatherData) {
 	const { staleFromCache, ...data } = fetched;
 	refreshFailed.set(!!staleFromCache);

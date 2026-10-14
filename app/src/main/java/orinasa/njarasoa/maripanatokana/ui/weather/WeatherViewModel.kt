@@ -350,7 +350,12 @@ class WeatherViewModel @Inject constructor(
             _savedLocations.value = updated
             persistSavedLocations(updated)
         }
-        switchToLocation(id)
+        // The same place is already on screen: keep it under the saved id instead of reloading
+        val shown = (_uiState.value as? WeatherUiState.Success)?.data ?: return switchToLocation(id)
+        clearAdvancedModeOverride()
+        _activeLocationId.value = id
+        prefs.edit { putString("active_location_id", id) }
+        publish(id, shown.copy(locationName = name, locationSubtext = subtext))
     }
 
     /** Unfavorites the currently active saved location, if any. */
