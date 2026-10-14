@@ -34,6 +34,8 @@ data class WeatherData(
     val alertsLoading: Boolean = false,
     val failedAlertSources: List<String> = emptyList(),
     val timestamp: Long = System.currentTimeMillis(),
+    val latitude: Double? = null, // coordinates this forecast was fetched for
+    val longitude: Double? = null,
     val utcOffsetSeconds: Int = 0, // location's UTC offset in seconds
     val airQuality: AirQualityIndex? = null,
     val hourlyAirQuality: List<HourlyAirQuality> = emptyList(),

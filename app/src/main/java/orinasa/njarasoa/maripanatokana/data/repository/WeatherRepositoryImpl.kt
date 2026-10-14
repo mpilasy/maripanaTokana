@@ -85,6 +85,8 @@ class WeatherRepositoryImpl @Inject constructor(
             Result.success(sourceData.copy(
                 locationName = locationName,
                 locationSubtext = locationSubtext,
+                latitude = lat,
+                longitude = lon,
                 alertsLoading = true,
                 // derived alerts from the source are preserved and passed to fetchAlerts later
             ))

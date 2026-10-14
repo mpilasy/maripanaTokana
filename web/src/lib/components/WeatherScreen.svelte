@@ -126,6 +126,7 @@
 	let isPulling = $state(false);
 	let scrollContainer = $state<HTMLElement | null>(null);
 	let headerEl = $state<HTMLElement | null>(null);
+	let headerActionsWidth = $state(0);
 
 	// Swipe-to-cycle-locations: ignored if the gesture started inside a horizontally-scrolling
 	// forecast strip (.cards-scroll), so hourly/daily forecast scrolling is unaffected.
@@ -312,12 +313,13 @@
 		{/if}
 
 		<div class="content-wrapper">
-			<!-- Fixed header: location block (captured for share screenshots) + actions (not captured) -->
+			<!-- Fixed header: full-width location block (captured for share screenshots) with the actions
+			     overlaid on the name line (not captured); only the name shrinks to make room -->
 			<div class="header">
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<div class="header-main" bind:this={headerEl} onclick={onLocationClicked}>
-					<h1 class="location-name">
+					<h1 class="location-name" style:padding-inline-end="{headerActionsWidth}px">
 						{#if !data.locationSubtext && data.locationName.includes(',')}
 							{data.locationName.split(',')[0].trim()}
 						{:else}
@@ -364,7 +366,7 @@
 					{/if}
 				</div>
 
-				<div class="header-actions">
+				<div class="header-actions" bind:clientWidth={headerActionsWidth}>
 					<button class="header-action" onclick={openSavedLocationsDialog} aria-label={$_('cd_manage_locations')} title={$_('cd_manage_locations')}>
 						<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
 					</button>
@@ -666,15 +668,12 @@
 
 
 	.header {
-		display: flex;
-		align-items: flex-start;
-		gap: 4px;
+		position: relative;
 		padding-top: 16px;
 		flex-shrink: 0;
 	}
 
 	.header-main {
-		flex: 1;
 		min-width: 0;
 		cursor: pointer;
 	}
@@ -776,9 +775,11 @@
 	}
 
 	.header-actions {
+		position: absolute;
+		top: 16px;
+		inset-inline-end: 0;
 		display: flex;
 		align-items: center;
-		flex-shrink: 0;
 	}
 
 	.header-action {

@@ -89,6 +89,8 @@ import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
@@ -224,9 +226,11 @@ internal fun WeatherContent(
         openSectionKey = if (openSectionKey == key) null else key
     }
 
-    // Use dev override coordinates directly when set (reactive via StateFlow), else fall back to cached GPS
+    // Coordinates of the location being shown; dev override wins, cached GPS only for old cached data
     val (displayLat, displayLon) = if (advancedOverrideLat != null && advancedOverrideLon != null) {
         advancedOverrideLat to advancedOverrideLon
+    } else if (data.latitude != null && data.longitude != null) {
+        data.latitude to data.longitude
     } else {
         remember(context) {
             val prefs = context.getSharedPreferences("private_prefs", android.content.Context.MODE_PRIVATE)
@@ -263,17 +267,19 @@ internal fun WeatherContent(
             .statusBarsPadding()
             .padding(horizontal = 24.sd(scale))
     ) {
-        // Fixed header: location block (captured into share images) + action buttons (not captured)
+        // Fixed header: full-width location block (captured into share images) with the action
+        // buttons overlaid on the name line (not captured); only the name shrinks to make room.
         val headerGraphicsLayer = rememberGraphicsLayer()
-        Row(
+        var headerActionsWidth by remember { mutableIntStateOf(0) }
+        val density = LocalDensity.current
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 16.sd(scale)),
-            verticalAlignment = Alignment.Top,
         ) {
         Column(
             modifier = Modifier
-                .weight(1f)
+                .fillMaxWidth()
                 .drawWithContent {
                     headerGraphicsLayer.record {
                         this@drawWithContent.drawContent()
@@ -296,7 +302,8 @@ internal fun WeatherContent(
                     fontFamily = displayFont,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(end = with(density) { headerActionsWidth.toDp() }),
                 )
                 val isRemote = isRemoteTimezone(data.utcOffsetSeconds)
                 if (data.locationSubtext != null || isRemote) {
@@ -402,7 +409,12 @@ internal fun WeatherContent(
         }
 
             // Header actions
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .onSizeChanged { headerActionsWidth = it.width },
+            ) {
                 HeaderAction(
                     imageVector = Icons.Default.Search,
                     contentDescription = stringResource(R.string.cd_manage_locations),

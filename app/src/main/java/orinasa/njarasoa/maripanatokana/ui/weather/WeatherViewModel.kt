@@ -631,7 +631,13 @@ class WeatherViewModel @Inject constructor(
             return weatherCache.load("preview")?.takeIf { it.locationName == name }
         }
         val saved = activeLocationId.value?.let { id -> savedLocations.value.find { it.id == id } }
-        return weatherCache.load(saved?.id ?: "gps")
+        val cached = weatherCache.load(saved?.id ?: "gps")
+        // Data cached before WeatherData carried coordinates: take them from the saved location
+        return if (saved != null && cached != null && cached.latitude == null) {
+            cached.copy(latitude = saved.latitude, longitude = saved.longitude)
+        } else {
+            cached
+        }
     }
 
     private fun movedSignificantly(lat: Double, lon: Double): Boolean {
