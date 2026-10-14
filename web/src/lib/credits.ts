@@ -44,6 +44,7 @@ export const creditSections: CreditSection[] = [
 		items: [
 			{ name: 'Nominatim / OpenStreetMap', license: 'ODbL', url: 'https://www.openstreetmap.org/copyright', note: '© OpenStreetMap contributors' },
 			{ name: 'Open-Meteo Geocoding', license: 'CC BY 4.0', url: 'https://open-meteo.com/en/docs/geocoding-api', note: 'Location data based on GeoNames (CC BY 4.0)' },
+			{ name: 'Plus Codes (Open Location Code)', license: 'Apache-2.0', url: 'https://github.com/google/open-location-code', note: 'Open format; our own implementation' },
 		],
 	},
 	{

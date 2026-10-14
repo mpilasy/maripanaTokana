@@ -135,6 +135,14 @@
 	let headerActionsWidth = $state(0);
 	// Location whose name is currently shown in Latin letters (null: local script)
 	let romanShownFor = $state<string | null>(null);
+	// Plus Code tooltip opened by tap; any other tap closes it
+	let plusCodeOpen = $state(false);
+	$effect(() => {
+		if (!plusCodeOpen) return;
+		const close = () => (plusCodeOpen = false);
+		window.addEventListener('click', close);
+		return () => window.removeEventListener('click', close);
+	});
 
 	// Swipe-to-cycle-locations: ignored if the gesture started inside a horizontally-scrolling
 	// forecast strip (.cards-scroll), so hourly/daily forecast scrolling is unaffected.
@@ -372,7 +380,16 @@
 							<!-- dir="ltr" keeps 45°00'21"N intact in RTL languages -->
 							<span dir="ltr">{formatDMS(data.latitude, 'N', 'S')}</span>
 							<span dir="ltr">{formatDMS(data.longitude, 'E', 'W')}</span>
-							<span dir="ltr" class="plus-code">{encodePlusCode(data.latitude, data.longitude)}</span>
+							<!-- Grid icon: the point's Plus Code (a grid cell) in a tooltip, on hover or tap -->
+							<span class="plus-code">
+								<button type="button" class="plus-code-btn" aria-label={$_('cd_plus_code')} aria-expanded={plusCodeOpen}
+									onclick={(e) => { e.stopPropagation(); plusCodeOpen = !plusCodeOpen; }}>
+									<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+										<path d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM8 20H4v-4h4v4zm0-6H4v-4h4v4zm0-6H4V4h4v4zm6 12h-4v-4h4v4zm0-6h-4v-4h4v4zm0-6h-4V4h4v4zm6 12h-4v-4h4v4zm0-6h-4v-4h4v4zm0-6h-4V4h4v4z"/>
+									</svg>
+								</button>
+								<span class="plus-code-tip" class:open={plusCodeOpen} role="tooltip" dir="ltr">Plus Code {encodePlusCode(data.latitude, data.longitude)}</span>
+							</span>
 						</div>
 					{/if}
 					<button type="button" class="updated" onclick={(e) => { e.stopPropagation(); doFetchWeather(); }} aria-label={$_('cd_refresh')}>
@@ -781,11 +798,42 @@
 		cursor: pointer;
 	}
 
-	/* Plus Code of the same point, smaller; wraps to its own line on narrow screens */
 	.plus-code {
-		font-size: 14px;
+		position: relative;
+		align-self: center;
+		display: flex;
+	}
+
+	.plus-code-btn {
+		display: flex;
+		padding: 4px;
+		border: none;
+		border-radius: 50%;
+		background: transparent;
+		color: rgba(255, 255, 255, 0.5);
+		cursor: pointer;
+	}
+
+	.plus-code-tip {
+		display: none;
+		position: absolute;
+		bottom: calc(100% + 4px);
+		left: 50%;
+		translate: -50% 0;
+		z-index: 5;
+		padding: 4px 8px;
+		border-radius: 4px;
+		background: #e6e1e5;
+		color: #1c1b1f;
+		font-family: var(--font-body);
+		font-size: 13px;
 		font-weight: 400;
-		color: rgba(255, 255, 255, 0.6);
+		white-space: nowrap;
+	}
+
+	.plus-code:hover .plus-code-tip,
+	.plus-code-tip.open {
+		display: block;
 	}
 
 	.updated {

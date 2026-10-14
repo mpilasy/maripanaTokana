@@ -49,6 +49,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.border
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material3.rememberTooltipState
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.LocationOn
@@ -394,15 +399,7 @@ internal fun WeatherContent(
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                             modifier = Modifier.alignByBaseline(),
                         )
-                        // Plus Code of the same point, smaller
-                        Text(
-                            text = remember(displayLat, displayLon) { PlusCode.encode(displayLat, displayLon) },
-                            style = LocalTextStyle.current.copy(textDirection = TextDirection.Ltr),
-                            fontSize = 14f.s(scale),
-                            fontFamily = displayFont,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                            modifier = Modifier.alignByBaseline(),
-                        )
+                        PlusCodeInfo(displayLat, displayLon, Modifier.align(Alignment.CenterVertically))
                     }
                 }
             }
@@ -1913,4 +1910,34 @@ private fun formatDMS(value: Double, positive: String, negative: String): String
     val minutes = minutesTotal.toInt()
     val seconds = ((minutesTotal - minutes) * 60).toInt()
     return "%d\u00B0%02d'%02d\"%s".format(Locale.US, degrees, minutes, seconds, direction)
+}
+
+/** Grid icon beside the coordinates; tapping it shows the point's Plus Code (a grid cell) in a tooltip. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PlusCodeInfo(lat: Double, lon: Double, modifier: Modifier = Modifier) {
+    val code = remember(lat, lon) { PlusCode.encode(lat, lon) }
+    val tooltipState = rememberTooltipState(isPersistent = true)
+    val scope = rememberCoroutineScope()
+    TooltipBox(
+        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+        tooltip = {
+            PlainTooltip {
+                Text("Plus Code  $code", style = LocalTextStyle.current.copy(textDirection = TextDirection.Ltr))
+            }
+        },
+        state = tooltipState,
+        modifier = modifier,
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.ic_grid),
+            contentDescription = stringResource(R.string.cd_plus_code),
+            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+            modifier = Modifier
+                .clip(CircleShape)
+                .clickable(role = Role.Button) { scope.launch { tooltipState.show() } }
+                .padding(4.dp)
+                .size(18.dp),
+        )
+    }
 }
