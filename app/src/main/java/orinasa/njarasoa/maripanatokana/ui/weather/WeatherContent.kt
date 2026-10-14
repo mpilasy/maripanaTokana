@@ -41,6 +41,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -188,6 +189,7 @@ internal fun WeatherContent(
     refreshFailed: Boolean = false,
     refreshError: FetchError? = null,
     advancedMode: Boolean = false,
+    scrollState: ScrollState = rememberScrollState(),
 ) {
     val context = LocalContext.current
     val appLocale = LocalConfiguration.current.locales[0]
@@ -481,7 +483,7 @@ internal fun WeatherContent(
                         blendMode = BlendMode.DstIn,
                     )
                 }
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .padding(vertical = 16.sd(scale))
         ) {
             // Weather Alert Banner

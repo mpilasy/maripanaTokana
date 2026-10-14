@@ -12,12 +12,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -34,6 +35,8 @@ import orinasa.njarasoa.maripanatokana.BuildConfig
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.ui.theme.Hairline
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * One acknowledged service, asset or library. [nameRes] is used instead of [name] when the
@@ -137,11 +140,10 @@ private val creditSections = listOf(
 fun AboutScreen(onBack: () -> Unit) {
     val uriHandler = LocalUriHandler.current
     var openTextRes by rememberSaveable { mutableStateOf<Int?>(null) }
-    openTextRes?.let { res ->
-        LicenseTextScreen(title = stringResource(R.string.about_section_fonts), textRes = res, onBack = { openTextRes = null })
-        return
-    }
-    SettingsPage(title = stringResource(R.string.about_title), onBack = onBack) {
+    val licenseRes = openTextRes
+    if (licenseRes != null) {
+        LicenseTextScreen(title = stringResource(R.string.about_section_fonts), textRes = licenseRes, onBack = { openTextRes = null })
+    } else SettingsPage(title = stringResource(R.string.about_title), onBack = onBack) {
         // App identity
         SettingsGroup {
             Column(
@@ -246,18 +248,27 @@ private fun CreditRow(item: Credit, onOpen: (() -> Unit)?) {
 @Composable
 private fun LicenseTextScreen(title: String, @RawRes textRes: Int, onBack: () -> Unit) {
     val context = LocalContext.current
-    val text = remember(textRes) {
-        context.resources.openRawResource(textRes).bufferedReader().use { it.readText() }
+    val text by produceState<String?>(null, textRes) {
+        value = withContext(Dispatchers.IO) {
+            context.resources.openRawResource(textRes).bufferedReader().use { it.readText() }
+        }
     }
     SettingsPage(title = title, onBack = onBack) {
         SettingsGroup {
-            Text(
-                text = text,
-                fontSize = 12.sp,
-                lineHeight = 17.sp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                modifier = Modifier.padding(vertical = 12.dp),
-            )
+            val loaded = text
+            if (loaded == null) {
+                Box(Modifier.fillMaxWidth().padding(vertical = 24.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.onSurface)
+                }
+            } else {
+                Text(
+                    text = loaded,
+                    fontSize = 12.sp,
+                    lineHeight = 17.sp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                    modifier = Modifier.padding(vertical = 12.dp),
+                )
+            }
         }
         Spacer(Modifier.height(24.dp))
     }

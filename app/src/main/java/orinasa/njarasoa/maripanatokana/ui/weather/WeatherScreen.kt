@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -62,7 +63,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WeatherScreen(
     viewModel: WeatherViewModel = hiltViewModel(),
@@ -70,16 +70,33 @@ fun WeatherScreen(
 ) {
     var showSettings by rememberSaveable { mutableStateOf(false) }
     var showAbout by rememberSaveable { mutableStateOf(false) }
+    // Hoisted so the main screen's scroll position survives a trip through Settings/About.
+    val mainScrollState = rememberSaveable(saver = ScrollState.Saver) { ScrollState(0) }
 
     if (showAbout) {
         AboutScreen(onBack = { showAbout = false })
-        return
-    }
-    if (showSettings) {
+    } else if (showSettings) {
         SettingsScreen(onBack = { showSettings = false }, onOpenAbout = { showAbout = true })
-        return
+    } else {
+        WeatherMainScreen(
+            viewModel = viewModel,
+            permissionHandler = permissionHandler,
+            scrollState = mainScrollState,
+            onOpenSettings = { showSettings = true },
+            onOpenAbout = { showAbout = true },
+        )
     }
+}
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun WeatherMainScreen(
+    viewModel: WeatherViewModel,
+    permissionHandler: PermissionHandler,
+    scrollState: ScrollState,
+    onOpenSettings: () -> Unit,
+    onOpenAbout: () -> Unit,
+) {
     val uiState by viewModel.uiState.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
     val refreshFailed by viewModel.refreshFailed.collectAsState()
@@ -155,6 +172,10 @@ fun WeatherScreen(
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
+
+    // Switching location or refreshing via Loading used to dispose the content (and its scroll); keep that.
+    val isLoading = uiState is WeatherUiState.Loading
+    LaunchedEffect(isLoading) { if (isLoading) scrollState.scrollTo(0) }
 
     val layoutDirection = if (androidx.core.text.TextUtilsCompat.getLayoutDirectionFromLocale(
             java.util.Locale.forLanguageTag(localeTag)
@@ -363,8 +384,9 @@ fun WeatherScreen(
                             onRefresh = { viewModel.refresh() },
                             onLocationClicked = viewModel::onLocationClicked,
                             onManageLocationsClicked = viewModel::onManageLocationsClicked,
-                            onOpenSettings = { showSettings = true },
-                            onOpenAbout = { showAbout = true },
+                            onOpenSettings = onOpenSettings,
+                            onOpenAbout = onOpenAbout,
+                            scrollState = scrollState,
                             weatherSource = weatherSource,
                             showGpsCoordinates = showGpsCoordinates,
                             isSavedLocation = activeLocationId != null,
