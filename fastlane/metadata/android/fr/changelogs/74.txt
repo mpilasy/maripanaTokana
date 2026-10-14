@@ -1,0 +1,2 @@
+- Corrigé : les coordonnées sous le nom de la ville sont désormais celles du lieu affiché, et non votre position actuelle.
+- L'en-tête garde ses icônes à côté du nom de la ville ; région, coordonnées et heure de mise à jour occupent toute la largeur.

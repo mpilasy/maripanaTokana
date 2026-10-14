@@ -1,0 +1,2 @@
+- Fixed: the coordinates under the city name now belong to the location shown, not to your current position.
+- The header keeps its icons beside the city name; region, coordinates and update time use the full width.

@@ -6,6 +6,10 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.4.4] - 2026-10-13
+- Fixed (Android): the coordinates under the city name showed your current GPS position for every location; they now belong to the location shown. Present since 1.2.15.
+- Header: the icons share the row with the city name and only the name shrinks; region, local time, coordinates and the updated line use the full width (Android and web).
+
 ## [1.4.3] - 2026-10-13
 - Maintenance release; no changes to features. Supersedes 1.4.2, which was withdrawn.
 

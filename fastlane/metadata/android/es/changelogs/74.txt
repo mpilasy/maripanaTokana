@@ -1,0 +1,2 @@
+- Corregido: las coordenadas bajo el nombre de la ciudad ahora corresponden al lugar mostrado, no a tu posición actual.
+- La cabecera mantiene sus iconos junto al nombre de la ciudad; región, coordenadas y hora de actualización usan todo el ancho.
