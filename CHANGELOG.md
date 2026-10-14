@@ -6,6 +6,14 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.4.7] - 2026-10-14
+- Plus Codes (Open Location Code): search with a full code, or a short one with or without a place (`PR6C+43 Nairobi`); also from shared text. A grid icon beside the coordinates shows the location's 10-digit code (Android and web).
+- Place names in a non-Latin script get a discreet icon to switch name and region to Latin letters (القاهرة ↔ Cairo); it resets per location.
+- Fixed: a language switched mid-session now applies to Settings, About and dialogs (Android).
+- Fixed: coordinates no longer scramble in Arabic (Android and web).
+- Fixed: favoriting the previewed location no longer reloads the screen (Android and web).
+- Web: the coordinates shown are the requested point, not Open-Meteo's forecast grid point.
+
 ## [1.4.6] - 2026-10-14
 - Location search lists a town before the region of the same name (e.g. Kidal town before Kidal region); regions and countries show a map icon instead of the pin (Android and web).
 

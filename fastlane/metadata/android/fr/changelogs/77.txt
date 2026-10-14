@@ -1,0 +1,3 @@
+- Plus Codes : recherchez avec un code complet, ou un code court avec ou sans lieu (PR6C+43 Nairobi) ; touchez l'icône de grille près des coordonnées pour voir le code d'un lieu.
+- Les noms de lieux dans une autre écriture ont une petite icône pour passer en alphabet latin (القاهرة ↔ Cairo).
+- Corrections : le changement de langue s'applique aux Paramètres et aux dialogues ; coordonnées lisibles en arabe ; ajouter un favori ne recharge plus l'écran.

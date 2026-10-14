@@ -1,0 +1,3 @@
+- Plus Codes: busca con un código completo, o uno corto con o sin lugar (PR6C+43 Nairobi); toca el icono de cuadrícula junto a las coordenadas para ver el código de un lugar.
+- Los nombres de lugares en otra escritura tienen un pequeño icono para cambiar al alfabeto latino (القاهرة ↔ Cairo).
+- Correcciones: el cambio de idioma llega a Ajustes y diálogos; coordenadas correctas en árabe; marcar favorito ya no recarga la pantalla.

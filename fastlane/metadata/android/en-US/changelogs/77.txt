@@ -1,0 +1,3 @@
+- Plus Codes: search with a full code, or a short one with or without a place (PR6C+43 Nairobi); tap the grid icon by the coordinates to see a location's code.
+- Place names in another script get a small icon to switch to Latin letters (القاهرة ↔ Cairo).
+- Fixes: language changes now reach Settings and dialogs; coordinates read correctly in Arabic; favoriting no longer reloads the screen.
