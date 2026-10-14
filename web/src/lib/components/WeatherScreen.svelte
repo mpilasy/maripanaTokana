@@ -18,7 +18,7 @@
 	import { metricPrimary, fontIndex, localeIndex, weatherSource, weatherApiKey, toggleUnits, cycleFont, cycleLanguage } from '$lib/stores/preferences';
 	import { SUPPORTED_LOCALES, localizeDigits } from '$lib/i18n/index';
 	import { fontPairings } from '$lib/fonts';
-	import { formatDate, formatTime, formatLocationCurrentTime, isRemoteTimezone, isToday } from '$lib/utils/date';
+	import { formatShortDate, formatTime, formatLocationCurrentTime, isRemoteTimezone, isToday } from '$lib/utils/date';
 	import HeroCard from './HeroCard.svelte';
 	import WeatherAlertBanner from './WeatherAlertBanner.svelte';
 	import HourlyForecast from './HourlyForecast.svelte';
@@ -351,7 +351,7 @@
 					<button type="button" class="updated" onclick={(e) => { e.stopPropagation(); doFetchWeather(); }} aria-label={$_('cd_refresh')}>
 						<span class="updated-text">{$_('updated_time', { values: { time: loc(isToday(data.timestamp)
 							? formatTime(data.timestamp)
-							: formatDate(data.timestamp, SUPPORTED_LOCALES[$localeIndex].tag, weekdayNames, monthNames)) } })}</span>
+							: `${formatShortDate(data.timestamp, SUPPORTED_LOCALES[$localeIndex].tag, weekdayNames, monthNames)}, ${formatTime(data.timestamp)}`) } })}</span>
 						<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
 							<path d="M23 4v6h-6"/>
 							<path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
@@ -487,14 +487,6 @@
 							primaryStandard={data.airQuality.primaryStandard}
 						/>
 					</CollapsibleSection>
-					{#if showAirQualityDetail}
-						<AirQualityDetailDialog
-							airQuality={data.airQuality}
-							aqiTierLabel={getAqiTierLabel(data.airQuality.primaryTier)}
-							onClose={() => showAirQualityDetail = false}
-							{loc}
-						/>
-					{/if}
 				{/if}
 
 				{#if data.dailyForecast.length > 0}
@@ -534,6 +526,16 @@
 				onCycleLanguage={cycleLanguage}
 				onOpenAbout={() => showAbout = true}
 			/>
+
+			<!-- Outside .scroll-area: its mask-image would clip the dialog's backdrop -->
+			{#if showAirQualityDetail && data.airQuality}
+				<AirQualityDetailDialog
+					airQuality={data.airQuality}
+					aqiTierLabel={getAqiTierLabel(data.airQuality.primaryTier)}
+					onClose={() => showAirQualityDetail = false}
+					{loc}
+				/>
+			{/if}
 		</div>
 
 	{:else if $weatherState.kind === 'error'}

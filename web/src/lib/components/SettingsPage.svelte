@@ -19,7 +19,10 @@
 	const id = Symbol();
 	onMount(() => {
 		openPages.push(id);
-		return () => openPages.splice(openPages.indexOf(id), 1);
+		return () => {
+			const i = openPages.indexOf(id);
+			if (i !== -1) openPages.splice(i, 1);
+		};
 	});
 
 	function handleKey(e: KeyboardEvent) {
@@ -43,7 +46,7 @@
 
 <style>
 	.page {
-		position: fixed;
+		position: absolute;
 		inset: 0;
 		background: linear-gradient(to bottom, #0E0B3D, #1A1565);
 		isolation: isolate;

@@ -45,6 +45,29 @@ export function formatDate(timestamp: number, localeTag: string, weekdayNames?: 
 	return `${weekday}, ${day} ${month} ${year} ${hours}:${minutes}`;
 }
 
+const shortDateFormatters = new Map<string, Intl.DateTimeFormat>();
+
+/** Short date like "Mon 12 Oct" (matches Android's "EEE d MMM"), in the device's timezone. */
+export function formatShortDate(timestamp: number, localeTag: string, weekdayNames?: string[], monthNames?: string[]): string {
+	const d = new Date(timestamp);
+	const intlSupported = Intl.DateTimeFormat.supportedLocalesOf([localeTag]).length > 0;
+
+	if (intlSupported || !weekdayNames || !monthNames) {
+		let formatter = shortDateFormatters.get(localeTag);
+		if (!formatter) {
+			formatter = new Intl.DateTimeFormat(localeTag, { weekday: 'short', day: 'numeric', month: 'short' });
+			shortDateFormatters.set(localeTag, formatter);
+		}
+		return formatter.format(d);
+	}
+
+	// Build from arrays for unsupported locales (mg, ne); Devanagari names stay in full
+	const weekday = weekdayNames[d.getDay()];
+	const month = monthNames[d.getMonth()];
+	const short = (name: string) => (localeTag === 'ne' ? name : name.substring(0, 3));
+	return `${short(weekday)} ${d.getDate()} ${short(month)}`;
+}
+
 /**
  * Format an epoch (UTC millis) to HH:mm in the device's local timezone.
  */

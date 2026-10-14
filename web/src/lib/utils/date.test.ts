@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatDate, formatDayName, formatDayMonth } from './date';
+import { formatDate, formatShortDate, formatDayName, formatDayMonth } from './date';
 
 describe('date formatting', () => {
 	// Fixed timestamp: October 5, 2026, 14:30 UTC
@@ -11,6 +11,23 @@ describe('date formatting', () => {
 
 	const neWeekdays = ['आइतबार', 'सोमबार', 'मंगलबार', 'बुधबार', 'बिहीबार', 'शुक्रबार', 'शनिबार'];
 	const neMonths = ['जनवरी', 'फेब्रुअरी', 'मार्च', 'अप्रैल', 'मई', 'जुन', 'जुलाई', 'अगस्त', 'सितंबर', 'अक्तूबर', 'नवंबर', 'दिसंबर'];
+
+	describe('formatShortDate', () => {
+		const local = new Date(2026, 9, 12, 14, 30).getTime();
+
+		it('formats weekday, day and short month via Intl', () => {
+			const result = formatShortDate(local, 'en');
+			expect(result).toContain('Mon');
+			expect(result).toContain('12');
+			expect(result).toContain('Oct');
+			expect(result).not.toContain('2026');
+		});
+
+		it('builds from arrays when Intl lacks the locale', () => {
+			const result = formatShortDate(local, 'tlh', mgWeekdays, mgMonths);
+			expect(result).toBe('Ala 12 Okt');
+		});
+	});
 
 	describe('formatDate', () => {
 		it('should accept and use custom arrays for Malagasy without error', () => {

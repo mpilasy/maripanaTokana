@@ -141,6 +141,8 @@
 		background: linear-gradient(to bottom, #0E0B3D, #1A1565);
 		position: relative;
 		overflow: hidden;
+		/* Containing block for position: fixed overlays, so dialogs stay inside the desktop frame */
+		contain: layout;
 		font-family: var(--font-body);
 	}
 </style>
