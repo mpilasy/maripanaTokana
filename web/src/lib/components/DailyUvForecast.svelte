@@ -32,59 +32,67 @@
 	{#if forecasts.length > 0}
 		<DailyUvChart {forecasts} />
 	{/if}
-	{#each forecasts as item}
-		<div class="daily-row">
-			<div class="day-info">
+	<div class="uv-rows">
+		{#each forecasts as item}
+			<div class="daily-row">
 				<span class="day-name">{formatDayName(item.date, localeTag, utcOffsetSeconds, false, weekdayNames)}</span>
 				<span class="day-date">{loc(formatDayMonth(item.date, localeTag, utcOffsetSeconds, monthNames))}</span>
+				{#if hasUv(item.uvIndexMax)}
+					<UvTierBadge uvIndex={item.uvIndexMax} label={uvLabel(item.uvIndexMax, $json('uv_labels') as string[])} />
+				{/if}
+				<span class="uv-value">{hasUv(item.uvIndexMax) ? loc(item.uvIndexMax.toFixed(1)) : '--'}</span>
 			</div>
-			<span class="uv-value">{hasUv(item.uvIndexMax) ? loc(item.uvIndexMax.toFixed(1)) : '--'}</span>
-			{#if hasUv(item.uvIndexMax)}
-				<UvTierBadge uvIndex={item.uvIndexMax} label={uvLabel(item.uvIndexMax, $json('uv_labels') as string[])} />
-			{/if}
-		</div>
-	{/each}
+		{/each}
+	</div>
 </div>
 
 <style>
 	.daily-list {
 		display: flex;
 		flex-direction: column;
-		gap: 8px;
+	}
+
+	.uv-rows {
+		background: var(--surface-tile);
+		border-radius: 16px;
+		padding: 0 16px;
 	}
 
 	.daily-row {
 		display: flex;
 		align-items: center;
 		gap: 8px;
-		padding: 12px 16px;
-		background: rgba(42, 31, 165, 0.3);
-		border-radius: 12px;
+		padding: 10px 0;
 	}
 
-	.day-info {
-		display: flex;
-		flex-direction: column;
-		width: 100px;
-		flex-shrink: 0;
+	.daily-row + .daily-row {
+		border-top: 1px solid var(--hairline);
 	}
 
 	.day-name {
 		font-size: 14px;
 		font-weight: 500;
 		color: white;
+		white-space: nowrap;
 	}
 
 	.day-date {
-		font-size: 10px;
-		color: rgba(255,255,255,0.4);
+		flex: 1;
+		min-width: 0;
+		font-size: 12px;
+		color: rgba(255,255,255,0.45);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	.uv-value {
-		flex: 1;
-		text-align: right;
+		width: 40px;
+		text-align: end;
+		font-family: var(--font-display);
 		font-size: 14px;
-		font-weight: 500;
+		font-weight: 700;
 		color: white;
+		font-feature-settings: var(--font-features);
 	}
 </style>

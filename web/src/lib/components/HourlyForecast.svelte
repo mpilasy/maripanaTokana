@@ -46,8 +46,8 @@
 <div class="hourly-wrapper" bind:clientWidth={containerWidth}>
 	<div class="cards-scroll" onscroll={(e) => { scrollLeft = e.currentTarget.scrollLeft; }}>
 	<div class="cards-row">
-		{#each forecasts as item}
-			<div class="hourly-card">
+		{#each forecasts as item, i}
+			<div class="hourly-card" class:now={i === 0}>
 				<span class="hour">{loc(formatHourAtLocation(item.time, utcOffsetSeconds))}</span>
 				{#if isRemote}
 					<div class="hour-device-container">
@@ -154,10 +154,14 @@
 		align-items: center;
 		gap: 4px;
 		padding: 12px;
-		background: rgba(42, 31, 165, 0.45);
+		background: var(--surface-tile);
 		border-radius: 16px;
 		flex-shrink: 0;
 		width: 104px;
+	}
+
+	.hourly-card.now {
+		background: var(--surface-tile-highlight);
 	}
 
 	.hour {

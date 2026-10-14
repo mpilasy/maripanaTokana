@@ -169,10 +169,11 @@ Svelte stores drive application state:
 +layout.svelte
 └── +page.svelte
     └── WeatherScreen
-        ├── Header (location name, heart favorite toggle, search trigger, date)
+        ├── Header (location name, region + local-time chip, "Updated" line; actions: search, favorite, current location, settings)
+        ├── Location pager (‹ dots › — only with saved locations)
         ├── SavedLocationsDialog (search, list of favorites)
         ├── WeatherAlertBanner (merged 8-source alerts with individual expanders)
-        ├── HeroCard (emoji, temp, feels-like, precip, share button)
+        ├── HeroCard (condition, big temp, precip pill, stat strip: feels-like · low/high · wind; share button)
         ├── CurrentConditions (2-column detail grid: temp, wind, pressure, AQI badge, UV badge, etc.)
         ├── CollapsibleSection "Hourly Forecast"
         │   └── HourlyForecast (horizontal scroll)
@@ -182,13 +183,17 @@ Svelte stores drive application state:
         │   └── UvChart (7-day UV trend line chart with severity color badges)
         ├── CollapsibleSection "7-Day Forecast"
         │   └── DailyForecast (horizontal scroll + matching 7-day trend chart)
-        └── Footer (font cycle / credits / language cycle)
+        ├── Footer (font cycle / credits — tap opens About / language cycle)
+        ├── SettingsScreen (in SettingsPage shell; About row at bottom)
+        └── AboutScreen (in SettingsPage shell; app license + credits from `lib/credits.ts`)
 ```
 
 ### Layout Rules
 - **Section Order**: Current Conditions displays above Hourly Forecast (v1.2.13).
 - **Single-Card Expansion**: Expanding one card automatically collapses any other open card (v1.2.14).
 - **Location Switch Reset**: Switching locations automatically collapses all open cards (v1.2.14).
+- **Section cards**: Each collapsible section is a glass card with its header inside; opening one scrolls it into view.
+- **Surfaces**: Use the CSS tokens in `+layout.svelte` (`--surface-section`, `--surface-tile`, `--surface-tile-highlight`, `--hairline`, `--hero-gradient`) — same values as Android `ui/theme/Color.kt`.
 
 ---
 

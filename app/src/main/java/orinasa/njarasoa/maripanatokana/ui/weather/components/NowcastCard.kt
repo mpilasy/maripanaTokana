@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.domain.model.MinutelyForecast
 import orinasa.njarasoa.maripanatokana.domain.model.Precipitation
+import orinasa.njarasoa.maripanatokana.ui.theme.TileSurface
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFont
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 import java.text.SimpleDateFormat
@@ -130,7 +131,7 @@ fun NowcastCard(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(Color(0x992A1FA5))
+            .background(TileSurface)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {

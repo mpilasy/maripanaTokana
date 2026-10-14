@@ -12,6 +12,14 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
+import kotlinx.coroutines.delay
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
@@ -34,7 +42,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.border
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -66,8 +76,10 @@ import orinasa.njarasoa.maripanatokana.domain.model.ActivityIndices
 import orinasa.njarasoa.maripanatokana.ui.weather.components.ActivitiesCard
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.layer.GraphicsLayer
@@ -107,10 +119,15 @@ import orinasa.njarasoa.maripanatokana.domain.model.DailyForecast
 import orinasa.njarasoa.maripanatokana.domain.model.HourlyForecast
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherSource
-import orinasa.njarasoa.maripanatokana.ui.theme.CardBlue
 import orinasa.njarasoa.maripanatokana.ui.theme.DarkNavyColorInt
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFont
 import orinasa.njarasoa.maripanatokana.ui.theme.SkyBlue
+import orinasa.njarasoa.maripanatokana.ui.theme.Hairline
+import orinasa.njarasoa.maripanatokana.ui.theme.HeroGradientBottom
+import orinasa.njarasoa.maripanatokana.ui.theme.HeroGradientTop
+import orinasa.njarasoa.maripanatokana.ui.theme.SectionSurface
+import orinasa.njarasoa.maripanatokana.ui.theme.TileSurface
+import orinasa.njarasoa.maripanatokana.ui.theme.TileSurfaceHighlight
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFontFeatures
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 import orinasa.njarasoa.maripanatokana.ui.weather.components.AirQualityChart
@@ -153,6 +170,7 @@ internal fun WeatherContent(
     onLocationClicked: () -> Unit = {},
     onManageLocationsClicked: () -> Unit = {},
     onOpenSettings: () -> Unit = {},
+    onOpenAbout: () -> Unit = {},
     weatherSource: WeatherSource = WeatherSource.OPEN_METEO,
     showGpsCoordinates: Boolean = false,
     isSavedLocation: Boolean = false,
@@ -162,6 +180,8 @@ internal fun WeatherContent(
     onSwipeToPreviousLocation: () -> Unit = {},
     canSwipeToNext: Boolean = false,
     canSwipeToPrevious: Boolean = false,
+    locationCount: Int = 1,
+    locationIndex: Int = 0,
     hasLocationOverride: Boolean = false,
     advancedOverrideLat: Double? = null,
     advancedOverrideLon: Double? = null,
@@ -172,7 +192,7 @@ internal fun WeatherContent(
     val context = LocalContext.current
     val appLocale = LocalConfiguration.current.locales[0]
     // Bolt: Memoize SimpleDateFormat to avoid expensive recreation on recomposition
-    val dateFormat = remember(appLocale) { SimpleDateFormat("EEEE, d MMMM yyyy", appLocale) }
+    val dateFormat = remember(appLocale) { SimpleDateFormat("EEE d MMM", appLocale) }
     val screenTimeFormat = remember(appLocale) {
         SimpleDateFormat(
             if (android.text.format.DateFormat.is24HourFormat(context)) "HH:mm" else "h:mm a",
@@ -241,11 +261,17 @@ internal fun WeatherContent(
             .statusBarsPadding()
             .padding(horizontal = 24.sd(scale))
     ) {
-        // Fixed header
+        // Fixed header: location block (captured into share images) + action buttons (not captured)
         val headerGraphicsLayer = rememberGraphicsLayer()
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.sd(scale)),
+            verticalAlignment = Alignment.Top,
+        ) {
         Column(
             modifier = Modifier
-                .padding(top = 24.sd(scale))
+                .weight(1f)
                 .drawWithContent {
                     headerGraphicsLayer.record {
                         this@drawWithContent.drawContent()
@@ -260,71 +286,47 @@ internal fun WeatherContent(
                     onClickLabel = "Toggle GPS coordinates"
                 )
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.weight(1f, fill = false)) {
-                        Text(
-                            text = data.locationName,
-                            fontSize = 32f.s(scale),
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = displayFont,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                Text(
+                    text = data.locationName,
+                    fontSize = 30f.s(scale),
+                    lineHeight = 36f.s(scale),
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = displayFont,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                val isRemote = isRemoteTimezone(data.utcOffsetSeconds)
+                if (data.locationSubtext != null || isRemote) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         if (data.locationSubtext != null) {
                             Text(
                                 text = data.locationSubtext,
-                                fontSize = 13f.s(scale),
+                                fontSize = 14f.s(scale),
                                 fontFamily = bodyFont,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                                modifier = Modifier.padding(top = 0.dp)
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f, fill = false),
                             )
+                            Spacer(modifier = Modifier.width(8.dp))
                         }
-                    }
-
-                    IconButton(
-                        onClick = onManageLocationsClicked,
-                        modifier = Modifier.size(32.sd(scale))
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = stringResource(R.string.cd_manage_locations),
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                            modifier = Modifier.size(18.sd(scale))
-                        )
-                    }
-
-                    if (isSavedLocation || hasLocationOverride) {
-                        IconButton(
-                            onClick = onToggleFavorite,
-                            modifier = Modifier.size(32.sd(scale))
-                        ) {
-                            Icon(
-                                imageVector = if (isSavedLocation) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                                contentDescription = stringResource(
-                                    if (isSavedLocation) R.string.cd_remove_favorite else R.string.cd_add_favorite
-                                ),
-                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                                modifier = Modifier.size(18.sd(scale))
-                            )
-                        }
-                        IconButton(
-                            onClick = onGoToCurrentLocation,
-                            modifier = Modifier.size(32.sd(scale))
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.LocationOn,
-                                contentDescription = stringResource(R.string.cd_go_to_current_location),
-                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                                modifier = Modifier.size(18.sd(scale))
+                        if (isRemote) {
+                            Text(
+                                text = "\uD83D\uDD53 ${localizeDigits(formatLocationCurrentTime(data.utcOffsetSeconds, appLocale))}",
+                                fontSize = 12f.s(scale),
+                                fontFamily = displayFont,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+                                maxLines = 1,
+                                modifier = Modifier
+                                    .background(TileSurface, RoundedCornerShape(50))
+                                    .padding(horizontal = 8.dp, vertical = 2.dp),
                             )
                         }
                     }
                 }
-                
+
                 if (showGpsCoordinates) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(
@@ -354,32 +356,111 @@ internal fun WeatherContent(
                     }
                 }
             }
-            Column {
-                Text(
-                    text = stringResource(R.string.updated_time, localizeDigits("${dateFormat.format(Date(data.timestamp))}, ${screenTimeFormat.format(Date(data.timestamp))}")),
-                    fontSize = 13f.s(scale),
-                    fontFamily = bodyFont,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                )
-                if (refreshFailed) {
+            Spacer(modifier = Modifier.height(6.sd(scale)))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f, fill = false).clickable(
+                        onClick = onRefresh,
+                        role = Role.Button,
+                        onClickLabel = stringResource(R.string.cd_refresh),
+                    ),
+                ) {
                     Text(
-                        text = stringResource(R.string.refresh_failed, localizeDigits(screenTimeFormat.format(Date(data.timestamp)))) +
-                            (refreshError?.let { " \u00B7 " + stringResource(it.messageResId) } ?: ""),
+                        text = stringResource(R.string.updated_time, localizeDigits(
+                            if (android.text.format.DateUtils.isToday(data.timestamp)) screenTimeFormat.format(Date(data.timestamp))
+                            else "${dateFormat.format(Date(data.timestamp))}, ${screenTimeFormat.format(Date(data.timestamp))}"
+                        )),
                         fontSize = 13f.s(scale),
                         fontFamily = bodyFont,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.clickable { onRefresh() },
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false),
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = null,
+                        modifier = Modifier.size(13.sd(scale)),
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
                     )
                 }
-                if (isRemoteTimezone(data.utcOffsetSeconds)) {
-                    Text(
-                        text = "\uD83D\uDD53 Local: ${localizeDigits(formatLocationCurrentTime(data.utcOffsetSeconds, appLocale))}",
-                        fontSize = 13f.s(scale),
-                        fontFamily = displayFont,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            }
+            if (refreshFailed) {
+                Text(
+                    text = stringResource(R.string.refresh_failed, localizeDigits(screenTimeFormat.format(Date(data.timestamp)))) +
+                        (refreshError?.let { " \u00B7 " + stringResource(it.messageResId) } ?: ""),
+                    fontSize = 13f.s(scale),
+                    fontFamily = bodyFont,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.clickable { onRefresh() },
+                )
+            }
+        }
+
+            // Header actions
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                HeaderAction(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = stringResource(R.string.cd_manage_locations),
+                    onClick = onManageLocationsClicked,
+                )
+                if (isSavedLocation || hasLocationOverride) {
+                    HeaderAction(
+                        imageVector = if (isSavedLocation) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = stringResource(
+                            if (isSavedLocation) R.string.cd_remove_favorite else R.string.cd_add_favorite
+                        ),
+                        onClick = onToggleFavorite,
+                    )
+                    HeaderAction(
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = stringResource(R.string.cd_go_to_current_location),
+                        onClick = onGoToCurrentLocation,
                     )
                 }
+                HeaderAction(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = stringResource(R.string.settings_title),
+                    onClick = onOpenSettings,
+                )
+            }
+        }
+
+        // Saved-location pager: \u2039 \u2022 \u25CF \u2022 \u203A
+        if (locationCount > 1) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 8.sd(scale)),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                LocationPagerArrow(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                    contentDescription = stringResource(R.string.cd_previous_location),
+                    enabled = canSwipeToPrevious,
+                    onClick = onSwipeToPreviousLocation,
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    repeat(locationCount) { i ->
+                        val active = i == locationIndex
+                        Box(
+                            modifier = Modifier
+                                .size(if (active) 8.dp else 6.dp)
+                                .background(
+                                    MaterialTheme.colorScheme.onSurface.copy(alpha = if (active) 0.9f else 0.3f),
+                                    CircleShape,
+                                )
+                                .align(Alignment.CenterVertically),
+                        )
+                    }
+                }
+                LocationPagerArrow(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = stringResource(R.string.cd_next_location),
+                    enabled = canSwipeToNext,
+                    onClick = onSwipeToNextLocation,
+                )
             }
         }
 
@@ -387,8 +468,21 @@ internal fun WeatherContent(
         Column(
             modifier = Modifier
                 .weight(1f)
+                // Soft fade where content scrolls under the fixed header
+                .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
+                .drawWithContent {
+                    drawContent()
+                    drawRect(
+                        brush = Brush.verticalGradient(
+                            0f to Color.Transparent,
+                            1f to Color.Black,
+                            endY = 16.dp.toPx(),
+                        ),
+                        blendMode = BlendMode.DstIn,
+                    )
+                }
                 .verticalScroll(rememberScrollState())
-                .padding(vertical = 24.sd(scale))
+                .padding(vertical = 16.sd(scale))
         ) {
             // Weather Alert Banner
             WeatherAlertBanner(
@@ -410,8 +504,9 @@ internal fun WeatherContent(
             // Hero Card
             val graphicsLayer = rememberGraphicsLayer()
             val coroutineScope = rememberCoroutineScope()
+            val heroShape = RoundedCornerShape(28.dp)
             Box {
-                Card(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .drawWithContent {
@@ -419,176 +514,160 @@ internal fun WeatherContent(
                                 this@drawWithContent.drawContent()
                             }
                             drawContent()
-                        },
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = CardBlue.copy(alpha = 0.6f))
+                        }
+                        .background(Brush.verticalGradient(listOf(HeroGradientTop, HeroGradientBottom)), heroShape)
+                        .border(1.dp, Hairline, heroShape)
+                        .padding(horizontal = 24.sd(scale))
+                        .padding(top = 20.sd(scale), bottom = 8.sd(scale)),
                 ) {
-                    Column(
-                        modifier = Modifier.padding(24.sd(scale))
+                    // Condition line
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = wmoEmoji(data.weatherCode, isNight = data.timestamp !in (data.sunrise * 1000)..(data.sunset * 1000)),
+                            fontSize = 22f.s(scale),
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(wmoDescriptionRes(data.weatherCode)),
+                            fontSize = 16f.s(scale),
+                            fontFamily = bodyFont,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+
+                    // Big temperature (left) + precipitation (right)
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 4.sd(scale)),
+                        verticalAlignment = Alignment.Bottom,
                     ) {
-                        // Top row: emoji+description (left) + temperature (right)
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier.weight(1f),
-                            ) {
-                                Text(
-                                    text = wmoEmoji(data.weatherCode, isNight = data.timestamp !in (data.sunrise * 1000)..(data.sunset * 1000)),
-                                    fontSize = 48f.s(scale),
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = stringResource(wmoDescriptionRes(data.weatherCode)),
-                                    fontSize = 16f.s(scale),
-                                    fontFamily = bodyFont,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
-                                    textAlign = TextAlign.Center,
-                                )
-                            }
-                            val (tempPrimary, tempSecondary) = data.temperature.displayDualMixed(metricPrimary)
+                        val (tempPrimary, tempSecondary) = data.temperature.displayDualMixed(metricPrimary)
+                        // Temperature keeps its natural width; precipitation takes (and wraps within) the rest.
+                        Box {
                             DualUnitText(
                                 primary = localizeDigits(tempPrimary),
                                 secondary = localizeDigits(tempSecondary),
-                                primarySize = 48f.s(scale),
-                                horizontalAlignment = Alignment.End,
+                                primarySize = 64f.s(scale),
+                                secondaryScale = 0.4f,
                                 onClick = onToggleUnits,
                             )
                         }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // Bottom row: feels like (left) + precipitation (right)
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
+                        Column(horizontalAlignment = Alignment.End, modifier = Modifier.weight(1f).padding(start = 8.dp, bottom = 4.sd(scale))) {
+                            if (data.snow != null) {
+                                val (snowP, snowS) = data.snow.displayDual(metricPrimary)
+                                DualUnitText(
+                                    primary = "❄️ ${localizeDigits(snowP)}",
+                                    secondary = localizeDigits(snowS),
+                                    horizontalAlignment = Alignment.End,
+                                    onClick = onToggleUnits,
+                                )
+                            } else if (data.rain != null) {
+                                val (rainP, rainS) = data.rain.displayDual(metricPrimary)
+                                DualUnitText(
+                                    primary = "🌧️ ${localizeDigits(rainP)}",
+                                    secondary = localizeDigits(rainS),
+                                    horizontalAlignment = Alignment.End,
+                                    onClick = onToggleUnits,
+                                )
+                            } else {
                                 Text(
-                                    text = stringResource(R.string.feels_like),
-                                    fontSize = 14f.s(scale),
+                                    text = stringResource(R.string.no_precip),
+                                    fontSize = 13f.s(scale),
+                                    textAlign = TextAlign.End,
                                     fontFamily = bodyFont,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                                )
-                                val (flPrimary, flSecondary) = data.feelsLike.displayDual(metricPrimary)
-                                DualUnitText(primary = localizeDigits(flPrimary), secondary = localizeDigits(flSecondary), onClick = onToggleUnits)
-                            }
-                            Column(horizontalAlignment = Alignment.End) {
-                                if (data.snow != null) {
-                                    val (snowP, snowS) = data.snow.displayDual(metricPrimary)
-                                    DualUnitText(
-                                        primary = "\u2744\uFE0F ${localizeDigits(snowP)}",
-                                        secondary = localizeDigits(snowS),
-                                        onClick = onToggleUnits,
-                                    )
-                                } else if (data.rain != null) {
-                                    val (rainP, rainS) = data.rain.displayDual(metricPrimary)
-                                    DualUnitText(
-                                        primary = "\uD83C\uDF27\uFE0F ${localizeDigits(rainP)}",
-                                        secondary = localizeDigits(rainS),
-                                        onClick = onToggleUnits,
-                                    )
-                                } else {
-                                    Text(
-                                        text = stringResource(R.string.no_precip),
-                                        fontSize = 14f.s(scale),
-                                        fontFamily = bodyFont,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                                    )
-                                }
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // Third row: high/low (left) + wind (right)
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                val (maxP, maxS) = data.tempMax.displayDual(metricPrimary)
-                                val (minP, minS) = data.tempMin.displayDual(metricPrimary)
-                                DualUnitText(
-                                    primary = localizeDigits("\u2193$minP / \u2191$maxP"),
-                                    secondary = localizeDigits("\u2193$minS / \u2191$maxS"),
-                                    onClick = onToggleUnits,
-                                )
-                            }
-                            Column(horizontalAlignment = Alignment.End) {
-                                val (windP, windS) = data.windSpeed.displayDual(metricPrimary)
-                                val directions = stringArrayResource(R.array.cardinal_directions)
-                                val dirLabel = data.windDeg?.let { directions[((it % 360 + 360) % 360 * 16 / 360) % 16] } ?: "--"
-                                DualUnitText(
-                                    primary = localizeDigits("$windP $dirLabel"),
-                                    secondary = localizeDigits(windS),
-                                    onClick = onToggleUnits,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                    modifier = Modifier
+                                        .background(TileSurface, RoundedCornerShape(50))
+                                        .padding(horizontal = 10.dp, vertical = 4.dp),
                                 )
                             }
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(16.sd(scale)))
+
+                    // Stat strip: feels like · low/high · wind
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(IntrinsicSize.Min)
+                            .background(TileSurface, RoundedCornerShape(16.dp))
+                            .padding(vertical = 12.sd(scale)),
+                    ) {
+                        HeroStat(label = stringResource(R.string.feels_like), modifier = Modifier.weight(1f)) {
+                            val (flPrimary, flSecondary) = data.feelsLike.displayDual(metricPrimary)
+                            DualUnitText(
+                                primary = localizeDigits(flPrimary),
+                                secondary = localizeDigits(flSecondary),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                onClick = onToggleUnits,
+                            )
+                        }
+                        HeroStatDivider()
+                        HeroStat(label = null, modifier = Modifier.weight(1.2f)) {
+                            val (maxP, maxS) = data.tempMax.displayDual(metricPrimary)
+                            val (minP, minS) = data.tempMin.displayDual(metricPrimary)
+                            DualUnitText(
+                                primary = localizeDigits("\u2193$minP \u2191$maxP"),
+                                secondary = localizeDigits("\u2193$minS \u2191$maxS"),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                onClick = onToggleUnits,
+                            )
+                        }
+                        HeroStatDivider()
+                        val directions = stringArrayResource(R.array.cardinal_directions)
+                        val dirLabel = data.windDeg?.let { directions[((it % 360 + 360) % 360 * 16 / 360) % 16] } ?: "--"
+                        HeroStat(label = "${stringResource(R.string.detail_wind)} · $dirLabel", modifier = Modifier.weight(1f)) {
+                            val (windP, windS) = data.windSpeed.displayDual(metricPrimary)
+                            DualUnitText(
+                                primary = localizeDigits(windP),
+                                secondary = localizeDigits(windS),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                onClick = onToggleUnits,
+                            )
+                        }
+                    }
+
                     Text(
-                        text = "\u00A9 Orinasa Njarasoa",
+                        text = "© Orinasa Njarasoa",
                         fontSize = 9f.s(scale),
                         lineHeight = 11f.s(scale),
                         fontFamily = bodyFont,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 7.dp),
+                            .padding(top = 8.dp),
                         textAlign = TextAlign.Center,
                     )
                 }
-                Row(
+                IconButton(
+                    onClick = {
+                        coroutineScope.launch {
+                            val header = headerGraphicsLayer.toImageBitmap().asAndroidBitmap()
+                            val content = graphicsLayer.toImageBitmap().asAndroidBitmap()
+                            shareCardBitmap(context, combineBitmaps(header, content))
+                        }
+                    },
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(4.sd(scale)),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                        .size(36.dp),
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = TileSurface,
+                        contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                    ),
                 ) {
-                    IconButton(
-                        onClick = {
-                            coroutineScope.launch {
-                                val header = headerGraphicsLayer.toImageBitmap().asAndroidBitmap()
-                                val content = graphicsLayer.toImageBitmap().asAndroidBitmap()
-                                shareCardBitmap(context, combineBitmaps(header, content))
-                            }
-                        },
-                        modifier = Modifier.size(32.dp),
-                        colors = IconButtonDefaults.iconButtonColors(
-                            contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                        ),
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_share),
-                            contentDescription = stringResource(R.string.cd_share),
-                            modifier = Modifier.size(16.dp),
-                        )
-                    }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .padding(end = 12.sd(scale))
-                            .clickable { onRefresh() }
-                    ) {
-                        Text(
-                            text = localizeDigits(stringResource(R.string.updated_time, osTimeFormat.format(Date(data.timestamp)))),
-                            fontSize = 11f.s(scale),
-                            fontFamily = bodyFont,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = stringResource(R.string.cd_refresh),
-                            modifier = Modifier.size(14.dp),
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
-                        )
-                    }
+                    Icon(
+                        painter = painterResource(R.drawable.ic_share),
+                        contentDescription = stringResource(R.string.cd_share),
+                        modifier = Modifier.size(16.dp),
+                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.sd(scale)))
+            Spacer(modifier = Modifier.height(16.sd(scale)))
 
             // Current Conditions (collapsible)
             CollapsibleSection(
@@ -599,7 +678,7 @@ internal fun WeatherContent(
             ) {
                 DetailsContent(data, metricPrimary, timeFormat, localizeDigits, onToggleUnits)
             }
-            Spacer(modifier = Modifier.height(24.sd(scale)))
+            Spacer(modifier = Modifier.height(12.sd(scale)))
 
             // Minutely Nowcast (collapsible, Open-Meteo source only)
             if (weatherSource == WeatherSource.OPEN_METEO && data.minutelyForecast.isNotEmpty()) {
@@ -614,7 +693,7 @@ internal fun WeatherContent(
                         isMetricPrimary = metricPrimary
                     )
                 }
-                Spacer(modifier = Modifier.height(24.sd(scale)))
+                Spacer(modifier = Modifier.height(12.sd(scale)))
             }
 
             // Hourly Forecast
@@ -627,7 +706,7 @@ internal fun WeatherContent(
                 ) {
                     HourlyForecastRow(data.hourlyForecast, metricPrimary, data.dailySunrise, data.dailySunset, localizeDigits, onToggleUnits, data.utcOffsetSeconds)
                 }
-                Spacer(modifier = Modifier.height(24.sd(scale)))
+                Spacer(modifier = Modifier.height(12.sd(scale)))
             }
 
             // Weekly Forecast
@@ -640,7 +719,7 @@ internal fun WeatherContent(
                 ) {
                     DailyForecastList(data.dailyForecast, metricPrimary, localizeDigits, onToggleUnits, data.utcOffsetSeconds)
                 }
-                Spacer(modifier = Modifier.height(24.sd(scale)))
+                Spacer(modifier = Modifier.height(12.sd(scale)))
             }
 
             // Air Quality Forecast
@@ -662,11 +741,12 @@ internal fun WeatherContent(
                             DetailCard(
                                 value = localizeDigits(aqiP),
                                 secondaryValue = localizeDigits(aqiS),
-                                subtitleContent = {
+                                trailingContent = {
                                     AqiTierBadge(
                                         tier = aqi.primaryTier,
                                         label = aqiTierLabels[aqi.primaryTier.ordinal],
                                         modifier = Modifier.clickable { showAirQualityDetail = true },
+                                        fontSize = 14.sp,
                                     )
                                 },
                                 modifier = Modifier.fillMaxWidth(),
@@ -694,7 +774,7 @@ internal fun WeatherContent(
 
             // UV Forecast
             if (data.dailyForecast.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(24.sd(scale)))
+                Spacer(modifier = Modifier.height(12.sd(scale)))
                 CollapsibleSection(
                     title = stringResource(R.string.section_uv_forecast),
                     headerGraphicsLayer = headerGraphicsLayer,
@@ -713,7 +793,7 @@ internal fun WeatherContent(
                         }
                         DetailCard(
                             value = localizeDigits("%.1f".format(Locale.US, todayUvMax)),
-                            subtitleContent = { UvTierBadge(uvIndex = todayUvMax, label = todayUvLabelText) },
+                            trailingContent = { UvTierBadge(uvIndex = todayUvMax, label = todayUvLabelText, fontSize = 14.sp) },
                             modifier = Modifier.fillMaxWidth(),
                         )
                         Spacer(modifier = Modifier.height(16.sd(scale)))
@@ -723,7 +803,7 @@ internal fun WeatherContent(
             }
 
             // Activities Index
-            Spacer(modifier = Modifier.height(24.sd(scale)))
+            Spacer(modifier = Modifier.height(12.sd(scale)))
             CollapsibleSection(
                 title = stringResource(R.string.section_activities),
                 headerGraphicsLayer = headerGraphicsLayer,
@@ -758,42 +838,53 @@ internal fun WeatherContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .navigationBarsPadding()
-                    .padding(bottom = 4.dp),
+                    .padding(top = 4.dp, bottom = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 // Font icon + name
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable(
-                        onClick = onCycleFont,
-                        role = Role.Button,
-                        onClickLabel = stringResource(R.string.cd_change_font)
-                    ),
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(50))
+                        .background(TileSurface)
+                        .clickable(
+                            onClick = onCycleFont,
+                            role = Role.Button,
+                            onClickLabel = stringResource(R.string.cd_change_font)
+                        )
+                        .padding(horizontal = 10.dp, vertical = 6.dp),
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_font),
                         contentDescription = stringResource(R.string.cd_change_font),
                         modifier = Modifier.size(14.dp),
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = fontName.replace(" + ", "\n"),
-                        fontSize = 9f.s(scale),
-                        lineHeight = 11f.s(scale),
+                        text = fontName.substringBefore(" + "),
+                        fontSize = 11f.s(scale),
                         fontFamily = bodyFont,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        maxLines = 1,
                     )
                 }
                 Spacer(modifier = Modifier.weight(1f))
-                // Credits + hash centered
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = creditText, fontSize = 9f.s(scale), lineHeight = 11f.s(scale))
+                // Credits + hash centered; tapping opens About (the source link handles its own taps)
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.clickable(
+                        onClick = onOpenAbout,
+                        role = Role.Button,
+                        onClickLabel = stringResource(R.string.about_title),
+                    ),
+                ) {
+                    Text(text = creditText, fontSize = 10f.s(scale), lineHeight = 13f.s(scale))
                     Text(
                         text = "v${BuildConfig.VERSION_NAME} \u2022 ${stringResource(R.string.hash_version, BuildConfig.GIT_HASH)}${if (BuildConfig.DEBUG) "-d" else ""} \u2022 ${BuildConfig.BUILD_TIME}",
                         fontSize = 9f.s(scale),
-                        lineHeight = 11f.s(scale),
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f),
+                        lineHeight = 12f.s(scale),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
                     )
                 }
                 Spacer(modifier = Modifier.weight(1f))
@@ -801,71 +892,66 @@ internal fun WeatherContent(
                 Text(
                     text = currentFlag,
                     fontSize = 16f.s(scale),
-                    modifier = Modifier.clickable(
-                        onClick = onCycleLanguage,
-                        role = Role.Button,
-                        onClickLabel = stringResource(R.string.cd_change_language)
-                    ),
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(50))
+                        .background(TileSurface)
+                        .clickable(
+                            onClick = onCycleLanguage,
+                            role = Role.Button,
+                            onClickLabel = stringResource(R.string.cd_change_language)
+                        )
+                        .padding(horizontal = 10.dp, vertical = 3.dp),
                 )
             }
         }
     }
     } // end CompositionLocalProvider(LocalScale)
-    if (canSwipeToPrevious) {
-        IconButton(
-            onClick = onSwipeToPreviousLocation,
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .padding(start = 8.dp)
-                .size(36.dp),
-            colors = IconButtonDefaults.iconButtonColors(
-                containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
-                contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-            ),
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                contentDescription = stringResource(R.string.cd_previous_location),
-                modifier = Modifier.size(20.dp)
-            )
-        }
-    }
-    if (canSwipeToNext) {
-        IconButton(
-            onClick = onSwipeToNextLocation,
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .padding(end = 8.dp)
-                .size(36.dp),
-            colors = IconButtonDefaults.iconButtonColors(
-                containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
-                contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-            ),
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = stringResource(R.string.cd_next_location),
-                modifier = Modifier.size(20.dp)
-            )
-        }
-    }
-    IconButton(
-        onClick = onOpenSettings,
-        modifier = Modifier
-            .align(Alignment.TopEnd)
-            .statusBarsPadding()
-            .padding(top = 16.dp, end = 8.dp)
-            .size(48.dp)
-    ) {
-        Icon(
-            imageVector = Icons.Default.Settings,
-            contentDescription = stringResource(R.string.settings_title),
-            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-            modifier = Modifier.size(24.dp)
-        )
-    }
     } // end Box
 }
+
+@Composable
+private fun HeaderAction(
+    imageVector: androidx.compose.ui.graphics.vector.ImageVector,
+    contentDescription: String,
+    onClick: () -> Unit,
+) {
+    IconButton(onClick = onClick, modifier = Modifier.size(40.dp)) {
+        Icon(
+            imageVector = imageVector,
+            contentDescription = contentDescription,
+            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+            modifier = Modifier.size(22.dp),
+        )
+    }
+}
+
+@Composable
+private fun LocationPagerArrow(
+    imageVector: androidx.compose.ui.graphics.vector.ImageVector,
+    contentDescription: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    IconButton(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = Modifier.size(32.dp),
+        colors = IconButtonDefaults.iconButtonColors(
+            contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+            disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f),
+        ),
+    ) {
+        Icon(imageVector = imageVector, contentDescription = contentDescription, modifier = Modifier.size(20.dp))
+    }
+}
+
+/** Shared glass surface for section cards and tiles. */
+internal fun Modifier.glass(
+    color: Color = TileSurface,
+    shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(16.dp),
+): Modifier = this
+    .background(color, shape)
+    .border(1.dp, Hairline, shape)
 
 @Composable
 internal fun DualUnitText(
@@ -877,6 +963,7 @@ internal fun DualUnitText(
     onClick: (() -> Unit)? = null,
     primaryUnit: String? = null,
     secondaryUnit: String? = null,
+    secondaryScale: Float = 0.75f,
 ) {
     val displayFont = LocalDisplayFont.current
     val fontFeatures = LocalBodyFontFeatures.current
@@ -908,7 +995,7 @@ internal fun DualUnitText(
         Text(
             text = buildAnnotatedString {
                 append('\u2066')
-                withStyle(SpanStyle(fontSize = primarySize * 0.75f, fontWeight = FontWeight.Normal, fontFamily = displayFont, color = resolvedColor.copy(alpha = 0.55f))) {
+                withStyle(SpanStyle(fontSize = primarySize * secondaryScale, fontWeight = FontWeight.Normal, fontFamily = displayFont, color = resolvedColor.copy(alpha = 0.55f))) {
                     append(secondary)
                 }
                 if (secondaryUnit != null) {
@@ -924,6 +1011,44 @@ internal fun DualUnitText(
 }
 
 @Composable
+private fun HeroStat(
+    label: String?,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    Column(
+        modifier = modifier.fillMaxHeight().padding(horizontal = 4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        if (label != null) {
+            Text(
+                text = label,
+                fontSize = 12f.s(LocalScale.current),
+                fontFamily = LocalBodyFont.current,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+        }
+        content()
+    }
+}
+
+@Composable
+private fun HeroStatDivider() {
+    Box(
+        modifier = Modifier
+            .fillMaxHeight()
+            .padding(vertical = 4.dp)
+            .width(1.dp)
+            .background(Hairline)
+    )
+}
+
+@Composable
 internal fun CollapsibleSection(
     title: String,
     headerGraphicsLayer: GraphicsLayer,
@@ -932,29 +1057,49 @@ internal fun CollapsibleSection(
     content: @Composable () -> Unit,
 ) {
     val rotation by animateFloatAsState(if (expanded) 180f else 0f, label = "chevron")
+    // Scroll a newly opened section into view (skip the initial state so launch doesn't jump).
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    var wasExpanded by remember { mutableStateOf(expanded) }
+    LaunchedEffect(expanded) {
+        if (expanded && !wasExpanded) {
+            delay(250)
+            bringIntoViewRequester.bringIntoView()
+        }
+        wasExpanded = expanded
+    }
     val bodyFont = LocalBodyFont.current
     val graphicsLayer = rememberGraphicsLayer()
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
     val scale = LocalScale.current
 
-    Column {
+    val sectionShape = RoundedCornerShape(20.dp)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .bringIntoViewRequester(bringIntoViewRequester)
+            .glass(SectionSurface, sectionShape)
+            .clip(sectionShape),
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { onToggle() }
-                .padding(vertical = 8.dp),
+                .padding(start = 16.dp, end = 8.dp, top = 6.dp, bottom = 6.dp)
+                .height(44.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 text = title,
-                fontSize = 20f.s(scale),
+                fontSize = 17f.s(scale),
                 fontWeight = FontWeight.Bold,
                 fontFamily = bodyFont,
                 color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
             )
             if (expanded) {
-                Spacer(modifier = Modifier.width(4.dp))
                 IconButton(
                     onClick = {
                         coroutineScope.launch {
@@ -963,26 +1108,32 @@ internal fun CollapsibleSection(
                             shareCardBitmap(context, combineBitmaps(header, content))
                         }
                     },
-                    modifier = Modifier.size(32.dp),
+                    modifier = Modifier.size(36.dp),
                     colors = IconButtonDefaults.iconButtonColors(
-                        contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                        contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     ),
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_share),
                         contentDescription = stringResource(R.string.cd_share),
-                        modifier = Modifier.size(14.dp),
+                        modifier = Modifier.size(16.dp),
                     )
                 }
             }
-            Spacer(modifier = Modifier.weight(1f))
-            Icon(
-                imageVector = Icons.Default.KeyboardArrowDown,
-                contentDescription = if (expanded) stringResource(R.string.cd_collapse)
-                                     else stringResource(R.string.cd_expand),
-                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                modifier = Modifier.rotate(rotation),
-            )
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .background(TileSurface, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowDown,
+                    contentDescription = if (expanded) stringResource(R.string.cd_collapse)
+                                         else stringResource(R.string.cd_expand),
+                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                    modifier = Modifier.size(22.dp).rotate(rotation),
+                )
+            }
         }
         AnimatedVisibility(
             visible = expanded,
@@ -990,12 +1141,14 @@ internal fun CollapsibleSection(
             exit = shrinkVertically(),
         ) {
             Box(
-                modifier = Modifier.drawWithContent {
-                    graphicsLayer.record {
-                        this@drawWithContent.drawContent()
+                modifier = Modifier
+                    .padding(start = 12.dp, end = 12.dp, bottom = 12.dp)
+                    .drawWithContent {
+                        graphicsLayer.record {
+                            this@drawWithContent.drawContent()
+                        }
+                        drawLayer(graphicsLayer)
                     }
-                    drawLayer(graphicsLayer)
-                }
             ) {
                 content()
             }
@@ -1038,7 +1191,7 @@ internal fun HourlyForecastRow(forecasts: List<HourlyForecast>, metricPrimary: B
                 Card(
                     modifier = Modifier.width(itemWidth),
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = CardBlue.copy(alpha = 0.45f)),
+                    colors = CardDefaults.cardColors(containerColor = if (item === forecasts.first()) TileSurfaceHighlight else TileSurface),
                 ) {
                     Column(
                         modifier = Modifier.padding(vertical = 12.sd(scale)),
@@ -1210,7 +1363,7 @@ internal fun DailyForecastList(forecasts: List<DailyForecast>, metricPrimary: Bo
                 Card(
                     modifier = Modifier.width(itemWidth),
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = CardBlue.copy(alpha = 0.45f)),
+                    colors = CardDefaults.cardColors(containerColor = if (item === forecasts.first()) TileSurfaceHighlight else TileSurface),
                 ) {
                     Column(
                         modifier = Modifier.padding(vertical = 12.sd(scale)),
@@ -1332,7 +1485,7 @@ internal fun DailyUvForecastList(forecasts: List<DailyForecast>, localizeDigits:
     val scale = LocalScale.current
     val uvLabels = stringArrayResource(R.array.uv_labels)
 
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         if (forecasts.isNotEmpty()) {
             DailyUvChart(
                 forecasts = forecasts,
@@ -1340,14 +1493,19 @@ internal fun DailyUvForecastList(forecasts: List<DailyForecast>, localizeDigits:
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(
-                        CardBlue.copy(alpha = 0.3f),
-                        RoundedCornerShape(12.dp)
+                        TileSurface,
+                        RoundedCornerShape(16.dp)
                     )
                     .padding(horizontal = 16.sd(scale), vertical = 12.sd(scale))
                     .height(74.sd(scale))
             )
         }
-        forecasts.forEach { item ->
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(TileSurface, RoundedCornerShape(16.dp)),
+        ) {
+        forecasts.forEachIndexed { index, item ->
             androidx.compose.runtime.key(item.date) {
                 val label = when {
                     item.uvIndexMax < 3 -> uvLabels[0]
@@ -1356,43 +1514,46 @@ internal fun DailyUvForecastList(forecasts: List<DailyForecast>, localizeDigits:
                     item.uvIndexMax < 11 -> uvLabels[3]
                     else -> uvLabels[4]
                 }
+                if (index > 0) {
+                    Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).height(1.dp).background(Hairline))
+                }
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(
-                            CardBlue.copy(alpha = 0.3f),
-                            RoundedCornerShape(12.dp),
-                        )
-                        .padding(horizontal = 16.sd(scale), vertical = 12.sd(scale)),
+                        .padding(horizontal = 16.sd(scale), vertical = 10.sd(scale)),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Column(modifier = Modifier.width(100.sd(scale))) {
-                        Text(
-                            text = dayFormat.format(Date(item.date)),
-                            fontSize = 14f.s(scale),
-                            fontWeight = FontWeight.Medium,
-                            fontFamily = bodyFont,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                        Text(
-                            text = localizeDigits(dayMonthFormat.format(Date(item.date))),
-                            fontSize = 10f.s(scale),
-                            fontFamily = bodyFont,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-                        )
-                    }
-                    Spacer(modifier = Modifier.weight(1f))
                     Text(
-                        text = localizeDigits("%.1f".format(Locale.US, item.uvIndexMax)),
+                        text = dayFormat.format(Date(item.date)),
                         fontSize = 14f.s(scale),
                         fontWeight = FontWeight.Medium,
                         fontFamily = bodyFont,
                         color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                     Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = localizeDigits(dayMonthFormat.format(Date(item.date))),
+                        fontSize = 12f.s(scale),
+                        fontFamily = bodyFont,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
+                        maxLines = 1,
+                        modifier = Modifier.weight(1f),
+                    )
                     UvTierBadge(uvIndex = item.uvIndexMax, label = label)
+                    Text(
+                        text = localizeDigits("%.1f".format(Locale.US, item.uvIndexMax)),
+                        fontSize = 14f.s(scale),
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = LocalDisplayFont.current,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        textAlign = TextAlign.End,
+                        modifier = Modifier.width(40.sd(scale)),
+                    )
                 }
             }
+        }
         }
     }
 }
@@ -1401,313 +1562,115 @@ internal fun DailyUvForecastList(forecasts: List<DailyForecast>, localizeDigits:
 internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat: SimpleDateFormat, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
     val directions = stringArrayResource(R.array.cardinal_directions)
     val uvLabels = stringArrayResource(R.array.uv_labels)
-    val bodyFont = LocalBodyFont.current
-    val fontFeatures = LocalBodyFontFeatures.current
     val scale = LocalScale.current
-    Column {
-        Spacer(modifier = Modifier.height(8.dp))
+    val gap = 10.sd(scale)
+    val tile = Modifier.fillMaxHeight()
 
-        // Temperature / Precipitation / Cloud Cover (merged full-width card)
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = CardBlue.copy(alpha = 0.6f))
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(16.sd(scale)),
-            ) {
-                // Temperature (left)
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(R.string.detail_temperature),
-                        fontSize = 14f.s(scale),
-                        fontFamily = bodyFont,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    val (tempP, tempS) = data.temperature.displayDual(metricPrimary)
-                    DualUnitText(primary = localizeDigits(tempP), secondary = localizeDigits(tempS), primarySize = 20f.s(scale), onClick = onToggleUnits)
-                    val (flP, _) = data.feelsLike.displayDual(metricPrimary)
-                    Text(
-                        text = "${stringResource(R.string.feels_like)} ${localizeDigits(flP)}",
-                        fontSize = 12f.s(scale),
-                        fontFamily = bodyFont,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    )
+    @Composable
+    fun TileRow(content: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit) {
+        Row(
+            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+            horizontalArrangement = Arrangement.spacedBy(gap),
+            content = content,
+        )
+    }
+
+    Column(verticalArrangement = Arrangement.spacedBy(gap)) {
+        // Temperature / Precipitation
+        TileRow {
+            val (tempP, tempS) = data.temperature.displayDual(metricPrimary)
+            val (flP, _) = data.feelsLike.displayDual(metricPrimary)
+            DetailCard(
+                title = stringResource(R.string.detail_temperature),
+                value = localizeDigits(tempP),
+                secondaryValue = localizeDigits(tempS),
+                subtitle = "${stringResource(R.string.feels_like)} ${localizeDigits(flP)}",
+                onToggleUnits = onToggleUnits,
+                modifier = tile.weight(1f),
+            )
+            val cloudCover = "${stringResource(R.string.detail_cloud_cover)}: ${data.cloudCover?.let { localizeDigits("%d%%".format(Locale.US, it)) } ?: "--"}"
+            when {
+                data.snow != null -> {
+                    val (snowP, snowS) = data.snow.displayDual(metricPrimary)
+                    DetailCard(localizeDigits("❄️ $snowP"), tile.weight(1f),
+                        title = stringResource(R.string.detail_precipitation), secondaryValue = localizeDigits(snowS), subtitle = cloudCover, onToggleUnits = onToggleUnits)
                 }
-                // Precipitation + Cloud Cover (right)
-                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
-                    Text(
-                        text = stringResource(R.string.detail_precipitation),
-                        fontSize = 14f.s(scale),
-                        fontFamily = bodyFont,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                        textAlign = TextAlign.End,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    if (data.snow != null) {
-                        val (snowP, snowS) = data.snow.displayDual(metricPrimary)
-                        DualUnitText(primary = localizeDigits("\u2744\uFE0F $snowP"), secondary = localizeDigits(snowS), primarySize = 20f.s(scale), horizontalAlignment = Alignment.End, onClick = onToggleUnits)
-                    } else if (data.rain != null) {
-                        val (rainP, rainS) = data.rain.displayDual(metricPrimary)
-                        DualUnitText(primary = localizeDigits("\uD83C\uDF27\uFE0F $rainP"), secondary = localizeDigits(rainS), primarySize = 20f.s(scale), horizontalAlignment = Alignment.End, onClick = onToggleUnits)
-                    } else {
-                        Text(
-                            text = stringResource(R.string.detail_no_precip),
-                            fontSize = 20f.s(scale),
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = LocalDisplayFont.current,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            style = TextStyle(fontFeatureSettings = fontFeatures),
-                            textAlign = TextAlign.End,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        text = "${stringResource(R.string.detail_cloud_cover)}: ${data.cloudCover?.let { localizeDigits("%d%%".format(Locale.US, it)) } ?: "--"}",
-                        fontSize = 12f.s(scale),
-                        fontFamily = bodyFont,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                        textAlign = TextAlign.End,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
+                data.rain != null -> {
+                    val (rainP, rainS) = data.rain.displayDual(metricPrimary)
+                    DetailCard(localizeDigits("🌧️ $rainP"), tile.weight(1f),
+                        title = stringResource(R.string.detail_precipitation), secondaryValue = localizeDigits(rainS), subtitle = cloudCover, onToggleUnits = onToggleUnits)
                 }
+                else -> DetailCard(stringResource(R.string.detail_no_precip), tile.weight(1f),
+                    title = stringResource(R.string.detail_precipitation), subtitle = cloudCover)
             }
         }
 
-        Spacer(modifier = Modifier.height(16.sd(scale)))
-
-        // High / Low
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = CardBlue.copy(alpha = 0.6f))
-        ) {
+        // Low / High
+        TileRow {
             val (minP, minS) = data.tempMin.displayDual(metricPrimary)
             val (maxP, maxS) = data.tempMax.displayDual(metricPrimary)
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(16.sd(scale)),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = "\u2193",
-                    fontSize = 28f.s(scale),
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                )
-                Spacer(modifier = Modifier.width(8.sd(scale)))
-                DualUnitText(primary = localizeDigits(minP), secondary = localizeDigits(minS), primarySize = 20f.s(scale), onClick = onToggleUnits)
-                Spacer(modifier = Modifier.weight(1f))
-                DualUnitText(primary = localizeDigits(maxP), secondary = localizeDigits(maxS), primarySize = 20f.s(scale), horizontalAlignment = Alignment.End, onClick = onToggleUnits)
-                Spacer(modifier = Modifier.width(8.sd(scale)))
-                Text(
-                    text = "\u2191",
-                    fontSize = 28f.s(scale),
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                )
-            }
+            DetailCard(localizeDigits("↓ $minP"), tile.weight(1f),
+                title = stringResource(R.string.detail_min_temp), secondaryValue = localizeDigits(minS), onToggleUnits = onToggleUnits)
+            DetailCard(localizeDigits("↑ $maxP"), tile.weight(1f),
+                title = stringResource(R.string.detail_max_temp), secondaryValue = localizeDigits(maxS), onToggleUnits = onToggleUnits)
         }
 
-        Spacer(modifier = Modifier.height(16.sd(scale)))
-
-        // Wind / Wind Gust
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = CardBlue.copy(alpha = 0.6f))
-        ) {
+        // Wind / Gust
+        TileRow {
             val (windP, windS) = data.windSpeed.displayDual(metricPrimary)
             val dirLabel = data.windDeg?.let { directions[((it % 360 + 360) % 360 * 16 / 360) % 16] }
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(16.sd(scale)),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.Start) {
-                    DualUnitText(primary = localizeDigits(windP), secondary = localizeDigits(windS), primarySize = 20f.s(scale), onClick = onToggleUnits)
-                    Text(
-                        text = data.windDeg?.let { localizeDigits("$dirLabel (%d\u00B0)".format(Locale.US, it)) } ?: "--",
-                        fontSize = 12f.s(scale),
-                        fontFamily = bodyFont,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    )
-                }
-                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = stringResource(R.string.detail_wind),
-                        fontSize = 14f.s(scale),
-                        fontFamily = bodyFont,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                    )
-                }
-                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
-                    data.windGust?.let { gust ->
-                        val (gustP, gustS) = gust.displayDual(metricPrimary)
-                        DualUnitText(primary = localizeDigits(gustP), secondary = localizeDigits(gustS), primarySize = 20f.s(scale), horizontalAlignment = Alignment.End, onClick = onToggleUnits)
-                        Text(
-                            text = stringResource(R.string.detail_wind_gust),
-                            fontSize = 12f.s(scale),
-                            fontFamily = bodyFont,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                            textAlign = TextAlign.End,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                }
-            }
+            DetailCard(localizeDigits(windP), tile.weight(1f),
+                title = stringResource(R.string.detail_wind), secondaryValue = localizeDigits(windS),
+                subtitle = data.windDeg?.let { localizeDigits("$dirLabel (%d°)".format(Locale.US, it)) } ?: "--",
+                onToggleUnits = onToggleUnits)
+            val gust = data.windGust?.displayDual(metricPrimary)
+            DetailCard(gust?.let { localizeDigits(it.first) } ?: "--", tile.weight(1f),
+                title = stringResource(R.string.detail_wind_gust), secondaryValue = gust?.let { localizeDigits(it.second) },
+                onToggleUnits = onToggleUnits)
         }
-
-        Spacer(modifier = Modifier.height(16.sd(scale)))
 
         // Sunrise / Sunset
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = CardBlue.copy(alpha = 0.6f))
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(16.sd(scale)),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.Start) {
-                    Text(
-                        text = localizeDigits(timeFormat.format(Date(data.sunrise * 1000))),
-                        fontSize = 20f.s(scale),
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = LocalDisplayFont.current,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        style = TextStyle(fontFeatureSettings = fontFeatures),
-                    )
-                    Text(
-                        text = stringResource(R.string.detail_sunrise),
-                        fontSize = 12f.s(scale),
-                        fontFamily = bodyFont,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    )
-                }
-                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "\u2600\uFE0F",
-                        fontSize = 24f.s(scale),
-                    )
-                }
-                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
-                    Text(
-                        text = localizeDigits(timeFormat.format(Date(data.sunset * 1000))),
-                        fontSize = 20f.s(scale),
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = LocalDisplayFont.current,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        style = TextStyle(fontFeatureSettings = fontFeatures),
-                        textAlign = TextAlign.End,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Text(
-                        text = stringResource(R.string.detail_sunset),
-                        fontSize = 12f.s(scale),
-                        fontFamily = bodyFont,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                        textAlign = TextAlign.End,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-            }
+        TileRow {
+            DetailCard(localizeDigits(timeFormat.format(Date(data.sunrise * 1000))), tile.weight(1f),
+                title = stringResource(R.string.detail_sunrise))
+            DetailCard(localizeDigits(timeFormat.format(Date(data.sunset * 1000))), tile.weight(1f),
+                title = stringResource(R.string.detail_sunset))
         }
-
-        Spacer(modifier = Modifier.height(16.sd(scale)))
 
         // Pressure / Humidity
-        Row(
-            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
-            horizontalArrangement = Arrangement.spacedBy(16.sd(scale))
-        ) {
+        TileRow {
             val (pressP, pressS) = data.pressure.displayDual(metricPrimary)
-            DetailCard(
-                title = stringResource(R.string.detail_pressure),
-                value = localizeDigits(pressP),
-                secondaryValue = localizeDigits(pressS),
-                modifier = Modifier.weight(1f).fillMaxHeight(),
-                onToggleUnits = onToggleUnits,
-            )
+            DetailCard(localizeDigits(pressP), tile.weight(1f),
+                title = stringResource(R.string.detail_pressure), secondaryValue = localizeDigits(pressS), onToggleUnits = onToggleUnits)
             val (dewP, dewS) = data.dewPoint.displayDual(metricPrimary)
-            Card(
-                modifier = Modifier.weight(1f).fillMaxHeight(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = CardBlue.copy(alpha = 0.6f))
-            ) {
-                Column(modifier = Modifier.padding(16.sd(scale))) {
-                    Text(
-                        text = stringResource(R.string.detail_humidity),
-                        fontSize = 14f.s(scale),
-                        fontFamily = bodyFont,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = data.humidity?.let { localizeDigits("%d%%".format(Locale.US, it)) } ?: "--",
-                        fontSize = 20f.s(scale),
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = LocalDisplayFont.current,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        style = TextStyle(fontFeatureSettings = fontFeatures),
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    val displayFont = LocalDisplayFont.current
-                    val onSurface = MaterialTheme.colorScheme.onSurface
-                    Text(
-                        text = stringResource(R.string.detail_dewpoint),
-                        fontSize = 12f.s(scale),
-                        fontFamily = bodyFont,
-                        color = onSurface.copy(alpha = 0.5f),
-                    )
-                    val dewText = buildAnnotatedString {
-                        withStyle(SpanStyle(fontSize = 13f.s(scale), fontWeight = FontWeight.Bold, fontFamily = displayFont, color = onSurface)) {
-                            append(localizeDigits(dewP))
-                        }
-                        withStyle(SpanStyle(fontSize = 12f.s(scale), fontFamily = displayFont, color = onSurface.copy(alpha = 0.55f))) {
-                            append(" ${localizeDigits(dewS)}")
-                        }
-                    }
-                    Text(
-                        text = dewText,
-                        modifier = Modifier.clickable(onClick = onToggleUnits),
-                    )
-                }
+            DetailCard(data.humidity?.let { localizeDigits("%d%%".format(Locale.US, it)) } ?: "--", tile.weight(1f),
+                title = stringResource(R.string.detail_humidity),
+                subtitle = "${stringResource(R.string.detail_dewpoint)} ${localizeDigits(dewP)} · ${localizeDigits(dewS)}",
+                onToggleUnits = onToggleUnits)
+        }
+
+        // UV Index (current reading) / Visibility — Air Quality lives on its own forecast card
+        TileRow {
+            val currentUv = data.uvIndex
+            val visibility = data.visibility
+            val uvLabelText = when {
+                currentUv == null -> ""
+                currentUv < 3 -> uvLabels[0]
+                currentUv < 6 -> uvLabels[1]
+                currentUv < 8 -> uvLabels[2]
+                currentUv < 11 -> uvLabels[3]
+                else -> uvLabels[4]
             }
-        }
-
-        Spacer(modifier = Modifier.height(16.sd(scale)))
-
-        // UV Index (current reading) / Visibility — Air Quality now lives on its own forecast card
-        val currentUv = data.uvIndex
-        val visibility = data.visibility
-        val uvLabelText = when {
-            currentUv == null -> ""
-            currentUv < 3 -> uvLabels[0]
-            currentUv < 6 -> uvLabels[1]
-            currentUv < 8 -> uvLabels[2]
-            currentUv < 11 -> uvLabels[3]
-            else -> uvLabels[4]
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
-            horizontalArrangement = Arrangement.spacedBy(16.sd(scale))
-        ) {
-            DetailCard(
+            DetailCard(currentUv?.let { localizeDigits("%.1f".format(Locale.US, it)) } ?: "--", tile.weight(1f),
                 title = stringResource(R.string.detail_uv_index),
-                value = currentUv?.let { localizeDigits("%.1f".format(Locale.US, it)) } ?: "--",
-                subtitleContent = currentUv?.let { uv -> @Composable { UvTierBadge(uvIndex = uv, label = uvLabelText) } },
-                modifier = Modifier.weight(1f).fillMaxHeight(),
-            )
+                subtitleContent = currentUv?.let { uv -> @Composable { UvTierBadge(uvIndex = uv, label = uvLabelText) } })
+            val km = stringResource(R.string.visibility_km)
+            val mi = stringResource(R.string.visibility_mi)
             DetailCard(
+                visibility?.let { localizeDigits(if (metricPrimary) km.format(Locale.US, it / 1000.0) else mi.format(Locale.US, it / 1609.34)) } ?: "--",
+                tile.weight(1f),
                 title = stringResource(R.string.detail_visibility),
-                value = visibility?.let { localizeDigits(if (metricPrimary) stringResource(R.string.visibility_km).format(Locale.US, it / 1000.0)
-                        else stringResource(R.string.visibility_mi).format(Locale.US, it / 1609.34)) } ?: "--",
-                secondaryValue = visibility?.let { localizeDigits(if (metricPrimary) stringResource(R.string.visibility_mi).format(Locale.US, it / 1609.34)
-                                 else stringResource(R.string.visibility_km).format(Locale.US, it / 1000.0)) },
-                modifier = Modifier.weight(1f).fillMaxHeight(),
+                secondaryValue = visibility?.let { localizeDigits(if (metricPrimary) mi.format(Locale.US, it / 1609.34) else km.format(Locale.US, it / 1000.0)) },
                 onToggleUnits = onToggleUnits,
             )
         }
@@ -1725,6 +1688,7 @@ internal fun DetailCard(
     onToggleUnits: (() -> Unit)? = null,
     unit: String? = null,
     secondaryUnit: String? = null,
+    trailingContent: (@Composable () -> Unit)? = null,
 ) {
     val bodyFont = LocalBodyFont.current
     val fontFeatures = LocalBodyFontFeatures.current
@@ -1732,19 +1696,23 @@ internal fun DetailCard(
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = CardBlue.copy(alpha = 0.6f))
+        colors = CardDefaults.cardColors(containerColor = TileSurface)
     ) {
-        Column(
-            modifier = Modifier.padding(16.sd(scale))
+        Row(
+            modifier = Modifier.padding(16.sd(scale)),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
+        Column(modifier = Modifier.weight(1f)) {
             if (title != null) {
                 Text(
                     text = title,
-                    fontSize = 14f.s(scale),
+                    fontSize = 13f.s(scale),
                     fontFamily = bodyFont,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(6.dp))
             }
             if (secondaryValue != null) {
                 DualUnitText(
@@ -1770,6 +1738,7 @@ internal fun DetailCard(
                 subtitleContent()
             }
             subtitle?.let {
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = it,
                     fontSize = 12f.s(scale),
@@ -1777,6 +1746,8 @@ internal fun DetailCard(
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
             }
+        }
+        trailingContent?.invoke()
         }
     }
 }

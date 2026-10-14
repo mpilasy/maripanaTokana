@@ -185,7 +185,7 @@ fun AirQualityChart(
             points.forEachIndexed { i, point ->
                 drawCircle(
                     color = dotColors[i],
-                    radius = 4.dp.toPx(),
+                    radius = 2.5.dp.toPx(),
                     center = point
                 )
             }

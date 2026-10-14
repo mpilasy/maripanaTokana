@@ -3,8 +3,6 @@
 	import type { WeatherData } from '$lib/domain/weatherData';
 	import { getCardinalDirection } from '$lib/domain/windSpeed';
 	import { wmoEmoji, wmoDescriptionKey } from '$lib/api/wmoWeatherCode';
-	import { doFetchWeather, refreshFailed, refreshError } from '$lib/stores/weather';
-	import { formatTime } from '$lib/utils/date';
 	import DualUnitText from './DualUnitText.svelte';
 
 	interface Props {
@@ -27,7 +25,7 @@
 	let maxDual = $derived(data.tempMax.displayDual(metricPrimary));
 	let minDual = $derived(data.tempMin.displayDual(metricPrimary));
 	let windDual = $derived(data.windSpeed.displayDual(metricPrimary));
-
+	let windDir = $derived(data.windDeg != null ? getCardinalDirection(data.windDeg, $json('cardinal_directions')) : '--');
 
 	function handleShare(e: MouseEvent) {
 		e.stopPropagation();
@@ -35,160 +33,126 @@
 	}
 </script>
 
-<div class="hero-card" bind:this={cardEl}>
-	<!-- svelte-ignore a11y_click_events_have_key_events -->
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="card-actions" class:failed={$refreshFailed}>
-		{#if onShare}
-			<button class="share-btn" onclick={handleShare} aria-label={$_('cd_share')}>
-				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-					<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-					<polyline points="16 6 12 2 8 6"/>
-					<line x1="12" y1="2" x2="12" y2="15"/>
-				</svg>
-			</button>
-		{/if}
-		<div class="updated-group">
-			<button type="button" class="updated" onclick={() => doFetchWeather()} aria-label={$_('cd_refresh')}>
-				<span>{$_('updated_time', { values: { time: loc(formatTime(data.timestamp)) } })}</span>
-				<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-					<path d="M23 4v6h-6"/>
-					<path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-				</svg>
-			</button>
-			{#if $refreshFailed}
-				<button type="button" class="refresh-failed" onclick={() => doFetchWeather()}>
-					<span>{$_('refresh_failed', { values: { time: loc(formatTime(data.timestamp)) } })}</span>
-					{#if $refreshError}
-						<span class="refresh-reason">{$_($refreshError)}</span>
-					{/if}
-				</button>
-			{/if}
-		</div>
-	</div>
-
-	<div class="hero-top">
-		<div class="hero-weather">
+<div class="hero-wrap">
+	<div class="hero-card" bind:this={cardEl}>
+		<div class="hero-condition">
 			<span class="hero-emoji">{emoji}</span>
 			<span class="hero-description">{description}</span>
 		</div>
-		<DualUnitText
-			primary={loc(tempDual[0])}
-			secondary={loc(tempDual[1])}
-			primarySize="48px"
-			align="end"
-			onClick={onToggleUnits}
-		/>
-	</div>
 
-	<div class="hero-bottom">
-		<div class="hero-feels-like">
-			<span class="label">{$_('feels_like')}</span>
-			<DualUnitText
-				primary={loc(feelsLikeDual[0])}
-				secondary={loc(feelsLikeDual[1])}
-				onClick={onToggleUnits}
-			/>
-		</div>
-		<div class="hero-precip">
-			{#if data.snow}
-				{@const [snowP, snowS] = data.snow.displayDual(metricPrimary)}
+		<div class="hero-main">
+			<div class="hero-temp">
 				<DualUnitText
-					primary={"\u2744\uFE0F " + loc(snowP)}
-					secondary={loc(snowS)}
-					align="end"
+					primary={loc(tempDual[0])}
+					secondary={loc(tempDual[1])}
+					primarySize="64px"
+					secondaryScale={0.4}
 					onClick={onToggleUnits}
 				/>
-			{:else if data.rain}
-				{@const [rainP, rainS] = data.rain.displayDual(metricPrimary)}
+			</div>
+			<div class="hero-precip">
+				{#if data.snow}
+					{@const [snowP, snowS] = data.snow.displayDual(metricPrimary)}
+					<DualUnitText
+						primary={"❄️ " + loc(snowP)}
+						secondary={loc(snowS)}
+						align="end"
+						onClick={onToggleUnits}
+					/>
+				{:else if data.rain}
+					{@const [rainP, rainS] = data.rain.displayDual(metricPrimary)}
+					<DualUnitText
+						primary={"🌧️ " + loc(rainP)}
+						secondary={loc(rainS)}
+						align="end"
+						onClick={onToggleUnits}
+					/>
+				{:else}
+					<span class="no-precip">{$_('no_precip')}</span>
+				{/if}
+			</div>
+		</div>
+
+		<!-- Stat strip: feels like · low/high · wind -->
+		<div class="hero-stats">
+			<div class="stat">
+				<span class="stat-label">{$_('feels_like')}</span>
 				<DualUnitText
-					primary={"\uD83C\uDF27\uFE0F " + loc(rainP)}
-					secondary={loc(rainS)}
-					align="end"
+					primary={loc(feelsLikeDual[0])}
+					secondary={loc(feelsLikeDual[1])}
+					align="center"
 					onClick={onToggleUnits}
 				/>
-			{:else}
-				<span class="no-precip">{$_('no_precip')}</span>
-			{/if}
+			</div>
+			<div class="stat-divider"></div>
+			<div class="stat stat-wide">
+				<DualUnitText
+					primary={loc(`↓${minDual[0]} ↑${maxDual[0]}`)}
+					secondary={loc(`↓${minDual[1]} ↑${maxDual[1]}`)}
+					align="center"
+					onClick={onToggleUnits}
+				/>
+			</div>
+			<div class="stat-divider"></div>
+			<div class="stat">
+				<span class="stat-label">{$_('detail_wind')} · {loc(windDir)}</span>
+				<DualUnitText
+					primary={loc(windDual[0])}
+					secondary={loc(windDual[1])}
+					align="center"
+					onClick={onToggleUnits}
+				/>
+			</div>
 		</div>
+
+		<div class="copyright">&copy; Orinasa Njarasoa</div>
 	</div>
 
-	<div class="hero-extra">
-		<div class="hero-highlow">
-			<DualUnitText
-				primary={"\u2193 " + loc(minDual[0])}
-				secondary={loc(minDual[1])}
-				onClick={onToggleUnits}
-			/>
-			<DualUnitText
-				primary={"\u2191 " + loc(maxDual[0])}
-				secondary={loc(maxDual[1])}
-				onClick={onToggleUnits}
-			/>
-		</div>
-		<div class="hero-wind">
-			<DualUnitText
-				primary={loc(windDual[0])}
-				secondary={loc(windDual[1])}
-				align="end"
-				onClick={onToggleUnits}
-			/>
-			<span class="wind-direction">{data.windDeg != null ? loc(getCardinalDirection(data.windDeg, $json('cardinal_directions'))) : '--'}</span>
-		</div>
-	</div>
-
-	<div class="copyright">&copy; Orinasa Njarasoa</div>
+	{#if onShare}
+		<button class="share-btn" onclick={handleShare} aria-label={$_('cd_share')}>
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+				<polyline points="16 6 12 2 8 6"/>
+				<line x1="12" y1="2" x2="12" y2="15"/>
+			</svg>
+		</button>
+	{/if}
 </div>
 
 <style>
-	.hero-card {
-		background: rgba(42, 31, 165, 0.8);
-		border-radius: 20px;
-		padding: 24px;
-		margin-bottom: 24px;
+	/* Share button sits outside the captured card so it never appears in share images. */
+	.hero-wrap {
 		position: relative;
+		margin-bottom: 16px;
 	}
 
-	.card-actions {
-		position: absolute;
-		top: 12px;
-		right: 12px;
-		display: flex;
-		align-items: center;
-		gap: 8px;
-	}
-
-	/* While a refresh failure is shown the (possibly long) text needs room: put the row in flow. */
-	.card-actions.failed {
-		position: static;
-		margin: -12px -12px 8px;
-		align-items: flex-start;
-		justify-content: flex-end;
-	}
-
-	.card-actions.failed .updated-group {
-		flex: 1;
-		min-width: 0;
-		align-items: flex-end;
+	.hero-card {
+		background: var(--hero-gradient);
+		border: 1px solid var(--hairline);
+		border-radius: 28px;
+		padding: 20px 24px 8px;
 	}
 
 	.share-btn {
-		background: rgba(255,255,255,0.1);
+		position: absolute;
+		top: 8px;
+		inset-inline-end: 8px;
+		background: var(--surface-tile);
 		border: none;
 		border-radius: 50%;
-		width: 32px;
-		height: 32px;
+		width: 36px;
+		height: 36px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		color: rgba(255,255,255,0.5);
+		color: rgba(255,255,255,0.75);
 		cursor: pointer;
 		transition: background 0.2s, color 0.2s;
 	}
 
 	.share-btn:hover {
-		background: rgba(255,255,255,0.2);
-		color: rgba(255,255,255,0.8);
+		background: var(--surface-tile-highlight);
+		color: white;
 	}
 
 	.share-btn:focus-visible {
@@ -196,164 +160,100 @@
 		outline-offset: 2px;
 	}
 
-	.updated {
-		font-size: 11px;
-		color: rgba(255,255,255,0.35);
-		cursor: pointer;
-		background: transparent;
-		border: none;
-		padding: 4px 6px;
-		border-radius: 4px;
-		transition: color 0.2s, background 0.2s;
-		font-family: inherit;
-		white-space: nowrap;
+	.hero-condition {
 		display: flex;
 		align-items: center;
-		gap: 6px;
-	}
-
-	.updated svg {
-		opacity: 0.8;
-	}
-
-	.updated:hover {
-		color: rgba(255,255,255,0.7);
-		background: rgba(255,255,255,0.05);
-	}
-
-	.updated:focus-visible {
-		outline: 1px solid rgba(255, 255, 255, 0.5);
-		outline-offset: 2px;
-	}
-
-	.updated:active {
-		transform: scale(0.98);
-	}
-
-	.updated-group {
-		display: flex;
-		flex-direction: column;
-		gap: 4px;
-	}
-
-	.refresh-failed {
-		font-size: 11px;
-		color: #ff6b6b;
-		cursor: pointer;
-		background: transparent;
-		border: none;
-		padding: 4px 6px;
-		border-radius: 4px;
-		transition: color 0.2s, background 0.2s;
-		font-family: inherit;
-		white-space: normal;
-		text-align: end;
-		display: flex;
-		flex-direction: column;
-		align-items: flex-end;
-		gap: 2px;
-	}
-
-	.refresh-reason {
-		opacity: 0.8;
-	}
-
-	.refresh-failed:hover {
-		color: #ff8787;
-		background: rgba(255, 107, 107, 0.1);
-	}
-
-	.refresh-failed:focus-visible {
-		outline: 1px solid #ff6b6b;
-		outline-offset: 2px;
-	}
-
-	.refresh-failed:active {
-		transform: scale(0.98);
-	}
-
-	.hero-top {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 16px;
-	}
-
-	.hero-weather {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		flex: 1;
-		border-radius: 12px;
-		padding: 4px;
+		gap: 8px;
+		padding-inline-end: 40px;
 	}
 
 	.hero-emoji {
-		font-size: 48px;
+		font-size: 22px;
 		line-height: 1;
 	}
 
 	.hero-description {
+		font-family: var(--font-body);
 		font-size: 16px;
+		font-weight: 500;
 		color: rgba(255,255,255,0.9);
-		text-align: center;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.hero-main {
+		display: flex;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: 12px;
 		margin-top: 4px;
 	}
 
-	.hero-bottom {
-		display: flex;
-		justify-content: space-between;
-		align-items: flex-start;
-		margin-top: 16px;
-	}
-
-	.hero-feels-like {
-		flex: 1;
-	}
-
-	.label {
-		font-size: 14px;
-		color: rgba(255,255,255,0.7);
-		display: block;
-		margin-bottom: 2px;
+	/* Temperature keeps its natural width; precipitation takes (and wraps within) the rest. */
+	.hero-temp {
+		flex: none;
 	}
 
 	.hero-precip {
+		flex: 1;
+		min-width: 0;
+		padding-bottom: 4px;
 		text-align: end;
 	}
 
 	.no-precip {
-		font-size: 14px;
-		color: rgba(255,255,255,0.5);
+		font-size: 13px;
+		color: rgba(255,255,255,0.6);
+		background: var(--surface-tile);
+		border-radius: 999px;
+		padding: 4px 10px;
+		display: inline-block;
 	}
 
-	.hero-extra {
+	.hero-stats {
 		display: flex;
-		justify-content: space-between;
-		align-items: flex-start;
-		margin-top: 12px;
+		align-items: stretch;
+		margin-top: 16px;
+		padding: 12px 0;
+		background: var(--surface-tile);
+		border-radius: 16px;
 	}
 
-	.hero-highlow {
+	.stat {
+		flex: 1;
+		min-width: 0;
 		display: flex;
-		flex-direction: row;
-		align-items: baseline;
-		gap: 12px;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 2px;
+		padding: 0 4px;
 	}
 
-	.hero-wind {
-		text-align: end;
+	.stat-wide {
+		flex: 1.2;
 	}
 
-	.wind-direction {
+	.stat-label {
 		font-size: 12px;
 		color: rgba(255,255,255,0.6);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		max-width: 100%;
+	}
+
+	.stat-divider {
+		width: 1px;
+		margin: 4px 0;
+		background: var(--hairline);
 	}
 
 	.copyright {
 		text-align: center;
 		font-size: 9px;
-		color: rgba(255,255,255,0.2);
-		margin-top: 7px;
+		color: rgba(255,255,255,0.25);
+		margin-top: 8px;
 	}
 </style>

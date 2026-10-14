@@ -249,5 +249,16 @@
 	"settings_geocoder_system": "系统地理编码器",
 	"settings_geocoder_nominatim": "Nominatim (OpenStreetMap)",
 	"settings_geocoder_nominatim_desc": "适用于所有版本（包括 F-Droid），无需 API 密钥",
-	"settings_web_geocoding_info": "网页版使用 Nominatim (OpenStreetMap) 进行反向地理编码 — 无需 API 密钥。"
+	"settings_web_geocoding_info": "网页版使用 Nominatim (OpenStreetMap) 进行反向地理编码 — 无需 API 密钥。",
+	"about_title": "关于",
+	"about_row_desc": "数据来源、开源库与许可",
+	"about_app_license": "基于 MIT 许可的自由开源软件",
+	"about_source_code": "源代码",
+	"about_section_weather": "天气数据",
+	"about_section_air_quality": "空气质量",
+	"about_section_geocoding": "地名与搜索",
+	"about_section_alerts": "天气预警",
+	"about_section_imagery": "背景图片",
+	"about_section_fonts": "字体",
+	"about_section_libraries": "开源库"
 }

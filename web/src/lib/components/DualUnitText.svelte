@@ -8,16 +8,17 @@
 		onClick?: () => void;
 		primaryUnit?: string;
 		secondaryUnit?: string;
+		secondaryScale?: number;
 	}
 
-	let { primary, secondary, primarySize = '16px', align = 'start', onClick, primaryUnit, secondaryUnit }: Props = $props();
+	let { primary, secondary, primarySize = '16px', align = 'start', onClick, primaryUnit, secondaryUnit, secondaryScale = 0.75 }: Props = $props();
 </script>
 
 {#snippet content()}
 	<div class="primary" style:font-size={primarySize}
 		><bdi dir="ltr">{primary}{#if primaryUnit}<span class="unit" style:font-size="calc({primarySize} * 0.55)"> {primaryUnit}</span>{/if}</bdi></div
 	>
-	<div class="secondary" style:font-size="calc({primarySize} * 0.75)"
+	<div class="secondary" style:font-size="calc({primarySize} * {secondaryScale})"
 		><bdi dir="ltr">{secondary}{#if secondaryUnit}<span class="unit" style:font-size="calc({primarySize} * 0.55)"> {secondaryUnit}</span>{/if}</bdi></div
 	>
 {/snippet}
@@ -63,6 +64,7 @@
 	}
 
 	.primary {
+		line-height: 1.15;
 		font-family: var(--font-display);
 		font-weight: 700;
 		color: white;

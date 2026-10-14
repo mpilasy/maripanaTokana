@@ -169,6 +169,17 @@
     <string name="settings_geocoder_nominatim">Nominatim (OpenStreetMap)</string>
     <string name="settings_geocoder_nominatim_desc">Mandeha amin\'ny dikan-tsoratra rehetra, anisan\'izany ny F-Droid, tsy mila fanalahidy API</string>
     <string name="settings_web_geocoding_info">Ny dikan-tranonkala dia mampiasa Nominatim (OpenStreetMap) amin\'ny geocoding mivadika — tsy mila fanalahidy API.</string>
+    <string name="about_title">Mombamomba</string>
+    <string name="about_row_desc">Loharanon-drakitra, tranomboky ary fahazoan-dalana</string>
+    <string name="about_app_license">Rindrankajy malalaka sy misokatra, fahazoan-dalana MIT</string>
+    <string name="about_source_code">Kaody loharano</string>
+    <string name="about_section_weather">Angona momba ny toetr\'andro</string>
+    <string name="about_section_air_quality">Hadion\'ny rivotra</string>
+    <string name="about_section_geocoding">Anaran-toerana sy fikarohana</string>
+    <string name="about_section_alerts">Fampitandremana momba ny toetr\'andro</string>
+    <string name="about_section_imagery">Sary ambadika</string>
+    <string name="about_section_fonts">Endri-tsoratra</string>
+    <string name="about_section_libraries">Tranomboky misokatra</string>
     <string name="widget_description">Toetrandro ankehitriny miaraka amin\'ny mari-pana roa sosony</string>
     <string name="widget_description_large">Antsipiriany momba ny toetrandro: tsapa, hamandoana, rivotra ary ambany/ambony</string>
     <string name="detail_no_precip">Tsy misy</string>

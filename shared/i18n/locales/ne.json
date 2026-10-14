@@ -249,5 +249,16 @@
 	"settings_geocoder_system": "प्रणाली जियोकोडर",
 	"settings_geocoder_nominatim": "Nominatim (OpenStreetMap)",
 	"settings_geocoder_nominatim_desc": "F-Droid सहित सबै बिल्डमा काम गर्छ, API कुञ्जी आवश्यक छैन",
-	"settings_web_geocoding_info": "वेब संस्करणले रिभर्स जियोकोडिङका लागि Nominatim (OpenStreetMap) प्रयोग गर्छ — API कुञ्जी आवश्यक छैन।"
+	"settings_web_geocoding_info": "वेब संस्करणले रिभर्स जियोकोडिङका लागि Nominatim (OpenStreetMap) प्रयोग गर्छ — API कुञ्जी आवश्यक छैन।",
+	"about_title": "बारेमा",
+	"about_row_desc": "डेटा स्रोत, लाइब्रेरी र इजाजतपत्र",
+	"about_app_license": "MIT इजाजतपत्र अन्तर्गत निःशुल्क र खुला स्रोत सफ्टवेयर",
+	"about_source_code": "स्रोत कोड",
+	"about_section_weather": "मौसम डेटा",
+	"about_section_air_quality": "वायुको गुणस्तर",
+	"about_section_geocoding": "स्थानका नाम र खोज",
+	"about_section_alerts": "मौसम चेतावनी",
+	"about_section_imagery": "पृष्ठभूमि चित्र",
+	"about_section_fonts": "फन्ट",
+	"about_section_libraries": "खुला स्रोत लाइब्रेरी"
 }

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { _, json } from 'svelte-i18n';
-	import { weatherState, isRefreshing, doFetchWeather, updateLocationName } from '$lib/stores/weather';
+	import { weatherState, isRefreshing, doFetchWeather, updateLocationName, refreshFailed, refreshError } from '$lib/stores/weather';
 	import {
 		onLocationClicked,
 		showGpsCoordinates,
@@ -14,10 +14,11 @@
 	} from '$lib/stores/savedLocations';
 	import { parseLocationText } from '$lib/domain/sharedLocationParser';
 	import SettingsScreen from './SettingsScreen.svelte';
+	import AboutScreen from './AboutScreen.svelte';
 	import { metricPrimary, fontIndex, localeIndex, weatherSource, weatherApiKey, toggleUnits, cycleFont, cycleLanguage } from '$lib/stores/preferences';
 	import { SUPPORTED_LOCALES, localizeDigits } from '$lib/i18n/index';
 	import { fontPairings } from '$lib/fonts';
-	import { formatDate, formatLocationCurrentTime, isRemoteTimezone } from '$lib/utils/date';
+	import { formatDate, formatTime, formatLocationCurrentTime, isRemoteTimezone, isToday } from '$lib/utils/date';
 	import HeroCard from './HeroCard.svelte';
 	import WeatherAlertBanner from './WeatherAlertBanner.svelte';
 	import HourlyForecast from './HourlyForecast.svelte';
@@ -33,12 +34,12 @@
 	import CollapsibleSection from './CollapsibleSection.svelte';
 	import ActivitiesCard from './ActivitiesCard.svelte';
 	import { computeActivityIndices } from '$lib/domain/activityIndices';
-	import Controls from './Controls.svelte';
 	import Footer from './Footer.svelte';
 	import { captureAndShare } from '$lib/share';
 	import { onMount } from 'svelte';
 
 	let showSettings = $state(false);
+	let showAbout = $state(false);
 
 	const weekdayNames = $derived($json('weekday_names') as string[] | undefined);
 	const monthNames = $derived($json('month_names') as string[] | undefined);
@@ -311,122 +312,103 @@
 		{/if}
 
 		<div class="content-wrapper">
-			{#if canGoToPrevious}
-				<button class="location-nav-btn left" onclick={swipeToPrevious} aria-label={$_('cd_previous_location')}>
-					<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-						<path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
-					</svg>
-				</button>
-			{/if}
-			{#if canGoToNext}
-				<button class="location-nav-btn right" onclick={swipeToNext} aria-label={$_('cd_next_location')}>
-					<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-						<path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
-					</svg>
-				</button>
-			{/if}
-
-			<Controls
-				fontName={fontPairings[$fontIndex].name}
-				currentFlag={SUPPORTED_LOCALES[$localeIndex].flag}
-				onCycleFont={cycleFont}
-				onCycleLanguage={cycleLanguage}
-			/>
-
-			<!-- Fixed header (location + date captured for share screenshots) -->
+			<!-- Fixed header: location block (captured for share screenshots) + actions (not captured) -->
 			<div class="header">
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
-				<div
-					bind:this={headerEl}
-					onclick={onLocationClicked}
-					style="cursor: pointer;"
-				>
-					<div class="location-header">
-						<div class="location-primary-row">
-							<h1 class="location-name">
-								{#if !data.locationSubtext && data.locationName.includes(',')}
-									{data.locationName.split(',')[0].trim()}
-								{:else}
-									{data.locationName}
-								{/if}
-							</h1>
-							<!-- svelte-ignore a11y_click_events_have_key_events -->
-							<!-- svelte-ignore a11y_no_static_element_interactions -->
-							<span
-								class="manage-locations-btn"
-								onclick={(e) => { e.stopPropagation(); openSavedLocationsDialog(); }}
-								title={$_('cd_manage_locations')}
-							>
-								<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-									<path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-								</svg>
-							</span>
-							{#if $activeLocationId !== null || $locationOverride !== null}
-								<!-- svelte-ignore a11y_click_events_have_key_events -->
-								<!-- svelte-ignore a11y_no_static_element_interactions -->
-								<span
-									class="favorite-btn"
-									onclick={(e) => { e.stopPropagation(); if ($activeLocationId !== null) unfavoriteCurrentLocation(); else favoriteCurrentLocation(); }}
-									title={$_($activeLocationId !== null ? 'cd_remove_favorite' : 'cd_add_favorite')}
-								>
-									<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-										{#if $activeLocationId !== null}
-											<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-										{:else}
-											<path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z"/>
-										{/if}
-									</svg>
-								</span>
-								<!-- svelte-ignore a11y_click_events_have_key_events -->
-								<!-- svelte-ignore a11y_no_static_element_interactions -->
-								<span
-									class="goto-current-btn"
-									onclick={(e) => { e.stopPropagation(); switchToLocation(null); }}
-									title={$_('cd_go_to_current_location')}
-								>
-									<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-										<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-									</svg>
-								</span>
+				<div class="header-main" bind:this={headerEl} onclick={onLocationClicked}>
+					<h1 class="location-name">
+						{#if !data.locationSubtext && data.locationName.includes(',')}
+							{data.locationName.split(',')[0].trim()}
+						{:else}
+							{data.locationName}
+						{/if}
+					</h1>
+					{#if data.locationSubtext || data.locationName.includes(',') || isRemoteTimezone(data.utcOffsetSeconds)}
+						<div class="subtext-row">
+							{#if data.locationSubtext || data.locationName.includes(',')}
+								<p class="location-subtext">
+									{data.locationSubtext || data.locationName.split(',').slice(1).join(',').trim()}
+								</p>
+							{/if}
+							{#if isRemoteTimezone(data.utcOffsetSeconds)}
+								<span class="location-time">&#x1F553; {loc(formatLocationCurrentTime(data.utcOffsetSeconds, SUPPORTED_LOCALES[$localeIndex].tag))}</span>
 							{/if}
 						</div>
-						{#if data.locationSubtext || data.locationName.includes(',')}
-							<p class="location-subtext">
-								{data.locationSubtext || data.locationName.split(',').slice(1).join(',').trim()}
-							</p>
-						{/if}
-						{#if $showGpsCoordinates}
-							<!-- svelte-ignore a11y_no_static_element_interactions -->
-							<div class="location-text-group coords clickable" onclick={() => {
-								const url = `https://www.openstreetmap.org/?mlat=${data.latitude}&mlon=${data.longitude}#map=15/${data.latitude}/${data.longitude}`;
-								window.open(url, '_blank');
-							}}>
-								<span>{formatDMS(data.latitude, 'N', 'S')}</span>
-								<span>{formatDMS(data.longitude, 'E', 'W')}</span>
-							</div>
-						{/if}
-					</div>
-					<div class="date-row">
-						<p class="date">
-							{$_('updated_time', { values: { time: loc(formatDate(data.timestamp, SUPPORTED_LOCALES[$localeIndex].tag, weekdayNames, monthNames)) } })}
-						</p>
-						{#if isRemoteTimezone(data.utcOffsetSeconds)}
-							<p class="location-time">Local: {loc(formatLocationCurrentTime(data.utcOffsetSeconds, SUPPORTED_LOCALES[$localeIndex].tag))}</p>
-						{/if}
+					{/if}
+					{#if $showGpsCoordinates}
+						<!-- svelte-ignore a11y_click_events_have_key_events -->
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
+						<div class="coords" onclick={(e) => {
+							e.stopPropagation();
+							const url = `https://www.openstreetmap.org/?mlat=${data.latitude}&mlon=${data.longitude}#map=15/${data.latitude}/${data.longitude}`;
+							window.open(url, '_blank');
+						}}>
+							<span>{formatDMS(data.latitude, 'N', 'S')}</span>
+							<span>{formatDMS(data.longitude, 'E', 'W')}</span>
+						</div>
+					{/if}
+					<button type="button" class="updated" onclick={(e) => { e.stopPropagation(); doFetchWeather(); }} aria-label={$_('cd_refresh')}>
+						<span class="updated-text">{$_('updated_time', { values: { time: loc(isToday(data.timestamp)
+							? formatTime(data.timestamp)
+							: formatDate(data.timestamp, SUPPORTED_LOCALES[$localeIndex].tag, weekdayNames, monthNames)) } })}</span>
+						<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M23 4v6h-6"/>
+							<path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+						</svg>
+					</button>
+					{#if $refreshFailed}
+						<button type="button" class="refresh-failed" onclick={(e) => { e.stopPropagation(); doFetchWeather(); }}>
+							{$_('refresh_failed', { values: { time: loc(formatTime(data.timestamp)) } })}{#if $refreshError}{' · '}{$_($refreshError)}{/if}
+						</button>
+					{/if}
+				</div>
+
+				<div class="header-actions">
+					<button class="header-action" onclick={openSavedLocationsDialog} aria-label={$_('cd_manage_locations')} title={$_('cd_manage_locations')}>
+						<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+					</button>
+					{#if $activeLocationId !== null || $locationOverride !== null}
 						<button
-							class="gear-btn"
-							onclick={(e) => { e.stopPropagation(); showSettings = true; }}
-							aria-label={$_('settings_title')}
-							title={$_('settings_title')}
+							class="header-action"
+							onclick={() => { if ($activeLocationId !== null) unfavoriteCurrentLocation(); else favoriteCurrentLocation(); }}
+							aria-label={$_($activeLocationId !== null ? 'cd_remove_favorite' : 'cd_add_favorite')}
+							title={$_($activeLocationId !== null ? 'cd_remove_favorite' : 'cd_add_favorite')}
 						>
-							<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-								<path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+							<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+								{#if $activeLocationId !== null}
+									<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+								{:else}
+									<path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z"/>
+								{/if}
 							</svg>
 						</button>
-					</div>
+						<button class="header-action" onclick={() => switchToLocation(null)} aria-label={$_('cd_go_to_current_location')} title={$_('cd_go_to_current_location')}>
+							<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+						</button>
+					{/if}
+					<button class="header-action" onclick={() => showSettings = true} aria-label={$_('settings_title')} title={$_('settings_title')}>
+						<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
+					</button>
 				</div>
 			</div>
+
+			<!-- Saved-location pager: ‹ • ● • › -->
+			{#if locationCycle().length > 1}
+				<div class="location-pager" dir="ltr">
+					<button class="pager-arrow" onclick={swipeToPrevious} disabled={!canGoToPrevious} aria-label={$_('cd_previous_location')}>
+						<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+					</button>
+					<div class="pager-dots">
+						{#each locationCycle() as id (id ?? 'current')}
+							<span class="pager-dot" class:active={id === $activeLocationId}></span>
+						{/each}
+					</div>
+					<button class="pager-arrow" onclick={swipeToNext} disabled={!canGoToNext} aria-label={$_('cd_next_location')}>
+						<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>
+					</button>
+				</div>
+			{/if}
 
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<!-- Scrollable content -->
@@ -491,7 +473,7 @@
 							unit={aqiUnitDual[0]}
 							secondaryUnit={aqiUnitDual[1]}
 						>
-							{#snippet subtitleSnippet()}
+							{#snippet trailingSnippet()}
 								<AqiTierBadge
 									tier={data.airQuality!.primaryTier}
 									label={getAqiTierLabel(data.airQuality!.primaryTier)}
@@ -521,7 +503,7 @@
 						<DetailCard
 							value={todayUvMax != null && Number.isFinite(todayUvMax) ? loc(todayUvMax.toFixed(1)) : '--'}
 						>
-							{#snippet subtitleSnippet()}
+							{#snippet trailingSnippet()}
 								{#if todayUvMax != null && Number.isFinite(todayUvMax)}
 									<UvTierBadge uvIndex={todayUvMax} label={getUvLabel(todayUvMax)} />
 								{/if}
@@ -545,7 +527,13 @@
 			</div>
 
 			<!-- Fixed footer -->
-			<Footer />
+			<Footer
+				fontName={fontPairings[$fontIndex].name}
+				currentFlag={SUPPORTED_LOCALES[$localeIndex].flag}
+				onCycleFont={cycleFont}
+				onCycleLanguage={cycleLanguage}
+				onOpenAbout={() => showAbout = true}
+			/>
 		</div>
 
 	{:else if $weatherState.kind === 'error'}
@@ -579,7 +567,11 @@
 {/if}
 
 {#if showSettings}
-	<SettingsScreen onBack={() => showSettings = false} />
+	<SettingsScreen onBack={() => showSettings = false} onOpenAbout={() => showAbout = true} />
+{/if}
+
+{#if showAbout}
+	<AboutScreen onBack={() => showAbout = false} />
 {/if}
 
 <style>
@@ -596,7 +588,7 @@
 	}
 
 	.section-spacer {
-		height: 16px;
+		height: 10px;
 	}
 
 	.bg-marble {
@@ -607,29 +599,8 @@
 		pointer-events: none;
 	}
 
-	.date-row {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-	}
 
-	.gear-btn {
-		background: none;
-		border: none;
-		color: rgba(255, 255, 255, 0.7);
-		cursor: pointer;
-		padding: 4px 0 4px 8px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		border-radius: 50%;
-		flex-shrink: 0;
-		transition: color 0.2s;
-	}
 
-	.gear-btn:hover {
-		color: white;
-	}
 
 	.center {
 		display: flex;
@@ -674,53 +645,42 @@
 		padding-top: env(safe-area-inset-top);
 	}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	.header {
-		padding-top: 8px;
+		display: flex;
+		align-items: flex-start;
+		gap: 4px;
+		padding-top: 16px;
 		flex-shrink: 0;
 	}
 
-	.location-nav-btn {
-		position: absolute;
-		top: 50%;
-		transform: translateY(-50%);
-		z-index: 2;
-		width: 36px;
-		height: 36px;
-		border-radius: 50%;
-		border: none;
-		background: rgba(255, 255, 255, 0.08);
-		color: rgba(255, 255, 255, 0.5);
-		display: flex;
-		align-items: center;
-		justify-content: center;
+	.header-main {
+		flex: 1;
+		min-width: 0;
 		cursor: pointer;
-		transition: background 0.2s, color 0.2s;
-	}
-
-	.location-nav-btn:hover {
-		background: rgba(255, 255, 255, 0.16);
-		color: white;
-	}
-
-	.location-nav-btn.left {
-		left: 8px;
-	}
-
-	.location-nav-btn.right {
-		right: 8px;
-	}
-
-	.location-primary-row {
-		display: flex;
-		align-items: center;
-		gap: 12px;
-		max-width: 100%;
-		overflow: hidden;
 	}
 
 	.location-name {
 		font-family: var(--font-display);
-		font-size: 32px;
+		font-size: 30px;
+		line-height: 36px;
 		font-weight: 700;
 		color: white;
 		margin: 0;
@@ -729,88 +689,163 @@
 		text-overflow: ellipsis;
 	}
 
-	.location-text-group.coords {
+	.subtext-row {
 		display: flex;
-		flex-direction: column;
-		font-family: var(--font-display);
-		font-weight: 700;
-		font-size: 22px;
-		line-height: 1.1;
-		color: white;
-		cursor: pointer;
+		align-items: center;
+		gap: 8px;
+		min-width: 0;
 	}
 
 	.location-subtext {
 		font-family: var(--font-body);
-		font-size: 13px;
-		color: rgba(255, 255, 255, 0.5);
-		margin-top: 0;
-		font-weight: 400;
+		font-size: 14px;
+		color: rgba(255, 255, 255, 0.6);
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
+		min-width: 0;
 	}
 
-	.goto-current-btn, .favorite-btn {
-		color: rgba(255, 255, 255, 0.6);
-		cursor: pointer;
+	.location-time {
+		font-size: 12px;
+		color: rgba(255, 255, 255, 0.85);
+		font-family: var(--font-display);
+		font-weight: 600;
+		font-feature-settings: var(--font-features);
+		background: var(--surface-tile);
+		border-radius: 999px;
+		padding: 2px 8px;
+		white-space: nowrap;
+		flex-shrink: 0;
+	}
+
+	.coords {
 		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding: 4px;
-		border-radius: 50%;
-		transition: background 0.2s, color 0.2s;
-	}
-
-	.goto-current-btn:hover, .favorite-btn:hover {
-		background: rgba(255, 255, 255, 0.1);
-		color: white;
-	}
-
-	.manage-locations-btn {
-		color: rgba(255, 255, 255, 0.6);
-		cursor: pointer;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding: 4px;
-		border-radius: 50%;
-		transition: background 0.2s, color 0.2s;
-	}
-
-	.manage-locations-btn:hover {
-		background: rgba(255, 255, 255, 0.1);
-		color: white;
-	}
-
-	.location-text-group.coords {
-		display: flex;
-		flex-direction: column;
+		gap: 12px;
 		font-family: var(--font-display);
 		font-weight: 700;
 		font-size: 20px;
-		line-height: 1.1;
 		color: rgba(255, 255, 255, 0.8);
 		margin-top: 8px;
 		cursor: pointer;
 	}
 
-	.date {
-		font-size: 16px;
-		color: rgba(255,255,255,0.7);
-	}
-
-	.location-time {
+	.updated {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		max-width: 100%;
+		margin-top: 6px;
+		padding: 0;
+		background: none;
+		border: none;
+		font-family: var(--font-body);
 		font-size: 13px;
-		color: rgba(255,255,255,0.45);
-		font-family: var(--font-display);
-		font-weight: 600;
-		font-feature-settings: var(--font-features);
-		margin: 0;
+		color: rgba(255, 255, 255, 0.55);
+		cursor: pointer;
 	}
 
-	.location-time::before {
-		content: '\1F553  ';
+	.updated svg {
+		flex-shrink: 0;
+		opacity: 0.8;
+	}
+
+	.updated:hover {
+		color: rgba(255, 255, 255, 0.8);
+	}
+
+	.updated-text {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.refresh-failed {
+		display: block;
+		margin-top: 2px;
+		padding: 0;
+		background: none;
+		border: none;
+		font-family: var(--font-body);
+		font-size: 13px;
+		color: #ff6b6b;
+		cursor: pointer;
+		text-align: start;
+	}
+
+	.header-actions {
+		display: flex;
+		align-items: center;
+		flex-shrink: 0;
+	}
+
+	.header-action {
+		width: 40px;
+		height: 40px;
+		border-radius: 50%;
+		border: none;
+		background: none;
+		color: rgba(255, 255, 255, 0.85);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: background 0.2s, color 0.2s;
+	}
+
+	.header-action:hover {
+		background: var(--surface-tile);
+		color: white;
+	}
+
+	.header-action:focus-visible, .pager-arrow:focus-visible {
+		outline: 2px solid rgba(255, 255, 255, 0.5);
+		outline-offset: 2px;
+	}
+
+	.location-pager {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding-top: 8px;
+		flex-shrink: 0;
+	}
+
+	.pager-arrow {
+		width: 32px;
+		height: 32px;
+		border-radius: 50%;
+		border: none;
+		background: none;
+		color: rgba(255, 255, 255, 0.7);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+	}
+
+	.pager-arrow:disabled {
+		color: rgba(255, 255, 255, 0.15);
+		cursor: default;
+	}
+
+	.pager-dots {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+	}
+
+	.pager-dot {
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		background: rgba(255, 255, 255, 0.3);
+	}
+
+	.pager-dot.active {
+		width: 8px;
+		height: 8px;
+		background: rgba(255, 255, 255, 0.9);
 	}
 
 	.scroll-area {
@@ -818,8 +853,11 @@
 		min-width: 0;
 		overflow-y: auto;
 		overflow-x: hidden;
-		padding: 24px 0;
+		padding: 16px 0;
 		-webkit-overflow-scrolling: touch;
+		/* Soft fade where content scrolls under the fixed header */
+		-webkit-mask-image: linear-gradient(to bottom, transparent 0, black 16px);
+		mask-image: linear-gradient(to bottom, transparent 0, black 16px);
 	}
 
 	.scroll-bottom-pad {

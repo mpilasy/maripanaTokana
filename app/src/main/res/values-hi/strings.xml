@@ -169,6 +169,17 @@
     <string name="settings_geocoder_nominatim">Nominatim (OpenStreetMap)</string>
     <string name="settings_geocoder_nominatim_desc">F-Droid सहित सभी बिल्ड पर काम करता है, API कुंजी की आवश्यकता नहीं</string>
     <string name="settings_web_geocoding_info">वेब संस्करण रिवर्स जियोकोडिंग के लिए Nominatim (OpenStreetMap) का उपयोग करता है — API कुंजी की आवश्यकता नहीं।</string>
+    <string name="about_title">परिचय</string>
+    <string name="about_row_desc">डेटा स्रोत, लाइब्रेरी और लाइसेंस</string>
+    <string name="about_app_license">MIT लाइसेंस के तहत मुक्त और ओपन-सोर्स सॉफ़्टवेयर</string>
+    <string name="about_source_code">सोर्स कोड</string>
+    <string name="about_section_weather">मौसम डेटा</string>
+    <string name="about_section_air_quality">वायु गुणवत्ता</string>
+    <string name="about_section_geocoding">स्थानों के नाम और खोज</string>
+    <string name="about_section_alerts">मौसम चेतावनियाँ</string>
+    <string name="about_section_imagery">पृष्ठभूमि चित्र</string>
+    <string name="about_section_fonts">फ़ॉन्ट</string>
+    <string name="about_section_libraries">ओपन-सोर्स लाइब्रेरी</string>
     <string name="widget_description">दोहरी इकाई तापमान के साथ वर्तमान मौसम</string>
     <string name="widget_description_large">अनुभव तापमान, आर्द्रता, हवा और न्यूनतम/अधिकतम के साथ मौसम विवरण</string>
     <string name="detail_no_precip">कोई नहीं</string>

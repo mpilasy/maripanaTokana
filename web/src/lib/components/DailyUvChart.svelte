@@ -177,10 +177,10 @@
 
 <style>
 	.daily-chart-row {
-		background: rgba(42, 31, 165, 0.3);
-		border-radius: 12px;
+		background: var(--surface-tile);
+		border-radius: 16px;
 		padding: 16px;
-		margin-bottom: 8px;
+		margin-bottom: 10px;
 	}
 
 	.chart-wrapper {

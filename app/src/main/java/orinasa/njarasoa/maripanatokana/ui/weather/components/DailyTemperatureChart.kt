@@ -198,29 +198,29 @@ fun DailyTemperatureChart(
                 val vpRight = ((scrollOffset + width) / totalScrollWidth * width).coerceIn(0f, width)
                 if (vpLeft > 0f) {
                     drawRect(
-                        color = Color.Black.copy(alpha = 0.35f),
+                        color = Color.Black.copy(alpha = 0.22f),
                         topLeft = Offset(0f, 0f),
                         size = Size(vpLeft, height)
                     )
                 }
                 if (vpRight < width) {
                     drawRect(
-                        color = Color.Black.copy(alpha = 0.35f),
+                        color = Color.Black.copy(alpha = 0.22f),
                         topLeft = Offset(vpRight, 0f),
                         size = Size(width - vpRight, height)
                     )
                 }
                 drawLine(
-                    color = gridColor.copy(alpha = 0.7f),
+                    color = gridColor.copy(alpha = 0.35f),
                     start = Offset(vpLeft, 0f),
                     end = Offset(vpLeft, height),
-                    strokeWidth = 1.5.dp.toPx()
+                    strokeWidth = 1.dp.toPx()
                 )
                 drawLine(
-                    color = gridColor.copy(alpha = 0.7f),
+                    color = gridColor.copy(alpha = 0.35f),
                     start = Offset(vpRight, 0f),
                     end = Offset(vpRight, height),
-                    strokeWidth = 1.5.dp.toPx()
+                    strokeWidth = 1.dp.toPx()
                 )
             }
         }

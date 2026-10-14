@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.sp
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.domain.model.ActivityIndices
 import orinasa.njarasoa.maripanatokana.domain.model.ActivityTier
+import orinasa.njarasoa.maripanatokana.ui.theme.TileSurface
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFont
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 
@@ -49,7 +50,7 @@ fun ActivitiesCard(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(Color(0x992A1FA5))
+            .background(TileSurface)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {

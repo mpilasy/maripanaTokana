@@ -4,7 +4,7 @@
 
 <script lang="ts">
 	import { slide } from 'svelte/transition';
-	import type { Snippet } from 'svelte';
+	import { untrack, type Snippet } from 'svelte';
 	import { _ } from 'svelte-i18n';
 
 	interface Props {
@@ -17,8 +17,19 @@
 
 	let { title, expanded = false, onToggle, children, onShare }: Props = $props();
 	let contentEl = $state<HTMLElement | null>(null);
+	let sectionEl = $state<HTMLElement | null>(null);
 
 	let contentId = `content-${idCounter++}`;
+
+	// Scroll a newly opened section into view (skip the initial state so page load doesn't jump).
+	let wasExpanded = untrack(() => expanded);
+	$effect(() => {
+		const open = expanded;
+		if (open && !wasExpanded) {
+			setTimeout(() => sectionEl?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 320);
+		}
+		wasExpanded = open;
+	});
 
 	function handleShare(e: MouseEvent) {
 		e.stopPropagation();
@@ -26,11 +37,11 @@
 	}
 </script>
 
-<div class="collapsible-section">
+<div class="collapsible-section" bind:this={sectionEl}>
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div class="section-header" onclick={(e) => {
-		// Only trigger expand if clicking directly on the header background, spacer, or chevron,
+		// Only trigger expand if clicking on the header background or chevron,
 		// but not on the share button. The title-btn handles its own click.
 		const target = e.target as HTMLElement;
 		if (!target.closest('.share-btn') && !target.closest('.title-btn')) {
@@ -48,15 +59,18 @@
 		</button>
 		{#if expanded && onShare}
 			<button class="share-btn" onclick={handleShare} aria-label={$_('cd_share')}>
-				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 					<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
 					<polyline points="16 6 12 2 8 6"/>
 					<line x1="12" y1="2" x2="12" y2="15"/>
 				</svg>
 			</button>
 		{/if}
-		<span class="spacer"></span>
-		<span class="chevron" class:expanded={expanded}>&#9660;</span>
+		<span class="chevron" class:expanded={expanded} aria-hidden="true">
+			<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+				<path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+			</svg>
+		</span>
 	</div>
 
 	{#if expanded}
@@ -68,18 +82,27 @@
 
 <style>
 	.collapsible-section {
-		margin-bottom: 24px;
+		margin-bottom: 12px;
+		background: var(--surface-section);
+		border: 1px solid var(--hairline);
+		border-radius: 20px;
+		overflow: hidden;
+		scroll-margin: 16px;
 	}
 
 	.section-header {
 		display: flex;
 		align-items: center;
-		padding: 8px 0;
+		min-height: 56px;
+		padding: 6px 8px 6px 16px;
 		user-select: none;
-		gap: 8px;
+		gap: 4px;
+		cursor: pointer;
 	}
 
 	.title-btn {
+		flex: 1;
+		min-width: 0;
 		display: flex;
 		align-items: center;
 		background: transparent;
@@ -90,6 +113,7 @@
 		font: inherit;
 		cursor: pointer;
 		border-radius: 4px;
+		text-align: start;
 	}
 
 	.title-btn:focus-visible {
@@ -98,33 +122,33 @@
 	}
 
 	.section-title {
-		font-size: 20px;
+		font-family: var(--font-body);
+		font-size: 17px;
 		font-weight: 700;
 		color: white;
-	}
-
-	.spacer {
-		flex: 1;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	.share-btn {
-		background: rgba(255,255,255,0.1);
+		background: transparent;
 		border: none;
 		border-radius: 50%;
-		width: 28px;
-		height: 28px;
+		width: 36px;
+		height: 36px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		color: rgba(255,255,255,0.4);
+		color: rgba(255,255,255,0.6);
 		cursor: pointer;
 		transition: background 0.2s, color 0.2s;
 		flex-shrink: 0;
 	}
 
 	.share-btn:hover {
-		background: rgba(255,255,255,0.2);
-		color: rgba(255,255,255,0.7);
+		background: var(--surface-tile);
+		color: rgba(255,255,255,0.85);
 	}
 
 	.share-btn:focus-visible {
@@ -133,18 +157,24 @@
 	}
 
 	.chevron {
-		color: rgba(255,255,255,0.7);
-		font-size: 12px;
+		width: 36px;
+		height: 36px;
+		flex-shrink: 0;
+		border-radius: 50%;
+		background: var(--surface-tile);
+		color: rgba(255,255,255,0.8);
+		display: flex;
+		align-items: center;
+		justify-content: center;
 		transition: transform 0.3s ease;
-		transform: rotate(-90deg);
 	}
 
 	.chevron.expanded {
-		transform: rotate(0deg);
+		transform: rotate(180deg);
 	}
 
 	.section-content {
-		padding-top: 8px;
+		padding: 0 12px 12px;
 		min-width: 0;
 	}
 </style>

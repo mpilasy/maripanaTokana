@@ -249,5 +249,16 @@
 	"settings_geocoder_system": "Géocodeur système",
 	"settings_geocoder_nominatim": "Nominatim (OpenStreetMap)",
 	"settings_geocoder_nominatim_desc": "Fonctionne sur toutes les versions, y compris F-Droid, sans clé API",
-	"settings_web_geocoding_info": "La version web utilise Nominatim (OpenStreetMap) pour le géocodage inverse — aucune clé API requise."
+	"settings_web_geocoding_info": "La version web utilise Nominatim (OpenStreetMap) pour le géocodage inverse — aucune clé API requise.",
+	"about_title": "À propos",
+	"about_row_desc": "Sources de données, bibliothèques et licences",
+	"about_app_license": "Logiciel libre et open source sous licence MIT",
+	"about_source_code": "Code source",
+	"about_section_weather": "Données météo",
+	"about_section_air_quality": "Qualité de l'air",
+	"about_section_geocoding": "Noms de lieux et recherche",
+	"about_section_alerts": "Alertes météo",
+	"about_section_imagery": "Image de fond",
+	"about_section_fonts": "Polices",
+	"about_section_libraries": "Bibliothèques open source"
 }

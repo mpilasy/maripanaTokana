@@ -35,8 +35,8 @@
 <div class="daily-wrapper" bind:clientWidth={containerWidth}>
 	<div class="cards-scroll" onscroll={(e) => { scrollLeft = e.currentTarget.scrollLeft; }}>
 	<div class="cards-row">
-		{#each forecasts as item}
-			<div class="daily-card">
+		{#each forecasts as item, i}
+			<div class="daily-card" class:today={i === 0}>
 				<span class="day-name">{formatDayName(item.date, localeTag, utcOffsetSeconds, true, weekdayNames)}</span>
 				<span class="day-date">{loc(formatDayMonth(item.date, localeTag, utcOffsetSeconds, monthNames))}</span>
 				<button class="emoji-btn" onclick={toggleMode} aria-label={$_('cd_cycle_mode')}>
@@ -130,10 +130,14 @@
 		align-items: center;
 		gap: 4px;
 		padding: 12px;
-		background: rgba(42, 31, 165, 0.45);
+		background: var(--surface-tile);
 		border-radius: 16px;
 		flex-shrink: 0;
 		width: 96px;
+	}
+
+	.daily-card.today {
+		background: var(--surface-tile-highlight);
 	}
 
 	.day-name {

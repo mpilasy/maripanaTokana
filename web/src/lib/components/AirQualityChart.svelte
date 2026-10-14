@@ -175,7 +175,7 @@
 			{/if}
 
 			{#each points as point, i}
-				<circle cx={point.x} cy={point.y} r="4" fill={dotColors[i]} />
+				<circle cx={point.x} cy={point.y} r="2.5" fill={dotColors[i]} />
 			{/each}
 
 			{#if peakAqiInfo}

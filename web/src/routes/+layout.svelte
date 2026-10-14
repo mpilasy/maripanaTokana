@@ -82,6 +82,15 @@
 		padding: 0;
 	}
 
+	/* Surface system: tinted glass over the navy/Blue Marble background (mirrors Android ui/theme/Color.kt) */
+	:global(:root) {
+		--surface-section: rgba(42, 31, 165, 0.3);
+		--surface-tile: rgba(255, 255, 255, 0.06);
+		--surface-tile-highlight: rgba(255, 255, 255, 0.14);
+		--hairline: rgba(255, 255, 255, 0.08);
+		--hero-gradient: linear-gradient(to bottom, rgba(59, 48, 196, 0.85), rgba(42, 31, 165, 0.55));
+	}
+
 	:global(body) {
 		background: #0f0f0f;
 		color: white;

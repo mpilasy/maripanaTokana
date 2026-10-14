@@ -48,7 +48,7 @@
 
 <style>
 	.activities-card {
-		background: rgba(42, 31, 165, 0.6);
+		background: var(--surface-tile);
 		backdrop-filter: blur(12px);
 		-webkit-backdrop-filter: blur(12px);
 		border-radius: 16px;

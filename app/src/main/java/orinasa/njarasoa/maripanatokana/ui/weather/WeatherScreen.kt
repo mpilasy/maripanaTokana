@@ -31,6 +31,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import orinasa.njarasoa.maripanatokana.ui.settings.AboutScreen
 import orinasa.njarasoa.maripanatokana.ui.settings.SettingsScreen
 import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
@@ -68,9 +69,14 @@ fun WeatherScreen(
     permissionHandler: PermissionHandler
 ) {
     var showSettings by rememberSaveable { mutableStateOf(false) }
+    var showAbout by rememberSaveable { mutableStateOf(false) }
 
+    if (showAbout) {
+        AboutScreen(onBack = { showAbout = false })
+        return
+    }
     if (showSettings) {
-        SettingsScreen(onBack = { showSettings = false })
+        SettingsScreen(onBack = { showSettings = false }, onOpenAbout = { showAbout = true })
         return
     }
 
@@ -358,6 +364,7 @@ fun WeatherScreen(
                             onLocationClicked = viewModel::onLocationClicked,
                             onManageLocationsClicked = viewModel::onManageLocationsClicked,
                             onOpenSettings = { showSettings = true },
+                            onOpenAbout = { showAbout = true },
                             weatherSource = weatherSource,
                             showGpsCoordinates = showGpsCoordinates,
                             isSavedLocation = activeLocationId != null,
@@ -378,6 +385,8 @@ fun WeatherScreen(
                             },
                             canSwipeToNext = locationCycleIndex in 0 until locationCycle.lastIndex,
                             canSwipeToPrevious = locationCycleIndex > 0,
+                            locationCount = locationCycle.size,
+                            locationIndex = locationCycleIndex,
                             hasLocationOverride = advancedOverrideLat != null,
                             advancedOverrideLat = advancedOverrideLat,
                             advancedOverrideLon = advancedOverrideLon,

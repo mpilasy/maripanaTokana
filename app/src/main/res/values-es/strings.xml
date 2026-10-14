@@ -169,6 +169,17 @@
     <string name="settings_geocoder_nominatim">Nominatim (OpenStreetMap)</string>
     <string name="settings_geocoder_nominatim_desc">Funciona en todas las versiones, incluida F-Droid, sin clave API</string>
     <string name="settings_web_geocoding_info">La versión web usa Nominatim (OpenStreetMap) para la geocodificación inversa — no requiere clave API.</string>
+    <string name="about_title">Acerca de</string>
+    <string name="about_row_desc">Fuentes de datos, bibliotecas y licencias</string>
+    <string name="about_app_license">Software libre y de código abierto bajo la licencia MIT</string>
+    <string name="about_source_code">Código fuente</string>
+    <string name="about_section_weather">Datos meteorológicos</string>
+    <string name="about_section_air_quality">Calidad del aire</string>
+    <string name="about_section_geocoding">Nombres de lugares y búsqueda</string>
+    <string name="about_section_alerts">Alertas meteorológicas</string>
+    <string name="about_section_imagery">Imagen de fondo</string>
+    <string name="about_section_fonts">Tipografías</string>
+    <string name="about_section_libraries">Bibliotecas de código abierto</string>
     <string name="widget_description">Clima actual con temperatura en doble unidad</string>
     <string name="widget_description_large">Detalles del clima con sensacion termica, humedad, viento y min/max</string>
     <string name="detail_no_precip">Ninguna</string>

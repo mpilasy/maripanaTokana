@@ -5,6 +5,13 @@ export function formatTime(timestamp: number): string {
 	return `${hh}:${mm}`;
 }
 
+/** True if the timestamp falls on the device's current calendar day. */
+export function isToday(timestamp: number): boolean {
+	const d = new Date(timestamp);
+	const now = new Date();
+	return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+}
+
 // Cache for date formatters to avoid expensive instantiations
 const dateFormatters = new Map<string, Intl.DateTimeFormat>();
 

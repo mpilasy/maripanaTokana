@@ -174,6 +174,7 @@ node shared/i18n/generate-android-strings.js   # JSON → Android XML strings
 - **Pull-to-Refresh:** Swipe gesture to manually refresh.
 - **Screenshot Sharing:** Capture hero card or any section as branded PNG with watermark.
 - **Advanced Mode:** Toggle in Settings → 12-hour session unlocking location override, pluggable weather/geocoding sources, and per-alert-source toggles. DMS coordinate display.
+- **About Page:** App license/source link plus acknowledgements for every data service, asset, font and library (name, role via section, license, link). Opened from the Settings "About" row or by tapping the footer credits. Lists live in `ui/settings/AboutScreen.kt` and `web/src/lib/credits.ts` — keep both in sync when adding a dependency or data source.
 - **Dual-Language Error Screen:** Shows secondary translation when app locale differs from system/browser locale.
 - **Widgets (Android only):** 4x1 compact and 4x2 with 3-day forecast. WorkManager background updates.
 
@@ -257,7 +258,11 @@ Flavor-specific code lives in `app/src/standard/` and `app/src/fdroid/` (Locatio
 
 - Dark theme
 - Blue Marble background at 12% opacity
-- Translucent cards (base: `rgba(42, 31, 165, 0.6)`, hero: `rgba(42, 31, 165, 0.8)`)
+- Tinted-glass surfaces with 1dp hairline border `rgba(255,255,255,0.08)` (Android tokens in `ui/theme/Color.kt`):
+  - Hero: vertical gradient `rgba(59,48,196,0.85)` → `rgba(42,31,165,0.55)`, 28dp corners
+  - Section cards (collapsible header inside the card): `rgba(42,31,165,0.30)`, 20dp corners
+  - Inner tiles: `rgba(255,255,255,0.06)` (highlight `0.14`), 16dp corners
+- Header: location + region/local-time chip + "Updated" line; actions (search, favorite, current location, settings) inline at top end; saved-location pager dots below
 - Theme color: `#0E0B3D`
 - Edge-to-edge with safe area padding
 

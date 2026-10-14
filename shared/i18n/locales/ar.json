@@ -249,5 +249,16 @@
 	"settings_geocoder_system": "المُرمِّز الجغرافي للنظام",
 	"settings_geocoder_nominatim": "Nominatim (OpenStreetMap)",
 	"settings_geocoder_nominatim_desc": "يعمل على جميع الإصدارات بما فيها F-Droid، ولا يتطلب مفتاح API",
-	"settings_web_geocoding_info": "يستخدم إصدار الويب Nominatim (OpenStreetMap) للترميز الجغرافي العكسي — لا يتطلب مفتاح API."
+	"settings_web_geocoding_info": "يستخدم إصدار الويب Nominatim (OpenStreetMap) للترميز الجغرافي العكسي — لا يتطلب مفتاح API.",
+	"about_title": "حول التطبيق",
+	"about_row_desc": "مصادر البيانات والمكتبات والتراخيص",
+	"about_app_license": "برنامج حر ومفتوح المصدر بموجب ترخيص MIT",
+	"about_source_code": "الشيفرة المصدرية",
+	"about_section_weather": "بيانات الطقس",
+	"about_section_air_quality": "جودة الهواء",
+	"about_section_geocoding": "أسماء الأماكن والبحث",
+	"about_section_alerts": "تنبيهات الطقس",
+	"about_section_imagery": "صورة الخلفية",
+	"about_section_fonts": "الخطوط",
+	"about_section_libraries": "مكتبات مفتوحة المصدر"
 }

@@ -108,7 +108,7 @@ fun WeatherAlertBanner(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 24.sd(scale))
+            .padding(bottom = 12.sd(scale))
             .animateContentSize(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = bannerColor),

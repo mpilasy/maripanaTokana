@@ -1,7 +1,19 @@
 package orinasa.njarasoa.maripanatokana.ui.settings
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import orinasa.njarasoa.maripanatokana.ui.theme.Hairline
+import orinasa.njarasoa.maripanatokana.ui.theme.SectionSurface
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -56,37 +68,16 @@ import orinasa.njarasoa.maripanatokana.domain.model.WeatherSource
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
+    onOpenAbout: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val settings by viewModel.settings.collectAsState()
     val pendingApiKey by viewModel.pendingApiKey.collectAsState()
     val testState by viewModel.testState.collectAsState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(Color(0xFF0E0B3D), Color(0xFF1A1565))
-                )
-            )
-            .statusBarsPadding()
-            .navigationBarsPadding()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp)
-    ) {
-        // Header
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.settings_back), tint = MaterialTheme.colorScheme.onSurface)
-            }
-            Spacer(Modifier.width(8.dp))
-            Text(stringResource(R.string.settings_title), color = MaterialTheme.colorScheme.onSurface, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-        }
-
-        Spacer(Modifier.height(24.dp))
-
+    SettingsPage(title = stringResource(R.string.settings_title), onBack = onBack) {
         // — Advanced Mode —
+        SettingsGroup {
         Row(
             Modifier.fillMaxWidth().padding(vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -96,8 +87,9 @@ fun SettingsScreen(
                 Text(
                     if (settings.advancedMode) stringResource(R.string.settings_advanced_on_desc)
                     else stringResource(R.string.settings_advanced_off_desc),
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                    fontSize = 12.sp
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                    fontSize = 12.sp,
+                    lineHeight = 16.sp,
                 )
             }
             Switch(
@@ -109,13 +101,15 @@ fun SettingsScreen(
                 ),
             )
         }
+        }
 
         if (settings.advancedMode) {
 
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(24.dp))
 
         // — Weather Source —
         SectionHeader(stringResource(R.string.settings_section_weather_source))
+        SettingsGroup {
         Column(Modifier.selectableGroup()) {
             WeatherSource.entries.forEach { source ->
                 val selected = settings.weatherSource == source
@@ -135,7 +129,7 @@ fun SettingsScreen(
                     Column {
                         Text(source.displayName(), color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp)
                         if (source.requiresApiKey()) {
-                            Text(stringResource(R.string.settings_requires_api_key), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 12.sp)
+                            Text(stringResource(R.string.settings_requires_api_key), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 12.sp, lineHeight = 16.sp)
                         }
                     }
                 }
@@ -186,12 +180,13 @@ fun SettingsScreen(
                 }
             }
         }
+        }
 
-
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(24.dp))
 
         // — Alerts —
         SectionHeader(stringResource(R.string.settings_section_alerts))
+        SettingsGroup {
         Row(
             Modifier.fillMaxWidth().padding(vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -212,11 +207,13 @@ fun SettingsScreen(
             AlertCheckRow(stringResource(R.string.settings_alert_bom), settings.alertsBomEnabled) { viewModel.updateAlertsBomEnabled(it) }
             AlertCheckRow(stringResource(R.string.settings_alert_nhc), settings.alertsNhcEnabled) { viewModel.updateAlertsNhcEnabled(it) }
         }
+        }
 
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(24.dp))
 
         // — Geocoding Source —
         SectionHeader(stringResource(R.string.settings_section_location))
+        SettingsGroup {
         Column(Modifier.selectableGroup()) {
             GeocodingSource.entries.forEach { source ->
                 val selected = settings.geocodingSource == source
@@ -236,25 +233,114 @@ fun SettingsScreen(
                     Column {
                         Text(source.displayName(), color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp)
                         if (source == GeocodingSource.NOMINATIM) {
-                            Text(stringResource(R.string.settings_geocoder_nominatim_desc), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 12.sp)
+                            Text(stringResource(R.string.settings_geocoder_nominatim_desc), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 12.sp, lineHeight = 16.sp)
                         }
                     }
                 }
             }
         }
+        }
 
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(24.dp))
 
         } // end if (settings.advancedMode)
+
+        if (!settings.advancedMode) Spacer(Modifier.height(24.dp))
+
+        // — About —
+        SettingsGroup {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onOpenAbout, role = Role.Button)
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(stringResource(R.string.about_title), color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.about_row_desc), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f), fontSize = 12.sp, lineHeight = 16.sp)
+                }
+                Icon(
+                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                )
+            }
+        }
 
         Spacer(Modifier.height(8.dp))
     }
 }
 
+/** Shared shell for Settings-style pages: gradient + Blue Marble background, back header, scrolling column. */
 @Composable
-private fun SectionHeader(title: String) {
-    Text(title.uppercase(), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 1.sp)
+internal fun SettingsPage(
+    title: String,
+    onBack: () -> Unit,
+    content: @Composable () -> Unit,
+) {
+    BackHandler(onBack = onBack)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(Color(0xFF0E0B3D), Color(0xFF1A1565))
+                )
+            )
+    ) {
+        Image(
+            painter = painterResource(R.drawable.bg_blue_marble),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize().alpha(0.12f),
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.settings_back), tint = MaterialTheme.colorScheme.onSurface)
+                }
+                Spacer(Modifier.width(8.dp))
+                Text(title, color = MaterialTheme.colorScheme.onSurface, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            }
+            Spacer(Modifier.height(16.dp))
+            content()
+        }
+    }
+}
+
+@Composable
+internal fun SectionHeader(title: String) {
+    Text(
+        title.uppercase(),
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+        fontSize = 11.sp,
+        fontWeight = FontWeight.SemiBold,
+        letterSpacing = 1.sp,
+        modifier = Modifier.padding(start = 8.dp),
+    )
     Spacer(Modifier.height(8.dp))
+}
+
+@Composable
+internal fun SettingsGroup(content: @Composable () -> Unit) {
+    val shape = RoundedCornerShape(20.dp)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(SectionSurface, shape)
+            .border(1.dp, Hairline, shape)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+    ) {
+        content()
+    }
 }
 
 @Composable
@@ -262,7 +348,7 @@ private fun AlertCheckRow(label: String, checked: Boolean, onChecked: (Boolean) 
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, top = 2.dp, bottom = 2.dp)
+            .padding(start = 8.dp, top = 2.dp, bottom = 2.dp)
             .selectable(selected = checked, onClick = { onChecked(!checked) }, role = Role.Checkbox),
         verticalAlignment = Alignment.CenterVertically,
     ) {

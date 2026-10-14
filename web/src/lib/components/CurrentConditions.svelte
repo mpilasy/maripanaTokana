@@ -47,130 +47,72 @@
 	let pressDual = $derived(data.pressure.displayDual(metricPrimary));
 	let dewDual = $derived(data.dewPoint.displayDual(metricPrimary));
 	let visDual = $derived(visibilityDisplay(data.visibility, metricPrimary));
+	let cloudCover = $derived(`${$_('detail_cloud_cover')}: ${data.cloudCover != null ? loc(`${data.cloudCover}%`) : '--'}`);
 </script>
 
 <div class="conditions-grid">
-	<!-- Temperature + Precipitation merged card -->
-	<!-- svelte-ignore a11y_click_events_have_key_events -->
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="merged-card temp-precip-card" onclick={onToggleUnits}>
-		<div class="tp-side">
-			<span class="card-title">{$_('detail_temperature')}</span>
-			<span class="tp-values">
-				<span class="tp-primary">{loc(tempDual[0])}</span>
-				<span class="tp-secondary">{loc(tempDual[1])}</span>
-			</span>
-			<span class="feels-label">{$_('feels_like')}</span>
-			<span class="tp-values">
-				<span class="feels-primary">{loc(feelsLikeDual[0])}</span>
-				<span class="feels-secondary">{loc(feelsLikeDual[1])}</span>
-			</span>
-		</div>
-		<div class="tp-side tp-side-end">
-			<span class="card-title">{$_('detail_precipitation')}</span>
-			{#if data.snow}
-				{@const [snowP, snowS] = data.snow.displayDual(metricPrimary)}
-				<span class="tp-values tp-values-end">
-					<span class="tp-primary">{"\u2744\uFE0F " + loc(snowP)}</span>
-					<span class="tp-secondary">{loc(snowS)}</span>
-				</span>
-			{:else if data.rain}
-				{@const [rainP, rainS] = data.rain.displayDual(metricPrimary)}
-				<span class="tp-values tp-values-end">
-					<span class="tp-primary">{"\uD83C\uDF27\uFE0F " + loc(rainP)}</span>
-					<span class="tp-secondary">{loc(rainS)}</span>
-				</span>
-			{:else}
-				<span class="tp-primary">{$_('no_precip')}</span>
-			{/if}
-			<span class="feels-label">{$_('detail_cloud_cover')}</span>
-			<span class="feels-primary">{data.cloudCover != null ? loc(`${data.cloudCover}%`) : '--'}</span>
-		</div>
-	</div>
+	<!-- Temperature / Precipitation -->
+	<DetailCard
+		title={$_('detail_temperature')}
+		value={loc(tempDual[0])}
+		secondaryValue={loc(tempDual[1])}
+		subtitle={`${$_('feels_like')} ${loc(feelsLikeDual[0])}`}
+		{onToggleUnits}
+	/>
+	{#if data.snow}
+		{@const [snowP, snowS] = data.snow.displayDual(metricPrimary)}
+		<DetailCard title={$_('detail_precipitation')} value={"\u2744\uFE0F " + loc(snowP)} secondaryValue={loc(snowS)} subtitle={cloudCover} {onToggleUnits} />
+	{:else if data.rain}
+		{@const [rainP, rainS] = data.rain.displayDual(metricPrimary)}
+		<DetailCard title={$_('detail_precipitation')} value={"\uD83C\uDF27\uFE0F " + loc(rainP)} secondaryValue={loc(rainS)} subtitle={cloudCover} {onToggleUnits} />
+	{:else}
+		<DetailCard title={$_('detail_precipitation')} value={$_('no_precip')} subtitle={cloudCover} />
+	{/if}
 
-	<!-- High / Low merged card -->
-	<!-- svelte-ignore a11y_click_events_have_key_events -->
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="merged-card highlow-card" onclick={onToggleUnits}>
-		<span class="highlow-group">
-			<span class="highlow-arrow">↓</span>
-			<span class="merged-values">
-				<span class="merged-primary">{loc(minDual[0])}</span>
-				<span class="merged-secondary">{loc(minDual[1])}</span>
-			</span>
-		</span>
-		<span class="highlow-group">
-			<span class="merged-values merged-values-end">
-				<span class="merged-primary">{loc(maxDual[0])}</span>
-				<span class="merged-secondary">{loc(maxDual[1])}</span>
-			</span>
-			<span class="highlow-arrow">↑</span>
-		</span>
-	</div>
+	<!-- Low / High -->
+	<DetailCard title={$_('detail_min_temp')} value={"\u2193 " + loc(minDual[0])} secondaryValue={loc(minDual[1])} {onToggleUnits} />
+	<DetailCard title={$_('detail_max_temp')} value={"\u2191 " + loc(maxDual[0])} secondaryValue={loc(maxDual[1])} {onToggleUnits} />
 
-	<!-- Wind merged card -->
-	<!-- svelte-ignore a11y_click_events_have_key_events -->
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="merged-card wind-merged-card" onclick={onToggleUnits}>
-		<div class="wind-side">
-			<span class="merged-values">
-				<span class="merged-primary">{loc(windDual[0])}</span>
-				<span class="merged-secondary">{loc(windDual[1])}</span>
-			</span>
-			<span class="wind-subtitle">{data.windDeg != null ? loc(`${getCardinalDirection(data.windDeg, $json('cardinal_directions'))} (${data.windDeg}°)`) : '--'}</span>
-		</div>
-		<span class="merged-label wind-label">{$_('detail_wind')}</span>
-		<div class="wind-side wind-side-end">
-			{#if gustDual}
-				<span class="merged-values merged-values-end">
-					<span class="merged-primary">{loc(gustDual[0])}</span>
-					<span class="merged-secondary">{loc(gustDual[1])}</span>
-				</span>
-				<span class="wind-subtitle">{$_('detail_wind_gust')}</span>
-			{/if}
-		</div>
-	</div>
+	<!-- Wind / Gust -->
+	<DetailCard
+		title={$_('detail_wind')}
+		value={loc(windDual[0])}
+		secondaryValue={loc(windDual[1])}
+		subtitle={data.windDeg != null ? loc(`${getCardinalDirection(data.windDeg, $json('cardinal_directions'))} (${data.windDeg}°)`) : '--'}
+		{onToggleUnits}
+	/>
+	<DetailCard
+		title={$_('detail_wind_gust')}
+		value={gustDual ? loc(gustDual[0]) : '--'}
+		secondaryValue={gustDual ? loc(gustDual[1]) : undefined}
+		{onToggleUnits}
+	/>
 
-	<!-- Sunrise / Sunset merged card -->
-	<div class="merged-card sun-card">
-		<div class="sun-side">
-			<span class="sun-time">{loc(formatTime(data.sunrise))}</span>
-			<span class="sun-label">{$_('detail_sunrise')}</span>
-		</div>
-		<span class="sun-icon">☀️</span>
-		<div class="sun-side sun-side-end">
-			<span class="sun-time">{loc(formatTime(data.sunset))}</span>
-			<span class="sun-label">{$_('detail_sunset')}</span>
-		</div>
-	</div>
+	<!-- Sunrise / Sunset -->
+	<DetailCard title={$_('detail_sunrise')} value={loc(formatTime(data.sunrise))} />
+	<DetailCard title={$_('detail_sunset')} value={loc(formatTime(data.sunset))} />
 
+	<!-- Pressure / Humidity -->
 	<DetailCard
 		title={$_('detail_pressure')}
 		value={loc(pressDual[0])}
 		secondaryValue={loc(pressDual[1])}
 		{onToggleUnits}
 	/>
-	<!-- Humidity + Dew point combined card -->
-	<div class="detail-card humidity-card">
-		<span class="card-title">{$_('detail_humidity')}</span>
-		<span class="card-value">{data.humidity != null ? loc(`${data.humidity}%`) : '--'}</span>
-		<span class="dew-label">{$_('detail_dewpoint')}</span>
-		<!-- svelte-ignore a11y_click_events_have_key_events -->
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<span class="dew-values" onclick={onToggleUnits}>
-			<span class="dew-primary">{loc(dewDual[0])}</span>
-			<span class="dew-secondary">{loc(dewDual[1])}</span>
-		</span>
-	</div>
+	<DetailCard
+		title={$_('detail_humidity')}
+		value={data.humidity != null ? loc(`${data.humidity}%`) : '--'}
+		subtitle={`${$_('detail_dewpoint')} ${loc(dewDual[0])} · ${loc(dewDual[1])}`}
+	/>
 
-	<!-- Air Quality now lives on its own forecast card -->
+	<!-- UV Index (current reading) / Visibility — Air Quality lives on its own forecast card -->
 	<DetailCard
 		title={$_('detail_uv_index')}
 		value={data.uvIndex != null ? loc(data.uvIndex.toFixed(1)) : '--'}
 	>
 		{#snippet subtitleSnippet()}
 			{#if data.uvIndex != null}
-				<UvTierBadge uvIndex={data.uvIndex} label={getUvLabel(data.uvIndex)} />
+				<span><UvTierBadge uvIndex={data.uvIndex} label={getUvLabel(data.uvIndex)} /></span>
 			{/if}
 		{/snippet}
 	</DetailCard>
@@ -187,220 +129,6 @@
 		display: grid;
 		grid-template-columns: 1fr 1fr;
 		grid-auto-rows: auto;
-		gap: 16px;
-	}
-
-	.merged-card {
-		background: rgba(42, 31, 165, 0.6);
-		border-radius: 16px;
-		padding: 16px;
-		display: flex;
-		flex-direction: row;
-		gap: 8px;
-		grid-column: 1 / -1;
-		align-items: center;
-		justify-content: space-between;
-		cursor: pointer;
-	}
-
-	.merged-label {
-		font-size: 12px;
-		color: rgba(255,255,255,0.5);
-		text-align: center;
-	}
-
-	.merged-values {
-		display: flex;
-		align-items: baseline;
-		gap: 4px;
-	}
-
-	.merged-values-end {
-		justify-content: flex-end;
-	}
-
-	.merged-primary {
-		font-family: var(--font-display);
-		font-size: 18px;
-		font-weight: 700;
-		color: white;
-		font-feature-settings: var(--font-features);
-	}
-
-	.merged-secondary {
-		font-family: var(--font-display);
-		font-size: 12px;
-		color: rgba(255,255,255,0.55);
-		font-feature-settings: var(--font-features);
-	}
-
-	.highlow-group {
-		display: flex;
-		align-items: center;
-		gap: 4px;
-	}
-
-	.highlow-arrow {
-		font-size: 32px;
-		color: rgba(255,255,255,0.7);
-	}
-
-	.wind-label {
-		font-weight: 700;
-	}
-
-	.wind-merged-card {
-		cursor: pointer;
-	}
-
-	.wind-side {
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-		min-width: 0;
-	}
-
-	.wind-side-end {
-		align-items: flex-end;
-	}
-
-	.wind-subtitle {
-		font-size: 12px;
-		color: rgba(255,255,255,0.6);
-	}
-
-	.sun-card {
-		cursor: default;
-	}
-
-	.sun-side {
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-	}
-
-	.sun-side-end {
-		align-items: flex-end;
-	}
-
-	.sun-time {
-		font-family: var(--font-display);
-		font-size: 18px;
-		font-weight: 700;
-		color: white;
-		font-feature-settings: var(--font-features);
-	}
-
-	.sun-label {
-		font-size: 12px;
-		color: rgba(255,255,255,0.6);
-	}
-
-	.sun-icon {
-		font-size: 24px;
-	}
-
-	.temp-precip-card {
-		align-items: flex-start;
-	}
-
-	.tp-side {
-		display: flex;
-		flex-direction: column;
-		gap: 4px;
-	}
-
-	.tp-side-end {
-		align-items: flex-end;
-	}
-
-	.tp-values {
-		display: flex;
-		align-items: baseline;
-		gap: 4px;
-	}
-
-	.tp-values-end {
-		justify-content: flex-end;
-	}
-
-	.tp-primary {
-		font-family: var(--font-display);
-		font-size: 18px;
-		font-weight: 700;
-		color: white;
-		font-feature-settings: var(--font-features);
-	}
-
-	.tp-secondary {
-		font-family: var(--font-display);
-		font-size: 12px;
-		color: rgba(255,255,255,0.55);
-		font-feature-settings: var(--font-features);
-	}
-
-	.feels-label {
-		font-size: 12px;
-		color: rgba(255,255,255,0.5);
-	}
-
-	.feels-primary {
-		font-family: var(--font-display);
-		font-size: 13px;
-		font-weight: 700;
-		color: white;
-	}
-
-	.feels-secondary {
-		font-family: var(--font-display);
-		font-size: 12px;
-		color: rgba(255,255,255,0.55);
-		margin-left: 4px;
-	}
-
-	.humidity-card {
-		background: rgba(42, 31, 165, 0.6);
-		border-radius: 16px;
-		padding: 16px;
-		display: flex;
-		flex-direction: column;
-		gap: 8px;
-		flex: 1;
-	}
-
-	.card-title {
-		font-size: 14px;
-		color: rgba(255,255,255,0.7);
-	}
-
-	.card-value {
-		font-family: var(--font-display);
-		font-size: 20px;
-		font-weight: 700;
-		color: white;
-		font-feature-settings: var(--font-features);
-	}
-
-	.dew-label {
-		font-size: 12px;
-		color: rgba(255,255,255,0.5);
-	}
-
-	.dew-values {
-		cursor: pointer;
-	}
-
-	.dew-primary {
-		font-family: var(--font-display);
-		font-size: 13px;
-		font-weight: 700;
-		color: white;
-	}
-
-	.dew-secondary {
-		font-family: var(--font-display);
-		font-size: 12px;
-		color: rgba(255,255,255,0.55);
-		margin-left: 4px;
+		gap: 10px;
 	}
 </style>
