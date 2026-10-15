@@ -108,6 +108,8 @@
 	.stage-backdrop {
 		width: 100vw;
 		height: 100vh;
+		/* Visible height, not the toolbar-hidden 100vh: a taller backdrop lets the page scroll and crop the Stage */
+		height: 100dvh;
 		display: flex;
 		align-items: center;
 		justify-content: center;
