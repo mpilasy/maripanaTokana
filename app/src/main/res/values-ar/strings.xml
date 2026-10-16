@@ -140,6 +140,10 @@
     <string name="plus_code_copied">تم نسخ رمز Plus Code</string>
     <string name="cd_add_favorite">إضافة إلى المفضلة</string>
     <string name="cd_remove_favorite">إزالة من المفضلة</string>
+    <string name="rename_title">إعادة التسمية</string>
+    <string name="rename_reset">استعادة</string>
+    <string name="rename_cancel">إلغاء</string>
+    <string name="rename_save">حفظ</string>
     <string name="cd_previous_location">الموقع السابق</string>
     <string name="cd_next_location">الموقع التالي</string>
     <string name="settings_title">الإعدادات</string>

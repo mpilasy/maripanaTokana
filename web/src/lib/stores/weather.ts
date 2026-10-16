@@ -21,7 +21,7 @@ import {
 	alertsBomEnabled, alertsNhcEnabled,
 } from '$lib/stores/preferences';
 import { SUPPORTED_LOCALES } from '$lib/i18n/locales';
-import { activeLocationId, savedLocations, locationOverride, checkOverrideExpiry } from '$lib/stores/savedLocations';
+import { activeLocationId, savedLocations, locationOverride, checkOverrideExpiry, displayName } from '$lib/stores/savedLocations';
 
 export type WeatherState =
 	| { kind: 'loading' }
@@ -90,6 +90,13 @@ async function fetchAtLocation(lat: number, lon: number, knownName?: string, kno
 	return data;
 }
 
+/** The favorite on screen, if one is (not a preview or GPS). */
+function activeSavedLocation() {
+	if (get(locationOverride)) return undefined;
+	const id = get(activeLocationId);
+	return id ? get(savedLocations).find((l) => l.id === id) : undefined;
+}
+
 /** Snapshot key for the location the next fetch will show: preview, saved id, or GPS. */
 function currentSnapshotKey(): string {
 	if (get(locationOverride)) return 'preview';
@@ -129,6 +136,8 @@ function setWeatherData(fetched: WeatherData) {
 async function lookUpRomanName() {
 	const s = get(weatherState);
 	if (s.kind !== 'success' || s.data.romanName || isLatinScript(s.data.locationName)) return;
+	// A favorite the user renamed keeps their name; there is no other script to offer
+	if (activeSavedLocation()?.label) return;
 	const { latitude, longitude, locationName } = s.data;
 	const r = await lookupLocation(latitude, longitude, 'en');
 	if (!r || !isLatinScript(r.name) || r.name === locationName) return;
@@ -237,7 +246,7 @@ export async function doFetchWeather() {
 		if (activeSavedId) {
 			const savedLocation = get(savedLocations).find((l) => l.id === activeSavedId);
 			if (savedLocation) {
-				const data = await fetchAtLocation(savedLocation.latitude, savedLocation.longitude, savedLocation.name, savedLocation.subtext);
+				const data = await fetchAtLocation(savedLocation.latitude, savedLocation.longitude, displayName(savedLocation), savedLocation.subtext);
 				if (gen !== fetchGeneration) return;
 				setWeatherData(data);
 				isRefreshing.set(false);
@@ -318,6 +327,8 @@ export async function doFetchWeather() {
 }
 
 export async function updateLocationName(localeTag: string) {
+	// A favorite keeps the name it was saved with (or the user's own)
+	if (activeSavedLocation()) return;
 	// Use advanced mode override coordinates if present (read from localStorage, not the store, to
 	// avoid stale state). This prevents language switches from reverse-geocoding real GPS coordinates.
 	const overrideLat = typeof localStorage !== 'undefined' ? localStorage.getItem('advanced_override_lat') : null;

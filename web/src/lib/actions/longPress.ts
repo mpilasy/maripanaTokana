@@ -1,18 +1,20 @@
 /**
  * Svelte action: calls `callback` after the element is held for 500 ms (touch, mouse or pen), or on
  * the context-menu gesture. The click that ends a long press is swallowed so it doesn't also fire.
+ * A null callback turns the long press off.
  */
-export function longPress(node: HTMLElement, callback: () => void) {
+export function longPress(node: HTMLElement, callback: (() => void) | null) {
 	let cb = callback;
 	let timer: ReturnType<typeof setTimeout> | undefined;
 	let fired = false;
 	const fire = () => {
 		fired = true;
 		navigator.vibrate?.(10);
-		cb();
+		cb?.();
 	};
 	const start = () => {
 		fired = false;
+		if (!cb) return;
 		clearTimeout(timer);
 		timer = setTimeout(fire, 500);
 	};
@@ -25,6 +27,7 @@ export function longPress(node: HTMLElement, callback: () => void) {
 		}
 	};
 	const contextMenu = (e: MouseEvent) => {
+		if (!cb) return;
 		e.preventDefault();
 		cancel();
 		if (!fired) fire();
@@ -36,7 +39,7 @@ export function longPress(node: HTMLElement, callback: () => void) {
 	node.addEventListener('click', swallowClick, true);
 	node.addEventListener('contextmenu', contextMenu);
 	return {
-		update(next: () => void) {
+		update(next: (() => void) | null) {
 			cb = next;
 		},
 		destroy() {

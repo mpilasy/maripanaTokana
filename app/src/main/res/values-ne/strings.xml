@@ -140,6 +140,10 @@
     <string name="plus_code_copied">Plus Code कपी गरियो</string>
     <string name="cd_add_favorite">मनपर्ने मा थप्नुहोस्</string>
     <string name="cd_remove_favorite">मनपर्ने बाट हटाउनुहोस्</string>
+    <string name="rename_title">नाम बदल्नुहोस्</string>
+    <string name="rename_reset">रिसेट गर्नुहोस्</string>
+    <string name="rename_cancel">रद्द गर्नुहोस्</string>
+    <string name="rename_save">सेभ गर्नुहोस्</string>
     <string name="cd_previous_location">अघिल्लो स्थान</string>
     <string name="cd_next_location">अर्को स्थान</string>
     <string name="settings_title">सेटिङहरू</string>

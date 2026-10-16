@@ -140,6 +140,10 @@
     <string name="plus_code_copied">Plus Code copied</string>
     <string name="cd_add_favorite">Add to favorites</string>
     <string name="cd_remove_favorite">Remove from favorites</string>
+    <string name="rename_title">Rename</string>
+    <string name="rename_reset">Reset</string>
+    <string name="rename_cancel">Cancel</string>
+    <string name="rename_save">Save</string>
     <string name="cd_previous_location">Previous location</string>
     <string name="cd_next_location">Next location</string>
     <string name="settings_title">Settings</string>

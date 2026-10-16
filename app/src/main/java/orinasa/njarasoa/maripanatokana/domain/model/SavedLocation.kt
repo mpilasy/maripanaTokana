@@ -9,4 +9,8 @@ data class SavedLocation(
     val subtext: String? = null,
     val latitude: Double,
     val longitude: Double,
-)
+    /** The user's own name for this favorite, shown instead of [name] when set. */
+    val label: String? = null,
+) {
+    val displayName: String get() = label ?: name
+}

@@ -58,6 +58,7 @@ import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFontFeatures
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 import orinasa.njarasoa.maripanatokana.ui.theme.buildTypography
 import orinasa.njarasoa.maripanatokana.ui.theme.fontPairings
+import orinasa.njarasoa.maripanatokana.ui.weather.components.RenameLocationDialog
 import orinasa.njarasoa.maripanatokana.ui.weather.components.SavedLocationsDialog
 import androidx.compose.runtime.saveable.rememberSaveable
 import java.text.SimpleDateFormat
@@ -172,6 +173,19 @@ private fun WeatherMainScreen(
             onDismissRequest = { viewModel.setShowSavedLocationsDialog(false) },
             onSelectSearchResult = { result -> viewModel.setLocationOverride(result.latitude, result.longitude, result.displayName()) },
             searchQuery = { viewModel.searchLocation(it) },
+        )
+    }
+
+    var showRenameDialog by remember { mutableStateOf(false) }
+    val activeSavedLocation = savedLocations.find { it.id == activeLocationId }
+    if (showRenameDialog && activeSavedLocation != null) {
+        RenameLocationDialog(
+            location = activeSavedLocation,
+            onDismissRequest = { showRenameDialog = false },
+            onRename = { label ->
+                viewModel.renameSavedLocation(activeSavedLocation.id, label)
+                showRenameDialog = false
+            },
         )
     }
 
@@ -393,6 +407,9 @@ private fun WeatherMainScreen(
                             onCycleLanguage = { viewModel.cycleLanguage() },
                             onRefresh = { viewModel.refresh() },
                             onLocationClicked = viewModel::onLocationClicked,
+                            onLocationLongClicked = if (activeSavedLocation != null && advancedOverrideLat == null) {
+                                { showRenameDialog = true }
+                            } else null,
                             onManageLocationsClicked = viewModel::onManageLocationsClicked,
                             onOpenSettings = onOpenSettings,
                             onOpenAbout = onOpenAbout,
@@ -419,7 +436,7 @@ private fun WeatherMainScreen(
                             canSwipeToPrevious = locationCycleIndex > 0,
                             locationCount = locationCycle.size,
                             locationIndex = locationCycleIndex,
-                            locationNames = listOf<String?>(null) + savedLocations.map { it.name },
+                            locationNames = listOf<String?>(null) + savedLocations.map { it.displayName },
                             onSelectLocation = { i ->
                                 if (i != locationCycleIndex) viewModel.switchToLocation(locationCycle[i])
                             },

@@ -140,6 +140,10 @@
     <string name="plus_code_copied">已复制 Plus Code</string>
     <string name="cd_add_favorite">添加到收藏</string>
     <string name="cd_remove_favorite">从收藏中移除</string>
+    <string name="rename_title">重命名</string>
+    <string name="rename_reset">重置</string>
+    <string name="rename_cancel">取消</string>
+    <string name="rename_save">保存</string>
     <string name="cd_previous_location">上一个位置</string>
     <string name="cd_next_location">下一个位置</string>
     <string name="settings_title">设置</string>

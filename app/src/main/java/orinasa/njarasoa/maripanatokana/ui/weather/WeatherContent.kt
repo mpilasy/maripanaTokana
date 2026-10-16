@@ -172,6 +172,7 @@ internal val LocalScale = staticCompositionLocalOf { 1f }
 internal fun Float.s(scale: Float) = (this * scale).sp
 internal fun Int.sd(scale: Float) = (this * scale).dp
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun WeatherContent(
     data: WeatherData,
@@ -185,6 +186,7 @@ internal fun WeatherContent(
     onCycleLanguage: () -> Unit,
     onRefresh: () -> Unit,
     onLocationClicked: () -> Unit = {},
+    onLocationLongClicked: (() -> Unit)? = null, // set for a favorite: opens its rename dialog
     onManageLocationsClicked: () -> Unit = {},
     onOpenSettings: () -> Unit = {},
     onOpenAbout: () -> Unit = {},
@@ -292,6 +294,7 @@ internal fun WeatherContent(
         val locationSubtext = if (showRoman && data.romanName != null) data.romanSubtext else data.locationSubtext
         var headerActionsWidth by remember { mutableIntStateOf(0) }
         val density = LocalDensity.current
+        val haptic = LocalHapticFeedback.current
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -308,10 +311,17 @@ internal fun WeatherContent(
                 },
         ) {
             Column(
-                modifier = Modifier.clickable(
+                modifier = Modifier.combinedClickable(
                     onClick = onLocationClicked,
+                    onLongClick = onLocationLongClicked?.let { rename ->
+                        {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            rename()
+                        }
+                    },
                     role = Role.Button,
-                    onClickLabel = "Toggle GPS coordinates"
+                    onClickLabel = "Toggle GPS coordinates",
+                    onLongClickLabel = stringResource(R.string.rename_title),
                 )
             ) {
                 Row(

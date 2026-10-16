@@ -7,6 +7,12 @@ export interface SavedLocation {
 	subtext?: string;
 	latitude: number;
 	longitude: number;
+	/** The user's own name for this favorite, shown instead of `name` when set. */
+	label?: string;
+}
+
+export function displayName(location: SavedLocation): string {
+	return location.label ?? location.name;
 }
 
 const SAVED_LOCATIONS_KEY = 'saved_locations';
@@ -146,7 +152,28 @@ export function favoriteCurrentLocation() {
 	clearAdvancedModeOverride();
 	activeLocationId.set(id);
 	if (typeof localStorage !== 'undefined') localStorage.setItem(ACTIVE_LOCATION_KEY, id);
+	const saved = current.find((l) => l.id === id);
+	if (saved?.label) showLocationName(saved.label);
 	keepShownWeather();
+}
+
+/** Gives a favorite the user's own name; a blank label restores the place name. */
+export function renameSavedLocation(id: string, label: string | null) {
+	const newLabel = label?.trim() || undefined;
+	const updated = get(savedLocations).map((l) => (l.id === id ? { ...l, label: newLabel } : l));
+	savedLocations.set(updated);
+	persistSavedLocations(updated);
+	const renamed = updated.find((l) => l.id === id);
+	if (!renamed || get(activeLocationId) !== id || get(locationOverride)) return;
+	showLocationName(displayName(renamed));
+	keepShownWeather();
+}
+
+/** Swaps the name of the place on screen, dropping its Latin-letter version, which belonged to the old name. */
+function showLocationName(name: string) {
+	weatherState.update((s) =>
+		s.kind === 'success' ? { kind: 'success', data: { ...s.data, locationName: name, romanName: undefined, romanSubtext: undefined } } : s
+	);
 }
 
 /** Unfavorites the currently active saved location, if any. */

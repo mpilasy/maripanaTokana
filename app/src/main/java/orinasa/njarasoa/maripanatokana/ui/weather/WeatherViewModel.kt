@@ -360,6 +360,7 @@ class WeatherViewModel @Inject constructor(
         val subtext = parts.getOrNull(1)?.ifBlank { null }
         val id = "$lat,$lon"
         val current = _savedLocations.value
+        val shownName = current.find { it.id == id }?.displayName ?: name
         if (current.none { it.id == id }) {
             val updated = current + SavedLocation(id = id, name = name, subtext = subtext, latitude = lat, longitude = lon)
             _savedLocations.value = updated
@@ -370,7 +371,20 @@ class WeatherViewModel @Inject constructor(
         clearAdvancedModeOverride()
         _activeLocationId.value = id
         prefs.edit { putString("active_location_id", id) }
-        publish(id, shown.copy(locationName = name, locationSubtext = subtext))
+        publish(id, shown.copy(locationName = shownName, locationSubtext = subtext))
+    }
+
+    /** Gives a favorite the user's own name; a blank [label] restores the place name. */
+    fun renameSavedLocation(id: String, label: String?) {
+        val newLabel = label?.trim()?.ifBlank { null }
+        val updated = _savedLocations.value.map { if (it.id == id) it.copy(label = newLabel) else it }
+        _savedLocations.value = updated
+        persistSavedLocations(updated)
+        val renamed = updated.find { it.id == id } ?: return
+        val shown = (_uiState.value as? WeatherUiState.Success)?.data ?: return
+        if (_activeLocationId.value == id && _advancedOverrideLat.value == null) {
+            publish(id, shown.copy(locationName = renamed.displayName, romanName = null, romanSubtext = null))
+        }
     }
 
     /** Unfavorites the currently active saved location, if any. */
@@ -394,7 +408,7 @@ class WeatherViewModel @Inject constructor(
 
     private suspend fun fetchForSavedLocation(location: SavedLocation) {
         weatherRepository.getWeather(location.latitude, location.longitude).onSuccess { data ->
-            val locationData = data.copy(locationName = location.name, locationSubtext = location.subtext)
+            val locationData = data.copy(locationName = location.displayName, locationSubtext = location.subtext)
             publish(location.id, locationData)
             fetchAlertsForData(location.latitude, location.longitude)
         }.onFailure { onWeatherFailure(it) }
@@ -644,6 +658,8 @@ class WeatherViewModel @Inject constructor(
         val lat = data.latitude ?: return
         val lon = data.longitude ?: return
         if (data.romanName != null || isLatinScript(data.locationName)) return
+        // A favorite the user renamed keeps their name; there is no other script to offer
+        if (savedLocations.value.find { it.id == cacheKey }?.label != null) return
         viewModelScope.launch {
             val (name, subtext) = weatherRepository.romanPlaceName(lat, lon) ?: return@launch
             val current = (_uiState.value as? WeatherUiState.Success)?.data

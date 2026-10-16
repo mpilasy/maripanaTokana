@@ -8,9 +8,10 @@
 		advancedModeActive
 	} from '$lib/stores/advancedMode';
 	import SavedLocationsDialog from './SavedLocationsDialog.svelte';
+	import RenameLocationDialog from './RenameLocationDialog.svelte';
 	import {
 		showSavedLocationsDialog, openSavedLocationsDialog, activeLocationId, savedLocations, switchToLocation,
-		locationOverride, initLocationOverride, setLocationOverride, favoriteCurrentLocation, unfavoriteCurrentLocation
+		locationOverride, initLocationOverride, setLocationOverride, favoriteCurrentLocation, unfavoriteCurrentLocation, displayName
 	} from '$lib/stores/savedLocations';
 	import { parseLocationText } from '$lib/domain/sharedLocationParser';
 	import { encodePlusCode, findPlusCode } from '$lib/domain/plusCode';
@@ -141,6 +142,10 @@
 	let plusCodeCopied = $state(false);
 	// Location list opened by holding a pager arrow
 	let pickerOpen = $state(false);
+	let renaming = $state(false);
+	const savedById = (id: string | null) => $savedLocations.find((l) => l.id === id);
+	// The favorite on screen (not a preview): holding its name renames it
+	let activeSavedLocation = $derived($locationOverride ? undefined : savedById($activeLocationId));
 	$effect(() => {
 		if (!plusCodeOpen && !pickerOpen) return;
 		const close = () => { plusCodeOpen = false; pickerOpen = false; };
@@ -353,7 +358,8 @@
 			<div class="header">
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
-				<div class="header-main" bind:this={headerEl} onclick={onLocationClicked}>
+				<div class="header-main" bind:this={headerEl} onclick={onLocationClicked}
+					use:longPress={activeSavedLocation ? () => (renaming = true) : null}>
 					<div class="name-row" style:padding-inline-end="{headerActionsWidth}px">
 						<h1 class="location-name">
 							{#if !subtext && name.includes(',')}
@@ -489,7 +495,7 @@
 											<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
 										{/if}
 									</svg>
-									{id === null ? $_('current_location') : ($savedLocations.find((l) => l.id === id)?.name ?? id)}
+									{id === null ? $_('current_location') : (savedById(id) ? displayName(savedById(id)!) : id)}
 								</button>
 							{/each}
 						</div>
@@ -650,6 +656,10 @@
 		</div>
 	{/if}
 </div>
+
+{#if renaming && activeSavedLocation}
+	<RenameLocationDialog location={activeSavedLocation} onclose={() => (renaming = false)} />
+{/if}
 
 {#if $showSavedLocationsDialog}
 	<SavedLocationsDialog />

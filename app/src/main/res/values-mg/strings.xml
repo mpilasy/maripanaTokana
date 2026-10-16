@@ -140,6 +140,10 @@
     <string name="plus_code_copied">Voadika ny Plus Code</string>
     <string name="cd_add_favorite">Ampidiro amin\'ny tiana</string>
     <string name="cd_remove_favorite">Esory amin\'ny tiana</string>
+    <string name="rename_title">Hanova anarana</string>
+    <string name="rename_reset">Averina</string>
+    <string name="rename_cancel">Aoka ihany</string>
+    <string name="rename_save">Tehirizina</string>
     <string name="cd_previous_location">Toerana teo aloha</string>
     <string name="cd_next_location">Toerana manaraka</string>
     <string name="settings_title">Fanamboarana</string>
