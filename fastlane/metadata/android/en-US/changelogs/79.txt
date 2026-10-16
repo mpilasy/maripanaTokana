@@ -1,0 +1,1 @@
+- Hold a favorite's name to rename it ("Home", "Office"). Reset brings back the place name.

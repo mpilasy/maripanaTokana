@@ -1,0 +1,1 @@
+- Maintenez le nom d'un favori pour le renommer (« Maison », « Bureau »). Réinitialiser rétablit le nom du lieu.

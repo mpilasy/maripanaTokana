@@ -6,6 +6,11 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.4.9] - 2026-10-16
+- Holding a favorite's name renames it; the name replaces the place name in the header and the location menu, and Reset (or saving it empty) brings the place name back (Android and web).
+- Fixed (web): with the browser's address bar at the bottom, the page could shift and crop the location name at the top or the footer at the bottom.
+- Fixed (web): switching language while a favorite was shown replaced its name with the GPS location's name.
+
 ## [1.4.8] - 2026-10-14
 - Holding either location-pager arrow lists the current location and all favorites to jump straight to one, including from the end of the list (Android and web).
 - Holding the Plus Code grid icon, or the code in its tooltip, copies the code to the clipboard (Android and web).

@@ -1,7 +1,7 @@
 {
 	"name": "maripanatokana-web",
 	"private": true,
-	"version": "1.4.8",
+	"version": "1.4.9",
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",
@@ -25,7 +25,7 @@
 		"svelte-check": "^4.7.6",
 		"typescript": "^5.9.3",
 		"vite": "^7.3.6",
-		"vitest": "^4.1.11"
+		"vitest": "^4.1.12"
 	},
 	"overrides": {
 		"svelte-i18n": {

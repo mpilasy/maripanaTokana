@@ -1,0 +1,1 @@
+- Mantén pulsado el nombre de un favorito para renombrarlo («Casa», «Oficina»). Restablecer recupera el nombre del lugar.
