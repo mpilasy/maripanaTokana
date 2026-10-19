@@ -2038,13 +2038,26 @@ internal suspend fun combineBitmaps(header: Bitmap, content: Bitmap): Bitmap = w
     val h = softwareBitmap(header)
     val c = softwareBitmap(content)
     val padding = 24
+    // App name, version and site under the content, small and faint
+    val density = android.content.res.Resources.getSystem().displayMetrics.density
+    val footerPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+        color = android.graphics.Color.argb(64, 255, 255, 255)
+        textSize = 10 * density
+        textAlign = android.graphics.Paint.Align.CENTER
+    }
+    val lineHeight = footerPaint.fontSpacing
+    val footerLines = listOf("maripànaTokana v${BuildConfig.VERSION_NAME}", "https://maripana.njarasoa.org")
     val width = maxOf(h.width, c.width) + padding * 2
-    val height = h.height + padding + c.height + padding * 2
+    val height = h.height + padding + c.height + padding * 2 + (lineHeight * footerLines.size).toInt()
     val result = createBitmap(width, height, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(result)
     canvas.drawColor(DarkNavyColorInt)
     canvas.drawBitmap(h, padding.toFloat(), padding.toFloat(), null)
     canvas.drawBitmap(c, padding.toFloat(), (h.height + padding * 2).toFloat(), null)
+    val footerTop = h.height + padding * 2 + c.height + padding / 2f
+    footerLines.forEachIndexed { i, line ->
+        canvas.drawText(line, width / 2f, footerTop + lineHeight * i - footerPaint.ascent(), footerPaint)
+    }
     if (h !== header) h.recycle()
     if (c !== content) c.recycle()
     result

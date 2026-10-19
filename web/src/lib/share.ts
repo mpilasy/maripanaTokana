@@ -1,7 +1,9 @@
+import { version } from '../../package.json';
 const BG_COLOR = '#0E0B3D';
 const PADDING = 32;
 const GAP = 16;
 const COPYRIGHT_FONT_SIZE = 10;
+const SITE_URL = 'https://maripana.njarasoa.org';
 
 const textEncoder = new TextEncoder();
 
@@ -143,7 +145,8 @@ export async function captureAndShare(
 
 	// Composite onto branded canvas
 	const width = Math.max(headerCapture.width, contentCapture.width) + PADDING * 2;
-	const copyrightHeight = COPYRIGHT_FONT_SIZE + PADDING;
+	// Two small lines under the content: app name and version, then the site
+	const copyrightHeight = COPYRIGHT_FONT_SIZE * 4 + 6 + PADDING / 2;
 	const height = PADDING + headerCapture.height + GAP + contentCapture.height + copyrightHeight;
 
 	const canvas = document.createElement('canvas');
@@ -161,16 +164,14 @@ export async function captureAndShare(
 	// Content (the shared section)
 	ctx.drawImage(contentCapture, PADDING, PADDING + headerCapture.height + GAP);
 
-	// Copyright watermark
+	// App name, version and site, faint and small (canvas is drawn at scale 2)
 	ctx.fillStyle = 'rgba(255,255,255,0.25)';
 	ctx.font = `${COPYRIGHT_FONT_SIZE * 2}px system-ui, sans-serif`;
 	ctx.textAlign = 'center';
 	ctx.textBaseline = 'top';
-	ctx.fillText(
-		'© Orinasa Njarasoa • maripanaTokana',
-		width / 2,
-		height - copyrightHeight + PADDING / 4
-	);
+	const footerTop = height - copyrightHeight + PADDING / 4;
+	ctx.fillText(`maripànaTokana v${version}`, width / 2, footerTop);
+	ctx.fillText(SITE_URL, width / 2, footerTop + COPYRIGHT_FONT_SIZE * 2 + 6);
 
 	// Export as PNG blob, then stamp the share time into EXIF (no GPS/location)
 	const rawBlob = await new Promise<Blob>((resolve) =>
