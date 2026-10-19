@@ -169,6 +169,15 @@ export function renameSavedLocation(id: string, label: string | null) {
 	keepShownWeather();
 }
 
+/** Keeps a favorite's region and country line in the language last looked up, so its list and next load match. */
+export function setSavedLocationSubtext(id: string, subtext: string) {
+	const current = get(savedLocations);
+	if (current.find((l) => l.id === id)?.subtext === subtext) return;
+	const updated = current.map((l) => (l.id === id ? { ...l, subtext } : l));
+	savedLocations.set(updated);
+	persistSavedLocations(updated);
+}
+
 /** Swaps the name of the place on screen, dropping its Latin-letter version, which belonged to the old name. */
 function showLocationName(name: string) {
 	weatherState.update((s) =>

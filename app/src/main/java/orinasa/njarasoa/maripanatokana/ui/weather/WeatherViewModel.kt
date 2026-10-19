@@ -408,7 +408,10 @@ class WeatherViewModel @Inject constructor(
 
     private suspend fun fetchForSavedLocation(location: SavedLocation) {
         weatherRepository.getWeather(location.latitude, location.longitude).onSuccess { data ->
-            val locationData = data.copy(locationName = location.displayName, locationSubtext = location.subtext)
+            // The fetch looked the place up in the current language: the favorite keeps its name (or the
+            // user's own) but takes the fresh region and country line, falling back to the saved one
+            data.locationSubtext?.let { setSavedLocationSubtext(location.id, it) }
+            val locationData = data.copy(locationName = location.displayName, locationSubtext = data.locationSubtext ?: location.subtext)
             publish(location.id, locationData)
             fetchAlertsForData(location.latitude, location.longitude)
         }.onFailure { onWeatherFailure(it) }
@@ -430,6 +433,42 @@ class WeatherViewModel @Inject constructor(
         val newIndex = (_localeIndex.value + 1) % supportedLocales.size
         _localeIndex.value = newIndex
         prefs.edit { putInt("locale_index", newIndex) }
+        relocalizePlaceName()
+    }
+
+    /**
+     * After a language change, looks the shown place up again in the new language: a favorite takes the new
+     * region and country line (keeping its own name), the GPS place its new name. A place typed in through
+     * the advanced override keeps the name it was given.
+     */
+    private fun relocalizePlaceName() {
+        val data = (_uiState.value as? WeatherUiState.Success)?.data ?: return
+        val lat = data.latitude ?: return
+        val lon = data.longitude ?: return
+        if (_advancedOverrideLat.value != null) return
+        val favoriteId = _activeLocationId.value
+        viewModelScope.launch {
+            val (name, subtext) = weatherRepository.localPlaceName(lat, lon) ?: return@launch
+            val current = (_uiState.value as? WeatherUiState.Success)?.data
+            if (current?.latitude != lat || current.longitude != lon || _activeLocationId.value != favoriteId) return@launch
+            val updated = if (favoriteId != null) {
+                if (subtext == null) return@launch
+                setSavedLocationSubtext(favoriteId, subtext)
+                current.copy(locationSubtext = subtext)
+            } else {
+                current.copy(locationName = name, romanName = null, romanSubtext = null)
+            }
+            publish(favoriteId ?: "gps", updated)
+        }
+    }
+
+    /** Keeps a favorite's region and country line in the language last looked up, so its next load matches. */
+    private fun setSavedLocationSubtext(id: String, subtext: String) {
+        val current = _savedLocations.value
+        if (current.find { it.id == id }?.subtext == subtext) return
+        val updated = current.map { if (it.id == id) it.copy(subtext = subtext) else it }
+        _savedLocations.value = updated
+        persistSavedLocations(updated)
     }
 
     /** Spawn a background GPS weather fetch to cache for when override is cleared */

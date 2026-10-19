@@ -13,4 +13,6 @@ interface WeatherRepository {
     suspend fun searchLocation(query: String): Result<List<GeocodingResult>>
     /** Place name and region in Latin letters, or null when the geocoder has none. */
     suspend fun romanPlaceName(lat: Double, lon: Double): Pair<String, String?>?
+    /** The place's name and region/country line in the app's current language, or null when the lookup fails. */
+    suspend fun localPlaceName(lat: Double, lon: Double): Pair<String, String?>?
 }

@@ -21,7 +21,7 @@ import {
 	alertsBomEnabled, alertsNhcEnabled,
 } from '$lib/stores/preferences';
 import { SUPPORTED_LOCALES } from '$lib/i18n/locales';
-import { activeLocationId, savedLocations, locationOverride, checkOverrideExpiry, displayName } from '$lib/stores/savedLocations';
+import { activeLocationId, savedLocations, locationOverride, checkOverrideExpiry, displayName, setSavedLocationSubtext } from '$lib/stores/savedLocations';
 
 export type WeatherState =
 	| { kind: 'loading' }
@@ -246,8 +246,12 @@ export async function doFetchWeather() {
 		if (activeSavedId) {
 			const savedLocation = get(savedLocations).find((l) => l.id === activeSavedId);
 			if (savedLocation) {
-				const data = await fetchAtLocation(savedLocation.latitude, savedLocation.longitude, displayName(savedLocation), savedLocation.subtext);
+				// The region and country are looked up again in the current language; the favorite keeps its
+				// name (or the user's own) and falls back to the saved line when the lookup fails
+				const looked = await fetchAtLocation(savedLocation.latitude, savedLocation.longitude, undefined, undefined, SUPPORTED_LOCALES[get(localeIndex)]?.tag);
 				if (gen !== fetchGeneration) return;
+				if (looked.locationSubtext) setSavedLocationSubtext(savedLocation.id, looked.locationSubtext);
+				const data = { ...looked, locationName: displayName(savedLocation), locationSubtext: looked.locationSubtext ?? savedLocation.subtext };
 				setWeatherData(data);
 				isRefreshing.set(false);
 				return;
@@ -327,8 +331,15 @@ export async function doFetchWeather() {
 }
 
 export async function updateLocationName(localeTag: string) {
-	// A favorite keeps the name it was saved with (or the user's own)
-	if (activeSavedLocation()) return;
+	// A favorite keeps the name it was saved with (or the user's own); only its region and country follow the language
+	const favorite = activeSavedLocation();
+	if (favorite) {
+		const location = await reverseGeocode(favorite.latitude, favorite.longitude, localeTag);
+		if (!location.subtext || activeSavedLocation()?.id !== favorite.id) return;
+		setSavedLocationSubtext(favorite.id, location.subtext);
+		weatherState.update((s) => (s.kind === 'success' ? { ...s, data: { ...s.data, locationSubtext: location.subtext } } : s));
+		return;
+	}
 	// Use advanced mode override coordinates if present (read from localStorage, not the store, to
 	// avoid stale state). This prevents language switches from reverse-geocoding real GPS coordinates.
 	const overrideLat = typeof localStorage !== 'undefined' ? localStorage.getItem('advanced_override_lat') : null;

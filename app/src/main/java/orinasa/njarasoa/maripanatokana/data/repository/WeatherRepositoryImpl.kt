@@ -82,6 +82,15 @@ class WeatherRepositoryImpl @Inject constructor(
         null
     }
 
+    override suspend fun localPlaceName(lat: Double, lon: Double): Pair<String, String?>? = try {
+        geocodingSelector.current().reverseGeocode(lat, lon, currentLocale())
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        AppLog.w(TAG, "local reverse geocode failed", e)
+        null
+    }
+
     /** A full code is its own location; a short one is resolved near the place named with it. */
     private suspend fun searchPlusCode(match: PlusCode.Match): List<GeocodingResult> {
         if (match.isFull) {
