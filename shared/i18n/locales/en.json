@@ -72,7 +72,7 @@
 	"chart_daily_temperature_summary": "Daily temperatures: highest {high}, lowest {low}",
 	"alert_sources_unavailable": "Alert sources unavailable: {sources}",
 	"last_known_location": "Using last known location",
-	"updated_time": "🕒 Updated: {time}",
+	"updated_time": "Updated: {time}",
 	"feels_like": "Feels Like",
 	"no_precip": "No precip",
 	"section_current_conditions": "Current Conditions",

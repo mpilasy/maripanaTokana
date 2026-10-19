@@ -49,7 +49,7 @@
     <string name="chart_daily_temperature_summary">Daily temperatures: highest %1$s, lowest %2$s</string>
     <string name="alert_sources_unavailable">Alert sources unavailable: %1$s</string>
     <string name="last_known_location">Using last known location</string>
-    <string name="updated_time">&#x1f552; Updated: %1$s</string>
+    <string name="updated_time">Updated: %1$s</string>
     <string name="feels_like">Feels Like</string>
     <string name="no_precip">No precip</string>
     <string name="section_current_conditions">Current Conditions</string>

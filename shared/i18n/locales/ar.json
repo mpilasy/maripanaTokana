@@ -72,7 +72,7 @@
 	"chart_daily_temperature_summary": "درجات الحرارة اليومية: الأعلى {high}، الأدنى {low}",
 	"alert_sources_unavailable": "مصادر التنبيهات غير متاحة: {sources}",
 	"last_known_location": "استخدام آخر موقع معروف",
-	"updated_time": "🕒 تم التحديث: {time}",
+	"updated_time": "تم التحديث: {time}",
 	"feels_like": "الإحساس بالحرارة",
 	"no_precip": "لا هطول",
 	"section_current_conditions": "الأحوال الحالية",

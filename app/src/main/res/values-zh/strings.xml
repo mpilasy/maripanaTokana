@@ -49,7 +49,7 @@
     <string name="chart_daily_temperature_summary">每日气温：最高 %1$s，最低 %2$s</string>
     <string name="alert_sources_unavailable">预警来源不可用：%1$s</string>
     <string name="last_known_location">正在使用上次已知位置</string>
-    <string name="updated_time">&#x1f552; 已更新: %1$s</string>
+    <string name="updated_time">已更新: %1$s</string>
     <string name="feels_like">体感温度</string>
     <string name="no_precip">无降水</string>
     <string name="section_current_conditions">当前状况</string>

@@ -455,6 +455,16 @@ internal fun WeatherContent(
                         onClickLabel = stringResource(R.string.cd_refresh),
                     ),
                 ) {
+                    // The fetch time is the phone's; marked as such when the place keeps another time
+                    if (isRemoteTimezone(data.utcOffsetSeconds)) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_device_phone),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                            modifier = Modifier.size(13.sd(scale)),
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                    }
                     Text(
                         text = stringResource(R.string.updated_time, localizeDigits(
                             if (android.text.format.DateUtils.isToday(data.timestamp)) screenTimeFormat.format(Date(data.timestamp))

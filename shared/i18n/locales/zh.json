@@ -72,7 +72,7 @@
 	"chart_daily_temperature_summary": "每日气温：最高 {high}，最低 {low}",
 	"alert_sources_unavailable": "预警来源不可用：{sources}",
 	"last_known_location": "正在使用上次已知位置",
-	"updated_time": "🕒 已更新: {time}",
+	"updated_time": "已更新: {time}",
 	"feels_like": "体感温度",
 	"no_precip": "无降水",
 	"section_current_conditions": "当前状况",
