@@ -69,7 +69,7 @@ internal fun WidgetError(hasCachedLocation: Boolean = false) {
     Box(
         modifier = GlanceModifier
             .fillMaxSize()
-            .background(ImageProvider(R.drawable.widget_background))
+            .background(widgetImage(context, R.drawable.widget_background))
             .clickable(actionStartActivity(Intent(context, MainActivity::class.java)))
             .padding(16.dp),
         contentAlignment = Alignment.Center,
@@ -106,9 +106,9 @@ private fun WeatherWidgetContent(data: WeatherData, metricPrimary: Boolean) {
     Box(
         modifier = GlanceModifier
             .fillMaxSize()
-            .background(ImageProvider(R.drawable.widget_background))
+            .background(widgetImage(context, R.drawable.widget_background))
             .clickable(actionStartActivity(Intent(context, MainActivity::class.java)))
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 6.dp),
     ) {
         Column(
             modifier = GlanceModifier.fillMaxSize(),
@@ -152,7 +152,7 @@ private fun WeatherWidgetContent(data: WeatherData, metricPrimary: Boolean) {
                     )
                     Spacer(modifier = GlanceModifier.width(4.dp))
                     Image(
-                        provider = ImageProvider(R.drawable.ic_refresh),
+                        provider = widgetImage(context, R.drawable.ic_refresh),
                         contentDescription = context.getString(R.string.cd_refresh),
                         modifier = GlanceModifier.size(12.dp),
                         colorFilter = androidx.glance.ColorFilter.tint(WidgetColorProviders.onSurfaceVariant)
@@ -160,7 +160,7 @@ private fun WeatherWidgetContent(data: WeatherData, metricPrimary: Boolean) {
                 }
             }
 
-            Spacer(modifier = GlanceModifier.height(4.dp))
+            Spacer(modifier = GlanceModifier.height(2.dp))
 
             // -- Bottom row: dual-unit temp + description --
             Row(
@@ -185,9 +185,9 @@ private fun WeatherWidgetContent(data: WeatherData, metricPrimary: Boolean) {
                 )
                 Spacer(modifier = GlanceModifier.width(12.dp))
                 Image(
-                    provider = ImageProvider(weatherIconRes(data.weatherCode, night = data.timestamp !in (data.sunrise * 1000)..(data.sunset * 1000))),
+                    provider = widgetImage(context, weatherIconRes(data.weatherCode, night = data.timestamp !in (data.sunrise * 1000)..(data.sunset * 1000))),
                     contentDescription = null,
-                    modifier = GlanceModifier.size(28.dp),
+                    modifier = GlanceModifier.size(24.dp),
                 )
                 Spacer(modifier = GlanceModifier.width(2.dp))
                 Text(

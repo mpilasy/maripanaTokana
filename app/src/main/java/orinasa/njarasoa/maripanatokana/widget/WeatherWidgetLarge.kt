@@ -82,7 +82,7 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
     Box(
         modifier = GlanceModifier
             .fillMaxSize()
-            .background(ImageProvider(R.drawable.widget_background))
+            .background(widgetImage(context, R.drawable.widget_background))
             .clickable(actionStartActivity(Intent(context, MainActivity::class.java)))
             .padding(horizontal = 16.dp, vertical = 8.dp),
     ) {
@@ -127,7 +127,7 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
                     )
                     Spacer(modifier = GlanceModifier.width(4.dp))
                     Image(
-                        provider = ImageProvider(R.drawable.ic_refresh),
+                        provider = widgetImage(context, R.drawable.ic_refresh),
                         contentDescription = context.getString(R.string.cd_refresh),
                         modifier = GlanceModifier.size(12.dp),
                         colorFilter = androidx.glance.ColorFilter.tint(WidgetColorProviders.onSurfaceVariant)
@@ -160,7 +160,7 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
                 )
                 Spacer(modifier = GlanceModifier.width(12.dp))
                 Image(
-                    provider = ImageProvider(weatherIconRes(data.weatherCode, night = data.timestamp !in (data.sunrise * 1000)..(data.sunset * 1000))),
+                    provider = widgetImage(context, weatherIconRes(data.weatherCode, night = data.timestamp !in (data.sunrise * 1000)..(data.sunset * 1000))),
                     contentDescription = null,
                     modifier = GlanceModifier.size(28.dp),
                 )
@@ -230,7 +230,7 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
                                 ),
                             )
                             Image(
-                                provider = ImageProvider(weatherIconRes(day.weatherCode, night = false)),
+                                provider = widgetImage(context, weatherIconRes(day.weatherCode, night = false)),
                                 contentDescription = null,
                                 modifier = GlanceModifier.size(30.dp),
                             )
