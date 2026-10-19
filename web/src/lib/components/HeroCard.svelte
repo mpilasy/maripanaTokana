@@ -88,7 +88,8 @@
 						<span class="next-time">{loc(formatHourAtLocation(hour.time, data.utcOffsetSeconds))}</span>
 						<!-- The phone's own time too when the place is in another time zone, as in the hourly cards -->
 						{#if isRemoteTimezone(data.utcOffsetSeconds)}
-							<span class="next-device-time">📱 {loc(formatHourInDeviceTime(hour.time))}</span>
+							<!-- The time is centred under the place's time; the phone icon hangs off its side -->
+							<span class="next-device-time">{loc(formatHourInDeviceTime(hour.time))}<span class="next-device-icon" aria-hidden="true">📱</span></span>
 						{/if}
 						<WeatherIcon code={hour.weatherCode} night={isNightAt(hour.time)} size={40} />
 						<DualUnitText primary={loc(hour.temperature.displayDual(metricPrimary)[0])} secondary={loc(hour.temperature.displayDual(metricPrimary)[1])} primarySize="15px" align="center" onClick={onToggleUnits} />
@@ -205,10 +206,18 @@
 	}
 
 	.next-device-time {
+		position: relative;
 		margin-top: -4px;
 		font-size: 9px;
 		color: rgba(255,255,255,0.35);
 		font-feature-settings: var(--font-features);
+	}
+
+	.next-device-icon {
+		position: absolute;
+		inset-inline-end: 100%;
+		margin-inline-end: 3px;
+		font-size: 8px;
 	}
 
 	.next-time {

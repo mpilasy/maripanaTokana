@@ -106,6 +106,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
@@ -1128,12 +1129,27 @@ private fun NextHoursStrip(data: WeatherData, metricPrimary: Boolean, localizeDi
                 )
                 // The phone's own time too when the place is in another time zone, as in the hourly cards
                 if (isRemoteTimezone(data.utcOffsetSeconds)) {
-                    Text(
-                        text = "\uD83D\uDCF1 " + localizeDigits(formatHourInDeviceTime(hour.time)),
-                        fontSize = 9f.s(scale),
-                        fontFamily = bodyFont,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
-                    )
+                    // The time is centred under the place's time; the phone icon hangs off its side
+                    Box {
+                        Text(
+                            text = localizeDigits(formatHourInDeviceTime(hour.time)),
+                            fontSize = 9f.s(scale),
+                            fontFamily = bodyFont,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
+                        )
+                        Text(
+                            text = "\uD83D\uDCF1",
+                            fontSize = 8f.s(scale),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
+                            modifier = Modifier
+                                .align(Alignment.CenterStart)
+                                .layout { m, c ->
+                                    val p = m.measure(c.copy(minWidth = 0))
+                                    // Zero width in the layout, drawn just to the left of the time
+                                    layout(0, p.height) { p.place(-p.width - 3.dp.roundToPx(), 0) }
+                                },
+                        )
+                    }
                 }
                 val dayIdx = data.dailySunrise.indexOfLast { it <= hour.time }.coerceAtLeast(0)
                 val isNight = hour.time !in data.dailySunrise.getOrElse(dayIdx) { 0L }..data.dailySunset.getOrElse(dayIdx) { 0L }
