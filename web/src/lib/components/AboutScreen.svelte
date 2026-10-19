@@ -24,6 +24,10 @@
 		<span class="copyright">© 2026 Orinasa Njarasoa</span>
 		<span class="app-license">{$_('about_app_license')}</span>
 		<a class="source-link" href="https://github.com/mpilasy/maripanaTokana" target="_blank" rel="noopener">{$_('about_source_code')} ↗</a>
+		<a class="source-link web-link" href="https://maripana.njarasoa.org" target="_blank" rel="noopener">
+			{$_('about_web_version')} ↗
+			<span class="web-url">maripana.njarasoa.org</span>
+		</a>
 	</div>
 
 	{#if deviceRows.length > 0}
@@ -107,6 +111,20 @@
 
 	.source-link:hover {
 		background: var(--surface-tile);
+	}
+
+	.web-link {
+		margin-top: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		border-radius: 16px;
+	}
+
+	.web-url {
+		font-size: 12px;
+		font-weight: 400;
+		color: rgba(255, 255, 255, 0.55);
 	}
 
 	.device-row {

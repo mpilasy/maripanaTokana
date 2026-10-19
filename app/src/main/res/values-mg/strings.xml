@@ -181,6 +181,7 @@
     <string name="about_row_desc">Loharanon-drakitra, tranomboky ary fahazoan-dalana</string>
     <string name="about_app_license">Rindrankajy malalaka sy misokatra, fahazoan-dalana MIT</string>
     <string name="about_source_code">Kaody loharano</string>
+    <string name="about_web_version">Amin\'ny tranonkala</string>
     <string name="about_section_weather">Angona momba ny toetr\'andro</string>
     <string name="about_section_air_quality">Hadion\'ny rivotra</string>
     <string name="about_section_geocoding">Anaran-toerana sy fitadiavana</string>

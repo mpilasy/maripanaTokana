@@ -181,6 +181,7 @@
     <string name="about_row_desc">数据来源、开源库与许可</string>
     <string name="about_app_license">基于 MIT 许可的自由开源软件</string>
     <string name="about_source_code">源代码</string>
+    <string name="about_web_version">网页版</string>
     <string name="about_section_weather">天气数据</string>
     <string name="about_section_air_quality">空气质量</string>
     <string name="about_section_geocoding">地名与搜索</string>

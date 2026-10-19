@@ -192,6 +192,25 @@ fun AboutScreen(onBack: () -> Unit) {
                         .clickable(role = Role.Button) { uriHandler.openUri("https://github.com/mpilasy/maripanaTokana") }
                         .padding(horizontal = 12.dp, vertical = 6.dp),
                 )
+                // The same app in a browser, nothing to install
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .clickable(role = Role.Button) { uriHandler.openUri("https://maripana.njarasoa.org") }
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.about_web_version) + " ↗",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    Text(
+                        text = "maripana.njarasoa.org",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                    )
+                }
             }
         }
 

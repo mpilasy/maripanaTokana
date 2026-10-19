@@ -181,6 +181,7 @@
     <string name="about_row_desc">डेटा स्रोत, लाइब्रेरी र इजाजतपत्र</string>
     <string name="about_app_license">MIT इजाजतपत्र अन्तर्गत निःशुल्क र खुला स्रोत सफ्टवेयर</string>
     <string name="about_source_code">स्रोत कोड</string>
+    <string name="about_web_version">वेबमा</string>
     <string name="about_section_weather">मौसम डेटा</string>
     <string name="about_section_air_quality">वायुको गुणस्तर</string>
     <string name="about_section_geocoding">स्थानका नाम र खोज</string>

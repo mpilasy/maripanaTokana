@@ -181,6 +181,7 @@
     <string name="about_row_desc">Sources de données, bibliothèques et licences</string>
     <string name="about_app_license">Logiciel libre et open source sous licence MIT</string>
     <string name="about_source_code">Code source</string>
+    <string name="about_web_version">Sur le web</string>
     <string name="about_section_weather">Données météo</string>
     <string name="about_section_air_quality">Qualité de l\'air</string>
     <string name="about_section_geocoding">Noms de lieux et recherche</string>
