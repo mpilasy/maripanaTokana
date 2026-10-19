@@ -1,0 +1,1 @@
+- El recuadro del índice UV ahora tiene un dial de cinco niveles como la calidad del aire, con un punto en el valor actual.

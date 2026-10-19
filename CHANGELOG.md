@@ -6,6 +6,9 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.5.7] - 2026-10-19
+- The UV index tile shows a five-level dial (Low to Extreme) like the air-quality tile, the dot at the reading's place within its level, replacing the badge and dots (Android and web).
+
 ## [1.5.6] - 2026-10-19
 - About page: a new "This device" section lists what the system reports: model, system version, screen, pixel density, text size, languages (the device's and the app's), time zone, processor, memory, touch, where the app was installed from and the app build (Android and web). No hardware identifiers.
 

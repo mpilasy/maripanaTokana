@@ -1,0 +1,1 @@
+- The UV index tile now has a five-level dial like air quality, with a dot at the current reading.

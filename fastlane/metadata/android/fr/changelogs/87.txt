@@ -1,0 +1,1 @@
+- La tuile de l'indice UV a désormais un cadran à cinq niveaux comme la qualité de l'air, avec un point sur la valeur actuelle.
