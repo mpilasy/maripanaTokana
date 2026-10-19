@@ -36,7 +36,7 @@ import androidx.glance.text.TextStyle
 import orinasa.njarasoa.maripanatokana.MainActivity
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.data.remote.wmoDescriptionRes
-import orinasa.njarasoa.maripanatokana.data.remote.wmoEmoji
+import orinasa.njarasoa.maripanatokana.ui.weather.components.weatherIconRes
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.widget.theme.WidgetColorProviders
 import java.text.SimpleDateFormat
@@ -184,12 +184,19 @@ private fun WeatherWidgetContent(data: WeatherData, metricPrimary: Boolean) {
                     ),
                 )
                 Spacer(modifier = GlanceModifier.width(12.dp))
+                Image(
+                    provider = ImageProvider(weatherIconRes(data.weatherCode, night = data.timestamp !in (data.sunrise * 1000)..(data.sunset * 1000))),
+                    contentDescription = null,
+                    modifier = GlanceModifier.size(28.dp),
+                )
+                Spacer(modifier = GlanceModifier.width(2.dp))
                 Text(
-                    text = "${wmoEmoji(data.weatherCode)} ${context.getString(wmoDescriptionRes(data.weatherCode))}",
+                    text = context.getString(wmoDescriptionRes(data.weatherCode)),
                     style = TextStyle(
                         color = WidgetColorProviders.onSurfaceVariant,
                         fontSize = 12.sp,
                     ),
+                    maxLines = 1,
                 )
             }
         }

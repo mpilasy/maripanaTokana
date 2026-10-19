@@ -36,7 +36,7 @@ import androidx.glance.text.TextStyle
 import orinasa.njarasoa.maripanatokana.MainActivity
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.data.remote.wmoDescriptionRes
-import orinasa.njarasoa.maripanatokana.data.remote.wmoEmoji
+import orinasa.njarasoa.maripanatokana.ui.weather.components.weatherIconRes
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.widget.theme.WidgetColorProviders
 import java.text.SimpleDateFormat
@@ -159,12 +159,19 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
                     ),
                 )
                 Spacer(modifier = GlanceModifier.width(12.dp))
+                Image(
+                    provider = ImageProvider(weatherIconRes(data.weatherCode, night = data.timestamp !in (data.sunrise * 1000)..(data.sunset * 1000))),
+                    contentDescription = null,
+                    modifier = GlanceModifier.size(28.dp),
+                )
+                Spacer(modifier = GlanceModifier.width(2.dp))
                 Text(
-                    text = "${wmoEmoji(data.weatherCode)} ${context.getString(wmoDescriptionRes(data.weatherCode))}",
+                    text = context.getString(wmoDescriptionRes(data.weatherCode)),
                     style = TextStyle(
                         color = WidgetColorProviders.onSurfaceVariant,
                         fontSize = 12.sp,
                     ),
+                    maxLines = 1,
                 )
             }
 
@@ -208,7 +215,6 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
                 ) {
                     for (day in forecasts) {
                         val dayName = widgetDayName(day.date, data.utcOffsetSeconds, appLocale)
-                        val emoji = wmoEmoji(day.weatherCode)
                         val (hi, hiS) = day.tempMax.displayDual(metricPrimary)
                         val (lo, loS) = day.tempMin.displayDual(metricPrimary)
                         Column(
@@ -223,9 +229,10 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
                                     fontWeight = FontWeight.Bold,
                                 ),
                             )
-                            Text(
-                                text = emoji,
-                                style = TextStyle(fontSize = 14.sp),
+                            Image(
+                                provider = ImageProvider(weatherIconRes(day.weatherCode, night = false)),
+                                contentDescription = null,
+                                modifier = GlanceModifier.size(30.dp),
                             )
                             Text(
                                 text = ltr("$lo / $hi"),
@@ -237,7 +244,7 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
                             Text(
                                 text = ltr("$loS / $hiS"),
                                 style = TextStyle(
-                                    color = WidgetColorProviders.onSurface,
+                                    color = WidgetColorProviders.onSurfaceVariant,
                                     fontSize = 8.sp,
                                 ),
                             )
