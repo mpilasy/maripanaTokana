@@ -39,6 +39,8 @@ internal fun OverviewChart(
     modifier: Modifier = Modifier,
     height: Dp = 48.dp,
     style: OverviewStyle = OverviewStyle.LINE,
+    // Scale from zero, with zero on the bottom edge: for amounts where 0 means none (wind, UV, AQI)
+    fromZero: Boolean = false,
     color: Color = Color.White,
     // One color per point, e.g. by tier; overrides [color] for the dots and bars
     pointColors: List<Color>? = null,
@@ -50,9 +52,11 @@ internal fun OverviewChart(
     val displayFont = LocalDisplayFont.current
     val valid = values.filterNotNull().filter { it.isFinite() }
     val max = valid.maxOrNull() ?: 0.0
-    val min = if (style == OverviewStyle.BARS) 0.0 else valid.minOrNull() ?: 0.0
+    val zeroBased = style == OverviewStyle.BARS || fromZero
+    val min = if (zeroBased) 0.0 else valid.minOrNull() ?: 0.0
+    val lowest = valid.minOrNull() ?: 0.0
     val highIndex = values.indexOfFirst { it == max }
-    val lowIndex = values.indexOfFirst { it == min }
+    val lowIndex = values.indexOfFirst { it == lowest }
 
     Column(modifier = modifier) {
         legend?.let { TierLegend(it, modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp)) }
@@ -64,7 +68,7 @@ internal fun OverviewChart(
             val xScale = if (totalScrollWidth > 0f) w / totalScrollWidth else 1f
             fun xFor(i: Int) = (i * (itemWidth.toPx() + spacing.toPx()) + itemWidth.toPx() / 2) * xScale
             fun yFor(v: Double): Float {
-                val bottom = if (style == OverviewStyle.BARS) h else h - pad
+                val bottom = if (zeroBased) h - 1.5.dp.toPx() else h - pad
                 return if (max > min) (bottom - (v - min) / (max - min) * (bottom - pad)).toFloat() else (bottom + pad) / 2
             }
             fun colorAt(i: Int) = pointColors?.getOrNull(i) ?: color
@@ -106,7 +110,11 @@ internal fun OverviewChart(
                 }
                 points.forEach { (i, p) -> drawCircle(colorAt(i), 3.dp.toPx(), p) }
                 if (highLabel != null && highIndex >= 0) drawLabel(highLabel, highIndex, yFor(max) - 14.dp.toPx())
-                if (lowLabel != null && lowIndex >= 0 && max > min) drawLabel(lowLabel, lowIndex, yFor(min) + 3.dp.toPx())
+                if (zeroBased) drawLine(Color.White.copy(alpha = 0.2f), Offset(0f, h - 0.5f), Offset(w, h - 0.5f), 1.dp.toPx())
+                // Below the point, or above it when the point sits on the zero line
+                if (lowLabel != null && lowIndex >= 0 && max > lowest) {
+                    drawLabel(lowLabel, lowIndex, if (zeroBased) yFor(lowest) - 14.dp.toPx() else yFor(lowest) + 3.dp.toPx())
+                }
             }
 
             // Viewport overlay: dim the parts outside the currently visible window

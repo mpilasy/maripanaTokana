@@ -14,8 +14,14 @@
 <style>
 	/* EPA UV Index color scale (epa.gov/sunsafety/uv-index-scale-0): Green/Yellow/Orange/Red/Violet.
 	   Thresholds match the Low/Moderate/High/Very High/Extreme bands used for uv_labels elsewhere. */
+	/* One line always; in a narrow forecast card the label is cut short rather than wrapped */
 	.uv-badge {
 		display: inline-block;
+		max-width: 100%;
+		box-sizing: border-box;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 		padding: 2px 8px;
 		border-radius: 999px;
 		font-size: 12px;

@@ -24,7 +24,8 @@ fun UvTierBadge(
     label: String,
     modifier: Modifier = Modifier,
     fontSize: TextUnit = 12.sp,
+    singleLine: Boolean = false,
 ) {
     val colors = colorsFor(uvIndex)
-    TierPill(label = label, background = colors.background, foreground = colors.text, modifier = modifier, fontSize = fontSize)
+    TierPill(label = label, background = colors.background, foreground = colors.text, modifier = modifier, fontSize = fontSize, singleLine = singleLine)
 }

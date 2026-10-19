@@ -3,7 +3,12 @@ package orinasa.njarasoa.maripanatokana.ui.weather.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.Text
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,9 +37,10 @@ fun AqiTierBadge(
     label: String,
     modifier: Modifier = Modifier,
     fontSize: TextUnit = 12.sp,
+    singleLine: Boolean = false,
 ) {
     val colors = colorsFor(tier)
-    TierPill(label = label, background = colors.background, foreground = colors.text, modifier = modifier, fontSize = fontSize)
+    TierPill(label = label, background = colors.background, foreground = colors.text, modifier = modifier, fontSize = fontSize, singleLine = singleLine)
 }
 
 /** Shared pill styling for tier badges (AQI, UV Index, ...). */
@@ -45,7 +51,23 @@ internal fun TierPill(
     foreground: Color,
     modifier: Modifier = Modifier,
     fontSize: TextUnit = 12.sp,
+    // In narrow forecast cards: stay on one line, shrinking the text to fit before cutting it short
+    singleLine: Boolean = false,
 ) {
+    if (singleLine) {
+        BasicText(
+            text = label,
+            style = TextStyle(color = foreground, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            autoSize = TextAutoSize.StepBased(minFontSize = 8.sp, maxFontSize = fontSize),
+            modifier = modifier
+                .padding(horizontal = 4.dp)
+                .background(background, RoundedCornerShape(50))
+                .padding(horizontal = 6.dp, vertical = 2.dp),
+        )
+        return
+    }
     Text(
         text = label,
         color = foreground,

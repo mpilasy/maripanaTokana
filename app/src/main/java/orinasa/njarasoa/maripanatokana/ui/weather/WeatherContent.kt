@@ -1161,7 +1161,7 @@ internal fun HourlyForecastRow(
     val isRemote = isRemoteTimezone(utcOffsetSeconds)
 
     val scrollState = rememberScrollState()
-    val itemWidth = 72.sd(scale)
+    val itemWidth = 80.sd(scale)
     val itemSpacing = 12.sd(scale)
     val density = LocalDensity.current
     val totalScrollWidthPx = with(density) {
@@ -1299,7 +1299,7 @@ internal fun HourlyForecastRow(
                                         fontFamily = LocalDisplayFont.current,
                                         color = MaterialTheme.colorScheme.onSurface,
                                     )
-                                    UvTierBadge(uvIndex = uv, label = uvLabels[uvTierIndex(uv)], fontSize = 11.sp)
+                                    UvTierBadge(uvIndex = uv, label = uvLabels[uvTierIndex(uv)], fontSize = 11.sp, singleLine = true)
                                 } else {
                                     Text(text = "--", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                                 }
@@ -1317,7 +1317,7 @@ internal fun HourlyForecastRow(
                                         secondaryUnit = if (european) usAqiLabel else euAqiLabel,
                                     )
                                     val tier = aq.tier(aqiStandard)
-                                    AqiTierBadge(tier = tier, label = aqiTierLabels[tier.ordinal], fontSize = 11.sp)
+                                    AqiTierBadge(tier = tier, label = aqiTierLabels[tier.ordinal], fontSize = 11.sp, singleLine = true)
                                 } else {
                                     Text(text = "--", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                                 }
@@ -1366,7 +1366,7 @@ internal fun HourlyForecastRow(
                         val values = forecasts.map { if (metricPrimary) it.windSpeed.metersPerSecond else it.windSpeed.mph }
                         val (hi, lo) = extremes(values) { forecasts[it].windSpeed.displayDual(metricPrimary) }
                         OverviewChart(values, itemWidth, itemSpacing, scrollState.value.toFloat(), totalScrollWidthPx, chartModifier,
-                            height = 48.sd(scale), color = AppDarkPrimary, highLabel = dual(hi), lowLabel = dual(lo))
+                            height = 48.sd(scale), fromZero = true, color = AppDarkPrimary, highLabel = dual(hi), lowLabel = dual(lo))
                     }
                     ForecastDisplayMode.Precipitation -> {
                         val values = forecasts.map { it.precipitation.mm }
@@ -1384,7 +1384,7 @@ internal fun HourlyForecastRow(
                         val values = forecasts.map { it.uvIndex }
                         val (hi, lo) = extremes(values) { localizeDigits("UV %.1f".format(Locale.US, forecasts[it].uvIndex)) }
                         OverviewChart(values, itemWidth, itemSpacing, scrollState.value.toFloat(), totalScrollWidthPx, chartModifier,
-                            height = 48.sd(scale),
+                            height = 48.sd(scale), fromZero = true,
                             pointColors = values.map { uv -> uv?.let { colorsFor(it).background } ?: Color.Transparent },
                             highLabel = hi, lowLabel = lo,
                             legend = listOf(1.0, 4.0, 7.0, 9.0, 11.0).mapIndexed { k, sample -> colorsFor(sample).background to uvLabels[k] })
@@ -1395,7 +1395,7 @@ internal fun HourlyForecastRow(
                             aqByHour[i]?.let { aq -> aqDual(aq).let { (p, s) -> "$p ${if (european) euAqiLabel else usAqiLabel} · $s ${if (european) usAqiLabel else euAqiLabel}" } }
                         }
                         OverviewChart(values, itemWidth, itemSpacing, scrollState.value.toFloat(), totalScrollWidthPx, chartModifier,
-                            height = 48.sd(scale),
+                            height = 48.sd(scale), fromZero = true,
                             pointColors = aqByHour.map { aq -> aq?.let { colorsFor(it.tier(aqiStandard)).background } ?: Color.Transparent },
                             highLabel = hi?.let(localizeDigits), lowLabel = lo?.let(localizeDigits),
                             legend = AqiTier.entries.map { colorsFor(it).background to aqiTierLabels[it.ordinal] })
@@ -1572,7 +1572,7 @@ internal fun DailyForecastList(
                                     fontFamily = LocalDisplayFont.current,
                                     color = MaterialTheme.colorScheme.onSurface,
                                 )
-                                UvTierBadge(uvIndex = item.uvIndexMax, label = uvLabels[uvTierIndex(item.uvIndexMax)], fontSize = 11.sp)
+                                UvTierBadge(uvIndex = item.uvIndexMax, label = uvLabels[uvTierIndex(item.uvIndexMax)], fontSize = 11.sp, singleLine = true)
                             }
                             ForecastDisplayMode.AirQuality -> {
                                 val aq = aqByDay.getOrNull(forecasts.indexOf(item))
@@ -1586,7 +1586,7 @@ internal fun DailyForecastList(
                                         secondaryUnit = if (european) usAqiLabel else euAqiLabel,
                                     )
                                     val tier = AirQualityIndex.tierFor(aq.first, aqiStandard)
-                                    AqiTierBadge(tier = tier, label = aqiTierLabels[tier.ordinal], fontSize = 11.sp)
+                                    AqiTierBadge(tier = tier, label = aqiTierLabels[tier.ordinal], fontSize = 11.sp, singleLine = true)
                                 } else {
                                     Text(text = "--", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                                 }

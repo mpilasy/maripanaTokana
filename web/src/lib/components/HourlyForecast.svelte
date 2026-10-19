@@ -81,7 +81,7 @@
 		const dual = (pair: [string, string] | undefined) => (pair ? loc(pair.join(' · ')) : undefined);
 		if (displayMode === 'Wind') {
 			const values = forecasts.map((f) => (metricPrimary ? f.windSpeed.metersPerSecond : f.windSpeed.mph));
-			return { values, color: '#9B8FFF', highLabel: dual(forecasts[indexOfMax(values)]?.windSpeed.displayDual(metricPrimary)), lowLabel: dual(forecasts[indexOfMin(values)]?.windSpeed.displayDual(metricPrimary)) };
+			return { values, fromZero: true, color: '#9B8FFF', highLabel: dual(forecasts[indexOfMax(values)]?.windSpeed.displayDual(metricPrimary)), lowLabel: dual(forecasts[indexOfMin(values)]?.windSpeed.displayDual(metricPrimary)) };
 		}
 		if (displayMode === 'Precipitation') {
 			const values = forecasts.map((f) => f.precipitation.mm);
@@ -96,6 +96,7 @@
 			const label = (i: number) => (values[i] != null ? loc(`UV ${values[i]!.toFixed(1)}`) : undefined);
 			const labels = $json('uv_labels') as string[] | undefined;
 			return {
+				fromZero: true,
 				values,
 				pointColors: values.map((v) => (v != null ? uvColorFor(v) : 'transparent')),
 				highLabel: label(indexOfMax(values)),
@@ -111,6 +112,7 @@
 			};
 			const labels = $json('aqi_tier_labels') as string[] | undefined;
 			return {
+				fromZero: true,
 				values,
 				pointColors: values.map((v) => (v != null ? AQI_TIER_COLORS[aqTier(v)] : 'transparent')),
 				highLabel: label(indexOfMax(values)),

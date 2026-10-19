@@ -21,8 +21,14 @@
 	/* AirNow AQI category colors (airnow.gov/aqi/aqi-basics). Our AqiTier type has 5 buckets
 	   rather than AirNow's 6 — "unhealthy" covers AirNow's Orange "Unhealthy for Sensitive
 	   Groups" (101-150) and Red "Unhealthy" (151-200) range, mapped here to Red. */
+	/* One line always; in a narrow forecast card the label is cut short rather than wrapped */
 	.aqi-badge {
 		display: inline-block;
+		max-width: 100%;
+		box-sizing: border-box;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 		padding: 2px 8px;
 		border-radius: 999px;
 		font-size: 12px;
