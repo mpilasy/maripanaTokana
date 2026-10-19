@@ -32,9 +32,6 @@
 	let maxPrecipMm = $derived(Math.max(...displayItems.map((i) => i.precipitation.mm), 0.1));
 	let maxPrecipObj = $derived(Precipitation.fromMm(maxPrecipMm));
 	let yMaxLabelText = $derived(localizeDigits(maxPrecipObj.displayDual($metricPrimary).join(' · ')));
-	let minPrecipMm = $derived(displayItems.length ? Math.min(...displayItems.map((i) => i.precipitation.mm)) : 0);
-	let minPrecipObj = $derived(Precipitation.fromMm(minPrecipMm));
-	let yMinLabelText = $derived(localizeDigits(minPrecipObj.displayDual($metricPrimary).join(' · ')));
 
 	let firstPrecipIndex = $derived(displayItems.findIndex((i) => i.precipitation.mm > 0.05));
 	let minutesUntilStart = $derived.by(() => {
@@ -167,27 +164,9 @@
 		const maxIndices = points.map((p, i) => p.y === minY ? i : -1).filter(i => i !== -1);
 		const midIdx = maxIndices[Math.floor(maxIndices.length / 2)];
 		const pt = points[midIdx];
-		const x = Math.max(20, Math.min(containerWidth - 20, pt.x));
+		const x = Math.max(4, Math.min(containerWidth - 4, pt.x));
 		const y = Math.min(chartHeight - 4, pt.y + 12);
 		return { x, y };
-	});
-
-	let minPointInfo = $derived.by(() => {
-		if (points.length === 0) return null;
-		const maxY = Math.max(...points.map(p => p.y));
-		const minIndices = points.map((p, i) => p.y === maxY ? i : -1).filter(i => i !== -1);
-		const midIdx = minIndices[Math.floor(minIndices.length / 2)];
-		const pt = points[midIdx];
-		const x = Math.max(20, Math.min(containerWidth - 20, pt.x));
-		const y = Math.max(10, pt.y - 2);
-		return { x, y };
-	});
-
-	let showMinLegend = $derived.by(() => {
-		if (!maxPointInfo || !minPointInfo) return false;
-		const hOverlap = Math.abs(maxPointInfo.x - minPointInfo.x) < 40;
-		const vOverlap = Math.abs(maxPointInfo.y - minPointInfo.y) < 14;
-		return !(hOverlap && vOverlap);
 	});
 
 	let pathD = $derived(generateMonotonePath(points));
@@ -202,7 +181,7 @@
 	<!-- While it's already raining the chart says it all; the sentence is for dry spells and rain on its way -->
 	{#if firstPrecipIndex !== 0 || !hasPrecipitation}
 		<div class="header-row">
-			<span class="icon">🌧️</span>
+			<img class="icon" src="/icons/weather/raindrops.svg" width="40" height="40" alt="" />
 			<span class="headline">{headlineText}</span>
 		</div>
 	{/if}
@@ -218,16 +197,14 @@
 						</linearGradient>
 					</defs>
 					{#if points.length > 1}
-						<!-- Top dashed guideline -->
-						<line x1="0" y1="4" x2={containerWidth} y2="4" stroke="rgba(255, 255, 255, 0.2)" stroke-dasharray="4 4" />
-						<!-- Bottom baseline -->
+												<!-- Bottom baseline -->
 						<line x1="0" y1={chartHeight} x2={containerWidth} y2={chartHeight} stroke="rgba(255, 255, 255, 0.2)" />
 						
 						<!-- 30-min vertical tick lines & aligned X-axis labels -->
 						{#each ticks30Min as tickTime}
 							{@const ratioX = Math.max(0, Math.min(1, (tickTime - startTime) / durationMs))}
 							{@const tickX = ratioX * containerWidth}
-							<line x1={tickX} y1="0" x2={tickX} y2={chartHeight} stroke="rgba(255, 255, 255, 0.12)" stroke-dasharray="4 4" />
+							<line x1={tickX} y1="0" x2={tickX} y2={chartHeight} stroke="rgba(255, 255, 255, 0.07)" />
 							<text x={tickX} y={totalHeight - 2} text-anchor="middle" font-size="9" fill="rgba(255, 255, 255, 0.7)">{formatTime(tickTime)}</text>
 						{/each}
 
@@ -237,13 +214,10 @@
 
 						<!-- Max legend on peak curve point -->
 						{#if maxPointInfo}
-							<text x={maxPointInfo.x} y={maxPointInfo.y} text-anchor="middle" font-size="9" font-weight="bold" fill="#38bdf8">{yMaxLabelText}</text>
+							<text x={maxPointInfo.x < containerWidth / 4 ? maxPointInfo.x - 4 : maxPointInfo.x > containerWidth * 0.75 ? maxPointInfo.x + 4 : maxPointInfo.x} y={maxPointInfo.y} text-anchor={maxPointInfo.x < containerWidth / 4 ? 'start' : maxPointInfo.x > containerWidth * 0.75 ? 'end' : 'middle'} font-size="9" font-weight="bold" fill="#38bdf8">{yMaxLabelText}</text>
 						{/if}
 
 						<!-- Min legend on baseline min point -->
-						{#if minPointInfo && showMinLegend}
-							<text x={minPointInfo.x} y={minPointInfo.y} text-anchor="middle" font-size="9" fill="rgba(255, 255, 255, 0.4)">{yMinLabelText}</text>
-						{/if}
 					{/if}
 				</svg>
 			</div>
@@ -253,11 +227,7 @@
 
 <style>
 	.nowcast-card {
-		background: var(--surface-tile);
-		backdrop-filter: blur(12px);
-		-webkit-backdrop-filter: blur(12px);
-		border-radius: 16px;
-		padding: 16px;
+		padding: 4px 4px 12px;
 		display: flex;
 		flex-direction: column;
 		gap: 12px;
@@ -270,7 +240,8 @@
 	}
 
 	.icon {
-		font-size: 1.1rem;
+		flex: none;
+		margin: -8px;
 	}
 
 	.headline {

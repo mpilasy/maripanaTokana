@@ -84,8 +84,8 @@
     <string name="detail_dewpoint">Marimando</string>
     <string name="detail_uv_index">Tahan\'ny tara-masoandro</string>
     <string name="detail_visibility">Tazana</string>
-    <string name="detail_sunrise">&#x1f31e; Miposaka</string>
-    <string name="detail_sunset">&#x1f31e; Mody</string>
+    <string name="detail_sunrise">Miposaka</string>
+    <string name="detail_sunset">Mody</string>
     <string name="detail_cloud_cover">Rahona</string>
     <string name="detail_air_quality">Hadion\'ny rivotra</string>
     <string name="detail_sun">Masoandro</string>

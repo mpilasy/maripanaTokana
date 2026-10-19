@@ -12,11 +12,14 @@
 		return `M ${point(from)} A ${r} ${r} 0 ${to - from > 180 ? 1 : 0} 1 ${point(to)}`;
 	}
 	let f = $derived(Number.isFinite(fraction) ? Math.min(1, Math.max(0, fraction)) : 0);
+	let end = $derived(point(135 + 270 * f).split(' '));
 </script>
 
 <svg width={size} height={size} viewBox="0 0 48 48" aria-hidden="true">
-	<path d={arc(135, 405)} fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="5" stroke-linecap="round" />
+	<path d={arc(135, 405)} fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="4" stroke-linecap="round" />
 	{#if f > 0}
-		<path d={arc(135, 135 + 270 * f)} fill="none" stroke={color} stroke-width="5" stroke-linecap="round" />
+		<path d={arc(135, 135 + 270 * f)} fill="none" stroke={color} stroke-width="4" stroke-linecap="round" />
 	{/if}
+	<!-- Where the value sits on the dial -->
+	<circle cx={end[0]} cy={end[1]} r="4.5" fill="white" stroke={color} stroke-width="2.5" />
 </svg>
