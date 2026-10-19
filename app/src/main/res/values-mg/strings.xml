@@ -55,6 +55,7 @@
     <string name="feels_like">Ohatry ny</string>
     <string name="no_precip">Tsisy orana</string>
     <string name="section_current_conditions">Izao</string>
+    <string name="section_sun_air">Masoandro sy rivotra</string>
     <string name="section_hourly_forecast">Isan\'ora</string>
     <string name="section_air_quality_forecast">Hadion\'ny rivotra</string>
     <string name="section_uv_forecast">Tara-masoandro</string>
@@ -87,6 +88,15 @@
     <string name="detail_sunset">&#x1f31e; Mody</string>
     <string name="detail_cloud_cover">Rahona</string>
     <string name="detail_air_quality">Hadion\'ny rivotra</string>
+    <string name="detail_sun">Masoandro</string>
+    <string name="tab_conditions">Toetr\'andro</string>
+    <string name="outlook_rain_from">Orana manomboka amin\'ny %1$s</string>
+    <string name="outlook_rain_until">Orana hatramin\'ny %1$s eo ho eo</string>
+    <string name="outlook_rain_all_day">Orana mandritra ny 24 ora manaraka</string>
+    <string name="outlook_snow_from">Oram-panala manomboka amin\'ny %1$s</string>
+    <string name="outlook_snow_until">Oram-panala hatramin\'ny %1$s eo ho eo</string>
+    <string name="outlook_snow_all_day">Oram-panala mandritra ny 24 ora manaraka</string>
+    <string name="outlook_dry">Tsy hisy orana anatin\'ny 24 ora manaraka</string>
     <string name="air_quality_us_aqi">AQI US</string>
     <string name="air_quality_eu_aqi">AQI EU</string>
     <string name="air_quality_pm2_5">PM2.5</string>

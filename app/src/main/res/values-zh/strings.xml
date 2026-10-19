@@ -55,6 +55,7 @@
     <string name="feels_like">体感温度</string>
     <string name="no_precip">无降水</string>
     <string name="section_current_conditions">当前状况</string>
+    <string name="section_sun_air">阳光与空气</string>
     <string name="section_hourly_forecast">逐时预报</string>
     <string name="section_air_quality_forecast">空气质量</string>
     <string name="section_uv_forecast">紫外线</string>
@@ -87,6 +88,15 @@
     <string name="detail_cloud_cover">云量</string>
     <string name="detail_sunset">日落</string>
     <string name="detail_air_quality">空气质量</string>
+    <string name="detail_sun">太阳</string>
+    <string name="tab_conditions">天气</string>
+    <string name="outlook_rain_from">%1$s 起有雨</string>
+    <string name="outlook_rain_until">雨将持续到约 %1$s</string>
+    <string name="outlook_rain_all_day">未来 24 小时有雨</string>
+    <string name="outlook_snow_from">%1$s 起有雪</string>
+    <string name="outlook_snow_until">雪将持续到约 %1$s</string>
+    <string name="outlook_snow_all_day">未来 24 小时有雪</string>
+    <string name="outlook_dry">未来 24 小时无雨</string>
     <string name="air_quality_us_aqi">美国AQI</string>
     <string name="air_quality_eu_aqi">欧洲AQI</string>
     <string name="air_quality_pm2_5">PM2.5</string>

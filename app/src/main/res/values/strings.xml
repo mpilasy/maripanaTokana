@@ -55,6 +55,7 @@
     <string name="feels_like">Feels Like</string>
     <string name="no_precip">No precip</string>
     <string name="section_current_conditions">Current Conditions</string>
+    <string name="section_sun_air">Sun &amp; Air</string>
     <string name="section_hourly_forecast">Hourly Forecast</string>
     <string name="section_air_quality_forecast">Air Quality</string>
     <string name="section_uv_forecast">UV</string>
@@ -87,6 +88,15 @@
     <string name="detail_sunset">Sunset</string>
     <string name="detail_cloud_cover">Cloud Cover</string>
     <string name="detail_air_quality">Air Quality</string>
+    <string name="detail_sun">Sun</string>
+    <string name="tab_conditions">Conditions</string>
+    <string name="outlook_rain_from">Rain from %1$s</string>
+    <string name="outlook_rain_until">Rain until about %1$s</string>
+    <string name="outlook_rain_all_day">Rain for the next 24 hours</string>
+    <string name="outlook_snow_from">Snow from %1$s</string>
+    <string name="outlook_snow_until">Snow until about %1$s</string>
+    <string name="outlook_snow_all_day">Snow for the next 24 hours</string>
+    <string name="outlook_dry">No rain in the next 24 hours</string>
     <string name="air_quality_us_aqi">US AQI</string>
     <string name="air_quality_eu_aqi">EU AQI</string>
     <string name="air_quality_pm2_5">PM2.5</string>

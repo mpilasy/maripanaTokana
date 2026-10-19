@@ -103,11 +103,11 @@ fun NowcastCard(
     val hasPrecipitation = displayItems.any { it.precipitation.mm > 0.05 }
     val maxPrecipMm = (displayItems.maxOfOrNull { it.precipitation.mm } ?: 0.1).coerceAtLeast(0.1)
     val maxPrecipObj = Precipitation.fromMm(maxPrecipMm)
-    val yLabelText = if (isMetricPrimary) maxPrecipObj.displayMetric() else maxPrecipObj.displayImperial()
+    val yLabelText = maxPrecipObj.displayDual(isMetricPrimary).let { (p, s) -> "$p · $s" }
 
     val minPrecipMm = displayItems.minOfOrNull { it.precipitation.mm } ?: 0.0
     val minPrecipObj = Precipitation.fromMm(minPrecipMm)
-    val yMinLabelText = if (isMetricPrimary) minPrecipObj.displayMetric() else minPrecipObj.displayImperial()
+    val yMinLabelText = minPrecipObj.displayDual(isMetricPrimary).let { (p, s) -> "$p · $s" }
 
     val textMeasurer = rememberTextMeasurer()
     val timeLabelStyle = TextStyle(

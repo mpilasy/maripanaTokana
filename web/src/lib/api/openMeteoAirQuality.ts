@@ -55,7 +55,8 @@ export async function fetchAirQuality(lat: number, lon: number): Promise<OpenMet
 			'european_aqi_pm2_5,european_aqi_pm10,european_aqi_nitrogen_dioxide,european_aqi_sulphur_dioxide,european_aqi_ozone,' +
 			'alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen',
 		hourly: 'us_aqi,european_aqi',
-		forecast_days: '3',
+		// Five days feeds the 10-day forecast's air quality; the global model doesn't reach much further
+		forecast_days: '5',
 	});
 
 	const res = await fetch(`${BASE_URL}?${params}`, { signal: AbortSignal.timeout(10_000) });
@@ -105,10 +106,9 @@ export function mapToHourlyAirQuality(response: OpenMeteoAirQualityResponse, now
 	const startIndex = parsedTimes.findIndex(t => t >= nowMillis);
 	if (startIndex === -1) return [];
 
-	const endIndex = Math.min(startIndex + 48, h.time.length);
 	const result: HourlyAirQuality[] = [];
 	const seen = new Set<number>();
-	for (let i = startIndex; i < endIndex; i++) {
+	for (let i = startIndex; i < h.time.length; i++) {
 		const us = h.us_aqi[i];
 		const eu = h.european_aqi[i];
 		const time = parsedTimes[i];

@@ -209,8 +209,8 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
                     for (day in forecasts) {
                         val dayName = widgetDayName(day.date, data.utcOffsetSeconds, appLocale)
                         val emoji = wmoEmoji(day.weatherCode)
-                        val hi = day.tempMax.displayDual(metricPrimary).first
-                        val lo = day.tempMin.displayDual(metricPrimary).first
+                        val (hi, hiS) = day.tempMax.displayDual(metricPrimary)
+                        val (lo, loS) = day.tempMin.displayDual(metricPrimary)
                         Column(
                             modifier = GlanceModifier.defaultWeight(),
                             horizontalAlignment = Alignment.CenterHorizontally,
@@ -232,6 +232,13 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
                                 style = TextStyle(
                                     color = WidgetColorProviders.onSurface,
                                     fontSize = 10.sp,
+                                ),
+                            )
+                            Text(
+                                text = ltr("$loS / $hiS"),
+                                style = TextStyle(
+                                    color = WidgetColorProviders.onSurface,
+                                    fontSize = 8.sp,
                                 ),
                             )
                         }

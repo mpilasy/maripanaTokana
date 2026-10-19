@@ -46,6 +46,7 @@ export interface OpenMeteoDaily {
 	wind_direction_10m_dominant: (number | null)[];
 	precipitation_sum: (number | null)[];
 	uv_index_max: (number | null)[];
+	pressure_msl_mean?: (number | null)[];
 }
 
 export interface OpenMeteoHourly {
@@ -57,4 +58,5 @@ export interface OpenMeteoHourly {
 	wind_direction_10m: (number | null)[];
 	pressure_msl: (number | null)[];
 	precipitation: (number | null)[];
+	uv_index?: (number | null)[];
 }

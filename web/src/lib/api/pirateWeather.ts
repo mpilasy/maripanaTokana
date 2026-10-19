@@ -4,6 +4,7 @@ import { Temperature } from '$lib/domain/temperature';
 import { WindSpeed } from '$lib/domain/windSpeed';
 import { Pressure } from '$lib/domain/pressure';
 import { Precipitation } from '$lib/domain/precipitation';
+import { nightWeatherCodes } from './nightWeather';
 
 function iconToWmoCode(icon: string): number {
 	switch (icon) {
@@ -54,19 +55,29 @@ export async function fetchPirateWeather(lat: number, lon: number, apiKey: strin
 		windDeg: h.windBearing ?? 0,
 		pressure: Pressure.fromHPa(h.pressure ?? 1013),
 		precipitation: Precipitation.fromMm(h.precipIntensity ?? 0),
+		uvIndex: h.uvIndex ?? null,
 	}));
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const daily: DailyForecast[] = (d.daily?.data ?? []).slice(0, 10).map((day: any) => ({
+	const days: any[] = (d.daily?.data ?? []).slice(0, 10);
+	const nightCodes = nightWeatherCodes(
+		hourly.map((h) => h.time),
+		hourly.map((h) => h.weatherCode),
+		days.map((day) => (day.sunsetTime ?? 0) * 1000),
+		days.map((day) => (day.sunriseTime ?? 0) * 1000),
+	);
+	const daily: DailyForecast[] = days.map((day, i) => ({
 		date: day.time * 1000,
 		tempMax: Temperature.fromCelsius(day.temperatureMax),
 		tempMin: Temperature.fromCelsius(day.temperatureMin),
 		weatherCode: iconToWmoCode(day.icon),
+		nightWeatherCode: nightCodes[i],
 		precipProbability: Math.round((day.precipProbability ?? 0) * 100),
 		windSpeed: WindSpeed.fromMetersPerSecond(day.windSpeed ?? 0),
 		windDeg: day.windBearing ?? 0,
 		precipitation: Precipitation.fromMm(day.precipIntensity ?? 0),
 		uvIndexMax: day.uvIndex ?? null,
+		pressure: Pressure.fromHPa(day.pressure ?? NaN),
 	}));
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any

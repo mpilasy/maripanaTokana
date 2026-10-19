@@ -222,7 +222,7 @@ fun TemperatureChart(
             val maxMiddleIdx = maxIndices[maxIndices.size / 2]
             val maxPoint = points[maxMiddleIdx]
             val maxTempObj = forecasts[maxMiddleIdx].temperature
-            val maxTempText = if (metricPrimary) maxTempObj.displayCelsius() else maxTempObj.displayFahrenheit()
+            val maxTempText = maxTempObj.displayDual(metricPrimary).let { (p, s) -> "$p · $s" }
             val maxLabelStyle = TextStyle(color = Color(0xFFFF7043), fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont)
             val maxLayout = textMeasurer.measure(maxTempText, maxLabelStyle)
             val maxTextX = (maxPoint.x - maxLayout.size.width / 2f).coerceIn(4.dp.toPx(), totalScrollWidth - maxLayout.size.width - 4.dp.toPx())
@@ -235,7 +235,7 @@ fun TemperatureChart(
             val minMiddleIdx = minIndices[minIndices.size / 2]
             val minPoint = points[minMiddleIdx]
             val minTempObj = forecasts[minMiddleIdx].temperature
-            val minTempText = if (metricPrimary) minTempObj.displayCelsius() else minTempObj.displayFahrenheit()
+            val minTempText = minTempObj.displayDual(metricPrimary).let { (p, s) -> "$p · $s" }
             val minLabelStyle = TextStyle(color = Color(0xFF64B5F6), fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont)
             val minLayout = textMeasurer.measure(minTempText, minLabelStyle)
             val minTextX = (minPoint.x - minLayout.size.width / 2f).coerceIn(4.dp.toPx(), totalScrollWidth - minLayout.size.width - 4.dp.toPx())

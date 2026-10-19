@@ -47,6 +47,7 @@ data class PirateWeatherHourly(
     @SerialName("windSpeed") val windSpeed: Double = 0.0,
     @SerialName("windBearing") val windBearing: Int = 0,
     @SerialName("pressure") val pressure: Double = 1013.0,
+    @SerialName("uvIndex") val uvIndex: Double? = null,
 )
 
 @Serializable
@@ -68,6 +69,7 @@ data class PirateWeatherDaily(
     @SerialName("windSpeed") val windSpeed: Double = 0.0,
     @SerialName("windBearing") val windBearing: Int = 0,
     @SerialName("uvIndex") val uvIndex: Double = 0.0,
+    @SerialName("pressure") val pressure: Double? = null,
 )
 
 interface PirateWeatherApiService {

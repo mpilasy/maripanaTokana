@@ -37,10 +37,17 @@ fun PirateWeatherResponse.toDomain(): WeatherData {
             windDirection = h.windBearing,
             pressure = Pressure.fromHPa(h.pressure),
             precipitation = Precipitation.fromMm(h.precipIntensity),
+            uvIndex = h.uvIndex,
         )
     }
 
-    val dailyForecast = daily.data.take(10).map { d ->
+    val nightCodes = nightWeatherCodes(
+        hourly.data.map { it.time * 1000 },
+        hourly.data.map { pirateIconToWmo(it.icon) },
+        daily.data.take(10).map { it.sunsetTime * 1000 },
+        daily.data.take(10).map { it.sunriseTime * 1000 },
+    )
+    val dailyForecast = daily.data.take(10).mapIndexed { i, d ->
         DailyForecast(
             date = d.time * 1000,
             tempMax = Temperature.fromCelsius(d.temperatureMax),
@@ -51,6 +58,8 @@ fun PirateWeatherResponse.toDomain(): WeatherData {
             windDirection = d.windBearing,
             precipitation = Precipitation.fromMm(d.precipIntensity),
             uvIndexMax = d.uvIndex,
+            nightWeatherCode = nightCodes[i],
+            pressure = d.pressure?.let { Pressure.fromHPa(it) },
         )
     }
 

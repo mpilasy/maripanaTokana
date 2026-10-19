@@ -19,7 +19,8 @@ interface OpenMeteoAirQualityApiService {
                 "european_aqi_pm2_5,european_aqi_pm10,european_aqi_nitrogen_dioxide,european_aqi_sulphur_dioxide,european_aqi_ozone," +
                 "alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen",
         @Query("hourly") hourly: String = "us_aqi,european_aqi",
-        @Query("forecast_days") forecastDays: Int = 3,
+        // Five days feeds the 10-day forecast's air quality; the global model doesn't reach much further
+        @Query("forecast_days") forecastDays: Int = 5,
     ): OpenMeteoAirQualityResponse
 }
 
@@ -111,8 +112,7 @@ fun OpenMeteoAirQualityResponse.toDomain(countryCode: String?): AirQualityResult
         val nowMillis = System.currentTimeMillis()
         val parsedTimes = h.time.map { parseIsoDateTime(it, 0) }
         val startIndex = parsedTimes.indexOfFirst { it >= nowMillis }.takeIf { it != -1 } ?: 0
-        val endIndex = minOf(startIndex + 48, h.time.size)
-        (startIndex until endIndex).mapNotNull { i ->
+        (startIndex until h.time.size).mapNotNull { i ->
             val us = h.usAqi.getOrNull(i)
             val eu = h.europeanAqi.getOrNull(i)
             if (us == null || eu == null) null

@@ -55,6 +55,7 @@
     <string name="feels_like">अनुभूत तापक्रम</string>
     <string name="no_precip">वर्षा छैन</string>
     <string name="section_current_conditions">हालको अवस्था</string>
+    <string name="section_sun_air">सूर्य र हावा</string>
     <string name="section_hourly_forecast">प्रति घण्टा पूर्वानुमान</string>
     <string name="section_air_quality_forecast">वायु गुणस्तर</string>
     <string name="section_uv_forecast">UV</string>
@@ -87,6 +88,15 @@
     <string name="detail_cloud_cover">बादल आवरण</string>
     <string name="detail_sunset">सूर्यास्त</string>
     <string name="detail_air_quality">वायु गुणस्तर</string>
+    <string name="detail_sun">सूर्य</string>
+    <string name="tab_conditions">मौसम</string>
+    <string name="outlook_rain_from">%1$s देखि वर्षा</string>
+    <string name="outlook_rain_until">करिब %1$s सम्म वर्षा</string>
+    <string name="outlook_rain_all_day">अर्को २४ घण्टा वर्षा</string>
+    <string name="outlook_snow_from">%1$s देखि हिमपात</string>
+    <string name="outlook_snow_until">करिब %1$s सम्म हिमपात</string>
+    <string name="outlook_snow_all_day">अर्को २४ घण्टा हिमपात</string>
+    <string name="outlook_dry">अर्को २४ घण्टामा वर्षा छैन</string>
     <string name="air_quality_us_aqi">अमेरिकी AQI</string>
     <string name="air_quality_eu_aqi">युरोपेली AQI</string>
     <string name="air_quality_pm2_5">PM2.5</string>

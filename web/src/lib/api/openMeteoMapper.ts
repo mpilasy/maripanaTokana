@@ -4,6 +4,7 @@ import { Temperature } from '../domain/temperature';
 import { Pressure } from '../domain/pressure';
 import { WindSpeed } from '../domain/windSpeed';
 import { Precipitation } from '../domain/precipitation';
+import { nightWeatherCodes } from './nightWeather';
 
 export function parseIsoDateTime(iso: string, utcOffsetSeconds: number): number {
 	const year = parseInt(iso.substring(0, 4), 10);
@@ -55,10 +56,12 @@ export function mapToWeatherData(response: OpenMeteoResponse, locationName: stri
 						windDeg: h.wind_direction_10m?.[actualIndex] ?? 0,
 						pressure: Pressure.fromHPa(h.pressure_msl?.[actualIndex] ?? NaN),
 						precipitation: Precipitation.fromMm(h.precipitation?.[actualIndex] ?? NaN),
+						uvIndex: h.uv_index?.[actualIndex] ?? null,
 					};
 				});
 
 	const parsedDailyTimes = d.time.map(t => parseIsoDate(t, response.utc_offset_seconds));
+	const nightCodes = nightWeatherCodes(parsedHourlyTimes, h.weather_code ?? [], dailySunsetMillis, dailySunriseMillis);
 
 	const dailyForecast: DailyForecast[] = d.time.map((time, i) => {
 		return {
@@ -66,11 +69,13 @@ export function mapToWeatherData(response: OpenMeteoResponse, locationName: stri
 			tempMax: Temperature.fromCelsius(d.temperature_2m_max[i]),
 			tempMin: Temperature.fromCelsius(d.temperature_2m_min[i]),
 			weatherCode: i === 0 ? c.weather_code : d.weather_code[i],
+			nightWeatherCode: nightCodes[i] ?? null,
 			precipProbability: d.precipitation_probability_max?.[i] ?? 0,
 			windSpeed: WindSpeed.fromMetersPerSecond(d.wind_speed_10m_max?.[i] ?? NaN),
 			windDeg: d.wind_direction_10m_dominant?.[i] ?? 0,
 			precipitation: Precipitation.fromMm(d.precipitation_sum?.[i] ?? NaN),
 			uvIndexMax: d.uv_index_max?.[i] ?? null,
+			pressure: Pressure.fromHPa(d.pressure_msl_mean?.[i] ?? NaN),
 		};
 	});
 

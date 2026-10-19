@@ -12,4 +12,5 @@ data class HourlyForecast(
     val windDirection: Int,
     val pressure: Pressure,
     val precipitation: Precipitation,
+    val uvIndex: Double? = null,
 )

@@ -55,6 +55,7 @@
     <string name="feels_like">الإحساس بالحرارة</string>
     <string name="no_precip">لا هطول</string>
     <string name="section_current_conditions">الأحوال الحالية</string>
+    <string name="section_sun_air">الشمس والهواء</string>
     <string name="section_hourly_forecast">التوقعات بالساعة</string>
     <string name="section_air_quality_forecast">جودة الهواء</string>
     <string name="section_uv_forecast">الأشعة فوق البنفسجية</string>
@@ -87,6 +88,15 @@
     <string name="detail_cloud_cover">الغطاء السحابي</string>
     <string name="detail_sunset">غروب الشمس</string>
     <string name="detail_air_quality">جودة الهواء</string>
+    <string name="detail_sun">الشمس</string>
+    <string name="tab_conditions">الطقس</string>
+    <string name="outlook_rain_from">أمطار ابتداءً من %1$s</string>
+    <string name="outlook_rain_until">أمطار حتى حوالي %1$s</string>
+    <string name="outlook_rain_all_day">أمطار خلال الـ 24 ساعة القادمة</string>
+    <string name="outlook_snow_from">ثلوج ابتداءً من %1$s</string>
+    <string name="outlook_snow_until">ثلوج حتى حوالي %1$s</string>
+    <string name="outlook_snow_all_day">ثلوج خلال الـ 24 ساعة القادمة</string>
+    <string name="outlook_dry">لا أمطار خلال الـ 24 ساعة القادمة</string>
     <string name="air_quality_us_aqi">AQI الأمريكي</string>
     <string name="air_quality_eu_aqi">AQI الأوروبي</string>
     <string name="air_quality_pm2_5">الجسيمات الدقيقة PM2.5</string>

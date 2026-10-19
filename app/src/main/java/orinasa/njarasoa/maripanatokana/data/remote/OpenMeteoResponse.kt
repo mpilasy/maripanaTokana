@@ -51,6 +51,7 @@ data class OpenMeteoDaily(
     @SerialName("wind_direction_10m_dominant") val windDirection10mDominant: List<Int?> = emptyList(),
     @SerialName("precipitation_sum") val precipitationSum: List<Double?> = emptyList(),
     @SerialName("uv_index_max") val uvIndexMax: List<Double?> = emptyList(),
+    @SerialName("pressure_msl_mean") val pressureMslMean: List<Double?> = emptyList(),
 )
 
 @Serializable
@@ -63,4 +64,5 @@ data class OpenMeteoHourly(
     @SerialName("wind_direction_10m") val windDirection10m: List<Int?> = emptyList(),
     @SerialName("pressure_msl") val pressureMsl: List<Double?> = emptyList(),
     @SerialName("precipitation") val precipitation: List<Double?> = emptyList(),
+    @SerialName("uv_index") val uvIndex: List<Double?> = emptyList(),
 )

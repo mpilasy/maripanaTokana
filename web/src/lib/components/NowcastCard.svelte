@@ -31,10 +31,10 @@
 	let hasPrecipitation = $derived(displayItems.some((i) => i.precipitation.mm > 0.05));
 	let maxPrecipMm = $derived(Math.max(...displayItems.map((i) => i.precipitation.mm), 0.1));
 	let maxPrecipObj = $derived(Precipitation.fromMm(maxPrecipMm));
-	let yMaxLabelText = $derived(localizeDigits($metricPrimary ? maxPrecipObj.displayMetric() : maxPrecipObj.displayImperial()));
+	let yMaxLabelText = $derived(localizeDigits(maxPrecipObj.displayDual($metricPrimary).join(' · ')));
 	let minPrecipMm = $derived(displayItems.length ? Math.min(...displayItems.map((i) => i.precipitation.mm)) : 0);
 	let minPrecipObj = $derived(Precipitation.fromMm(minPrecipMm));
-	let yMinLabelText = $derived(localizeDigits($metricPrimary ? minPrecipObj.displayMetric() : minPrecipObj.displayImperial()));
+	let yMinLabelText = $derived(localizeDigits(minPrecipObj.displayDual($metricPrimary).join(' · ')));
 
 	let firstPrecipIndex = $derived(displayItems.findIndex((i) => i.precipitation.mm > 0.05));
 	let minutesUntilStart = $derived.by(() => {

@@ -80,10 +80,12 @@ fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = 
             windDirection = hourly.windDirection10m.getOrNull(i) ?: 0,
             pressure = Pressure.fromHPa(hourly.pressureMsl.getOrNull(i) ?: Double.NaN),
             precipitation = Precipitation.fromMm(hourly.precipitation.getOrNull(i) ?: Double.NaN),
+            uvIndex = hourly.uvIndex.getOrNull(i),
         )
     }.distinctBy { it.time }
 
     val parsedDailyTimes = daily.time.map { parseIsoDate(it, utcOffsetSeconds) }
+    val nightCodes = nightWeatherCodes(parsedHourlyTimes, hourly.weatherCode, dailySunsetMillis, dailySunriseMillis)
 
     val dailyForecast = daily.time.indices.map { i ->
         val epoch = parsedDailyTimes[i]
@@ -97,6 +99,8 @@ fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = 
             windDirection = daily.windDirection10mDominant.getOrNull(i) ?: 0,
             precipitation = Precipitation.fromMm(daily.precipitationSum.getOrNull(i) ?: Double.NaN),
             uvIndexMax = daily.uvIndexMax.getOrNull(i) ?: 0.0,
+            nightWeatherCode = nightCodes.getOrNull(i),
+            pressure = daily.pressureMslMean.getOrNull(i)?.let { Pressure.fromHPa(it) },
         )
     }.distinctBy { it.date }
 

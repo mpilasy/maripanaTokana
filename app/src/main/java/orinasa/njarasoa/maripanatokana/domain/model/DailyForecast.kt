@@ -13,4 +13,8 @@ data class DailyForecast(
     val windDirection: Int,
     val precipitation: Precipitation,
     val uvIndexMax: Double,
+    /** The night's weather (sunset to next sunrise); null when the hourly data doesn't reach it. */
+    val nightWeatherCode: Int? = null,
+    /** The day's mean sea-level pressure; missing in data saved before it was fetched. */
+    val pressure: Pressure? = null,
 )

@@ -27,15 +27,10 @@
 	import WeatherAlertBanner from './WeatherAlertBanner.svelte';
 	import HourlyForecast from './HourlyForecast.svelte';
 	import DailyForecast from './DailyForecast.svelte';
-	import AirQualityChart from './AirQualityChart.svelte';
-	import DailyUvForecast from './DailyUvForecast.svelte';
 	import CurrentConditions from './CurrentConditions.svelte';
 	import NowcastCard from './NowcastCard.svelte';
-	import DetailCard from './DetailCard.svelte';
 	import AirQualityDetailDialog from './AirQualityDetailDialog.svelte';
-	import AqiTierBadge from './AqiTierBadge.svelte';
-	import UvTierBadge from './UvTierBadge.svelte';
-	import CollapsibleSection from './CollapsibleSection.svelte';
+	import SectionCard from './SectionCard.svelte';
 	import ActivitiesCard from './ActivitiesCard.svelte';
 	import { computeActivityIndices } from '$lib/domain/activityIndices';
 	import Footer from './Footer.svelte';
@@ -165,7 +160,7 @@
 	}
 
 	// Swipe-to-cycle-locations: ignored if the gesture started inside a horizontally-scrolling
-	// forecast strip (.cards-scroll), so hourly/daily forecast scrolling is unaffected.
+	// forecast strip (.cards-scroll) or tab row, so scrolling those is unaffected.
 	let swipeStartX = $state(0);
 	let swipeStartY = $state(0);
 	let swipeDeltaX = $state(0);
@@ -203,41 +198,24 @@
 
 	let showAirQualityDetail = $state(false);
 
-	// Accordion: only one card open at a time; switching to a new location collapses everything.
-	let openSection = $state<string | null>('hourly_forecast');
-	let lastLocationKey: string | null = null;
+	let alertsOpen = $state(false);
 
-	function toggleSection(key: string) {
-		openSection = openSection === key ? null : key;
-	}
+	// Switching to a new location goes back to the top.
+	let lastLocationKey: string | null = null;
 
 	$effect(() => {
 		const state = $weatherState;
 		if (state.kind !== 'success') return;
 		const key = `${state.data.locationName}|${state.data.locationSubtext ?? ''}`;
 		if (lastLocationKey !== null && key !== lastLocationKey) {
-			openSection = null;
+			alertsOpen = false;
+			scrollContainer?.scrollTo({ top: 0 });
 		}
 		lastLocationKey = key;
 	});
 
-	function getUvLabel(uv: number): string {
-		const labels: string[] = $json('uv_labels') as string[];
-		if (!Array.isArray(labels)) return '';
-		if (uv < 3) return labels[0];
-		if (uv < 6) return labels[1];
-		if (uv < 8) return labels[2];
-		if (uv < 11) return labels[3];
-		return labels[4];
-	}
 
 	const AQI_TIERS = ['good', 'moderate', 'unhealthy', 'very_unhealthy', 'hazardous'];
-
-	function getAqiUnitDual(standard: 'US' | 'EUROPEAN'): [string, string] {
-		const us = $_('air_quality_us_aqi');
-		const eu = $_('air_quality_eu_aqi');
-		return standard === 'EUROPEAN' ? [eu, us] : [us, eu];
-	}
 
 	function getAqiTierLabel(tier: string): string {
 		const labels: string[] = $json('aqi_tier_labels') as string[];
@@ -250,7 +228,7 @@
 			pullStartY = e.touches[0].clientY;
 			isPulling = true;
 		}
-		swipeExcluded = (e.target as HTMLElement).closest('.cards-scroll') !== null;
+		swipeExcluded = (e.target as HTMLElement).closest('.cards-scroll, [role="tablist"]') !== null;
 		swipeStartX = e.touches[0].clientX;
 		swipeStartY = e.touches[0].clientY;
 		swipeDeltaX = 0;
@@ -513,103 +491,76 @@
 				ontouchmove={handleTouchMove}
 				ontouchend={handleTouchEnd}
 			>
-				<WeatherAlertBanner alerts={data.alerts} expanded={openSection === 'alerts'} onToggle={() => toggleSection('alerts')} />
-				{#if $advancedModeActive && (data.failedAlertSources?.length ?? 0) > 0}
-					<div class="alert-sources-unavailable">{$_('alert_sources_unavailable', { values: { sources: data.failedAlertSources?.join(', ') } })}</div>
-				{/if}
-				<HeroCard {data} metricPrimary={$metricPrimary} {loc} onToggleUnits={toggleUnits} onShare={handleShare} />
-
-				<CollapsibleSection title={$_('section_current_conditions')} expanded={openSection === 'current_conditions'} onToggle={() => toggleSection('current_conditions')} onShare={handleShare}>
-					<CurrentConditions {data} metricPrimary={$metricPrimary} {loc} onToggleUnits={toggleUnits} />
-				</CollapsibleSection>
-
-				{#if $weatherSource === 'OPEN_METEO' && data.minutelyForecast && data.minutelyForecast.length > 0}
-					<CollapsibleSection title={$_('section_nowcast')} expanded={openSection === 'nowcast'} onToggle={() => toggleSection('nowcast')} onShare={handleShare}>
-						<NowcastCard items={data.minutelyForecast} localizeDigits={loc} />
-					</CollapsibleSection>
-				{/if}
+				<div class="glance">
+					<WeatherAlertBanner alerts={data.alerts} expanded={alertsOpen} onToggle={() => (alertsOpen = !alertsOpen)} />
+					{#if $advancedModeActive && (data.failedAlertSources?.length ?? 0) > 0}
+						<div class="alert-sources-unavailable">{$_('alert_sources_unavailable', { values: { sources: data.failedAlertSources?.join(', ') } })}</div>
+					{/if}
+					<HeroCard {data} metricPrimary={$metricPrimary} {loc} onToggleUnits={toggleUnits} onShare={handleShare} />
+				</div>
 
 				{#if data.hourlyForecast.length > 0}
-					<CollapsibleSection title={$_('section_hourly_forecast')} expanded={openSection === 'hourly_forecast'} onToggle={() => toggleSection('hourly_forecast')} onShare={handleShare}>
-						<HourlyForecast
-							forecasts={data.hourlyForecast}
-							metricPrimary={$metricPrimary}
-							dailySunrise={data.dailySunrise}
-							dailySunset={data.dailySunset}
-							{loc}
-							onToggleUnits={toggleUnits}
-							utcOffsetSeconds={data.utcOffsetSeconds}
-						/>
-					</CollapsibleSection>
+					<div>
+						<SectionCard title={$_('section_hourly_forecast')} onShare={handleShare}>
+							{#if $weatherSource === 'OPEN_METEO' && data.minutelyForecast && data.minutelyForecast.length > 0}
+								<h3 class="sub-title">{$_('section_nowcast')}</h3>
+								<NowcastCard items={data.minutelyForecast} localizeDigits={loc} />
+								<div class="sub-gap"></div>
+							{/if}
+							<HourlyForecast
+								forecasts={data.hourlyForecast}
+								metricPrimary={$metricPrimary}
+								dailySunrise={data.dailySunrise}
+								dailySunset={data.dailySunset}
+								{loc}
+								onToggleUnits={toggleUnits}
+								utcOffsetSeconds={data.utcOffsetSeconds}
+								airQuality={data.hourlyAirQuality && data.hourlyAirQuality.length > 0 && data.airQuality
+									? { forecasts: data.hourlyAirQuality, primaryStandard: data.airQuality.primaryStandard }
+									: null}
+							/>
+						</SectionCard>
+					</div>
 				{/if}
 
 				{#if data.dailyForecast.length > 0}
-					<CollapsibleSection title={$_('section_this_week')} expanded={openSection === 'this_week'} onToggle={() => toggleSection('this_week')} onShare={handleShare}>
-						<DailyForecast
-							forecasts={data.dailyForecast}
-							metricPrimary={$metricPrimary}
-							localeTag={SUPPORTED_LOCALES[$localeIndex].tag}
-							{loc}
-							onToggleUnits={toggleUnits}
-							utcOffsetSeconds={data.utcOffsetSeconds}
-						/>
-					</CollapsibleSection>
+					<div>
+						<SectionCard title={$_('section_this_week')} onShare={handleShare}>
+							<DailyForecast
+								forecasts={data.dailyForecast}
+								metricPrimary={$metricPrimary}
+								localeTag={SUPPORTED_LOCALES[$localeIndex].tag}
+								{loc}
+								onToggleUnits={toggleUnits}
+								utcOffsetSeconds={data.utcOffsetSeconds}
+								airQuality={data.hourlyAirQuality && data.hourlyAirQuality.length > 0 && data.airQuality
+									? { forecasts: data.hourlyAirQuality, primaryStandard: data.airQuality.primaryStandard }
+									: null}
+							/>
+						</SectionCard>
+					</div>
 				{/if}
 
-				{#if data.hourlyAirQuality && data.hourlyAirQuality.length > 0 && data.airQuality}
-					{@const aqiDual = data.airQuality.displayDual()}
-					{@const aqiUnitDual = getAqiUnitDual(data.airQuality.primaryStandard)}
-					<CollapsibleSection title={$_('section_air_quality_forecast')} expanded={openSection === 'air_quality_forecast'} onToggle={() => toggleSection('air_quality_forecast')} onShare={handleShare}>
-						<DetailCard
-							value={loc(aqiDual[0])}
-							secondaryValue={loc(aqiDual[1])}
-							unit={aqiUnitDual[0]}
-							secondaryUnit={aqiUnitDual[1]}
-						>
-							{#snippet trailingSnippet()}
-								<AqiTierBadge
-									tier={data.airQuality!.primaryTier}
-									label={getAqiTierLabel(data.airQuality!.primaryTier)}
-									onClick={() => showAirQualityDetail = true}
-								/>
-							{/snippet}
-						</DetailCard>
-						<div class="section-spacer"></div>
-						<AirQualityChart
-							forecasts={data.hourlyAirQuality}
-							primaryStandard={data.airQuality.primaryStandard}
-						/>
-					</CollapsibleSection>
-				{/if}
+				<div>
+					<SectionCard title={$_('section_current_conditions')} onShare={handleShare}>
+						<CurrentConditions part="now" {data} metricPrimary={$metricPrimary} {loc} onToggleUnits={toggleUnits} onOpenAirQuality={() => showAirQualityDetail = true} />
+					</SectionCard>
+				</div>
 
-				{#if data.dailyForecast.length > 0}
-					{@const todayUvMax = data.dailyForecast[0].uvIndexMax}
-					<CollapsibleSection title={$_('section_uv_forecast')} expanded={openSection === 'uv_forecast'} onToggle={() => toggleSection('uv_forecast')} onShare={handleShare}>
-						<DetailCard
-							value={todayUvMax != null && Number.isFinite(todayUvMax) ? loc(todayUvMax.toFixed(1)) : '--'}
-						>
-							{#snippet trailingSnippet()}
-								{#if todayUvMax != null && Number.isFinite(todayUvMax)}
-									<UvTierBadge uvIndex={todayUvMax} label={getUvLabel(todayUvMax)} />
-								{/if}
-							{/snippet}
-						</DetailCard>
-						<div class="section-spacer"></div>
-						<DailyUvForecast
-							forecasts={data.dailyForecast}
-							localeTag={SUPPORTED_LOCALES[$localeIndex].tag}
-							{loc}
-							utcOffsetSeconds={data.utcOffsetSeconds}
-						/>
-					</CollapsibleSection>
-				{/if}
+				<div>
+					<SectionCard title={$_('section_sun_air')} onShare={handleShare}>
+						<CurrentConditions part="sky" {data} metricPrimary={$metricPrimary} {loc} onToggleUnits={toggleUnits} onOpenAirQuality={() => showAirQualityDetail = true} />
+					</SectionCard>
+				</div>
 
-				<CollapsibleSection title={$_('section_activities')} expanded={openSection === 'activities'} onToggle={() => toggleSection('activities')} onShare={handleShare}>
-					<ActivitiesCard indices={computeActivityIndices(data)} />
-				</CollapsibleSection>
-
-				<div class="scroll-bottom-pad"></div>
+				<div>
+					<SectionCard title={$_('section_activities')} onShare={handleShare}>
+						<ActivitiesCard indices={computeActivityIndices(data)} />
+					</SectionCard>
+				</div>
 			</div>
+
+
 
 			<!-- Fixed footer -->
 			<Footer
@@ -684,10 +635,6 @@
 		width: 100%;
 		height: 100%;
 		position: relative;
-	}
-
-	.section-spacer {
-		height: 10px;
 	}
 
 	.bg-marble {
@@ -1074,9 +1021,25 @@
 		mask-image: linear-gradient(to bottom, transparent 0, black 16px);
 	}
 
-	.scroll-bottom-pad {
-		height: 24px;
+	/* Cards stacked in one free-scrolling column */
+	.scroll-area {
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
 	}
+
+	.sub-title {
+		margin: 0 4px 8px;
+		font-family: var(--font-body);
+		font-size: 14px;
+		font-weight: 600;
+		color: rgba(255, 255, 255, 0.7);
+	}
+
+	.sub-gap {
+		height: 16px;
+	}
+
 
 	.pull-indicator {
 		position: absolute;

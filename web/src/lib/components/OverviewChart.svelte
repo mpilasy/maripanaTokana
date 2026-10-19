@@ -1,0 +1,117 @@
+<script lang="ts">
+	import { monotonePath } from '$lib/utils/monotonePath';
+	import TierLegend from './TierLegend.svelte';
+
+	/**
+	 * The chart under a row of forecast cards: every item at once, squeezed to the card's width,
+	 * with the part scrolled into view highlighted. Callers pass values in the primary unit and
+	 * ready-made labels (with both units) for the highest and lowest points.
+	 */
+	interface Props {
+		values: (number | null)[];
+		itemWidth: number;
+		itemSpacing: number;
+		scrollLeft?: number;
+		containerWidth?: number;
+		height?: number;
+		style?: 'line' | 'bars';
+		color?: string;
+		/** One color per point, e.g. by tier; overrides `color` for the dots and bars. */
+		pointColors?: string[];
+		highLabel?: string;
+		lowLabel?: string;
+		legend?: { color: string; label: string }[];
+	}
+
+	let {
+		values, itemWidth, itemSpacing, scrollLeft = 0, containerWidth = 0, height = 48,
+		style = 'line', color = 'white', pointColors, highLabel, lowLabel, legend,
+	}: Props = $props();
+
+	// Room above and below the line for the labels
+	const PAD = 12;
+
+	let valid = $derived(values.filter((v): v is number => v != null && Number.isFinite(v)));
+	let max = $derived(valid.length ? Math.max(...valid) : 0);
+	let min = $derived(style === 'bars' ? 0 : valid.length ? Math.min(...valid) : 0);
+
+	let totalWidth = $derived(values.length * itemWidth + (values.length - 1) * itemSpacing);
+	let svgWidth = $derived(containerWidth > 0 ? containerWidth : totalWidth);
+	let xScale = $derived(containerWidth > 0 ? containerWidth / totalWidth : 1);
+
+	function getX(i: number) {
+		return (i * (itemWidth + itemSpacing) + itemWidth / 2) * xScale;
+	}
+
+	function getY(v: number) {
+		const bottom = style === 'bars' ? height : height - PAD;
+		return max > min ? bottom - ((v - min) / (max - min)) * (bottom - PAD) : (bottom + PAD) / 2;
+	}
+
+	let points = $derived(values.flatMap((v, i) => (v != null && Number.isFinite(v) ? [{ x: getX(i), y: getY(v), i, v }] : [])));
+	let highPoint = $derived(points.find((p) => p.v === max));
+	let lowPoint = $derived(points.find((p) => p.v === min));
+	let barWidth = $derived(Math.max(2, itemWidth * xScale * 0.6));
+
+	// Labels near an edge grow inwards so they stay inside the chart
+	function anchor(x: number): 'start' | 'middle' | 'end' {
+		return x < svgWidth / 4 ? 'start' : x > (svgWidth * 3) / 4 ? 'end' : 'middle';
+	}
+
+	function labelX(x: number) {
+		const a = anchor(x);
+		return a === 'start' ? Math.max(0, x - 4) : a === 'end' ? Math.min(svgWidth, x + 4) : x;
+	}
+
+	let showViewport = $derived(containerWidth > 0 && totalWidth > containerWidth);
+	let vpLeft = $derived(showViewport ? Math.max(0, scrollLeft / totalWidth * svgWidth) : 0);
+	let vpRight = $derived(showViewport ? Math.min(svgWidth, (scrollLeft + containerWidth) / totalWidth * svgWidth) : svgWidth);
+</script>
+
+{#if legend}
+	<TierLegend entries={legend} />
+{/if}
+<svg width={svgWidth} {height} viewBox="0 0 {svgWidth} {height}" class="overview-chart" aria-hidden="true">
+	{#if style === 'bars'}
+		<line x1="0" y1={height - 0.5} x2={svgWidth} y2={height - 0.5} stroke="white" stroke-width="1" stroke-opacity="0.2" />
+		{#each points as p}
+			{#if p.v > 0}
+				<rect x={p.x - barWidth / 2} y={p.y} width={barWidth} height={height - p.y} rx="1.5" fill={pointColors?.[p.i] ?? color} />
+			{/if}
+		{/each}
+		{#if highPoint && max > 0 && highLabel}
+			<text x={labelX(highPoint.x)} y={Math.max(9, highPoint.y - 3)} text-anchor={anchor(highPoint.x)} font-size="9" font-weight="bold" fill={color}>{highLabel}</text>
+		{/if}
+	{:else}
+		<path d={monotonePath(points)} fill="none" stroke={color} stroke-opacity={pointColors ? 0.5 : 1} stroke-width="2" />
+		{#each points as p}
+			<circle cx={p.x} cy={p.y} r="3" fill={pointColors?.[p.i] ?? color} />
+		{/each}
+		{#if highPoint && highLabel}
+			<text x={labelX(highPoint.x)} y={highPoint.y - 5} text-anchor={anchor(highPoint.x)} font-size="9" font-weight="bold" fill={pointColors?.[highPoint.i] ?? color}>{highLabel}</text>
+		{/if}
+		{#if lowPoint && lowLabel && max > min}
+			<text x={labelX(lowPoint.x)} y={lowPoint.y + 11} text-anchor={anchor(lowPoint.x)} font-size="9" font-weight="bold" fill={pointColors?.[lowPoint.i] ?? color}>{lowLabel}</text>
+		{/if}
+	{/if}
+
+	<!-- Viewport overlay: dim the portions outside the visible window -->
+	{#if showViewport}
+		{#if vpLeft > 0}
+			<rect x="0" y="0" width={vpLeft} {height} fill="black" fill-opacity="0.35" />
+		{/if}
+		{#if vpRight < svgWidth}
+			<rect x={vpRight} y="0" width={svgWidth - vpRight} {height} fill="black" fill-opacity="0.35" />
+		{/if}
+		<line x1={vpLeft} y1="0" x2={vpLeft} y2={height} stroke="white" stroke-width="1.5" stroke-opacity="0.7" />
+		<line x1={vpRight} y1="0" x2={vpRight} y2={height} stroke="white" stroke-width="1.5" stroke-opacity="0.7" />
+	{/if}
+</svg>
+
+<style>
+	.overview-chart {
+		display: block;
+		pointer-events: none;
+		overflow: visible;
+	}
+</style>

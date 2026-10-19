@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { _, json } from 'svelte-i18n';
+	import { _ } from 'svelte-i18n';
 	import type { WeatherData } from '$lib/domain/weatherData';
-	import { getCardinalDirection } from '$lib/domain/windSpeed';
 	import { wmoEmoji, wmoDescriptionKey } from '$lib/api/wmoWeatherCode';
+	import { precipOutlook } from '$lib/domain/precipOutlook';
+	import { formatHourAtLocation } from '$lib/utils/date';
 	import DualUnitText from './DualUnitText.svelte';
 
 	interface Props {
@@ -21,11 +22,29 @@
 	let emoji = $derived(wmoEmoji(data.weatherCode, isNight));
 	let description = $derived($_( wmoDescriptionKey(data.weatherCode)));
 	let tempDual = $derived(data.temperature.displayDualMixed(metricPrimary));
-	let feelsLikeDual = $derived(data.feelsLike.displayDual(metricPrimary));
 	let maxDual = $derived(data.tempMax.displayDual(metricPrimary));
 	let minDual = $derived(data.tempMin.displayDual(metricPrimary));
-	let windDual = $derived(data.windSpeed.displayDual(metricPrimary));
-	let windDir = $derived(data.windDeg != null ? getCardinalDirection(data.windDeg, $json('cardinal_directions')) : '--');
+	let nextHours = $derived(data.hourlyForecast.slice(0, 3));
+
+	// One line on what the next 24 hours hold for rain or snow
+	let outlook = $derived.by(() => {
+		const o = precipOutlook(data.hourlyForecast);
+		if (!o) return '';
+		const kind = o.snow ? 'snow' : 'rain';
+		if (o.kind === 'starts' || o.kind === 'stops') {
+			const time = loc(formatHourAtLocation(o.time, data.utcOffsetSeconds));
+			return $_(o.kind === 'starts' ? `outlook_${kind}_from` : `outlook_${kind}_until`, { values: { time } });
+		}
+		return o.kind === 'dry' ? $_('outlook_dry') : $_(`outlook_${kind}_all_day`);
+	});
+
+	function isNightAt(time: number): boolean {
+		let day = 0;
+		for (let i = data.dailySunrise.length - 1; i >= 0; i--) {
+			if (data.dailySunrise[i] <= time) { day = i; break; }
+		}
+		return time < (data.dailySunrise[day] ?? 0) || time > (data.dailySunset[day] ?? 0);
+	}
 
 	function handleShare(e: MouseEvent) {
 		e.stopPropagation();
@@ -40,70 +59,39 @@
 			<span class="hero-description">{description}</span>
 		</div>
 
-		<div class="hero-main">
-			<div class="hero-temp">
-				<DualUnitText
-					primary={loc(tempDual[0])}
-					secondary={loc(tempDual[1])}
-					primarySize="64px"
-					secondaryScale={0.4}
-					onClick={onToggleUnits}
-				/>
-			</div>
-			<div class="hero-precip">
-				{#if data.snow}
-					{@const [snowP, snowS] = data.snow.displayDual(metricPrimary)}
-					<DualUnitText
-						primary={"❄️ " + loc(snowP)}
-						secondary={loc(snowS)}
-						align="end"
-						onClick={onToggleUnits}
-					/>
-				{:else if data.rain}
-					{@const [rainP, rainS] = data.rain.displayDual(metricPrimary)}
-					<DualUnitText
-						primary={"🌧️ " + loc(rainP)}
-						secondary={loc(rainS)}
-						align="end"
-						onClick={onToggleUnits}
-					/>
-				{:else}
-					<span class="no-precip">{$_('no_precip')}</span>
-				{/if}
-			</div>
+		<div class="hero-temp">
+			<DualUnitText
+				primary={loc(tempDual[0])}
+				secondary={loc(tempDual[1])}
+				primarySize="80px"
+				secondaryScale={0.4}
+				onClick={onToggleUnits}
+			/>
 		</div>
 
-		<!-- Stat strip: feels like · low/high · wind -->
-		<div class="hero-stats">
-			<div class="stat">
-				<span class="stat-label">{$_('feels_like')}</span>
-				<DualUnitText
-					primary={loc(feelsLikeDual[0])}
-					secondary={loc(feelsLikeDual[1])}
-					align="center"
-					onClick={onToggleUnits}
-				/>
-			</div>
-			<div class="stat-divider"></div>
-			<div class="stat stat-wide">
-				<DualUnitText
-					primary={loc(`↓${minDual[0]} ↑${maxDual[0]}`)}
-					secondary={loc(`↓${minDual[1]} ↑${maxDual[1]}`)}
-					align="center"
-					onClick={onToggleUnits}
-				/>
-			</div>
-			<div class="stat-divider"></div>
-			<div class="stat">
-				<span class="stat-label">{$_('detail_wind')} · {loc(windDir)}</span>
-				<DualUnitText
-					primary={loc(windDual[0])}
-					secondary={loc(windDual[1])}
-					align="center"
-					onClick={onToggleUnits}
-				/>
-			</div>
+		<div class="hero-range">
+			<DualUnitText
+				primary={loc(`↓${minDual[0]} ↑${maxDual[0]}`)}
+				secondary={loc(`↓${minDual[1]} ↑${maxDual[1]}`)}
+				onClick={onToggleUnits}
+			/>
 		</div>
+
+		{#if outlook}
+			<p class="hero-outlook">{outlook}</p>
+		{/if}
+
+		{#if nextHours.length > 0}
+			<div class="next-hours">
+				{#each nextHours as hour (hour.time)}
+					<div class="next-hour">
+						<span class="next-time">{loc(formatHourAtLocation(hour.time, data.utcOffsetSeconds))}</span>
+						<span class="next-emoji">{wmoEmoji(hour.weatherCode, isNightAt(hour.time))}</span>
+						<DualUnitText primary={loc(hour.temperature.displayDual(metricPrimary)[0])} secondary={loc(hour.temperature.displayDual(metricPrimary)[1])} primarySize="15px" align="center" onClick={onToggleUnits} />
+					</div>
+				{/each}
+			</div>
+		{/if}
 
 		<div class="copyright">&copy; Orinasa Njarasoa</div>
 	</div>
@@ -123,7 +111,6 @@
 	/* Share button sits outside the captured card so it never appears in share images. */
 	.hero-wrap {
 		position: relative;
-		margin-bottom: 16px;
 	}
 
 	.hero-card {
@@ -182,72 +169,48 @@
 		text-overflow: ellipsis;
 	}
 
-	.hero-main {
-		display: flex;
-		align-items: flex-end;
-		justify-content: space-between;
-		gap: 12px;
-		margin-top: 4px;
-	}
-
-	/* Temperature keeps its natural width; precipitation takes (and wraps within) the rest. */
 	.hero-temp {
-		flex: none;
+		margin-top: 8px;
 	}
 
-	.hero-precip {
-		flex: 1;
-		min-width: 0;
-		padding-bottom: 4px;
-		text-align: end;
+	.hero-range {
+		margin-top: 8px;
 	}
 
-	.no-precip {
-		font-size: 13px;
-		color: rgba(255,255,255,0.6);
-		background: var(--surface-tile);
-		border-radius: 999px;
-		padding: 4px 10px;
-		display: inline-block;
+	.hero-outlook {
+		margin: 16px 0 0;
+		font-size: 15px;
+		color: rgba(255,255,255,0.85);
 	}
 
-	.hero-stats {
+	.next-hours {
 		display: flex;
-		align-items: stretch;
 		margin-top: 16px;
 		padding: 12px 0;
 		background: var(--surface-tile);
 		border-radius: 16px;
 	}
 
-	.stat {
+	.next-hour {
 		flex: 1;
-		min-width: 0;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		justify-content: center;
-		gap: 2px;
-		padding: 0 4px;
+		gap: 4px;
 	}
 
-	.stat-wide {
-		flex: 1.2;
+	.next-hour + .next-hour {
+		border-inline-start: 1px solid var(--hairline);
 	}
 
-	.stat-label {
+	.next-time {
 		font-size: 12px;
 		color: rgba(255,255,255,0.6);
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		max-width: 100%;
+		font-feature-settings: var(--font-features);
 	}
 
-	.stat-divider {
-		width: 1px;
-		margin: 4px 0;
-		background: var(--hairline);
+	.next-emoji {
+		font-size: 22px;
 	}
 
 	.copyright {

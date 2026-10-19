@@ -9,18 +9,27 @@
 		subtitle?: string;
 		subtitleSnippet?: Snippet;
 		trailingSnippet?: Snippet;
+		/** A small graphic in the top corner; the value may run under it. */
+		cornerSnippet?: Snippet;
 		onToggleUnits?: () => void;
 		unit?: string;
 		secondaryUnit?: string;
+		/** Fills the tile from the bottom up to this percentage, like a water level. */
+		fillPercent?: number;
+		onClick?: () => void;
 	}
 
-	let { title, value, secondaryValue, subtitle, subtitleSnippet, trailingSnippet, onToggleUnits, unit, secondaryUnit }: Props = $props();
+	let { title, value, secondaryValue, subtitle, subtitleSnippet, trailingSnippet, cornerSnippet, onToggleUnits, unit, secondaryUnit, fillPercent, onClick }: Props = $props();
 </script>
 
-<div class="detail-card">
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+<div class="detail-card" class:clickable={onClick} role={onClick ? 'button' : undefined} tabindex={onClick ? 0 : undefined}
+	onclick={onClick} onkeydown={(e) => { if (onClick && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onClick(); } }}
+	style:background={fillPercent != null ? `linear-gradient(to top, rgba(100, 181, 246, 0.16) ${fillPercent}%, var(--surface-tile) ${fillPercent}%)` : undefined}>
 	<div class="card-body">
 		{#if title}
-			<span class="card-title">{title}</span>
+			<span class="card-title" class:beside-corner={cornerSnippet}>{title}</span>
 		{/if}
 		{#if secondaryValue}
 			<DualUnitText
@@ -43,6 +52,9 @@
 	{#if trailingSnippet}
 		{@render trailingSnippet()}
 	{/if}
+	{#if cornerSnippet}
+		<div class="corner">{@render cornerSnippet()}</div>
+	{/if}
 </div>
 
 <style>
@@ -55,6 +67,18 @@
 		gap: 8px;
 		flex: 1;
 		min-width: 0;
+		position: relative;
+	}
+
+	.corner {
+		position: absolute;
+		top: 10px;
+		inset-inline-end: 10px;
+		pointer-events: none;
+	}
+
+	.detail-card.clickable {
+		cursor: pointer;
 	}
 
 	.card-body {
@@ -73,6 +97,11 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 		margin-bottom: 2px;
+	}
+
+	/* Clear of the corner graphic */
+	.card-title.beside-corner {
+		padding-inline-end: 34px;
 	}
 
 	.card-value {

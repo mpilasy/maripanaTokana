@@ -2,17 +2,31 @@
 	import { _, json } from 'svelte-i18n';
 	import type { WeatherData } from '$lib/domain/weatherData';
 	import { getCardinalDirection } from '$lib/domain/windSpeed';
+	import { AQI_TIER_COLORS } from '$lib/domain/airQuality';
+	import { UV_TIER_COLORS, uvTier, type UvTier } from '$lib/domain/uv';
 	import DetailCard from './DetailCard.svelte';
 	import UvTierBadge from './UvTierBadge.svelte';
+	import Gauge from './Gauge.svelte';
+	import WindCompass from './WindCompass.svelte';
+	import SunArc from './SunArc.svelte';
 
 	interface Props {
 		data: WeatherData;
 		metricPrimary: boolean;
 		loc: (s: string) => string;
 		onToggleUnits: () => void;
+		onOpenAirQuality: () => void;
+		/** 'now': temperature, rain, wind, pressure, humidity; 'sky': sun, air quality, UV, visibility. */
+		part: 'now' | 'sky';
 	}
 
-	let { data, metricPrimary, loc, onToggleUnits }: Props = $props();
+	let { data, metricPrimary, loc, onToggleUnits, onOpenAirQuality, part }: Props = $props();
+
+	const UV_TIERS: UvTier[] = ['low', 'moderate', 'high', 'veryHigh', 'extreme'];
+	const AQI_TIERS = ['good', 'moderate', 'unhealthy', 'very_unhealthy', 'hazardous'];
+	// Gauge scales: sea-level pressure rarely leaves 960-1050 hPa; AQI tops out at "hazardous"
+	const PRESSURE_MIN_HPA = 960;
+	const PRESSURE_MAX_HPA = 1050;
 
 	function formatTime(epochSec: number): string {
 		const d = new Date(epochSec * 1000);
@@ -40,8 +54,6 @@
 
 	let tempDual = $derived(data.temperature.displayDual(metricPrimary));
 	let feelsLikeDual = $derived(data.feelsLike.displayDual(metricPrimary));
-	let minDual = $derived(data.tempMin.displayDual(metricPrimary));
-	let maxDual = $derived(data.tempMax.displayDual(metricPrimary));
 	let windDual = $derived(data.windSpeed.displayDual(metricPrimary));
 	let gustDual = $derived(data.windGust?.displayDual(metricPrimary));
 	let pressDual = $derived(data.pressure.displayDual(metricPrimary));
@@ -51,12 +63,13 @@
 </script>
 
 <div class="conditions-grid">
+	{#if part === 'now'}
 	<!-- Temperature / Precipitation -->
 	<DetailCard
 		title={$_('detail_temperature')}
 		value={loc(tempDual[0])}
 		secondaryValue={loc(tempDual[1])}
-		subtitle={`${$_('feels_like')} ${loc(feelsLikeDual[0])}`}
+		subtitle={`${$_('feels_like')} ${loc(feelsLikeDual[0])} · ${loc(feelsLikeDual[1])}`}
 		{onToggleUnits}
 	/>
 	{#if data.snow}
@@ -69,10 +82,6 @@
 		<DetailCard title={$_('detail_precipitation')} value={$_('no_precip')} subtitle={cloudCover} />
 	{/if}
 
-	<!-- Low / High -->
-	<DetailCard title={$_('detail_min_temp')} value={"\u2193 " + loc(minDual[0])} secondaryValue={loc(minDual[1])} {onToggleUnits} />
-	<DetailCard title={$_('detail_max_temp')} value={"\u2191 " + loc(maxDual[0])} secondaryValue={loc(maxDual[1])} {onToggleUnits} />
-
 	<!-- Wind / Gust -->
 	<DetailCard
 		title={$_('detail_wind')}
@@ -80,7 +89,13 @@
 		secondaryValue={loc(windDual[1])}
 		subtitle={data.windDeg != null ? loc(`${getCardinalDirection(data.windDeg, $json('cardinal_directions'))} (${data.windDeg}°)`) : '--'}
 		{onToggleUnits}
-	/>
+	>
+		{#snippet cornerSnippet()}
+			{#if data.windDeg != null}
+				<WindCompass degrees={data.windDeg} size={40} />
+			{/if}
+		{/snippet}
+	</DetailCard>
 	<DetailCard
 		title={$_('detail_wind_gust')}
 		value={gustDual ? loc(gustDual[0]) : '--'}
@@ -88,31 +103,68 @@
 		{onToggleUnits}
 	/>
 
-	<!-- Sunrise / Sunset -->
-	<DetailCard title={$_('detail_sunrise')} value={loc(formatTime(data.sunrise))} />
-	<DetailCard title={$_('detail_sunset')} value={loc(formatTime(data.sunset))} />
-
 	<!-- Pressure / Humidity -->
 	<DetailCard
 		title={$_('detail_pressure')}
 		value={loc(pressDual[0])}
 		secondaryValue={loc(pressDual[1])}
 		{onToggleUnits}
-	/>
+	>
+		{#snippet cornerSnippet()}
+			<Gauge fraction={(data.pressure.hPa - PRESSURE_MIN_HPA) / (PRESSURE_MAX_HPA - PRESSURE_MIN_HPA)} color="#9B8FFF" size={40} />
+		{/snippet}
+	</DetailCard>
 	<DetailCard
 		title={$_('detail_humidity')}
 		value={data.humidity != null ? loc(`${data.humidity}%`) : '--'}
 		subtitle={`${$_('detail_dewpoint')} ${loc(dewDual[0])} · ${loc(dewDual[1])}`}
+		fillPercent={data.humidity ?? undefined}
 	/>
 
-	<!-- UV Index (current reading) / Visibility — Air Quality lives on its own forecast card -->
+	{:else}
+	<!-- Sun / Air quality (the sun spans the row when there is no air-quality reading) -->
+	<div class="sun-tile" class:wide={!data.airQuality}>
+		<span class="tile-title">{$_('detail_sun')}</span>
+		<SunArc sunrise={data.sunrise} sunset={data.sunset} now={Date.now() / 1000} />
+		<div class="sun-times">
+			<span><span class="sun-label">{$_('detail_sunrise')}</span> {loc(formatTime(data.sunrise))}</span>
+			<span><span class="sun-label">{$_('detail_sunset')}</span> {loc(formatTime(data.sunset))}</span>
+		</div>
+	</div>
+	{#if data.airQuality}
+		{@const aqi = data.airQuality}
+		{@const [aqiP, aqiS] = aqi.displayDual()}
+		{@const us = $_('air_quality_us_aqi')}
+		{@const eu = $_('air_quality_eu_aqi')}
+		<DetailCard
+			title={$_('detail_air_quality')}
+			value={loc(aqiP)}
+			secondaryValue={loc(aqiS)}
+			unit={aqi.primaryStandard === 'EUROPEAN' ? eu : us}
+			secondaryUnit={aqi.primaryStandard === 'EUROPEAN' ? us : eu}
+			subtitle={($json('aqi_tier_labels') as string[])?.[AQI_TIERS.indexOf(aqi.primaryTier)] ?? ''}
+			onClick={onOpenAirQuality}
+		>
+			{#snippet cornerSnippet()}
+				<Gauge fraction={(AQI_TIERS.indexOf(aqi.primaryTier) + 0.5) / AQI_TIERS.length} color={AQI_TIER_COLORS[aqi.primaryTier]} size={40} />
+			{/snippet}
+		</DetailCard>
+	{/if}
+
+	<!-- UV Index (current reading) / Visibility -->
 	<DetailCard
 		title={$_('detail_uv_index')}
 		value={data.uvIndex != null ? loc(data.uvIndex.toFixed(1)) : '--'}
 	>
 		{#snippet subtitleSnippet()}
 			{#if data.uvIndex != null}
+				{@const current = uvTier(data.uvIndex)}
 				<span><UvTierBadge uvIndex={data.uvIndex} label={getUvLabel(data.uvIndex)} /></span>
+				<span class="uv-dots" aria-hidden="true">
+					{#each UV_TIERS as tier}
+						<span class="uv-dot" class:current={tier === current} style:background={UV_TIER_COLORS[tier]}></span>
+					{/each}
+				</span>
 			{/if}
 		{/snippet}
 	</DetailCard>
@@ -122,6 +174,7 @@
 		secondaryValue={loc(visDual[1])}
 		{onToggleUnits}
 	/>
+	{/if}
 </div>
 
 <style>
@@ -130,5 +183,69 @@
 		grid-template-columns: 1fr 1fr;
 		grid-auto-rows: auto;
 		gap: 10px;
+	}
+
+	.sun-tile {
+		background: var(--surface-tile);
+		border-radius: 16px;
+		padding: 16px;
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		min-width: 0;
+	}
+
+	.sun-tile.wide {
+		grid-column: span 2;
+	}
+
+	.tile-title {
+		font-size: 13px;
+		color: rgba(255, 255, 255, 0.6);
+	}
+
+	.sun-times {
+		display: flex;
+		justify-content: space-between;
+		gap: 8px;
+		font-family: var(--font-display);
+		font-size: 15px;
+		font-weight: 700;
+		color: white;
+		font-feature-settings: var(--font-features);
+	}
+
+	.sun-times > span {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.sun-times > span:last-child {
+		text-align: end;
+	}
+
+	.sun-label {
+		font-family: var(--font-body, inherit);
+		font-size: 11px;
+		font-weight: 400;
+		color: rgba(255, 255, 255, 0.5);
+	}
+
+	.uv-dots {
+		display: flex;
+		gap: 5px;
+		margin-top: 6px;
+	}
+
+	.uv-dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		opacity: 0.3;
+	}
+
+	.uv-dot.current {
+		opacity: 1;
+		box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8);
 	}
 </style>

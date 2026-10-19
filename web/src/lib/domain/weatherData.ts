@@ -27,6 +27,7 @@ export interface HourlyForecast {
 	windDeg: number;
 	pressure: Pressure;
 	precipitation: Precipitation;
+	uvIndex?: number | null;
 }
 
 export interface HourlyAirQuality {
@@ -40,11 +41,15 @@ export interface DailyForecast {
 	tempMax: Temperature;
 	tempMin: Temperature;
 	weatherCode: number;
+	/** The night's weather (sunset to next sunrise); null when the hourly data doesn't reach it. */
+	nightWeatherCode?: number | null;
 	precipProbability: number;
 	windSpeed: WindSpeed;
 	windDeg: number;
 	precipitation: Precipitation;
 	uvIndexMax: number | null;
+	/** The day's mean sea-level pressure; missing in data saved before it was fetched. */
+	pressure?: Pressure;
 }
 
 export interface MinutelyForecast {

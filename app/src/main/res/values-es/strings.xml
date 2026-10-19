@@ -55,6 +55,7 @@
     <string name="feels_like">Sensacion termica</string>
     <string name="no_precip">Sin precipitacion</string>
     <string name="section_current_conditions">Condiciones actuales</string>
+    <string name="section_sun_air">Sol y aire</string>
     <string name="section_hourly_forecast">Pronostico por hora</string>
     <string name="section_air_quality_forecast">Calidad del aire</string>
     <string name="section_uv_forecast">UV</string>
@@ -87,6 +88,15 @@
     <string name="detail_cloud_cover">Nubosidad</string>
     <string name="detail_sunset">Atardecer</string>
     <string name="detail_air_quality">Calidad del aire</string>
+    <string name="detail_sun">Sol</string>
+    <string name="tab_conditions">Condiciones</string>
+    <string name="outlook_rain_from">Lluvia desde las %1$s</string>
+    <string name="outlook_rain_until">Lluvia hasta las %1$s aprox.</string>
+    <string name="outlook_rain_all_day">Lluvia durante las próximas 24 horas</string>
+    <string name="outlook_snow_from">Nieve desde las %1$s</string>
+    <string name="outlook_snow_until">Nieve hasta las %1$s aprox.</string>
+    <string name="outlook_snow_all_day">Nieve durante las próximas 24 horas</string>
+    <string name="outlook_dry">Sin lluvia en las próximas 24 horas</string>
     <string name="air_quality_us_aqi">AQI EE. UU.</string>
     <string name="air_quality_eu_aqi">AQI UE</string>
     <string name="air_quality_pm2_5">PM2.5</string>

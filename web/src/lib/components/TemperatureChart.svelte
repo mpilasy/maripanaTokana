@@ -139,8 +139,7 @@
 		const maxIndices = points.map((p, i) => p.y === minY ? i : -1).filter(i => i !== -1);
 		const midIdx = maxIndices[Math.floor(maxIndices.length / 2)];
 		const pt = points[midIdx];
-		const tempObj = forecasts[midIdx].temperature;
-		const label = metricPrimary ? tempObj.displayCelsius() : tempObj.displayFahrenheit();
+		const label = forecasts[midIdx].temperature.displayDual(metricPrimary).join(' · ');
 		return { x: pt.x, y: Math.min(height - 4, pt.y + 12), label };
 	});
 
@@ -150,8 +149,7 @@
 		const minIndices = points.map((p, i) => p.y === maxY ? i : -1).filter(i => i !== -1);
 		const midIdx = minIndices[Math.floor(minIndices.length / 2)];
 		const pt = points[midIdx];
-		const tempObj = forecasts[midIdx].temperature;
-		const label = metricPrimary ? tempObj.displayCelsius() : tempObj.displayFahrenheit();
+		const label = forecasts[midIdx].temperature.displayDual(metricPrimary).join(' · ');
 		return { x: pt.x, y: Math.max(10, pt.y - 2), label };
 	});
 
