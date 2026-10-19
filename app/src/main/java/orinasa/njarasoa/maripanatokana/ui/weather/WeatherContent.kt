@@ -1322,7 +1322,6 @@ internal fun HourlyForecastRow(
                                     Text(text = "--", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                                 }
                             }
-                            else -> {}
                         }
 
                         Spacer(modifier = Modifier.height(4.dp))
@@ -1351,7 +1350,7 @@ internal fun HourlyForecastRow(
                 totalScrollWidth = totalScrollWidthPx,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.sd(scale))
+                    .height(64.sd(scale))
                     .padding(bottom = 8.dp)
             )
         } else {
@@ -1588,7 +1587,6 @@ internal fun DailyForecastList(
                                     Text(text = "--", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                                 }
                             }
-                            else -> {}
                         }
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(

@@ -130,9 +130,11 @@ fun TemperatureChart(
                 drawText(layout, topLeft = Offset(x - layout.size.width / 2f, 2.dp.toPx()))
             }
 
+            // Room above the line for the high's label and below it for the low's
+            val labelRoom = 13.dp.toPx()
             val points = temps.mapIndexed { i, temp ->
                 val x = (i * (itemWidthPx + spacingPx) + itemWidthPx / 2) * xScale
-                val y = height - ((temp - paddedMin) / paddedRange * height).toFloat()
+                val y = labelRoom + (height - 2 * labelRoom) * (1 - ((temp - paddedMin) / paddedRange).toFloat())
                 Offset(x, y)
             }
 
@@ -185,7 +187,7 @@ fun TemperatureChart(
                 )
             }
 
-            // Draw peak max temperature label (below peak line)
+            // The high's label above its peak
             val minY = points.minOf { it.y }
             val maxIndices = points.indices.filter { points[it].y == minY }
             val maxMiddleIdx = maxIndices[maxIndices.size / 2]
@@ -195,10 +197,10 @@ fun TemperatureChart(
             val maxLabelStyle = TextStyle(color = Color(0xFFFF7043), fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont)
             val maxLayout = textMeasurer.measure(maxTempText, maxLabelStyle)
             val maxTextX = (maxPoint.x - maxLayout.size.width / 2f).coerceIn(4.dp.toPx(), width - maxLayout.size.width - 4.dp.toPx())
-            val maxTextY = (maxPoint.y + 4.dp.toPx()).coerceIn(2.dp.toPx(), height - maxLayout.size.height)
+            val maxTextY = (maxPoint.y - maxLayout.size.height - 2.dp.toPx()).coerceAtLeast(0f)
             drawText(maxLayout, topLeft = Offset(maxTextX, maxTextY))
 
-            // Draw trough min temperature label (above trough line)
+            // The low's label below its trough
             val maxY = points.maxOf { it.y }
             val minIndices = points.indices.filter { points[it].y == maxY }
             val minMiddleIdx = minIndices[minIndices.size / 2]
@@ -208,7 +210,7 @@ fun TemperatureChart(
             val minLabelStyle = TextStyle(color = Color(0xFF64B5F6), fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont)
             val minLayout = textMeasurer.measure(minTempText, minLabelStyle)
             val minTextX = (minPoint.x - minLayout.size.width / 2f).coerceIn(4.dp.toPx(), width - minLayout.size.width - 4.dp.toPx())
-            val minTextY = (minPoint.y - minLayout.size.height - 2.dp.toPx()).coerceAtLeast(0f)
+            val minTextY = (minPoint.y + 2.dp.toPx()).coerceAtMost(height - minLayout.size.height)
             if (Math.abs(maxPoint.x - minPoint.x) > 30.dp.toPx() || Math.abs(maxTextY - minTextY) > 12.dp.toPx()) {
                 drawText(minLayout, topLeft = Offset(minTextX, minTextY))
             }

@@ -240,10 +240,11 @@ fun NowcastCard(
                 val maxMiddleIdx = maxIndices[maxIndices.size / 2]
                 val maxPoint = points[maxMiddleIdx]
 
+                // A dot on the peak, its amount in the top corner away from it, clear of the line
+                drawCircle(chartLineColor, 3.dp.toPx(), maxPoint)
                 val maxTextLayout = textMeasurer.measure(yLabelText, maxLabelStyle)
-                val maxTextX = (maxPoint.x - maxTextLayout.size.width / 2f).coerceIn(4.dp.toPx(), width - maxTextLayout.size.width - 4.dp.toPx())
-                val maxTextY = (maxPoint.y + 4.dp.toPx()).coerceIn(2.dp.toPx(), chartHeight - maxTextLayout.size.height)
-                drawText(maxTextLayout, topLeft = Offset(maxTextX, maxTextY))
+                val maxTextX = if (maxPoint.x > width / 2) 0f else width - maxTextLayout.size.width
+                drawText(maxTextLayout, topLeft = Offset(maxTextX, 0f))
 
             }
         }

@@ -47,8 +47,6 @@
     <string name="refresh_failed">Tsy nahomby ny fanavaozana · angona tamin\'ny %1$s</string>
     <string name="chart_temperature_summary">Hafanana, 24 ora ho avy: ambony indrindra %1$s, ambany indrindra %2$s</string>
     <string name="chart_daily_temperature_summary">Hafanana isan\'andro: ambony indrindra %1$s, ambany indrindra %2$s</string>
-    <string name="chart_uv_summary">Tondro UV: faratampony %1$s</string>
-    <string name="chart_air_quality_summary">Tondron\'ny kalitaon\'ny rivotra: faratampony %1$s</string>
     <string name="alert_sources_unavailable">Tsy azo ny loharanon\'ny fampitandremana: %1$s</string>
     <string name="last_known_location">Ny toerana fantatra farany no ampiasaina</string>
     <string name="updated_time">Nalaina tamin\'ny %1$s</string>
@@ -57,14 +55,11 @@
     <string name="section_current_conditions">Izao</string>
     <string name="section_sun_air">Masoandro sy rivotra</string>
     <string name="section_hourly_forecast">Isan\'ora</string>
-    <string name="section_air_quality_forecast">Hadion\'ny rivotra</string>
-    <string name="section_uv_forecast">Tara-masoandro</string>
     <string name="section_this_week">Ny folo andro manaraka</string>
     <string name="section_activities">Asa sy lalao</string>
     <string name="section_nowcast">Orana isa-minitra</string>
     <string name="nowcast_no_precip">Tsy hisy orana ny adiny roa manaraka</string>
     <string name="nowcast_starts_in">Hanomboka ny orana afaka ~%1$s minitra</string>
-    <string name="nowcast_stopping_in">Hijanona ny orana afaka ~%1$s minitra</string>
     <string name="nowcast_ongoing">Mety hisy orana ao anatin\'ny 2 ora ho avy</string>
     <string name="activity_running">Hazakazaka</string>
     <string name="activity_laundry">Fanahazan-damba</string>
@@ -75,8 +70,6 @@
     <string name="activity_tier_poor">Ratsy</string>
     <string name="detail_temperature">Maripàna</string>
     <string name="detail_precipitation">Orana</string>
-    <string name="detail_min_temp">Iva Indrindra</string>
-    <string name="detail_max_temp">Avo Indrindra</string>
     <string name="detail_wind">Rivotra</string>
     <string name="detail_wind_gust">Tadio</string>
     <string name="detail_pressure">Tsindry Atmosferika</string>
@@ -137,10 +130,7 @@
     <string name="cd_change_font">Ovay ny endri-tsoratra</string>
     <string name="cd_change_language">Ovay ny fiteny</string>
     <string name="cd_toggle_units">Ovay ny mari-drefy</string>
-    <string name="cd_cycle_mode">Ovay ny fomba fampiseho</string>
     <string name="cd_share">Mandefa</string>
-    <string name="cd_collapse">Akatony</string>
-    <string name="cd_expand">Velaro</string>
     <string name="cd_refresh">Havaozy</string>
     <string name="cd_manage_locations">Ovay ny toerana</string>
     <string name="cd_go_to_current_location">Mankany amin\'ny toerana ankehitriny</string>

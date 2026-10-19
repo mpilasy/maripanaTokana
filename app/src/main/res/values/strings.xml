@@ -47,8 +47,6 @@
     <string name="refresh_failed">Couldn\'t refresh · data from %1$s</string>
     <string name="chart_temperature_summary">Temperature, next 24 hours: high %1$s, low %2$s</string>
     <string name="chart_daily_temperature_summary">Daily temperatures: highest %1$s, lowest %2$s</string>
-    <string name="chart_uv_summary">UV index: maximum %1$s</string>
-    <string name="chart_air_quality_summary">Air quality index: maximum %1$s</string>
     <string name="alert_sources_unavailable">Alert sources unavailable: %1$s</string>
     <string name="last_known_location">Using last known location</string>
     <string name="updated_time">&#x1f552; Updated: %1$s</string>
@@ -57,14 +55,11 @@
     <string name="section_current_conditions">Current Conditions</string>
     <string name="section_sun_air">Sun &amp; Air</string>
     <string name="section_hourly_forecast">Hourly Forecast</string>
-    <string name="section_air_quality_forecast">Air Quality</string>
-    <string name="section_uv_forecast">UV</string>
     <string name="section_this_week">10-Day Forecast</string>
     <string name="section_activities">Activities</string>
     <string name="section_nowcast">Minutely Nowcast</string>
     <string name="nowcast_no_precip">No precipitation expected in the next 2 hours</string>
     <string name="nowcast_starts_in">Precipitation starting in ~%1$s min</string>
-    <string name="nowcast_stopping_in">Precipitation stopping in ~%1$s min</string>
     <string name="nowcast_ongoing">Precipitation expected for the next 2 hours</string>
     <string name="activity_running">Running</string>
     <string name="activity_laundry">Drying Laundry</string>
@@ -75,8 +70,6 @@
     <string name="activity_tier_poor">Poor</string>
     <string name="detail_temperature">Temperature</string>
     <string name="detail_precipitation">Precipitation</string>
-    <string name="detail_min_temp">Min Temp</string>
-    <string name="detail_max_temp">Max Temp</string>
     <string name="detail_wind">Wind</string>
     <string name="detail_wind_gust">Wind Gust</string>
     <string name="detail_pressure">Pressure</string>
@@ -137,10 +130,7 @@
     <string name="cd_change_font">Change font</string>
     <string name="cd_change_language">Change language</string>
     <string name="cd_toggle_units">Toggle units</string>
-    <string name="cd_cycle_mode">Cycle display mode</string>
     <string name="cd_share">Share</string>
-    <string name="cd_collapse">Collapse</string>
-    <string name="cd_expand">Expand</string>
     <string name="cd_refresh">Refresh</string>
     <string name="cd_manage_locations">Change location</string>
     <string name="cd_go_to_current_location">Go to current location</string>

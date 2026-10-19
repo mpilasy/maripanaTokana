@@ -27,7 +27,6 @@ const PLACEHOLDER_ORDER = {
 	widget_min_max: ['min_val', 'min_unit', 'max_val', 'max_unit'],
 	alert_count_title: ['count'],
 	nowcast_starts_in: ['minutes'],
-	nowcast_stopping_in: ['minutes'],
 	alert_sources_unavailable: ['sources'],
 	refresh_failed: ['time'],
 	outlook_rain_from: ['time'],

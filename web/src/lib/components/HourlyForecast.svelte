@@ -220,7 +220,7 @@
 				{metricPrimary}
 				itemWidth={104}
 				itemSpacing={12}
-				height={48}
+				height={64}
 				{scrollLeft}
 				{containerWidth}
 			/>

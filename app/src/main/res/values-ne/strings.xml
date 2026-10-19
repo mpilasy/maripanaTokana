@@ -47,8 +47,6 @@
     <string name="refresh_failed">रिफ्रेश गर्न सकिएन · %1$s को डेटा</string>
     <string name="chart_temperature_summary">तापक्रम, अर्को २४ घण्टा: अधिकतम %1$s, न्यूनतम %2$s</string>
     <string name="chart_daily_temperature_summary">दैनिक तापक्रम: उच्चतम %1$s, न्यूनतम %2$s</string>
-    <string name="chart_uv_summary">यूभी सूचकांक: अधिकतम %1$s</string>
-    <string name="chart_air_quality_summary">वायु गुणस्तर सूचकांक: अधिकतम %1$s</string>
     <string name="alert_sources_unavailable">सतर्कता स्रोतहरू उपलब्ध छैनन्: %1$s</string>
     <string name="last_known_location">अन्तिम ज्ञात स्थान प्रयोग गरिँदै</string>
     <string name="updated_time">&#x1f552; अद्यावधिक: %1$s</string>
@@ -57,14 +55,11 @@
     <string name="section_current_conditions">हालको अवस्था</string>
     <string name="section_sun_air">सूर्य र हावा</string>
     <string name="section_hourly_forecast">प्रति घण्टा पूर्वानुमान</string>
-    <string name="section_air_quality_forecast">वायु गुणस्तर</string>
-    <string name="section_uv_forecast">UV</string>
     <string name="section_this_week">१० दिनको पूर्वानुमान</string>
     <string name="section_activities">गतिविधि सूचकांक</string>
     <string name="section_nowcast">मिनेट-दर-मिनेट पूर्वानुमान</string>
     <string name="nowcast_no_precip">आगामी २ घण्टामा वर्षाको सम्भावना छैन</string>
     <string name="nowcast_starts_in">~%1$s मिनेटमा वर्षा सुरु हुने सम्भावना छ</string>
-    <string name="nowcast_stopping_in">~%1$s मिनेटमा वर्षा रोकिने सम्भावना छ</string>
     <string name="nowcast_ongoing">आगामी २ घण्टासम्म वर्षा भइरहने सम्भावना छ</string>
     <string name="activity_running">दौडनु</string>
     <string name="activity_laundry">लुगा सुकाउनु</string>
@@ -73,8 +68,6 @@
     <string name="activity_tier_good">राम्रो</string>
     <string name="activity_tier_fair">सामान्य</string>
     <string name="activity_tier_poor">खराब</string>
-    <string name="detail_min_temp">न्यूनतम तापक्रम</string>
-    <string name="detail_max_temp">अधिकतम तापक्रम</string>
     <string name="detail_wind">हावा</string>
     <string name="detail_wind_gust">हावाको झोक्का</string>
     <string name="detail_pressure">वायुमण्डलीय चाप</string>
@@ -137,10 +130,7 @@
     <string name="cd_change_font">फन्ट परिवर्तन गर्नुहोस्</string>
     <string name="cd_change_language">भाषा परिवर्तन गर्नुहोस्</string>
     <string name="cd_toggle_units">Toggle units</string>
-    <string name="cd_cycle_mode">Cycle display mode</string>
     <string name="cd_share">साझा गर्नुहोस्</string>
-    <string name="cd_collapse">सानो बनाउनुहोस्</string>
-    <string name="cd_expand">विस्तार गर्नुहोस्</string>
     <string name="cd_refresh">रिफ्रेस</string>
     <string name="cd_manage_locations">स्थान परिवर्तन गर्नुहोस्</string>
     <string name="cd_go_to_current_location">हालको स्थानमा जानुहोस्</string>

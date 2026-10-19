@@ -42,8 +42,11 @@
 		return (index * (itemWidth + itemSpacing) + itemWidth / 2) * xScale;
 	}
 
+	// Room above the line for the high's label and below it for the low's
+	const LABEL_ROOM = 13;
+
 	function getY(temp: number) {
-		return height - ((temp - paddedMin) / paddedRange * height);
+		return LABEL_ROOM + (height - 2 * LABEL_ROOM) * (1 - (temp - paddedMin) / paddedRange);
 	}
 
 	let points = $derived(temps.map((temp, i) => ({ x: getX(i), y: getY(temp) })));
@@ -129,7 +132,7 @@
 		const midIdx = maxIndices[Math.floor(maxIndices.length / 2)];
 		const pt = points[midIdx];
 		const label = forecasts[midIdx].temperature.displayDual(metricPrimary).join(' · ');
-		return { x: pt.x, y: Math.min(height - 4, pt.y + 12), label };
+		return { x: pt.x, y: Math.max(9, pt.y - 4), label };
 	});
 
 	let minPointInfo = $derived.by(() => {
@@ -139,7 +142,7 @@
 		const midIdx = minIndices[Math.floor(minIndices.length / 2)];
 		const pt = points[midIdx];
 		const label = forecasts[midIdx].temperature.displayDual(metricPrimary).join(' · ');
-		return { x: pt.x, y: Math.max(10, pt.y - 2), label };
+		return { x: pt.x, y: Math.min(height - 1, pt.y + 11), label };
 	});
 
 	// Labels near an edge grow inwards so they stay inside the chart

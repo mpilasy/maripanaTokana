@@ -165,9 +165,7 @@
 		const maxIndices = points.map((p, i) => p.y === minY ? i : -1).filter(i => i !== -1);
 		const midIdx = maxIndices[Math.floor(maxIndices.length / 2)];
 		const pt = points[midIdx];
-		const x = Math.max(4, Math.min(containerWidth - 4, pt.x));
-		const y = Math.min(chartHeight - 4, pt.y + 12);
-		return { x, y };
+		return { x: pt.x, y: pt.y };
 	});
 
 	let pathD = $derived(generateMonotonePath(points));
@@ -215,7 +213,9 @@
 
 						<!-- Max legend on peak curve point -->
 						{#if maxPointInfo}
-							<text x={maxPointInfo.x < containerWidth / 4 ? maxPointInfo.x - 4 : maxPointInfo.x > containerWidth * 0.75 ? maxPointInfo.x + 4 : maxPointInfo.x} y={maxPointInfo.y} text-anchor={maxPointInfo.x < containerWidth / 4 ? 'start' : maxPointInfo.x > containerWidth * 0.75 ? 'end' : 'middle'} font-size="9" font-weight="bold" fill="#38bdf8">{yMaxLabelText}</text>
+							<!-- A dot on the peak, its amount in the top corner away from it, clear of the line -->
+							<circle cx={maxPointInfo.x} cy={maxPointInfo.y} r="3" fill="#38bdf8" />
+							<text x={maxPointInfo.x > containerWidth / 2 ? 0 : containerWidth} y="10" text-anchor={maxPointInfo.x > containerWidth / 2 ? 'start' : 'end'} font-size="9" font-weight="bold" fill="#38bdf8">{yMaxLabelText}</text>
 						{/if}
 
 						<!-- Min legend on baseline min point -->

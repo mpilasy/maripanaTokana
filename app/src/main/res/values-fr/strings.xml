@@ -47,8 +47,6 @@
     <string name="refresh_failed">Actualisation impossible · données de %1$s</string>
     <string name="chart_temperature_summary">Température, prochaines 24 heures : maximum %1$s, minimum %2$s</string>
     <string name="chart_daily_temperature_summary">Températures quotidiennes : maximum %1$s, minimum %2$s</string>
-    <string name="chart_uv_summary">Indice UV : maximum %1$s</string>
-    <string name="chart_air_quality_summary">Indice de qualité de l\'air : maximum %1$s</string>
     <string name="alert_sources_unavailable">Sources d\'alertes indisponibles : %1$s</string>
     <string name="last_known_location">Dernière position connue utilisée</string>
     <string name="updated_time">Mis à jour %1$s</string>
@@ -57,14 +55,11 @@
     <string name="section_current_conditions">Conditions actuelles</string>
     <string name="section_sun_air">Soleil et air</string>
     <string name="section_hourly_forecast">Prévisions horaires</string>
-    <string name="section_air_quality_forecast">Qualité de l\'air</string>
-    <string name="section_uv_forecast">UV</string>
     <string name="section_this_week">Prévisions à 10 jours</string>
     <string name="section_activities">Activités</string>
     <string name="section_nowcast">Prévisions minute par minute</string>
     <string name="nowcast_no_precip">Aucune précipitation prévue dans les 2 prochaines heures</string>
     <string name="nowcast_starts_in">Précipitations prévues dans ~%1$s min</string>
-    <string name="nowcast_stopping_in">Fin des précipitations dans ~%1$s min</string>
     <string name="nowcast_ongoing">Précipitations prévues pour les 2 prochaines heures</string>
     <string name="activity_running">Course à pied</string>
     <string name="activity_laundry">Séchage du linge</string>
@@ -73,8 +68,6 @@
     <string name="activity_tier_good">Bon</string>
     <string name="activity_tier_fair">Moyen</string>
     <string name="activity_tier_poor">Mauvais</string>
-    <string name="detail_min_temp">Temp. min</string>
-    <string name="detail_max_temp">Temp. max</string>
     <string name="detail_wind">Vent</string>
     <string name="detail_wind_gust">Rafale</string>
     <string name="detail_pressure">Pression</string>
@@ -137,10 +130,7 @@
     <string name="cd_change_font">Changer la police</string>
     <string name="cd_change_language">Changer la langue</string>
     <string name="cd_toggle_units">Toggle units</string>
-    <string name="cd_cycle_mode">Cycle display mode</string>
     <string name="cd_share">Partager</string>
-    <string name="cd_collapse">Réduire</string>
-    <string name="cd_expand">Développer</string>
     <string name="cd_refresh">Actualiser</string>
     <string name="cd_manage_locations">Changer l\'emplacement</string>
     <string name="cd_go_to_current_location">Aller à la position actuelle</string>
