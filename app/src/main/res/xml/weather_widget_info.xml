@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Older launchers and Nova size widgets from minWidth/minHeight (n cells = 70n - 30 dp), newer ones from targetCell* -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:minWidth="250dp"
-    android:minHeight="60dp"
+    android:minHeight="40dp"
     android:targetCellWidth="4"
     android:targetCellHeight="1"
     android:resizeMode="horizontal|vertical"
