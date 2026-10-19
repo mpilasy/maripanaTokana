@@ -504,7 +504,7 @@
 						<SectionCard title={$_('section_hourly_forecast')} onShare={handleShare}>
 							{#if $weatherSource === 'OPEN_METEO' && data.minutelyForecast && data.minutelyForecast.length > 0}
 								<h3 class="sub-title">{$_('section_nowcast')}</h3>
-								<NowcastCard items={data.minutelyForecast} localizeDigits={loc} />
+								<NowcastCard items={data.minutelyForecast} localizeDigits={loc} utcOffsetSeconds={data.utcOffsetSeconds} />
 								<div class="sub-gap"></div>
 							{/if}
 							<HourlyForecast

@@ -38,13 +38,12 @@ import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFont
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 import java.text.SimpleDateFormat
 import java.util.Date
+import orinasa.njarasoa.maripanatokana.ui.weather.buildLocationTimeZone
 import java.util.Locale
 
-private fun formatTime(epochMillis: Long): String {
-    val formatter = SimpleDateFormat("HH:mm", Locale.US)
-    val result = formatter.format(Date(epochMillis))
-    return result
-}
+// In the place's own time, like the hourly cards
+private fun formatTime(epochMillis: Long, utcOffsetSeconds: Int): String =
+    SimpleDateFormat("HH:mm", Locale.US).apply { timeZone = buildLocationTimeZone(utcOffsetSeconds) }.format(Date(epochMillis))
 
 private fun computeHeadlineText(items: List<MinutelyForecast>, nowMillis: Long): Int {
     val firstPrecipIndex = items.indexOfFirst { it.precipitation.mm > 0.05 }
@@ -90,6 +89,7 @@ private fun generate30MinTicks(startTime: Long, endTime: Long): List<Long> {
 fun NowcastCard(
     items: List<MinutelyForecast>,
     isMetricPrimary: Boolean,
+    utcOffsetSeconds: Int,
     modifier: Modifier = Modifier,
 ) {
     val nowMillis = System.currentTimeMillis()
@@ -194,7 +194,7 @@ fun NowcastCard(
                         strokeWidth = 1.dp.toPx(),
                         pathEffect = gridDashEffect
                     )
-                    val text = formatTime(tickTime)
+                    val text = formatTime(tickTime, utcOffsetSeconds)
                     val layout = textMeasurer.measure(text, timeLabelStyle)
                     val textX = (tickX - layout.size.width / 2f).coerceIn(0f, width - layout.size.width)
                     drawText(layout, topLeft = Offset(textX, chartHeight + 4.dp.toPx()))

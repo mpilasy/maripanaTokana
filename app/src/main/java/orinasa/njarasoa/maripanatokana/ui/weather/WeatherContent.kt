@@ -245,7 +245,8 @@ internal fun WeatherContent(
             appLocale
         )
     }
-    val timeFormat = remember { SimpleDateFormat("HH:mm", Locale.US) }
+    // Sunrise and sunset in the place's own time, like the hourly cards and its clock
+    val timeFormat = remember(data.utcOffsetSeconds) { SimpleDateFormat("HH:mm", Locale.US).apply { timeZone = buildLocationTimeZone(data.utcOffsetSeconds) } }
     val displayFont = LocalDisplayFont.current
     val bodyFont = LocalBodyFont.current
 
@@ -723,7 +724,8 @@ internal fun WeatherContent(
                         )
                         orinasa.njarasoa.maripanatokana.ui.weather.components.NowcastCard(
                             items = data.minutelyForecast,
-                            isMetricPrimary = metricPrimary
+                            isMetricPrimary = metricPrimary,
+                            utcOffsetSeconds = data.utcOffsetSeconds,
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                     }

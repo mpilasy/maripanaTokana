@@ -4,13 +4,15 @@
 	import { Precipitation } from '$lib/domain/precipitation';
 	import { metricPrimary } from '$lib/stores/preferences';
 	import { onMount } from 'svelte';
+	import { formatHourAtLocation } from '$lib/utils/date';
 
 	interface Props {
 		items: MinutelyForecast[];
 		localizeDigits: (val: string) => string;
+		utcOffsetSeconds: number;
 	}
 
-	let { items, localizeDigits }: Props = $props();
+	let { items, localizeDigits, utcOffsetSeconds }: Props = $props();
 
 	let containerWidth = $state(100);
 	let container: HTMLDivElement | undefined = $state();
@@ -57,12 +59,11 @@
 		return result;
 	});
 
+	// In the place's own time, like the hourly cards
 	function formatTime(epochMs: number): string {
-		const d = new Date(epochMs);
-		const hh = d.getHours().toString().padStart(2, '0');
-		const mm = d.getMinutes().toString().padStart(2, '0');
-		return localizeDigits(`${hh}:${mm}`);
+		return localizeDigits(formatHourAtLocation(epochMs, utcOffsetSeconds));
 	}
+
 
 	function generate30MinTicks(startTime: number, endTime: number): number[] {
 		let result: number[] = [];

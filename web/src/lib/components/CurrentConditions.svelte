@@ -6,6 +6,7 @@
 	import { AQI_TIER_COLORS, aqiDialPosition } from '$lib/domain/airQuality';
 	import { UV_TIER_COLORS, uvTier, type UvTier } from '$lib/domain/uv';
 	import DetailCard from './DetailCard.svelte';
+	import { formatHourAtLocation } from '$lib/utils/date';
 	import UvTierBadge from './UvTierBadge.svelte';
 	import Gauge from './Gauge.svelte';
 	import WindCompass from './WindCompass.svelte';
@@ -29,10 +30,11 @@
 	const PRESSURE_MIN_HPA = 960;
 	const PRESSURE_MAX_HPA = 1050;
 
+	// Sunrise and sunset in the place's own time, like the hourly cards and its clock
 	function formatTime(epochSec: number): string {
-		const d = new Date(epochSec * 1000);
-		return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+		return formatHourAtLocation(epochSec * 1000, data.utcOffsetSeconds);
 	}
+
 
 	function getUvLabel(uv: number): string {
 		const labels: string[] = $json('uv_labels') as string[];
