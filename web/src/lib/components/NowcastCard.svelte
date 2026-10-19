@@ -199,10 +199,13 @@
 </script>
 
 <div class="nowcast-card">
-	<div class="header-row">
-		<span class="icon">🌧️</span>
-		<span class="headline">{headlineText}</span>
-	</div>
+	<!-- While it's already raining the chart says it all; the sentence is for dry spells and rain on its way -->
+	{#if firstPrecipIndex !== 0 || !hasPrecipitation}
+		<div class="header-row">
+			<span class="icon">🌧️</span>
+			<span class="headline">{headlineText}</span>
+		</div>
+	{/if}
 
 	{#if hasPrecipitation && displayItems.length > 1}
 		<div class="chart-section">

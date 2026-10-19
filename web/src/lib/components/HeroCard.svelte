@@ -1,7 +1,8 @@
 <script lang="ts">
+	import WeatherIcon from './WeatherIcon.svelte';
 	import { _ } from 'svelte-i18n';
 	import type { WeatherData } from '$lib/domain/weatherData';
-	import { wmoEmoji, wmoDescriptionKey } from '$lib/api/wmoWeatherCode';
+	import { wmoDescriptionKey } from '$lib/api/wmoWeatherCode';
 	import { precipOutlook } from '$lib/domain/precipOutlook';
 	import { formatHourAtLocation } from '$lib/utils/date';
 	import DualUnitText from './DualUnitText.svelte';
@@ -19,7 +20,6 @@
 	let cardEl = $state<HTMLElement | null>(null);
 
 	let isNight = $derived(data.timestamp < data.sunrise * 1000 || data.timestamp > data.sunset * 1000);
-	let emoji = $derived(wmoEmoji(data.weatherCode, isNight));
 	let description = $derived($_( wmoDescriptionKey(data.weatherCode)));
 	let tempDual = $derived(data.temperature.displayDualMixed(metricPrimary));
 	let maxDual = $derived(data.tempMax.displayDual(metricPrimary));
@@ -55,7 +55,7 @@
 <div class="hero-wrap">
 	<div class="hero-card" bind:this={cardEl}>
 		<div class="hero-condition">
-			<span class="hero-emoji">{emoji}</span>
+			<WeatherIcon code={data.weatherCode} night={isNight} size={64} />
 			<span class="hero-description">{description}</span>
 		</div>
 
@@ -64,7 +64,7 @@
 				primary={loc(tempDual[0])}
 				secondary={loc(tempDual[1])}
 				primarySize="80px"
-				secondaryScale={0.4}
+				secondaryScale={0.32}
 				onClick={onToggleUnits}
 			/>
 		</div>
@@ -86,7 +86,7 @@
 				{#each nextHours as hour (hour.time)}
 					<div class="next-hour">
 						<span class="next-time">{loc(formatHourAtLocation(hour.time, data.utcOffsetSeconds))}</span>
-						<span class="next-emoji">{wmoEmoji(hour.weatherCode, isNightAt(hour.time))}</span>
+						<WeatherIcon code={hour.weatherCode} night={isNightAt(hour.time)} size={40} />
 						<DualUnitText primary={loc(hour.temperature.displayDual(metricPrimary)[0])} secondary={loc(hour.temperature.displayDual(metricPrimary)[1])} primarySize="15px" align="center" onClick={onToggleUnits} />
 					</div>
 				{/each}
@@ -114,6 +114,7 @@
 	}
 
 	.hero-card {
+		position: relative;
 		background: var(--hero-gradient);
 		border: 1px solid var(--hairline);
 		border-radius: 28px;
@@ -154,10 +155,6 @@
 		padding-inline-end: 40px;
 	}
 
-	.hero-emoji {
-		font-size: 22px;
-		line-height: 1;
-	}
 
 	.hero-description {
 		font-family: var(--font-body);
@@ -207,10 +204,6 @@
 		font-size: 12px;
 		color: rgba(255,255,255,0.6);
 		font-feature-settings: var(--font-features);
-	}
-
-	.next-emoji {
-		font-size: 22px;
 	}
 
 	.copyright {

@@ -16,6 +16,9 @@
 	   Thresholds match the Low/Moderate/High/Very High/Extreme bands used for uv_labels elsewhere. */
 	/* One line always; in a narrow forecast card the label is cut short rather than wrapped */
 	.uv-badge {
+		/* A tint of the level's colour, with the text in a lighter shade of it */
+		background: color-mix(in srgb, var(--tier) 22%, transparent);
+		color: color-mix(in srgb, var(--tier) 70%, white);
 		display: inline-block;
 		max-width: 100%;
 		box-sizing: border-box;
@@ -29,9 +32,9 @@
 		line-height: 1.4;
 	}
 
-	.uv-low { background: #299501; color: #fff; }
-	.uv-moderate { background: #F7E401; color: #1a1a1a; }
-	.uv-high { background: #F85900; color: #fff; }
-	.uv-veryHigh { background: #D8001D; color: #fff; }
-	.uv-extreme { background: #6B49C8; color: #fff; }
+	.uv-low { --tier: #299501; }
+	.uv-moderate { --tier: #F7E401; }
+	.uv-high { --tier: #F85900; }
+	.uv-veryHigh { --tier: #D8001D; }
+	.uv-extreme { --tier: #6B49C8; }
 </style>

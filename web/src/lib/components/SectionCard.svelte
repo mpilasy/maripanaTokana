@@ -3,11 +3,12 @@
 	import { _ } from 'svelte-i18n';
 
 	/** A card of weather data, always open, with a title and a share button. */
-	let { title, children, onShare }: { title: string; children: Snippet; onShare?: (el: HTMLElement) => void } = $props();
+	/** `bare`: no surface of its own, for sections whose tiles are already cards. */
+	let { title, children, onShare, bare = false }: { title: string; children: Snippet; onShare?: (el: HTMLElement) => void; bare?: boolean } = $props();
 	let contentEl = $state<HTMLElement | null>(null);
 </script>
 
-<section class="section-card">
+<section class="section-card" class:bare>
 	<div class="card-header">
 		<h2 class="card-title">{title}</h2>
 		{#if onShare}
@@ -31,6 +32,12 @@
 		border: 1px solid var(--hairline);
 		border-radius: 20px;
 		padding: 6px 12px 12px;
+	}
+
+	.section-card.bare {
+		background: none;
+		border-color: transparent;
+		padding-inline: 0;
 	}
 
 	.card-header {

@@ -26,7 +26,7 @@
 <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 <div class="detail-card" class:clickable={onClick} role={onClick ? 'button' : undefined} tabindex={onClick ? 0 : undefined}
 	onclick={onClick} onkeydown={(e) => { if (onClick && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onClick(); } }}
-	style:background={fillPercent != null ? `linear-gradient(to top, rgba(100, 181, 246, 0.16) ${fillPercent}%, var(--surface-tile) ${fillPercent}%)` : undefined}>
+	style:background={fillPercent != null ? `linear-gradient(to top, rgba(100, 181, 246, 0.2), rgba(100, 181, 246, 0.1) ${Math.max(0, fillPercent - 10)}%, var(--surface-tile) ${fillPercent}%)` : undefined}>
 	<div class="card-body">
 		{#if title}
 			<span class="card-title" class:beside-corner={cornerSnippet}>{title}</span>

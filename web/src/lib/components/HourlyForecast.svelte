@@ -1,4 +1,6 @@
 <script lang="ts">
+	import LevelBar from './LevelBar.svelte';
+	import WeatherIcon from './WeatherIcon.svelte';
 	import { dragScroll } from '$lib/actions/dragScroll';
 	import { _, json } from 'svelte-i18n';
 	import type { HourlyForecast as HourlyForecastType } from '$lib/domain/weatherData';
@@ -12,8 +14,6 @@
 	import TemperatureChart from './TemperatureChart.svelte';
 	import ForecastTabs from './ForecastTabs.svelte';
 	import OverviewChart from './OverviewChart.svelte';
-	import AqiTierBadge from './AqiTierBadge.svelte';
-	import UvTierBadge from './UvTierBadge.svelte';
 	import { UV_TIER_COLORS, uvColorFor, type UvTier } from '$lib/domain/uv';
 
 	interface Props {
@@ -148,7 +148,7 @@
 						<span class="hour-device-icon">📱</span>
 					</div>
 				{/if}
-				<span class="emoji">{wmoEmoji(item.weatherCode, isNightForHour(item.time))}</span>
+				<WeatherIcon code={item.weatherCode} night={isNightForHour(item.time)} size={44} />
 				{#if displayMode === 'Temperature'}
 					{@const [tempP, tempS] = item.temperature.displayDual(metricPrimary)}
 					<DualUnitText
@@ -192,7 +192,7 @@
 				{:else if displayMode === 'Uv'}
 					{#if item.uvIndex != null && Number.isFinite(item.uvIndex)}
 						<span class="uv-value">{loc(item.uvIndex.toFixed(1))}</span>
-						<UvTierBadge uvIndex={item.uvIndex} label={uvLabel(item.uvIndex)} />
+						<LevelBar color={uvColorFor(item.uvIndex)} label={uvLabel(item.uvIndex)} />
 					{:else}
 						<span class="no-data">--</span>
 					{/if}
@@ -200,7 +200,7 @@
 					{@const aq = aqByHour[i]}
 					{#if aq}
 						<DualUnitText primary={loc(String(aq[0]))} secondary={loc(String(aq[1]))} primaryUnit={aqiUnits[0]} secondaryUnit={aqiUnits[1]} primarySize="14px" align="center" />
-						<AqiTierBadge tier={aqTier(aq[0])} label={aqTierLabel(aq[0])} compact />
+						<LevelBar color={AQI_TIER_COLORS[aqTier(aq[0])]} label={aqTierLabel(aq[0])} />
 					{:else}
 						<span class="no-data">--</span>
 					{/if}
@@ -267,14 +267,14 @@
 		align-items: center;
 		gap: 4px;
 		padding: 12px;
-		background: var(--surface-tile);
+		background: none;
 		border-radius: 16px;
 		flex-shrink: 0;
 		width: 104px;
 	}
 
 	.hourly-card.now {
-		background: var(--surface-tile-highlight);
+		background: var(--surface-tile);
 	}
 
 	.hour {
@@ -306,10 +306,6 @@
 		right: 0;
 		font-size: 8px;
 		opacity: 0.35;
-	}
-
-	.emoji {
-		font-size: 20px;
 	}
 
 	/* Compass pointing to where the wind comes from, with the direction's short name */

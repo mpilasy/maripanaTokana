@@ -1,4 +1,6 @@
 <script lang="ts">
+	import LevelBar from './LevelBar.svelte';
+	import WeatherIcon from './WeatherIcon.svelte';
 	import { dragScroll } from '$lib/actions/dragScroll';
 	import { _, json } from 'svelte-i18n';
 	import type { DailyForecast as DailyForecastType } from '$lib/domain/weatherData';
@@ -9,12 +11,10 @@
 	import WindCompass from './WindCompass.svelte';
 	import DailyTemperatureChart from './DailyTemperatureChart.svelte';
 	import OverviewChart from './OverviewChart.svelte';
-	import UvTierBadge from './UvTierBadge.svelte';
 	import { UV_TIER_COLORS, uvColorFor, type UvTier } from '$lib/domain/uv';
 	import { AirQualityIndex, AQI_TIER_COLORS, type AqiStandard, type AqiTier } from '$lib/domain/airQuality';
 	import type { HourlyAirQuality } from '$lib/domain/weatherData';
 	import { dailyAirQuality } from '$lib/domain/dailyAirQuality';
-	import AqiTierBadge from './AqiTierBadge.svelte';
 	import ForecastTabs from './ForecastTabs.svelte';
 
 	interface Props {
@@ -141,7 +141,7 @@
 			<div class="daily-card" class:today={i === 0}>
 				<span class="day-name">{formatDayName(item.date, localeTag, utcOffsetSeconds, true, weekdayNames)}</span>
 				<span class="day-date">{loc(formatDayMonth(item.date, localeTag, utcOffsetSeconds, monthNames))}</span>
-				<span class="emoji">{wmoEmoji(item.weatherCode)}</span>
+				<WeatherIcon code={item.weatherCode} size={44} />
 				{#if displayMode === 'Temperature'}
 					{@const [maxP, maxS] = item.tempMax.displayDual(metricPrimary)}
 					{@const [minP, minS] = item.tempMin.displayDual(metricPrimary)}
@@ -182,7 +182,7 @@
 				{:else if displayMode === 'Uv'}
 					{#if item.uvIndexMax != null && Number.isFinite(item.uvIndexMax)}
 						<span class="uv-value">{loc(item.uvIndexMax.toFixed(1))}</span>
-						<UvTierBadge uvIndex={item.uvIndexMax} label={uvLabel(item.uvIndexMax)} />
+						<LevelBar color={uvColorFor(item.uvIndexMax)} label={uvLabel(item.uvIndexMax)} />
 					{:else}
 						<span class="uv-value">--</span>
 					{/if}
@@ -190,7 +190,7 @@
 					{@const aq = aqByDay[i]}
 					{#if aq}
 						<DualUnitText primary={loc(String(aq[0]))} secondary={loc(String(aq[1]))} primaryUnit={aqiUnits[0]} secondaryUnit={aqiUnits[1]} primarySize="13px" align="center" />
-						<AqiTierBadge tier={aqTier(aq[0])} label={aqTierLabel(aq[0])} compact />
+						<LevelBar color={AQI_TIER_COLORS[aqTier(aq[0])]} label={aqTierLabel(aq[0])} />
 					{:else}
 						<span class="uv-value">--</span>
 					{/if}
@@ -199,7 +199,7 @@
 					{item.precipProbability > 0 ? loc(`${item.precipProbability}%`) : ''}
 				</span>
 				{#if displayMode === 'Temperature'}
-					<span class="emoji night">{item.nightWeatherCode != null ? wmoEmoji(item.nightWeatherCode, true) : ''}</span>
+					<span class="night-icon">{#if item.nightWeatherCode != null}<WeatherIcon code={item.nightWeatherCode} night size={36} />{/if}</span>
 				{/if}
 			</div>
 		{/each}
@@ -260,14 +260,14 @@
 		align-items: center;
 		gap: 4px;
 		padding: 12px;
-		background: var(--surface-tile);
+		background: none;
 		border-radius: 16px;
 		flex-shrink: 0;
 		width: 96px;
 	}
 
 	.daily-card.today {
-		background: var(--surface-tile-highlight);
+		background: var(--surface-tile);
 	}
 
 	.day-name {
@@ -285,10 +285,6 @@
 		text-align: center;
 	}
 
-	.emoji {
-		font-size: 20px;
-	}
-
 	/* Compass pointing to where the wind comes from, with the direction's short name */
 	.wind-dir {
 		display: flex;
@@ -298,9 +294,9 @@
 		color: rgba(255, 255, 255, 0.7);
 	}
 
-	/* Keeps the row's height when a night has no icon */
-	.emoji.night {
-		min-height: 1.4em;
+	/* Keeps the cards the same height when a night has no icon */
+	.night-icon {
+		min-height: 30px;
 	}
 
 	.range-track {

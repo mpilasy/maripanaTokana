@@ -53,16 +53,6 @@
 	let maxPoints = $derived(maxTemps.map((temp, i) => ({ x: getX(i), y: getY(temp) })));
 	let minPoints = $derived(minTemps.map((temp, i) => ({ x: getX(i), y: getY(temp) })));
 
-	let horizontalTicks = $derived(() => {
-		const ticks = [];
-		const start = Math.ceil(paddedMin);
-		const end = Math.floor(paddedMax);
-		for (let i = start; i <= end; i++) {
-			ticks.push({ y: getY(i), temp: i });
-		}
-		return ticks;
-	});
-
 	let mondayIndices = $derived(forecasts.map((f, i) => {
 		const date = new Date(f.date);
 		return date.getDay() === 1 ? i : -1;
@@ -134,21 +124,10 @@
 </script>
 
 <svg width={svgWidth} {height} viewBox="0 0 {svgWidth} {height}" class="daily-chart" role={ariaLabel ? 'img' : undefined} aria-label={ariaLabel}>
-	<!-- Horizontal Ticks -->
-	{#each horizontalTicks() as tick}
-		{@const isMajor = tick.temp % 5 === 0}
-		<line
-			x1="0" y1={tick.y} x2={svgWidth} y2={tick.y}
-			stroke="white"
-			stroke-width={isMajor ? "1" : "0.5"}
-			stroke-opacity={isMajor ? "0.25" : "0.1"}
-		/>
-	{/each}
-
 	<!-- Monday Vertical Lines -->
 	{#each mondayIndices as idx}
 		{@const x = getX(idx)}
-		<line x1={x} y1="0" x2={x} y2={height} stroke="white" stroke-width="1" stroke-opacity="0.2" stroke-dasharray="2 2" />
+		<line x1={x} y1="0" x2={x} y2={height} stroke="white" stroke-width="1" stroke-opacity="0.1" stroke-dasharray="2 2" />
 	{/each}
 
 	<!-- Area between high and low -->
@@ -168,16 +147,9 @@
 		<circle cx={point.x} cy={point.y} r="3" fill="#64B5F6" />
 	{/each}
 
-	<!-- Viewport overlay: dim the portions outside the visible window -->
-	{#if showViewport}
-		{#if vpLeft > 0}
-			<rect x="0" y="0" width={vpLeft} {height} fill="black" fill-opacity="0.35" />
-		{/if}
-		{#if vpRight < svgWidth}
-			<rect x={vpRight} y="0" width={svgWidth - vpRight} {height} fill="black" fill-opacity="0.35" />
-		{/if}
-		<line x1={vpLeft} y1="0" x2={vpLeft} y2={height} stroke="white" stroke-width="1.5" stroke-opacity="0.7" />
-		<line x1={vpRight} y1="0" x2={vpRight} y2={height} stroke="white" stroke-width="1.5" stroke-opacity="0.7" />
+		{#if showViewport}
+		<!-- The part of the row scrolled into view, as a light band -->
+		<rect x={vpLeft} y="0" width={vpRight - vpLeft} {height} rx="6" fill="white" fill-opacity="0.06" />
 	{/if}
 </svg>
 

@@ -542,19 +542,19 @@
 				{/if}
 
 				<div>
-					<SectionCard title={$_('section_current_conditions')} onShare={handleShare}>
+					<SectionCard bare title={$_('section_current_conditions')} onShare={handleShare}>
 						<CurrentConditions part="now" {data} metricPrimary={$metricPrimary} {loc} onToggleUnits={toggleUnits} onOpenAirQuality={() => showAirQualityDetail = true} />
 					</SectionCard>
 				</div>
 
 				<div>
-					<SectionCard title={$_('section_sun_air')} onShare={handleShare}>
+					<SectionCard bare title={$_('section_sun_air')} onShare={handleShare}>
 						<CurrentConditions part="sky" {data} metricPrimary={$metricPrimary} {loc} onToggleUnits={toggleUnits} onOpenAirQuality={() => showAirQualityDetail = true} />
 					</SectionCard>
 				</div>
 
 				<div>
-					<SectionCard title={$_('section_activities')} onShare={handleShare}>
+					<SectionCard bare title={$_('section_activities')} onShare={handleShare}>
 						<ActivitiesCard indices={computeActivityIndices(data)} />
 					</SectionCard>
 				</div>

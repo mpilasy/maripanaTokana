@@ -23,6 +23,9 @@
 	   Groups" (101-150) and Red "Unhealthy" (151-200) range, mapped here to Red. */
 	/* One line always; in a narrow forecast card the label is cut short rather than wrapped */
 	.aqi-badge {
+		/* A tint of the level's colour, with the text in a lighter shade of it */
+		background: color-mix(in srgb, var(--tier) 22%, transparent);
+		color: color-mix(in srgb, var(--tier) 70%, white);
 		display: inline-block;
 		max-width: 100%;
 		box-sizing: border-box;
@@ -47,9 +50,9 @@
 		padding: 1px 6px;
 	}
 
-	.tier-good { background: #00E400; color: #1a1a1a; }
-	.tier-moderate { background: #FFFF00; color: #1a1a1a; }
-	.tier-unhealthy { background: #FF0000; color: #fff; }
-	.tier-very_unhealthy { background: #8F3F97; color: #fff; }
-	.tier-hazardous { background: #7E0023; color: #fff; }
+	.tier-good { --tier: #00E400; }
+	.tier-moderate { --tier: #FFFF00; }
+	.tier-unhealthy { --tier: #FF0000; }
+	.tier-very_unhealthy { --tier: #8F3F97; }
+	.tier-hazardous { --tier: #7E0023; }
 </style>

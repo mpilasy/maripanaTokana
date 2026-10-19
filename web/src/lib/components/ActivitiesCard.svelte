@@ -82,6 +82,9 @@
 	}
 
 	.badge {
+		/* A tint of the level's colour, with the text in a lighter shade of it */
+		background: color-mix(in srgb, var(--tier) 22%, transparent);
+		color: color-mix(in srgb, var(--tier) 70%, white);
 		font-family: var(--font-display);
 		font-size: 13px;
 		font-weight: 700;
@@ -89,8 +92,8 @@
 		border-radius: 12px;
 	}
 
-	.tier-excellent { background: #299501; color: #fff; }
-	.tier-good { background: #0088CC; color: #fff; }
-	.tier-fair { background: #F7E401; color: #1a1a1a; }
-	.tier-poor { background: #F85900; color: #fff; }
+	.tier-excellent { --tier: #299501; }
+	.tier-good { --tier: #0088CC; }
+	.tier-fair { --tier: #F7E401; }
+	.tier-poor { --tier: #F85900; }
 </style>

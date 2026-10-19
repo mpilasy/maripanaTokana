@@ -103,16 +103,9 @@
 		{/if}
 	{/if}
 
-	<!-- Viewport overlay: dim the portions outside the visible window -->
-	{#if showViewport}
-		{#if vpLeft > 0}
-			<rect x="0" y="0" width={vpLeft} {height} fill="black" fill-opacity="0.35" />
-		{/if}
-		{#if vpRight < svgWidth}
-			<rect x={vpRight} y="0" width={svgWidth - vpRight} {height} fill="black" fill-opacity="0.35" />
-		{/if}
-		<line x1={vpLeft} y1="0" x2={vpLeft} y2={height} stroke="white" stroke-width="1.5" stroke-opacity="0.7" />
-		<line x1={vpRight} y1="0" x2={vpRight} y2={height} stroke="white" stroke-width="1.5" stroke-opacity="0.7" />
+		{#if showViewport}
+		<!-- The part of the row scrolled into view, as a light band -->
+		<rect x={vpLeft} y="0" width={vpRight - vpLeft} {height} rx="6" fill="white" fill-opacity="0.06" />
 	{/if}
 </svg>
 

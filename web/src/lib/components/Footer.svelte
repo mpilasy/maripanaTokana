@@ -54,9 +54,10 @@
 		align-items: center;
 		gap: 6px;
 		cursor: pointer;
-		background: var(--surface-tile);
+		background: none;
 		border: none;
-		padding: 6px 10px;
+		padding: 6px 8px;
+		opacity: 0.7;
 		border-radius: 999px;
 		transition: background 0.2s, transform 0.1s;
 		font-family: inherit;

@@ -48,17 +48,6 @@
 
 	let points = $derived(temps.map((temp, i) => ({ x: getX(i), y: getY(temp) })));
 
-	let horizontalTicks = $derived(() => {
-		const ticks = [];
-		const start = Math.ceil(paddedMin);
-		const end = Math.floor(paddedMax);
-		for (let i = start; i <= end; i++) {
-			if (Math.abs(i - minTemp) < 0.2 || Math.abs(i - maxTemp) < 0.2) continue;
-			ticks.push(getY(i));
-		}
-		return ticks;
-	});
-
 	let { midnightIndices, noonIndices } = $derived.by(() => {
 		const midnight: number[] = [];
 		const noon: number[] = [];
@@ -153,6 +142,16 @@
 		return { x: pt.x, y: Math.max(10, pt.y - 2), label };
 	});
 
+	// Labels near an edge grow inwards so they stay inside the chart
+	function anchor(x: number): 'start' | 'middle' | 'end' {
+		return x < svgWidth / 4 ? 'start' : x > (svgWidth * 3) / 4 ? 'end' : 'middle';
+	}
+
+	function labelX(x: number) {
+		const a = anchor(x);
+		return a === 'start' ? Math.max(0, x - 4) : a === 'end' ? Math.min(svgWidth, x + 4) : x;
+	}
+
 	let showViewport = $derived(containerWidth > 0 && totalWidth > containerWidth);
 	let vpLeft = $derived(showViewport ? Math.max(0, scrollLeft / totalWidth * svgWidth) : 0);
 	let vpRight = $derived(showViewport ? Math.min(svgWidth, (scrollLeft + containerWidth) / totalWidth * svgWidth) : svgWidth);
@@ -166,26 +165,17 @@
 		</linearGradient>
 	</defs>
 
-	<!-- Horizontal Ticks -->
-	{#each horizontalTicks() as y}
-		<line x1="0" y1={y} x2={svgWidth} y2={y} stroke="white" stroke-width="0.5" stroke-opacity="0.1" />
-	{/each}
-
-	<!-- Standout Min/Max Lines -->
-	<line x1="0" y1={getY(minTemp)} x2={svgWidth} y2={getY(minTemp)} stroke="white" stroke-width="0.8" stroke-opacity="0.3" stroke-dasharray="2 1" />
-	<line x1="0" y1={getY(maxTemp)} x2={svgWidth} y2={getY(maxTemp)} stroke="white" stroke-width="0.8" stroke-opacity="0.3" stroke-dasharray="2 1" />
-
 	<!-- Midnight Vertical Lines + Labels -->
 	{#each midnightIndices as idx}
 		{@const x = getX(idx)}
-		<line x1={x} y1="0" x2={x} y2={height} stroke="white" stroke-width="1" stroke-opacity="0.4" />
+		<line x1={x} y1="0" x2={x} y2={height} stroke="white" stroke-width="1" stroke-opacity="0.15" />
 		<text x={x} y="9" text-anchor="middle" font-size="8" fill="white" fill-opacity="0.7">00:00</text>
 	{/each}
 
 	<!-- Noon Vertical Lines + Labels -->
 	{#each noonIndices as idx}
 		{@const x = getX(idx)}
-		<line x1={x} y1="0" x2={x} y2={height} stroke="white" stroke-width="1" stroke-opacity="0.2" stroke-dasharray="4 4" />
+		<line x1={x} y1="0" x2={x} y2={height} stroke="white" stroke-width="1" stroke-opacity="0.1" stroke-dasharray="4 4" />
 		<text x={x} y="9" text-anchor="middle" font-size="8" fill="white" fill-opacity="0.45">12:00</text>
 	{/each}
 
@@ -201,22 +191,15 @@
 	{/each}
 
 	{#if maxPointInfo}
-		<text x={maxPointInfo.x} y={maxPointInfo.y} text-anchor="middle" font-size="9" font-weight="bold" fill="#FF7043">{maxPointInfo.label}</text>
+		<text x={labelX(maxPointInfo.x)} y={maxPointInfo.y} text-anchor={anchor(maxPointInfo.x)} font-size="9" font-weight="bold" fill="#FF7043">{maxPointInfo.label}</text>
 	{/if}
 	{#if minPointInfo}
-		<text x={minPointInfo.x} y={minPointInfo.y} text-anchor="middle" font-size="9" font-weight="bold" fill="#64B5F6">{minPointInfo.label}</text>
+		<text x={labelX(minPointInfo.x)} y={minPointInfo.y} text-anchor={anchor(minPointInfo.x)} font-size="9" font-weight="bold" fill="#64B5F6">{minPointInfo.label}</text>
 	{/if}
 
-	<!-- Viewport overlay: dim the portions outside the visible window -->
-	{#if showViewport}
-		{#if vpLeft > 0}
-			<rect x="0" y="0" width={vpLeft} {height} fill="black" fill-opacity="0.35" />
-		{/if}
-		{#if vpRight < svgWidth}
-			<rect x={vpRight} y="0" width={svgWidth - vpRight} {height} fill="black" fill-opacity="0.35" />
-		{/if}
-		<line x1={vpLeft} y1="0" x2={vpLeft} y2={height} stroke="white" stroke-width="1.5" stroke-opacity="0.7" />
-		<line x1={vpRight} y1="0" x2={vpRight} y2={height} stroke="white" stroke-width="1.5" stroke-opacity="0.7" />
+		{#if showViewport}
+		<!-- The part of the row scrolled into view, as a light band -->
+		<rect x={vpLeft} y="0" width={vpRight - vpLeft} {height} rx="6" fill="white" fill-opacity="0.06" />
 	{/if}
 </svg>
 

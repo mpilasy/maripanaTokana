@@ -1,4 +1,5 @@
 <script lang="ts">
+	import WeatherIcon from './WeatherIcon.svelte';
 	import { _, json } from 'svelte-i18n';
 	import type { WeatherData } from '$lib/domain/weatherData';
 	import { getCardinalDirection } from '$lib/domain/windSpeed';
@@ -74,10 +75,14 @@
 	/>
 	{#if data.snow}
 		{@const [snowP, snowS] = data.snow.displayDual(metricPrimary)}
-		<DetailCard title={$_('detail_precipitation')} value={"\u2744\uFE0F " + loc(snowP)} secondaryValue={loc(snowS)} subtitle={cloudCover} {onToggleUnits} />
+		<DetailCard title={$_('detail_precipitation')} value={loc(snowP)} secondaryValue={loc(snowS)} subtitle={cloudCover} {onToggleUnits}>
+			{#snippet cornerSnippet()}<WeatherIcon code={71} size={44} />{/snippet}
+		</DetailCard>
 	{:else if data.rain}
 		{@const [rainP, rainS] = data.rain.displayDual(metricPrimary)}
-		<DetailCard title={$_('detail_precipitation')} value={"\uD83C\uDF27\uFE0F " + loc(rainP)} secondaryValue={loc(rainS)} subtitle={cloudCover} {onToggleUnits} />
+		<DetailCard title={$_('detail_precipitation')} value={loc(rainP)} secondaryValue={loc(rainS)} subtitle={cloudCover} {onToggleUnits}>
+			{#snippet cornerSnippet()}<WeatherIcon code={61} size={44} />{/snippet}
+		</DetailCard>
 	{:else}
 		<DetailCard title={$_('detail_precipitation')} value={$_('no_precip')} subtitle={cloudCover} />
 	{/if}

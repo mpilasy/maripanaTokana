@@ -135,7 +135,8 @@ fun NowcastCard(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Row(
+        // While it's already raining the chart says it all; the sentence is for dry spells and rain on its way
+        if (headlineRes != R.string.nowcast_ongoing) Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
