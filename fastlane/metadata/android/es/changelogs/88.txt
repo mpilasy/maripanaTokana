@@ -1,0 +1,1 @@
+- La región y el país de un lugar guardado ahora siguen el idioma de la app en lugar de quedarse en el idioma en que se guardó.

@@ -1,0 +1,1 @@
+- La région et le pays d'un lieu enregistré suivent désormais la langue de l'app au lieu de rester dans la langue d'enregistrement.

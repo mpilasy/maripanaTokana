@@ -1,0 +1,1 @@
+- A saved place's region and country now follow the app language instead of staying in the language it was saved in.

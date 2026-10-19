@@ -6,6 +6,9 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.5.8] - 2026-10-19
+- A favorite's region and country line is looked up again in the current language on every load and right after a language change, instead of keeping the language it was saved in (a Malagasy "Nepaly" in a Nepali screen). The favorite's own name is kept. On Android the GPS place's name now also follows a language change (Android and web).
+
 ## [1.5.7] - 2026-10-19
 - The UV index tile shows a five-level dial (Low to Extreme) like the air-quality tile, the dot at the reading's place within its level, replacing the badge and dots (Android and web).
 
