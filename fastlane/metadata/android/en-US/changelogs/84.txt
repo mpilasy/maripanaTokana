@@ -1,0 +1,2 @@
+- The rain line on the main card now agrees with the hour icons and the minute-by-minute forecast.
+- For places in another time zone, the main card's next hours also show your phone's time.

@@ -6,6 +6,10 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.5.4] - 2026-10-19
+- The main card's rain line now agrees with the rest of the screen: an hour counts as rainy when the nowcast covering it shows rain or, beyond the nowcast, when its weather icon is rain or snow; the chance of rain alone no longer counts (Android and web).
+- For places in another time zone, the main card's next three hours also show the phone's time, as the hourly cards do.
+
 ## [1.5.3] - 2026-10-19
 - Fixed: on launchers that size widgets by their minimum size (Nova, Lineage's Trebuchet and older Android), the small widget took 2 rows instead of 1 and the large one 3 instead of 2.
 

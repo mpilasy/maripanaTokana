@@ -1,0 +1,2 @@
+- La línea de lluvia de la tarjeta principal ahora coincide con los iconos por hora y el pronóstico minuto a minuto.
+- Para lugares en otra zona horaria, las próximas horas de la tarjeta principal muestran también la hora del teléfono.

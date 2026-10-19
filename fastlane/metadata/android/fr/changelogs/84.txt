@@ -1,0 +1,2 @@
+- La ligne de pluie de la carte principale concorde désormais avec les icônes horaires et la prévision minute par minute.
+- Pour un lieu dans un autre fuseau, les prochaines heures de la carte principale affichent aussi l'heure du téléphone.
