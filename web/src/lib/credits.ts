@@ -63,6 +63,7 @@ export const creditSections: CreditSection[] = [
 		titleKey: 'about_section_imagery',
 		items: [
 			{ name: 'NASA Blue Marble', license: 'Public domain', url: 'https://visibleearth.nasa.gov/collection/1484/blue-marble' },
+			{ name: 'Meteocons', license: 'MIT', url: 'https://github.com/basmilius/weather-icons', note: 'Weather icons by Bas Milius' },
 		],
 	},
 	{

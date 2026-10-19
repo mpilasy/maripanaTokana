@@ -114,6 +114,7 @@ private val creditSections = listOf(
         R.string.about_section_imagery,
         listOf(
             Credit("NASA Blue Marble", license = "Public domain", url = "https://visibleearth.nasa.gov/collection/1484/blue-marble"),
+            Credit("Meteocons", license = "MIT", url = "https://github.com/basmilius/weather-icons", note = "Weather icons by Bas Milius"),
         ),
     ),
     CreditSection(
