@@ -97,9 +97,9 @@
 		subtitle={data.windDeg != null ? loc(`${getCardinalDirection(data.windDeg, $json('cardinal_directions'))} (${data.windDeg}°)`) : '--'}
 		{onToggleUnits}
 	>
-		{#snippet cornerSnippet()}
+		{#snippet dialSnippet()}
 			{#if data.windDeg != null}
-				<WindCompass degrees={data.windDeg} size={40} />
+				<WindCompass degrees={data.windDeg} size={56} />
 			{/if}
 		{/snippet}
 	</DetailCard>
@@ -117,8 +117,8 @@
 		secondaryValue={loc(pressDual[1])}
 		{onToggleUnits}
 	>
-		{#snippet cornerSnippet()}
-			<Gauge fraction={(data.pressure.hPa - PRESSURE_MIN_HPA) / (PRESSURE_MAX_HPA - PRESSURE_MIN_HPA)} color="#9B8FFF" size={40} />
+		{#snippet dialSnippet()}
+			<Gauge fraction={(data.pressure.hPa - PRESSURE_MIN_HPA) / (PRESSURE_MAX_HPA - PRESSURE_MIN_HPA)} color="#9B8FFF" size={56} />
 		{/snippet}
 	</DetailCard>
 	<DetailCard
@@ -152,9 +152,9 @@
 			subtitle={($json('aqi_tier_labels') as string[])?.[AQI_TIERS.indexOf(aqi.primaryTier)] ?? ''}
 			onClick={onOpenAirQuality}
 		>
-			{#snippet cornerSnippet()}
+			{#snippet dialSnippet()}
 				<Gauge fraction={aqiDialPosition(aqi.primaryStandard === 'EUROPEAN' ? aqi.europeanValue : aqi.usValue, aqi.primaryStandard)} color={AQI_TIER_COLORS[aqi.primaryTier]}
-					segments={AQI_TIERS.map((t) => AQI_TIER_COLORS[t as keyof typeof AQI_TIER_COLORS])} size={40} />
+					segments={AQI_TIERS.map((t) => AQI_TIER_COLORS[t as keyof typeof AQI_TIER_COLORS])} size={56} />
 			{/snippet}
 		</DetailCard>
 	{/if}

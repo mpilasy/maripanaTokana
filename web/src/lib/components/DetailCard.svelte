@@ -11,6 +11,8 @@
 		trailingSnippet?: Snippet;
 		/** A small graphic in the top corner; the value may run under it. */
 		cornerSnippet?: Snippet;
+		/** A dial in the bottom corner, in the space the value leaves free. */
+		dialSnippet?: Snippet;
 		onToggleUnits?: () => void;
 		unit?: string;
 		secondaryUnit?: string;
@@ -19,12 +21,12 @@
 		onClick?: () => void;
 	}
 
-	let { title, value, secondaryValue, subtitle, subtitleSnippet, trailingSnippet, cornerSnippet, onToggleUnits, unit, secondaryUnit, fillPercent, onClick }: Props = $props();
+	let { title, value, secondaryValue, subtitle, subtitleSnippet, trailingSnippet, cornerSnippet, dialSnippet, onToggleUnits, unit, secondaryUnit, fillPercent, onClick }: Props = $props();
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-<div class="detail-card" class:clickable={onClick} role={onClick ? 'button' : undefined} tabindex={onClick ? 0 : undefined}
+<div class="detail-card" class:clickable={onClick} class:has-dial={dialSnippet} role={onClick ? 'button' : undefined} tabindex={onClick ? 0 : undefined}
 	onclick={onClick} onkeydown={(e) => { if (onClick && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onClick(); } }}
 	style:background={fillPercent != null ? `linear-gradient(to top, rgba(100, 181, 246, 0.2), rgba(100, 181, 246, 0.1) ${Math.max(0, fillPercent - 10)}%, var(--surface-tile) ${fillPercent}%)` : undefined}>
 	<div class="card-body">
@@ -55,6 +57,9 @@
 	{#if cornerSnippet}
 		<div class="corner">{@render cornerSnippet()}</div>
 	{/if}
+	{#if dialSnippet}
+		<div class="dial">{@render dialSnippet()}</div>
+	{/if}
 </div>
 
 <style>
@@ -74,6 +79,18 @@
 		position: absolute;
 		top: 10px;
 		inset-inline-end: 10px;
+		pointer-events: none;
+	}
+
+	/* Tall enough for the dial to sit below the value instead of over it */
+	.detail-card.has-dial {
+		min-height: 150px;
+	}
+
+	.dial {
+		position: absolute;
+		bottom: 14px;
+		inset-inline-end: 14px;
 		pointer-events: none;
 	}
 

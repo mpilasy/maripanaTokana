@@ -1775,7 +1775,7 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
                     title = stringResource(R.string.detail_wind), secondaryValue = localizeDigits(windS),
                     subtitle = data.windDeg?.let { localizeDigits("$dirLabel (%d°)".format(Locale.US, it)) } ?: "--",
                     onToggleUnits = onToggleUnits,
-                    cornerContent = data.windDeg?.let { deg -> @Composable { WindCompass(deg) } })
+                    dialContent = data.windDeg?.let { deg -> @Composable { WindCompass(deg, size = 56.dp) } })
                 val gust = data.windGust?.displayDual(metricPrimary)
                 DetailCard(gust?.let { localizeDigits(it.first) } ?: "--", tile.weight(1f),
                     title = stringResource(R.string.detail_wind_gust), secondaryValue = gust?.let { localizeDigits(it.second) },
@@ -1787,9 +1787,9 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
                 val (pressP, pressS) = data.pressure.displayDual(metricPrimary)
                 DetailCard(localizeDigits(pressP), tile.weight(1f),
                     title = stringResource(R.string.detail_pressure), secondaryValue = localizeDigits(pressS), onToggleUnits = onToggleUnits,
-                    cornerContent = {
+                    dialContent = {
                         // Sea-level pressure rarely leaves 960-1050 hPa
-                        Gauge(((data.pressure.hPa - 960) / 90).toFloat(), AppDarkPrimary)
+                        Gauge(((data.pressure.hPa - 960) / 90).toFloat(), AppDarkPrimary, size = 56.dp)
                     })
                 val (dewP, dewS) = data.dewPoint.displayDual(metricPrimary)
                 DetailCard(data.humidity?.let { localizeDigits("%d%%".format(Locale.US, it)) } ?: "--", tile.weight(1f),
@@ -1815,9 +1815,9 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
                         secondaryUnit = if (european) usAqiLabel else euAqiLabel,
                         subtitle = stringArrayResource(R.array.aqi_tier_labels)[aqi.primaryTier.ordinal],
                         onClick = { showAirQualityDetail = true },
-                        cornerContent = {
+                        dialContent = {
                             Gauge(aqiDialPosition(if (european) aqi.europeanValue else aqi.usValue, aqi.primaryStandard), colorsFor(aqi.primaryTier).background,
-                            segments = AqiTier.entries.map { colorsFor(it).background })
+                            segments = AqiTier.entries.map { colorsFor(it).background }, size = 56.dp)
                         })
                     if (showAirQualityDetail) {
                         AirQualityDetailDialog(
@@ -1878,6 +1878,8 @@ internal fun DetailCard(
     trailingContent: (@Composable () -> Unit)? = null,
     // A small graphic in the top corner; the value may run under it
     cornerContent: (@Composable () -> Unit)? = null,
+    // A dial in the bottom corner, in the space the value leaves free
+    dialContent: (@Composable () -> Unit)? = null,
     // Fills the tile from the bottom up to this fraction, like a water level
     fillFraction: Float? = null,
     onClick: (() -> Unit)? = null,
@@ -1903,9 +1905,13 @@ internal fun DetailCard(
         shape = shape,
         colors = CardDefaults.cardColors(containerColor = TileSurface)
     ) {
-        Box {
+        // Fills the tile's height so the dial sits at its real bottom, even beside a taller tile
+        Box(modifier = Modifier.fillMaxHeight()) {
         cornerContent?.let {
             Box(modifier = Modifier.align(Alignment.TopEnd).padding(10.dp)) { it() }
+        }
+        dialContent?.let {
+            Box(modifier = Modifier.align(Alignment.BottomEnd).padding(14.dp)) { it() }
         }
         Row(
             modifier = Modifier.padding(16.sd(scale)),
