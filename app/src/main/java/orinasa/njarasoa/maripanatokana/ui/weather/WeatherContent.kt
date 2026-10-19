@@ -141,6 +141,7 @@ import orinasa.njarasoa.maripanatokana.domain.model.HourlyAirQuality
 import orinasa.njarasoa.maripanatokana.domain.model.PrecipOutlook
 import orinasa.njarasoa.maripanatokana.domain.model.dailyAirQuality
 import orinasa.njarasoa.maripanatokana.domain.model.aqiDialPosition
+import orinasa.njarasoa.maripanatokana.domain.model.uvDialPosition
 import orinasa.njarasoa.maripanatokana.domain.model.AirQualityIndex
 import orinasa.njarasoa.maripanatokana.domain.model.HourlyForecast
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
@@ -1863,12 +1864,11 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
                 }
                 DetailCard(currentUv?.let { localizeDigits("%.1f".format(Locale.US, it)) } ?: "--", tile.weight(1f),
                     title = stringResource(R.string.detail_uv_index),
-                    subtitleContent = currentUv?.let { uv -> @Composable {
-                        Column {
-                            UvTierBadge(uvIndex = uv, label = uvLabelText)
-                            Spacer(modifier = Modifier.height(6.dp))
-                            UvTierDots(uv)
-                        }
+                    subtitle = currentUv?.let { uvLabelText },
+                    dialContent = currentUv?.let { uv -> @Composable {
+                        // Same five-level dial as air quality, the dot at the reading's place in its level
+                        Gauge(uvDialPosition(uv), colorsFor(uv).background, size = 56.dp,
+                            segments = listOf(1.0, 4.0, 7.0, 9.0, 11.0).map { colorsFor(it).background })
                     } })
                 val km = stringResource(R.string.visibility_km)
                 val mi = stringResource(R.string.visibility_mi)
@@ -2025,28 +2025,6 @@ private fun SunTile(sunrise: Long, sunset: Long, timeFormat: SimpleDateFormat, l
                     )
                 }
             }
-        }
-    }
-}
-
-/** The five UV tiers as coloured dots, the current one ringed. */
-@Composable
-private fun UvTierDots(uvIndex: Double) {
-    val current = when {
-        uvIndex < 3 -> 0
-        uvIndex < 6 -> 1
-        uvIndex < 8 -> 2
-        uvIndex < 11 -> 3
-        else -> 4
-    }
-    Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-        listOf(1.0, 4.0, 7.0, 9.0, 11.0).forEachIndexed { i, sample ->
-            Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .background(colorsFor(sample).background.copy(alpha = if (i == current) 1f else 0.3f), CircleShape)
-                    .then(if (i == current) Modifier.border(2.dp, Color.White.copy(alpha = 0.8f), CircleShape) else Modifier),
-            )
         }
     }
 }

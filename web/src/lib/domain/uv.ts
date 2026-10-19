@@ -21,3 +21,20 @@ export function uvTier(uvIndex: number): UvTier {
 export function uvColorFor(uvIndex: number): string {
 	return UV_TIER_COLORS[uvTier(uvIndex)];
 }
+
+// Each level's range, in the order of the tiers; the last is capped so it can be drawn
+const UV_DIAL_BOUNDS = [0, 3, 6, 8, 11, 14];
+const UV_DIAL_TIERS: UvTier[] = ['low', 'moderate', 'high', 'veryHigh', 'extreme'];
+
+/**
+ * Where a UV reading sits on a dial of five equal level segments, 0-1: the level picks the segment and
+ * the reading's place within that level's range picks the spot inside it.
+ */
+export function uvDialPosition(uv: number): number {
+	if (!Number.isFinite(uv)) return 0;
+	const level = UV_DIAL_TIERS.indexOf(uvTier(uv));
+	const b = UV_DIAL_BOUNDS;
+	// Kept just inside the segment, so a reading on a boundary still shows in its own level
+	const within = Math.min(0.98, Math.max(0.02, (uv - b[level]) / (b[level + 1] - b[level])));
+	return (level + within) / 5;
+}

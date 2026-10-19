@@ -4,10 +4,9 @@
 	import type { WeatherData } from '$lib/domain/weatherData';
 	import { getCardinalDirection } from '$lib/domain/windSpeed';
 	import { AQI_TIER_COLORS, aqiDialPosition } from '$lib/domain/airQuality';
-	import { UV_TIER_COLORS, uvTier, type UvTier } from '$lib/domain/uv';
+	import { UV_TIER_COLORS, uvColorFor, uvDialPosition, type UvTier } from '$lib/domain/uv';
 	import DetailCard from './DetailCard.svelte';
 	import { formatHourAtLocation } from '$lib/utils/date';
-	import UvTierBadge from './UvTierBadge.svelte';
 	import Gauge from './Gauge.svelte';
 	import WindCompass from './WindCompass.svelte';
 	import SunArc from './SunArc.svelte';
@@ -163,16 +162,12 @@
 	<DetailCard
 		title={$_('detail_uv_index')}
 		value={data.uvIndex != null ? loc(data.uvIndex.toFixed(1)) : '--'}
+		subtitle={data.uvIndex != null ? getUvLabel(data.uvIndex) : undefined}
 	>
-		{#snippet subtitleSnippet()}
+		{#snippet dialSnippet()}
 			{#if data.uvIndex != null}
-				{@const current = uvTier(data.uvIndex)}
-				<span><UvTierBadge uvIndex={data.uvIndex} label={getUvLabel(data.uvIndex)} /></span>
-				<span class="uv-dots" aria-hidden="true">
-					{#each UV_TIERS as tier}
-						<span class="uv-dot" class:current={tier === current} style:background={UV_TIER_COLORS[tier]}></span>
-					{/each}
-				</span>
+				<Gauge fraction={uvDialPosition(data.uvIndex)} color={uvColorFor(data.uvIndex)}
+					segments={UV_TIERS.map((t) => UV_TIER_COLORS[t])} size={56} />
 			{/if}
 		{/snippet}
 	</DetailCard>
@@ -239,21 +234,4 @@
 		color: rgba(255, 255, 255, 0.5);
 	}
 
-	.uv-dots {
-		display: flex;
-		gap: 5px;
-		margin-top: 6px;
-	}
-
-	.uv-dot {
-		width: 8px;
-		height: 8px;
-		border-radius: 50%;
-		opacity: 0.3;
-	}
-
-	.uv-dot.current {
-		opacity: 1;
-		box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8);
-	}
 </style>
