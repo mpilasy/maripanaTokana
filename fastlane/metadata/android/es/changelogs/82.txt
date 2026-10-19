@@ -1,0 +1,2 @@
+- Los widgets de la pantalla de inicio usan los nuevos iconos del tiempo planos.
+- Las etiquetas de los gráficos ya no se superponen a la línea.

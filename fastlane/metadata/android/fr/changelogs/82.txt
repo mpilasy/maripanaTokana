@@ -1,0 +1,2 @@
+- Les widgets de l'écran d'accueil utilisent les nouvelles icônes météo plates.
+- Les étiquettes des graphiques ne chevauchent plus la courbe.

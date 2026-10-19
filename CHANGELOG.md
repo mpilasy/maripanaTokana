@@ -6,6 +6,11 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.5.2] - 2026-10-19
+- Home-screen widgets use the Meteocons icons (day or night for the current weather); the large widget's second-unit low/high is dimmed like the app's.
+- Chart labels no longer sit on the line: the hourly temperature chart puts the high above its peak and the low below its trough; the nowcast marks its peak with a dot and shows the amount in the far top corner (Android and web).
+- Removed 11 strings no longer used on either platform.
+
 ## [1.5.1] - 2026-10-19
 - New look: Meteocons weather icons with day and night versions replace the emoji; neutral glass cards, purple only as an accent; forecast columns no longer boxed and tile sections without an outer card (Android and web).
 - UV and air quality in the hourly and 10-day cards shown as a colour bar under the value, explained by the legend; other level badges are soft tints.
