@@ -27,7 +27,11 @@ import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.data.repository.WeatherCache
 import orinasa.njarasoa.maripanatokana.data.settings.AppSettingsRepository
 import orinasa.njarasoa.maripanatokana.domain.model.AppSettings
+import orinasa.njarasoa.maripanatokana.domain.model.Precipitation
+import orinasa.njarasoa.maripanatokana.domain.model.Pressure
+import orinasa.njarasoa.maripanatokana.domain.model.Temperature
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
+import orinasa.njarasoa.maripanatokana.domain.model.WindSpeed
 import orinasa.njarasoa.maripanatokana.domain.repository.LocationRepository
 import orinasa.njarasoa.maripanatokana.domain.repository.WeatherRepository
 
@@ -216,4 +220,51 @@ class WeatherViewModelTest {
         assertTrue(viewModel.uiState.value is WeatherUiState.Success)
         assertEquals(false, viewModel.refreshFailed.value)
     }
+
+    @Test
+    fun languageChangeRenamesTheGpsPlace() = runTest(testDispatcher) {
+        // Current location, no favorite and no typed-in place
+        every { sharedPreferences.getString("active_location_id", any()) } returns null
+        every { sharedPreferences.getFloat("advanced_override_lat", any()) } returns Float.NaN
+        every { sharedPreferences.getFloat("advanced_override_lon", any()) } returns Float.NaN
+        coEvery { weatherRepository.romanPlaceName(any(), any()) } returns null
+        coEvery { weatherRepository.getWeather(any(), any()) } coAnswers {
+            Result.success(realData("سانت بول", firstArg(), secondArg()))
+        }
+        viewModel = WeatherViewModel(weatherRepository, locationRepository, settingsRepository, weatherCache, context)
+        viewModel.refresh()
+        advanceUntilIdle()
+        assertEquals("سانت بول", (viewModel.uiState.value as WeatherUiState.Success).data.locationName)
+
+        coEvery { weatherRepository.localPlaceName(any(), any()) } returns ("Saint Paul" to null)
+        viewModel.cycleLanguage()
+        advanceUntilIdle()
+
+        assertEquals("Saint Paul", (viewModel.uiState.value as WeatherUiState.Success).data.locationName)
+    }
+
+    private fun realData(name: String, lat: Double, lon: Double) = WeatherData(
+        temperature = Temperature.fromCelsius(16.5),
+        feelsLike = Temperature.fromCelsius(16.0),
+        tempMin = Temperature.fromCelsius(4.0),
+        tempMax = Temperature.fromCelsius(19.0),
+        weatherCode = 0,
+        iconCode = "01d",
+        locationName = name,
+        pressure = Pressure.fromHPa(1013.0),
+        humidity = 50,
+        dewPoint = Temperature.fromCelsius(5.0),
+        windSpeed = WindSpeed.fromMetersPerSecond(2.0),
+        windDeg = null,
+        windGust = null,
+        rain = Precipitation.fromMm(0.0),
+        snow = null,
+        cloudCover = 0,
+        uvIndex = null,
+        visibility = null,
+        sunrise = 1L,
+        sunset = 2L,
+        latitude = lat,
+        longitude = lon,
+    )
 }
