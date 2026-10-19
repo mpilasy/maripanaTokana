@@ -139,6 +139,7 @@ import orinasa.njarasoa.maripanatokana.domain.model.DailyForecast
 import orinasa.njarasoa.maripanatokana.domain.model.HourlyAirQuality
 import orinasa.njarasoa.maripanatokana.domain.model.PrecipOutlook
 import orinasa.njarasoa.maripanatokana.domain.model.dailyAirQuality
+import orinasa.njarasoa.maripanatokana.domain.model.aqiDialPosition
 import orinasa.njarasoa.maripanatokana.domain.model.AirQualityIndex
 import orinasa.njarasoa.maripanatokana.domain.model.HourlyForecast
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
@@ -1806,7 +1807,8 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
                         subtitle = stringArrayResource(R.array.aqi_tier_labels)[aqi.primaryTier.ordinal],
                         onClick = { showAirQualityDetail = true },
                         cornerContent = {
-                            Gauge((aqi.primaryTier.ordinal + 0.5f) / AqiTier.entries.size, colorsFor(aqi.primaryTier).background)
+                            Gauge(aqiDialPosition(if (european) aqi.europeanValue else aqi.usValue, aqi.primaryStandard), colorsFor(aqi.primaryTier).background,
+                            segments = AqiTier.entries.map { colorsFor(it).background })
                         })
                     if (showAirQualityDetail) {
                         AirQualityDetailDialog(

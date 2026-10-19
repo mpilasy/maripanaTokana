@@ -1,6 +1,9 @@
 <script lang="ts">
-	/** A 270° arc, open at the bottom, filled to `fraction` (0-1). */
-	let { fraction, color, size = 48 }: { fraction: number; color: string; size?: number } = $props();
+	/**
+	 * A 270° arc, open at the bottom, with a dot at `fraction` (0-1). Filled up to the dot in `color`, or,
+	 * with `segments`, drawn as equal coloured segments (one per level) so the whole scale always shows.
+	 */
+	let { fraction, color, size = 48, segments }: { fraction: number; color: string; size?: number; segments?: string[] } = $props();
 
 	const r = 20;
 	function point(deg: number): string {
@@ -16,9 +19,18 @@
 </script>
 
 <svg width={size} height={size} viewBox="0 0 48 48" aria-hidden="true">
-	<path d={arc(135, 405)} fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="4" stroke-linecap="round" />
-	{#if f > 0}
-		<path d={arc(135, 135 + 270 * f)} fill="none" stroke={color} stroke-width="4" stroke-linecap="round" />
+	{#if segments}
+		{@const span = 270 / segments.length}
+		{#each segments as c, i}
+			<!-- A small gap keeps the levels apart; the reading's own level is drawn brightest -->
+			<path d={arc(135 + i * span + 2, 135 + (i + 1) * span - 2)} fill="none" stroke={c} stroke-width="4" stroke-linecap="butt"
+				stroke-opacity={i === Math.min(segments.length - 1, Math.floor(f * segments.length)) ? 1 : 0.4} />
+		{/each}
+	{:else}
+		<path d={arc(135, 405)} fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="4" stroke-linecap="round" />
+		{#if f > 0}
+			<path d={arc(135, 135 + 270 * f)} fill="none" stroke={color} stroke-width="4" stroke-linecap="round" />
+		{/if}
 	{/if}
 	<!-- Where the value sits on the dial -->
 	<circle cx={end[0]} cy={end[1]} r="4.5" fill="white" stroke={color} stroke-width="2.5" />

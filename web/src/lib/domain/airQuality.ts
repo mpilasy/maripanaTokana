@@ -103,6 +103,27 @@ const EMPTY_SUB_INDICES: AirQualitySubIndices = {
 	europeanAqiNitrogenDioxide: null, europeanAqiSulphurDioxide: null, europeanAqiOzone: null,
 };
 
+const AQI_DIAL_TIERS: AqiTier[] = ['good', 'moderate', 'unhealthy', 'very_unhealthy', 'hazardous'];
+
+// Each level's range, in the order of AQI_DIAL_TIERS; the last is capped so it can be drawn
+const DIAL_BOUNDS: Record<AqiStandard, number[]> = {
+	US: [0, 50, 100, 200, 300, 500],
+	EUROPEAN: [0, 20, 40, 60, 100, 150],
+};
+
+/**
+ * Where a reading sits on a dial of five equal level segments, 0-1: the level picks the segment and
+ * the reading's place within that level's range picks the spot inside it.
+ */
+export function aqiDialPosition(value: number, standard: AqiStandard): number {
+	if (!Number.isFinite(value)) return 0;
+	const b = DIAL_BOUNDS[standard];
+	const level = AQI_DIAL_TIERS.indexOf(AirQualityIndex.tierFor(value, standard));
+	// Kept just inside the segment, so a reading on a boundary still shows in its own level
+	const within = Math.min(0.98, Math.max(0.02, (value - b[level]) / (b[level + 1] - b[level])));
+	return (level + within) / 5;
+}
+
 export class AirQualityIndex {
 	// Pollutant concentrations in µg/m³ plus per-pollutant tier, straight from the Open-Meteo
 	// air-quality "current" call. Null when a given pollutant isn't covered by the domain for

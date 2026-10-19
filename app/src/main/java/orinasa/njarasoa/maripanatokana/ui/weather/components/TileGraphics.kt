@@ -40,9 +40,12 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
-/** A 270° arc, open at the bottom, filled to [fraction] (0-1). */
+/**
+ * A 270° arc, open at the bottom, with a dot at [fraction] (0-1). Filled up to the dot in [color], or,
+ * with [segments], drawn as equal coloured segments (one per level) so the whole scale always shows.
+ */
 @Composable
-fun Gauge(fraction: Float, color: Color, modifier: Modifier = Modifier, size: Dp = 40.dp) {
+fun Gauge(fraction: Float, color: Color, modifier: Modifier = Modifier, size: Dp = 40.dp, segments: List<Color>? = null) {
     val f = if (fraction.isFinite()) fraction.coerceIn(0f, 1f) else 0f
     Canvas(modifier.size(size)) {
         val u = this.size.minDimension / 48f
@@ -50,8 +53,17 @@ fun Gauge(fraction: Float, color: Color, modifier: Modifier = Modifier, size: Dp
         val inset = 4 * u
         val arcSize = Size(this.size.width - inset * 2, this.size.height - inset * 2)
         val topLeft = Offset(inset, inset)
-        drawArc(Color.White.copy(alpha = 0.18f), 135f, 270f, false, topLeft, arcSize, style = Stroke(stroke, cap = StrokeCap.Round))
-        if (f > 0f) drawArc(color, 135f, 270f * f, false, topLeft, arcSize, style = Stroke(stroke, cap = StrokeCap.Round))
+        if (segments != null) {
+            // A small gap keeps the levels apart; the reading's own level is drawn brightest
+            val span = 270f / segments.size
+            val current = (f * segments.size).toInt().coerceAtMost(segments.size - 1)
+            segments.forEachIndexed { i, c ->
+                drawArc(c.copy(alpha = if (i == current) 1f else 0.4f), 135f + i * span + 2f, span - 4f, false, topLeft, arcSize, style = Stroke(stroke))
+            }
+        } else {
+            drawArc(Color.White.copy(alpha = 0.18f), 135f, 270f, false, topLeft, arcSize, style = Stroke(stroke, cap = StrokeCap.Round))
+            if (f > 0f) drawArc(color, 135f, 270f * f, false, topLeft, arcSize, style = Stroke(stroke, cap = StrokeCap.Round))
+        }
         // Where the value sits on the dial
         val a = Math.toRadians(135.0 + 270.0 * f)
         val r = arcSize.width / 2

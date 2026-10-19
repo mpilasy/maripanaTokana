@@ -151,3 +151,21 @@ data class AirQualityIndex(
         }
     }
 }
+
+// Each level's range, in the order of AqiTier; the last is capped so it can be drawn
+private val DIAL_BOUNDS = mapOf(
+    AqiStandard.US to listOf(0.0, 50.0, 100.0, 200.0, 300.0, 500.0),
+    AqiStandard.EUROPEAN to listOf(0.0, 20.0, 40.0, 60.0, 100.0, 150.0),
+)
+
+/**
+ * Where a reading sits on a dial of five equal level segments, 0-1: the level picks the segment and
+ * the reading's place within that level's range picks the spot inside it.
+ */
+fun aqiDialPosition(value: Int, standard: AqiStandard): Float {
+    val b = DIAL_BOUNDS.getValue(standard)
+    val level = AirQualityIndex.tierFor(value, standard).ordinal
+    // Kept just inside the segment, so a reading on a boundary still shows in its own level
+    val within = ((value - b[level]) / (b[level + 1] - b[level])).coerceIn(0.02, 0.98)
+    return ((level + within) / 5).toFloat()
+}

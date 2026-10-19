@@ -3,7 +3,7 @@
 	import { _, json } from 'svelte-i18n';
 	import type { WeatherData } from '$lib/domain/weatherData';
 	import { getCardinalDirection } from '$lib/domain/windSpeed';
-	import { AQI_TIER_COLORS } from '$lib/domain/airQuality';
+	import { AQI_TIER_COLORS, aqiDialPosition } from '$lib/domain/airQuality';
 	import { UV_TIER_COLORS, uvTier, type UvTier } from '$lib/domain/uv';
 	import DetailCard from './DetailCard.svelte';
 	import UvTierBadge from './UvTierBadge.svelte';
@@ -151,7 +151,8 @@
 			onClick={onOpenAirQuality}
 		>
 			{#snippet cornerSnippet()}
-				<Gauge fraction={(AQI_TIERS.indexOf(aqi.primaryTier) + 0.5) / AQI_TIERS.length} color={AQI_TIER_COLORS[aqi.primaryTier]} size={40} />
+				<Gauge fraction={aqiDialPosition(aqi.primaryStandard === 'EUROPEAN' ? aqi.europeanValue : aqi.usValue, aqi.primaryStandard)} color={AQI_TIER_COLORS[aqi.primaryTier]}
+					segments={AQI_TIERS.map((t) => AQI_TIER_COLORS[t as keyof typeof AQI_TIER_COLORS])} size={40} />
 			{/snippet}
 		</DetailCard>
 	{/if}
