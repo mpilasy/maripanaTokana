@@ -6,6 +6,9 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.5.3] - 2026-10-19
+- Fixed: on launchers that size widgets by their minimum size (Nova, Lineage's Trebuchet and older Android), the small widget took 2 rows instead of 1 and the large one 3 instead of 2.
+
 ## [1.5.2] - 2026-10-19
 - Home-screen widgets use the Meteocons icons (day or night for the current weather); the large widget's second-unit low/high is dimmed like the app's.
 - Chart labels no longer sit on the line: the hourly temperature chart puts the high above its peak and the low below its trough; the nowcast marks its peak with a dot and shows the amount in the far top corner (Android and web).

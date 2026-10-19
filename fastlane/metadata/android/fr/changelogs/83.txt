@@ -1,0 +1,1 @@
+- Corrigé : sur certains écrans d'accueil, le petit widget prenait 2 lignes au lieu d'une, et le grand 3 au lieu de 2.

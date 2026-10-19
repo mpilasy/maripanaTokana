@@ -1,0 +1,1 @@
+- Fixed: on some home screens the small widget took 2 rows instead of 1, and the large one 3 instead of 2.
