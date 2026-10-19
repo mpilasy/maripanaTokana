@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { dragScroll } from '$lib/actions/dragScroll';
 	import { _, json } from 'svelte-i18n';
 	import type { DailyForecast as DailyForecastType } from '$lib/domain/weatherData';
 	import { getCardinalDirection } from '$lib/domain/windSpeed';
@@ -134,7 +135,7 @@
 
 <div class="daily-wrapper" bind:clientWidth={containerWidth}>
 	<ForecastTabs {tabs} selected={displayMode} onSelect={(id) => (displayMode = id)} />
-	<div class="cards-scroll" onscroll={(e) => { scrollLeft = e.currentTarget.scrollLeft; }}>
+	<div class="cards-scroll" use:dragScroll onscroll={(e) => { scrollLeft = e.currentTarget.scrollLeft; }}>
 	<div class="cards-row">
 		{#each forecasts as item, i}
 			<div class="daily-card" class:today={i === 0}>

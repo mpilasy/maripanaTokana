@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { dragScroll } from '$lib/actions/dragScroll';
+
 	/** A row of chips that picks what a forecast card shows. */
 	let { tabs, selected, onSelect }: {
 		tabs: { id: string; label: string }[];
@@ -7,7 +9,7 @@
 	} = $props();
 </script>
 
-<div class="tabs" role="tablist">
+<div class="tabs" role="tablist" use:dragScroll>
 	{#each tabs as tab (tab.id)}
 		<button type="button" role="tab" class="tab" class:selected={tab.id === selected}
 			aria-selected={tab.id === selected} onclick={() => onSelect(tab.id)}>
