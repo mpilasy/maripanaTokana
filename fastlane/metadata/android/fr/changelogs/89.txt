@@ -1,0 +1,2 @@
+- Widgets : correction des images erronées après une mise à jour sur certains lanceurs (fond avec un soleil étiré, lune par temps ensoleillé, icône de partage au lieu d'actualiser). Si c'est votre cas, retirez le widget et ajoutez-le une fois.
+- La deuxième ligne du widget 4x1 n'est plus coupée.

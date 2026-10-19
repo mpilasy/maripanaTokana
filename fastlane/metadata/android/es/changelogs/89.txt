@@ -1,0 +1,2 @@
+- Widgets: corregidas las imágenes erróneas tras una actualización en algunos lanzadores (fondo con un sol estirado, luna en un día soleado, icono de compartir en vez de actualizar). Si te pasa, quita el widget y vuelve a añadirlo una vez.
+- La segunda fila del widget 4x1 ya no se corta.

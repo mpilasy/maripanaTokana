@@ -6,6 +6,10 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.5.9] - 2026-10-19
+- Widgets send their images (background, weather icons, refresh) to the launcher as bitmaps instead of resource IDs. Some launchers keep the previous version's resources after an update, and a shifted ID drew the wrong image: the background as a stretched sun, refresh as the share icon, clear day as a moon. Widgets already showing this need removing and adding once.
+- The 4x1 widget has less vertical padding and a smaller icon so both rows fit in one cell.
+
 ## [1.5.8] - 2026-10-19
 - A favorite's region and country line is looked up again in the current language on every load and right after a language change, instead of keeping the language it was saved in (a Malagasy "Nepaly" in a Nepali screen). The favorite's own name is kept. On Android the GPS place's name now also follows a language change (Android and web).
 

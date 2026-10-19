@@ -32,7 +32,7 @@
 			{$_('credits_weather_data')}
 			<a href={SOURCE_INFO[$weatherSource].url} target="_blank" rel="noopener">{SOURCE_INFO[$weatherSource].label}</a>
 		</span>
-		<span class="version">v1.5.8</span>
+		<span class="version">v1.5.9</span>
 	</div>
 	<button type="button" class="pill" onclick={onCycleLanguage} aria-label={$_('cd_change_language')}>
 		<span class="flag">{currentFlag}</span>

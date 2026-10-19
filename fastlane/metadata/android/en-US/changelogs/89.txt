@@ -1,0 +1,2 @@
+- Widgets: fixed wrong pictures after an update on some launchers (a stretched sun background, a moon on a sunny day, a share icon instead of refresh). If yours shows this, remove the widget and add it again once.
+- The 4x1 widget's second row no longer gets cut off.
