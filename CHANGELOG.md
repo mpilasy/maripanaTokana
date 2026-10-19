@@ -6,6 +6,12 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.5.10] - 2026-10-19
+- The Minutely Nowcast block only appears when the next two hours hold precipitation; a dry nowcast repeated the main card's rain line (Android and web).
+- Shared card images end with two faint lines: "maripànaTokana v{version}" and https://maripana.njarasoa.org (Android and web).
+- About page: "On the web" link to maripana.njarasoa.org (Android and web, 8 languages).
+- Test that a language change renames the current-location place.
+
 ## [1.5.9] - 2026-10-19
 - Widgets send their images (background, weather icons, refresh) to the launcher as bitmaps instead of resource IDs. Some launchers keep the previous version's resources after an update, and a shifted ID drew the wrong image: the background as a stretched sun, refresh as the share icon, clear day as a moon. Widgets already showing this need removing and adding once.
 - The 4x1 widget has less vertical padding and a smaller icon so both rows fit in one cell.

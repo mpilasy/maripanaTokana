@@ -1,0 +1,3 @@
+- The minutely nowcast only shows when rain is expected within two hours; a dry one just repeated the main card.
+- Shared images end with the app name, version and maripana.njarasoa.org.
+- About page: link to the web version.

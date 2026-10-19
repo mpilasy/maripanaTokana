@@ -1,0 +1,3 @@
+- La prévision à la minute n'apparaît que si de la pluie est attendue dans les deux heures ; sinon elle répétait la carte principale.
+- Les images partagées se terminent par le nom de l'app, sa version et maripana.njarasoa.org.
+- Page À propos : lien vers la version web.
