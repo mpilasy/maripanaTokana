@@ -28,7 +28,7 @@
 
 	// One line on what the next 24 hours hold for rain or snow
 	let outlook = $derived.by(() => {
-		const o = precipOutlook(data.hourlyForecast);
+		const o = precipOutlook(data.hourlyForecast, data.minutelyForecast ?? []);
 		if (!o) return '';
 		const kind = o.snow ? 'snow' : 'rain';
 		if (o.kind === 'starts' || o.kind === 'stops') {

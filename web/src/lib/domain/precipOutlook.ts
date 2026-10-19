@@ -1,4 +1,4 @@
-import type { HourlyForecast } from './weatherData';
+import type { HourlyForecast, MinutelyForecast } from './weatherData';
 
 /** What the next 24 hours hold for rain or snow, for the one-line summary on the first page. */
 export type PrecipOutlook =
@@ -6,17 +6,29 @@ export type PrecipOutlook =
 	| { kind: 'all_day' | 'dry'; snow: boolean };
 
 const SNOW_CODES = new Set([71, 73, 75, 77, 85, 86]);
+const HOUR = 3_600_000;
 
-// An hour counts as wet with an even-or-better chance of rain, or a measurable amount that's at least
-// somewhat likely; a trace the model gives a 2% chance isn't rain worth announcing
-function isWet(h: HourlyForecast): boolean {
-	return h.precipProbability >= 50 || (h.precipitation.mm >= 0.1 && h.precipProbability >= 30);
+// Drizzle, rain, freezing rain, snow, showers and thunderstorms
+function isPrecipCode(code: number): boolean {
+	return (code >= 51 && code <= 67) || (code >= 71 && code <= 77) || (code >= 80 && code <= 86) || code >= 95;
 }
 
-export function precipOutlook(hourly: HourlyForecast[]): PrecipOutlook | null {
+/**
+ * An hour is wet when the nowcast covering it shows precipitation (as the nowcast card does), or, past
+ * the nowcast, when its weather code is precipitation (as its icon does). The chance of rain alone
+ * doesn't count: it comes from a different model and can say 50% for an hour drawn as plain cloud.
+ */
+function isWet(h: HourlyForecast, minutely: MinutelyForecast[]): boolean {
+	const covering = minutely.filter((m) => m.time >= h.time && m.time < h.time + HOUR);
+	if (covering.length > 0) return covering.some((m) => m.precipitation.mm > 0.05);
+	return isPrecipCode(h.weatherCode);
+}
+
+export function precipOutlook(hourly: HourlyForecast[], minutely: MinutelyForecast[] = []): PrecipOutlook | null {
 	if (hourly.length === 0) return null;
-	const wetNow = isWet(hourly[0]);
-	const change = hourly.findIndex((h) => isWet(h) !== wetNow);
+	const wet = hourly.map((h) => isWet(h, minutely));
+	const wetNow = wet[0];
+	const change = wet.findIndex((w) => w !== wetNow);
 	// The precipitation the summary talks about: the current one, or the one that starts
 	const wetHour = wetNow ? hourly[0] : change !== -1 ? hourly[change] : null;
 	const snow = wetHour != null && SNOW_CODES.has(wetHour.weatherCode);

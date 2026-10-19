@@ -1078,7 +1078,7 @@ internal fun SectionCard(
 /** One line on what the next 24 hours hold for rain or snow. */
 @Composable
 private fun GlanceOutlook(data: WeatherData, localizeDigits: (String) -> String) {
-    val outlook = remember(data.hourlyForecast) { PrecipOutlook.from(data.hourlyForecast) } ?: return
+    val outlook = remember(data.hourlyForecast, data.minutelyForecast) { PrecipOutlook.from(data.hourlyForecast, data.minutelyForecast) } ?: return
     val hourFormat = remember(data.utcOffsetSeconds) {
         SimpleDateFormat("HH:mm", Locale.US).apply { timeZone = buildLocationTimeZone(data.utcOffsetSeconds) }
     }

@@ -7,39 +7,41 @@ import org.junit.Test
 class PrecipOutlookTest {
     private val h = 3_600_000L
 
-    private fun hours(vararg wet: Boolean, code: Int = 61) = wet.mapIndexed { i, w ->
+    private fun hours(vararg codes: Int, probability: Int = 80) = codes.mapIndexed { i, code ->
         HourlyForecast(
             time = i * h,
             temperature = Temperature.fromCelsius(10.0),
-            weatherCode = if (w) code else 1,
-            precipProbability = if (w) 80 else 10,
+            weatherCode = code,
+            precipProbability = probability,
             windSpeed = WindSpeed.fromMetersPerSecond(1.0),
             windDirection = 0,
             pressure = Pressure.fromHPa(1013.0),
-            precipitation = Precipitation.fromMm(if (w) 1.0 else 0.0),
+            precipitation = Precipitation.fromMm(0.0),
         )
     }
 
+    private fun nowcast(vararg mm: Double) = mm.mapIndexed { i, v -> MinutelyForecast(time = i * 15 * 60_000L, precipitation = Precipitation.fromMm(v)) }
+
     @Test
-    fun `says when rain starts`() {
-        assertEquals(PrecipOutlook(PrecipOutlook.Kind.STARTS, false, 2 * h), PrecipOutlook.from(hours(false, false, true)))
+    fun `follows the weather codes, as the hour icons do`() {
+        assertEquals(PrecipOutlook(PrecipOutlook.Kind.STARTS, false, 2 * h), PrecipOutlook.from(hours(3, 3, 61)))
+        assertEquals(PrecipOutlook(PrecipOutlook.Kind.STOPS, false, 2 * h), PrecipOutlook.from(hours(61, 61, 3)))
+        assertEquals(PrecipOutlook(PrecipOutlook.Kind.ALL_DAY, true), PrecipOutlook.from(hours(73, 73)))
     }
 
     @Test
-    fun `says when the current rain stops`() {
-        assertEquals(PrecipOutlook(PrecipOutlook.Kind.STOPS, false, 2 * h), PrecipOutlook.from(hours(true, true, false)))
+    fun `ignores a high chance of rain for hours drawn as plain cloud`() {
+        assertEquals(PrecipOutlook(PrecipOutlook.Kind.DRY, false), PrecipOutlook.from(hours(3, 3, 3, probability = 60)))
     }
 
     @Test
-    fun `covers a dry or a wet day`() {
-        assertEquals(PrecipOutlook(PrecipOutlook.Kind.DRY, false), PrecipOutlook.from(hours(false, false)))
-        assertEquals(PrecipOutlook(PrecipOutlook.Kind.ALL_DAY, true), PrecipOutlook.from(hours(true, true, code = 73)))
-    }
-
-    @Test
-    fun `ignores a trace of rain the model thinks unlikely`() {
-        val trace = hours(false, false).map { it.copy(precipitation = Precipitation.fromMm(0.1), precipProbability = 2) }
-        assertEquals(PrecipOutlook(PrecipOutlook.Kind.DRY, false), PrecipOutlook.from(trace))
+    fun `lets the nowcast decide the hours it covers`() {
+        // Hourly codes say rain now, but the nowcast for the first two hours is dry
+        assertEquals(PrecipOutlook(PrecipOutlook.Kind.STARTS, false, 2 * h),
+            PrecipOutlook.from(hours(61, 61, 61), nowcast(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)))
+        // Hourly codes say dry, but the nowcast shows rain in the first hour
+        assertEquals(PrecipOutlook(PrecipOutlook.Kind.STOPS, false, h),
+            PrecipOutlook.from(hours(3, 3), nowcast(0.0, 0.4, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)))
     }
 
     @Test
