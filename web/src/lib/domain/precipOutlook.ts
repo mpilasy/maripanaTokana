@@ -35,3 +35,10 @@ export function precipOutlook(hourly: HourlyForecast[], minutely: MinutelyForeca
 	if (change === -1) return { kind: wetNow ? 'all_day' : 'dry', snow };
 	return { kind: wetNow ? 'stops' : 'starts', snow, time: hourly[change].time };
 }
+
+/** Whether rain falls within the nowcast's two hours; a dry nowcast just repeats the main card's rain line. */
+export function nowcastHasRain(minutely: MinutelyForecast[] | undefined, nowMs = Date.now()): boolean {
+	return (minutely ?? []).some(
+		(m) => m.time >= nowMs - 15 * 60 * 1000 && m.time <= nowMs + 2 * 3600 * 1000 && m.precipitation.mm > 0.05
+	);
+}

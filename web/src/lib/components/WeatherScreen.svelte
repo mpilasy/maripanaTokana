@@ -29,6 +29,7 @@
 	import DailyForecast from './DailyForecast.svelte';
 	import CurrentConditions from './CurrentConditions.svelte';
 	import NowcastCard from './NowcastCard.svelte';
+	import { nowcastHasRain } from '$lib/domain/precipOutlook';
 	import AirQualityDetailDialog from './AirQualityDetailDialog.svelte';
 	import SectionCard from './SectionCard.svelte';
 	import ActivitiesCard from './ActivitiesCard.svelte';
@@ -506,7 +507,7 @@
 				{#if data.hourlyForecast.length > 0}
 					<div>
 						<SectionCard title={$_('section_hourly_forecast')} onShare={handleShare}>
-							{#if $weatherSource === 'OPEN_METEO' && data.minutelyForecast && data.minutelyForecast.length > 0}
+							{#if $weatherSource === 'OPEN_METEO' && data.minutelyForecast && nowcastHasRain(data.minutelyForecast)}
 								<h3 class="sub-title">{$_('section_nowcast')}</h3>
 								<NowcastCard items={data.minutelyForecast} localizeDigits={loc} utcOffsetSeconds={data.utcOffsetSeconds} />
 								<div class="sub-gap"></div>

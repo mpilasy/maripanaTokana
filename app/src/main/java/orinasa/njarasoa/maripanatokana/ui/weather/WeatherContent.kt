@@ -609,7 +609,11 @@ internal fun WeatherContent(
         }
 
         // The glance, then one card per kind of data, in one free-scrolling column
-        val showNowcast = weatherSource == WeatherSource.OPEN_METEO && data.minutelyForecast.isNotEmpty()
+        // Only when rain falls within the nowcast's two hours: a dry nowcast just repeats the main card's rain line
+        val nowcastNow = System.currentTimeMillis()
+        val showNowcast = weatherSource == WeatherSource.OPEN_METEO && data.minutelyForecast.any {
+            it.time in (nowcastNow - 15 * 60 * 1000L)..(nowcastNow + 2 * 3600 * 1000L) && it.precipitation.mm > 0.05
+        }
         val cards = buildList<@Composable () -> Unit> {
             add {
                 Column {
