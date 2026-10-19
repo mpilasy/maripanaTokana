@@ -1,0 +1,4 @@
+- Pantalla principal rediseñada: tarjeta resumen arriba (temperatura en ambas unidades, mín/máx, lluvia prevista, próximas 3 horas) y tarjetas siempre abiertas.
+- Pestañas comunes por hora y 10 días: Condiciones, Viento, Precipitación, Presión, UV, Calidad del aire, con gráfico.
+- Nuevo: UV por hora, presión diaria, calidad del aire a 5 días, iconos nocturnos.
+- Brújula, indicadores, arco solar.

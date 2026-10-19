@@ -6,6 +6,15 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.5.0] - 2026-10-19
+- Redesigned main screen: a glance card on top (condition, temperature in both units, low/high, a one-line rain outlook for the next 24 hours, the next three hours), then always-open cards in one scrolling column (Android and web).
+- Hourly and 10-day cards share the same tabs (Conditions, Wind, Precipitation, Pressure, UV, Air quality), each a row of cards with an overview chart below: lines for readings at a moment, bars for daily peaks and precipitation amounts.
+- New data: hourly UV, daily mean pressure, daily air quality (air-quality forecast now 5 days), and a night weather icon per day.
+- Visual tiles: wind compass, pressure and air-quality gauges, humidity fill, UV level dots, sun arc; current conditions split into Current conditions and Sun & Air.
+- Wind direction in forecast cards shown as a small compass with its label.
+- Both units now shown everywhere, including feels-like, chart labels, the nowcast axis and the large widget's daily low/high.
+- Updated svelte-check to 4.7.7 (web).
+
 ## [1.4.9] - 2026-10-16
 - Holding a favorite's name renames it; the name replaces the place name in the header and the location menu, and Reset (or saving it empty) brings the place name back (Android and web).
 - Fixed (web): with the browser's address bar at the bottom, the page could shift and crop the location name at the top or the footer at the bottom.

@@ -1,0 +1,5 @@
+- Redesigned main screen: a glance card on top (temperature in both units, low/high, rain outlook, next 3 hours), then always-open cards.
+- Hourly and 10-day cards share tabs: Conditions, Wind, Precipitation, Pressure, UV, Air quality, with a chart under each.
+- New: hourly UV, daily pressure, 5-day air quality, night icons.
+- Visual tiles: wind compass, gauges, sun arc.
+- Both units everywhere.

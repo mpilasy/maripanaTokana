@@ -1,0 +1,4 @@
+- Écran principal repensé : carte d'aperçu en haut (température dans les deux unités, min/max, pluie à venir, 3 prochaines heures), puis cartes toujours ouvertes.
+- Onglets communs horaire/10 jours : Conditions, Vent, Précipitations, Pression, UV, Qualité de l'air, avec graphique.
+- Nouveau : UV horaire, pression quotidienne, qualité de l'air sur 5 jours, icônes de nuit.
+- Boussole, jauges, arc du soleil.
