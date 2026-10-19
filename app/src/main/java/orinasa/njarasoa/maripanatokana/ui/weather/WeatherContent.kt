@@ -1129,27 +1129,7 @@ private fun NextHoursStrip(data: WeatherData, metricPrimary: Boolean, localizeDi
                 )
                 // The phone's own time too when the place is in another time zone, as in the hourly cards
                 if (isRemoteTimezone(data.utcOffsetSeconds)) {
-                    // The time is centred under the place's time; the phone icon hangs off its side
-                    Box {
-                        Text(
-                            text = localizeDigits(formatHourInDeviceTime(hour.time)),
-                            fontSize = 9f.s(scale),
-                            fontFamily = bodyFont,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
-                        )
-                        Text(
-                            text = "\uD83D\uDCF1",
-                            fontSize = 8f.s(scale),
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
-                            modifier = Modifier
-                                .align(Alignment.CenterStart)
-                                .layout { m, c ->
-                                    val p = m.measure(c.copy(minWidth = 0))
-                                    // Zero width in the layout, drawn just to the left of the time
-                                    layout(0, p.height) { p.place(-p.width - 3.dp.roundToPx(), 0) }
-                                },
-                        )
-                    }
+                    DeviceTime(localizeDigits(formatHourInDeviceTime(hour.time)))
                 }
                 val dayIdx = data.dailySunrise.indexOfLast { it <= hour.time }.coerceAtLeast(0)
                 val isNight = hour.time !in data.dailySunrise.getOrElse(dayIdx) { 0L }..data.dailySunset.getOrElse(dayIdx) { 0L }
@@ -1246,23 +1226,8 @@ internal fun HourlyForecastRow(
                             modifier = Modifier.fillMaxWidth()
                         )
                         if (isRemote) {
-                            Box(modifier = Modifier.fillMaxWidth()) {
-                                Text(
-                                    text = localizeDigits(formatHourInDeviceTime(item.time)),
-                                    fontSize = 9f.s(scale),
-                                    fontFamily = bodyFont,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
-                                    style = TextStyle(fontFeatureSettings = fontFeatures),
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.align(Alignment.Center)
-                                )
-                                Text(
-                                    text = "\uD83D\uDCF1",
-                                    fontSize = 8f.s(scale),
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
-                                    modifier = Modifier.align(Alignment.CenterEnd)
-                                )
-                            }
+                            // The phone's time centred under the place's; the phone icon hangs off its side
+                            DeviceTime(localizeDigits(formatHourInDeviceTime(item.time)), modifier = Modifier.align(Alignment.CenterHorizontally))
                         }
                         Spacer(modifier = Modifier.height(4.dp))
                         val dayIdx = dailySunrise.indexOfLast { it <= item.time }.coerceAtLeast(0)
@@ -1726,6 +1691,35 @@ private fun WindDirectionLabel(degrees: Int) {
             fontSize = 11f.s(scale),
             fontFamily = LocalBodyFont.current,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+        )
+    }
+}
+
+/** The phone's own time, small and faint, centred, with a phone icon just to its left outside the centring. */
+@Composable
+private fun DeviceTime(time: String, modifier: Modifier = Modifier) {
+    val scale = LocalScale.current
+    val faint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+    Box(modifier = modifier) {
+        Text(
+            text = time,
+            fontSize = 9f.s(scale),
+            fontFamily = LocalBodyFont.current,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+            style = TextStyle(fontFeatureSettings = LocalBodyFontFeatures.current),
+        )
+        Icon(
+            painter = painterResource(R.drawable.ic_device_phone),
+            contentDescription = null,
+            tint = faint,
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .layout { m, c ->
+                    val p = m.measure(c.copy(minWidth = 0, minHeight = 0))
+                    // Takes no width, so the time stays centred; drawn just left of it
+                    layout(0, p.height) { p.place(-p.width - 4.dp.roundToPx(), 0) }
+                }
+                .size(10.dp),
         )
     }
 }

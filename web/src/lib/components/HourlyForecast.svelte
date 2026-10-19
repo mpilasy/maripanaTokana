@@ -143,10 +143,8 @@
 			<div class="hourly-card" class:now={i === 0}>
 				<span class="hour">{loc(formatHourAtLocation(item.time, utcOffsetSeconds))}</span>
 				{#if isRemote}
-					<div class="hour-device-container">
-						<span class="hour-device-text">{loc(formatHourInDeviceTime(item.time))}</span>
-						<span class="hour-device-icon">📱</span>
-					</div>
+					<!-- The phone's time centred under the place's; the phone icon hangs off its side -->
+					<span class="hour-device-text">{loc(formatHourInDeviceTime(item.time))}<svg class="hour-device-icon" viewBox="0 0 24 24" width="10" height="10" fill="currentColor" aria-hidden="true"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg></span>
 				{/if}
 				<WeatherIcon code={item.weatherCode} night={isNightForHour(item.time)} size={44} />
 				{#if displayMode === 'Temperature'}
@@ -285,27 +283,21 @@
 		text-align: center;
 	}
 
-	.hour-device-container {
-		position: relative;
-		width: 100%;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		margin-top: -3px;
-	}
-
 	.hour-device-text {
+		position: relative;
+		margin-top: -3px;
 		font-size: 9px;
-		color: rgba(255,255,255,0.35);
+		color: rgba(255,255,255,0.4);
 		font-feature-settings: var(--font-features);
-		text-align: center;
 	}
 
 	.hour-device-icon {
 		position: absolute;
-		right: 0;
-		font-size: 8px;
-		opacity: 0.35;
+		inset-inline-end: 100%;
+		top: 50%;
+		transform: translateY(-50%);
+		margin-inline-end: 4px;
+		color: rgba(255, 255, 255, 0.5);
 	}
 
 	/* Compass pointing to where the wind comes from, with the direction's short name */
