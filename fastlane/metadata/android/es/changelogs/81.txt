@@ -1,0 +1,4 @@
+- Nuevo aspecto: iconos del tiempo planos (día y noche), tarjetas neutras más tranquilas, insignias de nivel más suaves y gráficos más ligeros.
+- UV y calidad del aire en los pronósticos como barras de color explicadas por la leyenda.
+- El dial de calidad del aire muestra los cinco niveles, con un punto en el valor.
+- Corregido: amanecer y atardecer se mostraban en la hora del teléfono y no en la del lugar.

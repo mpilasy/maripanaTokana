@@ -1,0 +1,4 @@
+- Nouveau style : icônes météo plates (jour et nuit), cartes neutres plus calmes, badges de niveau plus doux, graphiques allégés.
+- UV et qualité de l'air dans les prévisions : barres de couleur expliquées par la légende.
+- Le cadran de qualité de l'air montre les cinq niveaux, avec un point sur la valeur.
+- Corrigé : lever et coucher du soleil affichés dans le fuseau du téléphone au lieu de celui du lieu.

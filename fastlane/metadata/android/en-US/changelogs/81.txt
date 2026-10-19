@@ -1,0 +1,4 @@
+- New look: flat weather icons with day and night versions, calmer neutral cards, softer level badges and lighter charts.
+- UV and air quality in the forecast cards shown as colour bars, explained by the legend.
+- Air-quality dial now shows all five levels, with a dot at the reading.
+- Fixed: sunrise and sunset showed in your phone's time zone instead of the place's.

@@ -6,6 +6,15 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.5.1] - 2026-10-19
+- New look: Meteocons weather icons with day and night versions replace the emoji; neutral glass cards, purple only as an accent; forecast columns no longer boxed and tile sections without an outer card (Android and web).
+- UV and air quality in the hourly and 10-day cards shown as a colour bar under the value, explained by the legend; other level badges are soft tints.
+- Charts lighter: the visible part shown as a light band, fewer grid lines, labels kept inside the chart.
+- The air-quality dial shows all five levels as coloured segments, with a dot at the reading's place within its level.
+- The nowcast hides its sentence while it is already raining; activities use flat icons; the footer is quieter.
+- Fixed: sunrise, sunset and the nowcast's times showed in the device's time zone instead of the place's.
+- Web: a mouse can drag the sideways-scrolling forecast rows and tabs.
+
 ## [1.5.0] - 2026-10-19
 - Redesigned main screen: a glance card on top (condition, temperature in both units, low/high, a one-line rain outlook for the next 24 hours, the next three hours), then always-open cards in one scrolling column (Android and web).
 - Hourly and 10-day cards share the same tabs (Conditions, Wind, Precipitation, Pressure, UV, Air quality), each a row of cards with an overview chart below: lines for readings at a moment, bars for daily peaks and precipitation amounts.
