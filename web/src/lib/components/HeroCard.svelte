@@ -4,7 +4,7 @@
 	import type { WeatherData } from '$lib/domain/weatherData';
 	import { wmoDescriptionKey } from '$lib/api/wmoWeatherCode';
 	import { precipOutlook } from '$lib/domain/precipOutlook';
-	import { formatHourAtLocation } from '$lib/utils/date';
+	import { formatHourAtLocation, formatHourInDeviceTime, isRemoteTimezone } from '$lib/utils/date';
 	import DualUnitText from './DualUnitText.svelte';
 
 	interface Props {
@@ -86,6 +86,10 @@
 				{#each nextHours as hour (hour.time)}
 					<div class="next-hour">
 						<span class="next-time">{loc(formatHourAtLocation(hour.time, data.utcOffsetSeconds))}</span>
+						<!-- The phone's own time too when the place is in another time zone, as in the hourly cards -->
+						{#if isRemoteTimezone(data.utcOffsetSeconds)}
+							<span class="next-device-time">📱 {loc(formatHourInDeviceTime(hour.time))}</span>
+						{/if}
 						<WeatherIcon code={hour.weatherCode} night={isNightAt(hour.time)} size={40} />
 						<DualUnitText primary={loc(hour.temperature.displayDual(metricPrimary)[0])} secondary={loc(hour.temperature.displayDual(metricPrimary)[1])} primarySize="15px" align="center" onClick={onToggleUnits} />
 					</div>
@@ -198,6 +202,13 @@
 
 	.next-hour + .next-hour {
 		border-inline-start: 1px solid var(--hairline);
+	}
+
+	.next-device-time {
+		margin-top: -4px;
+		font-size: 9px;
+		color: rgba(255,255,255,0.35);
+		font-feature-settings: var(--font-features);
 	}
 
 	.next-time {

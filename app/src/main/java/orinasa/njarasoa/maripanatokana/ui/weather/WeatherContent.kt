@@ -1126,6 +1126,15 @@ private fun NextHoursStrip(data: WeatherData, metricPrimary: Boolean, localizeDi
                     fontFamily = bodyFont,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 )
+                // The phone's own time too when the place is in another time zone, as in the hourly cards
+                if (isRemoteTimezone(data.utcOffsetSeconds)) {
+                    Text(
+                        text = "\uD83D\uDCF1 " + localizeDigits(formatHourInDeviceTime(hour.time)),
+                        fontSize = 9f.s(scale),
+                        fontFamily = bodyFont,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
+                    )
+                }
                 val dayIdx = data.dailySunrise.indexOfLast { it <= hour.time }.coerceAtLeast(0)
                 val isNight = hour.time !in data.dailySunrise.getOrElse(dayIdx) { 0L }..data.dailySunset.getOrElse(dayIdx) { 0L }
                 WeatherIcon(hour.weatherCode, night = isNight, size = 40.sd(scale))
