@@ -6,6 +6,9 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.5.6] - 2026-10-19
+- About page: a new "This device" section lists what the system reports: model, system version, screen, pixel density, text size, languages (the device's and the app's), time zone, processor, memory, touch, where the app was installed from and the app build (Android and web). No hardware identifiers.
+
 ## [1.5.5] - 2026-10-19
 - The wind compass and the pressure and air-quality dials sit larger in the tile's bottom corner, so titles show in full (Android and web).
 - For places in another time zone, the phone's time under each hour is centred and marked with a visible flat phone icon (the dimmed emoji was all but invisible), on the main card and in the hourly cards; the "Updated" time gets the same icon.

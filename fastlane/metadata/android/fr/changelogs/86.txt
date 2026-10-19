@@ -1,0 +1,1 @@
+- Page À propos : une nouvelle section « Cet appareil » indique le modèle, le système, l'écran, les langues, le fuseau horaire, le processeur, la mémoire et la version de l'app, pratique pour signaler un bug.

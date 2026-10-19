@@ -1,0 +1,1 @@
+- About page: a new "This device" section shows the model, system, screen, languages, time zone, processor, memory and app build, handy for bug reports.

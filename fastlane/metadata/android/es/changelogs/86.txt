@@ -1,0 +1,1 @@
+- Página Acerca de: nueva sección «Este dispositivo» con modelo, sistema, pantalla, idiomas, zona horaria, procesador, memoria y versión de la app, útil para informar errores.
