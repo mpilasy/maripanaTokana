@@ -1,0 +1,2 @@
+- Wind, pressure and air-quality dials moved to the tile's bottom corner, larger, with titles at full width.
+- For places in another time zone, your phone's time is marked with a clear phone icon and centred under each hour; the Updated time gets the icon too.

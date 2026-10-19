@@ -1,0 +1,2 @@
+- Los diales de viento, presión y calidad del aire pasan a la esquina inferior del recuadro, más grandes, y los títulos se ven completos.
+- Para lugares en otra zona horaria, la hora del teléfono lleva un icono de teléfono y va centrada bajo cada hora; la hora de actualización también.

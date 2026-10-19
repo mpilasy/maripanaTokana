@@ -1,0 +1,2 @@
+- Les cadrans du vent, de la pression et de la qualité de l'air passent dans le coin inférieur de la tuile, plus grands, et les titres sont entiers.
+- Pour un lieu dans un autre fuseau, l'heure du téléphone est marquée d'une icône de téléphone et centrée sous chaque heure ; l'heure de mise à jour aussi.

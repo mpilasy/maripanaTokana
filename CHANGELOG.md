@@ -6,6 +6,11 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.5.5] - 2026-10-19
+- The wind compass and the pressure and air-quality dials sit larger in the tile's bottom corner, so titles show in full (Android and web).
+- For places in another time zone, the phone's time under each hour is centred and marked with a visible flat phone icon (the dimmed emoji was all but invisible), on the main card and in the hourly cards; the "Updated" time gets the same icon.
+- The clock emoji is removed from the "Updated" line in the languages that had it.
+
 ## [1.5.4] - 2026-10-19
 - The main card's rain line now agrees with the rest of the screen: an hour counts as rainy when the nowcast covering it shows rain or, beyond the nowcast, when its weather icon is rain or snow; the chance of rain alone no longer counts (Android and web).
 - For places in another time zone, the main card's next three hours also show the phone's time, as the hourly cards do.
