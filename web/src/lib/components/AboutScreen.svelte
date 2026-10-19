@@ -3,9 +3,18 @@
 	import { version } from '../../../package.json';
 	import { creditSections } from '$lib/credits';
 	import SettingsPage from './SettingsPage.svelte';
+	import { deviceInfo, type DeviceRow } from '$lib/deviceInfo';
+	import { onMount } from 'svelte';
+	import { SUPPORTED_LOCALES } from '$lib/i18n/index';
+	import { localeIndex } from '$lib/stores/preferences';
 
 	interface Props { onBack: () => void; }
 	let { onBack }: Props = $props();
+
+	let deviceRows = $state<DeviceRow[]>([]);
+	onMount(() => {
+		deviceInfo(version, SUPPORTED_LOCALES[$localeIndex].tag).then((rows) => (deviceRows = rows));
+	});
 </script>
 
 <SettingsPage title={$_('about_title')} {onBack}>
@@ -16,6 +25,20 @@
 		<span class="app-license">{$_('about_app_license')}</span>
 		<a class="source-link" href="https://github.com/mpilasy/maripanaTokana" target="_blank" rel="noopener">{$_('about_source_code')} ↗</a>
 	</div>
+
+	{#if deviceRows.length > 0}
+		<div class="section">
+			<div class="section-title">{$_('about_section_device')}</div>
+			<div class="group">
+				{#each deviceRows as row (row.labelKey)}
+					<div class="device-row">
+						<span class="device-label">{$_(row.labelKey)}</span>
+						<span class="device-value" dir="ltr">{row.value}</span>
+					</div>
+				{/each}
+			</div>
+		</div>
+	{/if}
 
 	{#each creditSections as section (section.titleKey)}
 		<div class="section">
@@ -84,6 +107,34 @@
 
 	.source-link:hover {
 		background: var(--surface-tile);
+	}
+
+	.device-row {
+		display: flex;
+		align-items: baseline;
+		gap: 12px;
+		padding: 8px 0;
+	}
+
+	.device-row + .device-row {
+		border-top: 1px solid var(--hairline);
+	}
+
+	.device-label {
+		flex: none;
+		width: 40%;
+		font-size: 13px;
+		color: rgba(255, 255, 255, 0.6);
+	}
+
+	.device-value {
+		flex: 1;
+		min-width: 0;
+		font-size: 13px;
+		color: white;
+		text-align: end;
+		overflow-wrap: anywhere;
+		user-select: text;
 	}
 
 	.credit-row {

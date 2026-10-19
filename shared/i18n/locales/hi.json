@@ -267,5 +267,19 @@
 	"about_section_alerts": "मौसम चेतावनियाँ",
 	"about_section_imagery": "पृष्ठभूमि चित्र",
 	"about_section_fonts": "फ़ॉन्ट",
-	"about_section_libraries": "ओपन-सोर्स लाइब्रेरी"
+	"about_section_libraries": "ओपन-सोर्स लाइब्रेरी",
+	"about_section_device": "यह डिवाइस",
+	"device_model": "मॉडल",
+	"device_os": "सिस्टम",
+	"device_browser": "ब्राउज़र",
+	"device_screen": "स्क्रीन",
+	"device_density": "पिक्सेल घनत्व",
+	"device_font_scale": "टेक्स्ट का आकार",
+	"device_language": "भाषाएँ",
+	"device_time_zone": "समय क्षेत्र",
+	"device_processor": "प्रोसेसर",
+	"device_memory": "मेमोरी",
+	"device_app_build": "ऐप बिल्ड",
+	"device_installer": "यहाँ से इंस्टॉल",
+	"device_touch": "टच पॉइंट"
 }

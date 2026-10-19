@@ -267,5 +267,19 @@
 	"about_section_alerts": "تنبيهات الطقس",
 	"about_section_imagery": "صورة الخلفية",
 	"about_section_fonts": "الخطوط",
-	"about_section_libraries": "مكتبات مفتوحة المصدر"
+	"about_section_libraries": "مكتبات مفتوحة المصدر",
+	"about_section_device": "هذا الجهاز",
+	"device_model": "الطراز",
+	"device_os": "النظام",
+	"device_browser": "المتصفح",
+	"device_screen": "الشاشة",
+	"device_density": "كثافة البكسل",
+	"device_font_scale": "حجم النص",
+	"device_language": "اللغات",
+	"device_time_zone": "المنطقة الزمنية",
+	"device_processor": "المعالج",
+	"device_memory": "الذاكرة",
+	"device_app_build": "إصدار التطبيق",
+	"device_installer": "مُثبّت من",
+	"device_touch": "نقاط اللمس"
 }

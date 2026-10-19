@@ -267,5 +267,19 @@
 	"about_section_alerts": "Alertes météo",
 	"about_section_imagery": "Image de fond",
 	"about_section_fonts": "Polices",
-	"about_section_libraries": "Bibliothèques open source"
+	"about_section_libraries": "Bibliothèques open source",
+	"about_section_device": "Cet appareil",
+	"device_model": "Modèle",
+	"device_os": "Système",
+	"device_browser": "Navigateur",
+	"device_screen": "Écran",
+	"device_density": "Densité de pixels",
+	"device_font_scale": "Taille du texte",
+	"device_language": "Langues",
+	"device_time_zone": "Fuseau horaire",
+	"device_processor": "Processeur",
+	"device_memory": "Mémoire",
+	"device_app_build": "Version de l'app",
+	"device_installer": "Installée depuis",
+	"device_touch": "Points tactiles"
 }

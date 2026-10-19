@@ -267,5 +267,19 @@
 	"about_section_alerts": "Weather alerts",
 	"about_section_imagery": "Background image",
 	"about_section_fonts": "Fonts",
-	"about_section_libraries": "Open-source libraries"
+	"about_section_libraries": "Open-source libraries",
+	"about_section_device": "This device",
+	"device_model": "Model",
+	"device_os": "System",
+	"device_browser": "Browser",
+	"device_screen": "Screen",
+	"device_density": "Pixel density",
+	"device_font_scale": "Text size",
+	"device_language": "Languages",
+	"device_time_zone": "Time zone",
+	"device_processor": "Processor",
+	"device_memory": "Memory",
+	"device_app_build": "App build",
+	"device_installer": "Installed from",
+	"device_touch": "Touch points"
 }

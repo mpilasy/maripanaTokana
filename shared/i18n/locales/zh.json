@@ -267,5 +267,19 @@
 	"about_section_alerts": "天气预警",
 	"about_section_imagery": "背景图片",
 	"about_section_fonts": "字体",
-	"about_section_libraries": "开源库"
+	"about_section_libraries": "开源库",
+	"about_section_device": "本设备",
+	"device_model": "型号",
+	"device_os": "系统",
+	"device_browser": "浏览器",
+	"device_screen": "屏幕",
+	"device_density": "像素密度",
+	"device_font_scale": "文字大小",
+	"device_language": "语言",
+	"device_time_zone": "时区",
+	"device_processor": "处理器",
+	"device_memory": "内存",
+	"device_app_build": "应用版本",
+	"device_installer": "安装来源",
+	"device_touch": "触控点"
 }

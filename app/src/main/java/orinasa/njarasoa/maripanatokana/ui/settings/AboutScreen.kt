@@ -19,6 +19,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -191,6 +195,18 @@ fun AboutScreen(onBack: () -> Unit) {
             }
         }
 
+        // What the system reports about this phone, for support and bug reports
+        val context = LocalContext.current
+        val deviceRows = remember { deviceInfo(context) }
+        Spacer(Modifier.height(24.dp))
+        SectionHeader(stringResource(R.string.about_section_device))
+        SettingsGroup {
+            deviceRows.forEachIndexed { index, row ->
+                if (index > 0) Box(Modifier.fillMaxWidth().height(1.dp).background(Hairline))
+                DeviceInfoRow(stringResource(row.labelRes), row.value)
+            }
+        }
+
         creditSections.forEach { section ->
             Spacer(Modifier.height(24.dp))
             SectionHeader(stringResource(section.titleRes))
@@ -210,6 +226,19 @@ fun AboutScreen(onBack: () -> Unit) {
         }
 
         Spacer(Modifier.height(24.dp))
+    }
+}
+
+@Composable
+private fun DeviceInfoRow(label: String, value: String) {
+    val onSurface = MaterialTheme.colorScheme.onSurface
+    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+        Text(text = label, fontSize = 13.sp, color = onSurface.copy(alpha = 0.6f), modifier = Modifier.weight(0.4f))
+        Spacer(Modifier.width(12.dp))
+        // Left to right whatever the language, so versions and sizes read as written
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+            Text(text = value, fontSize = 13.sp, color = onSurface, textAlign = TextAlign.End, modifier = Modifier.weight(0.6f))
+        }
     }
 }
 

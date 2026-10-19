@@ -267,5 +267,19 @@
 	"about_section_alerts": "मौसम चेतावनी",
 	"about_section_imagery": "पृष्ठभूमि चित्र",
 	"about_section_fonts": "फन्ट",
-	"about_section_libraries": "खुला स्रोत लाइब्रेरी"
+	"about_section_libraries": "खुला स्रोत लाइब्रेरी",
+	"about_section_device": "यो उपकरण",
+	"device_model": "मोडेल",
+	"device_os": "प्रणाली",
+	"device_browser": "ब्राउजर",
+	"device_screen": "स्क्रिन",
+	"device_density": "पिक्सेल घनत्व",
+	"device_font_scale": "पाठको आकार",
+	"device_language": "भाषाहरू",
+	"device_time_zone": "समय क्षेत्र",
+	"device_processor": "प्रोसेसर",
+	"device_memory": "मेमोरी",
+	"device_app_build": "एप बिल्ड",
+	"device_installer": "यहाँबाट स्थापना",
+	"device_touch": "टच बिन्दु"
 }
