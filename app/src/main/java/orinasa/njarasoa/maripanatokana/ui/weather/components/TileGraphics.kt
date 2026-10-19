@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -44,12 +45,19 @@ import kotlin.math.sin
 fun Gauge(fraction: Float, color: Color, modifier: Modifier = Modifier, size: Dp = 40.dp) {
     val f = if (fraction.isFinite()) fraction.coerceIn(0f, 1f) else 0f
     Canvas(modifier.size(size)) {
-        val stroke = this.size.minDimension * 5f / 48f
-        val inset = this.size.minDimension * 4f / 48f
+        val u = this.size.minDimension / 48f
+        val stroke = 4 * u
+        val inset = 4 * u
         val arcSize = Size(this.size.width - inset * 2, this.size.height - inset * 2)
         val topLeft = Offset(inset, inset)
-        drawArc(Color.White.copy(alpha = 0.12f), 135f, 270f, false, topLeft, arcSize, style = Stroke(stroke, cap = StrokeCap.Round))
+        drawArc(Color.White.copy(alpha = 0.18f), 135f, 270f, false, topLeft, arcSize, style = Stroke(stroke, cap = StrokeCap.Round))
         if (f > 0f) drawArc(color, 135f, 270f * f, false, topLeft, arcSize, style = Stroke(stroke, cap = StrokeCap.Round))
+        // Where the value sits on the dial
+        val a = Math.toRadians(135.0 + 270.0 * f)
+        val r = arcSize.width / 2
+        val end = Offset(center.x + r * cos(a).toFloat(), center.y + r * sin(a).toFloat())
+        drawCircle(color, 4.5f * u + 1.25f * u, end)
+        drawCircle(Color.White, 4.5f * u - 1.25f * u, end)
     }
 }
 
@@ -109,6 +117,18 @@ fun TemperatureRangeBar(low: Float, high: Float, modifier: Modifier = Modifier) 
             topLeft = Offset(0f, top), size = Size(w, bottom - top), cornerRadius = r,
         )
     }
+}
+
+/** A short bar in a level's colour, for cards that sit above a colour legend; the label is for screen readers. */
+@Composable
+fun LevelBar(color: Color, label: String, modifier: Modifier = Modifier) {
+    androidx.compose.foundation.layout.Box(
+        modifier = modifier
+            .padding(top = 4.dp, bottom = 2.dp)
+            .size(width = 28.dp, height = 5.dp)
+            .background(color, RoundedCornerShape(3.dp))
+            .semantics { contentDescription = label },
+    )
 }
 
 /** A row of chips that picks what a forecast card shows. */

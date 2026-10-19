@@ -62,14 +62,6 @@ fun TemperatureChart(
     val paddedMax = maxTemp + (tempRange * 0.15)
     val paddedRange = paddedMax - paddedMin
 
-    val horizontalTicks = remember(paddedMin, paddedMax, minTemp, maxTemp) {
-        val start = Math.ceil(paddedMin).toInt()
-        val end = Math.floor(paddedMax).toInt()
-        (start..end).filter { temp ->
-            Math.abs(temp - minTemp) >= 0.2 && Math.abs(temp - maxTemp) >= 0.2
-        }
-    }
-
     val midnightIndices = remember(forecasts) {
         val calendar = Calendar.getInstance()
         forecasts.mapIndexed { index, forecast ->
@@ -108,29 +100,6 @@ fun TemperatureChart(
             val spacingPx = spacing.toPx()
             val xScale = if (totalScrollWidth > 0f) width / totalScrollWidth else 1f
 
-            // Draw horizontal ticks
-            horizontalTicks.forEach { temp ->
-                val y = height - ((temp - paddedMin) / paddedRange * height).toFloat()
-                drawLine(
-                    color = gridColor.copy(alpha = 0.1f),
-                    start = Offset(0f, y),
-                    end = Offset(width, y),
-                    strokeWidth = 0.5.dp.toPx()
-                )
-            }
-
-            // Standout Min/Max Lines
-            listOf(minTemp, maxTemp).forEach { temp ->
-                val y = height - ((temp - paddedMin) / paddedRange * height).toFloat()
-                drawLine(
-                    color = gridColor.copy(alpha = 0.3f),
-                    start = Offset(0f, y),
-                    end = Offset(width, y),
-                    strokeWidth = 0.8.dp.toPx(),
-                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(2.dp.toPx(), 1.dp.toPx()), 0f)
-                )
-            }
-
             val midnightLabelStyle = TextStyle(color = gridColor.copy(alpha = 0.7f), fontSize = 8.sp)
             val noonLabelStyle = TextStyle(color = gridColor.copy(alpha = 0.45f), fontSize = 8.sp)
 
@@ -138,7 +107,7 @@ fun TemperatureChart(
             midnightIndices.forEach { idx ->
                 val x = (idx * (itemWidthPx + spacingPx) + itemWidthPx / 2) * xScale
                 drawLine(
-                    color = gridColor.copy(alpha = 0.4f),
+                    color = gridColor.copy(alpha = 0.15f),
                     start = Offset(x, 0f),
                     end = Offset(x, height),
                     strokeWidth = 1.dp.toPx()
@@ -151,7 +120,7 @@ fun TemperatureChart(
             noonIndices.forEach { idx ->
                 val x = (idx * (itemWidthPx + spacingPx) + itemWidthPx / 2) * xScale
                 drawLine(
-                    color = gridColor.copy(alpha = 0.2f),
+                    color = gridColor.copy(alpha = 0.1f),
                     start = Offset(x, 0f),
                     end = Offset(x, height),
                     strokeWidth = 1.dp.toPx(),
@@ -225,7 +194,7 @@ fun TemperatureChart(
             val maxTempText = maxTempObj.displayDual(metricPrimary).let { (p, s) -> "$p · $s" }
             val maxLabelStyle = TextStyle(color = Color(0xFFFF7043), fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont)
             val maxLayout = textMeasurer.measure(maxTempText, maxLabelStyle)
-            val maxTextX = (maxPoint.x - maxLayout.size.width / 2f).coerceIn(4.dp.toPx(), totalScrollWidth - maxLayout.size.width - 4.dp.toPx())
+            val maxTextX = (maxPoint.x - maxLayout.size.width / 2f).coerceIn(4.dp.toPx(), width - maxLayout.size.width - 4.dp.toPx())
             val maxTextY = (maxPoint.y + 4.dp.toPx()).coerceIn(2.dp.toPx(), height - maxLayout.size.height)
             drawText(maxLayout, topLeft = Offset(maxTextX, maxTextY))
 
@@ -238,42 +207,17 @@ fun TemperatureChart(
             val minTempText = minTempObj.displayDual(metricPrimary).let { (p, s) -> "$p · $s" }
             val minLabelStyle = TextStyle(color = Color(0xFF64B5F6), fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont)
             val minLayout = textMeasurer.measure(minTempText, minLabelStyle)
-            val minTextX = (minPoint.x - minLayout.size.width / 2f).coerceIn(4.dp.toPx(), totalScrollWidth - minLayout.size.width - 4.dp.toPx())
+            val minTextX = (minPoint.x - minLayout.size.width / 2f).coerceIn(4.dp.toPx(), width - minLayout.size.width - 4.dp.toPx())
             val minTextY = (minPoint.y - minLayout.size.height - 2.dp.toPx()).coerceAtLeast(0f)
             if (Math.abs(maxPoint.x - minPoint.x) > 30.dp.toPx() || Math.abs(maxTextY - minTextY) > 12.dp.toPx()) {
                 drawText(minLayout, topLeft = Offset(minTextX, minTextY))
             }
 
-            // Viewport overlay: dim the parts outside the currently visible window
+            // The part of the row scrolled into view, as a light band
             if (totalScrollWidth > width) {
                 val vpLeft = (scrollOffset / totalScrollWidth * width).coerceIn(0f, width)
                 val vpRight = ((scrollOffset + width) / totalScrollWidth * width).coerceIn(0f, width)
-                if (vpLeft > 0f) {
-                    drawRect(
-                        color = Color.Black.copy(alpha = 0.22f),
-                        topLeft = Offset(0f, 0f),
-                        size = Size(vpLeft, height)
-                    )
-                }
-                if (vpRight < width) {
-                    drawRect(
-                        color = Color.Black.copy(alpha = 0.22f),
-                        topLeft = Offset(vpRight, 0f),
-                        size = Size(width - vpRight, height)
-                    )
-                }
-                drawLine(
-                    color = gridColor.copy(alpha = 0.35f),
-                    start = Offset(vpLeft, 0f),
-                    end = Offset(vpLeft, height),
-                    strokeWidth = 1.dp.toPx()
-                )
-                drawLine(
-                    color = gridColor.copy(alpha = 0.35f),
-                    start = Offset(vpRight, 0f),
-                    end = Offset(vpRight, height),
-                    strokeWidth = 1.dp.toPx()
-                )
+                drawRoundRect(Color.White.copy(alpha = 0.06f), Offset(vpLeft, 0f), Size(vpRight - vpLeft, height), androidx.compose.ui.geometry.CornerRadius(6.dp.toPx()))
             }
         }
     }

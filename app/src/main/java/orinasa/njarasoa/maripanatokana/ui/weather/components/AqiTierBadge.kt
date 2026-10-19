@@ -12,6 +12,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -54,27 +55,30 @@ internal fun TierPill(
     // In narrow forecast cards: stay on one line, shrinking the text to fit before cutting it short
     singleLine: Boolean = false,
 ) {
+    // A tint of the level's colour, with the text in a lighter shade of it (foreground is kept for callers but unused)
+    val tint = background.copy(alpha = 0.22f)
+    val text = lerp(background, Color.White, 0.3f)
     if (singleLine) {
         BasicText(
             text = label,
-            style = TextStyle(color = foreground, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center),
+            style = TextStyle(color = text, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             autoSize = TextAutoSize.StepBased(minFontSize = 8.sp, maxFontSize = fontSize),
             modifier = modifier
                 .padding(horizontal = 4.dp)
-                .background(background, RoundedCornerShape(50))
+                .background(tint, RoundedCornerShape(50))
                 .padding(horizontal = 6.dp, vertical = 2.dp),
         )
         return
     }
     Text(
         text = label,
-        color = foreground,
+        color = text,
         fontSize = fontSize,
         fontWeight = FontWeight.Medium,
         modifier = modifier
-            .background(background, RoundedCornerShape(50))
+            .background(tint, RoundedCornerShape(50))
             .padding(horizontal = 8.dp, vertical = 2.dp),
     )
 }

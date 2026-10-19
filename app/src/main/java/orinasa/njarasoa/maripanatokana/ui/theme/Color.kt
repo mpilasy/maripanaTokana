@@ -8,13 +8,13 @@ val SkyBlue = Color(0xFF64B5F6)
 val DarkNavy = Color(0xFF0E0B3D)
 const val DarkNavyColorInt = 0xFF0E0B3D.toInt()
 
-// Surface system: tinted glass over the navy/Blue Marble background
-val SectionSurface = Color(0xFF2A1FA5).copy(alpha = 0.30f)
+// Surface system: neutral glass over the navy/Blue Marble background; purple only as an accent
+val SectionSurface = Color.White.copy(alpha = 0.06f)
 val TileSurface = Color.White.copy(alpha = 0.06f)
-val TileSurfaceHighlight = Color.White.copy(alpha = 0.14f)
-val Hairline = Color.White.copy(alpha = 0.08f)
-val HeroGradientTop = Color(0xFF3B30C4).copy(alpha = 0.85f)
-val HeroGradientBottom = Color(0xFF2A1FA5).copy(alpha = 0.55f)
+val TileSurfaceHighlight = Color.White.copy(alpha = 0.10f)
+val Hairline = Color.White.copy(alpha = 0.07f)
+val HeroGradientTop = Color(0xFF6E64FF).copy(alpha = 0.45f)
+val HeroGradientBottom = Color(0xFF3C32C8).copy(alpha = 0.18f)
 
 // M3 dark color scheme tokens
 val AppDarkPrimary = Color(0xFF9B8FFF)

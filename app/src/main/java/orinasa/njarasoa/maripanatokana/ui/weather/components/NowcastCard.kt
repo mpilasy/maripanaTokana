@@ -1,5 +1,8 @@
 package orinasa.njarasoa.maripanatokana.ui.weather.components
 
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -105,9 +108,6 @@ fun NowcastCard(
     val maxPrecipObj = Precipitation.fromMm(maxPrecipMm)
     val yLabelText = maxPrecipObj.displayDual(isMetricPrimary).let { (p, s) -> "$p · $s" }
 
-    val minPrecipMm = displayItems.minOfOrNull { it.precipitation.mm } ?: 0.0
-    val minPrecipObj = Precipitation.fromMm(minPrecipMm)
-    val yMinLabelText = minPrecipObj.displayDual(isMetricPrimary).let { (p, s) -> "$p · $s" }
 
     val textMeasurer = rememberTextMeasurer()
     val timeLabelStyle = TextStyle(
@@ -121,18 +121,11 @@ fun NowcastCard(
         fontWeight = FontWeight.Bold,
         fontFamily = LocalDisplayFont.current
     )
-    val minLabelStyle = TextStyle(
-        color = Color(0x66FFFFFF),
-        fontSize = 9.sp,
-        fontFamily = LocalDisplayFont.current
-    )
 
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(TileSurface)
-            .padding(16.dp),
+            .padding(start = 4.dp, end = 4.dp, bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // While it's already raining the chart says it all; the sentence is for dry spells and rain on its way
@@ -140,9 +133,10 @@ fun NowcastCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(
-                text = "🌧️",
-                fontSize = 18.sp
+            Image(
+                painter = painterResource(R.drawable.wx_raindrops),
+                contentDescription = null,
+                modifier = Modifier.size(32.dp),
             )
             Text(
                 text = headlineText,
@@ -251,21 +245,6 @@ fun NowcastCard(
                 val maxTextY = (maxPoint.y + 4.dp.toPx()).coerceIn(2.dp.toPx(), chartHeight - maxTextLayout.size.height)
                 drawText(maxTextLayout, topLeft = Offset(maxTextX, maxTextY))
 
-                // Position min legend right at the baseline min point (middle if multiple)
-                val maxY = points.maxOf { it.y }
-                val minIndices = points.indices.filter { points[it].y == maxY }
-                val minMiddleIdx = minIndices[minIndices.size / 2]
-                val minPoint = points[minMiddleIdx]
-
-                // Only draw min legend if it doesn't overlap horizontally with max legend
-                val minTextLayout = textMeasurer.measure(yMinLabelText, minLabelStyle)
-                val minTextX = (minPoint.x - minTextLayout.size.width / 2f).coerceIn(4.dp.toPx(), width - minTextLayout.size.width - 4.dp.toPx())
-                val minTextY = (minPoint.y - minTextLayout.size.height - 2.dp.toPx()).coerceAtLeast(0f)
-                
-                val horizontalOverlap = Math.abs((maxTextX + maxTextLayout.size.width / 2f) - (minTextX + minTextLayout.size.width / 2f)) < 40.dp.toPx()
-                if (!horizontalOverlap || Math.abs(maxTextY - minTextY) > 12.dp.toPx()) {
-                    drawText(minTextLayout, topLeft = Offset(minTextX, minTextY))
-                }
             }
         }
     }

@@ -55,12 +55,6 @@ fun DailyTemperatureChart(
     val paddedMax = maxTemp + (tempRange * 0.2)
     val paddedRange = paddedMax - paddedMin
 
-    val horizontalTicks = remember(paddedMin, paddedMax) {
-        val start = Math.ceil(paddedMin).toInt()
-        val end = Math.floor(paddedMax).toInt()
-        (start..end).toList()
-    }
-
     val mondayIndices = remember(forecasts) {
         val calendar = Calendar.getInstance()
         forecasts.mapIndexed { index, forecast ->
@@ -91,23 +85,11 @@ fun DailyTemperatureChart(
             val xScale = if (totalScrollWidth > 0f) width / totalScrollWidth else 1f
             fun xFor(i: Int) = (i * (itemWidthPx + spacingPx) + itemWidthPx / 2) * xScale
 
-            // Draw horizontal ticks
-            horizontalTicks.forEach { temp ->
-                val isMajor = temp % 5 == 0
-                val y = height - ((temp - paddedMin) / paddedRange * height).toFloat()
-                drawLine(
-                    color = gridColor.copy(alpha = if (isMajor) 0.25f else 0.1f),
-                    start = Offset(0f, y),
-                    end = Offset(width, y),
-                    strokeWidth = (if (isMajor) 0.8.dp else 0.5.dp).toPx()
-                )
-            }
-
             // Draw Monday vertical lines
             mondayIndices.forEach { idx ->
                 val x = xFor(idx)
                 drawLine(
-                    color = gridColor.copy(alpha = 0.2f),
+                    color = gridColor.copy(alpha = 0.1f),
                     start = Offset(x, 0f),
                     end = Offset(x, height),
                     strokeWidth = 1.dp.toPx(),
@@ -192,36 +174,11 @@ fun DailyTemperatureChart(
                 drawCircle(color = Color(0xFF64B5F6), radius = 3.dp.toPx(), center = point)
             }
 
-            // Viewport overlay: dim the parts outside the currently visible window
+            // The part of the row scrolled into view, as a light band
             if (totalScrollWidth > width) {
                 val vpLeft = (scrollOffset / totalScrollWidth * width).coerceIn(0f, width)
                 val vpRight = ((scrollOffset + width) / totalScrollWidth * width).coerceIn(0f, width)
-                if (vpLeft > 0f) {
-                    drawRect(
-                        color = Color.Black.copy(alpha = 0.22f),
-                        topLeft = Offset(0f, 0f),
-                        size = Size(vpLeft, height)
-                    )
-                }
-                if (vpRight < width) {
-                    drawRect(
-                        color = Color.Black.copy(alpha = 0.22f),
-                        topLeft = Offset(vpRight, 0f),
-                        size = Size(width - vpRight, height)
-                    )
-                }
-                drawLine(
-                    color = gridColor.copy(alpha = 0.35f),
-                    start = Offset(vpLeft, 0f),
-                    end = Offset(vpLeft, height),
-                    strokeWidth = 1.dp.toPx()
-                )
-                drawLine(
-                    color = gridColor.copy(alpha = 0.35f),
-                    start = Offset(vpRight, 0f),
-                    end = Offset(vpRight, height),
-                    strokeWidth = 1.dp.toPx()
-                )
+                drawRoundRect(Color.White.copy(alpha = 0.06f), Offset(vpLeft, 0f), Size(vpRight - vpLeft, height), androidx.compose.ui.geometry.CornerRadius(6.dp.toPx()))
             }
         }
     }

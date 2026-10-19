@@ -117,14 +117,11 @@ internal fun OverviewChart(
                 }
             }
 
-            // Viewport overlay: dim the parts outside the currently visible window
+            // The part of the row scrolled into view, as a light band
             if (totalScrollWidth > w) {
                 val vpLeft = (scrollOffset / totalScrollWidth * w).coerceIn(0f, w)
                 val vpRight = ((scrollOffset + w) / totalScrollWidth * w).coerceIn(0f, w)
-                if (vpLeft > 0f) drawRect(Color.Black.copy(alpha = 0.22f), Offset.Zero, Size(vpLeft, h))
-                if (vpRight < w) drawRect(Color.Black.copy(alpha = 0.22f), Offset(vpRight, 0f), Size(w - vpRight, h))
-                drawLine(Color.White.copy(alpha = 0.35f), Offset(vpLeft, 0f), Offset(vpLeft, h), 1.dp.toPx())
-                drawLine(Color.White.copy(alpha = 0.35f), Offset(vpRight, 0f), Offset(vpRight, h), 1.dp.toPx())
+                drawRoundRect(Color.White.copy(alpha = 0.06f), Offset(vpLeft, 0f), Size(vpRight - vpLeft, h), androidx.compose.ui.geometry.CornerRadius(6.dp.toPx()))
             }
         }
     }

@@ -1,5 +1,10 @@
 package orinasa.njarasoa.maripanatokana.ui.weather.components
 
+import androidx.annotation.DrawableRes
+import androidx.compose.material3.Icon
+import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -55,17 +60,17 @@ fun ActivitiesCard(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         ActivityRow(
-            icon = "🏃",
+            icon = R.drawable.ic_activity_run,
             title = stringResource(R.string.activity_running),
             tier = indices.running
         )
         ActivityRow(
-            icon = "🧺",
+            icon = R.drawable.ic_activity_laundry,
             title = stringResource(R.string.activity_laundry),
             tier = indices.laundry
         )
         ActivityRow(
-            icon = "☀️",
+            icon = R.drawable.ic_activity_sun,
             title = stringResource(R.string.activity_uv_safety),
             tier = indices.uvSafety
         )
@@ -74,7 +79,7 @@ fun ActivitiesCard(
 
 @Composable
 private fun ActivityRow(
-    icon: String,
+    @DrawableRes icon: Int,
     title: String,
     tier: ActivityTier,
 ) {
@@ -87,7 +92,12 @@ private fun ActivityRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(text = icon, fontSize = 18.sp)
+            Icon(
+                painter = painterResource(icon),
+                contentDescription = null,
+                tint = Color.White.copy(alpha = 0.7f),
+                modifier = Modifier.size(22.dp),
+            )
             Text(
                 text = title,
                 fontFamily = LocalBodyFont.current,
@@ -96,16 +106,17 @@ private fun ActivityRow(
                 fontWeight = FontWeight.Medium
             )
         }
-        val colors = colorsFor(tier)
+        val tint = colorsFor(tier).background
+        // A tint of the level's colour, with the text in a lighter shade of it
         Text(
             text = tierLabel(tier),
             fontFamily = LocalDisplayFont.current,
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold,
-            color = colors.text,
+            color = lerp(tint, Color.White, 0.3f),
             modifier = Modifier
                 .clip(RoundedCornerShape(12.dp))
-                .background(colors.background)
+                .background(tint.copy(alpha = 0.22f))
                 .padding(horizontal = 10.dp, vertical = 4.dp)
         )
     }

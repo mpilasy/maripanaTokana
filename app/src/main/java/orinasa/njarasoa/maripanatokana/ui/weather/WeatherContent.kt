@@ -92,6 +92,7 @@ import orinasa.njarasoa.maripanatokana.ui.weather.components.ActivitiesCard
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
@@ -157,6 +158,8 @@ import orinasa.njarasoa.maripanatokana.ui.weather.components.AirQualityDetailDia
 import orinasa.njarasoa.maripanatokana.ui.weather.components.AqiTierBadge
 import orinasa.njarasoa.maripanatokana.ui.weather.components.DailyTemperatureChart
 import orinasa.njarasoa.maripanatokana.ui.weather.components.ForecastTabs
+import orinasa.njarasoa.maripanatokana.ui.weather.components.WeatherIcon
+import orinasa.njarasoa.maripanatokana.ui.weather.components.LevelBar
 import orinasa.njarasoa.maripanatokana.ui.weather.components.OverviewChart
 import orinasa.njarasoa.maripanatokana.ui.weather.components.OverviewStyle
 import orinasa.njarasoa.maripanatokana.ui.weather.components.colorsFor
@@ -632,10 +635,7 @@ internal fun WeatherContent(
                         ) {
                             // Condition line
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = wmoEmoji(data.weatherCode, isNight = data.timestamp !in (data.sunrise * 1000)..(data.sunset * 1000)),
-                                    fontSize = 22f.s(scale),
-                                )
+                                WeatherIcon(data.weatherCode, night = data.timestamp !in (data.sunrise * 1000)..(data.sunset * 1000), size = 64.sd(scale))
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = stringResource(wmoDescriptionRes(data.weatherCode)),
@@ -654,7 +654,7 @@ internal fun WeatherContent(
                                     primary = localizeDigits(tempPrimary),
                                     secondary = localizeDigits(tempSecondary),
                                     primarySize = 80f.s(scale),
-                                    secondaryScale = 0.4f,
+                                    secondaryScale = 0.32f,
                                     onClick = onToggleUnits,
                                 )
                             }
@@ -739,17 +739,17 @@ internal fun WeatherContent(
                 }
             }
             add {
-                SectionCard(stringResource(R.string.section_current_conditions), headerGraphicsLayer) {
+                SectionCard(stringResource(R.string.section_current_conditions), headerGraphicsLayer, bare = true) {
                     DetailsContent(data, metricPrimary, timeFormat, localizeDigits, onToggleUnits, DetailsPart.NOW)
                 }
             }
             add {
-                SectionCard(stringResource(R.string.section_sun_air), headerGraphicsLayer) {
+                SectionCard(stringResource(R.string.section_sun_air), headerGraphicsLayer, bare = true) {
                     DetailsContent(data, metricPrimary, timeFormat, localizeDigits, onToggleUnits, DetailsPart.SKY)
                 }
             }
             add {
-                SectionCard(stringResource(R.string.section_activities), headerGraphicsLayer) {
+                SectionCard(stringResource(R.string.section_activities), headerGraphicsLayer, bare = true) {
                     val activityIndices = remember(data) { ActivityIndices.fromWeatherData(data) }
                     ActivitiesCard(indices = activityIndices)
                 }
@@ -809,7 +809,7 @@ internal fun WeatherContent(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .clip(RoundedCornerShape(50))
-                        .background(TileSurface)
+                        .alpha(0.7f)
                         .clickable(
                             onClick = onCycleFont,
                             role = Role.Button,
@@ -857,7 +857,7 @@ internal fun WeatherContent(
                     fontSize = 16f.s(scale),
                     modifier = Modifier
                         .clip(RoundedCornerShape(50))
-                        .background(TileSurface)
+                        .alpha(0.7f)
                         .clickable(
                             onClick = onCycleLanguage,
                             role = Role.Button,
@@ -1003,6 +1003,8 @@ private fun HeroStatDivider() {
 internal fun SectionCard(
     title: String,
     headerGraphicsLayer: GraphicsLayer,
+    // No surface of its own, for sections whose tiles are already cards
+    bare: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val bodyFont = LocalBodyFont.current
@@ -1015,13 +1017,13 @@ internal fun SectionCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .glass(SectionSurface, sectionShape)
+            .then(if (bare) Modifier else Modifier.glass(SectionSurface, sectionShape))
             .clip(sectionShape),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 16.dp, end = 8.dp, top = 6.dp, bottom = 6.dp)
+                .padding(start = if (bare) 4.dp else 16.dp, end = if (bare) 0.dp else 8.dp, top = 6.dp, bottom = 6.dp)
                 .height(44.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -1057,7 +1059,7 @@ internal fun SectionCard(
         }
         Column(
             modifier = Modifier
-                .padding(start = 12.dp, end = 12.dp, bottom = 12.dp)
+                .padding(start = if (bare) 0.dp else 12.dp, end = if (bare) 0.dp else 12.dp, bottom = 12.dp)
                 .drawWithContent {
                     graphicsLayer.record {
                         this@drawWithContent.drawContent()
@@ -1123,7 +1125,7 @@ private fun NextHoursStrip(data: WeatherData, metricPrimary: Boolean, localizeDi
                 )
                 val dayIdx = data.dailySunrise.indexOfLast { it <= hour.time }.coerceAtLeast(0)
                 val isNight = hour.time !in data.dailySunrise.getOrElse(dayIdx) { 0L }..data.dailySunset.getOrElse(dayIdx) { 0L }
-                Text(text = wmoEmoji(hour.weatherCode, isNight), fontSize = 22f.s(scale))
+                WeatherIcon(hour.weatherCode, night = isNight, size = 40.sd(scale))
                 val (tP, tS) = hour.temperature.displayDual(metricPrimary)
                 DualUnitText(
                     primary = localizeDigits(tP),
@@ -1200,7 +1202,7 @@ internal fun HourlyForecastRow(
                 Card(
                     modifier = Modifier.width(itemWidth),
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = if (item === forecasts.first()) TileSurfaceHighlight else TileSurface),
+                    colors = CardDefaults.cardColors(containerColor = if (item === forecasts.first()) TileSurface else Color.Transparent),
                 ) {
                     Column(
                         modifier = Modifier.padding(vertical = 12.sd(scale)),
@@ -1235,15 +1237,10 @@ internal fun HourlyForecastRow(
                             }
                         }
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = run {
-                                val dayIdx = dailySunrise.indexOfLast { it <= item.time }.coerceAtLeast(0)
-                                val sr = dailySunrise.getOrElse(dayIdx) { 0L }
-                                val ss = dailySunset.getOrElse(dayIdx) { 0L }
-                                wmoEmoji(item.weatherCode, isNight = item.time !in sr..ss)
-                            },
-                            fontSize = 20f.s(scale),
-                        )
+                        val dayIdx = dailySunrise.indexOfLast { it <= item.time }.coerceAtLeast(0)
+                        val sr = dailySunrise.getOrElse(dayIdx) { 0L }
+                        val ss = dailySunset.getOrElse(dayIdx) { 0L }
+                        WeatherIcon(item.weatherCode, night = item.time !in sr..ss, size = 44.sd(scale))
                         
                         Spacer(modifier = Modifier.height(4.dp))
 
@@ -1299,7 +1296,7 @@ internal fun HourlyForecastRow(
                                         fontFamily = LocalDisplayFont.current,
                                         color = MaterialTheme.colorScheme.onSurface,
                                     )
-                                    UvTierBadge(uvIndex = uv, label = uvLabels[uvTierIndex(uv)], fontSize = 11.sp, singleLine = true)
+                                    LevelBar(colorsFor(uv).background, uvLabels[uvTierIndex(uv)])
                                 } else {
                                     Text(text = "--", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                                 }
@@ -1317,7 +1314,7 @@ internal fun HourlyForecastRow(
                                         secondaryUnit = if (european) usAqiLabel else euAqiLabel,
                                     )
                                     val tier = aq.tier(aqiStandard)
-                                    AqiTierBadge(tier = tier, label = aqiTierLabels[tier.ordinal], fontSize = 11.sp, singleLine = true)
+                                    LevelBar(colorsFor(tier).background, aqiTierLabels[tier.ordinal])
                                 } else {
                                     Text(text = "--", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                                 }
@@ -1475,7 +1472,7 @@ internal fun DailyForecastList(
                 Card(
                     modifier = Modifier.width(itemWidth),
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = if (item === forecasts.first()) TileSurfaceHighlight else TileSurface),
+                    colors = CardDefaults.cardColors(containerColor = if (item === forecasts.first()) TileSurface else Color.Transparent),
                 ) {
                     Column(
                         modifier = Modifier.padding(vertical = 12.sd(scale)),
@@ -1499,10 +1496,7 @@ internal fun DailyForecastList(
                             modifier = Modifier.fillMaxWidth(),
                         )
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = wmoEmoji(item.weatherCode),
-                            fontSize = 20f.s(scale),
-                        )
+                        WeatherIcon(item.weatherCode, size = 44.sd(scale))
                         Spacer(modifier = Modifier.height(4.dp))
                         when (displayMode) {
                             ForecastDisplayMode.Temperature -> {
@@ -1572,7 +1566,7 @@ internal fun DailyForecastList(
                                     fontFamily = LocalDisplayFont.current,
                                     color = MaterialTheme.colorScheme.onSurface,
                                 )
-                                UvTierBadge(uvIndex = item.uvIndexMax, label = uvLabels[uvTierIndex(item.uvIndexMax)], fontSize = 11.sp, singleLine = true)
+                                LevelBar(colorsFor(item.uvIndexMax).background, uvLabels[uvTierIndex(item.uvIndexMax)])
                             }
                             ForecastDisplayMode.AirQuality -> {
                                 val aq = aqByDay.getOrNull(forecasts.indexOf(item))
@@ -1586,7 +1580,7 @@ internal fun DailyForecastList(
                                         secondaryUnit = if (european) usAqiLabel else euAqiLabel,
                                     )
                                     val tier = AirQualityIndex.tierFor(aq.first, aqiStandard)
-                                    AqiTierBadge(tier = tier, label = aqiTierLabels[tier.ordinal], fontSize = 11.sp, singleLine = true)
+                                    LevelBar(colorsFor(tier).background, aqiTierLabels[tier.ordinal])
                                 } else {
                                     Text(text = "--", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                                 }
@@ -1605,10 +1599,9 @@ internal fun DailyForecastList(
                         )
                         if (displayMode == ForecastDisplayMode.Temperature) {
                             // Kept even when empty so the cards stay the same height
-                            Text(
-                                text = item.nightWeatherCode?.let { wmoEmoji(it, isNight = true) } ?: " ",
-                                fontSize = 20f.s(scale),
-                            )
+                            Box(modifier = Modifier.height(28.sd(scale)), contentAlignment = Alignment.Center) {
+                                item.nightWeatherCode?.let { WeatherIcon(it, night = true, size = 36.sd(scale)) }
+                            }
                         }
                     }
                 }
@@ -1749,13 +1742,15 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
                 when {
                     data.snow != null -> {
                         val (snowP, snowS) = data.snow.displayDual(metricPrimary)
-                        DetailCard(localizeDigits("❄️ $snowP"), tile.weight(1f),
-                            title = stringResource(R.string.detail_precipitation), secondaryValue = localizeDigits(snowS), subtitle = cloudCover, onToggleUnits = onToggleUnits)
+                        DetailCard(localizeDigits(snowP), tile.weight(1f),
+                            title = stringResource(R.string.detail_precipitation), secondaryValue = localizeDigits(snowS), subtitle = cloudCover, onToggleUnits = onToggleUnits,
+                            cornerContent = { WeatherIcon(71, size = 44.dp) })
                     }
                     data.rain != null -> {
                         val (rainP, rainS) = data.rain.displayDual(metricPrimary)
-                        DetailCard(localizeDigits("🌧️ $rainP"), tile.weight(1f),
-                            title = stringResource(R.string.detail_precipitation), secondaryValue = localizeDigits(rainS), subtitle = cloudCover, onToggleUnits = onToggleUnits)
+                        DetailCard(localizeDigits(rainP), tile.weight(1f),
+                            title = stringResource(R.string.detail_precipitation), secondaryValue = localizeDigits(rainS), subtitle = cloudCover, onToggleUnits = onToggleUnits,
+                            cornerContent = { WeatherIcon(61, size = 44.dp) })
                     }
                     else -> DetailCard(stringResource(R.string.detail_no_precip), tile.weight(1f),
                         title = stringResource(R.string.detail_precipitation), subtitle = cloudCover)
@@ -1887,7 +1882,11 @@ internal fun DetailCard(
             .drawBehind {
                 fillFraction?.let { f ->
                     val h = size.height * f.coerceIn(0f, 1f)
-                    drawRect(SkyBlue.copy(alpha = 0.16f), topLeft = Offset(0f, size.height - h), size = Size(size.width, h))
+                    val top = size.height - h
+                    drawRect(
+                        Brush.verticalGradient(listOf(SkyBlue.copy(alpha = 0f), SkyBlue.copy(alpha = 0.1f), SkyBlue.copy(alpha = 0.2f)), startY = top, endY = size.height),
+                        topLeft = Offset(0f, top), size = Size(size.width, h),
+                    )
                 }
             },
         shape = shape,
