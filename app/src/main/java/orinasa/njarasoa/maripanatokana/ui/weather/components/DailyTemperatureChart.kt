@@ -16,10 +16,16 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.domain.model.DailyForecast
+import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 import java.util.Calendar
 
 @Composable
@@ -34,6 +40,9 @@ fun DailyTemperatureChart(
     localizeDigits: (String) -> String = { it },
 ) {
     if (forecasts.isEmpty()) return
+
+    val textMeasurer = rememberTextMeasurer()
+    val displayFont = LocalDisplayFont.current
 
     val maxTemps = remember(forecasts, metricPrimary) {
         forecasts.map { if (metricPrimary) it.tempMax.celsius else it.tempMax.fahrenheit }
@@ -97,15 +106,17 @@ fun DailyTemperatureChart(
                 )
             }
 
+            // Room above the highs for the warmest's label and below the lows for the coldest's
+            val labelRoom = 13.dp.toPx()
             val maxPoints = maxTemps.mapIndexed { i, temp ->
                 val x = xFor(i)
-                val y = height - ((temp - paddedMin) / paddedRange * height).toFloat()
+                val y = labelRoom + (height - 2 * labelRoom) * (1 - ((temp - paddedMin) / paddedRange).toFloat())
                 Offset(x, y)
             }
 
             val minPoints = minTemps.mapIndexed { i, temp ->
                 val x = xFor(i)
-                val y = height - ((temp - paddedMin) / paddedRange * height).toFloat()
+                val y = labelRoom + (height - 2 * labelRoom) * (1 - ((temp - paddedMin) / paddedRange).toFloat())
                 Offset(x, y)
             }
 
@@ -173,6 +184,19 @@ fun DailyTemperatureChart(
             minPoints.forEach { point ->
                 drawCircle(color = Color(0xFF64B5F6), radius = 3.dp.toPx(), center = point)
             }
+
+            // The warmest high above its point, the coldest low below its point
+            fun drawLabel(text: String, color: Color, point: Offset, above: Boolean) {
+                val layout = textMeasurer.measure(localizeDigits(text), TextStyle(color = color, fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont))
+                val x = (point.x - layout.size.width / 2f).coerceIn(4.dp.toPx(), width - layout.size.width - 4.dp.toPx())
+                val y = if (above) (point.y - layout.size.height - 2.dp.toPx()).coerceAtLeast(0f)
+                    else (point.y + 2.dp.toPx()).coerceAtMost(height - layout.size.height)
+                drawText(layout, topLeft = Offset(x, y))
+            }
+            val warmest = maxTemps.indices.maxByOrNull { maxTemps[it] }
+            val coldest = minTemps.indices.minByOrNull { minTemps[it] }
+            if (warmest != null) drawLabel(forecasts[warmest].tempMax.displayDual(metricPrimary).let { (p, s) -> "$p · $s" }, Color(0xFFFF7043), maxPoints[warmest], above = true)
+            if (coldest != null) drawLabel(forecasts[coldest].tempMin.displayDual(metricPrimary).let { (p, s) -> "$p · $s" }, Color(0xFF64B5F6), minPoints[coldest], above = false)
 
             // The part of the row scrolled into view, as a light band
             if (totalScrollWidth > width) {

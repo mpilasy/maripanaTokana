@@ -46,8 +46,11 @@
 		return (index * (itemWidth + itemSpacing) + itemWidth / 2) * xScale;
 	}
 
+	// Room above the highs for the warmest's label and below the lows for the coldest's
+	const LABEL_ROOM = 13;
+
 	function getY(temp: number) {
-		return height - ((temp - paddedMin) / paddedRange * height);
+		return LABEL_ROOM + (height - 2 * LABEL_ROOM) * (1 - (temp - paddedMin) / paddedRange);
 	}
 
 	let maxPoints = $derived(maxTemps.map((temp, i) => ({ x: getX(i), y: getY(temp) })));
@@ -115,6 +118,20 @@
 		return d;
 	}
 
+	// The warmest high above its point, the coldest low below its point
+	let warmest = $derived(maxTemps.reduce((best, t, i) => (t > maxTemps[best] ? i : best), 0));
+	let coldest = $derived(minTemps.reduce((best, t, i) => (t < minTemps[best] ? i : best), 0));
+
+	// Labels near an edge grow inwards so they stay inside the chart
+	function anchor(x: number): 'start' | 'middle' | 'end' {
+		return x < svgWidth / 4 ? 'start' : x > (svgWidth * 3) / 4 ? 'end' : 'middle';
+	}
+
+	function labelX(x: number) {
+		const a = anchor(x);
+		return a === 'start' ? Math.max(0, x - 4) : a === 'end' ? Math.min(svgWidth, x + 4) : x;
+	}
+
 	let maxPath = $derived(generateMonotonePath(maxPoints));
 	let minPath = $derived(generateMonotonePath(minPoints));
 
@@ -147,7 +164,16 @@
 		<circle cx={point.x} cy={point.y} r="3" fill="#64B5F6" />
 	{/each}
 
-		{#if showViewport}
+	{#if maxPoints[warmest]}
+		{@const p = maxPoints[warmest]}
+		<text x={labelX(p.x)} y={Math.max(9, p.y - 4)} text-anchor={anchor(p.x)} font-size="9" font-weight="bold" fill="#FF7043">{loc(forecasts[warmest].tempMax.displayDual(metricPrimary).join(' · '))}</text>
+	{/if}
+	{#if minPoints[coldest]}
+		{@const p = minPoints[coldest]}
+		<text x={labelX(p.x)} y={Math.min(height - 1, p.y + 11)} text-anchor={anchor(p.x)} font-size="9" font-weight="bold" fill="#64B5F6">{loc(forecasts[coldest].tempMin.displayDual(metricPrimary).join(' · '))}</text>
+	{/if}
+
+	{#if showViewport}
 		<!-- The part of the row scrolled into view, as a light band -->
 		<rect x={vpLeft} y="0" width={vpRight - vpLeft} {height} rx="6" fill="white" fill-opacity="0.06" />
 	{/if}

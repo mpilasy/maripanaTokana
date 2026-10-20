@@ -47,6 +47,8 @@ internal fun OverviewChart(
     highLabel: String? = null,
     lowLabel: String? = null,
     legend: List<Pair<Color, String>>? = null,
+    // Shown when every value is zero, so an empty chart reads as none rather than missing data
+    emptyLabel: String? = null,
 ) {
     val textMeasurer = rememberTextMeasurer()
     val displayFont = LocalDisplayFont.current
@@ -94,6 +96,10 @@ internal fun OverviewChart(
                     if ((values[i] ?: 0.0) > 0) {
                         drawRoundRect(colorAt(i), Offset(p.x - barWidth / 2, p.y), Size(barWidth, h - p.y), CornerRadius(1.5.dp.toPx()))
                     }
+                }
+                if (valid.isNotEmpty() && max <= 0 && emptyLabel != null) {
+                    val layout = textMeasurer.measure(emptyLabel, TextStyle(color = color, fontSize = 10.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont))
+                    drawText(layout, topLeft = Offset((w - layout.size.width) / 2, (h - layout.size.height) / 2))
                 }
                 if (max > 0 && highLabel != null && highIndex >= 0) {
                     drawLabel(highLabel, highIndex, yFor(max) - 12.dp.toPx())

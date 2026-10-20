@@ -86,7 +86,7 @@
 		}
 		if (displayMode === 'Precipitation') {
 			const values = forecasts.map((f) => f.precipitation.mm);
-			return { values, style: 'bars' as const, color: '#64B5F6', highLabel: dual(forecasts[indexOfMax(values)]?.precipitation.displayDual(metricPrimary)) };
+			return { values, style: 'bars' as const, color: '#64B5F6', highLabel: dual(forecasts[indexOfMax(values)]?.precipitation.displayDual(metricPrimary)), emptyLabel: $_('no_precip') };
 		}
 		if (displayMode === 'Pressure') {
 			const values = forecasts.map((f) => (metricPrimary ? f.pressure.hPa : f.pressure.inHg));

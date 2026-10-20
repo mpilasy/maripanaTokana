@@ -1376,7 +1376,7 @@ internal fun HourlyForecastRow(
                         val values = forecasts.map { it.precipitation.mm }
                         val (hi, _) = extremes(values) { forecasts[it].precipitation.displayDual(metricPrimary) }
                         OverviewChart(values, itemWidth, itemSpacing, scrollState.value.toFloat(), totalScrollWidthPx, chartModifier,
-                            height = 48.sd(scale), style = OverviewStyle.BARS, color = SkyBlue, highLabel = dual(hi))
+                            height = 48.sd(scale), style = OverviewStyle.BARS, color = SkyBlue, highLabel = dual(hi), emptyLabel = stringResource(R.string.no_precip))
                     }
                     ForecastDisplayMode.Pressure -> {
                         val values = forecasts.map { if (metricPrimary) it.pressure.hPa else it.pressure.inHg }
@@ -1626,7 +1626,7 @@ internal fun DailyForecastList(
                 totalScrollWidth = totalScrollWidthPx,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.sd(scale))
+                    .height(64.sd(scale))
                     .padding(bottom = 8.dp)
             )
         } else {
@@ -1653,7 +1653,7 @@ internal fun DailyForecastList(
                     val values = forecasts.map { it.precipitation.mm }
                     val (hi, _) = extremes(values) { forecasts[it].precipitation.displayDual(metricPrimary) }
                     OverviewChart(values, itemWidth, itemSpacing, scrollState.value.toFloat(), totalScrollWidthPx, chartModifier,
-                        height = 48.sd(scale), style = OverviewStyle.BARS, color = SkyBlue, highLabel = dual(hi))
+                        height = 48.sd(scale), style = OverviewStyle.BARS, color = SkyBlue, highLabel = dual(hi), emptyLabel = stringResource(R.string.no_precip))
                 }
                 ForecastDisplayMode.AirQuality -> {
                     val values = aqByDay.map { it?.first?.toDouble() }

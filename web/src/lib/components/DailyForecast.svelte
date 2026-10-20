@@ -84,7 +84,7 @@
 		}
 		if (displayMode === 'Precipitation') {
 			const values = forecasts.map((f) => f.precipitation.mm);
-			return { values, style: 'bars' as const, color: '#64B5F6', highLabel: dual(forecasts[indexOfMax(values)]?.precipitation.displayDual(metricPrimary)) };
+			return { values, style: 'bars' as const, color: '#64B5F6', highLabel: dual(forecasts[indexOfMax(values)]?.precipitation.displayDual(metricPrimary)), emptyLabel: $_('no_precip') };
 		}
 		if (displayMode === 'AirQuality') {
 			const values = aqByDay.map((v) => v?.[0] ?? null);
@@ -210,7 +210,7 @@
 				{metricPrimary}
 				itemWidth={96}
 				itemSpacing={12}
-				height={48}
+				height={64}
 				{scrollLeft}
 				{containerWidth}
 			/>

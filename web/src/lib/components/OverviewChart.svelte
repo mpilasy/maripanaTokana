@@ -23,11 +23,13 @@
 		highLabel?: string;
 		lowLabel?: string;
 		legend?: { color: string; label: string }[];
+		/** Shown when every value is zero, so an empty chart reads as none rather than missing data. */
+		emptyLabel?: string;
 	}
 
 	let {
 		values, itemWidth, itemSpacing, scrollLeft = 0, containerWidth = 0, height = 48,
-		style = 'line', fromZero = false, color = 'white', pointColors, highLabel, lowLabel, legend,
+		style = 'line', fromZero = false, color = 'white', pointColors, highLabel, lowLabel, legend, emptyLabel,
 	}: Props = $props();
 
 	// Room above and below the line for the labels
@@ -83,6 +85,9 @@
 				<rect x={p.x - barWidth / 2} y={p.y} width={barWidth} height={height - p.y} rx="1.5" fill={pointColors?.[p.i] ?? color} />
 			{/if}
 		{/each}
+		{#if valid.length && max <= 0 && emptyLabel}
+			<text x={svgWidth / 2} y={height / 2 + 3} text-anchor="middle" font-size="10" font-weight="bold" fill={color}>{emptyLabel}</text>
+		{/if}
 		{#if highPoint && max > 0 && highLabel}
 			<text x={labelX(highPoint.x)} y={Math.max(9, highPoint.y - 3)} text-anchor={anchor(highPoint.x)} font-size="9" font-weight="bold" fill={color}>{highLabel}</text>
 		{/if}
