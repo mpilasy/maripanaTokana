@@ -6,6 +6,11 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.5.13] - 2026-10-20
+- "Choose a place" button on the error screen (Android and web) and the location-permission screen (Android). A place picked while no weather is shown is saved as a favorite rather than a 12-hour preview, so it persists (8 languages).
+- Android: with location permission denied, a selected favorite or preview loads at launch, and resuming no longer drops back to the permission screen.
+- Forecast tabs reordered: Precipitation before Wind (Android and web).
+
 ## [1.5.12] - 2026-10-19
 - Hourly and 10-day cards show the chance of precipitation behind a raindrop icon, only on the Conditions and Precipitation tabs; elsewhere the line stays blank so card heights don't jump (Android and web).
 

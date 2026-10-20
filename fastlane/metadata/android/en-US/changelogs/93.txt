@@ -1,0 +1,3 @@
+- Works without location: "Choose a place" on the error and permission screens; the place is saved so it stays.
+- With location permission denied, a chosen place now opens at launch instead of the permission screen.
+- Precipitation tab now comes before Wind.

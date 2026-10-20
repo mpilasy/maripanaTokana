@@ -1,0 +1,3 @@
+- Funciona sin ubicación: «Elegir un lugar» en las pantallas de error y de permiso; el lugar se guarda y se mantiene.
+- Con el permiso de ubicación denegado, un lugar elegido se abre al iniciar en vez de la pantalla de permiso.
+- La pestaña Precipitación va antes que Viento.

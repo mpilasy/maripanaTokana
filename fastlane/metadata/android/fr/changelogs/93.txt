@@ -1,0 +1,3 @@
+- Fonctionne sans localisation : « Choisir un lieu » sur les écrans d'erreur et d'autorisation ; le lieu est enregistré et reste.
+- Si l'accès à la position est refusé, un lieu choisi s'ouvre désormais au lancement au lieu de l'écran d'autorisation.
+- L'onglet Précipitations passe avant Vent.
