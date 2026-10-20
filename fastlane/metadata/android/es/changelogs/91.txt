@@ -1,0 +1,3 @@
+- Los gráficos por hora y de 10 días coinciden: líneas para viento, presión, UV y calidad del aire, barras para la precipitación.
+- El gráfico de temperatura de 10 días marca el día más cálido y el más frío, en ambas unidades.
+- Los gráficos de precipitación dicen «Sin precipitación» en vez de parecer vacíos.

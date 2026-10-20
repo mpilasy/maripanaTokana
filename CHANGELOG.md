@@ -6,6 +6,11 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.5.11] - 2026-10-19
+- Hourly and 10-day charts use the same chart type per tab: daily wind, UV and air quality switched from bars to zero-based lines; precipitation stays bars on both (Android and web).
+- 10-day temperature chart labels the warmest high and coldest low in both units, and is as tall as the hourly chart (Android and web).
+- Precipitation charts show "No precip" when every value is zero (Android and web).
+
 ## [1.5.10] - 2026-10-19
 - The Minutely Nowcast block only appears when the next two hours hold precipitation; a dry nowcast repeated the main card's rain line (Android and web).
 - Shared card images end with two faint lines: "maripànaTokana v{version}" and https://maripana.njarasoa.org (Android and web).

@@ -1,0 +1,3 @@
+- Les graphiques horaires et sur 10 jours concordent : courbes pour le vent, la pression, l'UV et la qualité de l'air, barres pour les précipitations.
+- Le graphique des températures sur 10 jours indique le jour le plus chaud et le plus froid, dans les deux unités.
+- Les graphiques de précipitations affichent « Pas de précipitations » au lieu de paraître vides.

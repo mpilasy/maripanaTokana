@@ -1,0 +1,3 @@
+- Hourly and 10-day charts now match: lines for wind, pressure, UV and air quality, bars for precipitation.
+- The 10-day temperature chart labels the warmest and coldest days, in both units.
+- Precipitation charts say "No precip" when none is expected, instead of looking empty.
