@@ -1,0 +1,1 @@
+- Les cartes de prévision affichent le risque de précipitations derrière une goutte, et seulement dans les onglets Conditions et Précipitations ; ailleurs, un pourcentage seul semblait faire partie de la valeur.

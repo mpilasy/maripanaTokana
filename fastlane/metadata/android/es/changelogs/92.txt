@@ -1,0 +1,1 @@
+- Las tarjetas muestran la probabilidad de precipitación tras una gota, y solo en las pestañas Condiciones y Precipitación; en otras, un porcentaje suelto parecía parte del valor.

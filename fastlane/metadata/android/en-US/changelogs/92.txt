@@ -1,0 +1,1 @@
+- Forecast cards show the chance of precipitation behind a raindrop, and only on the Conditions and Precipitation tabs; on other tabs a bare percentage looked like part of the value.

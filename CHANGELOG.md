@@ -6,6 +6,9 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.5.12] - 2026-10-19
+- Hourly and 10-day cards show the chance of precipitation behind a raindrop icon, only on the Conditions and Precipitation tabs; elsewhere the line stays blank so card heights don't jump (Android and web).
+
 ## [1.5.11] - 2026-10-19
 - Hourly and 10-day charts use the same chart type per tab: daily wind, UV and air quality switched from bars to zero-based lines; precipitation stays bars on both (Android and web).
 - 10-day temperature chart labels the warmest high and coldest low in both units, and is as tall as the hourly chart (Android and web).
