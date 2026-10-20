@@ -6,6 +6,10 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.5.15] - 2026-10-20
+- Each GitHub release has two APKs: `maripanaTokana-vX.apk` (F-Droid version, the APK that F-Droid publishes) and `maripanaTokana-standard-vX.apk` (standard version, Google Play Services location). Both have the same app ID and signing key.
+- README: Obtainium badge, and a description of the two APKs.
+
 ## [1.5.14] - 2026-10-20
 - Place search reads US state and Canadian province codes after the comma ("Sudbury, ON") and matches the qualifier only at the start of a word, so "on" no longer matches "Washington". When no Open-Meteo result fits the region, the whole query goes to Nominatim, which finds names Open-Meteo only knows in longer form (Greater Sudbury) (Android and web).
 - Web: a cached place name saved in another language is looked up again instead of shown as is.

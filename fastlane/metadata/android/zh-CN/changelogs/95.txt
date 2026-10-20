@@ -1,0 +1,2 @@
+- 每个 GitHub 发布版本现在包含两个 APK：F-Droid 版本，以及使用 Google Play 服务定位的标准版本。
+- Obtainium 可以直接从 GitHub 发布版本安装和更新本应用。

@@ -1,0 +1,2 @@
+- Chaque version sur GitHub contient maintenant deux APK : la version F-Droid et une version standard qui utilise les services Google Play pour la localisation.
+- Obtainium peut installer et mettre à jour l'application directement depuis les versions GitHub.
