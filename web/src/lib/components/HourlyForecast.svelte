@@ -38,8 +38,8 @@
 
 	let tabs = $derived([
 		{ id: 'Temperature', label: $_('tab_conditions') },
-		{ id: 'Wind', label: $_('detail_wind') },
 		{ id: 'Precipitation', label: $_('detail_precipitation') },
+		{ id: 'Wind', label: $_('detail_wind') },
 		{ id: 'Pressure', label: $_('detail_pressure') },
 		{ id: 'Uv', label: $_('detail_uv_index') },
 		...(airQuality ? [{ id: 'AirQuality', label: $_('detail_air_quality') }] : []),

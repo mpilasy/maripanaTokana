@@ -1201,8 +1201,8 @@ internal fun HourlyForecastRow(
         ForecastTabs(
             tabs = listOfNotNull(
                 ForecastDisplayMode.Temperature to stringResource(R.string.tab_conditions),
-                ForecastDisplayMode.Wind to stringResource(R.string.detail_wind),
                 ForecastDisplayMode.Precipitation to stringResource(R.string.detail_precipitation),
+                ForecastDisplayMode.Wind to stringResource(R.string.detail_wind),
                 ForecastDisplayMode.Pressure to stringResource(R.string.detail_pressure),
                 ForecastDisplayMode.Uv to stringResource(R.string.detail_uv_index),
                 if (hourlyAirQuality.isNotEmpty()) ForecastDisplayMode.AirQuality to stringResource(R.string.detail_air_quality) else null,
@@ -1462,8 +1462,8 @@ internal fun DailyForecastList(
         ForecastTabs(
             tabs = listOf(
                 ForecastDisplayMode.Temperature to stringResource(R.string.tab_conditions),
-                ForecastDisplayMode.Wind to stringResource(R.string.detail_wind),
                 ForecastDisplayMode.Precipitation to stringResource(R.string.detail_precipitation),
+                ForecastDisplayMode.Wind to stringResource(R.string.detail_wind),
                 ForecastDisplayMode.Pressure to stringResource(R.string.detail_pressure),
                 ForecastDisplayMode.Uv to stringResource(R.string.detail_uv_index),
             ) + listOfNotNull(
