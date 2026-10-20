@@ -203,8 +203,11 @@
 						<span class="no-data">--</span>
 					{/if}
 				{/if}
+				<!-- Chance of precipitation, only where it describes the weather -->
 				<span class="precip-prob">
-					{item.precipProbability > 0 ? loc(`${item.precipProbability}%`) : ''}
+					{#if item.precipProbability > 0 && (displayMode === 'Temperature' || displayMode === 'Precipitation')}
+						<svg class="drop" viewBox="0 0 24 24" width="9" height="9" fill="currentColor" aria-hidden="true"><path d="M12 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.8 8.2 8 8.2s8-3.22 8-8.2c0-3.32-2.67-7.25-8-11.8z"/></svg>{loc(`${item.precipProbability}%`)}
+					{/if}
 				</span>
 			</div>
 		{/each}
@@ -326,5 +329,9 @@
 		color: #64B5F6;
 		min-height: 14px;
 		font-feature-settings: var(--font-features);
+	}
+
+	.precip-prob .drop {
+		margin-right: 2px;
 	}
 </style>

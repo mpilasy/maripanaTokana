@@ -90,6 +90,10 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import orinasa.njarasoa.maripanatokana.domain.model.ActivityIndices
 import orinasa.njarasoa.maripanatokana.ui.weather.components.ActivitiesCard
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.PathParser
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.alpha
@@ -1330,14 +1334,13 @@ internal fun HourlyForecastRow(
                         }
 
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = if (item.precipProbability > 0) localizeDigits("%d%%".format(Locale.US, item.precipProbability)) else "",
+                        PrecipChance(
+                            percent = item.precipProbability,
+                            show = displayMode == ForecastDisplayMode.Temperature || displayMode == ForecastDisplayMode.Precipitation,
                             fontSize = 11f.s(scale),
                             fontFamily = bodyFont,
-                            color = SkyBlue,
-                            style = TextStyle(fontFeatureSettings = fontFeatures),
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
+                            fontFeatures = fontFeatures,
+                            localizeDigits = localizeDigits,
                         )
                     }
                 }
@@ -1594,14 +1597,13 @@ internal fun DailyForecastList(
                             }
                         }
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = if (item.precipProbability > 0) localizeDigits("%d%%".format(Locale.US, item.precipProbability)) else "",
+                        PrecipChance(
+                            percent = item.precipProbability,
+                            show = displayMode == ForecastDisplayMode.Temperature || displayMode == ForecastDisplayMode.Precipitation,
                             fontSize = 11f.s(scale),
                             fontFamily = bodyFont,
-                            color = SkyBlue,
-                            style = TextStyle(fontFeatureSettings = fontFeatures),
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth(),
+                            fontFeatures = fontFeatures,
+                            localizeDigits = localizeDigits,
                         )
                         if (displayMode == ForecastDisplayMode.Temperature) {
                             // Kept even when empty so the cards stay the same height
@@ -2153,6 +2155,33 @@ private fun formatDMS(value: Double, positive: String, negative: String): String
 
 /** Grid icon beside the coordinates; tapping it shows the point's Plus Code (a grid cell) in a
  * tooltip, holding the icon or the code copies it. */
+// Material's water-drop outline, drawn small in front of a chance of precipitation
+private val RainDrop: ImageVector = ImageVector.Builder("RainDrop", 24.dp, 24.dp, 24f, 24f)
+    .addPath(PathParser().parsePathString("M12 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.8 8.2 8 8.2s8-3.22 8-8.2c0-3.32-2.67-7.25-8-11.8z").toNodes(), fill = SolidColor(Color.White))
+    .build()
+
+/** A forecast card's chance of precipitation, behind a raindrop; blank space when [show] is off or the chance is zero. */
+@Composable
+private fun PrecipChance(percent: Int, show: Boolean, fontSize: TextUnit, fontFamily: FontFamily?, fontFeatures: String?, localizeDigits: (String) -> String) {
+    Row(
+        modifier = Modifier.fillMaxWidth().heightIn(min = with(LocalDensity.current) { (fontSize * 1.3f).toDp() }),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (show && percent > 0) {
+            Icon(RainDrop, contentDescription = null, tint = SkyBlue, modifier = Modifier.size(with(LocalDensity.current) { fontSize.toDp() * 0.85f }))
+            Spacer(modifier = Modifier.width(2.dp))
+            Text(
+                text = localizeDigits("%d%%".format(Locale.US, percent)),
+                fontSize = fontSize,
+                fontFamily = fontFamily,
+                color = SkyBlue,
+                style = TextStyle(fontFeatureSettings = fontFeatures),
+            )
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 private fun PlusCodeInfo(lat: Double, lon: Double, modifier: Modifier = Modifier) {
