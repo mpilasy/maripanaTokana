@@ -6,6 +6,8 @@ interface CachedLocation {
 	lon: number;
 	name?: string;
 	subtext?: string;
+	/** Language the name and subtext were looked up in. */
+	lang?: string;
 }
 
 export function getCachedLocation(): CachedLocation | null {
@@ -19,11 +21,12 @@ export function getCachedLocation(): CachedLocation | null {
 	}
 }
 
-export function cacheLocation(lat: number, lon: number, name?: string, subtext?: string) {
+export function cacheLocation(lat: number, lon: number, name?: string, subtext?: string, lang?: string) {
 	if (typeof localStorage !== 'undefined') {
 		const data: CachedLocation = { lat, lon };
 		if (name) data.name = name;
 		if (subtext) data.subtext = subtext;
+		if (lang) data.lang = lang;
 		localStorage.setItem(LOCATION_KEY, JSON.stringify(data));
 	}
 }

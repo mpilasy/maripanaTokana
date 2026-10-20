@@ -186,15 +186,16 @@ function spawnGpsCacheRefresh() {
 			const cached = getCachedLocation();
 			const lat = fresh.lat;
 			const lon = fresh.lon;
-			const name = cached?.name;
-			const subtext = cached?.subtext;
-			const data = await fetchAtLocation(lat, lon, name, subtext, undefined, null);
+			// The saved name only if it is in the current language; otherwise look it up again
+			const localeTag = SUPPORTED_LOCALES[get(localeIndex)]?.tag;
+			const fits = cached?.lang === localeTag;
+			const data = await fetchAtLocation(lat, lon, fits ? cached?.name : undefined, fits ? cached?.subtext : undefined, localeTag, null);
 			cachedGpsWeatherData = data;
 			// Don't overwrite the location cache while previewing another location — it would
 			// corrupt the cached_location key and cause updateLocationName to reverse-geocode the
 			// wrong (real GPS) coordinates on language change.
 			if (!get(locationOverride)) {
-				cacheLocation(lat, lon, data.locationName, data.locationSubtext);
+				cacheLocation(lat, lon, data.locationName, data.locationSubtext, localeTag);
 			}
 		})
 		.catch(() => {
@@ -263,8 +264,13 @@ export async function doFetchWeather() {
 		let data: WeatherData | null = null;
 		const localeTag = SUPPORTED_LOCALES[get(localeIndex)]?.tag;
 
+		// The saved name only if it is in the current language; otherwise look it up again
+		const nameFits = cached?.lang === localeTag;
+
 		// Start fetching weather for cached location immediately if available
-		const cachedFetchPromise = cached ? fetchAtLocation(cached.lat, cached.lon, cached.name, cached.subtext, localeTag) : null;
+		const cachedFetchPromise = cached
+			? fetchAtLocation(cached.lat, cached.lon, nameFits ? cached.name : undefined, nameFits ? cached.subtext : undefined, localeTag)
+			: null;
 
 		// Start getting fresh location concurrently
 		const freshLocationPromise = getPosition();
@@ -310,10 +316,10 @@ export async function doFetchWeather() {
 			data = await fetchAtLocation(fresh.lat, fresh.lon, undefined, undefined, localeTag);
 			if (gen !== fetchGeneration) return;
 			setWeatherData(data);
-			cacheLocation(fresh.lat, fresh.lon, data.locationName, data.locationSubtext);
+			cacheLocation(fresh.lat, fresh.lon, data.locationName, data.locationSubtext, localeTag);
 		} else {
-			// Update cached coordinates to fresher ones, preserving name if available
-			cacheLocation(fresh.lat, fresh.lon, cached.name, cached.subtext);
+			// Update cached coordinates to fresher ones, keeping the name shown (looked up again when its language changed)
+			cacheLocation(fresh.lat, fresh.lon, data?.locationName ?? cached.name, data?.locationSubtext ?? cached.subtext, localeTag);
 		}
 	} catch (err) {
 		if (gen !== fetchGeneration) return;
@@ -348,7 +354,7 @@ export async function updateLocationName(localeTag: string) {
 	const lon = overrideLon ? parseFloat(overrideLon) : getCachedLocation()?.lon;
 	if (lat == null || lon == null) return;
 	const location = await reverseGeocode(lat, lon, localeTag);
-	cacheLocation(lat, lon, location.name, location.subtext);
+	cacheLocation(lat, lon, location.name, location.subtext, localeTag);
 	weatherState.update(s => {
 		if (s.kind !== 'success') return s;
 		return { ...s, data: { ...s.data, locationName: location.name, locationSubtext: location.subtext } };

@@ -4,13 +4,15 @@ import { get } from 'svelte/store';
 const data = { latitude: 1, longitude: 2, timestamp: 1, alerts: [], locationName: 'X' };
 const getPosition = vi.fn();
 const fetchWeatherMock = vi.hoisted(() => vi.fn());
+const cachedLocation = vi.hoisted(() => ({ value: { lat: 1, lon: 2, name: 'X', lang: 'mg' } as Record<string, unknown> }));
+const reverseGeocodeMock = vi.hoisted(() => vi.fn(async () => ({ name: 'Y' })));
 
 vi.mock('$lib/stores/location', () => ({
-	getCachedLocation: () => ({ lat: 1, lon: 2, name: 'X' }),
+	getCachedLocation: () => cachedLocation.value,
 	cacheLocation: vi.fn(),
 	movedSignificantly: () => false,
 	getPosition: () => getPosition(),
-	reverseGeocode: vi.fn(),
+	reverseGeocode: reverseGeocodeMock,
 }));
 vi.mock('$lib/api/openMeteo', () => ({ fetchWeather: fetchWeatherMock }));
 vi.mock('$lib/api/openMeteoMapper', () => ({ mapToWeatherData: () => ({ ...data }) }));
@@ -107,5 +109,27 @@ describe('doFetchWeather failure handling', () => {
 		await doFetchWeather();
 		expect(get(refreshFailed)).toBe(true);
 		expect(get(refreshError)).toBeNull();
+	});
+});
+
+describe('doFetchWeather cached place name', () => {
+	beforeEach(() => {
+		weatherState.set({ kind: 'loading' });
+		fetchWeatherMock.mockReset();
+		fetchWeatherMock.mockResolvedValue({});
+		reverseGeocodeMock.mockClear();
+		getPosition.mockResolvedValue({ lat: 1, lon: 2 });
+	});
+
+	it('reuses the saved name when it is in the current language', async () => {
+		cachedLocation.value = { lat: 1, lon: 2, name: 'X', lang: 'mg' };
+		await doFetchWeather();
+		expect(reverseGeocodeMock).not.toHaveBeenCalledWith(1, 2, 'mg');
+	});
+
+	it('looks the name up again when it was saved in another language', async () => {
+		cachedLocation.value = { lat: 1, lon: 2, name: 'X', lang: 'en' };
+		await doFetchWeather();
+		expect(reverseGeocodeMock).toHaveBeenCalledWith(1, 2, 'mg');
 	});
 });
