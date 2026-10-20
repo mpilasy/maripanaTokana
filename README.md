@@ -79,9 +79,11 @@
 
 **Web**: No install needed — use the hosted PWA at [maripana.njarasoa.org](https://maripana.njarasoa.org).
 
-The app is distributed in two flavors:
-- **F-Droid**: Uses native Android LocationManager (no Google Play Services dependency)
-- **Standard**: Uses Google Play Services for enhanced location performance (Google Play, side-load)
+The app is distributed in two flavors. Each [GitHub release](https://github.com/mpilasy/maripanaTokana/releases) has both APKs, and Obtainium asks which one to install:
+- **F-Droid** (`maripanaTokana-vX.apk`): Uses native Android LocationManager (no Google Play Services dependency). This is the APK that F-Droid publishes.
+- **Standard** (`maripanaTokana-standard-vX.apk`): Uses Google Play Services for enhanced location performance.
+
+Both APKs have the same app ID and signing key, so a phone can have only one of them. To change flavors, install the other APK over the current one.
 
 ## Build and Run
 
