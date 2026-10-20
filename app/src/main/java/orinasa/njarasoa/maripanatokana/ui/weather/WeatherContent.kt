@@ -1637,11 +1637,10 @@ internal fun DailyForecastList(
             val chartModifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
             when (displayMode) {
                 ForecastDisplayMode.Wind -> {
-                    // Each day's strongest wind, so one bar per day
                     val values = forecasts.map { if (metricPrimary) it.windSpeed.metersPerSecond else it.windSpeed.mph }
-                    val (hi, _) = extremes(values) { forecasts[it].windSpeed.displayDual(metricPrimary) }
+                    val (hi, lo) = extremes(values) { forecasts[it].windSpeed.displayDual(metricPrimary) }
                     OverviewChart(values, itemWidth, itemSpacing, scrollState.value.toFloat(), totalScrollWidthPx, chartModifier,
-                        height = 48.sd(scale), style = OverviewStyle.BARS, color = AppDarkPrimary, highLabel = dual(hi))
+                        height = 48.sd(scale), fromZero = true, color = AppDarkPrimary, highLabel = dual(hi), lowLabel = dual(lo))
                 }
                 ForecastDisplayMode.Pressure -> {
                     // The day's mean, a reading whose trend from day to day matters, so a line
@@ -1661,9 +1660,8 @@ internal fun DailyForecastList(
                     val (hi, lo) = extremes(values) { i ->
                         aqByDay[i]?.let { (p, s) -> localizeDigits("$p ${if (european) euAqiLabel else usAqiLabel} · $s ${if (european) usAqiLabel else euAqiLabel}") }
                     }
-                    // Each day's worst value, so one bar per day
                     OverviewChart(values, itemWidth, itemSpacing, scrollState.value.toFloat(), totalScrollWidthPx, chartModifier,
-                        height = 48.sd(scale), style = OverviewStyle.BARS,
+                        height = 48.sd(scale), fromZero = true,
                         pointColors = aqByDay.map { aq -> aq?.let { colorsFor(AirQualityIndex.tierFor(it.first, aqiStandard)).background } ?: Color.Transparent },
                         highLabel = hi, lowLabel = lo,
                         legend = AqiTier.entries.map { colorsFor(it).background to aqiTierLabels[it.ordinal] })
@@ -1671,9 +1669,8 @@ internal fun DailyForecastList(
                 ForecastDisplayMode.Uv -> {
                     val values = forecasts.map { it.uvIndexMax }
                     val (hi, lo) = extremes(values) { localizeDigits("UV %.1f".format(Locale.US, forecasts[it].uvIndexMax)) }
-                    // Each day's highest value, so one bar per day
                     OverviewChart(values, itemWidth, itemSpacing, scrollState.value.toFloat(), totalScrollWidthPx, chartModifier,
-                        height = 48.sd(scale), style = OverviewStyle.BARS,
+                        height = 48.sd(scale), fromZero = true,
                         pointColors = values.map { colorsFor(it).background },
                         highLabel = hi, lowLabel = lo,
                         legend = listOf(1.0, 4.0, 7.0, 9.0, 11.0).mapIndexed { k, sample -> colorsFor(sample).background to uvLabels[k] })
