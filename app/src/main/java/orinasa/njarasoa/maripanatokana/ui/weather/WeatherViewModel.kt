@@ -508,8 +508,13 @@ class WeatherViewModel @Inject constructor(
         }
     }
 
+    /** True when the screen shows a place the user picked (a favorite or a preview), which needs no location access. */
+    fun showsChosenPlace(): Boolean =
+        privatePrefs.contains("advanced_override_lat") ||
+            activeLocationId.value?.let { id -> savedLocations.value.any { it.id == id } } == true
+
     fun onPermissionRevoked() {
-        if (_uiState.value is WeatherUiState.Success) {
+        if (_uiState.value is WeatherUiState.Success && !showsChosenPlace()) {
             _uiState.value = WeatherUiState.PermissionRequired
         }
     }

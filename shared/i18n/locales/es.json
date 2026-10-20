@@ -58,6 +58,7 @@
 	"grant_permission": "Conceder permiso",
 	"permission_permanently_denied": "El acceso a la ubicación fue denegado permanentemente. Actívalo en Ajustes.",
 	"open_settings": "Abrir Ajustes",
+	"choose_place": "Elegir un lugar",
 	"error_title": "Error",
 	"error_retry": "Reintentar",
 	"error_fetch_weather": "No se pudo obtener el clima",

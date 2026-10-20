@@ -58,6 +58,7 @@
 	"grant_permission": "Autoriser",
 	"permission_permanently_denied": "L'accès à la localisation a été refusé définitivement. Activez-le dans les Paramètres.",
 	"open_settings": "Ouvrir les Paramètres",
+	"choose_place": "Choisir un lieu",
 	"error_title": "Erreur",
 	"error_retry": "Réessayer",
 	"error_fetch_weather": "Échec de récupération de la météo",

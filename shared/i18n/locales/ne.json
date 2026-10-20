@@ -58,6 +58,7 @@
 	"grant_permission": "अनुमति दिनुहोस्",
 	"permission_permanently_denied": "स्थान अनुमति स्थायी रूप से अस्वीकार गरियो। कृपया सेटिङमा सक्षम गर्नुहोस्।",
 	"open_settings": "सेटिङ खोल्नुहोस्",
+	"choose_place": "स्थान छान्नुहोस्",
 	"error_title": "त्रुटि",
 	"error_retry": "पुन: प्रयास",
 	"error_fetch_weather": "मौसम प्राप्त गर्न असफल",

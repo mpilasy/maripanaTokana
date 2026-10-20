@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import { searchLocations, type SearchResult } from '$lib/api/geocodingSearch';
-	import { showSavedLocationsDialog, setLocationOverride } from '$lib/stores/savedLocations';
+	import { showSavedLocationsDialog, setLocationOverride, addSavedLocation } from '$lib/stores/savedLocations';
+	import { weatherState } from '$lib/stores/weather';
+	import { get } from 'svelte/store';
 
 	let query = $state('');
 	let results = $state<SearchResult[]>([]);
@@ -22,6 +24,11 @@
 	}
 
 	function selectResult(result: SearchResult) {
+		// With weather on screen a pick is a preview; without (no location) it is saved, so it stays
+		if (get(weatherState).kind !== 'success') {
+			addSavedLocation(result);
+			return;
+		}
 		const subtext = [result.admin1, result.country].filter(Boolean).join(', ');
 		setLocationOverride(result.latitude, result.longitude, result.name, subtext);
 	}

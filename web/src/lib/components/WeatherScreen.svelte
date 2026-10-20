@@ -603,6 +603,12 @@
 					<span class="btn-secondary">{browserStrings.error_retry}</span>
 				{/if}
 			</button>
+			<button class="settings-btn" onclick={openSavedLocationsDialog}>
+				{$_('choose_place')}
+				{#if showSecondary && browserStrings}
+					<span class="btn-secondary">{browserStrings.choose_place}</span>
+				{/if}
+			</button>
 			<button class="settings-btn" onclick={() => showSettings = true}>
 				{$_('open_settings')}
 				{#if showSecondary && browserStrings}

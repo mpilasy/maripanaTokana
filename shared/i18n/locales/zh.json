@@ -58,6 +58,7 @@
 	"grant_permission": "授予权限",
 	"permission_permanently_denied": "位置访问已被永久拒绝。请在设置中启用。",
 	"open_settings": "打开设置",
+	"choose_place": "选择地点",
 	"error_title": "错误",
 	"error_retry": "重试",
 	"error_fetch_weather": "获取天气失败",

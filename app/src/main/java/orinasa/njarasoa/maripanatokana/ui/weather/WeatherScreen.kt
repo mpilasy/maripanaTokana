@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -153,6 +154,8 @@ private fun WeatherMainScreen(
     LaunchedEffect(Unit) {
         // Auto-request the dialog on first composition only if the dialog can still be shown.
         if (!isPermissionGranted && !isPermanentlyDenied) requestPermission()
+        // A picked place needs no location access: show it even when permission is missing
+        if (!isPermissionGranted && viewModel.showsChosenPlace()) viewModel.fetchWeather()
     }
 
     val searchResults by viewModel.searchResults.collectAsStateWithLifecycle()
@@ -171,7 +174,11 @@ private fun WeatherMainScreen(
         SavedLocationsDialog(
             searchResults = searchResults,
             onDismissRequest = { viewModel.setShowSavedLocationsDialog(false) },
-            onSelectSearchResult = { result -> viewModel.setLocationOverride(result.latitude, result.longitude, result.displayName()) },
+            onSelectSearchResult = { result ->
+                // With weather on screen a pick is a preview; without (no location) it is saved, so it stays
+                if (uiState is WeatherUiState.Success) viewModel.setLocationOverride(result.latitude, result.longitude, result.displayName())
+                else viewModel.addSavedLocation(result)
+            },
             searchQuery = { viewModel.searchLocation(it) },
         )
     }
@@ -378,6 +385,21 @@ private fun WeatherMainScreen(
                                 }
                             }
                         }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        val appChoosePlace = stringResource(R.string.choose_place)
+                        val sysChoosePlace = systemContext.getString(R.string.choose_place)
+                        OutlinedButton(onClick = { viewModel.onManageLocationsClicked() }) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(appChoosePlace, color = MaterialTheme.colorScheme.onSurface)
+                                if (sysChoosePlace != appChoosePlace) {
+                                    Text(
+                                        text = sysChoosePlace,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -532,6 +554,21 @@ private fun WeatherMainScreen(
                                             style = MaterialTheme.typography.labelSmall,
                                         )
                                     }
+                                }
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        val appChoosePlace = stringResource(R.string.choose_place)
+                        val sysChoosePlace = systemContext.getString(R.string.choose_place)
+                        OutlinedButton(onClick = { viewModel.onManageLocationsClicked() }) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(appChoosePlace, color = MaterialTheme.colorScheme.onSurface)
+                                if (sysChoosePlace != appChoosePlace) {
+                                    Text(
+                                        text = sysChoosePlace,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                    )
                                 }
                             }
                         }

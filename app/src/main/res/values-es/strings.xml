@@ -35,6 +35,7 @@
     <string name="grant_permission">Conceder permiso</string>
     <string name="permission_permanently_denied">El acceso a la ubicación fue denegado permanentemente. Actívalo en Ajustes.</string>
     <string name="open_settings">Abrir Ajustes</string>
+    <string name="choose_place">Elegir un lugar</string>
     <string name="error_title">Error</string>
     <string name="error_retry">Reintentar</string>
     <string name="error_fetch_weather">No se pudo obtener el clima</string>

@@ -58,6 +58,7 @@
 	"grant_permission": "Grant Permission",
 	"permission_permanently_denied": "Location access was permanently denied. Enable it in Settings to use this app.",
 	"open_settings": "Open Settings",
+	"choose_place": "Choose a place",
 	"error_title": "Error",
 	"error_retry": "Retry",
 	"error_fetch_weather": "Failed to fetch weather",
