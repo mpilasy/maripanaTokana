@@ -3,6 +3,7 @@ package orinasa.njarasoa.maripanatokana.data.source
 import android.content.Context
 import android.location.Geocoder
 import dagger.hilt.android.qualifiers.ApplicationContext
+import orinasa.njarasoa.maripanatokana.data.location.matchesRegionQualifier
 import orinasa.njarasoa.maripanatokana.data.location.shortPlaceName
 import orinasa.njarasoa.maripanatokana.data.remote.GeocodingResult
 import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoGeocodingService
@@ -14,6 +15,7 @@ import javax.inject.Singleton
 class SystemGeocoderSource @Inject constructor(
     @ApplicationContext private val context: Context,
     private val geocodingApiService: OpenMeteoGeocodingService,
+    private val nominatim: NominatimGeocodingSource,
 ) : GeocodingDataSource {
     override val displayName = "System Geocoder"
 
@@ -39,20 +41,17 @@ class SystemGeocoderSource @Inject constructor(
 
     // Open-Meteo's `name` param only matches the place name itself — a combined "City, State"
     // query returns zero results. Split off the qualifier (state/country) and use it to filter
-    // the results client-side instead.
+    // the results client-side instead. Open-Meteo also only matches the start of a name, so when
+    // nothing fits, ask Nominatim with the whole query ("Sudbury, ON" is Greater Sudbury there).
     override suspend fun searchLocations(query: String, locale: Locale): List<GeocodingResult> {
         val commaIndex = query.indexOf(',')
         val namePart = if (commaIndex >= 0) query.substring(0, commaIndex).trim() else query.trim()
-        val qualifier = if (commaIndex >= 0) query.substring(commaIndex + 1).trim() else null
+        val qualifier = if (commaIndex >= 0) query.substring(commaIndex + 1).trim() else ""
 
         val results = geocodingApiService.searchLocation(name = namePart, language = locale.language).results
-        if (qualifier.isNullOrBlank()) return results
-
-        val filtered = results.filter { r ->
-            r.admin1?.contains(qualifier, ignoreCase = true) == true ||
-                r.admin2?.contains(qualifier, ignoreCase = true) == true ||
-                r.country?.contains(qualifier, ignoreCase = true) == true
-        }
-        return filtered.ifEmpty { results }
+        val filtered = results.filter { matchesRegionQualifier(qualifier, it.admin1, it.admin2, it.country) }
+        if (filtered.isNotEmpty()) return filtered
+        val fallback = runCatching { nominatim.searchLocations(query, locale) }.getOrDefault(emptyList())
+        return fallback.ifEmpty { results }
     }
 }

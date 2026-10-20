@@ -1,5 +1,6 @@
 import { get } from 'svelte/store';
 import { parseLocationText } from '$lib/domain/sharedLocationParser';
+import { matchesRegionQualifier } from '$lib/domain/regionQualifier';
 import { decodePlusCode, findPlusCode, recoverNearest, type PlusCodeMatch } from '$lib/domain/plusCode';
 import { weatherState } from '$lib/stores/weather';
 
@@ -52,33 +53,70 @@ export async function searchLocations(query: string): Promise<SearchResult[]> {
 	} else {
 		const commaIndex = trimmed.indexOf(',');
 		const namePart = commaIndex >= 0 ? trimmed.slice(0, commaIndex).trim() : trimmed;
-		const qualifier = commaIndex >= 0 ? trimmed.slice(commaIndex + 1).trim().toLowerCase() : '';
+		const qualifier = commaIndex >= 0 ? trimmed.slice(commaIndex + 1).trim() : '';
 
+		let mapped: SearchResult[] = [];
 		try {
 			const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(namePart)}&count=20&language=en&format=json`, { signal: AbortSignal.timeout(10_000) });
 			const data = await res.json();
-			if (data.results) {
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				let mapped: SearchResult[] = data.results.map((r: any) => ({
-					...r,
-					displayName: [r.name, r.admin1, r.country].filter(Boolean).join(', '),
-					isArea: /^(ADM|PCL)/.test(r.feature_code ?? ''),
-				}));
-				if (qualifier) {
-					const filtered = mapped.filter((r) =>
-						r.admin1?.toLowerCase().includes(qualifier) ||
-						r.admin2?.toLowerCase().includes(qualifier) ||
-						r.country?.toLowerCase().includes(qualifier)
-					);
-					if (filtered.length > 0) mapped = filtered;
-				}
-				results = dedupeResults(mapped);
-			}
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			mapped = (data.results ?? []).map((r: any) => ({
+				...r,
+				displayName: [r.name, r.admin1, r.country].filter(Boolean).join(', '),
+				isArea: /^(ADM|PCL)/.test(r.feature_code ?? ''),
+			}));
 		} catch {
-			results = [];
+			mapped = [];
 		}
+		const filtered = mapped.filter((r) => matchesRegionQualifier(qualifier, r.admin1, r.admin2, r.country));
+		// Open-Meteo only matches the start of a name; when nothing fits, ask Nominatim with the
+		// whole query ("Sudbury, ON" is Greater Sudbury there)
+		let picked = filtered;
+		if (picked.length === 0) {
+			const fallback = await searchNominatim(trimmed);
+			picked = fallback.length > 0 ? fallback : mapped;
+		}
+		results = dedupeResults(picked);
 	}
 	return results;
+}
+
+/**
+ * Nominatim (OpenStreetMap) search, as Android's NominatimGeocodingSource: a town is listed before
+ * the region it shares a name with. Empty on failure.
+ */
+export async function searchNominatim(query: string): Promise<SearchResult[]> {
+	try {
+		// Browsers forbid setting User-Agent; Nominatim identifies browser apps by Referer.
+		const res = await fetch(
+			`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=jsonv2&accept-language=en&limit=20&addressdetails=1`,
+			{ signal: AbortSignal.timeout(10_000) }
+		);
+		if (!res.ok) return [];
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const places: any[] = await res.json();
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const isSettlement = (p: any) => !!(p.address?.city || p.address?.town || p.address?.village);
+		const mapped = places.map((p) => {
+			const name: string = p.address?.city || p.address?.town || p.address?.village || p.name || p.display_name?.split(',')[0]?.trim() || '';
+			const result: SearchResult = {
+				id: p.place_id ?? 0,
+				name,
+				latitude: Number(p.lat) || 0,
+				longitude: Number(p.lon) || 0,
+				admin1: p.address?.state,
+				country: p.address?.country,
+				displayName: [name, p.address?.state, p.address?.country].filter(Boolean).join(', '),
+				isArea: !isSettlement(p) && (p.place_rank ?? 30) < 16,
+			};
+			return { settlement: isSettlement(p), result };
+		});
+		const settlementNames = new Set(mapped.filter((m) => m.settlement).map((m) => m.result.name.toLowerCase()));
+		const demoted = (m: (typeof mapped)[number]) => !m.settlement && settlementNames.has(m.result.name.toLowerCase());
+		return [...mapped.filter((m) => !demoted(m)), ...mapped.filter(demoted)].map((m) => m.result);
+	} catch {
+		return [];
+	}
 }
 
 /**
