@@ -1,0 +1,2 @@
+- Place search understands state and province codes: "Sudbury, ON" now finds Greater Sudbury, Ontario.
+- When no result fits the region typed, search asks OpenStreetMap too.

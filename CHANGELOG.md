@@ -6,6 +6,11 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.5.14] - 2026-10-20
+- Place search reads US state and Canadian province codes after the comma ("Sudbury, ON") and matches the qualifier only at the start of a word, so "on" no longer matches "Washington". When no Open-Meteo result fits the region, the whole query goes to Nominatim, which finds names Open-Meteo only knows in longer form (Greater Sudbury) (Android and web).
+- Web: a cached place name saved in another language is looked up again instead of shown as is.
+- New F-Droid screenshots: current design, four per language.
+
 ## [1.5.13] - 2026-10-20
 - "Choose a place" button on the error screen (Android and web) and the location-permission screen (Android). A place picked while no weather is shown is saved as a favorite rather than a 12-hour preview, so it persists (8 languages).
 - Android: with location permission denied, a selected favorite or preview loads at launch, and resuming no longer drops back to the permission screen.

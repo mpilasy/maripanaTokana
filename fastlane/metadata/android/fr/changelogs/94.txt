@@ -1,0 +1,2 @@
+- La recherche de lieu comprend les codes d'État et de province : « Sudbury, ON » trouve Greater Sudbury, Ontario.
+- Si aucun résultat ne correspond à la région saisie, la recherche interroge aussi OpenStreetMap.

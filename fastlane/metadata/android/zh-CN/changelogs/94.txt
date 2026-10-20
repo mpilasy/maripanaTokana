@@ -1,0 +1,2 @@
+- 地点搜索可识别州和省份代码："Sudbury, ON" 现在能找到安大略省 Greater Sudbury。
+- 若没有结果符合所输入的地区，搜索会同时查询 OpenStreetMap。

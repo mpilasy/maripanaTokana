@@ -1,0 +1,2 @@
+- La búsqueda de lugares entiende los códigos de estado y provincia: «Sudbury, ON» encuentra Greater Sudbury, Ontario.
+- Si ningún resultado coincide con la región escrita, la búsqueda consulta también OpenStreetMap.
