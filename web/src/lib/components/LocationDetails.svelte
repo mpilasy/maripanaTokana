@@ -5,7 +5,7 @@
 	interface Props {
 		/** City, region, country; absent when the name is only coordinates. */
 		place?: string;
-		/** Decimal coordinates, the form that is shared and copied. */
+		/** Decimal coordinates, the form that is copied. */
 		coordinates: string;
 		/** Coordinates as shown, in degrees, minutes and seconds. */
 		coordinatesShown: string;
@@ -26,19 +26,9 @@
 		return () => window.removeEventListener('click', close);
 	});
 
-	const mapLink = $derived(`https://www.google.com/maps/search/?api=1&query=${lat.toFixed(6)},${lon.toFixed(6)}`);
-
-	// A tap shares the value with a map link; without a share sheet (desktop), the map opens
-	async function share(value: string) {
-		if (navigator.share) {
-			try {
-				await navigator.share({ text: `${value}\n${mapLink}` });
-			} catch {
-				// Dismissed
-			}
-		} else {
-			window.open(mapLink, '_blank');
-		}
+	// A tap opens the point on a map, as the coordinates did before
+	function openInMap() {
+		window.open(`https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=15/${lat}/${lon}`, '_blank');
 	}
 
 	async function copy(value: string) {
@@ -74,7 +64,7 @@
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<span class="panel" onclick={(e) => e.stopPropagation()}>
 			{#each rows as row (row.value)}
-				<button type="button" class="row" onclick={() => { open = false; share(row.value); }} use:longPress={() => copy(row.value)}>
+				<button type="button" class="row" onclick={() => { open = false; openInMap(); }} use:longPress={() => copy(row.value)}>
 					<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d={row.icon}/></svg>
 					<span dir={copied === row.value ? 'auto' : row.dir}>{copied === row.value ? $_('copied') : row.shown}</span>
 				</button>

@@ -2176,7 +2176,7 @@ private fun isCoordinatesName(name: String) = Regex("""^-?\d+(\.\d+)?,\s*-?\d+(\
 
 /**
  * The grid icon in front of the second header line. A tap opens a menu of three lines: the place,
- * the coordinates and the Plus Code. A tap on a line shares it with a map link; holding it copies it.
+ * the coordinates and the Plus Code. A tap on a line opens the point in a map app; holding it copies it.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -2192,22 +2192,12 @@ private fun LocationDetails(
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
     val copiedMessage = stringResource(R.string.copied)
-    val shareLabel = stringResource(R.string.cd_share)
     val copyLabel = stringResource(R.string.copy)
-    val mapLink = "https://www.google.com/maps/search/?api=1&query=%.6f,%.6f".format(Locale.US, lat, lon)
-    val share = { text: String ->
-        val send = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, "$text\n$mapLink")
-        }
-        // Map apps first, then the usual share targets; not this app, which also takes places
+    // A tap opens the point in a map app, as the coordinates did before; not this app, which also takes places
+    val openInMap = {
         val geo = Intent(Intent.ACTION_VIEW, "geo:$lat,$lon?q=$lat,$lon".toUri())
         val self = arrayOf(android.content.ComponentName(context, MainActivity::class.java))
-        context.startActivity(
-            Intent.createChooser(send, null)
-                .putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(geo))
-                .putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, self)
-        )
+        context.startActivity(Intent.createChooser(geo, null).putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, self))
     }
     val copy = { text: String ->
         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -2219,7 +2209,7 @@ private fun LocationDetails(
         }
     }
     var open by remember { mutableStateOf(false) }
-    // One line of the menu: a tap shares the value, holding it copies the value
+    // One line of the menu: a tap opens the map, holding it copies the value
     @Composable
     fun DetailRow(icon: @Composable () -> Unit, shown: String, value: String, ltr: Boolean) {
         Row(
@@ -2229,8 +2219,7 @@ private fun LocationDetails(
                 .heightIn(min = 36.dp)
                 .combinedClickable(
                     role = Role.Button,
-                    onClick = { open = false; share(value) },
-                    onClickLabel = shareLabel,
+                    onClick = { open = false; openInMap() },
                     onLongClick = { copy(value) },
                     onLongClickLabel = copyLabel,
                 )
