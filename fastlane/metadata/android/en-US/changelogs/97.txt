@@ -1,0 +1,1 @@
+- In the location details card, a tap on a line opens the place in a map app again. Holding a line still copies it.

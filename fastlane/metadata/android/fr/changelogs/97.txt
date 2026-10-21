@@ -1,0 +1,1 @@
+- Dans la carte des détails du lieu, toucher une ligne ouvre de nouveau le lieu dans une application de carte. Maintenir une ligne la copie toujours.

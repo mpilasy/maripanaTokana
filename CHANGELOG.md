@@ -6,6 +6,9 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.5.17] - 2026-10-21
+- Location details: a tap on a line opens the point in a map app again (Android: the geo: app chooser, without this app; web: OpenStreetMap), as a tap on the coordinates did before 1.5.16. The share sheet with a Google Maps link from 1.5.16 is removed. Holding a line still copies it.
+
 ## [1.5.16] - 2026-10-21
 - Location details: a grid icon in front of the second header line opens a small light card with the place, the coordinates (degrees, minutes and seconds) and the full Plus Code. A tap on a line opens the share sheet with the value and a Google Maps link; holding a line copies the value (coordinates in decimal degrees). A tap on the city name no longer shows the coordinates (Android and web).
 - The second header line always shows: the region and country, or the decimal coordinates when they are not known (the Plus Code when the name itself is coordinates).
