@@ -20,7 +20,7 @@
 	<!-- "About" opens the About page, which credits the data sources -->
 	<button type="button" class="footer-credits" onclick={onOpenAbout}>
 		<span class="about-link">{$_('about_title')}</span>
-		<span class="version">v1.5.17</span>
+		<span class="version">v1.5.18</span>
 	</button>
 	<button type="button" class="pill" onclick={onCycleLanguage} aria-label={$_('cd_change_language')}>
 		<span class="flag">{currentFlag}</span>

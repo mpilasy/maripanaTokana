@@ -6,6 +6,10 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.5.18] - 2026-10-21
+- Footer: "About" (underlined, opens the About page, which credits the data sources) in place of the weather data credit; `credits_weather_data` removed from all 8 languages (Android and web).
+- Android footer: the middle text wraps between the font name and the flag, so a long text (Malagasy) no longer pushes the flag off the screen.
+
 ## [1.5.17] - 2026-10-21
 - Location details: a tap on a line opens the point in a map app again (Android: the geo: app chooser, without this app; web: OpenStreetMap), as a tap on the coordinates did before 1.5.16. The share sheet with a Google Maps link from 1.5.16 is removed. Holding a line still copies it.
 

@@ -1,0 +1,2 @@
+- The footer shows "About" in place of the weather data credit. The About page lists the data sources.
+- The language flag no longer disappears when the footer text is long.

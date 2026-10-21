@@ -1,0 +1,2 @@
+- El pie de página muestra «Acerca de» en lugar del crédito de los datos meteorológicos. La página Acerca de enumera las fuentes de datos.
+- La bandera del idioma ya no desaparece cuando el texto del pie de página es largo.

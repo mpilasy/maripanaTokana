@@ -1,0 +1,2 @@
+- Le pied de page affiche « À propos » à la place du crédit des données météo. La page À propos liste les sources de données.
+- Le drapeau de langue ne disparaît plus quand le texte du pied de page est long.
