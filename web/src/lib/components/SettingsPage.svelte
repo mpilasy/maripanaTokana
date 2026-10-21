@@ -43,11 +43,11 @@
 			</svg>
 		</button>
 		<h2>{title}</h2>
+		{#if languageFlag && onCycleLanguage}
+			<button type="button" class="page-flag" onclick={onCycleLanguage} aria-label={$_('cd_change_language')}>{languageFlag}</button>
+		{/if}
 	</header>
 	{@render children()}
-	{#if languageFlag && onCycleLanguage}
-		<button type="button" class="page-flag" onclick={onCycleLanguage} aria-label={$_('cd_change_language')}>{languageFlag}</button>
-	{/if}
 </div>
 
 <style>
@@ -75,11 +75,18 @@
 		z-index: -1;
 	}
 
+	/* Stays at the top while the page scrolls */
 	header {
+		position: sticky;
+		top: 0;
+		z-index: 1;
 		display: flex;
 		align-items: center;
 		gap: 12px;
-		padding: 8px 0 24px;
+		margin: 0 -16px 16px;
+		padding: 8px 16px;
+		background: rgba(14, 11, 61, 0.92);
+		backdrop-filter: blur(8px);
 		flex-shrink: 0;
 	}
 
@@ -112,9 +119,8 @@
 
 	/* Shared building blocks for pages rendered inside this shell */
 	.page-flag {
-		display: block;
-		margin: 16px auto;
-		padding: 4px 12px;
+		margin-inline-start: auto;
+		padding: 6px 10px;
 		border: none;
 		border-radius: 999px;
 		background: none;

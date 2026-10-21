@@ -304,33 +304,34 @@ internal fun SettingsPage(
                 .fillMaxSize()
                 .statusBarsPadding()
                 .navigationBarsPadding()
-                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
+            // Stays at the top while the page scrolls
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 8.dp)) {
                 IconButton(onClick = onBack) {
                     Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.settings_back), tint = MaterialTheme.colorScheme.onSurface)
                 }
                 Spacer(Modifier.width(8.dp))
-                Text(title, color = MaterialTheme.colorScheme.onSurface, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text(title, color = MaterialTheme.colorScheme.onSurface, fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                if (languageFlag != null && onCycleLanguage != null) {
+                    Text(
+                        text = languageFlag,
+                        fontSize = 22.sp,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(50))
+                            .clickable(
+                                onClick = onCycleLanguage,
+                                role = Role.Button,
+                                onClickLabel = stringResource(R.string.cd_change_language),
+                            )
+                            .padding(horizontal = 10.dp, vertical = 4.dp),
+                    )
+                }
             }
-            Spacer(Modifier.height(16.dp))
-            content()
-            if (languageFlag != null && onCycleLanguage != null) {
-                Text(
-                    text = languageFlag,
-                    fontSize = 22.sp,
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .padding(vertical = 16.dp)
-                        .clip(RoundedCornerShape(50))
-                        .clickable(
-                            onClick = onCycleLanguage,
-                            role = Role.Button,
-                            onClickLabel = stringResource(R.string.cd_change_language),
-                        )
-                        .padding(horizontal = 12.dp, vertical = 4.dp),
-                )
+            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+                Spacer(Modifier.height(8.dp))
+                content()
+                Spacer(Modifier.height(16.dp))
             }
         }
     }
