@@ -471,7 +471,7 @@ class WeatherViewModel @Inject constructor(
                 locationRepository.getFreshLocation().onSuccess { (lat, lon) ->
                     saveLocation(lat, lon)
                     weatherRepository.getWeather(lat, lon).onSuccess { data ->
-                        cachedGpsWeatherData = data.copy(locationSubtext = null)
+                        cachedGpsWeatherData = data
                         privatePrefs.edit { putString("location_name", data.locationName) }
                     }
                 }
@@ -618,9 +618,8 @@ class WeatherViewModel @Inject constructor(
                         weatherRepository.getWeather(lat, lon)
                             .onSuccess { data ->
                                 if (!freshWeatherDisplayed) {
-                                    val displayData = data.copy(locationSubtext = null)
-                                    privatePrefs.edit().putString("location_name", displayData.locationName).apply()
-                                    publish("gps", displayData)
+                                    privatePrefs.edit().putString("location_name", data.locationName).apply()
+                                    publish("gps", data)
                                     cachedWeatherDisplayed = true
                                     displayedThisRun = true
                                     fetchAlertsForData(lat, lon)
@@ -641,9 +640,8 @@ class WeatherViewModel @Inject constructor(
                                     .onSuccess { data ->
                                         freshWeatherDisplayed = true
                                         displayedThisRun = true
-                                        val displayData = data.copy(locationSubtext = null)
-                                        privatePrefs.edit().putString("location_name", displayData.locationName).apply()
-                                        publish("gps", displayData)
+                                        privatePrefs.edit().putString("location_name", data.locationName).apply()
+                                        publish("gps", data)
                                         fetchAlertsForData(lat, lon)
                                     }
                                     .onFailure {

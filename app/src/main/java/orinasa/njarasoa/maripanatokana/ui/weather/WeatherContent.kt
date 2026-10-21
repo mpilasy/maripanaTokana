@@ -48,6 +48,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -55,6 +56,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.material3.TooltipDefaults
@@ -135,6 +137,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import orinasa.njarasoa.maripanatokana.BuildConfig
+import orinasa.njarasoa.maripanatokana.MainActivity
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.data.location.PlusCode
 import orinasa.njarasoa.maripanatokana.data.remote.wmoDescriptionRes
@@ -2172,10 +2175,10 @@ private fun formatDecimalCoordinates(lat: Double, lon: Double) = "%.4f, %.4f".fo
 private fun isCoordinatesName(name: String) = Regex("""^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$""").matches(name.trim())
 
 /**
- * The grid icon in front of the second header line. A tap opens three boxes: the place, the
- * coordinates and the Plus Code. A tap on a box shares it with a map link; holding a box copies it.
+ * The grid icon in front of the second header line. A tap opens a menu of three lines: the place,
+ * the coordinates and the Plus Code. A tap on a line shares it with a map link; holding it copies it.
  */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun LocationDetails(
     place: String?,
@@ -2186,8 +2189,6 @@ private fun LocationDetails(
     lon: Double,
     modifier: Modifier = Modifier,
 ) {
-    val tooltipState = rememberTooltipState(isPersistent = true)
-    val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
     val copiedMessage = stringResource(R.string.copied)
@@ -2199,9 +2200,14 @@ private fun LocationDetails(
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, "$text\n$mapLink")
         }
-        // Map apps first, then the usual share targets
+        // Map apps first, then the usual share targets; not this app, which also takes places
         val geo = Intent(Intent.ACTION_VIEW, "geo:$lat,$lon?q=$lat,$lon".toUri())
-        context.startActivity(Intent.createChooser(send, null).putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(geo)))
+        val self = arrayOf(android.content.ComponentName(context, MainActivity::class.java))
+        context.startActivity(
+            Intent.createChooser(send, null)
+                .putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(geo))
+                .putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, self)
+        )
     }
     val copy = { text: String ->
         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -2212,53 +2218,62 @@ private fun LocationDetails(
             android.widget.Toast.makeText(context, copiedMessage, android.widget.Toast.LENGTH_SHORT).show()
         }
     }
+    var open by remember { mutableStateOf(false) }
+    // One line of the menu: a tap shares the value, holding it copies the value
     @Composable
-    fun DetailBox(shown: String, value: String, ltr: Boolean) {
-        Text(
-            shown,
-            style = LocalTextStyle.current.copy(textDirection = if (ltr) TextDirection.Ltr else TextDirection.Content),
+    fun DetailRow(icon: @Composable () -> Unit, shown: String, value: String, ltr: Boolean) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(8.dp))
-                .background(Color.White.copy(alpha = 0.12f))
+                .heightIn(min = 36.dp)
                 .combinedClickable(
                     role = Role.Button,
-                    onClick = { share(value) },
+                    onClick = { open = false; share(value) },
                     onClickLabel = shareLabel,
                     onLongClick = { copy(value) },
                     onLongClickLabel = copyLabel,
                 )
-                .padding(horizontal = 10.dp, vertical = 8.dp),
-        )
+                .padding(horizontal = 12.dp, vertical = 6.dp),
+        ) {
+            icon()
+            Text(
+                shown,
+                fontSize = 13.sp,
+                fontFamily = LocalBodyFont.current,
+                color = Color(0xFF1C1B1F),
+                style = LocalTextStyle.current.copy(textDirection = if (ltr) TextDirection.Ltr else TextDirection.Content),
+            )
+        }
     }
-    TooltipBox(
-        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-        tooltip = {
-            PlainTooltip(
-                maxWidth = 320.dp,
-                containerColor = Color(0xFF1A1565),
-                contentColor = Color.White,
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(vertical = 4.dp)) {
-                    place?.let { DetailBox(it, it, ltr = false) }
-                    DetailBox(coordinatesShown, coordinates, ltr = true)
-                    DetailBox("Plus Code  $plusCode", plusCode, ltr = true)
-                }
-            }
-        },
-        state = tooltipState,
-        enableUserInput = false,
-        modifier = modifier,
-    ) {
+    // A light card, so it stands out from the dark screen
+    val iconTint = Color(0xFF1C1B1F).copy(alpha = 0.55f)
+    val divider = Color(0xFF1C1B1F).copy(alpha = 0.1f)
+    Box(modifier = modifier) {
         Icon(
             painter = painterResource(R.drawable.ic_grid),
             contentDescription = stringResource(R.string.cd_location_details),
             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
             modifier = Modifier
                 .clip(CircleShape)
-                .clickable(role = Role.Button) { scope.launch { tooltipState.show() } }
+                .clickable(role = Role.Button) { open = true }
                 .padding(end = 4.dp, top = 2.dp, bottom = 2.dp)
                 .size(16.dp),
         )
+        DropdownMenu(
+            expanded = open,
+            onDismissRequest = { open = false },
+            containerColor = Color(0xFFF3F1F7),
+            shape = RoundedCornerShape(12.dp),
+            shadowElevation = 8.dp,
+        ) {
+            place?.let {
+                DetailRow({ Icon(Icons.Default.LocationOn, null, tint = iconTint, modifier = Modifier.size(14.dp)) }, it, it, ltr = false)
+                HorizontalDivider(color = divider)
+            }
+            DetailRow({ Icon(painterResource(R.drawable.ic_my_location), null, tint = iconTint, modifier = Modifier.size(14.dp)) }, coordinatesShown, coordinates, ltr = true)
+            HorizontalDivider(color = divider)
+            DetailRow({ Icon(painterResource(R.drawable.ic_grid), null, tint = iconTint, modifier = Modifier.size(14.dp)) }, "Plus Code  $plusCode", plusCode, ltr = true)
+        }
     }
 }
