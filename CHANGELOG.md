@@ -6,6 +6,10 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.5.21] - 2026-10-21
+- Android: after a language change, the GPS place takes its region and country line in the new language as well as its name. Since 1.5.16 the GPS place shows that line, and it stayed in the old language.
+- Arabic and Hindi: numbers written inside texts (24 hours, 10 days, 2 hours, 12 hours) use local digits.
+
 ## [1.5.20] - 2026-10-21
 - About and Help pages: the language flag at the right end of the title row; a tap shows the next language (Android and web).
 - Settings, About and Help: the title row stays at the top while the page scrolls (Android and web).

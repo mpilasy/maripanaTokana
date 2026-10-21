@@ -1,0 +1,2 @@
+- After a language change, the region and country of your current location now also change to the new language.
+- Arabic and Hindi: the numbers inside texts use local digits.

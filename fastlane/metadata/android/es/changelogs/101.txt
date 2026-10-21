@@ -1,0 +1,2 @@
+- Tras cambiar de idioma, la región y el país de tu ubicación actual también cambian al nuevo idioma.
+- Árabe e hindi: los números dentro de los textos usan cifras locales.
