@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Derived weather alerts look their strings up by name (getIdentifier), so the resource shrinker must keep them -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@string/alert_title_*,@string/alert_desc_*" />

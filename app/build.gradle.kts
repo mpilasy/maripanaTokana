@@ -61,6 +61,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = true
+            isShrinkResources = true
             isCrunchPngs = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             if (keystorePropertiesFile.exists() || System.getenv("KEYSTORE_FILE") != null) {
