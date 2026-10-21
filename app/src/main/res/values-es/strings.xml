@@ -136,9 +136,10 @@
     <string name="cd_manage_locations">Cambiar ubicación</string>
     <string name="cd_go_to_current_location">Ir a la ubicación actual</string>
     <string name="cd_roman_name">Cambiar entre escritura local y alfabeto latino</string>
-    <string name="cd_plus_code">Mostrar Plus Code</string>
+    <string name="cd_location_details">Detalles del lugar</string>
+    <string name="copy">Copiar</string>
     <string name="current_location">Ubicación actual</string>
-    <string name="plus_code_copied">Plus Code copiado</string>
+    <string name="copied">Copiado</string>
     <string name="cd_add_favorite">Añadir a favoritos</string>
     <string name="cd_remove_favorite">Quitar de favoritos</string>
     <string name="rename_title">Renombrar</string>

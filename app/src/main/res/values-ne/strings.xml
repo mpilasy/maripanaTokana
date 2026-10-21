@@ -136,9 +136,10 @@
     <string name="cd_manage_locations">स्थान परिवर्तन गर्नुहोस्</string>
     <string name="cd_go_to_current_location">हालको स्थानमा जानुहोस्</string>
     <string name="cd_roman_name">स्थानीय लिपि र ल्याटिन अक्षरबीच बदल्नुहोस्</string>
-    <string name="cd_plus_code">Plus Code देखाउनुहोस्</string>
+    <string name="cd_location_details">स्थानको विवरण</string>
+    <string name="copy">प्रतिलिपि बनाउनुहोस्</string>
     <string name="current_location">हालको स्थान</string>
-    <string name="plus_code_copied">Plus Code कपी गरियो</string>
+    <string name="copied">प्रतिलिपि बनाइयो</string>
     <string name="cd_add_favorite">मनपर्ने मा थप्नुहोस्</string>
     <string name="cd_remove_favorite">मनपर्ने बाट हटाउनुहोस्</string>
     <string name="rename_title">नाम बदल्नुहोस्</string>

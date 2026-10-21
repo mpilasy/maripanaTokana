@@ -133,9 +133,6 @@ class WeatherViewModel @Inject constructor(
     )
     val advancedOverrideLon: StateFlow<Double?> = _advancedOverrideLon.asStateFlow()
 
-    private val _showGpsCoordinates = MutableStateFlow(false)
-    val showGpsCoordinates: StateFlow<Boolean> = _showGpsCoordinates.asStateFlow()
-
     private val _searchResults = MutableStateFlow<List<GeocodingResult>>(emptyList())
     val searchResults: StateFlow<List<GeocodingResult>> = _searchResults.asStateFlow()
 
@@ -180,10 +177,6 @@ class WeatherViewModel @Inject constructor(
         if (setTime != 0L && System.currentTimeMillis() - setTime >= 12 * 60 * 60 * 1000L) {
             clearAdvancedModeOverride()
         }
-    }
-
-    fun onLocationClicked() {
-        _showGpsCoordinates.value = !_showGpsCoordinates.value
     }
 
     fun onLocationDoubleClicked() {

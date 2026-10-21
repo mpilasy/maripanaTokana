@@ -3,16 +3,11 @@ import { restoreGpsWeather } from '$lib/stores/weather';
 import { clearAdvancedModeOverride } from '$lib/stores/savedLocations';
 
 export const advancedModeActive = writable(false);
-export const showGpsCoordinates = writable(false);
 
 export function initAdvancedMode() {
     if (typeof localStorage === 'undefined') return;
     const active = localStorage.getItem('advanced_mode_enabled') === 'true';
     advancedModeActive.set(active);
-}
-
-export function onLocationClicked() {
-    showGpsCoordinates.update((v) => !v);
 }
 
 export function enableAdvancedMode() {

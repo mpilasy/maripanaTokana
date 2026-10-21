@@ -215,13 +215,11 @@ internal fun WeatherContent(
     onCycleFont: () -> Unit,
     onCycleLanguage: () -> Unit,
     onRefresh: () -> Unit,
-    onLocationClicked: () -> Unit = {},
     onLocationLongClicked: (() -> Unit)? = null, // set for a favorite: opens its rename dialog
     onManageLocationsClicked: () -> Unit = {},
     onOpenSettings: () -> Unit = {},
     onOpenAbout: () -> Unit = {},
     weatherSource: WeatherSource = WeatherSource.OPEN_METEO,
-    showGpsCoordinates: Boolean = false,
     isSavedLocation: Boolean = false,
     onGoToCurrentLocation: () -> Unit = {},
     onToggleFavorite: () -> Unit = {},
@@ -341,18 +339,17 @@ internal fun WeatherContent(
                 },
         ) {
             Column(
-                modifier = Modifier.combinedClickable(
-                    onClick = onLocationClicked,
-                    onLongClick = onLocationLongClicked?.let { rename ->
-                        {
+                // Holding a favorite's name renames it
+                modifier = onLocationLongClicked?.let { rename ->
+                    Modifier.combinedClickable(
+                        onClick = {},
+                        onLongClick = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             rename()
-                        }
-                    },
-                    role = Role.Button,
-                    onClickLabel = "Toggle GPS coordinates",
-                    onLongClickLabel = stringResource(R.string.rename_title),
-                )
+                        },
+                        onLongClickLabel = stringResource(R.string.rename_title),
+                    )
+                } ?: Modifier
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -385,68 +382,43 @@ internal fun WeatherContent(
                     }
                 }
                 val isRemote = isRemoteTimezone(data.utcOffsetSeconds)
-                if (locationSubtext != null || isRemote) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        if (locationSubtext != null) {
-                            Text(
-                                text = locationSubtext,
-                                fontSize = 14f.s(scale),
-                                fontFamily = bodyFont,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f, fill = false),
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                        }
-                        if (isRemote) {
-                            Text(
-                                text = "\uD83D\uDD53 ${localizeDigits(formatLocationCurrentTime(data.utcOffsetSeconds, appLocale))}",
-                                fontSize = 12f.s(scale),
-                                fontFamily = displayFont,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
-                                maxLines = 1,
-                                modifier = Modifier
-                                    .background(TileSurface, RoundedCornerShape(50))
-                                    .padding(horizontal = 8.dp, vertical = 2.dp),
-                            )
-                        }
-                    }
-                }
-
-                if (showGpsCoordinates) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    // Flows so the Plus Code drops to its own line on narrow screens
-                    FlowRow(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                val geoUri = "geo:$displayLat,$displayLon?q=$displayLat,$displayLon".toUri()
-                                val mapIntent = Intent(Intent.ACTION_VIEW, geoUri)
-                                context.startActivity(Intent.createChooser(mapIntent, null))
-                            },
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
+                val plusCode = remember(displayLat, displayLon) { PlusCode.encode(displayLat, displayLon) }
+                val decimalCoordinates = formatDecimalCoordinates(displayLat, displayLon)
+                // The second line always shows: the region and country, or else the coordinates
+                // (the Plus Code when the name itself is already the coordinates)
+                val secondLine = locationSubtext
+                    ?: if (isCoordinatesName(locationName)) plusCode else decimalCoordinates
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    LocationDetails(
+                        place = listOfNotNull(locationName.takeUnless { isCoordinatesName(it) }, locationSubtext).joinToString(", ").ifBlank { null },
+                        coordinates = decimalCoordinates,
+                        coordinatesShown = "${formatDMS(displayLat, "N", "S")}  ${formatDMS(displayLon, "E", "W")}",
+                        plusCode = plusCode,
+                        lat = displayLat,
+                        lon = displayLon,
+                    )
+                    Text(
+                        text = secondLine,
+                        fontSize = 14f.s(scale),
+                        fontFamily = bodyFont,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false),
+                    )
+                    if (isRemote) {
+                        Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = formatDMS(displayLat, "N", "S"),
-                            style = LocalTextStyle.current.copy(textDirection = TextDirection.Ltr), // keep 45°00'21"N intact in RTL
-                            fontSize = 20f.s(scale),
-                            fontWeight = FontWeight.Bold,
+                            text = "\uD83D\uDD53 ${localizeDigits(formatLocationCurrentTime(data.utcOffsetSeconds, appLocale))}",
+                            fontSize = 12f.s(scale),
                             fontFamily = displayFont,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                            modifier = Modifier.alignByBaseline(),
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+                            maxLines = 1,
+                            modifier = Modifier
+                                .background(TileSurface, RoundedCornerShape(50))
+                                .padding(horizontal = 8.dp, vertical = 2.dp),
                         )
-                        Text(
-                            text = formatDMS(displayLon, "E", "W"),
-                            style = LocalTextStyle.current.copy(textDirection = TextDirection.Ltr), // keep 45°00'21"N intact in RTL
-                            fontSize = 20f.s(scale),
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = displayFont,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                            modifier = Modifier.alignByBaseline(),
-                        )
-                        PlusCodeInfo(displayLat, displayLon, Modifier.align(Alignment.CenterVertically))
                     }
                 }
             }
@@ -2193,52 +2165,100 @@ private fun PrecipChance(percent: Int, show: Boolean, fontSize: TextUnit, fontFa
     }
 }
 
+/** "-18.8430, 49.1535": the form map apps and search fields accept. */
+private fun formatDecimalCoordinates(lat: Double, lon: Double) = "%.4f, %.4f".format(Locale.US, lat, lon)
+
+/** True when the place name is only coordinates, as when the name lookup failed. */
+private fun isCoordinatesName(name: String) = Regex("""^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$""").matches(name.trim())
+
+/**
+ * The grid icon in front of the second header line. A tap opens three boxes: the place, the
+ * coordinates and the Plus Code. A tap on a box shares it with a map link; holding a box copies it.
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-private fun PlusCodeInfo(lat: Double, lon: Double, modifier: Modifier = Modifier) {
-    val code = remember(lat, lon) { PlusCode.encode(lat, lon) }
+private fun LocationDetails(
+    place: String?,
+    coordinates: String,
+    coordinatesShown: String,
+    plusCode: String,
+    lat: Double,
+    lon: Double,
+    modifier: Modifier = Modifier,
+) {
     val tooltipState = rememberTooltipState(isPersistent = true)
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
-    val copiedMessage = stringResource(R.string.plus_code_copied)
-    val copy = {
+    val copiedMessage = stringResource(R.string.copied)
+    val shareLabel = stringResource(R.string.cd_share)
+    val copyLabel = stringResource(R.string.copy)
+    val mapLink = "https://www.google.com/maps/search/?api=1&query=%.6f,%.6f".format(Locale.US, lat, lon)
+    val share = { text: String ->
+        val send = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, "$text\n$mapLink")
+        }
+        // Map apps first, then the usual share targets
+        val geo = Intent(Intent.ACTION_VIEW, "geo:$lat,$lon?q=$lat,$lon".toUri())
+        context.startActivity(Intent.createChooser(send, null).putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(geo)))
+    }
+    val copy = { text: String ->
         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
         val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-        clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Plus Code", code))
+        clipboard.setPrimaryClip(android.content.ClipData.newPlainText(text, text))
         // Android 13+ confirms clipboard writes itself
         if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.TIRAMISU) {
             android.widget.Toast.makeText(context, copiedMessage, android.widget.Toast.LENGTH_SHORT).show()
         }
     }
+    @Composable
+    fun DetailBox(shown: String, value: String, ltr: Boolean) {
+        Text(
+            shown,
+            style = LocalTextStyle.current.copy(textDirection = if (ltr) TextDirection.Ltr else TextDirection.Content),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(8.dp))
+                .background(Color.White.copy(alpha = 0.12f))
+                .combinedClickable(
+                    role = Role.Button,
+                    onClick = { share(value) },
+                    onClickLabel = shareLabel,
+                    onLongClick = { copy(value) },
+                    onLongClickLabel = copyLabel,
+                )
+                .padding(horizontal = 10.dp, vertical = 8.dp),
+        )
+    }
     TooltipBox(
         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
         tooltip = {
-            PlainTooltip {
-                // Holding the code copies it
-                Text(
-                    "Plus Code  $code",
-                    style = LocalTextStyle.current.copy(textDirection = TextDirection.Ltr),
-                    modifier = Modifier.combinedClickable(onClick = {}, onLongClick = copy),
-                )
+            PlainTooltip(
+                maxWidth = 320.dp,
+                containerColor = Color(0xFF1A1565),
+                contentColor = Color.White,
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(vertical = 4.dp)) {
+                    place?.let { DetailBox(it, it, ltr = false) }
+                    DetailBox(coordinatesShown, coordinates, ltr = true)
+                    DetailBox("Plus Code  $plusCode", plusCode, ltr = true)
+                }
             }
         },
         state = tooltipState,
+        enableUserInput = false,
         modifier = modifier,
     ) {
         Icon(
             painter = painterResource(R.drawable.ic_grid),
-            contentDescription = stringResource(R.string.cd_plus_code),
+            contentDescription = stringResource(R.string.cd_location_details),
             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
             modifier = Modifier
                 .clip(CircleShape)
-                .combinedClickable(
-                    role = Role.Button,
-                    onClick = { scope.launch { tooltipState.show() } },
-                    onLongClick = copy,
-                )
-                .padding(4.dp)
-                .size(18.dp),
+                .clickable(role = Role.Button) { scope.launch { tooltipState.show() } }
+                .padding(end = 4.dp, top = 2.dp, bottom = 2.dp)
+                .size(16.dp),
         )
     }
 }

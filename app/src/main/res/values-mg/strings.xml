@@ -136,9 +136,10 @@
     <string name="cd_manage_locations">Ovay ny toerana</string>
     <string name="cd_go_to_current_location">Mankany amin\'ny toerana ankehitriny</string>
     <string name="cd_roman_name">Mifamadika eo amin\'ny soratra eo an-toerana sy ny soratra latina</string>
-    <string name="cd_plus_code">Asehoy ny Plus Code</string>
+    <string name="cd_location_details">Antsipirian\'ny toerana</string>
+    <string name="copy">Adikao</string>
     <string name="current_location">Toerana ankehitriny</string>
-    <string name="plus_code_copied">Voadika ny Plus Code</string>
+    <string name="copied">Voadika</string>
     <string name="cd_add_favorite">Ampidiro amin\'ny tiana</string>
     <string name="cd_remove_favorite">Esory amin\'ny tiana</string>
     <string name="rename_title">Hanova anarana</string>

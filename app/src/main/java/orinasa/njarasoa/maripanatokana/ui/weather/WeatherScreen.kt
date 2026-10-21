@@ -409,7 +409,6 @@ private fun WeatherMainScreen(
                         onRefresh = { viewModel.refresh() },
                         modifier = Modifier.fillMaxSize(),
                     ) {
-                        val showGpsCoordinates by viewModel.showGpsCoordinates.collectAsStateWithLifecycle()
                         val weatherSource by viewModel.weatherSource.collectAsStateWithLifecycle()
                         WeatherContent(
                             data = state.data,
@@ -428,7 +427,6 @@ private fun WeatherMainScreen(
                             onCycleFont = { viewModel.cycleFont() },
                             onCycleLanguage = { viewModel.cycleLanguage() },
                             onRefresh = { viewModel.refresh() },
-                            onLocationClicked = viewModel::onLocationClicked,
                             onLocationLongClicked = if (activeSavedLocation != null && advancedOverrideLat == null) {
                                 { showRenameDialog = true }
                             } else null,
@@ -437,7 +435,6 @@ private fun WeatherMainScreen(
                             onOpenAbout = onOpenAbout,
                             scrollState = scrollState,
                             weatherSource = weatherSource,
-                            showGpsCoordinates = showGpsCoordinates,
                             isSavedLocation = activeLocationId != null,
                             onGoToCurrentLocation = { viewModel.switchToLocation(null) },
                             onToggleFavorite = {

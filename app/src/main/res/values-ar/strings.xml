@@ -136,9 +136,10 @@
     <string name="cd_manage_locations">تغيير الموقع</string>
     <string name="cd_go_to_current_location">الانتقال إلى الموقع الحالي</string>
     <string name="cd_roman_name">التبديل بين الكتابة المحلية والحروف اللاتينية</string>
-    <string name="cd_plus_code">عرض رمز Plus Code</string>
+    <string name="cd_location_details">تفاصيل الموقع</string>
+    <string name="copy">نسخ</string>
     <string name="current_location">الموقع الحالي</string>
-    <string name="plus_code_copied">تم نسخ رمز Plus Code</string>
+    <string name="copied">تم النسخ</string>
     <string name="cd_add_favorite">إضافة إلى المفضلة</string>
     <string name="cd_remove_favorite">إزالة من المفضلة</string>
     <string name="rename_title">إعادة التسمية</string>

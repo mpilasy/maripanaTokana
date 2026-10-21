@@ -2,12 +2,11 @@
 	import { _, json } from 'svelte-i18n';
 	import { weatherState, isRefreshing, doFetchWeather, updateLocationName, refreshFailed, refreshError } from '$lib/stores/weather';
 	import {
-		onLocationClicked,
-		showGpsCoordinates,
 		initAdvancedMode,
 		advancedModeActive
 	} from '$lib/stores/advancedMode';
 	import SavedLocationsDialog from './SavedLocationsDialog.svelte';
+	import LocationDetails from './LocationDetails.svelte';
 	import RenameLocationDialog from './RenameLocationDialog.svelte';
 	import {
 		showSavedLocationsDialog, openSavedLocationsDialog, activeLocationId, savedLocations, switchToLocation,
@@ -133,9 +132,6 @@
 	let headerActionsWidth = $state(0);
 	// Location whose name is currently shown in Latin letters (null: local script)
 	let romanShownFor = $state<string | null>(null);
-	// Plus Code tooltip opened by tap; any other tap closes it. Holding the icon or code copies it.
-	let plusCodeOpen = $state(false);
-	let plusCodeCopied = $state(false);
 	// Location list opened by holding a pager arrow
 	let pickerOpen = $state(false);
 	let renaming = $state(false);
@@ -143,22 +139,11 @@
 	// The favorite on screen (not a preview): holding its name renames it
 	let activeSavedLocation = $derived($locationOverride ? undefined : savedById($activeLocationId));
 	$effect(() => {
-		if (!plusCodeOpen && !pickerOpen) return;
-		const close = () => { plusCodeOpen = false; pickerOpen = false; };
+		if (!pickerOpen) return;
+		const close = () => { pickerOpen = false; };
 		window.addEventListener('click', close);
 		return () => window.removeEventListener('click', close);
 	});
-
-	async function copyPlusCode(code: string) {
-		try {
-			await navigator.clipboard.writeText(code);
-		} catch {
-			return;
-		}
-		plusCodeOpen = true;
-		plusCodeCopied = true;
-		setTimeout(() => (plusCodeCopied = false), 1500);
-	}
 
 	// Swipe-to-cycle-locations: ignored if the gesture started inside a horizontally-scrolling
 	// forecast strip (.cards-scroll) or tab row, so scrolling those is unaffected.
@@ -290,6 +275,11 @@
 		doFetchWeather();
 	});
 
+	/** True when the place name is only coordinates, as when the name lookup failed. */
+	function isCoordinatesName(name: string): boolean {
+		return /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/.test(name.trim());
+	}
+
 	function formatDMS(value: number, positive: string, negative: string): string {
 		const direction = value >= 0 ? positive : negative;
 		const absolute = Math.abs(value);
@@ -318,6 +308,11 @@
 		{@const showRoman = !!data.romanName && romanShownFor === romanKey}
 		{@const name = showRoman ? data.romanName! : data.locationName}
 		{@const subtext = showRoman ? data.romanSubtext : data.locationSubtext}
+		<!-- The second header line always shows: the region and country, or else the coordinates
+		     (the Plus Code when the name itself is already the coordinates) -->
+		{@const region = subtext || (name.includes(',') && !isCoordinatesName(name) ? name.split(',').slice(1).join(',').trim() : '')}
+		{@const plusCode = encodePlusCode(data.latitude, data.longitude)}
+		{@const decimal = `${data.latitude.toFixed(4)}, ${data.longitude.toFixed(4)}`}
 		<!-- Pull indicator -->
 		{#if pullDelta > 0}
 			<div class="pull-indicator" style:transform="translateY({Math.min(pullDelta, 100)}px)">
@@ -337,11 +332,11 @@
 			<div class="header">
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
-				<div class="header-main" bind:this={headerEl} onclick={onLocationClicked}
+				<div class="header-main" bind:this={headerEl}
 					use:longPress={activeSavedLocation ? () => (renaming = true) : null}>
 					<div class="name-row" style:padding-inline-end="{headerActionsWidth}px">
 						<h1 class="location-name">
-							{#if !subtext && name.includes(',')}
+							{#if !subtext && name.includes(',') && !isCoordinatesName(name)}
 								{name.split(',')[0].trim()}
 							{:else}
 								{name}
@@ -357,48 +352,17 @@
 							</button>
 						{/if}
 					</div>
-					{#if subtext || name.includes(',') || isRemoteTimezone(data.utcOffsetSeconds)}
-						<div class="subtext-row">
-							{#if subtext || name.includes(',')}
-								<p class="location-subtext">
-									{subtext || name.split(',').slice(1).join(',').trim()}
-								</p>
-							{/if}
-							{#if isRemoteTimezone(data.utcOffsetSeconds)}
-								<span class="location-time">&#x1F553; {loc(formatLocationCurrentTime(data.utcOffsetSeconds, SUPPORTED_LOCALES[$localeIndex].tag))}</span>
-							{/if}
-						</div>
-					{/if}
-					{#if $showGpsCoordinates}
-						<!-- svelte-ignore a11y_click_events_have_key_events -->
-						<!-- svelte-ignore a11y_no_static_element_interactions -->
-						<div class="coords" onclick={(e) => {
-							e.stopPropagation();
-							const url = `https://www.openstreetmap.org/?mlat=${data.latitude}&mlon=${data.longitude}#map=15/${data.latitude}/${data.longitude}`;
-							window.open(url, '_blank');
-						}}>
-							<!-- dir="ltr" keeps 45°00'21"N intact in RTL languages -->
-							<span dir="ltr">{formatDMS(data.latitude, 'N', 'S')}</span>
-							<span dir="ltr">{formatDMS(data.longitude, 'E', 'W')}</span>
-							<!-- Grid icon: the point's Plus Code (a grid cell) in a tooltip, on hover or tap -->
-							<span class="plus-code">
-								<button type="button" class="plus-code-btn" aria-label={$_('cd_plus_code')} aria-expanded={plusCodeOpen}
-									onclick={(e) => { e.stopPropagation(); plusCodeOpen = !plusCodeOpen; }}
-									use:longPress={() => copyPlusCode(encodePlusCode(data.latitude, data.longitude))}>
-									<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
-										<path d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM8 20H4v-4h4v4zm0-6H4v-4h4v4zm0-6H4V4h4v4zm6 12h-4v-4h4v4zm0-6h-4v-4h4v4zm0-6h-4V4h4v4zm6 12h-4v-4h4v4zm0-6h-4v-4h4v4zm0-6h-4V4h4v4z"/>
-									</svg>
-								</button>
-								<!-- svelte-ignore a11y_click_events_have_key_events -->
-								<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-								<span class="plus-code-tip" class:open={plusCodeOpen || plusCodeCopied} role="tooltip" dir={plusCodeCopied ? 'auto' : 'ltr'}
-									onclick={(e) => e.stopPropagation()}
-									use:longPress={() => copyPlusCode(encodePlusCode(data.latitude, data.longitude))}>
-									{plusCodeCopied ? $_('plus_code_copied') : `Plus Code ${encodePlusCode(data.latitude, data.longitude)}`}
-								</span>
-							</span>
-						</div>
-					{/if}
+					<div class="subtext-row">
+						<LocationDetails
+							place={isCoordinatesName(name) ? (region || undefined) : [name.includes(',') && !subtext ? name.split(',')[0].trim() : name, region].filter(Boolean).join(', ')}
+							coordinates={decimal}
+							coordinatesShown={`${formatDMS(data.latitude, 'N', 'S')}  ${formatDMS(data.longitude, 'E', 'W')}`}
+							{plusCode} lat={data.latitude} lon={data.longitude} />
+						<p class="location-subtext" dir={region ? undefined : 'ltr'}>{region || (isCoordinatesName(name) ? plusCode : decimal)}</p>
+						{#if isRemoteTimezone(data.utcOffsetSeconds)}
+							<span class="location-time">&#x1F553; {loc(formatLocationCurrentTime(data.utcOffsetSeconds, SUPPORTED_LOCALES[$localeIndex].tag))}</span>
+						{/if}
+					</div>
 					<button type="button" class="updated" onclick={(e) => { e.stopPropagation(); doFetchWeather(); }} aria-label={$_('cd_refresh')}>
 						<!-- The fetch time is the phone's; marked as such when the place keeps another time -->
 						{#if isRemoteTimezone(data.utcOffsetSeconds)}
@@ -796,56 +760,10 @@
 		flex-shrink: 0;
 	}
 
-	.coords {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: baseline;
-		column-gap: 12px;
-		font-family: var(--font-display);
-		font-weight: 700;
-		font-size: 20px;
-		color: rgba(255, 255, 255, 0.8);
-		margin-top: 8px;
-		cursor: pointer;
-	}
 
-	.plus-code {
-		position: relative;
-		align-self: center;
-		display: flex;
-	}
 
-	.plus-code-btn {
-		display: flex;
-		padding: 4px;
-		border: none;
-		border-radius: 50%;
-		background: transparent;
-		color: rgba(255, 255, 255, 0.5);
-		cursor: pointer;
-	}
 
-	.plus-code-tip {
-		display: none;
-		position: absolute;
-		bottom: calc(100% + 4px);
-		left: 50%;
-		translate: -50% 0;
-		z-index: 5;
-		padding: 4px 8px;
-		border-radius: 4px;
-		background: #e6e1e5;
-		color: #1c1b1f;
-		font-family: var(--font-body);
-		font-size: 13px;
-		font-weight: 400;
-		white-space: nowrap;
-	}
 
-	.plus-code:hover .plus-code-tip,
-	.plus-code-tip.open {
-		display: block;
-	}
 
 	.updated-phone {
 		flex: none;
@@ -949,7 +867,7 @@
 	}
 
 	/* Long-press targets: no text selection or callout on touch */
-	.pager-arrow, .plus-code-btn, .plus-code-tip {
+	.pager-arrow {
 		-webkit-touch-callout: none;
 		user-select: none;
 	}

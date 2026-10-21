@@ -136,9 +136,10 @@
     <string name="cd_manage_locations">更改位置</string>
     <string name="cd_go_to_current_location">前往当前位置</string>
     <string name="cd_roman_name">在当地文字和拉丁字母之间切换</string>
-    <string name="cd_plus_code">显示 Plus Code</string>
+    <string name="cd_location_details">地点详情</string>
+    <string name="copy">复制</string>
     <string name="current_location">当前位置</string>
-    <string name="plus_code_copied">已复制 Plus Code</string>
+    <string name="copied">已复制</string>
     <string name="cd_add_favorite">添加到收藏</string>
     <string name="cd_remove_favorite">从收藏中移除</string>
     <string name="rename_title">重命名</string>
