@@ -34,6 +34,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import orinasa.njarasoa.maripanatokana.ui.settings.AboutScreen
+import orinasa.njarasoa.maripanatokana.ui.settings.HelpScreen
 import orinasa.njarasoa.maripanatokana.ui.settings.SettingsScreen
 import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
@@ -72,6 +73,7 @@ fun WeatherScreen(
 ) {
     var showSettings by rememberSaveable { mutableStateOf(false) }
     var showAbout by rememberSaveable { mutableStateOf(false) }
+    var showHelp by rememberSaveable { mutableStateOf(false) }
     // Hoisted so the main screen's scroll position survives a trip through Settings/About.
     val mainScrollState = rememberSaveable(saver = ScrollState.Saver) { ScrollState(0) }
 
@@ -108,8 +110,10 @@ fun WeatherScreen(
         androidx.compose.ui.platform.LocalLayoutDirection provides layoutDirection,
     ) {
         MaterialTheme(typography = buildTypography(pairing)) {
-        if (showAbout) {
-            AboutScreen(onBack = { showAbout = false })
+        if (showHelp) {
+            HelpScreen(onBack = { showHelp = false })
+        } else if (showAbout) {
+            AboutScreen(onBack = { showAbout = false }, onOpenHelp = { showHelp = true })
         } else if (showSettings) {
             SettingsScreen(onBack = { showSettings = false }, onOpenAbout = { showAbout = true })
         } else {
@@ -119,6 +123,7 @@ fun WeatherScreen(
                 scrollState = mainScrollState,
                 onOpenSettings = { showSettings = true },
                 onOpenAbout = { showAbout = true },
+                onOpenHelp = { showHelp = true },
             )
         }
         }
@@ -133,6 +138,7 @@ private fun WeatherMainScreen(
     scrollState: ScrollState,
     onOpenSettings: () -> Unit,
     onOpenAbout: () -> Unit,
+    onOpenHelp: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
@@ -433,6 +439,7 @@ private fun WeatherMainScreen(
                             onManageLocationsClicked = viewModel::onManageLocationsClicked,
                             onOpenSettings = onOpenSettings,
                             onOpenAbout = onOpenAbout,
+                            onOpenHelp = onOpenHelp,
                             scrollState = scrollState,
                             weatherSource = weatherSource,
                             isSavedLocation = activeLocationId != null,

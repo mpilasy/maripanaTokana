@@ -7,9 +7,10 @@
 		onCycleFont: () => void;
 		onCycleLanguage: () => void;
 		onOpenAbout: () => void;
+		onOpenHelp: () => void;
 	}
 
-	let { fontName, currentFlag, onCycleFont, onCycleLanguage, onOpenAbout }: Props = $props();
+	let { fontName, currentFlag, onCycleFont, onCycleLanguage, onOpenAbout, onOpenHelp }: Props = $props();
 </script>
 
 <footer class="footer" dir="ltr">
@@ -17,11 +18,15 @@
 		<span class="icon">Aa</span>
 		<span class="name">{fontName.split(' + ')[0]}</span>
 	</button>
-	<!-- "About" opens the About page, which credits the data sources -->
-	<button type="button" class="footer-credits" onclick={onOpenAbout}>
-		<span class="about-link">{$_('about_title')}</span>
+	<!-- Help, and About (which credits the data sources) -->
+	<div class="footer-credits">
+		<span class="links">
+			<button type="button" class="about-link" onclick={onOpenHelp}>{$_('help_title')}</button>
+			<span class="dot">·</span>
+			<button type="button" class="about-link" onclick={onOpenAbout}>{$_('about_title')}</button>
+		</span>
 		<span class="version">v1.5.18</span>
-	</button>
+	</div>
 	<button type="button" class="pill" onclick={onCycleLanguage} aria-label={$_('cd_change_language')}>
 		<span class="flag">{currentFlag}</span>
 	</button>
@@ -82,11 +87,6 @@
 	}
 
 	.footer-credits {
-		cursor: pointer;
-		background: none;
-		border: none;
-		padding: 0;
-		font-family: inherit;
 		flex: 1;
 		min-width: 0;
 		text-align: center;
@@ -96,7 +96,23 @@
 		gap: 2px;
 	}
 
+	.links {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+	}
+
+	.dot {
+		font-size: 10px;
+		color: rgba(255,255,255,0.3);
+	}
+
 	.about-link {
+		background: none;
+		border: none;
+		padding: 2px 4px;
+		font-family: inherit;
+		cursor: pointer;
 		font-size: 10px;
 		line-height: 13px;
 		color: rgba(255,255,255,0.5);

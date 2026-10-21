@@ -222,6 +222,7 @@ internal fun WeatherContent(
     onManageLocationsClicked: () -> Unit = {},
     onOpenSettings: () -> Unit = {},
     onOpenAbout: () -> Unit = {},
+    onOpenHelp: () -> Unit = {},
     weatherSource: WeatherSource = WeatherSource.OPEN_METEO,
     isSavedLocation: Boolean = false,
     onGoToCurrentLocation: () -> Unit = {},
@@ -815,24 +816,27 @@ internal fun WeatherContent(
                         maxLines = 1,
                     )
                 }
-                // "About" (which credits the data sources) + version, centered between the font and the flag;
-                // they wrap rather than push the flag off the screen. Tapping opens About
+                // "Help" and "About" (which credits the data sources) + version, centered between the font and
+                // the flag; they wrap rather than push the flag off the screen
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.weight(1f).clickable(
-                        onClick = onOpenAbout,
-                        role = Role.Button,
-                        onClickLabel = stringResource(R.string.about_title),
-                    ),
+                    modifier = Modifier.weight(1f),
                 ) {
-                    Text(
-                        text = stringResource(R.string.about_title),
-                        fontSize = 10f.s(scale),
-                        lineHeight = 13f.s(scale),
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                        textDecoration = TextDecoration.Underline,
-                        textAlign = TextAlign.Center,
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        listOf(R.string.help_title to onOpenHelp, R.string.about_title to onOpenAbout).forEachIndexed { i, (label, open) ->
+                            if (i > 0) Text(" \u00B7 ", fontSize = 10f.s(scale), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f))
+                            Text(
+                                text = stringResource(label),
+                                fontSize = 10f.s(scale),
+                                lineHeight = 13f.s(scale),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                textDecoration = TextDecoration.Underline,
+                                modifier = Modifier
+                                    .clickable(onClick = open, role = Role.Button)
+                                    .padding(horizontal = 4.dp, vertical = 2.dp),
+                            )
+                        }
+                    }
                     Text(
                         text = "v${BuildConfig.VERSION_NAME} \u2022 ${stringResource(R.string.hash_version, BuildConfig.GIT_HASH)}${if (BuildConfig.DEBUG) "-d" else ""} \u2022 ${BuildConfig.BUILD_TIME}",
                         fontSize = 9f.s(scale),

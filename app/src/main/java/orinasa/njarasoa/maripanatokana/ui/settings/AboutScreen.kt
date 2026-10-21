@@ -144,7 +144,7 @@ private val creditSections = listOf(
 )
 
 @Composable
-fun AboutScreen(onBack: () -> Unit) {
+fun AboutScreen(onBack: () -> Unit, onOpenHelp: () -> Unit) {
     val uriHandler = LocalUriHandler.current
     var openTextRes by rememberSaveable { mutableStateOf<Int?>(null) }
     val licenseRes = openTextRes
@@ -183,6 +183,16 @@ fun AboutScreen(onBack: () -> Unit) {
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 )
                 Spacer(Modifier.height(8.dp))
+                // How to use the app
+                Text(
+                    text = stringResource(R.string.help_title) + " ›",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier
+                        .clickable(role = Role.Button, onClick = onOpenHelp)
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                )
                 Text(
                     text = stringResource(R.string.about_source_code) + " ↗",
                     fontSize = 14.sp,

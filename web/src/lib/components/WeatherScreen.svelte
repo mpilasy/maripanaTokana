@@ -18,6 +18,7 @@
 	import { searchLocations } from '$lib/api/geocodingSearch';
 	import SettingsScreen from './SettingsScreen.svelte';
 	import AboutScreen from './AboutScreen.svelte';
+	import HelpScreen from './HelpScreen.svelte';
 	import { metricPrimary, fontIndex, localeIndex, weatherSource, weatherApiKey, toggleUnits, cycleFont, cycleLanguage } from '$lib/stores/preferences';
 	import { SUPPORTED_LOCALES, localizeDigits } from '$lib/i18n/index';
 	import { fontPairings } from '$lib/fonts';
@@ -39,6 +40,7 @@
 
 	let showSettings = $state(false);
 	let showAbout = $state(false);
+	let showHelp = $state(false);
 
 	const weekdayNames = $derived($json('weekday_names') as string[] | undefined);
 	const monthNames = $derived($json('month_names') as string[] | undefined);
@@ -538,6 +540,7 @@
 				onCycleFont={cycleFont}
 				onCycleLanguage={cycleLanguage}
 				onOpenAbout={() => showAbout = true}
+				onOpenHelp={() => showHelp = true}
 			/>
 
 			<!-- Outside .scroll-area: its mask-image would clip the dialog's backdrop -->
@@ -596,7 +599,11 @@
 {/if}
 
 {#if showAbout}
-	<AboutScreen onBack={() => showAbout = false} />
+	<AboutScreen onBack={() => showAbout = false} onOpenHelp={() => showHelp = true} />
+{/if}
+
+{#if showHelp}
+	<HelpScreen onBack={() => showHelp = false} />
 {/if}
 
 <style>

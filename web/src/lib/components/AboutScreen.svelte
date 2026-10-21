@@ -8,8 +8,8 @@
 	import { SUPPORTED_LOCALES } from '$lib/i18n/index';
 	import { localeIndex } from '$lib/stores/preferences';
 
-	interface Props { onBack: () => void; }
-	let { onBack }: Props = $props();
+	interface Props { onBack: () => void; onOpenHelp: () => void; }
+	let { onBack, onOpenHelp }: Props = $props();
 
 	let deviceRows = $state<DeviceRow[]>([]);
 	onMount(() => {
@@ -23,6 +23,8 @@
 		<span class="version">v{version}</span>
 		<span class="copyright">© 2026 Orinasa Njarasoa</span>
 		<span class="app-license">{$_('about_app_license')}</span>
+		<!-- How to use the app -->
+		<button type="button" class="source-link help-link" onclick={onOpenHelp}>{$_('help_title')} ›</button>
 		<a class="source-link" href="https://github.com/mpilasy/maripanaTokana" target="_blank" rel="noopener">{$_('about_source_code')} ↗</a>
 		<a class="source-link web-link" href="https://maripana.njarasoa.org" target="_blank" rel="noopener">
 			{$_('about_web_version')} ↗
@@ -107,6 +109,13 @@
 		color: white;
 		text-decoration: none;
 		border-radius: 999px;
+	}
+
+	.help-link {
+		background: none;
+		border: none;
+		font-family: inherit;
+		cursor: pointer;
 	}
 
 	.source-link:hover {
