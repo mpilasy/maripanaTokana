@@ -125,7 +125,6 @@
     <string name="alert_show_details">显示详情</string>
     <string name="alert_hide_details">隐藏详情</string>
     <string name="alert_count_title">%1$s 条警报</string>
-    <string name="credits_weather_data">天气数据来自 </string>
     <string name="locations_title">位置</string>
     <string name="locations_search_hint">搜索城市或邮编</string>
     <string name="cd_change_font">更换字体</string>

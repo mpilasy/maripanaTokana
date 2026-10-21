@@ -148,7 +148,6 @@
 	"alert_show_details": "Show details",
 	"alert_hide_details": "Hide details",
 	"alert_count_title": "{count} alerts",
-	"credits_weather_data": "Weather data by ",
 	"locations_title": "Locations",
 	"locations_search_hint": "Search city or zip",
 	"cardinal_directions": [

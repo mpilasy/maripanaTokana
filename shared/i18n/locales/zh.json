@@ -148,7 +148,6 @@
 	"alert_show_details": "显示详情",
 	"alert_hide_details": "隐藏详情",
 	"alert_count_title": "{count} 条警报",
-	"credits_weather_data": "天气数据来自 ",
 	"locations_title": "位置",
 	"locations_search_hint": "搜索城市或邮编",
 	"cardinal_directions": [

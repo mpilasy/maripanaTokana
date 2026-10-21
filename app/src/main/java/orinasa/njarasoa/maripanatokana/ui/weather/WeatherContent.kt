@@ -777,21 +777,6 @@ internal fun WeatherContent(
         }
 
         // Fixed footer
-        val cs = MaterialTheme.colorScheme
-        val linkStyle = SpanStyle(color = cs.onSurface.copy(alpha = 0.5f), textDecoration = TextDecoration.Underline)
-        val (sourceLabel, sourceUrl) = when (weatherSource) {
-            WeatherSource.OPEN_METEO -> "Open-Meteo" to "https://open-meteo.com"
-            WeatherSource.PIRATE_WEATHER -> "Pirate Weather" to "https://pirateweather.net"
-        }
-        val creditText = buildAnnotatedString {
-            withStyle(SpanStyle(color = cs.onSurface.copy(alpha = 0.3f))) {
-                append(stringResource(R.string.credits_weather_data))
-                append(" ")
-            }
-            withLink(LinkAnnotation.Url(sourceUrl)) {
-                withStyle(linkStyle) { append(sourceLabel) }
-            }
-        }
         CompositionLocalProvider(
             androidx.compose.ui.platform.LocalLayoutDirection provides androidx.compose.ui.unit.LayoutDirection.Ltr,
         ) {
@@ -830,8 +815,8 @@ internal fun WeatherContent(
                         maxLines = 1,
                     )
                 }
-                // Credits + hash centered between the font and the flag; they wrap rather than push the flag
-                // off the screen. Tapping opens About (the source link handles its own taps)
+                // "About" (which credits the data sources) + version, centered between the font and the flag;
+                // they wrap rather than push the flag off the screen. Tapping opens About
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.weight(1f).clickable(
@@ -840,7 +825,14 @@ internal fun WeatherContent(
                         onClickLabel = stringResource(R.string.about_title),
                     ),
                 ) {
-                    Text(text = creditText, fontSize = 10f.s(scale), lineHeight = 13f.s(scale), textAlign = TextAlign.Center)
+                    Text(
+                        text = stringResource(R.string.about_title),
+                        fontSize = 10f.s(scale),
+                        lineHeight = 13f.s(scale),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        textDecoration = TextDecoration.Underline,
+                        textAlign = TextAlign.Center,
+                    )
                     Text(
                         text = "v${BuildConfig.VERSION_NAME} \u2022 ${stringResource(R.string.hash_version, BuildConfig.GIT_HASH)}${if (BuildConfig.DEBUG) "-d" else ""} \u2022 ${BuildConfig.BUILD_TIME}",
                         fontSize = 9f.s(scale),

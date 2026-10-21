@@ -125,7 +125,6 @@
     <string name="alert_show_details">عرض التفاصيل</string>
     <string name="alert_hide_details">إخفاء التفاصيل</string>
     <string name="alert_count_title">%1$s تنبيهات</string>
-    <string name="credits_weather_data">بيانات الطقس من </string>
     <string name="locations_title">المواقع</string>
     <string name="locations_search_hint">البحث عن مدينة أو رمز بريدي</string>
     <string name="cd_change_font">تغيير الخط</string>

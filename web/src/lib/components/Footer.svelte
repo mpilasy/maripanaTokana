@@ -1,7 +1,5 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { weatherSource } from '$lib/stores/preferences';
-	import type { WeatherSource } from '$lib/domain/weatherData';
 
 	interface Props {
 		fontName: string;
@@ -12,11 +10,6 @@
 	}
 
 	let { fontName, currentFlag, onCycleFont, onCycleLanguage, onOpenAbout }: Props = $props();
-
-	const SOURCE_INFO: Record<WeatherSource, { label: string; url: string }> = {
-		OPEN_METEO: { label: 'Open-Meteo', url: 'https://open-meteo.com' },
-		PIRATE_WEATHER: { label: 'Pirate Weather', url: 'https://pirateweather.net' },
-	};
 </script>
 
 <footer class="footer" dir="ltr">
@@ -24,16 +17,11 @@
 		<span class="icon">Aa</span>
 		<span class="name">{fontName.split(' + ')[0]}</span>
 	</button>
-	<!-- Tapping the credits opens About; the source link handles its own clicks -->
-	<!-- svelte-ignore a11y_click_events_have_key_events -->
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="footer-credits" onclick={(e) => { if (!(e.target as HTMLElement).closest('a')) onOpenAbout(); }} title={$_('about_title')}>
-		<span class="credit-text">
-			{$_('credits_weather_data')}
-			<a href={SOURCE_INFO[$weatherSource].url} target="_blank" rel="noopener">{SOURCE_INFO[$weatherSource].label}</a>
-		</span>
+	<!-- "About" opens the About page, which credits the data sources -->
+	<button type="button" class="footer-credits" onclick={onOpenAbout}>
+		<span class="about-link">{$_('about_title')}</span>
 		<span class="version">v1.5.17</span>
-	</div>
+	</button>
 	<button type="button" class="pill" onclick={onCycleLanguage} aria-label={$_('cd_change_language')}>
 		<span class="flag">{currentFlag}</span>
 	</button>
@@ -95,6 +83,10 @@
 
 	.footer-credits {
 		cursor: pointer;
+		background: none;
+		border: none;
+		padding: 0;
+		font-family: inherit;
 		flex: 1;
 		min-width: 0;
 		text-align: center;
@@ -104,13 +96,9 @@
 		gap: 2px;
 	}
 
-	.credit-text {
+	.about-link {
 		font-size: 10px;
 		line-height: 13px;
-		color: rgba(255,255,255,0.3);
-	}
-
-	.credit-text a {
 		color: rgba(255,255,255,0.5);
 		text-decoration: underline;
 	}
