@@ -1887,6 +1887,7 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun DetailCard(
     value: String,
@@ -1942,16 +1943,26 @@ internal fun DetailCard(
         ) {
         Column(modifier = Modifier.weight(1f)) {
             if (title != null) {
-                Text(
-                    text = title,
-                    fontSize = 13f.s(scale),
-                    fontFamily = bodyFont,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    // Clear of the corner graphic
-                    modifier = if (cornerContent != null) Modifier.padding(end = 34.dp) else Modifier,
-                )
+                // A title cut short by the card's width shows in full while held
+                var titleCut by remember(title) { mutableStateOf(false) }
+                TooltipBox(
+                    positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                    tooltip = { PlainTooltip { Text(title) } },
+                    state = rememberTooltipState(),
+                    enableUserInput = titleCut,
+                ) {
+                    Text(
+                        text = title,
+                        fontSize = 13f.s(scale),
+                        fontFamily = bodyFont,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        onTextLayout = { titleCut = it.hasVisualOverflow },
+                        // Clear of the corner graphic
+                        modifier = if (cornerContent != null) Modifier.padding(end = 34.dp) else Modifier,
+                    )
+                }
                 Spacer(modifier = Modifier.height(6.dp))
             }
             if (secondaryValue != null) {

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import DualUnitText from './DualUnitText.svelte';
+	import { longPress } from '$lib/actions/longPress';
 
 	interface Props {
 		title?: string;
@@ -22,6 +23,28 @@
 	}
 
 	let { title, value, secondaryValue, subtitle, subtitleSnippet, trailingSnippet, cornerSnippet, dialSnippet, onToggleUnits, unit, secondaryUnit, fillPercent, onClick }: Props = $props();
+
+	// A title cut short by the card's width shows in full while held
+	let titleEl = $state<HTMLElement | null>(null);
+	let titleCut = $state(false);
+	let showFullTitle = $state(false);
+	$effect(() => {
+		const el = titleEl;
+		if (!el) return;
+		const measure = () => { titleCut = el.scrollWidth > el.clientWidth; };
+		measure();
+		const observer = new ResizeObserver(measure);
+		observer.observe(el);
+		return () => observer.disconnect();
+	});
+	$effect(() => {
+		if (!showFullTitle) return;
+		const hide = () => { showFullTitle = false; };
+		const timer = setTimeout(hide, 4000);
+		// The press that opened it is over; the next one anywhere closes it
+		const listen = setTimeout(() => window.addEventListener('pointerdown', hide, { once: true }), 0);
+		return () => { clearTimeout(timer); clearTimeout(listen); window.removeEventListener('pointerdown', hide); };
+	});
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -31,7 +54,11 @@
 	style:background={fillPercent != null ? `linear-gradient(to top, rgba(100, 181, 246, 0.2), rgba(100, 181, 246, 0.1) ${Math.max(0, fillPercent - 10)}%, var(--surface-tile) ${fillPercent}%)` : undefined}>
 	<div class="card-body">
 		{#if title}
-			<span class="card-title" class:beside-corner={cornerSnippet}>{title}</span>
+			<span class="card-title" class:beside-corner={cornerSnippet} bind:this={titleEl} title={titleCut ? title : undefined}
+				use:longPress={titleCut ? () => (showFullTitle = true) : null}>{title}</span>
+			{#if showFullTitle}
+				<span class="full-title" role="tooltip">{title}</span>
+			{/if}
 		{/if}
 		{#if secondaryValue}
 			<DualUnitText
@@ -127,6 +154,20 @@
 		font-weight: 700;
 		color: white;
 		font-feature-settings: var(--font-features);
+	}
+
+	.full-title {
+		position: absolute;
+		top: 8px;
+		left: 8px;
+		right: 8px;
+		z-index: 2;
+		padding: 6px 10px;
+		border-radius: 8px;
+		background: #1A1565;
+		border: 1px solid var(--hairline);
+		color: white;
+		font-size: 13px;
 	}
 
 	.card-subtitle {
