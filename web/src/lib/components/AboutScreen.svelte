@@ -8,8 +8,8 @@
 	import { SUPPORTED_LOCALES } from '$lib/i18n/index';
 	import { localeIndex } from '$lib/stores/preferences';
 
-	interface Props { onBack: () => void; onOpenHelp: () => void; }
-	let { onBack, onOpenHelp }: Props = $props();
+	interface Props { onBack: () => void; onOpenHelp: () => void; languageFlag: string; onCycleLanguage: () => void; }
+	let { onBack, onOpenHelp, languageFlag, onCycleLanguage }: Props = $props();
 
 	let deviceRows = $state<DeviceRow[]>([]);
 	onMount(() => {
@@ -17,7 +17,7 @@
 	});
 </script>
 
-<SettingsPage title={$_('about_title')} {onBack}>
+<SettingsPage title={$_('about_title')} {onBack} {languageFlag} {onCycleLanguage}>
 	<div class="section group identity">
 		<span class="app-name">maripànaTokana</span>
 		<span class="version">v{version}</span>

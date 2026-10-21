@@ -599,11 +599,12 @@
 {/if}
 
 {#if showAbout}
-	<AboutScreen onBack={() => showAbout = false} onOpenHelp={() => showHelp = true} />
+	<AboutScreen onBack={() => showAbout = false} onOpenHelp={() => showHelp = true}
+		languageFlag={SUPPORTED_LOCALES[$localeIndex].flag} onCycleLanguage={cycleLanguage} />
 {/if}
 
 {#if showHelp}
-	<HelpScreen onBack={() => showHelp = false} />
+	<HelpScreen onBack={() => showHelp = false} languageFlag={SUPPORTED_LOCALES[$localeIndex].flag} onCycleLanguage={cycleLanguage} />
 {/if}
 
 <style>

@@ -111,9 +111,9 @@ fun WeatherScreen(
     ) {
         MaterialTheme(typography = buildTypography(pairing)) {
         if (showHelp) {
-            HelpScreen(onBack = { showHelp = false })
+            HelpScreen(onBack = { showHelp = false }, languageFlag = supportedLocales[localeIndex].flag, onCycleLanguage = viewModel::cycleLanguage)
         } else if (showAbout) {
-            AboutScreen(onBack = { showAbout = false }, onOpenHelp = { showHelp = true })
+            AboutScreen(onBack = { showAbout = false }, onOpenHelp = { showHelp = true }, languageFlag = supportedLocales[localeIndex].flag, onCycleLanguage = viewModel::cycleLanguage)
         } else if (showSettings) {
             SettingsScreen(onBack = { showSettings = false }, onOpenAbout = { showAbout = true })
         } else {

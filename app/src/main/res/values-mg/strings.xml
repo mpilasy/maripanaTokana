@@ -178,7 +178,7 @@
     <string name="settings_geocoder_nominatim">Nominatim (OpenStreetMap)</string>
     <string name="settings_geocoder_nominatim_desc">Mandeha amin\'ny dikan-tsoratra rehetra, anisan\'izany ny F-Droid, tsy mila fanalahidy API</string>
     <string name="settings_web_geocoding_info">Ny dikan-tranonkala dia mampiasa Nominatim (OpenStreetMap) amin\'ny geocoding mivadika — tsy mila fanalahidy API.</string>
-    <string name="help_title">Fanampiana</string>
+    <string name="help_title">Anatranatra</string>
     <string name="help_section_places">Toerana sy ny tiana</string>
     <string name="help_q_search">Ahoana no ahitako ny toetrandro any amin\'ny toerana hafa?</string>
     <string name="help_a_search">Tsindrio ny solomaso eo ambony. Soraty ny anaran\'ny tanàna, ny kaody paositra, ny GPS na ny Plus Code, dia tsindrio ny valiny iray. Haseho mandritra ny 12 ora ny toetrandro any amin\'io toerana io. Avy eo dia miverina amin\'ny toerana misy anao ny rindranasa.</string>

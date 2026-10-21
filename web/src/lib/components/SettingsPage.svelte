@@ -12,9 +12,12 @@
 		title: string;
 		onBack: () => void;
 		children: Snippet;
+		/** The language flag at the bottom, as in the main screen's footer: a tap shows the next language. */
+		languageFlag?: string;
+		onCycleLanguage?: () => void;
 	}
 
-	let { title, onBack, children }: Props = $props();
+	let { title, onBack, children, languageFlag, onCycleLanguage }: Props = $props();
 
 	const id = Symbol();
 	onMount(() => {
@@ -42,6 +45,9 @@
 		<h2>{title}</h2>
 	</header>
 	{@render children()}
+	{#if languageFlag && onCycleLanguage}
+		<button type="button" class="page-flag" onclick={onCycleLanguage} aria-label={$_('cd_change_language')}>{languageFlag}</button>
+	{/if}
 </div>
 
 <style>
@@ -105,6 +111,22 @@
 	}
 
 	/* Shared building blocks for pages rendered inside this shell */
+	.page-flag {
+		display: block;
+		margin: 16px auto;
+		padding: 4px 12px;
+		border: none;
+		border-radius: 999px;
+		background: none;
+		font-size: 22px;
+		line-height: 1;
+		cursor: pointer;
+	}
+
+	.page-flag:hover {
+		background: var(--surface-tile);
+	}
+
 	.page :global(.section) {
 		margin-bottom: 24px;
 	}

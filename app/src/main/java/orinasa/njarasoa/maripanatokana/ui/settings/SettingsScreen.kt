@@ -49,6 +49,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -277,6 +278,9 @@ fun SettingsScreen(
 internal fun SettingsPage(
     title: String,
     onBack: () -> Unit,
+    // The language flag at the bottom, as in the main screen's footer: a tap shows the next language
+    languageFlag: String? = null,
+    onCycleLanguage: (() -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
     BackHandler(onBack = onBack)
@@ -312,6 +316,22 @@ internal fun SettingsPage(
             }
             Spacer(Modifier.height(16.dp))
             content()
+            if (languageFlag != null && onCycleLanguage != null) {
+                Text(
+                    text = languageFlag,
+                    fontSize = 22.sp,
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(vertical = 16.dp)
+                        .clip(RoundedCornerShape(50))
+                        .clickable(
+                            onClick = onCycleLanguage,
+                            role = Role.Button,
+                            onClickLabel = stringResource(R.string.cd_change_language),
+                        )
+                        .padding(horizontal = 12.dp, vertical = 4.dp),
+                )
+            }
         }
     }
 }

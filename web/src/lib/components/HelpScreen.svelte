@@ -2,8 +2,8 @@
 	import { _ } from 'svelte-i18n';
 	import SettingsPage from './SettingsPage.svelte';
 
-	interface Props { onBack: () => void; }
-	let { onBack }: Props = $props();
+	interface Props { onBack: () => void; languageFlag: string; onCycleLanguage: () => void; }
+	let { onBack, languageFlag, onCycleLanguage }: Props = $props();
 
 	// How to use the app: short questions and answers; mirrors Android's HelpScreen
 	const sections: { title: string; items: string[] }[] = [
@@ -13,7 +13,7 @@
 	];
 </script>
 
-<SettingsPage title={$_('help_title')} {onBack}>
+<SettingsPage title={$_('help_title')} {onBack} {languageFlag} {onCycleLanguage}>
 	{#each sections as section (section.title)}
 		<div class="section">
 			<div class="section-title">{$_(section.title)}</div>
