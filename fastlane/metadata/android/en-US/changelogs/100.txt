@@ -1,0 +1,1 @@
+- The About and Help pages have the language flag at the top right. Tap it to change the language. The title row of these pages and Settings stays at the top while the page scrolls.

@@ -1,0 +1,1 @@
+- Las páginas Acerca de y Ayuda tienen la bandera del idioma arriba a la derecha. Tócala para cambiar el idioma. La fila del título de estas páginas y de Ajustes se queda arriba al desplazarse.

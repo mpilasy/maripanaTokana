@@ -6,6 +6,11 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.5.20] - 2026-10-21
+- About and Help pages: the language flag at the right end of the title row; a tap shows the next language (Android and web).
+- Settings, About and Help: the title row stays at the top while the page scrolls (Android and web).
+- Malagasy: the Help title is "Anatranatra".
+
 ## [1.5.19] - 2026-10-21
 - Help page: 11 questions and answers in 3 groups (places and favorites; language, font and units; weather data), in all 8 languages. The texts are in `shared/i18n/locales/*.json` (`help_*` keys); the Malagasy text is not reviewed yet (Android and web).
 - Footer: separate "Help" and "About" links. The About page links to Help.

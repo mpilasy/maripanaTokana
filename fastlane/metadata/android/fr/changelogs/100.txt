@@ -1,0 +1,1 @@
+- Les pages À propos et Aide ont le drapeau de langue en haut à droite. Touchez-le pour changer de langue. La ligne de titre de ces pages et des Paramètres reste en haut pendant le défilement.
