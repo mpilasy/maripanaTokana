@@ -1,0 +1,1 @@
+- Nouvelle page Aide : réponses courtes sur les lieux et favoris, la langue, la police, les unités et plus. Ouvrez-la depuis le pied de page ou la page À propos.

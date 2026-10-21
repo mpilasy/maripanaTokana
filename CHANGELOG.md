@@ -6,6 +6,10 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.5.19] - 2026-10-21
+- Help page: 11 questions and answers in 3 groups (places and favorites; language, font and units; weather data), in all 8 languages. The texts are in `shared/i18n/locales/*.json` (`help_*` keys); the Malagasy text is not reviewed yet (Android and web).
+- Footer: separate "Help" and "About" links. The About page links to Help.
+
 ## [1.5.18] - 2026-10-21
 - Footer: "About" (underlined, opens the About page, which credits the data sources) in place of the weather data credit; `credits_weather_data` removed from all 8 languages (Android and web).
 - Android footer: the middle text wraps between the font name and the flag, so a long text (Malagasy) no longer pushes the flag off the screen.

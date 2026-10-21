@@ -1,0 +1,1 @@
+- New Help page: short answers on how to use places and favorites, the language, the font, the units and more. Open it from the footer or the About page.
