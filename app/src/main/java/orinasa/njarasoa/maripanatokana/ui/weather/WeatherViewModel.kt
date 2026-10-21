@@ -431,7 +431,7 @@ class WeatherViewModel @Inject constructor(
 
     /**
      * After a language change, looks the shown place up again in the new language: a favorite takes the new
-     * region and country line (keeping its own name), the GPS place its new name. A place typed in through
+     * region and country line (keeping its own name), the GPS place its new name and line. A place typed in through
      * the advanced override keeps the name it was given.
      */
     private fun relocalizePlaceName() {
@@ -449,7 +449,7 @@ class WeatherViewModel @Inject constructor(
                 setSavedLocationSubtext(favoriteId, subtext)
                 current.copy(locationSubtext = subtext)
             } else {
-                current.copy(locationName = name, romanName = null, romanSubtext = null)
+                current.copy(locationName = name, locationSubtext = subtext, romanName = null, romanSubtext = null)
             }
             publish(favoriteId ?: "gps", updated)
         }
