@@ -830,25 +830,25 @@ internal fun WeatherContent(
                         maxLines = 1,
                     )
                 }
-                Spacer(modifier = Modifier.weight(1f))
-                // Credits + hash centered; tapping opens About (the source link handles its own taps)
+                // Credits + hash centered between the font and the flag; they wrap rather than push the flag
+                // off the screen. Tapping opens About (the source link handles its own taps)
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.clickable(
+                    modifier = Modifier.weight(1f).clickable(
                         onClick = onOpenAbout,
                         role = Role.Button,
                         onClickLabel = stringResource(R.string.about_title),
                     ),
                 ) {
-                    Text(text = creditText, fontSize = 10f.s(scale), lineHeight = 13f.s(scale))
+                    Text(text = creditText, fontSize = 10f.s(scale), lineHeight = 13f.s(scale), textAlign = TextAlign.Center)
                     Text(
                         text = "v${BuildConfig.VERSION_NAME} \u2022 ${stringResource(R.string.hash_version, BuildConfig.GIT_HASH)}${if (BuildConfig.DEBUG) "-d" else ""} \u2022 ${BuildConfig.BUILD_TIME}",
                         fontSize = 9f.s(scale),
                         lineHeight = 12f.s(scale),
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                        textAlign = TextAlign.Center,
                     )
                 }
-                Spacer(modifier = Modifier.weight(1f))
                 // Language flag
                 Text(
                     text = currentFlag,
