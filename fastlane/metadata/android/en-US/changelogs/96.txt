@@ -1,0 +1,3 @@
+- New grid icon in front of the region line: it shows the place, the coordinates and the Plus Code. Tap a line to share it, hold it to copy it.
+- The current location now shows its region and country.
+- Hold a card title that is cut short to see all of it. Better Malagasy, Arabic, Hindi, Nepali and Chinese texts.

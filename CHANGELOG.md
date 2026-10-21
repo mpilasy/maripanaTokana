@@ -6,6 +6,14 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.5.16] - 2026-10-21
+- Location details: a grid icon in front of the second header line opens a small light card with the place, the coordinates (degrees, minutes and seconds) and the full Plus Code. A tap on a line opens the share sheet with the value and a Google Maps link; holding a line copies the value (coordinates in decimal degrees). A tap on the city name no longer shows the coordinates (Android and web).
+- The second header line always shows: the region and country, or the decimal coordinates when they are not known (the Plus Code when the name itself is coordinates).
+- Android: the current GPS location shows its region and country again, as on web.
+- Holding a card title that is cut short shows the full title (Android and web).
+- Release builds shrink unused resources (standard APK about 5% smaller).
+- Translations: derived alert texts in Arabic, Hindi, Nepali and Chinese; Malagasy review (the user's own words restored, wrong words fixed, "toetrandro" and "Maripàna" used everywhere, dew point "Maripàna manando").
+
 ## [1.5.15] - 2026-10-20
 - Each GitHub release has two APKs: `maripanaTokana-vX.apk` (F-Droid version, the APK that F-Droid publishes) and `maripanaTokana-standard-vX.apk` (standard version, Google Play Services location). Both have the same app ID and signing key.
 - README: Obtainium badge, and a description of the two APKs.

@@ -1,0 +1,3 @@
+- Nouvelle icône de grille devant la ligne de région : elle affiche le lieu, les coordonnées et le Plus Code. Touchez une ligne pour la partager, maintenez-la pour la copier.
+- La position actuelle affiche maintenant sa région et son pays.
+- Maintenez un titre de carte coupé pour le voir en entier. Textes malgaches, arabes, hindis, népalais et chinois améliorés.
