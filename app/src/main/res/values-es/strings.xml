@@ -130,7 +130,7 @@
     <string name="locations_search_hint">Buscar ciudad o código postal</string>
     <string name="cd_change_font">Cambiar fuente</string>
     <string name="cd_change_language">Cambiar idioma</string>
-    <string name="cd_toggle_units">Toggle units</string>
+    <string name="cd_toggle_units">Cambiar unidades</string>
     <string name="cd_share">Compartir</string>
     <string name="cd_refresh">Actualizar</string>
     <string name="cd_manage_locations">Cambiar ubicación</string>
