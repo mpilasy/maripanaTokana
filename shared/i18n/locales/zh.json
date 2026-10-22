@@ -113,7 +113,6 @@
 	"outlook_snow_from": "{time} 起有雪",
 	"outlook_snow_until": "雪将持续到约 {time}",
 	"outlook_snow_all_day": "未来 24 小时有雪",
-	"outlook_dry": "未来 24 小时无雨",
 	"air_quality_us_aqi": "美国AQI",
 	"air_quality_eu_aqi": "欧洲AQI",
 	"air_quality_pm2_5": "PM2.5",

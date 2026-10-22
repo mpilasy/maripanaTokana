@@ -90,7 +90,6 @@
     <string name="outlook_snow_from">%1$s से बर्फबारी</string>
     <string name="outlook_snow_until">लगभग %1$s तक बर्फबारी</string>
     <string name="outlook_snow_all_day">अगले २४ घंटे बर्फबारी</string>
-    <string name="outlook_dry">अगले २४ घंटे में बारिश नहीं</string>
     <string name="air_quality_us_aqi">अमेरिकी AQI</string>
     <string name="air_quality_eu_aqi">यूरोपीय AQI</string>
     <string name="air_quality_pm2_5">पीएम2.5</string>

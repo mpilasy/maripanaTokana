@@ -90,7 +90,6 @@
     <string name="outlook_snow_from">Nieve desde las %1$s</string>
     <string name="outlook_snow_until">Nieve hasta las %1$s aprox.</string>
     <string name="outlook_snow_all_day">Nieve durante las próximas 24 horas</string>
-    <string name="outlook_dry">Sin lluvia en las próximas 24 horas</string>
     <string name="air_quality_us_aqi">AQI EE. UU.</string>
     <string name="air_quality_eu_aqi">AQI UE</string>
     <string name="air_quality_pm2_5">PM2.5</string>

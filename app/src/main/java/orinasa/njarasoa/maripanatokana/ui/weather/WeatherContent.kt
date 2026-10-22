@@ -1066,10 +1066,11 @@ internal fun SectionCard(
     }
 }
 
-/** One line on what the next 24 hours hold for rain or snow. */
+/** One line on rain or snow coming in the next 24 hours; nothing when they stay dry. */
 @Composable
 private fun GlanceOutlook(data: WeatherData, localizeDigits: (String) -> String) {
-    val outlook = remember(data.hourlyForecast, data.minutelyForecast) { PrecipOutlook.from(data.hourlyForecast, data.minutelyForecast) } ?: return
+    val outlook = remember(data.hourlyForecast, data.minutelyForecast) { PrecipOutlook.from(data.hourlyForecast, data.minutelyForecast) }
+        ?.takeIf { it.kind != PrecipOutlook.Kind.DRY } ?: return
     val hourFormat = remember(data.utcOffsetSeconds) {
         SimpleDateFormat("HH:mm", Locale.US).apply { timeZone = buildLocationTimeZone(data.utcOffsetSeconds) }
     }
@@ -1078,7 +1079,7 @@ private fun GlanceOutlook(data: WeatherData, localizeDigits: (String) -> String)
         PrecipOutlook.Kind.STARTS -> stringResource(if (outlook.snow) R.string.outlook_snow_from else R.string.outlook_rain_from, time)
         PrecipOutlook.Kind.STOPS -> stringResource(if (outlook.snow) R.string.outlook_snow_until else R.string.outlook_rain_until, time)
         PrecipOutlook.Kind.ALL_DAY -> stringResource(if (outlook.snow) R.string.outlook_snow_all_day else R.string.outlook_rain_all_day)
-        PrecipOutlook.Kind.DRY -> stringResource(R.string.outlook_dry)
+        PrecipOutlook.Kind.DRY -> return
     }
     val scale = LocalScale.current
     Text(

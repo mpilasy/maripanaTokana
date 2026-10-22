@@ -113,7 +113,6 @@
 	"outlook_snow_from": "ثلوج ابتداءً من {time}",
 	"outlook_snow_until": "ثلوج حتى حوالي {time}",
 	"outlook_snow_all_day": "ثلوج خلال الـ ٢٤ ساعة القادمة",
-	"outlook_dry": "لا أمطار خلال الـ ٢٤ ساعة القادمة",
 	"air_quality_us_aqi": "AQI الأمريكي",
 	"air_quality_eu_aqi": "AQI الأوروبي",
 	"air_quality_pm2_5": "الجسيمات الدقيقة PM2.5",

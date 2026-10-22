@@ -113,7 +113,6 @@
 	"outlook_snow_from": "Neige à partir de {time}",
 	"outlook_snow_until": "Neige jusque vers {time}",
 	"outlook_snow_all_day": "Neige pendant les prochaines 24 heures",
-	"outlook_dry": "Pas de pluie dans les prochaines 24 heures",
 	"air_quality_us_aqi": "AQI US",
 	"air_quality_eu_aqi": "AQI UE",
 	"air_quality_pm2_5": "PM2.5",

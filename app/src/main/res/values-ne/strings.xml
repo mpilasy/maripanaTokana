@@ -90,7 +90,6 @@
     <string name="outlook_snow_from">%1$s देखि हिमपात</string>
     <string name="outlook_snow_until">करिब %1$s सम्म हिमपात</string>
     <string name="outlook_snow_all_day">अर्को २४ घण्टा हिमपात</string>
-    <string name="outlook_dry">अर्को २४ घण्टामा वर्षा छैन</string>
     <string name="air_quality_us_aqi">अमेरिकी AQI</string>
     <string name="air_quality_eu_aqi">युरोपेली AQI</string>
     <string name="air_quality_pm2_5">PM2.5</string>

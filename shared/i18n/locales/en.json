@@ -113,7 +113,6 @@
 	"outlook_snow_from": "Snow from {time}",
 	"outlook_snow_until": "Snow until about {time}",
 	"outlook_snow_all_day": "Snow for the next 24 hours",
-	"outlook_dry": "No rain in the next 24 hours",
 	"air_quality_us_aqi": "US AQI",
 	"air_quality_eu_aqi": "EU AQI",
 	"air_quality_pm2_5": "PM2.5",

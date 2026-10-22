@@ -27,16 +27,16 @@
 	// Half a day at a glance: the first forecast hour, 6 hours later and 12 hours later
 	let nextHours = $derived([0, 6, 12].map((i) => data.hourlyForecast[i]).filter((h) => h != null));
 
-	// One line on what the next 24 hours hold for rain or snow
+	// One line on rain or snow coming in the next 24 hours; nothing when they stay dry
 	let outlook = $derived.by(() => {
 		const o = precipOutlook(data.hourlyForecast, data.minutelyForecast ?? []);
-		if (!o) return '';
+		if (!o || o.kind === 'dry') return '';
 		const kind = o.snow ? 'snow' : 'rain';
 		if (o.kind === 'starts' || o.kind === 'stops') {
 			const time = loc(formatHourAtLocation(o.time, data.utcOffsetSeconds));
 			return $_(o.kind === 'starts' ? `outlook_${kind}_from` : `outlook_${kind}_until`, { values: { time } });
 		}
-		return o.kind === 'dry' ? $_('outlook_dry') : $_(`outlook_${kind}_all_day`);
+		return $_(`outlook_${kind}_all_day`);
 	});
 
 	function isNightAt(time: number): boolean {

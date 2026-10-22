@@ -90,7 +90,6 @@
     <string name="outlook_snow_from">Snow from %1$s</string>
     <string name="outlook_snow_until">Snow until about %1$s</string>
     <string name="outlook_snow_all_day">Snow for the next 24 hours</string>
-    <string name="outlook_dry">No rain in the next 24 hours</string>
     <string name="air_quality_us_aqi">US AQI</string>
     <string name="air_quality_eu_aqi">EU AQI</string>
     <string name="air_quality_pm2_5">PM2.5</string>
