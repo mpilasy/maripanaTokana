@@ -24,8 +24,8 @@
 	let tempDual = $derived(data.temperature.displayDualMixed(metricPrimary));
 	let maxDual = $derived(data.tempMax.displayDual(metricPrimary));
 	let minDual = $derived(data.tempMin.displayDual(metricPrimary));
-	// Three points of the coming day: the first forecast hour, 4 hours later and 8 hours later
-	let nextHours = $derived([0, 4, 8].map((i) => data.hourlyForecast[i]).filter((h) => h != null));
+	// Half a day at a glance: the first forecast hour, 6 hours later and 12 hours later
+	let nextHours = $derived([0, 6, 12].map((i) => data.hourlyForecast[i]).filter((h) => h != null));
 
 	// One line on what the next 24 hours hold for rain or snow
 	let outlook = $derived.by(() => {

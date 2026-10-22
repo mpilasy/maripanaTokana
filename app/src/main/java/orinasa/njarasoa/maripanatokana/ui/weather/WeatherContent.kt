@@ -1090,10 +1090,10 @@ private fun GlanceOutlook(data: WeatherData, localizeDigits: (String) -> String)
     )
 }
 
-/** Three points of the coming day: the first forecast hour, 4 hours later and 8 hours later. */
+/** Half a day at a glance: the first forecast hour, 6 hours later and 12 hours later. */
 @Composable
 private fun NextHoursStrip(data: WeatherData, metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
-    val hours = listOf(0, 4, 8).mapNotNull { data.hourlyForecast.getOrNull(it) }
+    val hours = listOf(0, 6, 12).mapNotNull { data.hourlyForecast.getOrNull(it) }
     if (hours.isEmpty()) return
     val hourFormat = remember(data.utcOffsetSeconds) {
         SimpleDateFormat("HH:mm", Locale.US).apply { timeZone = buildLocationTimeZone(data.utcOffsetSeconds) }
