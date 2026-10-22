@@ -1,0 +1,2 @@
+- La carte principale affiche la météo de la prochaine heure, 6 heures plus tard et 12 heures plus tard.
+- La ligne de pluie ou de neige s'affiche seulement quand de la pluie ou de la neige arrive.

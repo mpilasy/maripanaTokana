@@ -1,0 +1,2 @@
+- The main card shows the weather for the next hour, 6 hours later and 12 hours later.
+- The rain or snow line shows only when rain or snow is coming.

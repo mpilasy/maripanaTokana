@@ -1,0 +1,2 @@
+- La tarjeta principal muestra el tiempo de la próxima hora, 6 horas después y 12 horas después.
+- La línea de lluvia o nieve solo se muestra cuando se acerca lluvia o nieve.
