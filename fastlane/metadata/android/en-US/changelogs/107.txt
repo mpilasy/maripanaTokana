@@ -1,0 +1,1 @@
+- Weather alerts in Europe (MeteoAlarm): area names now match only as whole words. A short name no longer matches inside a longer one, so alerts for another area (for example "Ain" inside "Maine-et-Loire") no longer show.

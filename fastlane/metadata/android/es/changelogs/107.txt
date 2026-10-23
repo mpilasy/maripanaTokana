@@ -1,0 +1,1 @@
+- Alertas meteorológicas en Europa (MeteoAlarm): los nombres de zona ahora solo coinciden como palabras completas. Un nombre corto ya no coincide dentro de uno más largo, así que ya no aparecen alertas de otra zona (por ejemplo, "Ain" dentro de "Maine-et-Loire").

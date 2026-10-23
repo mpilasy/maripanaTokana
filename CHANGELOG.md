@@ -6,6 +6,10 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.5.27] - 2026-10-23
+- MeteoAlarm alerts: area names match only as whole words, so a short name no longer matches inside a longer one ("Ain" inside "Maine-et-Loire") (Android and web). Taken from the old `jules/regional-alerts` branch, with a word match that also works for Greek and Cyrillic names.
+- README: screenshots in 4 languages and an updated feature list.
+
 ## [1.5.26] - 2026-10-23
 - New F-Droid screenshots in all 8 languages: version 1.5.25 at Ambila Lemaitso, four per language.
 - The changelog repeats the license change from 1.5.25, because F-Droid skips that version.

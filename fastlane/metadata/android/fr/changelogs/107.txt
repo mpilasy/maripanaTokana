@@ -1,0 +1,1 @@
+- Alertes météo en Europe (MeteoAlarm) : les noms de zone ne correspondent plus que sur des mots entiers. Un nom court ne correspond plus à l'intérieur d'un nom plus long, donc les alertes d'une autre zone (par exemple « Ain » dans « Maine-et-Loire ») ne s'affichent plus.
