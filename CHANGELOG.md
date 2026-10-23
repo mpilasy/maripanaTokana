@@ -6,6 +6,9 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.5.25] - 2026-10-23
+- License: GPL-3.0-or-later in place of MIT. `LICENSE` has the full GPL v3 text; the About page, README, F-Droid descriptions and F-Droid metadata say so in all 8 languages. Versions up to 1.5.24 stay under MIT.
+
 ## [1.5.24] - 2026-10-22
 - Hero card: rain or snow and air quality fill the space beside the °F and high/low lines. Air quality shows only when its level is not good, with the US and EU indices and the level badge (Android and web).
 - Hero card: four hour tiles, at the first forecast hour and every 4 hours after it, up to 12 hours later (Android and web).

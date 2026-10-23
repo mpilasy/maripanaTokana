@@ -1,0 +1,1 @@
+- Nouvelle licence : à partir de cette version, maripànaTokana est un logiciel libre sous licence GNU GPL, version 3 ou ultérieure. Les versions jusqu'à 1.5.24 restent sous licence MIT.
