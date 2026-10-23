@@ -6,6 +6,10 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.5.26] - 2026-10-23
+- New F-Droid screenshots in all 8 languages: version 1.5.25 at Ambila Lemaitso, four per language.
+- The changelog repeats the license change from 1.5.25, because F-Droid skips that version.
+
 ## [1.5.25] - 2026-10-23
 - License: GPL-3.0-or-later in place of MIT. `LICENSE` has the full GPL v3 text; the About page, README, F-Droid descriptions and F-Droid metadata say so in all 8 languages. Versions up to 1.5.24 stay under MIT.
 

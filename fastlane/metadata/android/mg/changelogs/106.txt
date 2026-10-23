@@ -1,0 +1,2 @@
+- Sary vaovao ho an'ny fivarotana amin'ireo fiteny 8.
+- Fahazoan-dalana: hatramin'ny 1.5.25, rindrankajy malalaka ny maripànaTokana, fahazoan-dalana GNU GPL v3 na vaovao kokoa. Mbola MIT ny dikan-teny hatramin'ny 1.5.24.

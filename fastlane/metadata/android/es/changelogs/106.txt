@@ -1,0 +1,2 @@
+- Nuevas capturas de pantalla para la tienda en los 8 idiomas.
+- Licencia: desde la 1.5.25, maripànaTokana es software libre bajo la licencia GNU GPL, versión 3 o posterior. Las versiones hasta la 1.5.24 siguen bajo la licencia MIT.
