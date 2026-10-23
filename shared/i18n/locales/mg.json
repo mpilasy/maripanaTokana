@@ -191,7 +191,7 @@
 	},
 	"android_only": {
 		"widget_description": "Toetrandro ankehitriny miaraka amin'ny maripàna roa sosony",
-		"widget_description_large": "Antsipiriany momba ny toetrandro: tsapa, hamandoana, rivotra ary ambany/ambony",
+		"widget_description_large": "Antsipiriany momba ny toetrandro: tsapa, hamandoana, rivotra ary iva/avo",
 		"detail_no_precip": "Tsy misy",
 		"visibility_km": "%.1f km",
 		"visibility_mi": "%.2f mi",
@@ -203,7 +203,7 @@
 		"widget_feels_like": "Ohatry ny",
 		"widget_humidity": "Hamandoana",
 		"widget_wind": "Rivotra",
-		"widget_min_max": "Ambany {min_val} ({min_unit}) · Ambony {max_val} ({max_unit})",
+		"widget_min_max": "Iva {min_val} ({min_unit}) · Avo {max_val} ({max_unit})",
 		"acquiring_location": "Aiza isika?"
 	},
 	"cd_change_font": "Ovay ny endri-tsoratra",
@@ -271,7 +271,7 @@
 	"help_a_place_details": "Tsindrio ny kisary makarakara eo alohan'ny faritra sy ny firenena. Misy sokajy maneho ny toerana, ny GPS ary ny Plus Code. Tsindrio ny andalana iray mba hanokafana ny toerana amin'ny sarintany. Tazomy ny andalana iray mba handikana azy.",
 	"help_section_display": "Fiteny, endri-tsoratra ary venty",
 	"help_q_language": "Ahoana no hanovako ny fiteny?",
-	"help_a_language": "Tsindrio ny saina eo ambany sy ankavian'ny efijery. Isaky ny manindry ianao dia miseho ny fiteny manaraka: malagasy, arabo, anglisy, espaniola, frantsay, hindi, nepali ary sinoa.",
+	"help_a_language": "Tsindrio ny saina eo ambany sy ankavanan'ny efijery. Isaky ny manindry ianao dia miseho ny fiteny manaraka: malagasy, arabo, anglisy, espaniola, frantsay, hindi, nepali ary sinoa.",
 	"help_q_font": "Ahoana no hanovako ny endri-tsoratra?",
 	"help_a_font": "Tsindrio ny anaran'ny endri-tsoratra eo ambany ankavian'ny efijery. Isaky ny manindry ianao dia miseho ny endri-tsoratra manaraka.",
 	"help_q_units": "Ahoana no hanovako ny venty?",

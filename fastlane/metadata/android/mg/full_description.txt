@@ -1,29 +1,41 @@
-maripànaTokana dia fampiharana toetrandro iray milaza ny mombamomba ny toetry ny andro amin'izao fotoana izao, ny vinany ho an'ny ora vitsivitsy manaraka, ary ny vinanin-toetrandro 10 andro manaraka koa.
+maripànaTokana dia fampiharana toetrandro ho an'ny Android. Aseho miaraka amin'ny maridrefy metrika sy mpanjanaka ny sanda tsirairay, ka tsy mila manova ianao. Azo jerena ihany koa amin'ny tranonkala ao amin'ny maripana.njarasoa.org, tsy mila apetraka.
 
-Azo jerena ihany koa amin'ny fampiharana Web (tsy mila apetraka) ao amin'ny maripana.njarasoa.org.
+<b>Ny toetrandro indray mitopy maso:</b>
+• Sokajy voalohany: ny toetrandro ankehitriny, ny maripàna, ny maripàna avo sy ny iva anio, ny orana na oram-panala raha hiraraka, ny hadion'ny rivotra raha tsy tsara, ary ny toetrandro amin'ny ora vitsivitsy manaraka
+• Pejy tokana mikodina: eo ambanin'ny sokajy voalohany, misokatra foana ny sokajy hafa rehetra
+• Isan'ora sy ny folo andro manaraka, misy tabilao: Toetrandro, Orana, Rivotra, Tsindry Atmosferika, Tara-masoandro ary Hadion'ny rivotra, samy misy sary ankapobeny
+• Orana isa-minitra raha misy orana na oram-panala hiraraka
+• Izao sy Masoandro sy rivotra: ohatry ny, rivotra sy tadio miaraka amin'ny fiaviny, tsindry atmosferika, hamandoana sy maripàna manando, tahan'ny tara-masoandro, hadion'ny rivotra (AQI US sy EU), tazana, fiposahan'ny masoandro sy ny filentehany
+• Asa sy lalao: fanatanjahantena, fanahazan-damba ary aro-masoandro
+• Sary toetrandro Meteocons, misy ho an'ny andro sy ho an'ny alina
 
-<b>Ny mampiavaka azy:</b>
-• Tarehimarika toetrandro avy amin'ny Open-Meteo (tsy ilana ny API key)
-• Fampisehoana marirefy roa miaraka: metrika sy mpanjanaka aseho miaraka
-• Teny 8: Malagasy, Arabo, Anglisy, Espaniola, Frantsay, Hindi, Nepali, Sinoa
-• Safidy fonts 22
-• Fampisehoana isa arakaraky ny teny (Araba, Hindi, Nepali)
-• Widgets roa amin'ny fidirana (kely sy lehibe)
-• Toeran-gavina miaraka amin'ny vaovao sy lany andro
-• Fanavaozana ho azy ny tarehimarika rehefa tonga ny vaovao
-• Mahavita manao Pull-to-Refresh
+<b>Maridrefy:</b>
+• Aseho miaraka amin'ny maridrefy metrika sy mpanjanaka ny sanda tsirairay
+• Tsindrio ny sanda iray mba hampifamadika ny maridrefy zokiny
 
-<b>Fampahalalana ny toetrandro:</b>
-• Hamehana miaraka amin'ny izay tsapa sy ambany-ambony
-• Tsindry, rano aman'ny taha-tsindron'ny hamadoana
-• Hafanana sy fandehan'ny rivotra miaraka amin'ny tondro
-• Hamafisan'ny UV
-• Ranonorana (rano orana na mandry)
-• Halaviran'izay tazana
-• Oran'ny masoandro miposaka sy masoandro mody
+<b>Angona sy filazana momba ny toetrandro:</b>
+• Toetrandro avy amin'ny Open-Meteo (tsy mila fanalahidy API) na Pirate Weather (miaraka amin'ny fanalahidy API anao manokana)
+• Filazana momba ny toetrandro avy amin'ny loharano 7: NWS, NHC, MeteoAlarm, JMA, ECCC, BOM ary GDACS. Azonao vonoina tsirairay ireo loharano ireo
+• Sintomy midina ny efijery mba hanavaozana. Manavao ho azy koa ny fampiharana rehefa efa lany andro ny angona
 
-<b>Fitsinjovana ny fiainan'ny tsirairay:</b>
-• Tsy misy dokam-barotra na fitahirizana ny momba ny mpampiasa
-• Ny hangalana ny toetrandro fotsiny no hampiasana ny toeran-gavina
-• Tsy misy zavatra fantatra tahirizina momba ny mpampiasa
-• GNU GPL v3 na vaovao kokoa
+<b>Toerana:</b>
+• Fitadiavana amin'ny anaran-tanàna, kaody paositra, GPS na Plus Code
+• Tadidy ny toerana tiana ary ahisaka ny efijery mba hijerena ny manaraka
+• Sokajy mampiseho ny antsipirian'ny toerana: ny GPS sy ny Plus Code
+
+<b>Fiteny sy fampisehoana:</b>
+• Fiteny 8: malagasy, arabo, anglisy, espaniola, frantsay, hindi, nepali ary sinoa. Tsindrio ny saina mba hanovana ny fiteny
+• Isa arakaraka ny teny ho an'ny arabo, hindi ary nepali
+• Fampisehoana avy ankavanana miankavia ho an'ny arabo
+• Endri-tsoratra 22 azo safidiana
+• Zaraina ho sary ny karatra rehetra
+• Pejy Anatranatra sy Mombamomba
+
+<b>Widgets:</b>
+• Widgets roa eo amin'ny efijery fandraisana: kely (4x1) sy lehibe (4x2)
+
+<b>Fitsinjovana ny fiainana manokan'ny tsirairay:</b>
+• Ny hangalana ny toetrandro fotsiny no hampiasana ny toerana misy anao
+• Tsy misy kaonty, tsy misy dokam-barotra, tsy misy fanaraha-maso
+• Tsy misy angona manokana alaina
+• Rindrankajy malalaka (GNU GPL v3 na vaovao kokoa)

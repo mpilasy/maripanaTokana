@@ -191,7 +191,7 @@
     <string name="help_a_place_details">Tsindrio ny kisary makarakara eo alohan\'ny faritra sy ny firenena. Misy sokajy maneho ny toerana, ny GPS ary ny Plus Code. Tsindrio ny andalana iray mba hanokafana ny toerana amin\'ny sarintany. Tazomy ny andalana iray mba handikana azy.</string>
     <string name="help_section_display">Fiteny, endri-tsoratra ary venty</string>
     <string name="help_q_language">Ahoana no hanovako ny fiteny?</string>
-    <string name="help_a_language">Tsindrio ny saina eo ambany sy ankavian\'ny efijery. Isaky ny manindry ianao dia miseho ny fiteny manaraka: malagasy, arabo, anglisy, espaniola, frantsay, hindi, nepali ary sinoa.</string>
+    <string name="help_a_language">Tsindrio ny saina eo ambany sy ankavanan\'ny efijery. Isaky ny manindry ianao dia miseho ny fiteny manaraka: malagasy, arabo, anglisy, espaniola, frantsay, hindi, nepali ary sinoa.</string>
     <string name="help_q_font">Ahoana no hanovako ny endri-tsoratra?</string>
     <string name="help_a_font">Tsindrio ny anaran\'ny endri-tsoratra eo ambany ankavian\'ny efijery. Isaky ny manindry ianao dia miseho ny endri-tsoratra manaraka.</string>
     <string name="help_q_units">Ahoana no hanovako ny venty?</string>
@@ -230,7 +230,7 @@
     <string name="device_installer">Napetraka avy amin\'ny</string>
     <string name="device_touch">Teboka azo kasihina</string>
     <string name="widget_description">Toetrandro ankehitriny miaraka amin\'ny maripàna roa sosony</string>
-    <string name="widget_description_large">Antsipiriany momba ny toetrandro: tsapa, hamandoana, rivotra ary ambany/ambony</string>
+    <string name="widget_description_large">Antsipiriany momba ny toetrandro: tsapa, hamandoana, rivotra ary iva/avo</string>
     <string name="detail_no_precip">Tsy misy</string>
     <string name="visibility_km" formatted="false">%.1f km</string>
     <string name="visibility_mi" formatted="false">%.2f mi</string>
@@ -242,7 +242,7 @@
     <string name="widget_feels_like">Ohatry ny</string>
     <string name="widget_humidity">Hamandoana</string>
     <string name="widget_wind">Rivotra</string>
-    <string name="widget_min_max">Ambany %1$s (%2$s) · Ambony %3$s (%4$s)</string>
+    <string name="widget_min_max">Iva %1$s (%2$s) · Avo %3$s (%4$s)</string>
     <string name="acquiring_location">Aiza isika?</string>
     <string-array name="weekday_names">
         <item>Alahady</item>
