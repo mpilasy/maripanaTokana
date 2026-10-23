@@ -1,6 +1,6 @@
 # maripànaTokana - Design & Implementation Guide
 
-**maripànaTokana** (Malagasy for "a single thermometer") is a phone-only Android weather app that displays current conditions, hourly forecasts, 7-day forecasts with horizontal scrolling trend charts, 48-hour Air Quality trend charts, 7-day UV trend charts, and multi-location saved places. Every measurement displays both metric and imperial units simultaneously.
+**maripànaTokana** (Malagasy for "a single thermometer") is a phone-only Android weather app. It shows current conditions, an hourly forecast, a 10-day forecast, and saved places. Both forecasts have the same tabs: Conditions, Precipitation, Wind, Pressure, UV, and Air quality. Each tab shows a row of cards and a trend chart. The app also has Help and About pages. Every measurement shows metric and imperial units together.
 
 It can be surfaced to the home screen via 4x1 and 4x2 Glance home screen widgets.
 
@@ -17,7 +17,7 @@ There is also a web PWA version built with SvelteKit. See [`web/docs/DESIGN.md`]
 5. [Domain Models](#5-domain-models)
 6. [Data Layer (API & Repositories)](#6-data-layer-api--repositories)
 7. [Dependency Injection](#7-dependency-injection)
-8. [UI Layer & Accordion Behavior](#8-ui-layer--accordion-behavior)
+8. [UI Layer & Free-Scroll Layout](#8-ui-layer--free-scroll-layout)
 9. [Internationalization (i18n)](#9-internationalization-i18n)
 10. [Font System](#10-font-system)
 11. [Widgets](#11-widgets)
@@ -35,24 +35,26 @@ There is also a web PWA version built with SvelteKit. See [`web/docs/DESIGN.md`]
 
 | Component | Technology | Version |
 |-----------|-----------|---------|
-| Language | Kotlin | 2.2.10 |
+| Language | Kotlin | 2.2.21 |
 | Build system | Gradle + AGP | 9.2.1 |
-| UI framework | Jetpack Compose | BOM 2024.09.00 |
-| Widget framework | Glance | 1.1.1 |
-| Dependency injection | Hilt | 2.59 |
+| UI framework | Jetpack Compose | BOM 2026.06.01 |
+| Widget framework | Glance | 1.2.0 |
+| Dependency injection | Hilt | 2.60.1 |
 | Networking | Retrofit + OkHttp | 2.11.0 / 4.12.0 |
 | Serialization | Kotlinx Serialization | 1.7.3 |
-| Location | Google Play Services (Standard) / LocationManager (F-Droid) | 21.3.0 |
-| Background work | WorkManager | 2.10.0 |
-| Permissions | Accompanist Permissions (Standard) | 0.36.0 |
+| Location | Google Play Services (Standard) / LocationManager (F-Droid) | 21.4.0 |
+| Background work | WorkManager | 2.12.0 |
+| Permissions | Accompanist Permissions (Standard) | 0.37.3 |
 | Min SDK | Android 7.0 (API 24) | |
 | Target SDK | Android 16 (API 36) | |
 
-**Weather API:** [Open-Meteo](https://open-meteo.com) — free, no API key required (default).
+**Weather API:** [Open-Meteo](https://open-meteo.com) (default, no API key) and [Pirate Weather](https://pirateweather.net) (optional, the user enters their own API key).
 
 ---
 
 ## 2. Project Structure
+
+The tree below is abridged. It shows the main files only.
 
 ```
 maripanaTokana/
@@ -71,10 +73,15 @@ maripanaTokana/
 │   │   │   │   │   ├── OpenMeteoAirQualityApiService.kt # AQI & Pollen Retrofit interface
 │   │   │   │   │   ├── OpenMeteoResponse.kt     # Weather JSON response data classes
 │   │   │   │   │   ├── OpenMeteoMapper.kt       # Weather API response -> domain model
-│   │   │   │   │   └── WmoWeatherCode.kt        # Weather code -> emoji/description
+│   │   │   │   │   ├── PirateWeatherApiService.kt / PirateWeatherMapper.kt # Pirate Weather API + mapper
+│   │   │   │   │   ├── NominatimApiService.kt   # Nominatim geocoding API
+│   │   │   │   │   ├── NwsApiService.kt / GdacsApiService.kt / MeteoAlarmApiService.kt
+│   │   │   │   │   ├── JmaApiService.kt / EcccApiService.kt / BomApiService.kt / NhcApiService.kt # Alert APIs
+│   │   │   │   │   └── WmoWeatherCode.kt        # Weather code -> description string resource
 │   │   │   │   ├── repository/
 │   │   │   │   │   ├── WeatherRepositoryImpl.kt  # Weather, AQI, alerts & geocoding orchestrator
-│   │   │   │   │   └── LocationRepositoryImpl.kt # GPS location repository
+│   │   │   │   │   ├── LocationRepositoryImpl.kt # GPS location repository
+│   │   │   │   │   └── WeatherCache.kt           # Cache of the last weather data
 │   │   │   │   ├── settings/
 │   │   │   │   │   └── AppSettingsRepository.kt # SharedPreferences settings repository
 │   │   │   │   └── source/                      # Pluggable weather + geocoding sources
@@ -90,9 +97,15 @@ maripanaTokana/
 │   │   │   │   │   ├── Pressure.kt          # hPa and inHg value class
 │   │   │   │   │   ├── Precipitation.kt     # mm and inches value class
 │   │   │   │   │   ├── AirQualityIndex.kt   # AQI tiers, pollutant breakdown, pollen
-│   │   │   │   │   ├── HourlyAirQuality.kt  # 48h AQI forecast entry
+│   │   │   │   │   ├── HourlyAirQuality.kt  # Hourly AQI forecast entry
+│   │   │   │   │   ├── DailyAirQuality.kt   # Worst AQI of each day, from the hourly data
 │   │   │   │   │   ├── HourlyForecast.kt    # Single hour forecast entry
-│   │   │   │   │   └── DailyForecast.kt     # Single day forecast entry
+│   │   │   │   │   ├── MinutelyForecast.kt  # 15-minute precipitation entry (nowcast)
+│   │   │   │   │   ├── DailyForecast.kt     # Single day forecast entry
+│   │   │   │   │   ├── ActivityIndices.kt   # Activity scores from the weather data
+│   │   │   │   │   ├── WeatherAlert.kt      # Official weather alert
+│   │   │   │   │   ├── SavedLocation.kt     # Saved place
+│   │   │   │   │   └── AppSettings.kt       # User settings
 │   │   │   │   └── repository/
 │   │   │   │       ├── WeatherRepository.kt     # Interface
 │   │   │   │       └── LocationRepository.kt    # Interface
@@ -106,9 +119,11 @@ maripanaTokana/
 │   │   │   │   │   ├── WeatherContent.kt    # Main scrollable weather layout
 │   │   │   │   │   ├── WeatherViewModel.kt  # State, saved locations, refresh orchestration
 │   │   │   │   │   ├── WeatherUiState.kt    # Sealed UI state
-│   │   │   │   │   └── components/          # SavedLocationsDialog, AirQualityChart, UVChart, etc.
+│   │   │   │   │   └── components/          # NowcastCard, ActivitiesCard, OverviewChart, WeatherIcon,
+│   │   │   │   │                            # WeatherAlertBanner, SavedLocationsDialog, etc.
 │   │   │   │   ├── settings/
-│   │   │   │   │   └── SettingsScreen.kt / SettingsViewModel.kt
+│   │   │   │   │   ├── SettingsScreen.kt / SettingsViewModel.kt
+│   │   │   │   │   └── HelpScreen.kt / AboutScreen.kt
 │   │   │   │   ├── permission/
 │   │   │   │   │   └── PermissionHandler.kt # Interface (flavor-implemented)
 │   │   │   │   └── theme/
@@ -163,13 +178,14 @@ The app follows **MVVM** (Model-View-ViewModel) with Clean Architecture principl
 │  Data Layer                                     │
 │  WeatherRepositoryImpl (Retrofit + Geocoders)   │
 │  LocationRepositoryImpl (Fused / Native)        │
-│  OpenMeteoApiService / OpenMeteoAQIApiService   │
+│  OpenMeteoApiService / OpenMeteoAirQualityApiService   │
 └─────────────────────────────────────────────────┘
          │  wired by
          ▼
 ┌─────────────────────────────────────────────────┐
 │  DI Layer (Hilt)                                │
-│  NetworkModule, LocationModule, RepositoryModule│
+│  NetworkModule, CommonLocationModule,           │
+│  RepositoryModule (+ flavor LocationModule)     │
 └─────────────────────────────────────────────────┘
 ```
 
@@ -201,20 +217,20 @@ Prevents type mixing at compile time. `displayDual(metricPrimary)` returns a tup
 
 ### `AirQualityIndex.kt` & `HourlyAirQuality.kt`
 - Calculates US AQI and European AQI standard tiers (Good, Moderate, Unhealthy for Sensitive Groups, Unhealthy, Very Unhealthy, Hazardous).
-- Detailed pollutant concentrations: PM2.5, PM10, Nitrogen Dioxide ($NO_2$), Ozone ($O_3$), Sulfur Dioxide ($SO_2$), Carbon Monoxide ($CO$).
-- Pollen indices: Grass, Birch, and Alder pollen risk categories.
-- `HourlyAirQuality`: 48-hour hourly AQI trend forecast data used by `AirQualityChart`.
+- Detailed pollutant concentrations: PM2.5, PM10, Nitrogen Dioxide (NO2), Ozone (O3), Sulfur Dioxide (SO2), Carbon Monoxide (CO).
+- Pollen indices: Alder, Birch, Grass, Mugwort, Olive, and Ragweed pollen risk categories.
+- `HourlyAirQuality`: hourly AQI forecast data. The Air quality tabs of both forecasts use it. `DailyAirQuality.kt` finds the worst AQI of each day from this data. A day with less than 6 hours of data has no value.
 
 ### `WeatherData.kt`
-Holds the complete weather snapshot: current conditions, 7 official weather alerts, hourly forecast (24h), daily 7-day forecast array, AQI index & 48h AQI forecast, UV index & 7-day UV forecast, and sunrise/sunset times.
+Holds the complete weather snapshot: current conditions, official weather alerts (from 7 sources), the hourly forecast (24 hours), the 15-minute precipitation nowcast (`minutelyForecast`), the daily forecast (10 days), the AQI index and hourly AQI forecast, the UV index, and sunrise/sunset times. `ActivityIndices.fromWeatherData()` computes the activity scores from this snapshot.
 
 ---
 
 ## 6. Data Layer (API & Repositories)
 
 ### 6.1 APIs
-- **Weather Forecast (`OpenMeteoApiService.kt`)**: Requests current, hourly, and 7-day daily weather variables (`forecast_days=10` requested, sliced to 7 days for UI display).
-- **Air Quality & Pollen (`OpenMeteoAirQualityApiService.kt`)**: Requests current AQI, per-pollutant values, CAMS pollen variables, and 48-hour hourly AQI forecast (`forecast_days=3`, `hourly=us_aqi,european_aqi`).
+- **Weather Forecast (`OpenMeteoApiService.kt`)**: Requests current, hourly, 15-minute precipitation, and daily weather variables (`forecast_days=10`). The mapper keeps all 10 days. It keeps the next 24 hours of hourly data.
+- **Air Quality & Pollen (`OpenMeteoAirQualityApiService.kt`)**: Requests current AQI, per-pollutant values, CAMS pollen variables, and the hourly AQI forecast (`forecast_days=5`, which feeds the 10-day forecast).
 - **Reverse Geocoding**: System Geocoder (Standard flavor) or Nominatim API (F-Droid flavor). Place names are split into primary city name and region/country subtext. DMS coordinate display is available.
 
 ---
@@ -225,7 +241,9 @@ Hilt injects singletons and repositories via `di/NetworkModule.kt`, `di/CommonLo
 
 ---
 
-## 8. UI Layer & Accordion Behavior
+## 8. UI Layer & Free-Scroll Layout
+
+All cards are always open. They sit in one scrolling column (`WeatherContent.kt`). The UI has no accordion and no snap paging.
 
 ### 8.1 Header Location Switcher
 The top header provides instant location control:
@@ -234,21 +252,15 @@ The top header provides instant location control:
 - Search icon opening `SavedLocationsDialog`.
 - Swipe gestures and arrow buttons to cycle between saved locations.
 
-### 8.2 Section Layout Order
-The main scrollable screen (`WeatherContent.kt`) arranges components in the following priority order:
-1. **Hero Card**: Weather emoji, current temperature, feels-like, precip amount, high/low range, wind speed/direction, watermark, and card screenshot share button.
-2. **Current Conditions Card**: 2-column grid featuring Min/Max temp, Wind & Gusts, Pressure, Humidity & Dew Point, UV Index & severity tier badge, Air Quality & AQI tier badge, Visibility, and Sunrise/Sunset.
-3. **Hourly Forecast Section**: Horizontal scrolling row of hourly cards with weather emoji, temperature, and precipitation probability.
-4. **Air Quality Forecast Section**: 48-hour trend line chart with color-coded tier dots (Good through Hazardous).
-5. **UV Forecast Section**: 7-day trend line chart showing daily UV index maximums with severity color badges.
-6. **7-Day Forecast Section**: Horizontal scrolling daily forecast cards with matching 7-day temperature trend line chart.
-
-### 8.3 Single-Card Expansion Rule
-To keep the UI clean and prevent unnecessary scrolling:
-- **Cards expand one at a time**: Opening any collapsible section automatically collapses any previously open section.
-- **Location switch reset**: Switching to a different location automatically collapses all open cards.
-
----
+### 8.2 Card Order
+`WeatherContent.kt` shows the cards in this order:
+1. **Alert banner and hero card**: The banner shows official alerts when any exist. The hero card shows the weather icon and description, the temperature (one decimal in Celsius), the low and high, and a share button. A side column shows the rain or snow outlook. It also shows the US and EU AQI when air quality is not good. Under these, four hour tiles show the weather at +0, +4, +8, and +12 hours.
+2. **Hourly forecast**: The nowcast card (`NowcastCard`) shows first, only when the source is Open-Meteo and rain or snow comes in the next 2 hours. Tabs follow: Conditions, Precipitation, Wind, Pressure, UV, and Air quality. Each tab shows a row of cards and an overview chart (`OverviewChart`). The Air quality tab shows only when air quality data exists.
+3. **10-day forecast**: It has the same tabs as the hourly forecast.
+4. **Current conditions**: Tiles for wind, pressure, humidity, and similar values.
+5. **Sun & Air**: Tiles for UV, air quality, and sunrise and sunset.
+6. **Activities** (`ActivitiesCard`): Ratings for running, laundry, and UV safety, from the current weather data.
+7. **Footer**: The font name (tap to change the font), the Help and About links, the version, and the language flag (tap to change the language).
 
 ## 9. Internationalization (i18n)
 
@@ -334,8 +346,8 @@ Release APKs require `release.keystore` and `keystore.properties` (gitignored). 
 
 ## 18. Key Design Decisions
 
-- **Single-Card Expansion**: Keeps UI compact; only one section stays expanded at a time.
-- **7-Day Forecast Trend Chart**: Horizontal scrolling forecast matched with line chart for clear temperature trends.
-- **Inline Value Classes**: Zero runtime allocation overhead with compile-type safety.
+- **Free-Scroll Layout**: All cards stay open in one scrolling column.
+- **Tabbed Forecasts**: The hourly and 10-day forecasts each show a row of cards with an overview chart. Tabs switch the measurement.
+- **Inline Value Classes**: Zero runtime allocation overhead with compile-time safety.
 - **Dual Units**: Simultaneous metric & imperial display with instant global unit toggle.
 - **No Derived Alerts**: Only official meteorological agencies supply alert data for maximum reliability.

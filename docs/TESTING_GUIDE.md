@@ -116,33 +116,58 @@ ls -lh app/build/outputs/apk/fdroid/debug/app-fdroid-debug.apk
   - [ ] Search icon opens SavedLocationsDialog (search, list, reorder, delete)
   - [ ] Swipe left/right or tap arrows to cycle between Current Location and saved places
 
-- [ ] **Single-Card Accordion Rule**
-  - [ ] Expanding one section automatically collapses any open section
-  - [ ] Changing location automatically collapses all open sections
+- [ ] **Free-Scroll Layout**
+  - [ ] All cards sit in one column that scrolls up and down
+  - [ ] All cards are always open (no accordion, no collapse or expand control)
+  - [ ] Card order: alert banner (when alerts exist), hero card, hourly forecast, 10-day forecast, Current conditions, Sun & Air, Activities
+  - [ ] Header stays fixed at the top; footer stays fixed at the bottom
+  - [ ] Changing location scrolls the content back to the top
 
-- [ ] **Current Conditions (Card)**
-  - [ ] Displays above Hourly Forecast
-  - [ ] 2-column detail grid visible and readable
-  - [ ] AQI badge (tap for detailed pollutant breakdown & pollen)
-  - [ ] UV badge with severity tier
+- [ ] **Hero Card**
+  - [ ] Meteocons weather icon (day or night) and condition text
+  - [ ] Temperature with 1 decimal, with the second unit below it
+  - [ ] Low and high temperatures
+  - [ ] Side column shows the rain or snow outlook when rain or snow is expected
+  - [ ] US AQI and EU AQI show in the side column only when air quality is not good
+  - [ ] 4 hour tiles show the hours +0, +4, +8 and +12
+  - [ ] Share button shares the card as a PNG image
+
+- [ ] **Nowcast**
+  - [ ] "Minutely Nowcast" shows in the Hourly Forecast card only when precipitation is expected in the next 2 hours (Open-Meteo source)
+  - [ ] Nowcast is not shown when no precipitation is expected
 
 - [ ] **Hourly Forecast**
-  - [ ] Section expands/collapses
-  - [ ] Each hourly item shows: time, weather icon, temperature, precip %
+  - [ ] Card shows 6 tabs: Conditions, Precipitation, Wind, Pressure, UV, Air quality
+  - [ ] Each tab shows a horizontal row of hourly cards and an overview chart below it
+  - [ ] Air quality tab shows only when air quality data exists
   - [ ] Horizontal scroll works smoothly
 
-- [ ] **Air Quality Forecast**
-  - [ ] Section expands/collapses
-  - [ ] Displays 48-hour trend line chart with color-coded tier dots
+- [ ] **10-Day Forecast**
+  - [ ] Card shows the same 6 tabs
+  - [ ] Each tab shows a row of daily cards (10 days) and an overview chart below it
+  - [ ] Daily cards show day, date, condition, and low and high temperatures
 
-- [ ] **UV Forecast**
-  - [ ] Section expands/collapses
-  - [ ] Displays 7-day trend line chart showing daily UV maximums
+- [ ] **Current Conditions and Sun & Air (Cards)**
+  - [ ] Both cards show tiles for their data (temperature, precipitation, wind, gust, pressure, humidity, sun, air quality, UV index, visibility)
+  - [ ] Air quality tile opens the detailed pollutant and pollen breakdown
+  - [ ] UV tile shows the severity tier
 
-- [ ] **7-Day Forecast**
-  - [ ] Section expands/collapses
-  - [ ] Horizontal scrolling row of daily cards matching 7-day trend chart
-  - [ ] Shows day, date, weather description, hi/lo temperatures
+- [ ] **Activities**
+  - [ ] Activities card shows activity indices
+
+- [ ] **Share (Cards)**
+  - [ ] Each card has a share button that shares the card as a PNG image
+
+- [ ] **Help Page**
+  - [ ] "Help" link in the footer opens the Help page
+  - [ ] Help page shows sections with questions and answers
+  - [ ] Back button returns to the weather screen
+
+- [ ] **About Page**
+  - [ ] "About" link in the footer opens the About page
+  - [ ] About page shows the app name, version, license, source code link, device information, and data source credits
+  - [ ] "Help" link on the About page opens the Help page
+  - [ ] Back button returns to the weather screen
 
 ### Language Support
 
@@ -186,23 +211,23 @@ Test each of the 8 languages:
 
 - [ ] **Chinese Simplified (zh-CN)**
   - [ ] All text in simplified Chinese characters
-  - [ ] Native Chinese numerals (０１２３４５６７８９) or Arabic
+  - [ ] Standard digits (0-9)
   - [ ] No text overflow
   - [ ] Font renders clearly
 
 **Language Cycling Test:**
-- [ ] Flag icon visible in footer
-- [ ] Tapping flag cycles through all 8 languages
+- [ ] Flag icon visible at the right end of the footer
+- [ ] Tapping the flag cycles through all 8 languages
 - [ ] Cycles in correct order
-- [ ] Native digits render for ar/hi/ne in each language
+- [ ] Native digits render for ar/hi/ne; standard digits render for the other languages
 
 ### Font Support
 
 Test each of the 22 font pairings:
 
 - [ ] **Font Icon Visible**
-  - [ ] Font icon in footer is clickable
-  - [ ] Font name displays next to icon
+  - [ ] Font icon at the left end of the footer is tappable
+  - [ ] Font name displays next to the icon
 
 - [ ] **Font Cycling**
   - [ ] Tapping cycles through all 22 font pairings
@@ -211,7 +236,7 @@ Test each of the 22 font pairings:
   - [ ] Body font (text) changes
   - [ ] Font selection persists across restart
 
-See the font pairings table in [`docs/DESIGN.md`](DESIGN.md#10-font-system) for the full list of 22 pairings (index 0 = system default).
+See `app/src/main/java/orinasa/njarasoa/maripanatokana/ui/theme/AppFonts.kt` for the full list of 22 pairings (index 0 = system default).
 
 ### Refresh & Pull-to-Refresh
 
@@ -262,7 +287,7 @@ Test both widgets (if configured):
 ### Settings Screen (Android)
 
 - [ ] **Access**
-  - [ ] Gear icon visible top-right, always (not gated behind Expert Mode)
+  - [ ] Gear icon visible top-right, always (not gated behind Advanced Mode)
   - [ ] Tapping gear opens Settings screen full-screen
 
 - [ ] **Weather Source**
@@ -274,19 +299,19 @@ Test both widgets (if configured):
 
 - [ ] **Alert Toggles**
   - [ ] Master alerts toggle disables all alert fetching
-  - [ ] Each of the 8 per-source checkboxes (NWS, GDACS, MeteoAlarm, JMA, ECCC, BOM, NHC, Derived) can be toggled independently
+  - [ ] Each of the 7 per-source checkboxes (NWS, GDACS, MeteoAlarm, JMA, ECCC, BOM, NHC) can be toggled independently
   - [ ] Disabled sources show no banner even in regions they cover
   - [ ] Toggles persist across app restarts
 
 - [ ] **Geocoding Source**
   - [ ] System Geocoder selected by default on standard build
-  - [ ] Nominatim option available and works (Expert Mode location search returns results)
+  - [ ] Nominatim option available and works (Advanced Mode location search returns results)
   - [ ] Geocoding source persists after closing Settings
 
-### Expert Mode
+### Advanced Mode
 
 - [ ] **Activation**
-  - [ ] Toggling "Expert mode" on in Settings activates it (no gesture)
+  - [ ] Toggling "Advanced mode" on in Settings activates it (no gesture)
   - [ ] Edit (pencil) icon appears next to the location name
   - [ ] Tapping the edit icon opens the location override dialog
 
@@ -297,8 +322,8 @@ Test both widgets (if configured):
   - [ ] "My Location" icon in search field resets to GPS
 
 - [ ] **Session & Deactivation**
-  - [ ] Toggling "Expert mode" off in Settings disables it and clears the override immediately
-  - [ ] Expert mode persists for 12 hours unless manually disabled
+  - [ ] Toggling "Advanced mode" off in Settings disables it and clears the override immediately
+  - [ ] A location override expires after 12 hours
   - [ ] Clearing app cache or data resets it
 
 ### Performance & Stability
@@ -375,7 +400,7 @@ Recommend testing on:
 | Emulator | 24 (min SDK) | Test minimum support |
 | Emulator | 30+ | Test modern Android |
 | Physical Phone | 24+ | Real-world performance |
-| Tablet (optional) | 24+ | Verify portrait-only design |
+| Tablet (optional) | 24+ | Verify the layout on a wide screen |
 
 ## Logging & Debugging
 
@@ -427,39 +452,16 @@ When capturing screenshots for F-Droid:
   - Text scaling
   - Developer options
 
-### Capture Sequence (4-5 screens per language)
+### Capture Sequence
 
-**Screen 1: Main Weather Screen**
-- Full current conditions visible
-- Location name clear
-- Date/time visible
-- All weather metrics displayed
-
-**Screen 2: Detail Cards (scroll down)**
-- Pressure, humidity, dew point
-- Wind, wind gust visible
-- Sunrise/sunset times shown
-
-**Screen 3: Hourly Forecast (expanded)**
-- Hourly forecast section open
-- Multiple hourly items visible
-- Scrollable content shown
-
-**Screen 4: 10-Day Forecast (expanded)**
-- Weekly forecast section visible
-- Several days of forecast shown
-- Temperature min/max visible
-
-**Screen 5 (optional): Language/Font Demo**
-- Flag and font icons visible in footer
-- Shows localization capabilities
+The store screenshots are 4 per language (`1.png` to `4.png`). See [`docs/SCREENSHOTS_README.md`](SCREENSHOTS_README.md) for the capture steps and the content of each screenshot.
 
 ### Technical Specs
 - **Format:** PNG or JPEG
 - **Dimensions:** 320px - 3840px per side
 - **Aspect Ratio:** 4:3 to 16:9
 - **Location:** `fastlane/metadata/android/{locale}/images/phoneScreenshots/`
-- **Naming:** `1.png`, `2.png`, `3.png`, `4.png`, `5.png`
+- **Naming:** `1.png`, `2.png`, `3.png`, `4.png`
 
 ## Test Report Template
 

@@ -1,6 +1,6 @@
-# Design Document — maripana Tokana PWA
+# Design Document — maripànaTokana PWA
 
-This document explains the architecture, data flow, and key patterns of the **maripana Tokana** weather PWA. It mirrors the native Android app's features and design language.
+This document explains the architecture, data flow, and key patterns of the **maripànaTokana** weather PWA. It mirrors the native Android app's features and design language.
 
 For the Android app's design documentation, see [`docs/DESIGN.md`](../../docs/DESIGN.md).
 
@@ -39,7 +39,7 @@ For the Android app's design documentation, see [`docs/DESIGN.md`](../../docs/DE
 | i18n | **svelte-i18n** | Runtime internationalization (8 languages) |
 | Screenshots | **html2canvas** | DOM-to-canvas capture for sharing |
 | Weather API | **Open-Meteo** (default) / **Pirate Weather** (optional) | Weather data |
-| Geocoding | **Nominatim** / Open-Meteo Geocoding API | Reverse geocoding & location search |
+| Geocoding | **Open-Meteo Geocoding API** first, **Nominatim** as fallback | Location search; Nominatim also does reverse geocoding |
 | Alerts | 7 official sources (NWS, GDACS, MeteoAlarm, JMA, ECCC, BOM, NHC) | Proxied server-side (`routes/api/alerts/`) where CORS is missing |
 | Server | **Node.js** (via adapter-node) | Serves the built app directly |
 
@@ -52,26 +52,33 @@ web/
 ├── src/
 │   ├── app.html                          # HTML shell
 │   ├── app.d.ts                          # Global TypeScript declarations
-│   ├── hooks.server.ts                   # /svelte → / redirect
+│   ├── hooks.server.ts                   # /svelte → / redirect, security headers
 │   ├── service-worker.ts                 # PWA offline caching
 │   ├── routes/                           # URL-mapped pages
 │   │   ├── +layout.svelte                # Root layout: fonts, RTL, i18n init
 │   │   ├── +page.svelte                  # Home page: mounts WeatherScreen
-│   │   └── api/alerts/                   # CORS proxy endpoints (meteoalarm, bom, nhc, eccc)
-│   └── lib/                              # All app code ($lib alias)
+│   │   ├── +error.svelte                 # Error page
+│   │   └── api/                          # alerts/{meteoalarm,bom,nhc,eccc} CORS proxies, csp-report
+│   └── lib/                              # All app code ($lib alias), abridged
 │       ├── api/                          # Network layer
 │       │   ├── openMeteo.ts              # Open-Meteo client & mapper
-│       │   ├── openMeteoAirQuality.ts    # AQI, Pollen & 48h AQI forecast client
+│       │   ├── openMeteoAirQuality.ts    # AQI, Pollen & hourly AQI forecast client
 │       │   ├── pirateWeather.ts          # Pirate Weather client
 │       │   ├── geocodingSearch.ts        # Location search client
-│       │   ├── wmoWeatherCode.ts         # WMO code → emoji + description lookup
-│       │   └── alerts/                   # 8 official alert source fetchers + shared.ts
+│       │   ├── wmoWeatherCode.ts         # WMO code → i18n description key
+│       │   ├── openMeteoMapper.ts / openMeteoTypes.ts  # Response mapping and types
+│       │   ├── externalAlerts.ts         # Merges alert sources
+│       │   └── alerts/                   # 7 official alert source fetchers + shared.ts
 │       ├── domain/                       # Domain models & value objects
 │       │   ├── weatherData.ts            # WeatherData, HourlyForecast, DailyForecast, HourlyAirQuality
 │       │   ├── temperature.ts            # Temperature (°C ↔ °F)
 │       │   ├── pressure.ts              # Pressure (hPa ↔ inHg)
 │       │   ├── windSpeed.ts             # WindSpeed (m/s ↔ mph)
 │       │   ├── precipitation.ts          # Precipitation (mm ↔ in)
+│       │   ├── precipOutlook.ts          # Rain or snow outlook and nowcast check
+│       │   ├── activityIndices.ts        # Activity ratings
+│       │   ├── uv.ts                     # UV levels
+│       │   ├── plusCode.ts               # Plus Code search
 │       │   └── airQuality.ts            # AQI tiering, Pollen tiers, AQI_TIER_COLORS
 │       ├── i18n/                         # Internationalization
 │       │   ├── index.ts / locales.ts
@@ -82,9 +89,9 @@ web/
 │       │   ├── preferences.ts            # Persisted user preferences (units, font, language)
 │       │   ├── location.ts              # Geolocation & Nominatim reverse geocoding
 │       │   └── advancedMode.ts          # Advanced Mode 12-hour session state
-│       ├── components/                   # UI components (WeatherScreen, HeroCard,
-│       │                                  # SavedLocationsDialog, AirQualityChart,
-│       │                                  # UvChart, PollenTierBadge, etc.)
+│       ├── actions/ utils/ server/       # Svelte actions, date/path helpers, server-only proxy helpers
+│       ├── credits.ts / deviceInfo.ts    # About page data
+│       ├── components/                   # Svelte UI components (see section 8)
 │       ├── fonts.ts                      # 22 FontPairing definitions
 │       └── share.ts                      # html2canvas capture & sharing
 ├── static/                               # Static assets
@@ -125,15 +132,16 @@ Users can save and navigate multiple locations (shipped v1.2.15):
 ┌───────────────────────┐         ┌───────────────────────┐
 │  fetchWeather()       │         │  fetchAirQuality()    │
 │  - Current conditions │         │  - US & EU AQI        │
+│  - Minutely nowcast   │         │    (current)          │
 │  - Hourly forecast    │         │  - Pollen (CAMS)      │
-│  - 7-day forecast     │         │  - 48h AQI forecast   │
+│  - 10-day forecast    │         │  - Hourly AQI forecast│
 └───────────┬───────────┘         └───────────┬───────────┘
             │                                 │
             └────────────────┬────────────────┘
                              │
                              ▼
                ┌───────────────────────────┐
-               │  fetchAlerts() (8 sources)│
+               │  fetchAlerts() (7 sources)│
                └─────────────┬─────────────┘
                              │
                              ▼
@@ -169,30 +177,28 @@ Svelte stores drive application state:
 +layout.svelte
 └── +page.svelte
     └── WeatherScreen
-        ├── Header (location name, region + local-time chip, "Updated" line; actions: search, favorite, current location, settings)
-        ├── Location pager (‹ dots › — only with saved locations)
-        ├── SavedLocationsDialog (search, list of favorites)
-        ├── WeatherAlertBanner (merged 8-source alerts with individual expanders)
-        ├── HeroCard (condition, big temp, precip pill, stat strip: feels-like · low/high · wind; share button)
-        ├── CurrentConditions (2-column detail grid: temp, wind, pressure, AQI badge, UV badge, etc.)
-        ├── CollapsibleSection "Hourly Forecast"
-        │   └── HourlyForecast (horizontal scroll)
-        ├── CollapsibleSection "Air Quality Forecast"
-        │   └── AirQualityChart (48h trend line chart with colored AQI dots)
-        ├── CollapsibleSection "UV Forecast"
-        │   └── UvChart (7-day UV trend line chart with severity color badges)
-        ├── CollapsibleSection "7-Day Forecast"
-        │   └── DailyForecast (horizontal scroll + matching 7-day trend chart)
-        ├── Footer (font cycle / credits — tap opens About / language cycle)
-        ├── SettingsScreen (in SettingsPage shell; About row at bottom)
-        └── AboutScreen (in SettingsPage shell; app license + credits from `lib/credits.ts`)
+        ├── Header (location name, region, local-time chip, "Updated" line; actions: search, favorite, current location, settings; location pager when places are saved)
+        ├── LocationDetails, RenameLocationDialog, SavedLocationsDialog
+        ├── WeatherAlertBanner (merged 7-source alerts, expandable)
+        ├── HeroCard (temperature, low/high, rain or snow outlook, US and EU AQI, 4 hour tiles)
+        ├── SectionCard "Hourly forecast"
+        │   ├── NowcastCard (only when rain or snow is coming; Open-Meteo only)
+        │   └── HourlyForecast (ForecastTabs: Conditions, Precipitation, Wind, Pressure, UV, Air quality; cards + OverviewChart)
+        ├── SectionCard "10-day forecast"
+        │   └── DailyForecast (same 6 tabs; cards + chart)
+        ├── SectionCard "Current conditions"  (CurrentConditions part="now")
+        ├── SectionCard "Sun & Air"           (CurrentConditions part="sky")
+        ├── SectionCard "Activities"          (ActivitiesCard)
+        ├── Footer (font name, Help and About links, version, language flag)
+        ├── AirQualityDetailDialog
+        ├── SettingsScreen (in SettingsPage shell)
+        ├── AboutScreen (credits from `lib/credits.ts`)
+        └── HelpScreen
 ```
 
 ### Layout Rules
-- **Section Order**: Current Conditions displays above Hourly Forecast (v1.2.13).
-- **Single-Card Expansion**: Expanding one card automatically collapses any other open card (v1.2.14).
-- **Location Switch Reset**: Switching locations automatically collapses all open cards (v1.2.14).
-- **Section cards**: Each collapsible section is a glass card with its header inside; opening one scrolls it into view.
+- **Free scroll**: The page is one scrolling column. Every card is always open. There is no accordion and no collapsible section.
+- **Air quality tab**: The Air quality tab shows only when air quality data exist.
 - **Surfaces**: Use the CSS tokens in `+layout.svelte` (`--surface-section`, `--surface-tile`, `--surface-tile-highlight`, `--hairline`, `--hero-gradient`) — same values as Android `ui/theme/Color.kt`.
 
 ---
@@ -205,13 +211,13 @@ Supports 8 languages (mg, ar, en, es, fr, hi, ne, zh). `svelte-i18n` handles rea
 
 ## 10. Font System
 
-22 font pairings in `src/lib/fonts.ts`. Styled via `--font-display`, `--font-body`, and `--font-features` CSS variables. Google Fonts loaded dynamically in `+layout.svelte`.
+22 font pairings in `src/lib/fonts.ts`. Styled via `--font-display`, `--font-body`, and `--font-features` CSS variables. Each pairing points to a self-hosted CSS file in `static/fonts` (for example `/fonts/orbitron-outfit.css`). `+layout.svelte` links the CSS file of the selected pairing.
 
 ---
 
 ## 11. Service Worker & Offline
 
-`src/service-worker.ts` uses three caches: `app-v{hash}` (NetworkFirst app shell), `api-cache` (NetworkFirst API responses), and `font-cache` (CacheFirst web fonts).
+`src/service-worker.ts` uses two caches. `app-{version}` holds page navigations and app assets (NetworkFirst, offline fallback to cache). `api-cache` holds responses from `api.open-meteo.com`, `air-quality-api.open-meteo.com`, and `nominatim.openstreetmap.org` (NetworkFirst, stamped with `X-SW-Cached-At`). The worker does not precache. On activate, it deletes other caches.
 
 ---
 
@@ -226,7 +232,7 @@ Renamed from "Expert Mode" in v1.2.15. Managed via `stores/advancedMode.ts`:
 
 ## 13. Settings & Pluggable Data Sources
 
-`SettingsScreen.svelte` provides controls for Weather Source (Open-Meteo vs Pirate Weather with API key validation) and individual toggles for all 8 official alert sources.
+`SettingsScreen.svelte` provides controls for Weather Source (Open-Meteo vs Pirate Weather with API key validation) and individual toggles for all 7 official alert sources.
 
 ---
 
@@ -244,13 +250,12 @@ Renamed from "Expert Mode" in v1.2.15. Managed via `stores/advancedMode.ts`:
 
 ## 16. Deployment
 
-Containerized via Docker (`node:22-alpine` multi-stage build running `node build/index.js`). Host port mapped via `docker-compose.yml` (default 3080).
+Containerized via Docker (`node:24-alpine` multi-stage build running `node build/index.js`). Host port mapped via `docker-compose.yml` (default 3080).
 
 ---
 
 ## 17. Key Patterns & Decisions
 
-- **Single-Card Accordion**: Only one section expands at a time to optimize screen space.
 - **Shared i18n Locales**: Symlinked from `shared/i18n/locales/` for 100% parity with Android.
 - **Single-Chunk Bundle**: All JS compiled into one chunk (`manualChunks: () => 'app'`).
 - **No Derived Alerts**: Only official meteorological agency alerts are displayed.

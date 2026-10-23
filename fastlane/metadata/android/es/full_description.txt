@@ -1,17 +1,41 @@
-maripànaTokana (Malgache para "un termómetro") es una aplicación meteorológica que muestra las condiciones actuales, pronósticos por hora y perspectivas de 10 días.
+maripànaTokana («un solo termómetro» en malgache) es una aplicación del tiempo para Android. Muestra cada valor en unidades métricas e imperiales una al lado de la otra, así que nunca tendrás que convertir. También está disponible como aplicación web en maripana.njarasoa.org, sin nada que instalar.
 
-También disponible como aplicación web (sin necesidad de instalación) en maripana.njarasoa.org.
+<b>El tiempo de un vistazo:</b>
+• Tarjeta principal: estado actual, temperatura con un decimal, mínima y máxima del día, lluvia o nieve cuando se acercan, calidad del aire cuando no es buena y casillas para las próximas 4 horas
+• Desplazamiento libre: bajo la tarjeta principal, todas las demás tarjetas están siempre abiertas
+• Pronóstico por hora y pronóstico de 10 días con pestañas: Condiciones, Precipitación, Viento, Presión, UV y Calidad del aire, cada una con un gráfico general
+• Pronóstico minuto a minuto cuando se acerca lluvia o nieve
+• Casillas de Condiciones actuales y Sol y aire: sensación térmica, brújula del viento y ráfagas, presión, humedad y punto de rocío, índice UV, calidad del aire (AQI EE. UU. y UE), visibilidad, amanecer y atardecer
+• Actividades: carrera a pie, secado de ropa y protección solar
+• Iconos del tiempo Meteocons, con versiones de día y de noche
 
-• Datos meteorológicos en tiempo real de Open-Meteo (sin clave API)
-• Pantalla de unidades dobles: métrica e imperial simultáneamente
-• 8 idiomas soportados
-• Toca el ícono de la bandera en la esquina inferior derecha para cambiar de idioma
-• 22 combinaciones de fuentes para personalización
-• Renderización de dígitos nativos (árabe, hindi, nepalí)
-• Soporte RTL para árabe
-• Dos widgets de pantalla de inicio
-• Ubicación GPS con estrategias múltiples
-• Actualización automática
-• Soporte de deslizar hacia abajo para actualizar
-• Sin anuncios, sin seguimiento
-• Código abierto (licencia GNU GPL v3 o posterior)
+<b>Unidades:</b>
+• Cada valor en unidades métricas e imperiales, una al lado de la otra
+• Toca un valor para elegir qué unidad aparece primero
+
+<b>Datos del tiempo y alertas:</b>
+• El tiempo de Open-Meteo (predeterminado, sin clave API) o de Pirate Weather (con tu propia clave API)
+• Alertas meteorológicas de 7 fuentes: NWS, NHC, MeteoAlarm, JMA, ECCC, BOM y GDACS. Puedes desactivar cada fuente
+• Desliza hacia abajo para actualizar. La aplicación también se actualiza sola cuando los datos son antiguos
+
+<b>Lugares:</b>
+• Búsqueda por ciudad, código postal, coordenadas o Plus Code
+• Guarda favoritos y desliza para pasar de uno a otro
+• Tarjeta Detalles del lugar con las coordenadas y el Plus Code
+
+<b>Idiomas y pantalla:</b>
+• 8 idiomas: malgache, árabe, inglés, español, francés, hindi, nepalí y chino. Toca la bandera para cambiar de idioma
+• Dígitos locales para árabe, hindi y nepalí
+• Diseño de derecha a izquierda para árabe
+• 22 pares de fuentes para elegir
+• Comparte cualquier tarjeta como imagen
+• Páginas de Ayuda y Acerca de
+
+<b>Widgets:</b>
+• Dos widgets para la pantalla de inicio: compacto (4x1) y detallado (4x2)
+
+<b>Privacidad:</b>
+• Tu ubicación se usa solo para obtener el tiempo
+• Sin cuenta, sin anuncios, sin seguimiento
+• No se recopilan datos personales
+• Software libre (GNU GPL v3 o posterior)

@@ -176,7 +176,7 @@ Located at: `app/src/main/java/orinasa/njarasoa/maripanatokana/data/location/Loc
 
 Provides two methods:
 - `getLastLocation()`: Returns cached location from device
-- `getFreshLocation()`: Requests fresh location update with 30-second timeout
+- `getFreshLocation()`: Requests a fresh location update. Each implementation sets its own timeout (see below)
 
 ### Implementations
 
@@ -185,13 +185,14 @@ Location: `app/src/standard/java/.../PlayServicesLocationProvider.kt`
 - Uses FusedLocationProviderClient from Google Play Services
 - Higher accuracy, better battery efficiency
 - Uses PRIORITY_BALANCED_POWER_ACCURACY
+- 10-second timeout for fresh location requests
 
 #### NativeLocationProvider (F-Droid)
 Location: `app/src/fdroid/java/.../NativeLocationProvider.kt`
 - Uses Android's built-in LocationManager
-- Supports both GPS_PROVIDER and NETWORK_PROVIDER
+- Supports GPS_PROVIDER, NETWORK_PROVIDER and PASSIVE_PROVIDER
 - Selects most accurate available location
-- 30-second timeout for fresh location requests
+- 30-second timeout for fresh location requests. On timeout, it uses any stale cached fix
 
 ## Dependency Injection
 
@@ -209,18 +210,18 @@ Location: `app/src/fdroid/java/.../di/LocationModule.kt`
 
 ## UI Adaptations
 
-### WeatherScreen.kt
-Flavor-specific versions exist to handle permissions differently:
+### Permission handlers
+`WeatherScreen` is shared code. The flavors differ in their implementation of the `PermissionHandler` interface (`app/src/main/.../ui/permission/PermissionHandler.kt`):
 
-**Standard Flavor** (`app/src/standard/.../WeatherScreen.kt`)
-- Uses Accompanist Permissions library
-- Shows permission request UI with `rememberMultiplePermissionsState`
-- Smooth permission handling integration
+**Standard Flavor** (`app/src/standard/.../ui/permission/StandardPermissionHandler.kt`)
+- Uses the Accompanist Permissions library
+- Uses `rememberMultiplePermissionsState` for the fine and coarse location permissions
 
-**F-Droid Flavor** (`app/src/fdroid/.../WeatherScreen.kt`)
-- Simplified permissions handling
-- Automatically attempts location fetch
-- Falls back to cached location from widgets if permissions denied
+**F-Droid Flavor** (`app/src/fdroid/.../ui/permission/FDroidPermissionHandler.kt`)
+- Uses the AndroidX activity result API and `ContextCompat` directly
+- Does not use Accompanist
+
+The two flavors also use different location providers (see above) and different `WidgetWeatherFetcher` classes.
 
 ### WidgetWeatherFetcher
 Flavor-specific widget location fetcher implementations:
@@ -262,9 +263,10 @@ fastlane/metadata/android/
 │   ├── short_description.txt
 │   ├── full_description.txt
 │   ├── changelogs/
-│   │   └── 1.txt
+│   │   └── {versionCode}.txt
 │   └── images/
 │       └── phoneScreenshots/
+│           └── 1.png ... 4.png
 ├── mg/  (Malagasy)
 ├── ar/  (Arabic)
 ├── es/  (Spanish)
@@ -278,17 +280,17 @@ Each language directory contains:
 - `title.txt`: App name (max 50 chars)
 - `short_description.txt`: Short description (max 80 chars)
 - `full_description.txt`: Detailed description with features
-- `changelogs/1.txt`: Version 1.0 changelog
-- `images/phoneScreenshots/`: 4-5 screenshots per language
+- `changelogs/{versionCode}.txt`: Changelog for each release. Each release needs one file in all 8 locales, under 500 characters
+- `images/phoneScreenshots/`: Exactly 4 screenshots per language (`1.png` to `4.png`). See [SCREENSHOTS_README.md](./SCREENSHOTS_README.md)
 
 ### F-Droid YAML Metadata
 Located at: `metadata/orinasa.njarasoa.maripanatokana.yml`
 
 Contains:
 - App metadata (license, author, URLs)
-- Build instructions (gradle flavor, prebuild steps)
-- Version tracking configuration
-- Maintenance notes about i18n generation
+- Build instructions (`subdir: app`, gradle flavor `fdroid`). There are no prebuild steps
+- Version tracking configuration (`UpdateCheckMode: Tags`, `AutoUpdateMode: Version`)
+- The `Binaries:` URL. It points to `maripanaTokana-v%v.apk`, the F-Droid flavor APK. The GitHub release also holds `maripanaTokana-standard-v%v.apk`, which F-Droid does not use
 
 ## Building for F-Droid
 
@@ -335,35 +337,7 @@ sha256sum /tmp/build1.apk /tmp/build2.apk
 
 ## Submission Process
 
-1. **Prepare Release**
-   - Tag version: `git tag -a v1.0 -m "Release 1.0 for F-Droid"`
-   - Push tag: `git push origin v1.0`
-
-2. **Fork F-Droid Data Repository**
-   - Fork: https://gitlab.com/fdroid/fdroiddata
-   - Clone your fork
-
-3. **Add App Metadata**
-   - Copy `metadata/orinasa.njarasoa.maripanatokana.yml` to fdroiddata repo
-   - Validate YAML syntax
-
-4. **Add Fastlane Metadata**
-   - Ensure `fastlane/metadata/android/` structure is in project
-   - F-Droid server will pick this up automatically
-
-5. **Create Merge Request**
-   ```bash
-   git checkout -b add-maripanatokana
-   git add metadata/orinasa.njarasoa.maripanatokana.yml
-   git commit -m "New app: maripànaTokana"
-   git push origin add-maripanatokana
-   ```
-   - Create MR on https://gitlab.com/fdroid/fdroiddata
-
-6. **F-Droid Review**
-   - F-Droid team reviews the merge request
-   - May request changes to metadata or build configuration
-   - Timeline: 1-4 weeks typically
+The first submission is done. The inclusion MR (`!33362`) merged into `fdroid/fdroiddata` on 2026-06-18. Do not open new MRs for normal releases. See "Maintenance and Updates" below for the release process.
 
 ## Testing Locally
 
@@ -425,29 +399,34 @@ Use the automated release script:
 # Example: ./scripts/release_fdroid.sh 1.2.25 68
 ```
 
-The script automatically performs:
-1. Version string updates in `app/build.gradle.kts`, `web/package.json`, and `web/src/lib/components/Footer.svelte`.
-2. Version sync validation via `python3 scripts/check_version_sync.py`.
-3. Existence check for changelogs in all 8 languages under `fastlane/metadata/android/*/changelogs/`.
-4. Git commit for version bump & feature changes (`Bump to vX.Y.Z`).
-5. Git tag creation on the bump commit (`vX.Y.Z`).
-6. F-Droid metadata YAML update via `python3 scripts/update_metadata.py`.
-7. Metadata commit with `[skip ci]`.
-8. Git push to `main` and tag `vX.Y.Z` to trigger GitHub CI.
+Before you run the script, create `fastlane/metadata/android/{locale}/changelogs/{versionCode}.txt` in all 8 locales (ar, en-US, es, fr, hi, mg, ne, zh-CN). Keep each file under 500 characters. The script stops if one file is missing.
 
-**Step 9 is obsolete — do not do it.** The original inclusion MR (`!33362`, `add-maripanatokana` branch on the `mpilasy/fdroiddata` fork) merged into `fdroid/fdroiddata` on 2026-06-18. Since then, F-Droid's own bot detects new tags (`AutoUpdateMode: Version` + `UpdateCheckMode: Tags` in the metadata) and opens its own `bot: Update maripànaTokana to {versionCode}` MR directly against `fdroid/fdroiddata`, auto-merged within the hour. It runs roughly once a day (observed ~04:20-04:30 UTC in recent cycles) — a tag pushed after that day's run won't show up in fdroiddata until the next cycle. Pushing to the old fork branch now has zero effect: that MR is closed and nothing polls the branch. Check status with:
+The script performs these steps:
+1. Updates the version in `app/build.gradle.kts`, `web/package.json` and `web/src/lib/components/Footer.svelte`.
+2. Runs `npm install --package-lock-only` in `web/` to update the lock file.
+3. Validates the version sync with `python3 scripts/check_version_sync.py`.
+4. Checks that the changelog exists in all 8 locales.
+5. Commits all pending changes as `Bump to vX.Y.Z`.
+6. Creates the tag `vX.Y.Z` on the bump commit.
+7. Updates the F-Droid metadata with `python3 scripts/update_metadata.py` and checks the `Binaries: ` line.
+8. Commits the metadata with `[skip ci]`.
+9. Pushes `main` and the tag.
+
+The tag push starts `.github/workflows/fdroid-build.yml`. The build takes about 5 minutes. The workflow:
+1. Builds the F-Droid and standard flavors (`assembleFdroidRelease assembleStandardRelease`).
+2. Creates a GitHub release with two APKs: `maripanaTokana-vX.Y.Z.apk` (F-Droid flavor) and `maripanaTokana-standard-vX.Y.Z.apk` (standard flavor).
+3. Runs `scripts/update_metadata.py` again, validates the `Binaries: ` line, and pushes a `[skip ci]` metadata commit to `main`.
+
+F-Droid verifies its own build against the F-Droid APK through the `Binaries:` field. It does not use the standard APK.
+
+Do not push to the old fork branch (`add-maripanatokana`). It is dead. F-Droid's bot finds new tags (`UpdateCheckMode: Tags`, `AutoUpdateMode: Version`) and opens its own `bot: Update maripànaTokana to {versionCode}` MR against `fdroid/fdroiddata`. The bot runs about once a day. It adds only the newest tag it finds, so F-Droid skips some versions if you push more than one tag between runs. Check the status with:
 ```
 curl -s "https://gitlab.com/api/v4/projects/fdroid%2Ffdroiddata/merge_requests?search=maripanatokana&per_page=5&order_by=updated_at"
 ```
 
 ### Screenshots
 
-Screenshots should be captured for each supported language:
-- Minimum 2-4 per language
-- Dimensions: 320px - 3840px on any side
-- Aspect ratio: 4:3 to 16:9
-- Format: PNG or JPEG
-- Save to: `fastlane/metadata/android/{locale}/images/phoneScreenshots/`
+The store has exactly 4 screenshots per language (`1.png` to `4.png`, 32 in total). Save them to `fastlane/metadata/android/{locale}/images/phoneScreenshots/`. Screenshots do not start a workflow. They reach F-Droid with the next release tag. For the capture method, see [SCREENSHOTS_README.md](./SCREENSHOTS_README.md).
 
 ### Localization Updates
 

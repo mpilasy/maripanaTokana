@@ -1,206 +1,84 @@
-# Screenshots for F-Droid
+# Store Screenshots
 
-This directory is for storing screenshots used in F-Droid's fastlane metadata.
+## Overview
 
-## Quick Start
+The store has exactly 4 screenshots per language. There are 8 languages, so 32 files in total.
 
-### Capturing Screenshots
+- Location: `fastlane/metadata/android/{locale}/images/phoneScreenshots/1.png` to `4.png`
+- Locales: ar, en-US, es, fr, hi, mg, ne, zh-CN
+- Format: PNG, 1080x2424, taken on the Pixel emulator
+- Size: about 500-600 KB each. Compress each file with a 256-colour quantize.
 
-1. **Install F-Droid flavor APK**
+The screenshots reach F-Droid with the next release tag. They do not start a workflow. See [FDROID.md](./FDROID.md) for the release process.
+
+## The 4 Screens
+
+The layout has always-open cards. There is no accordion.
+
+1. Main card
+2. Hourly and 10-day forecasts
+3. Current conditions
+4. Sun & Air and Activities
+
+## Method
+
+Take all screenshots at Ambila Lemaitso, Madagascar, with the F-Droid debug APK.
+
+1. Build and install the app:
    ```bash
-   ./gradlew clean assembleFdroidDebug
+   ./gradlew assembleFdroidDebug
    adb install app/build/outputs/apk/fdroid/debug/*.apk
    ```
+   On a phone with more than one user, install for the current user only.
 
-2. **For each language** (8 total):
-   - Change device language in Settings
-   - Clear app data
-   - Launch app fresh
-   - Grant location permission
-   - Wait for weather to load
-
-3. **Capture 4-5 screenshots**
+2. Set a mock GPS location (-18.8430, 49.1535). First allow the shell to mock locations:
    ```bash
-   adb shell screencap -p /sdcard/1.png
-   adb shell screencap -p /sdcard/2.png
-   adb shell screencap -p /sdcard/3.png
-   adb shell screencap -p /sdcard/4.png
-   adb shell screencap -p /sdcard/5.png
+   adb shell appops set com.android.shell android:mock_location allow
+   ```
+   Then, for each of `gps`, `network` and `fused`, run `adb shell cmd location providers add-test-provider <provider>` and `adb shell cmd location providers set-test-provider-enabled <provider> true`. Then run `adb shell cmd location providers set-test-provider-location <provider> --location -18.8430,49.1535`.
+
+3. Set the emulator time zone to `Indian/Antananarivo`. Then the app shows no second time. First write down the current time zone (`adb shell getprop persist.sys.timezone`):
+   ```bash
+   adb shell settings put global auto_time_zone 0
+   adb shell cmd alarm set-timezone Indian/Antananarivo
    ```
 
-4. **Pull screenshots to correct directory**
+4. Turn on System UI demo mode for a clean status bar:
    ```bash
-   # For each language
-   adb pull /sdcard/1.png fastlane/metadata/android/en-US/images/phoneScreenshots/1.png
-   adb pull /sdcard/2.png fastlane/metadata/android/en-US/images/phoneScreenshots/2.png
-   # ... etc
+   adb shell settings put global sysui_demo_allowed 1
+   adb shell am broadcast -a com.android.systemui.demo -e command enter
+   adb shell am broadcast -a com.android.systemui.demo -e command battery -e level 100 -e plugged false
+   adb shell am broadcast -a com.android.systemui.demo -e command network -e wifi show -e level 4 -e mobile hide
+   adb shell am broadcast -a com.android.systemui.demo -e command notifications -e visible false
    ```
 
-### Screenshot Requirements
+5. Start the app and grant the location permission. Wait until the weather and any real alert have loaded. Wait for the alert before you take the first language, so all languages match.
 
-- **Minimum:** 4 per language (8 languages = 32 screenshots minimum)
-- **Recommended:** 5 per language (40 screenshots total)
-- **Format:** PNG or JPEG
-- **Dimensions:** 320px - 3840px on any side; aspect ratio 4:3 to 16:9
-- **Quality:** Clear, readable, representative of app features
+6. Change the app language with the footer flag. Do not change the system language.
 
-### Suggested Screens to Capture
+7. For each language, scroll so that each card title sits just below the pinned header. Then take the 4 screenshots:
+   ```bash
+   adb exec-out screencap -p > N.png
+   ```
 
-**Screen 1: Main Weather (Hero Card)**
-- Full current conditions visible
-- Location name, date, update time
-- Temperature prominently displayed
-- All detail cards showing
+8. Compress each file (256-colour quantize) and copy it to the locale folder.
 
-**Screen 2: Details (Temperature/Pressure/Humidity)**
-- Scroll down to show detail cards
-- Temperature section expanded
-- Pressure, humidity, dew point
-- Cloud cover visible
+9. When you finish, restore the real GPS, the time zone and the status bar:
+   ```bash
+   adb shell am broadcast -a com.android.systemui.demo -e command exit
+   adb shell settings put global sysui_demo_allowed 0
+   for p in gps network fused; do adb shell cmd location providers remove-test-provider $p; done
+   adb shell appops set com.android.shell android:mock_location default
+   adb shell cmd alarm set-timezone <the time zone from step 3>
+   adb shell settings put global auto_time_zone 1
+   ```
 
-**Screen 3: Hourly Forecast**
-- Hourly section expanded
-- Multiple hourly items visible
-- Shows different times with temps
-- Horizontal scrollable list
+## Checks
 
-**Screen 4: 10-Day Forecast**
-- Weekly forecast expanded
-- Shows multiple days
-- Each with day, date, weather icon, temp
-- Scrollable if needed
+- Each locale folder has exactly `1.png` to `4.png`.
+- All 32 files show the same location, time and alerts.
+- Arabic shows the RTL layout. Arabic, Hindi and Nepali show native digits.
 
-**Screen 5 (Optional): Language Feature Demo**
-- Show footer with flag icon
-- Show font icon in footer
-- Demonstrates language/font switching capability
+## Old Script
 
-### Directory Structure
-
-```
-fastlane/metadata/android/
-├── en-US/images/phoneScreenshots/
-│   ├── 1.png  (Main weather)
-│   ├── 2.png  (Details)
-│   ├── 3.png  (Hourly)
-│   ├── 4.png  (10-day)
-│   └── 5.png  (Optional)
-├── mg/images/phoneScreenshots/
-│   ├── 1.png
-│   ├── 2.png
-│   ├── 3.png
-│   ├── 4.png
-│   └── 5.png
-├── ar/images/phoneScreenshots/
-│   ├── 1.png  (RTL layout)
-│   ├── 2.png
-│   ├── 3.png
-│   ├── 4.png
-│   └── 5.png
-├── es/images/phoneScreenshots/
-│   ├── 1.png
-│   └── ... (4-5 total)
-├── fr/images/phoneScreenshots/
-│   └── ... (4-5 per language)
-├── hi/images/phoneScreenshots/
-│   └── ... (native Hindi numerals visible)
-├── ne/images/phoneScreenshots/
-│   └── ... (native Nepali numerals visible)
-└── zh-CN/images/phoneScreenshots/
-    └── ... (Chinese characters visible)
-```
-
-### Device Settings for Each Language
-
-When capturing, use these system settings:
-
-| Language | Device Language | Notes |
-|----------|-----------------|-------|
-| English | English (US) | Standard |
-| Malagasy | Malagasy (if available) | Or use Settings → Language |
-| Arabic | العربية | Check RTL layout |
-| Spanish | Español | Or Español (España) |
-| French | Français | Or Français (France) |
-| Hindi | हिन्दी | Verify Hindi numerals |
-| Nepali | नेपाली | Verify Nepali numerals |
-| Chinese | 中文 | Simplified Chinese |
-
-### Verification Checklist
-
-Before committing screenshots:
-
-- [ ] 4-5 screenshots captured for each language
-- [ ] All 8 languages represented
-- [ ] Screenshots are clear and readable
-- [ ] Text is legible (not too small)
-- [ ] Weather data visible and current
-- [ ] No UI glitches or overlays
-- [ ] File sizes reasonable (not huge PNG files)
-- [ ] Correct directory structure maintained
-- [ ] Named sequentially: 1.png, 2.png, etc.
-
-### Automatic GitHub Actions
-
-When you push screenshots to the repository:
-1. GitHub Actions workflow triggers on version tags (v*)
-2. Builds F-Droid flavor
-3. Uploads APK as artifact
-4. Creates release with notes
-
-See `.github/workflows/fdroid-build.yml` for details.
-
-### Tools Recommendations
-
-**Screenshot Capture:**
-- **Built-in:** ADB screencap (fastest)
-- **GUI:** Android Studio Device Explorer
-- **Automation:** adb_screenshot_capture.sh (see below)
-
-### Automation Script
-
-Use the built-in automation script `./scripts/capture_screenshots.sh`:
-
-```bash
-./scripts/capture_screenshots.sh
-```
-
-The script automatically handles building the F-Droid flavor, setting system locales, launching the app, capturing 5 screenshots per locale, pulling them into `fastlane/metadata/android/{locale}/images/phoneScreenshots/`, and reporting missing locale assets.
-
-### Checking Screenshot Status
-
-```bash
-# Count total screenshots
-find fastlane/metadata/android -name "*.png" | wc -l
-
-# Check per language
-for lang in en-US mg ar es fr hi ne zh-CN; do
-  count=$(find "fastlane/metadata/android/$lang" -name "*.png" 2>/dev/null | wc -l)
-  echo "$lang: $count screenshots"
-done
-
-# Expected output:
-# en-US: 5 screenshots
-# mg: 5 screenshots
-# ar: 5 screenshots
-# ... etc (40 total)
-```
-
-## Status
-
-- [ ] Screenshots for en-US (English)
-- [ ] Screenshots for mg (Malagasy)
-- [ ] Screenshots for ar (Arabic)
-- [ ] Screenshots for es (Spanish)
-- [ ] Screenshots for fr (French)
-- [ ] Screenshots for hi (Hindi)
-- [ ] Screenshots for ne (Nepali)
-- [ ] Screenshots for zh-CN (Chinese)
-
-## F-Droid Notes
-
-- Screenshots are displayed on the app's F-Droid page
-- Used to showcase app features to potential users
-- Quality screenshots improve download rates
-- Multiple languages help international users
-
-See [`FDROID.md`](./FDROID.md) for complete publishing instructions.
+`scripts/capture_screenshots.sh` is out of date. It takes 5 screenshots and changes the system language. Do not use it as is.

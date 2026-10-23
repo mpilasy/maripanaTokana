@@ -1,14 +1,15 @@
-# Testing Instructions — maripána Tokana PWA
+# Testing Instructions — maripànaTokana PWA
 
 ## Prerequisites
 
 ```bash
 npm install
 npm run build    # Verify clean build (no errors)
+npm test         # Run the unit tests (vitest)
 ```
 
 The build should complete with zero errors. One non-blocking warning is expected:
-- `state_referenced_locally` in `CollapsibleSection.svelte` — intentional behavior.
+- Vite warns that some chunks are larger than 500 kB after minification.
 
 ---
 
@@ -57,43 +58,58 @@ npm run dev
   - [ ] Search icon opens `SavedLocationsDialog` (search, list, reorder, delete)
   - [ ] Swipe or tap arrow buttons to navigate between saved places
 
-- [ ] **Single-Card Accordion Rule**
-  - [ ] Opening any collapsible section automatically collapses any previously open section
-  - [ ] Switching location automatically collapses all sections
+- [ ] **Free-Scroll Layout**
+  - [ ] All cards sit in one column that scrolls up and down
+  - [ ] All cards are always open (no accordion, no collapse or expand control)
+  - [ ] Card order: alert banner (when alerts exist), hero card, Hourly Forecast, 10-Day Forecast, Current Conditions, Sun & Air, Activities
+  - [ ] Header stays fixed at the top; footer stays fixed at the bottom
 
 - [ ] **Hero Card**
-  - [ ] Weather emoji (day/night appropriate)
-  - [ ] Weather description text (localized)
-  - [ ] Current temperature in large text
-  - [ ] Secondary unit below primary
-  - [ ] "Feels like" label with dual-unit temperature
-  - [ ] Share button & copyright watermark
+  - [ ] Meteocons weather icon (day or night) and localized condition text
+  - [ ] Temperature with 1 decimal, with the second unit below it
+  - [ ] Low and high temperatures
+  - [ ] Side column shows the rain or snow outlook when rain or snow is expected
+  - [ ] US AQI and EU AQI show in the side column only when air quality is not good
+  - [ ] 4 hour tiles show the hours +0, +4, +8 and +12
+  - [ ] Share button and copyright watermark
 
-- [ ] **Current Conditions (Card)**
-  - [ ] Renders above Hourly Forecast
-  - [ ] 2-column detail grid: Min/Max temp, Wind & Gusts, Pressure, Humidity & Dew Point
-  - [ ] Air Quality badge (tap to open detailed breakdown & Pollen tier badges)
-  - [ ] UV index with severity tier badge
+- [ ] **Nowcast**
+  - [ ] "Minutely Nowcast" shows in the Hourly Forecast card only when precipitation is expected in the next 2 hours (Open-Meteo source)
+  - [ ] Nowcast is not shown when no precipitation is expected
 
-- [ ] **Hourly Forecast (collapsible)**
-  - [ ] Horizontal scrollable row of hourly cards
-  - [ ] Each card: time (HH:mm), weather emoji, temperature, precip %
+- [ ] **Hourly Forecast**
+  - [ ] Card shows 6 tabs: Conditions, Precipitation, Wind, Pressure, UV, Air Quality
+  - [ ] Air Quality tab shows only when air quality data exists
+  - [ ] Each tab shows a horizontal scrollable row of hourly cards and an overview chart below it
 
-- [ ] **Air Quality Forecast (collapsible)**
-  - [ ] Displays 48-hour trend line chart with colored AQI tier dots
+- [ ] **10-Day Forecast**
+  - [ ] Card shows the same 6 tabs
+  - [ ] Each tab shows a horizontal scrollable row of daily cards (10 days) and an overview chart below it
 
-- [ ] **UV Forecast (collapsible)**
-  - [ ] Displays 7-day trend line chart with daily UV maximums
+- [ ] **Current Conditions and Sun & Air (Cards)**
+  - [ ] Both cards show tiles for their data (temperature, precipitation, wind and gust, pressure, humidity, sun, air quality, UV index, visibility)
+  - [ ] Air quality tile opens the detailed breakdown with pollen tier badges
+  - [ ] UV tile shows the severity tier
 
-- [ ] **7-Day Forecast (collapsible)**
-  - [ ] Horizontal scrolling daily forecast cards with matching 7-day trend line chart
+- [ ] **Activities**
+  - [ ] Activities card shows activity indices
+
+- [ ] **Help Page**
+  - [ ] "Help" link in the footer opens the Help page
+  - [ ] Help page shows sections with questions and answers
+  - [ ] Back button returns to the weather screen
+
+- [ ] **About Page**
+  - [ ] "About" link in the footer opens the About page
+  - [ ] About page shows the app name, version, and data source credits
+  - [ ] Back button returns to the weather screen
 
 ---
 
 ## 5. Screenshot Sharing
 
-- [ ] Tap share button on HeroCard → generates branded PNG with header + card
-- [ ] Tap share button on any CollapsibleSection → generates branded PNG with header + section content
+- [ ] Tap share button on the hero card → generates branded PNG with header + card
+- [ ] Tap share button on any card (`SectionCard`) → generates branded PNG with header + card content
 - [ ] On mobile: Web Share API sheet opens with the PNG
 - [ ] On desktop: PNG downloads as `maripanatokana-weather.png`
 - [ ] Screenshot includes copyright watermark at bottom
@@ -161,7 +177,7 @@ Tap the font icon (Aa) in the footer to cycle through 22 font pairings.
 
 - [ ] Font name displayed in footer updates on each tap
 - [ ] Default (index 0) uses system fonts
-- [ ] Google Fonts load correctly (check Network tab for `fonts.googleapis.com` requests)
+- [ ] Fonts load from the app itself (check Network tab for `/fonts/*.css` requests; no requests to `fonts.googleapis.com`)
 - [ ] Display font applies to: location name, card values
 - [ ] Body font applies to: labels, descriptions
 - [ ] Pairings 16-20 use tabular numbers (`font-feature-settings: "tnum"`)
@@ -169,14 +185,12 @@ Tap the font icon (Aa) in the footer to cycle through 22 font pairings.
 
 ---
 
-## 10. Collapsible Sections
+## 10. Free-Scroll Layout
 
-- [ ] Hourly Forecast: expanded by default on load
-- [ ] Daily Forecast: collapsed by default
-- [ ] Current Conditions: collapsed by default
-- [ ] Click header → section expands/collapses with slide animation (~300ms)
-- [ ] Chevron rotates on expand/collapse
-- [ ] Share button appears next to title when expanded
+- [ ] Scroll the page: all cards appear in one column
+- [ ] All cards are open on load; no card has a chevron or collapse control
+- [ ] Switching location does not hide or collapse any card
+- [ ] Each card has a share button next to its title
 
 ---
 
@@ -216,7 +230,7 @@ docker compose up -d --build
 ```
 
 App is available at:
-- `http://localhost:3080/` — maripána Tokana
+- `http://localhost:3080/` — maripànaTokana
 - `http://localhost:3080/svelte` — Redirects to `/` (backwards compatibility)
 
 ### PWA Features:
@@ -287,14 +301,14 @@ Test at these viewport widths (DevTools → Device toolbar):
 - [ ] Cycle languages rapidly — all strings update, no missing translations
 - [ ] Cycle fonts rapidly — no layout jank or loading errors
 - [ ] Very long location names — truncated or wrapped gracefully
-- [ ] Location with no wind gust data — gust card replaced with empty placeholder
+- [ ] Location with no wind gust data — gust tile shows `--`
 
 ---
 
-## 18. Expert Mode
+## 18. Advanced Mode
 
 - [ ] **Activation**
-  - [ ] Toggling "Expert mode" on in Settings activates it (no gesture)
+  - [ ] Toggling "Advanced mode" on in Settings activates it (no gesture)
   - [ ] Edit icon appears next to the location name
   - [ ] Clicking the edit icon opens the location override dialog
 
@@ -306,6 +320,7 @@ Test at these viewport widths (DevTools → Device toolbar):
   - [ ] Click "My Location" icon in search field → resets to actual GPS
 
 - [ ] **Session & Deactivation**
-  - [ ] Toggling "Expert mode" off in Settings disables it and clears the override immediately
-  - [ ] Expert mode persists for 12 hours (check `expert_mode_enabled` timestamp in localStorage)
+  - [ ] Toggling "Advanced mode" off in Settings disables it and clears the override immediately
+  - [ ] Advanced Mode stays on across reloads (check `advanced_mode_enabled` in localStorage)
+  - [ ] A location override expires after 12 hours (check `advanced_override_set_time` in localStorage)
   - [ ] Clearing browser site data resets it

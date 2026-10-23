@@ -1,6 +1,6 @@
-# maripána Tokana PWA
+# maripànaTokana PWA
 
-**maripána Tokana** (Malagasy for "a single thermometer") is a Progressive Web App weather dashboard that shows current conditions, hourly forecasts, 7-day forecasts with trend charts, air quality and UV forecast trends, and multi-location favorites. It always displays both metric and imperial units side by side, and supports 8 languages with 22 font pairings.
+**maripànaTokana** (Malagasy for "a single thermometer") is a Progressive Web App weather dashboard. It shows current conditions, a rain or snow nowcast, hourly and 10-day forecasts, air quality, UV, activity ratings, and favorite locations. It always displays both metric and imperial units side by side, and supports 8 languages with 22 font pairings.
 
 This is the web port of the [Android app](../), built with SvelteKit.
 
@@ -8,16 +8,16 @@ This is the web port of the [Android app](../), built with SvelteKit.
 
 - Real-time weather data from [Open-Meteo](https://open-meteo.com) (default, no key) or [Pirate Weather](https://pirateweather.net) (optional, requires API key)
 - **Multi-Location Favorites**: Header location search, favorite places list (♥), and left/right swipe or arrow navigation between saved places
-- **Air Quality & UV Forecasts**: 48-hour AQI trend line chart with colored tier dots and 7-day UV trend line chart with severity tier badges
-- **7-Day Forecast Trend Chart**: Horizontal scrolling daily forecast cards paired with a matching 7-day temperature trend line chart
-- **Single-Card Accordion**: Opening one card collapses any other open card; switching locations collapses all cards
+- **Free-scroll layout**: header, alert banner, hero card, hourly forecast, 10-day forecast, Current conditions, Sun & Air, Activities, and footer. All cards stay open. There is no accordion.
+- **Hero card**: temperature with 1 decimal, low and high, a side column with the rain or snow outlook and the US and EU air quality index (when air quality is not good), and four hour tiles (+0, +4, +8, +12 h)
+- **Forecast tabs**: the hourly and 10-day forecasts each have tabs for Conditions, Precipitation, Wind, Pressure, UV, and Air quality (when air quality data exist). Each tab shows a row of cards and an overview chart.
 - **Settings screen**: pluggable weather source, API key test flow, per-source alert toggles, geocoding info
 - **7 alert sources**: NWS (US), GDACS (global), MeteoAlarm (Europe), JMA (Japan), ECCC (Canada), BOM (Australia), NHC (hurricanes) — each individually toggleable
 - GPS location with two-step strategy (instant cached + fresh background)
 - **Dual-unit display**: every measurement shows both metric and imperial simultaneously
 - **Tap to toggle**: tap any value to swap which unit is primary (bold/large) vs secondary (dimmer)
 - **8 languages**: Malagasy, Arabic, English, Spanish, French, Hindi, Nepali, Chinese — cycled via flag button in footer
-- **22 font pairings** loaded from Google Fonts: cycled via font icon in footer
+- **22 font pairings**, self-hosted in `static/fonts`: cycled via the font name in the footer
 - Native digit rendering for Arabic, Hindi, and Nepali
 - RTL support (Arabic)
 - Auto-refresh when tab becomes visible (if data >30 min old)
@@ -33,22 +33,25 @@ This is the web port of the [Android app](../), built with SvelteKit.
   - **Two-line Header**: Shows the city/locality on the first line and the region/country on a discreet second line.
   - **Smart Parsing**: Automatically cleans location names while preserving essential locality names.
   - **DMS Coordinates**: Tap the location to toggle GPS coordinates displayed in Degrees, Minutes, and Seconds (DMS) format across two lines.
-- Collapsible sections with slide animation for hourly, daily, conditions, AQI, and UV
 - **Dual-language error screen**: shows browser language as secondary when different from app language
-- **Single-file build**: CSS inlined into HTML, JS consolidated into one bundle via `manualChunks`
+- **Single JS bundle**: `manualChunks` in `vite.config.ts` puts all JS in one chunk
 - Detailed weather information:
   - Temperature with 1 decimal on hero card (current, feels like, min/max)
   - Pressure (hPa / inHg)
   - Humidity (%) with dew point (°C / °F)
   - Wind speed and direction with cardinal compass (m/s / mph)
   - Wind gusts (when available)
-  - UV index with severity label & 7-day trend forecast
-  - Air Quality index with pollutant breakdown dialog & 48h trend forecast
+  - UV index with level label
+  - Air quality (US and EU index) with a pollutant detail dialog
   - Precipitation (rain/snow in mm / inches)
   - Visibility (km / mi)
   - Sunrise/sunset times
-  - Hourly forecast (24h horizontal scroll)
-  - 7-day daily forecast (horizontal scroll + trend chart)
+  - Hourly forecast (horizontal scroll, 6 tabs)
+  - 10-day daily forecast (horizontal scroll, 6 tabs)
+  - Nowcast: shown in the hourly section only when rain or snow is coming (Open-Meteo only)
+  - Activities card
+- **Help and About pages**: opened from the footer
+- **Location details card**, **rename favorite**, and **Plus Code search**
 
 ## Tech Stack
 
@@ -59,8 +62,8 @@ This is the web port of the [Android app](../), built with SvelteKit.
 | Adapter | `@sveltejs/adapter-node` |
 | i18n | `svelte-i18n` |
 | Screenshots | `html2canvas` |
-| Weather API | Open-Meteo (free, no key) |
-| Geocoding | Nominatim (free, no key) |
+| Weather API | Open-Meteo (default, no key) or Pirate Weather (own API key) |
+| Geocoding | Open-Meteo geocoding first, Nominatim as fallback (also used for reverse geocoding) |
 
 ## Build & Run
 
@@ -81,7 +84,7 @@ PORT=8080 node build/index.js  # Custom port
 
 ## Deployment (Docker)
 
-Multi-stage Docker build: Node 24 builds the Svelte app, Node 24 runs it.
+Multi-stage Docker build: Node 24 builds the Svelte app, Node 24 runs it. Run `docker compose` from the `web/` directory.
 
 ```bash
 docker compose up -d --build    # Build and run on port 3080 (default)
@@ -96,7 +99,7 @@ PORT=8080 docker compose up -d --build
 The container (`maripanaTokana.web`) exposes port 3000, mapped to host port `$PORT` (default 3080). The app is served at `/`.
 
 ```
-Dockerfile          # Multi-stage: node build → node serve (node:22-alpine)
+Dockerfile          # Multi-stage: node build → node serve (node:24-alpine)
 docker-compose.yml  # Container config (port)
 .dockerignore       # Excludes node_modules, .git, build, .svelte-kit
 ```
@@ -119,20 +122,28 @@ NWS, GDACS, and JMA have CORS and are called directly from the browser.
 SvelteKit app with framework-agnostic shared code.
 
 ```
-web/
+web/   (abridged)
 ├── src/
 │   ├── lib/
-│   │   ├── api/              # Open-Meteo fetch client, types, mapper, WMO codes
-│   │   ├── domain/           # Value classes: Temperature, Pressure, WindSpeed, Precipitation
+│   │   ├── actions/          # Svelte actions (dragScroll, longPress)
+│   │   ├── api/              # Open-Meteo and Pirate Weather clients, geocoding, mapper, WMO codes
+│   │   │   └── alerts/       # 7 alert source fetchers + shared.ts
+│   │   ├── domain/           # Value classes (Temperature, Pressure, ...), air quality, UV, activity indices
 │   │   ├── i18n/             # Locale config, localizeDigits(), 8 JSON translations (symlinked)
-│   │   ├── stores/           # Svelte stores (weather, preferences, location)
-│   │   ├── components/       # 9 Svelte UI components
-│   │   ├── fonts.ts          # 22 FontPairing definitions + Google Fonts URLs
+│   │   ├── server/           # Server-only helpers for the alert proxy routes
+│   │   ├── stores/           # Svelte stores (weather, preferences, location, saved locations)
+│   │   ├── utils/            # Date and chart path helpers
+│   │   ├── components/       # Svelte UI components
+│   │   ├── credits.ts        # Credits shown on the About page
+│   │   ├── deviceInfo.ts     # Device info
+│   │   ├── fonts.ts          # 22 FontPairing definitions + self-hosted font CSS paths
 │   │   └── share.ts          # html2canvas capture + Web Share API / download fallback
-│   ├── routes/               # +page.svelte, +layout.svelte
+│   ├── routes/               # +page.svelte, +layout.svelte, +error.svelte
+│   │   └── api/              # alerts/{meteoalarm,bom,nhc,eccc} proxies, csp-report
+│   ├── hooks.server.ts
 │   ├── service-worker.ts
 │   └── app.html
-├── static/                   # PWA manifest, icons, background
+├── static/                   # PWA manifest, icons, background, fonts
 ├── svelte.config.js          # SvelteKit config (adapter-node)
 ├── vite.config.ts            # Vite config
 └── package.json              # Dependencies + build scripts
@@ -184,4 +195,4 @@ Pairings 16–20 use `font-feature-settings: "tnum"` (tabular numbers) for the b
 
 ## License
 
-MIT License — (c) Orinasa Njarasoa
+GPL-3.0-or-later. (c) Orinasa Njarasoa. See [LICENSE](../LICENSE). Versions up to and including 1.5.24 were released under the MIT License.

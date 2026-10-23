@@ -1,17 +1,41 @@
-maripànaTokana (Malgache pour "un thermomètre unique") est une application météo affichant les conditions actuelles, les prévisions horaires et les perspectives de 10 jours.
+maripànaTokana (« un seul thermomètre » en malgache) est une application météo pour Android. Elle affiche chaque valeur en unités métriques et impériales côte à côte : plus besoin de convertir. Elle existe aussi en application web sur maripana.njarasoa.org, sans rien installer.
 
-Également disponible en tant qu'application web (sans installation) sur maripana.njarasoa.org.
+<b>La météo en un coup d'œil :</b>
+• Carte principale : conditions actuelles, température au dixième de degré, minimum et maximum du jour, pluie ou neige quand elles arrivent, qualité de l'air quand elle n'est pas bonne, et tuiles pour les 4 prochaines heures
+• Défilement libre : sous la carte principale, toutes les autres cartes restent ouvertes
+• Prévisions horaires et prévisions à 10 jours avec onglets : Conditions, Précipitations, Vent, Pression, UV et Qualité de l'air, chacun avec un graphique d'ensemble
+• Prévisions minute par minute quand de la pluie ou de la neige arrive
+• Tuiles Conditions actuelles et Soleil et air : ressenti, boussole des vents et rafales, pression, humidité et point de rosée, indice UV, qualité de l'air (AQI US et UE), visibilité, lever et coucher du soleil
+• Activités : course à pied, séchage du linge et protection solaire
+• Icônes météo Meteocons, en version jour et nuit
 
-• Données météorologiques en temps réel d'Open-Meteo (aucune clé API requise)
-• Affichage à double unité : métrique et impérial simultanément
-• 8 langues supportées
-• Appuyez sur l'icône du drapeau en bas à droite pour changer de langue
-• 22 combinaisons de polices pour la personnalisation
-• Rendu de chiffres natifs (arabe, hindi, népalais)
-• Support RTL pour l'arabe
-• Deux widgets d'écran d'accueil
-• Localisation GPS avec stratégies multiples
-• Actualisation automatique
-• Geste de glissement vers le bas pour actualiser
-• Pas de publicités, pas de suivi
-• Code source ouvert (licence GNU GPL v3 ou ultérieure)
+<b>Unités :</b>
+• Chaque valeur en unités métriques et impériales côte à côte
+• Touchez une valeur pour choisir quelle unité s'affiche en premier
+
+<b>Données météo et alertes :</b>
+• Météo d'Open-Meteo (par défaut, sans clé API) ou de Pirate Weather (avec votre propre clé API)
+• Alertes météo de 7 sources : NWS, NHC, MeteoAlarm, JMA, ECCC, BOM et GDACS. Chaque source peut être désactivée
+• Tirez vers le bas pour actualiser. L'application s'actualise aussi automatiquement quand les données sont anciennes
+
+<b>Lieux :</b>
+• Recherche par ville, code postal, coordonnées ou Plus Code
+• Enregistrez des favoris et balayez l'écran pour passer de l'un à l'autre
+• Carte Détails du lieu avec les coordonnées et le Plus Code
+
+<b>Langues et affichage :</b>
+• 8 langues : malgache, arabe, anglais, espagnol, français, hindi, népalais et chinois. Touchez le drapeau pour changer de langue
+• Chiffres locaux pour l'arabe, le hindi et le népalais
+• Affichage de droite à gauche pour l'arabe
+• 22 paires de polices au choix
+• Partagez n'importe quelle carte en image
+• Pages Aide et À propos
+
+<b>Widgets :</b>
+• Deux widgets pour l'écran d'accueil : compact (4x1) et détaillé (4x2)
+
+<b>Confidentialité :</b>
+• Votre position sert uniquement à obtenir la météo
+• Pas de compte, pas de publicité, pas de pistage
+• Aucune donnée personnelle collectée
+• Logiciel libre (GNU GPL v3 ou ultérieure)

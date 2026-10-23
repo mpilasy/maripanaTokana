@@ -1,32 +1,41 @@
-maripànaTokana (Malagasy for "a single thermometer") is a phone-only weather app that displays current conditions, hourly forecasts, and a 10-day outlook.
+maripànaTokana (Malagasy for "a single thermometer") is a weather app for Android. It shows every value in metric and imperial units side by side, so you never have to convert. It is also available as a web app at maripana.njarasoa.org, with nothing to install.
 
-Also available as a web app (no install needed) at maripana.njarasoa.org.
+<b>Weather at a glance:</b>
+• Main card: current condition, temperature to one decimal place, today's low and high, rain or snow when it is coming, air quality when it is not good, and tiles for the next 4 hours
+• Free-scroll layout: below the main card, all other cards are always open
+• Hourly and 10-day forecasts with tabs: Conditions, Precipitation, Wind, Pressure, UV and Air quality, each with an overview chart
+• Minutely nowcast when rain or snow is coming
+• Current Conditions and Sun & Air tiles: feels like, wind compass and gusts, pressure, humidity and dew point, UV index, air quality (US and EU AQI), visibility, sunrise and sunset
+• Activities: running, drying laundry and sun protection
+• Meteocons weather icons, with day and night versions
 
-<b>Key Features:</b>
-• Real-time weather from Open-Meteo (no API key needed)
-• Dual-unit display: metric and imperial shown simultaneously
-• Tap any value to swap primary/secondary units
-• 8 languages: Malagasy, Arabic, English, Spanish, French, Hindi, Nepali, Chinese
-• Tap the flag icon at the bottom right to switch language
-• 22 font pairings for customization
-• Native digit rendering (Arabic, Hindi, Nepali)
-• RTL support for Arabic
-• Two home screen widgets (compact 4x1, detailed 4x2)
-• GPS location with cached and fresh strategies
-• Auto-refresh when data is stale
-• Pull-to-refresh support
+<b>Units:</b>
+• Every value in metric and imperial units side by side
+• Tap a value to swap which unit comes first
 
-<b>Weather Information:</b>
-• Temperature with feels-like and min/max
-• Pressure, humidity with dew point
-• Wind speed and direction with cardinal compass
-• UV index
-• Precipitation (rain/snow)
-• Visibility
-• Sunrise/sunset times
+<b>Weather data and alerts:</b>
+• Weather from Open-Meteo (default, no API key needed) or Pirate Weather (with your own API key)
+• Weather alerts from 7 sources: NWS, NHC, MeteoAlarm, JMA, ECCC, BOM and GDACS. You can turn off each source
+• Pull down to refresh. The app also refreshes automatically when the data is old
+
+<b>Places:</b>
+• Search by city, postal code, coordinates or Plus Code
+• Save favorites and swipe between them
+• Location details card with the coordinates and the Plus Code
+
+<b>Languages and display:</b>
+• 8 languages: Malagasy, Arabic, English, Spanish, French, Hindi, Nepali and Chinese. Tap the flag to change the language
+• Local digits for Arabic, Hindi and Nepali
+• Right-to-left layout for Arabic
+• 22 font pairs to choose from
+• Share any card as an image
+• Help and About pages
+
+<b>Widgets:</b>
+• Two home-screen widgets: compact (4x1) and detailed (4x2)
 
 <b>Privacy:</b>
-• No ads, no tracking
-• Location used only for weather data
+• Your location is used only to get the weather
+• No account, no ads, no tracking
 • No personal data collected
-• Open source (GNU GPL v3 or later)
+• Free software (GNU GPL v3 or later)
