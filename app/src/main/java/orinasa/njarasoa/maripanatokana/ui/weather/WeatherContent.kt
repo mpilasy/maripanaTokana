@@ -111,6 +111,9 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.ui.layout.AlignmentLine
+import androidx.compose.ui.layout.FirstBaseline
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.painterResource
@@ -647,25 +650,67 @@ internal fun WeatherContent(
                             }
 
                             val (tempPrimary, tempSecondary) = data.temperature.displayDualMixed(metricPrimary)
-                            Box(modifier = Modifier.padding(top = 8.sd(scale))) {
-                                DualUnitText(
-                                    primary = localizeDigits(tempPrimary),
-                                    secondary = localizeDigits(tempSecondary),
-                                    primarySize = 80f.s(scale),
-                                    secondaryScale = 0.32f,
-                                    onClick = onToggleUnits,
-                                )
-                            }
                             val (maxP, maxS) = data.tempMax.displayDual(metricPrimary)
                             val (minP, minS) = data.tempMin.displayDual(metricPrimary)
-                            Box(modifier = Modifier.padding(top = 8.sd(scale))) {
-                                DualUnitText(
-                                    primary = localizeDigits("\u2193$minP \u2191$maxP"),
-                                    secondary = localizeDigits("\u2193$minS \u2191$maxS"),
-                                    onClick = onToggleUnits,
-                                )
-                            }
-                            GlanceOutlook(data, localizeDigits)
+                            val outlook = glanceOutlookText(data, localizeDigits)
+                            // Air quality only when it is not good, with both indices as on the air quality card
+                            val aqi = data.airQuality?.takeIf { it.primaryTier != AqiTier.GOOD }
+                            HeroTemperatureLayout(
+                                temperature = {
+                                    Box(modifier = Modifier.padding(top = 8.sd(scale))) {
+                                        DualUnitText(
+                                            primary = localizeDigits(tempPrimary),
+                                            secondary = localizeDigits(tempSecondary),
+                                            primarySize = 80f.s(scale),
+                                            secondaryScale = 0.32f,
+                                            onClick = onToggleUnits,
+                                        )
+                                    }
+                                },
+                                range = {
+                                    Box(modifier = Modifier.padding(top = 8.sd(scale))) {
+                                        DualUnitText(
+                                            primary = localizeDigits("\u2193$minP \u2191$maxP"),
+                                            secondary = localizeDigits("\u2193$minS \u2191$maxS"),
+                                            onClick = onToggleUnits,
+                                        )
+                                    }
+                                },
+                                side = if (outlook == null && aqi == null) null else {
+                                    {
+                                        Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                            outlook?.let {
+                                                Text(
+                                                    text = it,
+                                                    fontSize = 14f.s(scale),
+                                                    fontFamily = bodyFont,
+                                                    textAlign = TextAlign.End,
+                                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+                                                )
+                                            }
+                                            aqi?.let {
+                                                val (aqiP, aqiS) = it.displayDual()
+                                                val usLabel = stringResource(R.string.air_quality_us_aqi)
+                                                val euLabel = stringResource(R.string.air_quality_eu_aqi)
+                                                val european = it.primaryStandard == AqiStandard.EUROPEAN
+                                                Text(
+                                                    text = localizeDigits("$aqiP ${if (european) euLabel else usLabel} · $aqiS ${if (european) usLabel else euLabel}"),
+                                                    fontSize = 13f.s(scale),
+                                                    fontFamily = bodyFont,
+                                                    textAlign = TextAlign.End,
+                                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                                                )
+                                                AqiTierBadge(
+                                                    tier = it.primaryTier,
+                                                    label = stringArrayResource(R.array.aqi_tier_labels)[it.primaryTier.ordinal],
+                                                    fontSize = 11.sp,
+                                                    singleLine = true,
+                                                )
+                                            }
+                                        }
+                                    }
+                                },
+                            )
                             NextHoursStrip(data, metricPrimary, localizeDigits, onToggleUnits)
 
                             Text(
@@ -1066,35 +1111,67 @@ internal fun SectionCard(
     }
 }
 
-/** One line on rain or snow coming in the next 24 hours; nothing when they stay dry. */
+/** The text on rain or snow coming in the next 24 hours; null when they stay dry. */
 @Composable
-private fun GlanceOutlook(data: WeatherData, localizeDigits: (String) -> String) {
+private fun glanceOutlookText(data: WeatherData, localizeDigits: (String) -> String): String? {
     val outlook = remember(data.hourlyForecast, data.minutelyForecast) { PrecipOutlook.from(data.hourlyForecast, data.minutelyForecast) }
-        ?.takeIf { it.kind != PrecipOutlook.Kind.DRY } ?: return
+        ?.takeIf { it.kind != PrecipOutlook.Kind.DRY } ?: return null
     val hourFormat = remember(data.utcOffsetSeconds) {
         SimpleDateFormat("HH:mm", Locale.US).apply { timeZone = buildLocationTimeZone(data.utcOffsetSeconds) }
     }
     val time = outlook.time?.let { localizeDigits(hourFormat.format(Date(it))) }.orEmpty()
-    val text = when (outlook.kind) {
+    return when (outlook.kind) {
         PrecipOutlook.Kind.STARTS -> stringResource(if (outlook.snow) R.string.outlook_snow_from else R.string.outlook_rain_from, time)
         PrecipOutlook.Kind.STOPS -> stringResource(if (outlook.snow) R.string.outlook_snow_until else R.string.outlook_rain_until, time)
         PrecipOutlook.Kind.ALL_DAY -> stringResource(if (outlook.snow) R.string.outlook_snow_all_day else R.string.outlook_rain_all_day)
-        PrecipOutlook.Kind.DRY -> return
+        PrecipOutlook.Kind.DRY -> null
     }
-    val scale = LocalScale.current
-    Text(
-        text = text,
-        fontSize = 15f.s(scale),
-        fontFamily = LocalBodyFont.current,
-        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
-        modifier = Modifier.padding(top = 16.sd(scale)),
-    )
 }
 
-/** Half a day at a glance: the first forecast hour, 6 hours later and 12 hours later. */
+/**
+ * The big temperature across the card, the high/low lines under it, and [side] at the end edge.
+ * The side column sits beside the high/low lines and rises beside the °F line when it needs to,
+ * but never up beside the big digits; the layout grows when the side column is taller.
+ */
+@Composable
+private fun HeroTemperatureLayout(
+    temperature: @Composable () -> Unit,
+    range: @Composable () -> Unit,
+    side: (@Composable () -> Unit)?,
+) {
+    Layout(
+        content = {
+            temperature()
+            range()
+            side?.invoke()
+        },
+        modifier = Modifier.fillMaxWidth(),
+    ) { measurables, constraints ->
+        val loose = constraints.copy(minWidth = 0, minHeight = 0)
+        val temp = measurables[0].measure(loose)
+        val rangePlaceable = measurables[1].measure(loose)
+        val gap = 16.dp.roundToPx()
+        val sidePlaceable = measurables.getOrNull(2)?.measure(
+            loose.copy(maxWidth = (constraints.maxWidth - rangePlaceable.width - gap).coerceAtLeast(0))
+        )
+        val rangeBottom = temp.height + rangePlaceable.height
+        // The side column may start just under the baseline of the big digits
+        val digitsBaseline = temp[FirstBaseline]
+        val sideMinTop = if (digitsBaseline == AlignmentLine.Unspecified) temp.height else digitsBaseline + 4.dp.roundToPx()
+        val sideTop = sidePlaceable?.let { maxOf(sideMinTop, rangeBottom - it.height) } ?: 0
+        val height = maxOf(rangeBottom, sidePlaceable?.let { sideTop + it.height } ?: 0)
+        layout(constraints.maxWidth, height) {
+            temp.placeRelative(0, 0)
+            rangePlaceable.placeRelative(0, temp.height)
+            sidePlaceable?.placeRelative(constraints.maxWidth - sidePlaceable.width, sideTop)
+        }
+    }
+}
+
+/** Half a day at a glance: the first forecast hour and every 4 hours after it, up to 12 hours later. */
 @Composable
 private fun NextHoursStrip(data: WeatherData, metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
-    val hours = listOf(0, 6, 12).mapNotNull { data.hourlyForecast.getOrNull(it) }
+    val hours = listOf(0, 4, 8, 12).mapNotNull { data.hourlyForecast.getOrNull(it) }
     if (hours.isEmpty()) return
     val hourFormat = remember(data.utcOffsetSeconds) {
         SimpleDateFormat("HH:mm", Locale.US).apply { timeZone = buildLocationTimeZone(data.utcOffsetSeconds) }

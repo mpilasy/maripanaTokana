@@ -1,11 +1,12 @@
 <script lang="ts">
 	import WeatherIcon from './WeatherIcon.svelte';
-	import { _ } from 'svelte-i18n';
 	import type { WeatherData } from '$lib/domain/weatherData';
 	import { wmoDescriptionKey } from '$lib/api/wmoWeatherCode';
 	import { precipOutlook } from '$lib/domain/precipOutlook';
 	import { formatHourAtLocation, formatHourInDeviceTime, isRemoteTimezone } from '$lib/utils/date';
 	import DualUnitText from './DualUnitText.svelte';
+	import AqiTierBadge from './AqiTierBadge.svelte';
+	import { _, json } from 'svelte-i18n';
 
 	interface Props {
 		data: WeatherData;
@@ -24,8 +25,8 @@
 	let tempDual = $derived(data.temperature.displayDualMixed(metricPrimary));
 	let maxDual = $derived(data.tempMax.displayDual(metricPrimary));
 	let minDual = $derived(data.tempMin.displayDual(metricPrimary));
-	// Half a day at a glance: the first forecast hour, 6 hours later and 12 hours later
-	let nextHours = $derived([0, 6, 12].map((i) => data.hourlyForecast[i]).filter((h) => h != null));
+	// Half a day at a glance: the first forecast hour and every 4 hours after it, up to 12 hours later
+	let nextHours = $derived([0, 4, 8, 12].map((i) => data.hourlyForecast[i]).filter((h) => h != null));
 
 	// One line on rain or snow coming in the next 24 hours; nothing when they stay dry
 	let outlook = $derived.by(() => {
@@ -37,6 +38,19 @@
 			return $_(o.kind === 'starts' ? `outlook_${kind}_from` : `outlook_${kind}_until`, { values: { time } });
 		}
 		return $_(`outlook_${kind}_all_day`);
+	});
+
+	const AQI_TIERS = ['good', 'moderate', 'unhealthy', 'very_unhealthy', 'hazardous'];
+
+	// Air quality only when it is not good, with both indices as on the air quality card
+	let aqi = $derived(data.airQuality && data.airQuality.primaryTier !== 'good' ? data.airQuality : null);
+	let aqiText = $derived.by(() => {
+		if (!aqi) return '';
+		const [p, s] = aqi.displayDual();
+		const us = $_('air_quality_us_aqi');
+		const eu = $_('air_quality_eu_aqi');
+		const european = aqi.primaryStandard === 'EUROPEAN';
+		return `${loc(p)} ${european ? eu : us} · ${loc(s)} ${european ? us : eu}`;
 	});
 
 	function isNightAt(time: number): boolean {
@@ -60,6 +74,7 @@
 			<span class="hero-description">{description}</span>
 		</div>
 
+		<div class="hero-mid">
 		<div class="hero-temp">
 			<DualUnitText
 				primary={loc(tempDual[0])}
@@ -78,9 +93,19 @@
 			/>
 		</div>
 
-		{#if outlook}
-			<p class="hero-outlook">{outlook}</p>
+		<!-- Rain or snow and air quality fill the space beside the °F and high/low lines -->
+		{#if outlook || aqi}
+			<div class="hero-side">
+				{#if outlook}
+					<p class="hero-outlook">{outlook}</p>
+				{/if}
+				{#if aqi}
+					<p class="hero-aqi">{aqiText}</p>
+					<AqiTierBadge tier={aqi.primaryTier} label={($json('aqi_tier_labels') as string[])?.[AQI_TIERS.indexOf(aqi.primaryTier)] ?? ''} compact />
+				{/if}
+			</div>
 		{/if}
+		</div>
 
 		{#if nextHours.length > 0}
 			<div class="next-hours">
@@ -172,18 +197,47 @@
 		text-overflow: ellipsis;
 	}
 
+	/* The big temperature spans the card; the side column sits beside the high/low lines and
+	   rises beside the °F line, but never up beside the big digits */
+	.hero-mid {
+		display: grid;
+		grid-template-columns: max-content minmax(0, 1fr);
+		column-gap: 16px;
+	}
+
 	.hero-temp {
+		grid-column: 1 / -1;
 		margin-top: 8px;
 	}
 
 	.hero-range {
+		grid-column: 1;
+		grid-row: 2;
 		margin-top: 8px;
 	}
 
+	.hero-side {
+		grid-column: 2;
+		grid-row: 2;
+		align-self: end;
+		margin-top: -28px;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		gap: 4px;
+		text-align: end;
+	}
+
 	.hero-outlook {
-		margin: 16px 0 0;
-		font-size: 15px;
+		margin: 0;
+		font-size: 14px;
 		color: rgba(255,255,255,0.85);
+	}
+
+	.hero-aqi {
+		margin: 0;
+		font-size: 13px;
+		color: rgba(255,255,255,0.75);
 	}
 
 	.next-hours {
