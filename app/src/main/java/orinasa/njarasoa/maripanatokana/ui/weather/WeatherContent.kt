@@ -38,6 +38,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -1777,11 +1778,8 @@ private fun DeviceTime(time: String, modifier: Modifier = Modifier) {
             tint = faint,
             modifier = Modifier
                 .align(Alignment.CenterStart)
-                .layout { m, c ->
-                    val p = m.measure(c.copy(minWidth = 0, minHeight = 0))
-                    // Takes no width, so the time stays centred; drawn just left of it
-                    layout(0, p.height) { p.place(-p.width - 4.dp.roundToPx(), 0) }
-                }
+                // Drawn just before the time, outside it, so the time stays centred; offset mirrors in RTL
+                .offset(x = -(10.dp + 4.dp))
                 .size(10.dp),
         )
     }
