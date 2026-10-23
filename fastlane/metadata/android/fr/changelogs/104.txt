@@ -1,0 +1,3 @@
+- La carte principale affiche la pluie ou la neige et la qualité de l'air à côté de la température. La qualité de l'air s'affiche seulement quand elle n'est pas bonne, avec les indices US et UE.
+- La carte principale affiche 4 heures : la prochaine heure, puis toutes les 4 heures jusqu'à 12 heures plus tard.
+- Arabe : l'icône du téléphone ne cache plus l'heure du téléphone.

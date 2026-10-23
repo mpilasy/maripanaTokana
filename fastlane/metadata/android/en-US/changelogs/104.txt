@@ -1,0 +1,3 @@
+- The main card shows rain or snow and air quality next to the temperature. Air quality shows only when it is not good, with the US and EU indices.
+- The main card shows 4 hours: the next hour and every 4 hours after it, up to 12 hours later.
+- Arabic: the phone icon no longer covers the phone time.
