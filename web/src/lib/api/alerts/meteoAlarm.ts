@@ -14,13 +14,29 @@ function normalizeArea(s: string): string {
 		.trim();
 }
 
-function areaMatches(areaDesc: string, subdivision: string): boolean {
+function areaWords(s: string): string[] {
+	return s.split(/[^\p{L}\p{N}]+/u).filter(w => w.length > 0);
+}
+
+/** True when `needle` occurs in `hay` as a run of whole words. */
+function containsWords(hay: string[], needle: string[]): boolean {
+	if (needle.length === 0) return false;
+	for (let i = 0; i + needle.length <= hay.length; i++) {
+		if (needle.every((w, j) => hay[i + j] === w)) return true;
+	}
+	return false;
+}
+
+export function areaMatches(areaDesc: string, subdivision: string): boolean {
 	const a = normalizeArea(areaDesc);
 	const b = normalizeArea(subdivision);
-	if (a === b || a.includes(b) || b.includes(a)) return true;
+	// Whole words only: a plain substring match let "Ain" match "Maine et Loire"
+	const tokensA = areaWords(a);
+	const tokensB = areaWords(b);
+	if (a === b || containsWords(tokensA, tokensB) || containsWords(tokensB, tokensA)) return true;
 	// Word intersection: handles cases like "Grad Zagreb" vs "Zagreb region"
-	const wordsA = a.split(/\s+/).filter(w => w.length >= 4);
-	const wordsB = b.split(/\s+/).filter(w => w.length >= 4);
+	const wordsA = tokensA.filter(w => w.length >= 4);
+	const wordsB = tokensB.filter(w => w.length >= 4);
 	return wordsA.some(w => wordsB.includes(w));
 }
 

@@ -461,12 +461,22 @@ class WeatherRepositoryImpl @Inject constructor(
     private fun areaMatches(areaDesc: String, subdivision: String): Boolean {
         val a = normalizeArea(areaDesc)
         val b = normalizeArea(subdivision)
-        if (a == b || a.contains(b) || b.contains(a)) return true
+        // Whole words only: a plain substring match let "Ain" match "Maine et Loire"
+        val tokensA = areaWords(a)
+        val tokensB = areaWords(b)
+        if (a == b || containsWords(tokensA, tokensB) || containsWords(tokensB, tokensA)) return true
         // Word intersection: handles "Grad Zagreb" vs "Zagreb region" etc.
-        val wordsA = a.split(Regex("\\s+")).filter { it.length >= 4 }
-        val wordsB = b.split(Regex("\\s+")).filter { it.length >= 4 }
+        val wordsA = tokensA.filter { it.length >= 4 }
+        val wordsB = tokensB.filter { it.length >= 4 }
         return wordsA.any { it in wordsB }
     }
+
+    private fun areaWords(s: String): List<String> =
+        s.split(Regex("[^\\p{L}\\p{N}]+")).filter { it.isNotEmpty() }
+
+    /** True when [needle] occurs in [hay] as a run of whole words. */
+    private fun containsWords(hay: List<String>, needle: List<String>): Boolean =
+        needle.isNotEmpty() && hay.windowed(needle.size).any { it == needle }
 
     private fun parseMeteoAlarmAtom(xml: String, subdivisionName: String? = null): List<WeatherAlert> {
         val alerts = mutableListOf<WeatherAlert>()
