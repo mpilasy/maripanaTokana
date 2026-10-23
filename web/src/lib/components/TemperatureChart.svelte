@@ -132,7 +132,16 @@
 		const midIdx = maxIndices[Math.floor(maxIndices.length / 2)];
 		const pt = points[midIdx];
 		const label = forecasts[midIdx].temperature.displayDual(metricPrimary).join(' · ');
-		return { x: pt.x, y: Math.max(9, pt.y - 4), label };
+		const above = Math.max(9, pt.y - 4);
+		// Under the line where the label above the peak would cover a 00:00 or 12:00 label
+		const covers = above - 9 < 9 && [...midnightIndices, ...noonIndices].some((idx) => {
+			const w = label.length * 9 * 0.6;
+			const a = anchor(pt.x);
+			const left = a === 'start' ? labelX(pt.x) : a === 'end' ? labelX(pt.x) - w : pt.x - w / 2;
+			const t = getX(idx);
+			return left < t + 12 && left + w > t - 12;
+		});
+		return { x: pt.x, y: covers ? pt.y + 13 : above, label };
 	});
 
 	let minPointInfo = $derived.by(() => {

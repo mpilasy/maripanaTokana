@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -197,7 +198,15 @@ fun TemperatureChart(
             val maxLabelStyle = TextStyle(color = Color(0xFFFF7043), fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont)
             val maxLayout = textMeasurer.measure(maxTempText, maxLabelStyle)
             val maxTextX = (maxPoint.x - maxLayout.size.width / 2f).coerceIn(4.dp.toPx(), width - maxLayout.size.width - 4.dp.toPx())
-            val maxTextY = (maxPoint.y - maxLayout.size.height - 2.dp.toPx()).coerceAtLeast(0f)
+            // Above the peak, or under the line where it would cover a 00:00 or 12:00 label
+            val timeLabelBoxes = (midnightIndices.map { it to "00:00" } + noonIndices.map { it to "12:00" }).map { (idx, text) ->
+                val x = (idx * (itemWidthPx + spacingPx) + itemWidthPx / 2) * xScale
+                val layout = textMeasurer.measure(text, midnightLabelStyle)
+                Rect(Offset(x - layout.size.width / 2f, 2.dp.toPx()), Size(layout.size.width.toFloat(), layout.size.height.toFloat()))
+            }
+            val maxTextAboveY = (maxPoint.y - maxLayout.size.height - 2.dp.toPx()).coerceAtLeast(0f)
+            val aboveBox = Rect(Offset(maxTextX, maxTextAboveY), Size(maxLayout.size.width.toFloat(), maxLayout.size.height.toFloat()))
+            val maxTextY = if (timeLabelBoxes.any { it.overlaps(aboveBox) }) maxPoint.y + 4.dp.toPx() else maxTextAboveY
             drawText(maxLayout, topLeft = Offset(maxTextX, maxTextY))
 
             // The low's label below its trough
