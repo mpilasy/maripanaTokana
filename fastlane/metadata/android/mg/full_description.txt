@@ -26,4 +26,4 @@ Azo jerena ihany koa amin'ny fampiharana Web (tsy mila apetraka) ao amin'ny mari
 • Tsy misy dokam-barotra na fitahirizana ny momba ny mpampiasa
 • Ny hangalana ny toetrandro fotsiny no hampiasana ny toeran-gavina
 • Tsy misy zavatra fantatra tahirizina momba ny mpampiasa
-• MIT License
+• GNU GPL v3 na vaovao kokoa

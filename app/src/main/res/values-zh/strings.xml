@@ -205,7 +205,7 @@
     <string name="help_a_share">点按卡片上的分享按钮。</string>
     <string name="about_title">关于</string>
     <string name="about_row_desc">数据来源、开源库与许可</string>
-    <string name="about_app_license">基于 MIT 许可的自由开源软件</string>
+    <string name="about_app_license">基于 GNU GPL 第 3 版或更高版本的自由开源软件</string>
     <string name="about_source_code">源代码</string>
     <string name="about_web_version">网页版</string>
     <string name="about_section_weather">天气数据</string>

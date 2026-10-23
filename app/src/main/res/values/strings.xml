@@ -205,7 +205,7 @@
     <string name="help_a_share">Tap the share button on a card.</string>
     <string name="about_title">About</string>
     <string name="about_row_desc">Data sources, libraries and licenses</string>
-    <string name="about_app_license">Free and open-source software under the MIT License</string>
+    <string name="about_app_license">Free and open-source software under the GNU GPL, version 3 or later</string>
     <string name="about_source_code">Source code</string>
     <string name="about_web_version">On the web</string>
     <string name="about_section_weather">Weather data</string>

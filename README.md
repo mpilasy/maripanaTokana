@@ -136,3 +136,7 @@ Location permissions are requested at runtime with a dual-language permission sc
 ## License
 
 (c) Orinasa Njarasoa
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. See [LICENSE](LICENSE).
+
+Versions up to and including 1.5.24 were released under the MIT License.

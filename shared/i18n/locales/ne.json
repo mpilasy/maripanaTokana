@@ -285,7 +285,7 @@
 	"help_a_share": "कुनै कार्डको साझा गर्ने बटनमा थिच्नुहोस्।",
 	"about_title": "बारेमा",
 	"about_row_desc": "डेटा स्रोत, लाइब्रेरी र इजाजतपत्र",
-	"about_app_license": "MIT इजाजतपत्र अन्तर्गत निःशुल्क र खुला स्रोत सफ्टवेयर",
+	"about_app_license": "GNU GPL संस्करण 3 वा पछिल्लो संस्करण अन्तर्गत निःशुल्क र खुला स्रोत सफ्टवेयर",
 	"about_source_code": "स्रोत कोड",
 	"about_web_version": "वेबमा",
 	"about_section_weather": "मौसम डेटा",

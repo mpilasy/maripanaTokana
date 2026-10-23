@@ -14,4 +14,4 @@ maripànaTokana (Malgache pour "un thermomètre unique") est une application mé
 • Actualisation automatique
 • Geste de glissement vers le bas pour actualiser
 • Pas de publicités, pas de suivi
-• Code source ouvert (Licence MIT)
+• Code source ouvert (licence GNU GPL v3 ou ultérieure)

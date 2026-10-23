@@ -205,7 +205,7 @@
     <string name="help_a_share">Misy bokitra fizarana eo anilan\'ny lohatenin\'ny sokajy.</string>
     <string name="about_title">Mombamomba</string>
     <string name="about_row_desc">Loharanon-drakitra, tranomboky ary fahazoan-dalana</string>
-    <string name="about_app_license">Rindrankajy malalaka sy misokatra, fahazoan-dalana MIT</string>
+    <string name="about_app_license">Rindrankajy malalaka sy misokatra, fahazoan-dalana GNU GPL v3 na vaovao kokoa</string>
     <string name="about_source_code">Kaody loharano</string>
     <string name="about_web_version">Amin\'ny tranonkala</string>
     <string name="about_section_weather">Angona momba ny toetrandro</string>

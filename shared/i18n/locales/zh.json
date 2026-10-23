@@ -285,7 +285,7 @@
 	"help_a_share": "点按卡片上的分享按钮。",
 	"about_title": "关于",
 	"about_row_desc": "数据来源、开源库与许可",
-	"about_app_license": "基于 MIT 许可的自由开源软件",
+	"about_app_license": "基于 GNU GPL 第 3 版或更高版本的自由开源软件",
 	"about_source_code": "源代码",
 	"about_web_version": "网页版",
 	"about_section_weather": "天气数据",

@@ -14,4 +14,4 @@ También disponible como aplicación web (sin necesidad de instalación) en mari
 • Actualización automática
 • Soporte de deslizar hacia abajo para actualizar
 • Sin anuncios, sin seguimiento
-• Código abierto (Licencia MIT)
+• Código abierto (licencia GNU GPL v3 o posterior)

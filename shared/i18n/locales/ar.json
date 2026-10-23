@@ -285,7 +285,7 @@
 	"help_a_share": "انقر على زر المشاركة في بطاقة.",
 	"about_title": "حول التطبيق",
 	"about_row_desc": "مصادر البيانات والمكتبات والتراخيص",
-	"about_app_license": "برنامج حر ومفتوح المصدر بموجب ترخيص MIT",
+	"about_app_license": "برنامج حر ومفتوح المصدر بموجب رخصة GNU GPL، الإصدار 3 أو أي إصدار لاحق",
 	"about_source_code": "الشيفرة المصدرية",
 	"about_web_version": "على الويب",
 	"about_section_weather": "بيانات الطقس",

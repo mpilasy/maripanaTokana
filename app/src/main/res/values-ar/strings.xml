@@ -205,7 +205,7 @@
     <string name="help_a_share">انقر على زر المشاركة في بطاقة.</string>
     <string name="about_title">حول التطبيق</string>
     <string name="about_row_desc">مصادر البيانات والمكتبات والتراخيص</string>
-    <string name="about_app_license">برنامج حر ومفتوح المصدر بموجب ترخيص MIT</string>
+    <string name="about_app_license">برنامج حر ومفتوح المصدر بموجب رخصة GNU GPL، الإصدار 3 أو أي إصدار لاحق</string>
     <string name="about_source_code">الشيفرة المصدرية</string>
     <string name="about_web_version">على الويب</string>
     <string name="about_section_weather">بيانات الطقس</string>

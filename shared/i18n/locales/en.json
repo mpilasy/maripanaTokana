@@ -285,7 +285,7 @@
 	"help_a_share": "Tap the share button on a card.",
 	"about_title": "About",
 	"about_row_desc": "Data sources, libraries and licenses",
-	"about_app_license": "Free and open-source software under the MIT License",
+	"about_app_license": "Free and open-source software under the GNU GPL, version 3 or later",
 	"about_source_code": "Source code",
 	"about_web_version": "On the web",
 	"about_section_weather": "Weather data",

@@ -285,7 +285,7 @@
 	"help_a_share": "Touchez le bouton de partage d'une carte.",
 	"about_title": "À propos",
 	"about_row_desc": "Sources de données, bibliothèques et licences",
-	"about_app_license": "Logiciel libre et open source sous licence MIT",
+	"about_app_license": "Logiciel libre et open source sous licence GNU GPL, version 3 ou ultérieure",
 	"about_source_code": "Code source",
 	"about_web_version": "Sur le web",
 	"about_section_weather": "Données météo",

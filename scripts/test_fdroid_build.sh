@@ -144,8 +144,8 @@ test_metadata() {
     # Check for required fields
     local yaml_file="metadata/orinasa.njarasoa.maripanatokana.yml"
 
-    if grep -q "^License: MIT" "$yaml_file"; then
-      pass_test "License field correct (MIT)"
+    if grep -q "^License: GPL-3.0-or-later" "$yaml_file"; then
+      pass_test "License field correct (GPL-3.0-or-later)"
     else
       fail_test "License field missing or incorrect"
     fi
@@ -221,10 +221,10 @@ test_github_structure() {
 
   # Check LICENSE
   if [ -f "LICENSE" ]; then
-    if grep -q "MIT" "LICENSE"; then
-      pass_test "LICENSE file exists with MIT license"
+    if grep -q "GNU GENERAL PUBLIC LICENSE" "LICENSE"; then
+      pass_test "LICENSE file exists with GPL v3 license"
     else
-      fail_test "LICENSE file exists but doesn't contain MIT"
+      fail_test "LICENSE file exists but doesn't contain GPL v3"
     fi
   else
     fail_test "LICENSE file missing"

@@ -205,7 +205,7 @@
     <string name="help_a_share">किसी कार्ड पर साझा करें बटन पर टैप करें।</string>
     <string name="about_title">परिचय</string>
     <string name="about_row_desc">डेटा स्रोत, लाइब्रेरी और लाइसेंस</string>
-    <string name="about_app_license">MIT लाइसेंस के तहत मुक्त और ओपन-सोर्स सॉफ़्टवेयर</string>
+    <string name="about_app_license">GNU GPL संस्करण 3 या बाद के संस्करण के तहत मुक्त और ओपन-सोर्स सॉफ़्टवेयर</string>
     <string name="about_source_code">सोर्स कोड</string>
     <string name="about_web_version">वेब पर</string>
     <string name="about_section_weather">मौसम डेटा</string>

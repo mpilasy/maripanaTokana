@@ -29,4 +29,4 @@ Also available as a web app (no install needed) at maripana.njarasoa.org.
 • No ads, no tracking
 • Location used only for weather data
 • No personal data collected
-• Open source (MIT License)
+• Open source (GNU GPL v3 or later)

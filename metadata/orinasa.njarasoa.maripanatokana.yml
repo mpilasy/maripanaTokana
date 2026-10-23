@@ -21,7 +21,7 @@ AntiFeatures:
       data is collected or shared.'
 Categories:
   - Weather
-License: MIT
+License: GPL-3.0-or-later
 AuthorName: Orinasa Njarasoa
 AuthorWebSite: https://github.com/mpilasy
 WebSite: https://maripana.njarasoa.org
