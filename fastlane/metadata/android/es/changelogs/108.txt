@@ -1,0 +1,2 @@
+- Malgache: mejores palabras en el widget (mínima y máxima) y en la ayuda, que ahora sitúa la bandera del idioma abajo a la derecha.
+- Nuevas descripciones de la tienda en los 8 idiomas.

@@ -1,0 +1,2 @@
+- Malagasy: better words in the widget (low and high) and in the Help text, which now puts the language flag at the bottom right.
+- New store descriptions in all 8 languages.

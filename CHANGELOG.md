@@ -6,6 +6,10 @@ and Web PWA share one version number as of 1.2.1; before that, only Android was
 versioned. Not every point release has recorded notes (some were build/CI-only
 retriggers with no user-facing change) — those are omitted rather than guessed at.
 
+## [1.5.28] - 2026-10-23
+- Malagasy: the widget low and high use "iva" and "avo"; the Help text puts the language flag at the bottom right ("ankavanan'ny"); store description corrected by the author (Android and web).
+- Store descriptions rewritten for the current app in all 8 languages; docs (design, testing, F-Droid, screenshots, web README) updated to the current app.
+
 ## [1.5.27] - 2026-10-23
 - MeteoAlarm alerts: area names match only as whole words, so a short name no longer matches inside a longer one ("Ain" inside "Maine-et-Loire") (Android and web). Taken from the old `jules/regional-alerts` branch, with a word match that also works for Greek and Cyrillic names.
 - README: screenshots in 4 languages and an updated feature list.
