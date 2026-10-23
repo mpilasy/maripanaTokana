@@ -1,47 +1,38 @@
 # maripànaTokana
 
-**maripànaTokana** (Malagasy for "a single thermometer") is a weather application available for Android and as a [PWA (Web)](./web). A hosted instance of the Web version is available at **[maripana.njarasoa.org](https://maripana.njarasoa.org)** — no install needed. It shows current conditions, hourly forecasts, 7-day forecasts with trend charts, air quality and UV forecast trends, and multi-location favorites. It always displays both metric and imperial units side by side, and supports 8 languages with 22 font pairings.
+**maripànaTokana** (Malagasy for "a single thermometer") is a weather app for Android, and a [web app (PWA)](./web) with the same features. A hosted copy of the web app is at **[maripana.njarasoa.org](https://maripana.njarasoa.org)**, with no install needed. Every value shows in metric and imperial units side by side. The app has 8 languages and 22 font pairs.
+
+<p align="center">
+  <img src="fastlane/metadata/android/mg/images/phoneScreenshots/1.png" width="24%" alt="Main card, in Malagasy">
+  <img src="fastlane/metadata/android/ne/images/phoneScreenshots/2.png" width="24%" alt="Hourly and 10-day forecasts, in Nepali">
+  <img src="fastlane/metadata/android/es/images/phoneScreenshots/3.png" width="24%" alt="Current conditions, in Spanish">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" width="24%" alt="Sun and air, and activities, in English">
+</p>
 
 ## Features
 
-- **Cross-Platform Parity**: Features on the Android and Web versions are kept in sync to provide a consistent experience.
-- **Multi-Location Favorites**: Header location search, favorite locations list (♥), and left/right swipe or arrow navigation between saved places.
-- **Air Quality & UV Forecasts**: 48-hour AQI trend line chart with colored tier dots and 7-day UV trend line chart with severity tier badges.
-- **7-Day Forecast Trend Chart**: Horizontal scrolling daily forecast cards paired with a matching 7-day temperature trend line chart.
-- **Advanced Mode**: Toggle it on in Settings to unlock a 12-hour session with advanced options.
-  - **Location Override**: Search for any city or enter specific coordinates to test weather in other regions.
-  - **Quick Reset**: Toggle Advanced Mode off in Settings to immediately clear overrides and return to your actual location.
-  - **Search History**: Recent overrides are cached for quick switching.
-- **Enhanced Location Display**:
-  - **Two-line Header**: Shows the city/locality on the first line and the region/country on a discreet second line.
-  - **Smart Parsing**: Automatically cleans location names (e.g., "Paris" instead of "Paris, France") while preserving essential locality names.
-  - **DMS Coordinates**: Tap the location to toggle GPS coordinates displayed in Degrees, Minutes, and Seconds (DMS) format across two lines.
-- Real-time weather data from [Open-Meteo](https://open-meteo.com) (default, no key) or [Pirate Weather](https://pirateweather.net) (optional, API key)
-- **Settings screen**: pluggable weather source, API key validation, per-source alert toggles, geocoding source
-- **7 alert sources**: NWS (US), GDACS (global), MeteoAlarm (Europe), JMA (Japan), ECCC (Canada), BOM (Australia), NHC (hurricanes) — each individually toggleable
-- GPS location with two-step strategy (instant cached + fresh background)
-- **Dual-unit display**: every measurement shows both metric and imperial simultaneously
-- **Tap to toggle**: tap any value to swap which unit is primary (bold/large) vs secondary (dimmer)
-- **Single-card accordion**: opening one card collapses any other open card; switching locations collapses all cards
-- **8 languages**: Malagasy, Arabic, English, Spanish, French, Hindi, Nepali, Chinese — cycled via flag button in footer
-- **22 font pairings** including Roboto + Lora: cycled via font icon in footer
-- Native digit rendering for Hindi, Arabic, and Nepali
-- RTL support (Arabic)
-- Two home screen widgets (4x1 compact, 4x2 with 3-day forecast)
-- Auto-refresh on resume (if data >30 min old)
-- Pull-to-refresh
-- Edge-to-edge Blue Marble background
-- Detailed weather information:
-  - Temperature with 1 decimal on hero card (current, feels like, min/max)
-  - Share button on hero card (captures card as PNG, shares via Android share sheet)
-  - Pressure (hPa / inHg)
-  - Humidity (%) with dew point (°C / °F)
-  - Wind speed and direction with cardinal compass (m/s / mph)
-  - Wind gusts (when available)
-  - UV index
-  - Precipitation (rain/snow in mm / inches)
-  - Visibility (km / mi)
-  - Sunrise/sunset times
+- **Same features on Android and web.**
+- **Main card**: the condition, the temperature with 1 decimal in both units, the low and high, rain or snow when it is coming, air quality (US and EU index) when it is not good, and 4 hour tiles 4 hours apart. For a place in another time zone, the hours also show the phone's time.
+- **Free-scroll layout**: the main card, then cards that are always open, in one scrolling column:
+  - **Hourly and 10-day forecasts** with the same tabs: Conditions, Precipitation, Wind, Pressure, UV and Air quality. Each tab has a row of cards and an overview chart.
+  - **Minutely nowcast** for the next 2 hours, only when rain or snow is coming (Open-Meteo).
+  - **Current conditions** and **Sun & Air** tiles: temperature, precipitation, wind compass, gusts, pressure and air-quality dials, humidity with dew point, sun arc, UV dial, visibility.
+  - **Activities**: ratings for running, drying laundry and sun protection.
+- **Places**:
+  - Search by city, postal code, coordinates or Plus Code. A searched place shows for 12 hours.
+  - Favorites: save, rename and remove places. Swipe left or right, or use the arrows, to move between them.
+  - A two-line header: the place, then the region and country. The grid icon opens a card with the coordinates (degrees, minutes and seconds) and the full Plus Code.
+- **Weather alerts** from 7 sources: NWS (US), NHC (hurricanes), MeteoAlarm (Europe), JMA (Japan), ECCC (Canada), BOM (Australia) and GDACS (global). Each source has its own switch in Settings.
+- **Weather data** from [Open-Meteo](https://open-meteo.com) (default, no key) or [Pirate Weather](https://pirateweather.net) (optional, your own API key).
+- **Units**: every value shows metric and imperial units. Tap a value to put the other unit first.
+- **8 languages**: Malagasy, Arabic, English, Spanish, French, Hindi, Nepali and Chinese. Tap the flag in the footer to change. Local digits for Arabic, Hindi and Nepali, and right-to-left layout for Arabic.
+- **22 font pairs**: tap the font name in the footer to change.
+- **Share**: each card has a share button that shares the card as an image.
+- **Help and About pages**: 11 questions and answers, the data sources, and what the system reports about the device.
+- **Refresh**: pull down, or tap the update time. The app also refreshes on resume when the data is more than 30 minutes old.
+- **Two home-screen widgets**: 4x1 (current weather) and 4x2 (current weather and a 3-day forecast).
+- **Advanced Mode** (Settings): for 12 hours, override the location with any city or coordinates, for tests.
+- Blue Marble background, edge to edge.
 
 ## Platform Support
 
@@ -52,14 +43,14 @@
 | Component | Version |
 |-----------|---------|
 | AGP | 9.2.1 |
-| Kotlin | 2.2.10 |
-| Compose BOM | 2024.09.00 |
-| Glance | 1.1.1 |
-| Hilt | 2.59 |
+| Kotlin | 2.2.21 |
+| Compose BOM | 2026.06.01 |
+| Glance | 1.2.0 |
+| Hilt | 2.60.1 |
 | Retrofit | 2.11.0 |
 | Kotlinx Serialization | 1.7.3 |
-| Play Services Location | 21.3.0 |
-| WorkManager | 2.10.0 |
+| Play Services Location | 21.4.0 |
+| WorkManager | 2.12.0 |
 | Min SDK | 24 (Android 7.0) |
 | Target SDK | 36 |
 
@@ -120,7 +111,7 @@ app/
 │   ├── settings/        # SettingsScreen, SettingsViewModel
 │   ├── theme/           # Compose theme, 22 font pairings, CompositionLocals
 │   └── weather/         # WeatherScreen, WeatherViewModel, WeatherUiState
-│       └── components/  # Charts, alert banner, location override dialog
+│       └── components/  # Charts, tiles, alert banner, nowcast, dialogs
 └── widget/              # Glance widgets (4x1, 4x2), WorkManager updater
     └── theme/           # Widget-specific Glance theme
 ```
