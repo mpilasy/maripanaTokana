@@ -37,10 +37,13 @@
 	import Footer from './Footer.svelte';
 	import { captureAndShare } from '$lib/share';
 	import { onMount } from 'svelte';
+	import { canAddToHomeScreen, installHintDismissed, dismissInstallHint } from '$lib/installHint';
 
 	let showSettings = $state(false);
 	let showAbout = $state(false);
 	let showHelp = $state(false);
+	let showInstallHint = $state(false);
+	onMount(() => { showInstallHint = canAddToHomeScreen() && !installHintDismissed(); });
 
 	const weekdayNames = $derived($json('weekday_names') as string[] | undefined);
 	const monthNames = $derived($json('month_names') as string[] | undefined);
@@ -533,6 +536,13 @@
 
 
 
+			{#if showInstallHint}
+				<div class="install-hint">
+					<span>{$_('install_hint')}</span>
+					<button type="button" aria-label={$_('cd_close')} onclick={() => { dismissInstallHint(); showInstallHint = false; }}>✕</button>
+				</div>
+			{/if}
+
 			<!-- Fixed footer -->
 			<Footer
 				fontName={fontPairings[$fontIndex].name}
@@ -960,6 +970,34 @@
 		/* Soft fade where content scrolls under the fixed header */
 		-webkit-mask-image: linear-gradient(to bottom, transparent 0, black 16px);
 		mask-image: linear-gradient(to bottom, transparent 0, black 16px);
+	}
+
+	.install-hint {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin-top: 8px;
+		padding: 8px 8px 8px 12px;
+		border-radius: 12px;
+		background: var(--surface-tile-highlight);
+		font-size: 12px;
+		line-height: 16px;
+		color: rgba(255, 255, 255, 0.85);
+		flex-shrink: 0;
+	}
+
+	.install-hint span {
+		flex: 1;
+	}
+
+	.install-hint button {
+		background: none;
+		border: none;
+		padding: 4px 8px;
+		font-family: inherit;
+		font-size: 14px;
+		color: rgba(255, 255, 255, 0.6);
+		cursor: pointer;
 	}
 
 	/* Cards stacked in one free-scrolling column */

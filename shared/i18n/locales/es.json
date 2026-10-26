@@ -187,7 +187,12 @@
 		"copy_link_hint": "Pega en tu navegador para usar la aplicación",
 		"permission_denied": "Se denegó el permiso de ubicación. Intenta abrir en tu navegador.",
 		"position_unavailable": "No se pudo determinar tu ubicación. Intenta abrir en tu navegador.",
-		"geo_timeout": "La solicitud de ubicación expiró. Inténtalo de nuevo."
+		"geo_timeout": "La solicitud de ubicación expiró. Inténtalo de nuevo.",
+		"install_hint": "Añade maripànaTokana a la pantalla de inicio: toca Compartir y luego Añadir a pantalla de inicio.",
+		"cd_close": "Cerrar",
+		"help_section_install": "Instalación",
+		"help_q_install": "¿Cómo añado la aplicación a la pantalla de inicio?",
+		"help_a_install": "En tu navegador, toca Compartir y luego Añadir a pantalla de inicio. Después, la aplicación se abre desde su propio icono, sin la barra del navegador."
 	},
 	"android_only": {
 		"widget_description": "Clima actual con temperatura en doble unidad",

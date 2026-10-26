@@ -187,7 +187,12 @@
 		"copy_link_hint": "Paste in your browser to use the app",
 		"permission_denied": "Location permission was denied. Try opening in your browser.",
 		"position_unavailable": "Could not determine your location. Try opening in your browser.",
-		"geo_timeout": "Location request timed out. Please try again."
+		"geo_timeout": "Location request timed out. Please try again.",
+		"install_hint": "Add maripànaTokana to your Home Screen: tap Share, then Add to Home Screen.",
+		"cd_close": "Close",
+		"help_section_install": "Install",
+		"help_q_install": "How do I add the app to my Home Screen?",
+		"help_a_install": "In your browser, tap Share, then tap Add to Home Screen. The app then opens from its own icon, without the browser bar."
 	},
 	"android_only": {
 		"widget_description": "Current weather with dual-unit temperature",

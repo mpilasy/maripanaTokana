@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import SettingsPage from './SettingsPage.svelte';
+	import { canAddToHomeScreen } from '$lib/installHint';
 
 	interface Props { onBack: () => void; languageFlag: string; onCycleLanguage: () => void; }
 	let { onBack, languageFlag, onCycleLanguage }: Props = $props();
@@ -10,6 +11,8 @@
 		{ title: 'help_section_places', items: ['search', 'favorite_add', 'favorite_move', 'favorite_edit', 'place_details'] },
 		{ title: 'help_section_display', items: ['language', 'font', 'units'] },
 		{ title: 'help_section_weather', items: ['refresh', 'cut_title', 'share'] },
+		// Web only: iPhone and iPad browsers do not offer to install the app
+		...(canAddToHomeScreen() ? [{ title: 'help_section_install', items: ['install'] }] : []),
 	];
 </script>
 

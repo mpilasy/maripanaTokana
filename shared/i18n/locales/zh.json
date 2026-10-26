@@ -187,7 +187,12 @@
 		"copy_link_hint": "粘贴到浏览器中使用应用",
 		"permission_denied": "位置权限被拒绝。请尝试在浏览器中打开。",
 		"position_unavailable": "无法确定您的位置。请尝试在浏览器中打开。",
-		"geo_timeout": "位置请求超时。请重试。"
+		"geo_timeout": "位置请求超时。请重试。",
+		"install_hint": "将 maripànaTokana 添加到主屏幕：点按“共享”，然后点按“添加到主屏幕”。",
+		"cd_close": "关闭",
+		"help_section_install": "安装",
+		"help_q_install": "如何将应用添加到主屏幕？",
+		"help_a_install": "在浏览器中点按“共享”，然后点按“添加到主屏幕”。之后应用会从自己的图标打开，不显示浏览器栏。"
 	},
 	"android_only": {
 		"widget_description": "当前天气与双单位温度",

@@ -187,7 +187,12 @@
 		"copy_link_hint": "Collez dans votre navigateur pour utiliser l'application",
 		"permission_denied": "L'accès à la position a été refusé. Essayez d'ouvrir dans votre navigateur.",
 		"position_unavailable": "Impossible de déterminer votre position. Essayez d'ouvrir dans votre navigateur.",
-		"geo_timeout": "La demande de position a expiré. Veuillez réessayer."
+		"geo_timeout": "La demande de position a expiré. Veuillez réessayer.",
+		"install_hint": "Ajoutez maripànaTokana à l'écran d'accueil : touchez Partager, puis Sur l'écran d'accueil.",
+		"cd_close": "Fermer",
+		"help_section_install": "Installation",
+		"help_q_install": "Comment ajouter l'application à l'écran d'accueil ?",
+		"help_a_install": "Dans votre navigateur, touchez Partager, puis Sur l'écran d'accueil. L'application s'ouvre ensuite depuis sa propre icône, sans la barre du navigateur."
 	},
 	"android_only": {
 		"widget_description": "Temps actuel avec temperature en double unite",
