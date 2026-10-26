@@ -175,6 +175,11 @@ fun AboutScreen(onBack: () -> Unit, onOpenHelp: () -> Unit, languageFlag: String
                     fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
                 )
+                Text(
+                    text = "${stringResource(R.string.hash_version, BuildConfig.GIT_HASH)}${if (BuildConfig.DEBUG) "-d" else ""} • ${BuildConfig.BUILD_TIME}",
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                )
                 Spacer(Modifier.height(8.dp))
                 Text(
                     text = "© 2026 Orinasa Njarasoa",

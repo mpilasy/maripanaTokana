@@ -887,7 +887,7 @@ internal fun WeatherContent(
                         }
                     }
                     Text(
-                        text = "v${BuildConfig.VERSION_NAME} \u2022 ${stringResource(R.string.hash_version, BuildConfig.GIT_HASH)}${if (BuildConfig.DEBUG) "-d" else ""} \u2022 ${BuildConfig.BUILD_TIME}",
+                        text = "v${BuildConfig.VERSION_NAME}",
                         fontSize = 9f.s(scale),
                         lineHeight = 12f.s(scale),
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),

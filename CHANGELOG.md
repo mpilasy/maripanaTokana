@@ -8,6 +8,7 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 `v1.0.18-*` tags) are not listed. There is no 1.4.2 tag: that version was withdrawn.
 
 ## [Unreleased]
+- Android: the footer shows only the version. The build hash and build time are now on the About page, under the version.
 
 ## [1.6.0] - 2026-10-26
 - Android widgets: the refresh button no longer makes the app stop responding (ANR) when the phone has no recent location. A background job does the refresh.
