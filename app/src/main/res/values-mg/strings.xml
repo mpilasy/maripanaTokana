@@ -224,7 +224,7 @@
     <string name="device_font_scale">Haben\'ny soratra</string>
     <string name="device_language">Fiteny</string>
     <string name="device_time_zone">Faritra ora</string>
-    <string name="device_processor">Processeur</string>
+    <string name="device_processor">cpu</string>
     <string name="device_memory">RAM</string>
     <string name="device_installer">Napetraka avy amin\'ny</string>
     <string name="device_touch">Fitaratra mandray kitika</string>

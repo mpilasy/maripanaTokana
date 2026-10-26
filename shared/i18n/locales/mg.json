@@ -318,7 +318,7 @@
 	"device_font_scale": "Haben'ny soratra",
 	"device_language": "Fiteny",
 	"device_time_zone": "Faritra ora",
-	"device_processor": "Processeur",
+	"device_processor": "cpu",
 	"device_memory": "RAM",
 	"device_installer": "Napetraka avy amin'ny",
 	"device_touch": "Fitaratra mandray kitika"
