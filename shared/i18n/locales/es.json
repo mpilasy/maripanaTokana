@@ -194,7 +194,6 @@
 		"help_section_install": "Instalación",
 		"help_q_install": "¿Cómo añado la aplicación a la pantalla de inicio?",
 		"help_a_install": "En tu navegador, toca Compartir y luego Añadir a pantalla de inicio. Después, la aplicación se abre desde su propio icono, sin la barra del navegador.",
-		"android_app_title": "Aplicación Android",
 		"android_app_text": "Instala la aplicación Android, con widgets para la pantalla de inicio.",
 		"android_app_fdroid": "Disponible en F-Droid",
 		"android_app_obtainium": "Disponible en Obtainium"

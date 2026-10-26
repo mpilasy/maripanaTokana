@@ -194,7 +194,6 @@
 		"help_section_install": "Install",
 		"help_q_install": "How do I add the app to my Home Screen?",
 		"help_a_install": "In your browser, tap Share, then tap Add to Home Screen. The app then opens from its own icon, without the browser bar.",
-		"android_app_title": "Android app",
 		"android_app_text": "Get the Android app, with home screen widgets.",
 		"android_app_fdroid": "Get it on F-Droid",
 		"android_app_obtainium": "Get it on Obtainium"

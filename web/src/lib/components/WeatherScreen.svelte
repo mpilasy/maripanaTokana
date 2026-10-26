@@ -40,8 +40,7 @@
 	import Footer from './Footer.svelte';
 	import { captureAndShare } from '#lib/share.js';
 	import { onMount } from 'svelte';
-	import { canAddToHomeScreen, isAndroid } from '#lib/installHint.js';
-	import AndroidAppCard from './AndroidAppCard.svelte';
+	import { canAddToHomeScreen } from '#lib/installHint.js';
 	import InstallDialog from './InstallDialog.svelte';
 
 	let showSettings = $state(false);
@@ -49,8 +48,7 @@
 	let showHelp = $state(false);
 	let canInstall = $state(false);
 	let showInstall = $state(false);
-	let onAndroid = $state(false);
-	onMount(() => { canInstall = canAddToHomeScreen(); onAndroid = isAndroid(); });
+	onMount(() => { canInstall = canAddToHomeScreen(); });
 
 	const weekdayNames = $derived($json('weekday_names') as string[] | undefined);
 	const monthNames = $derived($json('month_names') as string[] | undefined);
@@ -544,12 +542,6 @@
 						<ActivitiesCard indices={computeActivityIndices(data)} />
 					</SectionCard>
 				</div>
-
-				{#if onAndroid}
-					<div>
-						<AndroidAppCard />
-					</div>
-				{/if}
 			</div>
 
 
