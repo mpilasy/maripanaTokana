@@ -1,0 +1,2 @@
+- The footer shows only the version. The build hash and build time are now on the About page.
+- New version numbers: the last part is the release time (UTC), for example 1.6.20261026193000.

@@ -1,0 +1,2 @@
+- Le pied de page n'affiche plus que la version. Le hash et l'heure de compilation sont maintenant sur la page À propos.
+- Nouveaux numéros de version : la dernière partie est l'heure de publication (UTC), par exemple 1.6.20261026193000.

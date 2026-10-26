@@ -8,6 +8,9 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 `v1.0.18-*` tags) are not listed. There is no 1.4.2 tag: that version was withdrawn.
 
 ## [Unreleased]
+
+## [1.6.20261026193250] - 2026-10-26
+- Version numbers are now MAJOR.MINOR.YYYYMMDDHHMMSS, with the release time in UTC.
 - Android: the footer shows only the version. The build hash and build time are now on the About page, under the version.
 
 ## [1.6.0] - 2026-10-26
