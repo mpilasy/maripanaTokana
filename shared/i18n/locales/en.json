@@ -197,7 +197,11 @@
 		"android_app_text": "Get the Android app, with home screen widgets.",
 		"android_app_fdroid": "Get it on F-Droid",
 		"android_app_obtainium": "Get it on Obtainium",
-		"android_app_github": "Get it on GitHub"
+		"android_app_github": "Get it on GitHub",
+		"install_badge_small": "Add to",
+		"install_badge_big": "Home screen",
+		"install_step_menu": "Open the browser menu",
+		"install_step_install": "Tap Install app or Add to Home screen"
 	},
 	"android_only": {
 		"widget_description": "Current weather with dual-unit temperature",

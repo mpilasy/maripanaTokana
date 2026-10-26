@@ -3,8 +3,11 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 
-	/** The two steps to add the app to the Home Screen on iPhone and iPad. Websites cannot do it themselves. */
-	let { onclose }: { onclose: () => void } = $props();
+	/**
+	 * The two steps to add the app to the Home Screen, for browsers that give no install prompt:
+	 * Safari on iPhone and iPad (`ios`), else the browser menu (Firefox and others).
+	 */
+	let { onclose, ios = true }: { onclose: () => void; ios?: boolean } = $props();
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -16,14 +19,20 @@
 
 		<ol class="steps">
 			<li>
-				<!-- The iOS share icon: a box with an arrow up -->
-				<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4M7 10H5v11h14V10h-2" /></svg>
-				<span>{$_('install_step_share')}</span>
+				{#if ios}
+					<!-- The iOS share icon: a box with an arrow up -->
+					<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4M7 10H5v11h14V10h-2" /></svg>
+					<span>{$_('install_step_share')}</span>
+				{:else}
+					<!-- The browser menu icon: three dots -->
+					<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="19" r="1.5" /></svg>
+					<span>{$_('install_step_menu')}</span>
+				{/if}
 			</li>
 			<li>
-				<!-- The iOS Add to Home Screen icon: a box with a plus -->
+				<!-- Add to Home Screen: a box with a plus -->
 				<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4" /><path d="M12 8v8M8 12h8" /></svg>
-				<span>{$_('install_step_add')}</span>
+				<span>{$_(ios ? 'install_step_add' : 'install_step_install')}</span>
 			</li>
 		</ol>
 

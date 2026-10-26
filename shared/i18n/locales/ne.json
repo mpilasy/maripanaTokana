@@ -197,7 +197,11 @@
 		"android_app_text": "होम स्क्रिन विजेटसहितको Android एप लिनुहोस्।",
 		"android_app_fdroid": "F-Droid मा पाउनुहोस्",
 		"android_app_obtainium": "Obtainium मा पाउनुहोस्",
-		"android_app_github": "GitHub मा पाउनुहोस्"
+		"android_app_github": "GitHub मा पाउनुहोस्",
+		"install_badge_small": "यसमा थप्नुहोस्",
+		"install_badge_big": "होम स्क्रिन",
+		"install_step_menu": "ब्राउजर मेनु खोल्नुहोस्",
+		"install_step_install": "एप इन्स्टल गर्नुहोस् वा होम स्क्रिनमा थप्नुहोस् मा ट्याप गर्नुहोस्"
 	},
 	"android_only": {
 		"widget_description": "दुई एकाइमा हालको मौसम तापक्रम",

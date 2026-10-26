@@ -40,15 +40,10 @@
 	import Footer from './Footer.svelte';
 	import { captureAndShare } from '#lib/share.js';
 	import { onMount } from 'svelte';
-	import { canAddToHomeScreen } from '#lib/installHint.js';
-	import InstallDialog from './InstallDialog.svelte';
 
 	let showSettings = $state(false);
 	let showAbout = $state(false);
 	let showHelp = $state(false);
-	let canInstall = $state(false);
-	let showInstall = $state(false);
-	onMount(() => { canInstall = canAddToHomeScreen(); });
 
 	const weekdayNames = $derived($json('weekday_names') as string[] | undefined);
 	const monthNames = $derived($json('month_names') as string[] | undefined);
@@ -554,11 +549,7 @@
 				onCycleLanguage={cycleLanguage}
 				onOpenAbout={() => showAbout = true}
 				onOpenHelp={() => showHelp = true}
-				onOpenInstall={canInstall ? () => showInstall = true : undefined}
 			/>
-			{#if showInstall}
-				<InstallDialog onclose={() => showInstall = false} />
-			{/if}
 
 			<!-- Outside .scroll-area: its mask-image would clip the dialog's backdrop -->
 			{#if showAirQualityDetail && data.airQuality}

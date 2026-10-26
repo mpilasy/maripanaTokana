@@ -197,7 +197,11 @@
 		"android_app_text": "احصل على تطبيق أندرويد، مع أدوات للشاشة الرئيسية.",
 		"android_app_fdroid": "احصل عليه من F-Droid",
 		"android_app_obtainium": "احصل عليه من Obtainium",
-		"android_app_github": "احصل عليه من GitHub"
+		"android_app_github": "احصل عليه من GitHub",
+		"install_badge_small": "أضف إلى",
+		"install_badge_big": "الشاشة الرئيسية",
+		"install_step_menu": "افتح قائمة المتصفح",
+		"install_step_install": "اضغط تثبيت التطبيق أو الإضافة إلى الشاشة الرئيسية"
 	},
 	"android_only": {
 		"widget_description": "الطقس الحالي مع درجة الحرارة بوحدتين",

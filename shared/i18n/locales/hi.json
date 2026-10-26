@@ -197,7 +197,11 @@
 		"android_app_text": "होम स्क्रीन विजेट वाला Android ऐप पाएँ।",
 		"android_app_fdroid": "F-Droid पर पाएँ",
 		"android_app_obtainium": "Obtainium पर पाएँ",
-		"android_app_github": "GitHub पर पाएँ"
+		"android_app_github": "GitHub पर पाएँ",
+		"install_badge_small": "इसमें जोड़ें",
+		"install_badge_big": "होम स्क्रीन",
+		"install_step_menu": "ब्राउज़र मेनू खोलें",
+		"install_step_install": "ऐप इंस्टॉल करें या होम स्क्रीन पर जोड़ें पर टैप करें"
 	},
 	"android_only": {
 		"widget_description": "दोहरी इकाई तापमान के साथ वर्तमान मौसम",

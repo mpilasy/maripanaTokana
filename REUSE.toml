@@ -67,6 +67,13 @@ precedence = "override"
 SPDX-FileCopyrightText = "Kunzisoft"
 SPDX-License-Identifier = "CC-BY-SA-3.0"
 
+# PWA logo (webmaxru/progressive-web-apps-logo), dedicated to the public domain
+[[annotations]]
+path = "web/static/badges/pwa-logo.svg"
+precedence = "override"
+SPDX-FileCopyrightText = "Maxim Salnikov and the PWA logo contributors"
+SPDX-License-Identifier = "CC0-1.0"
+
 # Obtainium badge (ImranR98/Obtainium)
 [[annotations]]
 path = "web/static/badges/get-it-on-obtainium.png"

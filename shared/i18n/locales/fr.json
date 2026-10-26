@@ -197,7 +197,11 @@
 		"android_app_text": "Installez l'application Android, avec des widgets pour l'écran d'accueil.",
 		"android_app_fdroid": "Disponible sur F-Droid",
 		"android_app_obtainium": "Disponible sur Obtainium",
-		"android_app_github": "Disponible sur GitHub"
+		"android_app_github": "Disponible sur GitHub",
+		"install_badge_small": "Ajouter à",
+		"install_badge_big": "Écran d'accueil",
+		"install_step_menu": "Ouvrez le menu du navigateur",
+		"install_step_install": "Touchez Installer l'application ou Ajouter à l'écran d'accueil"
 	},
 	"android_only": {
 		"widget_description": "Temps actuel avec temperature en double unite",

@@ -7,6 +7,7 @@
 	import { fontPairings } from '#lib/fonts.js';
 	import { fontIndex, localeIndex } from '#lib/stores/preferences.js';
 	import { refreshIfStale } from '#lib/stores/weather.js';
+	import { listenForInstallPrompt } from '#lib/installHint.js';
 
 	let { children } = $props();
 
@@ -45,6 +46,7 @@
 	});
 
 	onMount(() => {
+		listenForInstallPrompt();
 		// Auto-refresh on tab focus
 		const handler = () => {
 			if (document.visibilityState === 'visible') {

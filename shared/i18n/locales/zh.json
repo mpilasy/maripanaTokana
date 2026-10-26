@@ -197,7 +197,11 @@
 		"android_app_text": "获取 Android 应用，含主屏幕小部件。",
 		"android_app_fdroid": "在 F-Droid 上获取",
 		"android_app_obtainium": "在 Obtainium 上获取",
-		"android_app_github": "在 GitHub 上获取"
+		"android_app_github": "在 GitHub 上获取",
+		"install_badge_small": "添加到",
+		"install_badge_big": "主屏幕",
+		"install_step_menu": "打开浏览器菜单",
+		"install_step_install": "点按“安装应用”或“添加到主屏幕”"
 	},
 	"android_only": {
 		"widget_description": "当前天气与双单位温度",

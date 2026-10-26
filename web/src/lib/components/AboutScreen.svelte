@@ -9,16 +9,18 @@
 	import { onMount } from 'svelte';
 	import { SUPPORTED_LOCALES } from '#lib/i18n/index.js';
 	import { localeIndex } from '#lib/stores/preferences.js';
-	import { isAndroid } from '#lib/installHint.js';
-	import AndroidAppBadges from './AndroidAppBadges.svelte';
+	import { isAndroid, isStandalone } from '#lib/installHint.js';
+	import AppBadges from './AppBadges.svelte';
 
 	interface Props { onBack: () => void; onOpenHelp: () => void; languageFlag: string; onCycleLanguage: () => void; }
 	let { onBack, onOpenHelp, languageFlag, onCycleLanguage }: Props = $props();
 
 	let deviceRows = $state<DeviceRow[]>([]);
 	let onAndroid = $state(false);
+	let installable = $state(false);
 	onMount(() => {
 		onAndroid = isAndroid();
+		installable = !isStandalone();
 		deviceInfo(version, SUPPORTED_LOCALES[$localeIndex].tag).then((rows) => (deviceRows = rows));
 	});
 </script>
@@ -32,8 +34,8 @@
 		<!-- How to use the app -->
 		<button type="button" class="source-link help-link" onclick={onOpenHelp}>{$_('help_title')} ›</button>
 		<a class="source-link" href="https://github.com/mpilasy/maripanaTokana" target="_blank" rel="noopener">{$_('about_source_code')} ↗</a>
-		{#if onAndroid}
-			<AndroidAppBadges />
+		{#if onAndroid || installable}
+			<AppBadges android={onAndroid} {installable} />
 		{/if}
 	</div>
 

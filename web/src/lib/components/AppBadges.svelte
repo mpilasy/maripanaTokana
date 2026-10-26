@@ -2,17 +2,25 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
+	import InstallBadge from './InstallBadge.svelte';
 
-	/** Download links for the Android app (F-Droid and Obtainium as in the README, and the GitHub releases). The About page shows them only on Android. */
+	/**
+	 * Ways to get the app. `android`: download links for the Android app (F-Droid and Obtainium as in
+	 * the README, and the GitHub releases). `installable`: the "Add to Home screen" badge for the web app.
+	 */
+	let { android, installable }: { android: boolean; installable: boolean } = $props();
 	const FDROID_URL = 'https://f-droid.org/packages/orinasa.njarasoa.maripanatokana/';
 	const OBTAINIUM_URL = 'https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/mpilasy/maripanaTokana';
 	// GitHub redirects /releases/latest to the newest release tag, so the link needs no change for each release
 	const GITHUB_URL = 'https://github.com/mpilasy/maripanaTokana/releases/latest';
 </script>
 
-<div class="android-app">
-	<p class="text">{$_('android_app_text')}</p>
+<div class="get-app">
+	{#if android}
+		<p class="text">{$_('android_app_text')}</p>
+	{/if}
 	<div class="badges">
+		{#if android}
 		<a href={FDROID_URL} target="_blank" rel="noopener noreferrer">
 			<img src="/badges/get-it-on-fdroid.png" alt={$_('android_app_fdroid')} width="646" height="250" />
 		</a>
@@ -22,11 +30,15 @@
 		<a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">
 			<img src="/badges/get-it-on-github.png" alt={$_('android_app_github')} width="646" height="250" />
 		</a>
+		{/if}
+		{#if installable}
+			<InstallBadge />
+		{/if}
 	</div>
 </div>
 
 <style>
-	.android-app {
+	.get-app {
 		margin-top: 12px;
 		width: 100%;
 	}
@@ -44,7 +56,7 @@
 		gap: 8px;
 	}
 
-	.badges a {
+	.badges > :global(*) {
 		flex: 0 1 150px;
 		border-radius: 8px;
 	}

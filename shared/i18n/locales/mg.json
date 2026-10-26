@@ -197,7 +197,11 @@
 		"android_app_text": "Alaivo ny rindranasa Android, misy widget eo amin'ny fidirana.",
 		"android_app_fdroid": "Alaivo ao amin'ny F-Droid",
 		"android_app_obtainium": "Alaivo ao amin'ny Obtainium",
-		"android_app_github": "Alaivo ao amin'ny GitHub"
+		"android_app_github": "Alaivo ao amin'ny GitHub",
+		"install_badge_small": "Apetrao eo amin'ny",
+		"install_badge_big": "Fidirana",
+		"install_step_menu": "Sokafy ny menion'ny mpitety",
+		"install_step_install": "Tsindrio ny Hametraka ny rindranasa na Apetrao eo amin'ny fidirana"
 	},
 	"android_only": {
 		"widget_description": "Toetrandro ankehitriny miaraka amin'ny maripàna roa sosony",

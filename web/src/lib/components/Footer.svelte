@@ -10,11 +10,9 @@
 		onCycleLanguage: () => void;
 		onOpenAbout: () => void;
 		onOpenHelp: () => void;
-		// Only on iPhone and iPad, where the browser does not offer to install the app
-		onOpenInstall?: () => void;
 	}
 
-	let { fontName, currentFlag, onCycleFont, onCycleLanguage, onOpenAbout, onOpenHelp, onOpenInstall }: Props = $props();
+	let { fontName, currentFlag, onCycleFont, onCycleLanguage, onOpenAbout, onOpenHelp }: Props = $props();
 </script>
 
 <footer class="footer" dir="ltr">
@@ -28,10 +26,6 @@
 			<button type="button" class="about-link" onclick={onOpenHelp}>{$_('help_title')}</button>
 			<span class="dot">·</span>
 			<button type="button" class="about-link" onclick={onOpenAbout}>{$_('about_title')}</button>
-			{#if onOpenInstall}
-				<span class="dot">·</span>
-				<button type="button" class="about-link" onclick={onOpenInstall}>{$_('help_section_install')}</button>
-			{/if}
 		</span>
 		<span class="version">v1.6.20261026193250</span>
 	</div>

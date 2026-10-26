@@ -197,7 +197,11 @@
 		"android_app_text": "Instala la aplicación Android, con widgets para la pantalla de inicio.",
 		"android_app_fdroid": "Disponible en F-Droid",
 		"android_app_obtainium": "Disponible en Obtainium",
-		"android_app_github": "Disponible en GitHub"
+		"android_app_github": "Disponible en GitHub",
+		"install_badge_small": "Añadir a",
+		"install_badge_big": "Pantalla de inicio",
+		"install_step_menu": "Abre el menú del navegador",
+		"install_step_install": "Toca Instalar aplicación o Añadir a pantalla de inicio"
 	},
 	"android_only": {
 		"widget_description": "Clima actual con temperatura en doble unidad",
