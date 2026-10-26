@@ -118,7 +118,7 @@ dependencies {
     "standardImplementation"(libs.accompanist.permissions)
     "standardImplementation"(libs.kotlinx.coroutines.play.services)
     testImplementation("io.mockk:mockk:1.13.12")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:${libs.versions.kotlinxCoroutines.get()}")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
