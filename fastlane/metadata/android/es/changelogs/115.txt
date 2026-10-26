@@ -1,0 +1,2 @@
+- Página Acerca de: la variante y el código de versión están ahora bajo la versión, con el hash y la hora de compilación. La información del dispositivo ya no repite la versión.
+- Mejores textos en malagasy en la información del dispositivo.

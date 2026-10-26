@@ -1,0 +1,2 @@
+- About page: the flavor and version code are now under the version, with the build hash and time. The device info no longer repeats the version.
+- Better Malagasy texts in the device info.
