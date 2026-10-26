@@ -11,6 +11,9 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 - License: a GPL v3 section 7 additional permission lets anyone convey the Standard APK with Google Play services (README).
 - About page (Android): tap Meteocons to read its MIT License text in the app.
 - Each source file starts with SPDX lines for the copyright holder and the license (GPL-3.0-or-later).
+- About page: tap the license line to read the full GPL v3 text in the app (Android) or on GitHub (web).
+- The project follows the REUSE specification: `REUSE.toml` and `LICENSES/` give the copyright and license of each file, also fonts, icons and images.
+- New `CONTRIBUTING.md`: the license terms for contributions, and the checks to run before a pull request.
 
 ## [1.5.30] - 2026-10-26
 - Android: the forecast and the place name load at the same time, so a refresh is one network round trip shorter.

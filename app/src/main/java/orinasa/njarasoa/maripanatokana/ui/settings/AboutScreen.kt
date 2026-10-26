@@ -179,12 +179,19 @@ fun AboutScreen(onBack: () -> Unit, onOpenHelp: () -> Unit, languageFlag: String
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
                 )
+                // Opens the full GPL text, with the Play services permission, in-app
                 Text(
-                    text = stringResource(R.string.about_app_license),
+                    text = stringResource(R.string.about_app_license) + " ›",
                     fontSize = 13.sp,
                     lineHeight = 18.sp,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    modifier = Modifier
+                        .clickable(role = Role.Button) {
+                            openTextTitle = "GNU GPL v3"
+                            openTextRes = R.raw.gpl_license
+                        }
+                        .padding(horizontal = 12.dp, vertical = 4.dp),
                 )
                 Spacer(Modifier.height(8.dp))
                 // How to use the app

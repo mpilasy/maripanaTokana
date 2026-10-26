@@ -24,7 +24,7 @@
 		<span class="app-name">maripànaTokana</span>
 		<span class="version">v{version}</span>
 		<span class="copyright">© 2026 Orinasa Njarasoa</span>
-		<span class="app-license">{$_('about_app_license')}</span>
+		<a class="app-license" href="https://github.com/mpilasy/maripanaTokana/blob/main/LICENSE" target="_blank" rel="noopener">{$_('about_app_license')} ↗</a>
 		<!-- How to use the app -->
 		<button type="button" class="source-link help-link" onclick={onOpenHelp}>{$_('help_title')} ›</button>
 		<a class="source-link" href="https://github.com/mpilasy/maripanaTokana" target="_blank" rel="noopener">{$_('about_source_code')} ↗</a>
@@ -101,6 +101,8 @@
 	.app-license {
 		font-size: 13px;
 		color: rgba(255, 255, 255, 0.6);
+		text-align: center;
+		text-decoration: none;
 	}
 
 	.source-link {

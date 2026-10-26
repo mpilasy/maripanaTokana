@@ -196,4 +196,6 @@ Only the Standard APK uses Google Play services. The F-Droid APK does not use it
 
 ### Third-party notices
 
-The weather icons are [Meteocons](https://github.com/basmilius/weather-icons) by Bas Milius, under the MIT License. The fonts are under the SIL Open Font License 1.1. The license texts are in `app/src/main/res/raw/`, `web/static/icons/weather/` and `web/static/fonts/`, and the About page of the app shows them.
+The [REUSE.toml](REUSE.toml) file and the [LICENSES](LICENSES) folder give the copyright and license of each file. To contribute, see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+The weather icons are [Meteocons](https://github.com/basmilius/weather-icons) by Bas Milius, under the MIT License. Some Android icons are Material Design icons by Google, under the Apache License 2.0. The fonts are under the SIL Open Font License 1.1. The license texts are in `app/src/main/res/raw/`, `web/static/icons/weather/` and `web/static/fonts/`, and the About page of the app shows them.
