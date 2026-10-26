@@ -12,7 +12,8 @@ class RefreshActionCallback : ActionCallback {
         glanceId: GlanceId,
         parameters: ActionParameters
     ) {
-        // Trigger all widget re-renders (provideGlance will call fetch again)
+        // Fetch once here; the re-renders read the cache
+        WidgetWeatherFetcher.fetch(context)
         WeatherWidget().updateAll(context)
         WeatherWidgetLarge().updateAll(context)
     }
