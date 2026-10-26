@@ -53,6 +53,20 @@ precedence = "override"
 SPDX-FileCopyrightText = "The Apache Software Foundation"
 SPDX-License-Identifier = "Apache-2.0"
 
+# F-Droid badge (fdroid/artwork)
+[[annotations]]
+path = "web/static/badges/get-it-on-fdroid.png"
+precedence = "override"
+SPDX-FileCopyrightText = "2016 Andrew Nayenko <relan@airpost.net>"
+SPDX-License-Identifier = "CC-BY-SA-3.0 OR GPL-3.0-or-later"
+
+# Obtainium badge (ImranR98/Obtainium)
+[[annotations]]
+path = "web/static/badges/get-it-on-obtainium.png"
+precedence = "override"
+SPDX-FileCopyrightText = "Imran Remtulla"
+SPDX-License-Identifier = "GPL-3.0-only"
+
 # NASA Blue Marble background
 [[annotations]]
 path = ["web/static/bg-blue-marble.webp", "app/src/main/res/drawable/bg_blue_marble.webp"]

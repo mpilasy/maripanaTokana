@@ -12,3 +12,9 @@ export function canAddToHomeScreen(): boolean {
 		|| matchMedia('(display-mode: standalone)').matches;
 	return ios && !standalone;
 }
+
+/** True on Android, where the native app (with home screen widgets) can be installed. */
+export function isAndroid(): boolean {
+	if (typeof navigator === 'undefined') return false;
+	return /Android/i.test(navigator.userAgent);
+}
