@@ -6,7 +6,8 @@
 	/** Download links for the Android app (F-Droid and Obtainium as in the README, and the GitHub releases). The About page shows them only on Android. */
 	const FDROID_URL = 'https://f-droid.org/packages/orinasa.njarasoa.maripanatokana/';
 	const OBTAINIUM_URL = 'https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/mpilasy/maripanaTokana';
-	const GITHUB_URL = 'https://github.com/mpilasy/maripanaTokana/releases';
+	// GitHub redirects /releases/latest to the newest release tag, so the link needs no change for each release
+	const GITHUB_URL = 'https://github.com/mpilasy/maripanaTokana/releases/latest';
 </script>
 
 <div class="android-app">
