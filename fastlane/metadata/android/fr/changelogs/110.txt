@@ -1,0 +1,4 @@
+- Mise à jour plus rapide : le nom du lieu se charge en même temps que la prévision, et la météo se charge une fois, et non deux.
+- Après un déplacement de plus de 5 km environ, une mise à jour affiche la météo du nouveau lieu.
+- Les coordonnées partagées affichent le nom du lieu, et non les coordonnées.
+- Moins de requêtes vers les services de noms de lieux et d'alertes.

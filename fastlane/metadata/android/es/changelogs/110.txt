@@ -1,0 +1,4 @@
+- Actualización más rápida: el nombre del lugar se carga a la vez que el pronóstico, y el tiempo se carga una vez, no dos.
+- Después de moverte más de unos 5 km, una actualización muestra el tiempo del nuevo lugar.
+- Las coordenadas compartidas muestran el nombre del lugar, no las coordenadas.
+- Menos solicitudes a los servicios de nombres de lugares y de alertas.

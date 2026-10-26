@@ -31,7 +31,7 @@
 				<button type="button" class="about-link" onclick={onOpenInstall}>{$_('help_section_install')}</button>
 			{/if}
 		</span>
-		<span class="version">v1.5.29</span>
+		<span class="version">v1.5.30</span>
 	</div>
 	<button type="button" class="pill" onclick={onCycleLanguage} aria-label={$_('cd_change_language')}>
 		<span class="flag">{currentFlag}</span>

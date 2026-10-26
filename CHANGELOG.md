@@ -8,6 +8,8 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 `v1.0.18-*` tags) are not listed. There is no 1.4.2 tag: that version was withdrawn.
 
 ## [Unreleased]
+
+## [1.5.30] - 2026-10-26
 - Android: the forecast and the place name load at the same time, so a refresh is one network round trip shorter.
 - Android: Nominatim gets one request at a time, at most one per second, as its usage policy asks. The same place is asked for once, not up to 3 times for each refresh.
 - Android: the HTTP client has a 10 MB disk cache and a 40-second call timeout. The world GDACS feed is downloaded once in 10 minutes, not for each alerts fetch.

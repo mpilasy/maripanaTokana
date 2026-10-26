@@ -1,0 +1,4 @@
+- Faster refresh: the place name loads at the same time as the forecast, and the weather loads once, not twice.
+- After you move more than about 5 km, a refresh shows the weather for the new place.
+- Shared coordinates show the place name, not the coordinates.
+- Fewer requests to the place-name and alert services.
