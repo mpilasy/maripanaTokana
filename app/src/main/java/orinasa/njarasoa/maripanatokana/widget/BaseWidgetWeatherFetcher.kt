@@ -6,13 +6,21 @@ package orinasa.njarasoa.maripanatokana.widget
 import android.annotation.SuppressLint
 import android.content.Context
 import android.location.Geocoder
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoApiService
 import orinasa.njarasoa.maripanatokana.data.remote.toDomain
+import orinasa.njarasoa.maripanatokana.domain.model.WeatherAlert
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
+import orinasa.njarasoa.maripanatokana.domain.repository.WeatherRepository
 import orinasa.njarasoa.maripanatokana.util.AppLog
 import retrofit2.Retrofit
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
@@ -22,6 +30,13 @@ import java.util.Locale
 
 /** Result of a widget fetch: [fresh] is true only when the network fetch succeeded now. */
 data class WidgetFetchResult(val data: WeatherData?, val fresh: Boolean)
+
+/** The app's alert code, with the same source settings as the app. */
+@EntryPoint
+@InstallIn(SingletonComponent::class)
+interface WidgetEntryPoint {
+    fun weatherRepository(): WeatherRepository
+}
 
 /**
  * Base logic for standalone weather fetcher for Glance widgets.
@@ -56,7 +71,7 @@ open class BaseWidgetWeatherFetcher(private val baseUrl: String = "https://api.o
     /** The last fetched forecast, mapped again for the current time. No network access. */
     fun cached(context: Context): WeatherData? = cache(context).load()?.let { entry ->
         try {
-            entry.response.toDomain(entry.locationName).copy(timestamp = entry.timestamp)
+            entry.response.toDomain(entry.locationName).copy(timestamp = entry.timestamp, alerts = entry.alerts)
         } catch (e: Exception) {
             AppLog.w(TAG, "cached forecast could not be mapped", e)
             null
@@ -83,7 +98,10 @@ open class BaseWidgetWeatherFetcher(private val baseUrl: String = "https://api.o
         return try {
             val (lat, lon) = getCoordinates() ?: throw IllegalStateException("No coordinates")
 
-            val response = api.getForecast(latitude = lat, longitude = lon)
+            val (response, alerts) = coroutineScope {
+                val alerts = async { fetchAlerts(context, lat, lon) }
+                api.getForecast(latitude = lat, longitude = lon) to alerts.await()
+            }
 
             val locationName = prefs.getString("location_name", null)
                 ?: try {
@@ -101,15 +119,29 @@ open class BaseWidgetWeatherFetcher(private val baseUrl: String = "https://api.o
                 }
 
             val now = System.currentTimeMillis()
-            withContext(Dispatchers.IO) { cache(context).save(WidgetCacheEntry(response, locationName, now)) }
+            withContext(Dispatchers.IO) { cache(context).save(WidgetCacheEntry(response, locationName, now, alerts)) }
 
-            WidgetFetchResult(response.toDomain(locationName).copy(timestamp = now), fresh = true)
+            WidgetFetchResult(response.toDomain(locationName).copy(timestamp = now, alerts = alerts), fresh = true)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             AppLog.w(TAG, "widget fetch failed", e)
             WidgetFetchResult(withContext(Dispatchers.IO) { cached(context) }, fresh = false)
         }
+    }
+
+    /** The active alerts for the place; none when the alert fetch fails. */
+    private suspend fun fetchAlerts(context: Context, lat: Double, lon: Double): List<WeatherAlert> = try {
+        EntryPointAccessors.fromApplication(context.applicationContext, WidgetEntryPoint::class.java)
+            .weatherRepository()
+            .fetchAlerts(lat, lon)
+            .getOrThrow()
+            .alerts
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        AppLog.w(TAG, "widget alerts failed", e)
+        emptyList()
     }
 
     companion object {

@@ -11,6 +11,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoResponse
+import orinasa.njarasoa.maripanatokana.domain.model.AlertLevel
+import orinasa.njarasoa.maripanatokana.domain.model.WeatherAlert
 import orinasa.njarasoa.maripanatokana.testutil.FakePrefs
 import java.io.File
 
@@ -44,6 +46,24 @@ class WidgetCacheTest {
         assertEquals("Tana", loaded.locationName)
         assertEquals(123L, loaded.timestamp)
         assertEquals(21.5, loaded.response.current.temperature, 0.0)
+    }
+
+    @Test
+    fun roundTripsAlerts() {
+        val cache = WidgetCache(File(tmp.newFolder("a"), "forecast.json"), json)
+        val alert = WeatherAlert(AlertLevel.WARNING, "Flood Warning", "River flooding", "nws", 456L)
+        cache.save(WidgetCacheEntry(response(), "Tana", 123L, listOf(alert)))
+
+        assertEquals(listOf(alert), cache.load()!!.alerts)
+    }
+
+    @Test
+    fun entryWithoutAlertsLoadsNoAlerts() {
+        val file = File(tmp.newFolder("o"), "forecast.json")
+        // A cache file written before the widget kept alerts
+        file.writeText("""{"response":$payload,"locationName":"Tana","timestamp":123}""")
+
+        assertEquals(emptyList<WeatherAlert>(), WidgetCache(file, json).load()!!.alerts)
     }
 
     @Test

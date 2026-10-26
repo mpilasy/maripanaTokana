@@ -8,6 +8,7 @@ import androidx.core.content.edit
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoResponse
+import orinasa.njarasoa.maripanatokana.domain.model.WeatherAlert
 import orinasa.njarasoa.maripanatokana.util.AppLog
 import java.io.File
 
@@ -17,6 +18,7 @@ data class WidgetCacheEntry(
     val response: OpenMeteoResponse,
     val locationName: String,
     val timestamp: Long,
+    val alerts: List<WeatherAlert> = emptyList(),
 )
 
 /**

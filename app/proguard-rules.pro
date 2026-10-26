@@ -43,3 +43,6 @@
 # Same for the widget forecast cache (WidgetCacheEntry), which is in the widget package.
 -keep @kotlinx.serialization.Serializable class orinasa.njarasoa.maripanatokana.widget.** { *; }
 -keep class orinasa.njarasoa.maripanatokana.widget.**$$serializer { *; }
+# The widget cache also keeps the alerts.
+-keep class orinasa.njarasoa.maripanatokana.domain.model.WeatherAlert { *; }
+-keep class orinasa.njarasoa.maripanatokana.domain.model.WeatherAlert$$serializer { *; }

@@ -145,7 +145,7 @@ maripanaTokana/
 │   │   │       ├── WeatherWidgetLarge.kt        # 4x2 widget (Glance)
 │   │   │       ├── WeatherWidgetReceiver.kt     # 4x1 receiver
 │   │   │       ├── WeatherWidgetLargeReceiver.kt # 4x2 receiver
-│   │   │       ├── BaseWidgetWeatherFetcher.kt  # Standalone weather fetcher (no Hilt)
+│   │   │       ├── BaseWidgetWeatherFetcher.kt  # Standalone forecast fetcher; alerts via Hilt entry point
 │   │   │       └── WeatherUpdateWorker.kt       # Background periodic worker
 │   │   └── res/
 │   │       ├── drawable/ / font/ / layout/ / values/
@@ -324,7 +324,7 @@ Two Glance home screen widgets:
 - **4x1 (`WeatherWidget`)**: Compact view with city, dual-unit temperature, weather description, and refresh timestamp.
 - **4x2 (`WeatherWidgetLarge`)**: Expanded view adding feels-like, humidity, wind, and a 3-day forecast row.
 
-Updated every 30 minutes in background via `WorkManager` and `BaseWidgetWeatherFetcher` (standalone Retrofit fetcher, no Hilt). The flavor `WidgetWeatherFetcher` tries a fresh location fix first, then the saved coordinates. The widgets always use Open-Meteo and the device location, not the active favorite or the chosen weather source. Tapping the widget opens the app; tapping the time refreshes it (`RefreshActionCallback`).
+Updated every 30 minutes in background via `WorkManager` and `BaseWidgetWeatherFetcher` (standalone Retrofit fetcher, no Hilt). The same fetch loads the active alerts with the app's `WeatherRepository.fetchAlerts` (through the `WidgetEntryPoint` Hilt entry point, so the alert settings apply), and the widgets show their count as a badge. The flavor `WidgetWeatherFetcher` tries a fresh location fix first, then the saved coordinates. The widgets always use Open-Meteo and the device location, not the active favorite or the chosen weather source. Tapping the widget opens the app; tapping the time refreshes it (`RefreshActionCallback`).
 
 The widgets have an alert badge, but the widget data has no alerts (`alerts = emptyList()`), so the badge does not show.
 
