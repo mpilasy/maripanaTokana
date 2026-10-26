@@ -225,7 +225,7 @@
     <string name="device_language">Fiteny</string>
     <string name="device_time_zone">Faritra ora</string>
     <string name="device_processor">Processeur</string>
-    <string name="device_memory">Fitadidiana</string>
+    <string name="device_memory">RAM</string>
     <string name="device_app_build">Dikan\'ny rindranasa</string>
     <string name="device_installer">Napetraka avy amin\'ny</string>
     <string name="device_touch">Teboka azo kasihina</string>
