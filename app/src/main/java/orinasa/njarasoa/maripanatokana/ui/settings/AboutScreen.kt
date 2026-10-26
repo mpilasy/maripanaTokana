@@ -122,6 +122,8 @@ private val creditSections = listOf(
         listOf(
             Credit("NASA Blue Marble", license = "Public domain", url = "https://visibleearth.nasa.gov/collection/1484/blue-marble"),
             Credit("Meteocons", license = "MIT", note = "Weather icons by Bas Milius", textRes = R.raw.meteocons_license),
+            // Android only: the web app does not use these icons
+            Credit("Material Design icons", license = "Apache-2.0", note = "Interface icons by Google", textRes = R.raw.apache_license),
         ),
     ),
     CreditSection(

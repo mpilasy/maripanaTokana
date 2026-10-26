@@ -13,6 +13,7 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 - Each source file starts with SPDX lines for the copyright holder and the license (GPL-3.0-or-later).
 - About page: tap the license line to read the full GPL v3 text in the app (Android) or on GitHub (web).
 - The project follows the REUSE specification: `REUSE.toml` and `LICENSES/` give the copyright and license of each file, also fonts, icons and images.
+- About page (Android): the Material Design icons are listed (Apache-2.0); tap the entry to read the license text in the app.
 - New `CONTRIBUTING.md`: the license terms for contributions, and the checks to run before a pull request.
 
 ## [1.5.30] - 2026-10-26
