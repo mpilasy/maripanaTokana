@@ -103,8 +103,11 @@ open class BaseWidgetWeatherFetcher(private val baseUrl: String = "https://api.o
                 api.getForecast(latitude = lat, longitude = lon) to alerts.await()
             }
 
-            val locationName = prefs.getString("location_name", null)
-                ?: try {
+            val locationName = savedNameNear(
+                lat, lon,
+                prefs.getFloat("lat", Float.MIN_VALUE), prefs.getFloat("lon", Float.MIN_VALUE),
+                prefs.getString("location_name", null),
+            ) ?: try {
                     withContext(Dispatchers.IO) {
                         @Suppress("DEPRECATION")
                         Geocoder(context, Locale.getDefault())
@@ -146,6 +149,20 @@ open class BaseWidgetWeatherFetcher(private val baseUrl: String = "https://api.o
 
     companion object {
         private const val TAG = "WidgetFetcher"
+
+        /** About 5 km, as in the app: 0.045 degrees of latitude. */
+        private const val NEAR_DEGREES = 0.045
+
+        /**
+         * The place name the app saved with its last GPS position, when [lat], [lon] is near that position.
+         * Else null: the name is for another place (for example, the phone moved since the app was open).
+         */
+        internal fun savedNameNear(lat: Double, lon: Double, savedLat: Float, savedLon: Float, savedName: String?): String? {
+            if (savedName == null || savedLat == Float.MIN_VALUE || savedLon == Float.MIN_VALUE) return null
+            val dlat = lat - savedLat
+            val dlon = (lon - savedLon) * Math.cos(Math.toRadians((lat + savedLat) / 2.0))
+            return savedName.takeIf { dlat * dlat + dlon * dlon <= NEAR_DEGREES * NEAR_DEGREES }
+        }
 
         /** Longer than the 30-minute worker period, so a render between two worker runs uses the cache. */
         const val RENDER_MAX_AGE_MS = 45 * 60 * 1000L

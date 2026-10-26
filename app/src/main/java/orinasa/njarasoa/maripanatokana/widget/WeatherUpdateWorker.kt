@@ -6,7 +6,12 @@ package orinasa.njarasoa.maripanatokana.widget
 import android.content.Context
 import androidx.core.content.edit
 import androidx.glance.appwidget.updateAll
+import androidx.work.Constraints
 import androidx.work.CoroutineWorker
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 
 class WeatherUpdateWorker(
@@ -36,7 +41,16 @@ class WeatherUpdateWorker(
         return Result.success()
     }
 
-    private companion object {
-        const val MAX_RETRIES = 3
+    companion object {
+        private const val MAX_RETRIES = 3
+        private const val REFRESH_WORK = "weather_refresh"
+
+        /** Fetches now in a one-time worker. A tap while a refresh waits or runs does not add a second one. */
+        fun refreshNow(context: Context) {
+            val request = OneTimeWorkRequestBuilder<WeatherUpdateWorker>()
+                .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
+                .build()
+            WorkManager.getInstance(context).enqueueUniqueWork(REFRESH_WORK, ExistingWorkPolicy.KEEP, request)
+        }
     }
 }

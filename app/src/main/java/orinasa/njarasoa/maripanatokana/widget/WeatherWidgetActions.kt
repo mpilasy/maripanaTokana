@@ -7,7 +7,6 @@ import android.content.Context
 import androidx.glance.GlanceId
 import androidx.glance.action.ActionParameters
 import androidx.glance.appwidget.action.ActionCallback
-import androidx.glance.appwidget.updateAll
 
 class RefreshActionCallback : ActionCallback {
     override suspend fun onAction(
@@ -15,9 +14,8 @@ class RefreshActionCallback : ActionCallback {
         glanceId: GlanceId,
         parameters: ActionParameters
     ) {
-        // Fetch once here; the re-renders read the cache
-        WidgetWeatherFetcher.fetch(context)
-        WeatherWidget().updateAll(context)
-        WeatherWidgetLarge().updateAll(context)
+        // The fetch can take longer than a broadcast may run (a location fix alone can take 20 s),
+        // so a worker does it. The worker re-renders the widgets when the forecast is cached.
+        WeatherUpdateWorker.refreshNow(context)
     }
 }
