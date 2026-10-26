@@ -234,6 +234,36 @@ class WeatherViewModelTest {
     }
 
     @Test
+    fun freshFixNearTheCachedOneWaitsForItsWeather() = runTest(testDispatcher) {
+        // The fresh fix answers while the weather for the cached fix (10, 20) is still loading
+        coEvery { locationRepository.getFreshLocation() } coAnswers {
+            delay(500)
+            Result.success(10.001 to 20.001)
+        }
+
+        viewModel.refresh()
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value is WeatherUiState.Success)
+        coVerify(exactly = 1) { weatherRepository.getWeather(10.0, 20.0) }
+        coVerify(exactly = 0) { weatherRepository.getWeather(10.001, 20.001) }
+    }
+
+    @Test
+    fun freshFixFarFromTheCachedOneLoadsItsWeather() = runTest(testDispatcher) {
+        // The fresh fix is about 55 km from the cached fix (10, 20)
+        coEvery { locationRepository.getFreshLocation() } coAnswers {
+            delay(500)
+            Result.success(10.5 to 20.0)
+        }
+
+        viewModel.refresh()
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { weatherRepository.getWeather(10.5, 20.0) }
+    }
+
+    @Test
     fun languageChangeRenamesTheGpsPlace() = runTest(testDispatcher) {
         // Current location, no favorite and no typed-in place
         every { sharedPreferences.getString("active_location_id", any()) } returns null
@@ -323,6 +353,17 @@ class WeatherViewModelTest {
         vm.handleSharedText("Nowhere")
 
         awaitCondition { vm.shownName() == "1.0,2.0" }
+    }
+
+    @Test
+    fun sharedCoordinatesShowThePlaceName() = runTest(testDispatcher) {
+        val f = JobsFixture()
+        coEvery { f.weatherRepository.localPlaceName(any(), any()) } returns ("Antananarivo" to "Analamanga, Madagascar")
+        val vm = f.viewModel()
+
+        vm.handleSharedText("-18.91, 47.52")
+
+        awaitCondition { vm.shownName() == "Antananarivo" }
     }
 
     @Test

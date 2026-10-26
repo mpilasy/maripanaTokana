@@ -266,7 +266,10 @@ class WeatherViewModel @Inject constructor(
                 // The parser can follow short links over the network
                 val parsed = withContext(Dispatchers.IO) { SharedLocationParser.parseLocationText(text) }
                 if (parsed != null) {
-                    val name = parsed.name ?: "%.4f, %.4f".format(Locale.US, parsed.latitude, parsed.longitude)
+                    // Bare coordinates have no name: use the place name found for them
+                    val name = parsed.name
+                        ?: weatherRepository.localPlaceName(parsed.latitude, parsed.longitude)?.first
+                        ?: "%.4f, %.4f".format(Locale.US, parsed.latitude, parsed.longitude)
                     finishSharedText()
                     applyLocationOverride(parsed.latitude, parsed.longitude, name)
                     return@launch
@@ -610,10 +613,12 @@ class WeatherViewModel @Inject constructor(
                 // Step 1: try cached location for instant render
                 var cachedWeatherDisplayed = false
                 var freshWeatherDisplayed = false
+                var lastFix: Pair<Double, Double>? = null
 
-                launch {
+                val step1 = launch {
                     locationRepository.getLastLocation().onSuccess { (lat, lon) ->
                         locationObtained = true
+                        lastFix = lat to lon
                         saveLocation(lat, lon)
                         weatherRepository.getWeather(lat, lon)
                             .onSuccess { data ->
@@ -634,8 +639,11 @@ class WeatherViewModel @Inject constructor(
                     locationRepository.getFreshLocation()
                         .onSuccess { (lat, lon) ->
                             locationObtained = true
+                            val nearLastFix = lastFix?.let { (lastLat, lastLon) -> !isFar(lastLat, lastLon, lat, lon) } == true
+                            // Step 1 is loading the weather for about the same place: wait for it, do not load it again
+                            if (nearLastFix) step1.join()
                             saveLocation(lat, lon)
-                            if (!cachedWeatherDisplayed || movedSignificantly(lat, lon)) {
+                            if (!cachedWeatherDisplayed || !nearLastFix) {
                                 weatherRepository.getWeather(lat, lon)
                                     .onSuccess { data ->
                                         freshWeatherDisplayed = true
@@ -732,19 +740,13 @@ class WeatherViewModel @Inject constructor(
         }
     }
 
-    private fun movedSignificantly(lat: Double, lon: Double): Boolean {
-        val oldLat = privatePrefs.getFloat("last_render_lat", Float.MIN_VALUE)
-        val oldLon = privatePrefs.getFloat("last_render_lon", Float.MIN_VALUE)
-        val isMoved = if (oldLat == Float.MIN_VALUE) {
-            true
-        } else {
-            val dlat = lat - oldLat
-            val cosLat = Math.cos(Math.toRadians((lat + oldLat) / 2.0))
-            val dlon = (lon - oldLon) * cosLat
-            // ~5 km threshold (0.045 degrees latitude ≈ 5 km)
-            dlat * dlat + dlon * dlon > 0.045 * 0.045
-        }
-        return isMoved
+    /** True when the two points are more than about 5 km apart. */
+    private fun isFar(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Boolean {
+        val dlat = lat2 - lat1
+        val cosLat = Math.cos(Math.toRadians((lat1 + lat2) / 2.0))
+        val dlon = (lon2 - lon1) * cosLat
+        // ~5 km threshold (0.045 degrees latitude ≈ 5 km)
+        return dlat * dlat + dlon * dlon > 0.045 * 0.045
     }
 
     private companion object {

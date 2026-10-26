@@ -113,7 +113,9 @@ function extractLabel(input: string): string | undefined {
 	);
 	if (nonUrlLines.length > 0) {
 		const candidate = nonUrlLines[0].trim();
-		if (candidate.length > 0 && candidate !== 'Dropped pin') {
+		// Coordinates alone are not a place name
+		const isCoordinates = parseRawCoordinates(candidate) !== null || parseCoordinateInput(candidate) !== null || parseDmsCoordinates(candidate) !== null;
+		if (candidate.length > 0 && candidate !== 'Dropped pin' && !isCoordinates) {
 			result = candidate;
 		}
 	}

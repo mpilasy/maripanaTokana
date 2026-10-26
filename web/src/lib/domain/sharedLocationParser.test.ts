@@ -21,3 +21,14 @@ describe('parseCoordinateInput', () => {
 		expect(parseLocationText('-18, 47')).toMatchObject({ latitude: -18, longitude: 47 });
 	});
 });
+
+describe('parseLocationText name', () => {
+	it('gives coordinates alone no name', () => {
+		expect(parseLocationText('-18.91, 47.52')?.name).toBeUndefined();
+		expect(parseLocationText('-18, 47')?.name).toBeUndefined();
+	});
+
+	it('keeps a place name given with the coordinates', () => {
+		expect(parseLocationText('Antananarivo\ngeo:-18.8792,47.5079')?.name).toBe('Antananarivo');
+	});
+});

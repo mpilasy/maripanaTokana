@@ -11,6 +11,8 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 - Android: the forecast and the place name load at the same time, so a refresh is one network round trip shorter.
 - Android: Nominatim gets one request at a time, at most one per second, as its usage policy asks. The same place is asked for once, not up to 3 times for each refresh.
 - Android: the HTTP client has a 10 MB disk cache and a 40-second call timeout. The world GDACS feed is downloaded once in 10 minutes, not for each alerts fetch.
+- Android: a refresh loads the weather once, not twice, when the new GPS fix answers before the weather for the last fix. When the new fix is more than about 5 km from the last fix, the app now loads the weather for the new fix (before, it compared the fix with itself and kept the old place).
+- Shared coordinates show the place name (for example "Antananarivo") in place of the coordinates (Android and web).
 
 ## [1.5.29] - 2026-10-26
 - Hourly temperature chart: the high's label goes under the line when it would cover the 00:00 or 12:00 label (Android and web).

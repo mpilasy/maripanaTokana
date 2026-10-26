@@ -14,6 +14,14 @@ class SharedLocationParserTest {
         val p = parsed!!
         assertEquals(-18.8792, p.latitude, 0.0001)
         assertEquals(47.5079, p.longitude, 0.0001)
+        // Coordinates alone are not a place name
+        assertNull(p.name)
+    }
+
+    @Test
+    fun testCoordinatesWithAPlaceNameKeepTheName() {
+        val parsed = SharedLocationParser.parseLocationText("Antananarivo\ngeo:-18.8792,47.5079")
+        assertEquals("Antananarivo", parsed?.name)
     }
 
     @Test

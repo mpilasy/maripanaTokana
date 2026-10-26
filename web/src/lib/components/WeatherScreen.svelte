@@ -16,6 +16,7 @@
 	import { encodePlusCode, findPlusCode } from '$lib/domain/plusCode';
 	import { longPress } from '$lib/actions/longPress';
 	import { searchLocations } from '$lib/api/geocodingSearch';
+	import { lookupLocation } from '$lib/stores/location';
 	import SettingsScreen from './SettingsScreen.svelte';
 	import AboutScreen from './AboutScreen.svelte';
 	import HelpScreen from './HelpScreen.svelte';
@@ -69,9 +70,14 @@
 			const sharedText = params.get('text') || params.get('url') || params.get('q') || params.get('loc') || params.get('title');
 			if (sharedText) {
 				const parsed = parseLocationText(sharedText);
-				if (parsed) {
-					const name = parsed.name || `${parsed.latitude.toFixed(4)}, ${parsed.longitude.toFixed(4)}`;
-					setLocationOverride(parsed.latitude, parsed.longitude, name);
+				if (parsed?.name) {
+					setLocationOverride(parsed.latitude, parsed.longitude, parsed.name);
+				} else if (parsed) {
+					// Bare coordinates have no name: use the place name found for them
+					const { latitude, longitude } = parsed;
+					lookupLocation(latitude, longitude, SUPPORTED_LOCALES[$localeIndex].tag).then((r) => {
+						setLocationOverride(latitude, longitude, r?.name ?? `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`, r?.subtext);
+					});
 				} else if (findPlusCode(sharedText)) {
 					searchLocations(sharedText).then(([r]) => {
 						if (r) setLocationOverride(r.latitude, r.longitude, r.name, [r.admin1, r.country].filter(Boolean).join(', ') || undefined);

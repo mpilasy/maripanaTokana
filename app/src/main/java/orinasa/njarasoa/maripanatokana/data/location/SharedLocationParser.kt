@@ -251,7 +251,9 @@ object SharedLocationParser {
         }
         if (nonUrlLines.isNotEmpty()) {
             val candidate = nonUrlLines.first().trim()
-            if (candidate.isNotBlank() && candidate != "Dropped pin") {
+            // Coordinates alone are not a place name
+            val isCoordinates = parseRawCoordinates(candidate) != null || parseDmsCoordinates(candidate) != null
+            if (candidate.isNotBlank() && candidate != "Dropped pin" && !isCoordinates) {
                 result = candidate
             }
         }
