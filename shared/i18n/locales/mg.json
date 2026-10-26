@@ -196,7 +196,8 @@
 		"help_a_install": "Tsindrio ny Zarao, avy eo ny Apetrao eo amin'ny fidirana. Hisokatra avy amin'ny sariny manokana ny fampiharana avy eo, toy ny fampiharana tena izy.",
 		"android_app_text": "Alaivo ny rindranasa Android, misy widget eo amin'ny fidirana.",
 		"android_app_fdroid": "Alaivo ao amin'ny F-Droid",
-		"android_app_obtainium": "Alaivo ao amin'ny Obtainium"
+		"android_app_obtainium": "Alaivo ao amin'ny Obtainium",
+		"android_app_github": "Alaivo ao amin'ny GitHub"
 	},
 	"android_only": {
 		"widget_description": "Toetrandro ankehitriny miaraka amin'ny maripàna roa sosony",

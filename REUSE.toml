@@ -60,6 +60,13 @@ precedence = "override"
 SPDX-FileCopyrightText = "2016 Andrew Nayenko <relan@airpost.net>"
 SPDX-License-Identifier = "CC-BY-SA-3.0 OR GPL-3.0-or-later"
 
+# GitHub badge (Kunzisoft/Github-badge, from the F-Droid badge sources)
+[[annotations]]
+path = "web/static/badges/get-it-on-github.png"
+precedence = "override"
+SPDX-FileCopyrightText = "Kunzisoft"
+SPDX-License-Identifier = "CC-BY-SA-3.0"
+
 # Obtainium badge (ImranR98/Obtainium)
 [[annotations]]
 path = "web/static/badges/get-it-on-obtainium.png"

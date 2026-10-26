@@ -196,7 +196,8 @@
 		"help_a_install": "अपने ब्राउज़र में शेयर करें पर टैप करें, फिर होम स्क्रीन में जोड़ें पर टैप करें। इसके बाद ऐप अपने आइकन से खुलता है, ब्राउज़र बार के बिना।",
 		"android_app_text": "होम स्क्रीन विजेट वाला Android ऐप पाएँ।",
 		"android_app_fdroid": "F-Droid पर पाएँ",
-		"android_app_obtainium": "Obtainium पर पाएँ"
+		"android_app_obtainium": "Obtainium पर पाएँ",
+		"android_app_github": "GitHub पर पाएँ"
 	},
 	"android_only": {
 		"widget_description": "दोहरी इकाई तापमान के साथ वर्तमान मौसम",

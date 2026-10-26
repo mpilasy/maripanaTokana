@@ -196,7 +196,8 @@
 		"help_a_install": "En tu navegador, toca Compartir y luego Añadir a pantalla de inicio. Después, la aplicación se abre desde su propio icono, sin la barra del navegador.",
 		"android_app_text": "Instala la aplicación Android, con widgets para la pantalla de inicio.",
 		"android_app_fdroid": "Disponible en F-Droid",
-		"android_app_obtainium": "Disponible en Obtainium"
+		"android_app_obtainium": "Disponible en Obtainium",
+		"android_app_github": "Disponible en GitHub"
 	},
 	"android_only": {
 		"widget_description": "Clima actual con temperatura en doble unidad",

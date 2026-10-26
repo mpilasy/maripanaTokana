@@ -3,9 +3,10 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 
-	/** Download links for the Android app, as in the README. The About page shows them only on Android. */
+	/** Download links for the Android app (F-Droid and Obtainium as in the README, and the GitHub releases). The About page shows them only on Android. */
 	const FDROID_URL = 'https://f-droid.org/packages/orinasa.njarasoa.maripanatokana/';
 	const OBTAINIUM_URL = 'https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/mpilasy/maripanaTokana';
+	const GITHUB_URL = 'https://github.com/mpilasy/maripanaTokana/releases';
 </script>
 
 <div class="android-app">
@@ -16,6 +17,9 @@
 		</a>
 		<a href={OBTAINIUM_URL} target="_blank" rel="noopener noreferrer">
 			<img src="/badges/get-it-on-obtainium.png" alt={$_('android_app_obtainium')} width="646" height="250" />
+		</a>
+		<a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">
+			<img src="/badges/get-it-on-github.png" alt={$_('android_app_github')} width="646" height="250" />
 		</a>
 	</div>
 </div>
@@ -40,8 +44,7 @@
 	}
 
 	.badges a {
-		flex: 1 1 140px;
-		max-width: 200px;
+		flex: 0 1 150px;
 		border-radius: 8px;
 	}
 

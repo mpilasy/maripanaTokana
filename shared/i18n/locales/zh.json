@@ -196,7 +196,8 @@
 		"help_a_install": "在浏览器中点按“共享”，然后点按“添加到主屏幕”。之后应用会从自己的图标打开，不显示浏览器栏。",
 		"android_app_text": "获取 Android 应用，含主屏幕小部件。",
 		"android_app_fdroid": "在 F-Droid 上获取",
-		"android_app_obtainium": "在 Obtainium 上获取"
+		"android_app_obtainium": "在 Obtainium 上获取",
+		"android_app_github": "在 GitHub 上获取"
 	},
 	"android_only": {
 		"widget_description": "当前天气与双单位温度",
