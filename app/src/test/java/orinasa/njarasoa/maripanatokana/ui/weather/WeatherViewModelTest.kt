@@ -364,6 +364,11 @@ class WeatherViewModelTest {
         vm.handleSharedText("-18.91, 47.52")
 
         awaitCondition { vm.shownName() == "Antananarivo" }
+        // The shared place starts a background GPS refresh on Dispatchers.IO. Let it end before the test does:
+        // after tearDown resets Main, its return to Main throws, and the next test fails with that exception.
+        awaitCondition { f.weatherCache.load("gps") != null }
+        Thread.sleep(50)
+        advanceUntilIdle()
     }
 
     @Test
