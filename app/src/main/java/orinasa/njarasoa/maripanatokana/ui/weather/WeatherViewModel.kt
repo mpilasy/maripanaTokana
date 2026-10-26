@@ -150,11 +150,12 @@ class WeatherViewModel @Inject constructor(
     private var fetchJob: Job? = null
     private var searchJob: Job? = null
     private var alertJob: Job? = null
+    private var sharedTextJob: Job? = null
+    private var gpsCacheJob: Job? = null
     // Coordinates of the weather currently displayed; alert results for other coordinates are dropped
     private var alertCoords: Pair<Double, Double>? = null
 
-    // Cached GPS weather data fetched in background during advanced mode with override
-    private var cachedGpsWeatherData: WeatherData? = null
+    // True while a shared text is resolved to a place; fetchWeather waits for it
     private var isResolvingSharedLocation = false
 
     init {
@@ -233,6 +234,7 @@ class WeatherViewModel @Inject constructor(
      * [switchToLocation] — starting a preview clears the active saved-location id, and switching
      * to a real location clears an active preview. Use [favoriteCurrentLocation] to save it. */
     fun setLocationOverride(lat: Double, lon: Double, name: String) {
+        cancelSharedText()
         _uiState.value = WeatherUiState.Loading
         privatePrefs.edit {
             putFloat("advanced_override_lat", lat.toFloat())
@@ -251,42 +253,38 @@ class WeatherViewModel @Inject constructor(
 
     fun handleSharedText(text: String) {
         _uiState.value = WeatherUiState.Loading
+        cancelSharedText()
         isResolvingSharedLocation = true
         fetchJob?.cancel()
-        viewModelScope.launch(Dispatchers.IO) {
-            val parsed = SharedLocationParser.parseLocationText(text)
-            if (parsed != null) {
-                withContext(Dispatchers.Main) {
+        sharedTextJob = viewModelScope.launch {
+            try {
+                // The parser can follow short links over the network
+                val parsed = withContext(Dispatchers.IO) { SharedLocationParser.parseLocationText(text) }
+                if (parsed != null) {
                     val name = parsed.name ?: "%.4f, %.4f".format(Locale.US, parsed.latitude, parsed.longitude)
-                    isResolvingSharedLocation = false
                     setLocationOverride(parsed.latitude, parsed.longitude, name)
+                    return@launch
                 }
-            } else {
-                val searchQuery = SharedLocationParser.extractSearchQuery(text)
-                var foundMatch = false
-                if (!searchQuery.isNullOrBlank()) {
-                    weatherRepository.searchLocation(searchQuery).onSuccess { results ->
-                        val match = results.firstOrNull()
-                        if (match != null) {
-                            foundMatch = true
-                            withContext(Dispatchers.Main) {
-                                isResolvingSharedLocation = false
-                                setLocationOverride(match.latitude, match.longitude, match.name)
-                            }
-                        }
-                    }
-                }
-                if (!foundMatch) {
-                    withContext(Dispatchers.Main) {
-                        isResolvingSharedLocation = false
-                        fetchWeather()
-                    }
-                }
+                val searchQuery = withContext(Dispatchers.IO) { SharedLocationParser.extractSearchQuery(text) }
+                val match = if (searchQuery.isNullOrBlank()) null
+                    else weatherRepository.searchLocation(searchQuery).getOrNull()?.firstOrNull()
+                isResolvingSharedLocation = false
+                if (match != null) setLocationOverride(match.latitude, match.longitude, match.name) else fetchWeather()
+            } finally {
+                if (sharedTextJob === coroutineContext[Job]) isResolvingSharedLocation = false
             }
         }
     }
 
+    /** Stops a shared text that is still being resolved, so it cannot replace a place the user picked after it. */
+    private fun cancelSharedText() {
+        sharedTextJob?.cancel()
+        sharedTextJob = null
+        isResolvingSharedLocation = false
+    }
+
     fun clearLocationOverride() {
+        cancelSharedText()
         _uiState.value = WeatherUiState.Loading
         clearAdvancedModeOverride()
         fetchWeather()
@@ -388,6 +386,7 @@ class WeatherViewModel @Inject constructor(
     /** Switches the active location. Pass null to switch back to GPS ("Current Location"). Clears
      * any active preview (see [setLocationOverride]) — the two are mutually exclusive. */
     fun switchToLocation(id: String?) {
+        cancelSharedText()
         _uiState.value = WeatherUiState.Loading
         clearAdvancedModeOverride()
         _activeLocationId.value = id
@@ -464,15 +463,21 @@ class WeatherViewModel @Inject constructor(
         persistSavedLocations(updated)
     }
 
-    /** Spawn a background GPS weather fetch to cache for when override is cleared */
+    /**
+     * While a preview is shown, refreshes the GPS weather in the background and caches it, so it shows at once
+     * when the preview is closed. Runs one at a time, and only when the cached GPS weather is old.
+     */
     private fun spawnGpsCacheRefresh() {
-        viewModelScope.launch {
+        if (gpsCacheJob?.isActive == true) return
+        gpsCacheJob = viewModelScope.launch {
             try {
+                val cachedAt = withContext(Dispatchers.IO) { weatherCache.load("gps") }?.timestamp ?: 0L
+                if (System.currentTimeMillis() - cachedAt < GPS_CACHE_MAX_AGE_MS) return@launch
                 locationRepository.getFreshLocation().onSuccess { (lat, lon) ->
                     saveLocation(lat, lon)
                     weatherRepository.getWeather(lat, lon).onSuccess { data ->
-                        cachedGpsWeatherData = data
                         privatePrefs.edit { putString("location_name", data.locationName) }
+                        withContext(Dispatchers.IO) { weatherCache.save("gps", data) }
                     }
                 }
             } catch (e: CancellationException) {
@@ -531,27 +536,7 @@ class WeatherViewModel @Inject constructor(
                     } else {
                         _isRefreshing.value = true
                     }
-
-                    // Check 12-hour non-local override expiry
-                    checkOverrideExpiry()
-
-                    if (privatePrefs.contains("advanced_override_lat")) {
-                        val overrideLat = privatePrefs.getFloat("advanced_override_lat", 0f).toDouble()
-                        val overrideLon = privatePrefs.getFloat("advanced_override_lon", 0f).toDouble()
-                        val rawOverrideName = privatePrefs.getString("advanced_override_name", "Overridden Location") ?: "Overridden Location"
-                        val overrideName = shortPlaceName(rawOverrideName)
-
-                        weatherRepository.getWeather(overrideLat, overrideLon).onSuccess { data ->
-                            val overrideData = data.copy(locationName = overrideName)
-                            publish("preview", overrideData)
-                            fetchAlertsForData(overrideLat, overrideLon)
-                            // Spawn background GPS cache refresh
-                            spawnGpsCacheRefresh()
-                        }.onFailure { onWeatherFailure(it) }
-                    } else {
-                        val savedLocation = activeLocationId.value?.let { id -> savedLocations.value.find { it.id == id } }
-                        if (savedLocation != null) fetchForSavedLocation(savedLocation) else doFetch()
-                    }
+                    fetchShownPlace()
                 }
             } finally {
                 _isRefreshing.value = false
@@ -564,30 +549,34 @@ class WeatherViewModel @Inject constructor(
         fetchJob = viewModelScope.launch {
             try {
                 _isRefreshing.value = true
-
-                // Check 12-hour non-local override expiry
-                checkOverrideExpiry()
-
-                if (privatePrefs.contains("advanced_override_lat")) {
-                    val overrideLat = privatePrefs.getFloat("advanced_override_lat", 0f).toDouble()
-                    val overrideLon = privatePrefs.getFloat("advanced_override_lon", 0f).toDouble()
-                    val rawOverrideName = privatePrefs.getString("advanced_override_name", "Overridden Location") ?: "Overridden Location"
-                    val overrideName = shortPlaceName(rawOverrideName)
-
-                    weatherRepository.getWeather(overrideLat, overrideLon).onSuccess { data ->
-                        val overrideData = data.copy(locationName = overrideName)
-                        publish("preview", overrideData)
-                        fetchAlertsForData(overrideLat, overrideLon)
-                        // Spawn background GPS cache refresh
-                        spawnGpsCacheRefresh()
-                    }.onFailure { onWeatherFailure(it) }
-                } else {
-                    val savedLocation = activeLocationId.value?.let { id -> savedLocations.value.find { it.id == id } }
-                    if (savedLocation != null) fetchForSavedLocation(savedLocation) else doFetch()
-                }
+                fetchShownPlace()
             } finally {
                 _isRefreshing.value = false
             }
+        }
+    }
+
+    /** Fetches the place to show: the preview, else the active favorite, else the GPS location. */
+    private suspend fun fetchShownPlace() {
+        // Check 12-hour non-local override expiry
+        checkOverrideExpiry()
+
+        if (privatePrefs.contains("advanced_override_lat")) {
+            val overrideLat = privatePrefs.getFloat("advanced_override_lat", 0f).toDouble()
+            val overrideLon = privatePrefs.getFloat("advanced_override_lon", 0f).toDouble()
+            val rawOverrideName = privatePrefs.getString("advanced_override_name", "Overridden Location") ?: "Overridden Location"
+            val overrideName = shortPlaceName(rawOverrideName)
+
+            weatherRepository.getWeather(overrideLat, overrideLon).onSuccess { data ->
+                val overrideData = data.copy(locationName = overrideName)
+                publish("preview", overrideData)
+                fetchAlertsForData(overrideLat, overrideLon)
+                // Spawn background GPS cache refresh
+                spawnGpsCacheRefresh()
+            }.onFailure { onWeatherFailure(it) }
+        } else {
+            val savedLocation = activeLocationId.value?.let { id -> savedLocations.value.find { it.id == id } }
+            if (savedLocation != null) fetchForSavedLocation(savedLocation) else doFetch()
         }
     }
 
@@ -745,6 +734,11 @@ class WeatherViewModel @Inject constructor(
             dlat * dlat + dlon * dlon > 0.045 * 0.045
         }
         return isMoved
+    }
+
+    private companion object {
+        /** A background GPS refresh during a preview is skipped while the cached GPS weather is newer. */
+        const val GPS_CACHE_MAX_AGE_MS = 30 * 60 * 1000L
     }
 
     private fun saveLocation(lat: Double, lon: Double) {
