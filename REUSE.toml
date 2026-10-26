@@ -55,7 +55,7 @@ SPDX-License-Identifier = "Apache-2.0"
 
 # NASA Blue Marble background
 [[annotations]]
-path = ["web/static/bg-blue-marble.webp", "app/src/main/res/drawable/bg_blue_marble.png"]
+path = ["web/static/bg-blue-marble.webp", "app/src/main/res/drawable/bg_blue_marble.webp"]
 precedence = "override"
 SPDX-FileCopyrightText = "NASA"
 SPDX-License-Identifier = "LicenseRef-PublicDomain"

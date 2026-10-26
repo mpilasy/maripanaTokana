@@ -17,6 +17,7 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 - New `CONTRIBUTING.md`: the license terms for contributions, and the checks to run before a pull request.
 - Android widgets: the alert badge shows the number of active weather alerts. The widgets did not load alerts before, so the badge never showed.
 - New app icon: the same Blue Marble Earth, sharper, with the thermometer at the lower left and Madagascar highlighted. The themed icon (Android 13 and later) shows the globe, Madagascar and the thermometer; before, it was a solid square. Also the web app icons and the store icon.
+- The Blue Marble background is sharper (1440 px, from the full photo), and Madagascar is faintly raised. The Android image is a WebP now, half the size of the old PNG.
 
 ## [1.5.30] - 2026-10-26
 - Android: the forecast and the place name load at the same time, so a refresh is one network round trip shorter.
