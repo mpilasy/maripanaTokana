@@ -40,3 +40,6 @@
 -keep @kotlinx.serialization.Serializable class orinasa.njarasoa.maripanatokana.data.remote.** { *; }
 # Keep the generated $$serializer classes and their members (descriptor field is critical).
 -keep class orinasa.njarasoa.maripanatokana.data.remote.**$$serializer { *; }
+# Same for the widget forecast cache (WidgetCacheEntry), which is in the widget package.
+-keep @kotlinx.serialization.Serializable class orinasa.njarasoa.maripanatokana.widget.** { *; }
+-keep class orinasa.njarasoa.maripanatokana.widget.**$$serializer { *; }

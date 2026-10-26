@@ -3,8 +3,10 @@ package orinasa.njarasoa.maripanatokana.ui.weather
 import android.content.Context
 import android.content.SharedPreferences
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -12,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.currentTime
 import kotlinx.coroutines.test.resetMain
@@ -19,11 +22,17 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
 import orinasa.njarasoa.maripanatokana.domain.repository.AlertsResult
 import orinasa.njarasoa.maripanatokana.R
+import orinasa.njarasoa.maripanatokana.data.remote.GeocodingResult
 import orinasa.njarasoa.maripanatokana.data.repository.WeatherCache
 import orinasa.njarasoa.maripanatokana.data.settings.AppSettingsRepository
 import orinasa.njarasoa.maripanatokana.domain.model.AppSettings
@@ -34,9 +43,12 @@ import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.model.WindSpeed
 import orinasa.njarasoa.maripanatokana.domain.repository.LocationRepository
 import orinasa.njarasoa.maripanatokana.domain.repository.WeatherRepository
+import orinasa.njarasoa.maripanatokana.testutil.FakePrefs
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class WeatherViewModelTest {
+
+    @get:Rule val tmp = TemporaryFolder()
 
     private val testDispatcher = StandardTestDispatcher()
     private lateinit var locationRepository: LocationRepository
@@ -241,6 +253,114 @@ class WeatherViewModelTest {
         advanceUntilIdle()
 
         assertEquals("Saint Paul", (viewModel.uiState.value as WeatherUiState.Success).data.locationName)
+    }
+
+    /**
+     * Real prefs, settings and cache, for the tests of the shared-text and background GPS jobs.
+     * The repositories answer at once; work on Dispatchers.IO runs on real threads.
+     */
+    private inner class JobsFixture {
+        val prefsByName = mutableMapOf<String, FakePrefs>()
+        val context = mockk<Context>(relaxed = true).also { ctx ->
+            every { ctx.getSharedPreferences(any(), any()) } answers { prefsByName.getOrPut(firstArg()) { FakePrefs() } }
+        }
+        val weatherRepository = mockk<WeatherRepository>()
+        val locationRepository = mockk<LocationRepository>()
+        val weatherCache = WeatherCache(tmp.newFolder())
+
+        init {
+            coEvery { weatherRepository.getWeather(any(), any()) } answers {
+                Result.success(realData("${firstArg<Double>()},${secondArg<Double>()}", firstArg(), secondArg()))
+            }
+            coEvery { weatherRepository.fetchAlerts(any(), any()) } returns Result.success(AlertsResult(emptyList(), emptyList()))
+            coEvery { weatherRepository.romanPlaceName(any(), any()) } returns null
+            coEvery { locationRepository.getLastLocation() } returns Result.success(1.0 to 2.0)
+            coEvery { locationRepository.getFreshLocation() } returns Result.success(1.0 to 2.0)
+        }
+
+        fun viewModel() = WeatherViewModel(weatherRepository, locationRepository, AppSettingsRepository(context), weatherCache, context)
+    }
+
+    /** Runs queued coroutines until [condition] holds; work on Dispatchers.IO runs on real threads. */
+    private fun TestScope.awaitCondition(condition: () -> Boolean) {
+        repeat(300) {
+            advanceUntilIdle()
+            if (condition()) return
+            Thread.sleep(10)
+        }
+        fail("condition not reached")
+    }
+
+    private fun WeatherViewModel.shownName() = (uiState.value as? WeatherUiState.Success)?.data?.locationName
+
+    @Test
+    fun placePickedWhileSharedTextResolvesIsKept() = runTest(testDispatcher) {
+        val f = JobsFixture()
+        val search = CompletableDeferred<Result<List<GeocodingResult>>>()
+        coEvery { f.weatherRepository.searchLocation("Paris") } coAnswers { search.await() }
+        val vm = f.viewModel()
+
+        vm.handleSharedText("Paris")
+        awaitCondition { runCatching { coVerify { f.weatherRepository.searchLocation("Paris") } }.isSuccess }
+
+        // The user goes back to the GPS place before the search answers
+        vm.switchToLocation(null)
+        awaitCondition { vm.shownName() == "1.0,2.0" }
+
+        search.complete(Result.success(listOf(GeocodingResult(id = 1, name = "Paris", latitude = 48.85, longitude = 2.35))))
+        advanceUntilIdle()
+
+        assertEquals("1.0,2.0", vm.shownName())
+        assertFalse(f.prefsByName.getValue("private_prefs").contains("advanced_override_lat"))
+    }
+
+    @Test
+    fun sharedTextWithNoMatchShowsTheGpsPlace() = runTest(testDispatcher) {
+        val f = JobsFixture()
+        coEvery { f.weatherRepository.searchLocation("Nowhere") } returns Result.success(emptyList())
+        val vm = f.viewModel()
+
+        vm.handleSharedText("Nowhere")
+
+        awaitCondition { vm.shownName() == "1.0,2.0" }
+    }
+
+    @Test
+    fun previewSkipsGpsRefreshWhileGpsCacheIsRecent() = runTest(testDispatcher) {
+        val f = JobsFixture()
+        f.weatherCache.save("gps", realData("Here", 1.0, 2.0))
+        val vm = f.viewModel()
+
+        vm.setLocationOverride(10.0, 20.0, "Preview")
+        awaitCondition { vm.shownName() == "Preview" }
+        Thread.sleep(50)
+        advanceUntilIdle()
+
+        coVerify(exactly = 0) { f.locationRepository.getFreshLocation() }
+    }
+
+    @Test
+    fun previewRefreshesRunOneGpsRefreshAtATimeAndCacheIt() = runTest(testDispatcher) {
+        val f = JobsFixture()
+        val fix = CompletableDeferred<Result<Pair<Double, Double>>>()
+        coEvery { f.locationRepository.getFreshLocation() } coAnswers { fix.await() }
+        val vm = f.viewModel()
+
+        vm.setLocationOverride(10.0, 20.0, "Preview")
+        awaitCondition { runCatching { coVerify { f.locationRepository.getFreshLocation() } }.isSuccess }
+        // Let each refresh run: a refresh cancels the one before it while it is still queued
+        vm.refresh()
+        advanceUntilIdle()
+        vm.refresh()
+        advanceUntilIdle()
+        awaitCondition { runCatching { coVerify(exactly = 3) { f.weatherRepository.getWeather(10.0, 20.0) } }.isSuccess }
+
+        coVerify(exactly = 1) { f.locationRepository.getFreshLocation() }
+
+        fix.complete(Result.success(3.0 to 4.0))
+        awaitCondition { f.weatherCache.load("gps") != null }
+        assertEquals("3.0,4.0", f.weatherCache.load("gps")?.locationName)
+        assertNotNull(vm.shownName())
     }
 
     private fun realData(name: String, lat: Double, lon: Double) = WeatherData(

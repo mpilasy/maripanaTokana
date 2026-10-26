@@ -12,9 +12,12 @@ class WeatherUpdateWorker(
 ) : CoroutineWorker(appContext, params) {
 
     override suspend fun doWork(): Result {
-        val data = WidgetWeatherFetcher.fetch(applicationContext)
+        val result = WidgetWeatherFetcher.fetch(applicationContext)
 
-        if (data == null) return Result.retry()
+        if (!result.fresh) {
+            // Cached data is not a refresh. Retry a few times, then wait for the next period.
+            return if (runAttemptCount < MAX_RETRIES) Result.retry() else Result.failure()
+        }
 
         // Save refresh timestamp
         applicationContext
@@ -23,10 +26,14 @@ class WeatherUpdateWorker(
                 putLong("last_refresh", System.currentTimeMillis())
             }
 
-        // Trigger all widget re-renders
+        // Trigger all widget re-renders; they read the forecast just cached
         WeatherWidget().updateAll(applicationContext)
         WeatherWidgetLarge().updateAll(applicationContext)
 
         return Result.success()
+    }
+
+    private companion object {
+        const val MAX_RETRIES = 3
     }
 }

@@ -46,7 +46,7 @@ import java.util.Locale
 class WeatherWidgetLarge : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val data = WidgetWeatherFetcher.fetch(context)
+        val data = WidgetWeatherFetcher.render(context)
         val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
         val metricPrimary = prefs.getBoolean("metric_primary", true)
         val hasCachedLocation = context.getSharedPreferences("private_prefs", Context.MODE_PRIVATE).getFloat("lat", Float.MIN_VALUE) != Float.MIN_VALUE

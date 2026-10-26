@@ -11,9 +11,16 @@ import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
  */
 object WidgetWeatherFetcher : BaseWidgetWeatherFetcher() {
 
+    /** Fetches from the network now; falls back to the cache when the fetch fails. */
     @SuppressLint("MissingPermission")
-    suspend fun fetch(context: Context): WeatherData? {
+    suspend fun fetch(context: Context): WidgetFetchResult {
         return fetchInternal(context) { getCoordinates(context) }
+    }
+
+    /** The data a widget shows; fetches only when the cache is missing or old. */
+    @SuppressLint("MissingPermission")
+    suspend fun render(context: Context): WeatherData? {
+        return forRender(context) { getCoordinates(context) }
     }
 
     @SuppressLint("MissingPermission")
