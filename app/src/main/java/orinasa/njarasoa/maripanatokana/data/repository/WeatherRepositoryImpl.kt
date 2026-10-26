@@ -456,7 +456,7 @@ class WeatherRepositoryImpl @Inject constructor(
     private fun normalizeArea(s: String): String =
         s.lowercase().replace('-', ' ').trim()
             .let { java.text.Normalizer.normalize(it, java.text.Normalizer.Form.NFD) }
-            .replace(Regex("\\p{InCombiningDiacriticalMarks}+"), "")
+            .replace(DIACRITICS, "")
 
     private fun areaMatches(areaDesc: String, subdivision: String): Boolean {
         val a = normalizeArea(areaDesc)
@@ -472,7 +472,7 @@ class WeatherRepositoryImpl @Inject constructor(
     }
 
     private fun areaWords(s: String): List<String> =
-        s.split(Regex("[^\\p{L}\\p{N}]+")).filter { it.isNotEmpty() }
+        s.split(NON_WORD).filter { it.isNotEmpty() }
 
     /** True when [needle] occurs in [hay] as a run of whole words. */
     private fun containsWords(hay: List<String>, needle: List<String>): Boolean =
@@ -484,6 +484,8 @@ class WeatherRepositoryImpl @Inject constructor(
         val parser = factory.newPullParser()
         parser.setInput(StringReader(xml))
         val CAP_NS = "urn:oasis:names:tc:emergency:cap:1.2"
+        // One parser for all entries; a feed can hold hundreds
+        val onsetParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
         var inEntry = false
         var currentLocalName = ""
         var currentNs = ""
@@ -525,7 +527,7 @@ class WeatherRepositoryImpl @Inject constructor(
                                     "severe" -> AlertLevel.WARNING
                                     else -> AlertLevel.WATCH
                                 }
-                                val time = try { SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).parse(capOnset)?.time } catch (_: Exception) { null }
+                                val time = try { onsetParser.parse(capOnset)?.time } catch (_: Exception) { null }
                                 alerts.add(WeatherAlert(level, capEvent, capDescription, "meteoalarm", time, capAreaDesc.ifBlank { null }, linkHref))
                             }
                         }
@@ -565,6 +567,9 @@ class WeatherRepositoryImpl @Inject constructor(
         private const val TAG = "WeatherRepo"
         private val ALERT_SOURCE_ORDER = listOf("NWS", "GDACS", "MeteoAlarm", "JMA", "ECCC", "BOM", "NHC")
         private const val EARTH_RADIUS_KM = 6371.0
+        // Compiled once: area matching runs for each MeteoAlarm entry
+        private val DIACRITICS = Regex("\\p{InCombiningDiacriticalMarks}+")
+        private val NON_WORD = Regex("[^\\p{L}\\p{N}]+")
         private const val GDACS_SEARCH_RADIUS_KM = 500
         private const val GDACS_SEARCH_DAYS = 7
         private const val NHC_SEARCH_RADIUS_KM = 1500

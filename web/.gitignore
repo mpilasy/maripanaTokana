@@ -35,3 +35,6 @@ yarn-error.log*
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Local dev server output
+dev.log
