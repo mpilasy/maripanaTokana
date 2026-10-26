@@ -441,8 +441,8 @@ Releases are usually made by hand:
 1. Audit the dependencies (`gradle/libs.versions.toml`, and `npm outdated` and `npm audit` in `web/`), and apply small updates.
 2. Bump the version in `app/build.gradle.kts` (`versionCode` and `versionName`), `web/package.json`, `web/package-lock.json` (2 entries) and `web/src/lib/components/Footer.svelte`.
 3. Write `fastlane/metadata/android/{locale}/changelogs/{versionCode}.txt` in all 8 locales (ar, en-US, es, fr, hi, mg, ne, zh-CN). Keep each file under 500 characters.
-4. Add an entry at the top of `CHANGELOG.md`.
-5. Run `python3 scripts/check_version_sync.py`.
+4. Add an entry at the top of `CHANGELOG.md` (move the Unreleased items into it). Each release must have notes: the GitHub release shows this entry.
+5. Run `python3 scripts/check_version_sync.py`. It fails when the version strings differ, or when the current version has no `CHANGELOG.md` entry or no changelog file in one of the 8 locales.
 6. Commit as `Bump to vX.Y.Z`, push `main`, then create and push the tag `vX.Y.Z`.
 
 Do not edit `metadata/orinasa.njarasoa.maripanatokana.yml` by hand. The release workflow updates it.
@@ -454,12 +454,12 @@ Do not edit `metadata/orinasa.njarasoa.maripanatokana.yml` by hand. The release 
 # Without arguments, it adds 1 to the patch number and to the version code.
 ```
 
-Write the changelogs and the `CHANGELOG.md` entry first. The script stops if a changelog file is missing. It does not check `CHANGELOG.md`.
+Write the changelogs and the `CHANGELOG.md` entry first. The script stops if a changelog file or the `CHANGELOG.md` entry is missing.
 
 The script performs these steps:
 1. Updates the version in `app/build.gradle.kts`, `web/package.json` and `web/src/lib/components/Footer.svelte`.
 2. Runs `npm install --package-lock-only` in `web/` to update the lock file.
-3. Validates the version sync with `python3 scripts/check_version_sync.py`.
+3. Validates the version sync and the release notes with `python3 scripts/check_version_sync.py`.
 4. Checks that the changelog exists in all 8 locales.
 5. Commits all pending changes as `Bump to vX.Y.Z`.
 6. Creates the tag `vX.Y.Z` on the bump commit.
@@ -469,7 +469,7 @@ The script performs these steps:
 
 The tag push starts `.github/workflows/fdroid-build.yml`. The build takes about 5 to 10 minutes. The workflow:
 1. Builds the F-Droid and standard flavors (`assembleFdroidRelease assembleStandardRelease`).
-2. Creates a GitHub release with two APKs: `maripanaTokana-vX.Y.Z.apk` (F-Droid flavor) and `maripanaTokana-standard-vX.Y.Z.apk` (standard flavor).
+2. Checks the release notes first: it stops when `CHANGELOG.md` has no entry for the tag (`scripts/release_notes.py`). Creates a GitHub release with the `CHANGELOG.md` entry as its notes and two APKs: `maripanaTokana-vX.Y.Z.apk` (F-Droid flavor) and `maripanaTokana-standard-vX.Y.Z.apk` (standard flavor).
 3. Runs `scripts/update_metadata.py` again, validates the `Binaries: ` line, and pushes an `Update F-Droid metadata for vX.Y.Z [skip ci]` commit to `main` if the file changed. Pull this commit before the next change.
 
 Each push to `main` also starts `ci.yml` (i18n parity, Android unit tests and lint, web check, tests and build) and `version-sync-check.yml`.

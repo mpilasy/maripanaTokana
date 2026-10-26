@@ -29,6 +29,10 @@ jobs:
         with:
           node-version: '24'
 
+      - name: Check the release notes
+        if: startsWith(github.ref, 'refs/tags/')
+        run: python3 scripts/release_notes.py "${{ github.ref_name }}" > "$RUNNER_TEMP/release_notes.md"
+
       - name: Generate i18n strings
         run: node shared/i18n/generate-android-strings.js
 
@@ -117,6 +121,19 @@ jobs:
             git push origin HEAD:main
           fi
 
+      - name: Write the release body
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          {
+            cat "$RUNNER_TEMP/release_notes.md"
+            echo
+            echo "maripanaTokana-${{ github.ref_name }}.apk (F-Droid version, no Google Play Services)"
+            echo "SHA256: ${{ env.APK_HASH }}"
+            echo
+            echo "maripanaTokana-standard-${{ github.ref_name }}.apk (standard version, uses Google Play Services for location)"
+            echo "SHA256: ${{ env.STANDARD_APK_HASH }}"
+          } > "$RUNNER_TEMP/release_body.md"
+
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v3
@@ -124,11 +141,6 @@ jobs:
           files: |
             ${{ env.RENAMED_APK_PATH }}
             ${{ env.STANDARD_APK_PATH }}
-          body: |
-            maripanaTokana-${{ github.ref_name }}.apk (F-Droid version, no Google Play Services)
-            SHA256: ${{ env.APK_HASH }}
-
-            maripanaTokana-standard-${{ github.ref_name }}.apk (standard version, uses Google Play Services for location)
-            SHA256: ${{ env.STANDARD_APK_HASH }}
+          body_path: ${{ runner.temp }}/release_body.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
