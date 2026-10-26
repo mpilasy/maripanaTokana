@@ -56,11 +56,11 @@ Android and the web app have the same features. Only the widgets and the geocode
 
 [<img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png"
      alt="Get it on Obtainium"
-     height="80">](https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/mpilasy/maripanaTokana)
+     height="80">](https://apps.obtainium.imranr.dev/redirect?r=obtainium%3A%2F%2Fapp%2F%257B%2522id%2522%253A%2522orinasa.njarasoa.maripanatokana%2522%252C%2522url%2522%253A%2522https%253A%252F%252Fgithub.com%252Fmpilasy%252FmaripanaTokana%2522%252C%2522author%2522%253A%2522mpilasy%2522%252C%2522name%2522%253A%2522marip%25C3%25A0naTokana%2522%252C%2522additionalSettings%2522%253A%2522%257B%255C%2522apkFilterRegEx%255C%2522%253A%255C%2522%255EmaripanaTokana-v.*%255C%255C%255C%255C.apk%2524%255C%2522%257D%2522%257D)
 
 **Web**: open [maripana.njarasoa.org](https://maripana.njarasoa.org) in any browser. You can also add it to the home screen.
 
-Each [GitHub release](https://github.com/mpilasy/maripanaTokana/releases) has two APKs, and Obtainium asks which one to install:
+Each [GitHub release](https://github.com/mpilasy/maripanaTokana/releases) has two APKs. The Obtainium badge adds the app with an APK filter, so Obtainium installs the F-Droid APK and does not ask. To use the Standard APK, change the APK filter in the app's settings in Obtainium.
 - **F-Droid** (`maripanaTokana-vX.apk`): uses the Android `LocationManager`, with no Google Play Services. Its default geocoder is Nominatim. This is the APK that F-Droid publishes.
 - **Standard** (`maripanaTokana-standard-vX.apk`): uses Google Play Services for location. Its default geocoder is the system geocoder.
 

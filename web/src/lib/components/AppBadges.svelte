@@ -10,7 +10,17 @@
 	 */
 	let { android, installable }: { android: boolean; installable: boolean } = $props();
 	const FDROID_URL = 'https://f-droid.org/packages/orinasa.njarasoa.maripanatokana/';
-	const OBTAINIUM_URL = 'https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/mpilasy/maripanaTokana';
+	// Obtainium adds the app with an APK filter, so it always installs the F-Droid APK (no Google Play
+	// services) and does not ask which of the two release APKs to use. It always installs the latest release.
+	const OBTAINIUM_CONFIG = {
+		id: 'orinasa.njarasoa.maripanatokana',
+		url: 'https://github.com/mpilasy/maripanaTokana',
+		author: 'mpilasy',
+		name: 'maripànaTokana',
+		additionalSettings: JSON.stringify({ apkFilterRegEx: '^maripanaTokana-v.*\\.apk$' }),
+	};
+	const OBTAINIUM_URL = 'https://apps.obtainium.imranr.dev/redirect?r='
+		+ encodeURIComponent('obtainium://app/' + encodeURIComponent(JSON.stringify(OBTAINIUM_CONFIG)));
 	// GitHub redirects /releases/latest to the newest release tag, so the link needs no change for each release
 	const GITHUB_URL = 'https://github.com/mpilasy/maripanaTokana/releases/latest';
 </script>
