@@ -40,6 +40,9 @@ open class BaseWidgetWeatherFetcher(private val baseUrl: String = "https://api.o
 
     @Volatile private var cache: WidgetCache? = null
 
+    // When the last network fetch started, in this process
+    @Volatile private var lastFetchStartedAt = 0L
+
     private fun cache(context: Context): WidgetCache = cache ?: synchronized(this) {
         cache ?: WidgetCache(File(context.applicationContext.filesDir, "widget_cache/forecast.json"), json).also {
             it.migrateFrom(context.getSharedPreferences("private_prefs", Context.MODE_PRIVATE))
@@ -60,15 +63,19 @@ open class BaseWidgetWeatherFetcher(private val baseUrl: String = "https://api.o
     /**
      * The data a widget shows: the cached forecast while it is recent, else a new fetch.
      * The worker and the refresh button do the fetches, so each render does not call the network.
+     * Renders just after a fetch (also a failed one) read the cache only, so they do not fetch again.
      */
     suspend fun forRender(context: Context, getCoordinates: suspend () -> Pair<Double, Double>?): WeatherData? {
-        val cached = cached(context)
-        if (cached != null && System.currentTimeMillis() - cached.timestamp < RENDER_MAX_AGE_MS) return cached
+        val cached = withContext(Dispatchers.IO) { cached(context) }
+        val now = System.currentTimeMillis()
+        if (cached != null && now - cached.timestamp < RENDER_MAX_AGE_MS) return cached
+        if (now - lastFetchStartedAt < RECENT_FETCH_MS) return cached
         return fetchInternal(context, getCoordinates).data
     }
 
     @SuppressLint("MissingPermission")
     suspend fun fetchInternal(context: Context, getCoordinates: suspend () -> Pair<Double, Double>?): WidgetFetchResult {
+        lastFetchStartedAt = System.currentTimeMillis()
         val prefs = context.getSharedPreferences("private_prefs", Context.MODE_PRIVATE)
         return try {
             val (lat, lon) = getCoordinates() ?: throw IllegalStateException("No coordinates")
@@ -107,5 +114,8 @@ open class BaseWidgetWeatherFetcher(private val baseUrl: String = "https://api.o
 
         /** Longer than the 30-minute worker period, so a render between two worker runs uses the cache. */
         const val RENDER_MAX_AGE_MS = 45 * 60 * 1000L
+
+        /** A render this soon after a fetch started does not fetch again. */
+        const val RECENT_FETCH_MS = 2 * 60 * 1000L
     }
 }

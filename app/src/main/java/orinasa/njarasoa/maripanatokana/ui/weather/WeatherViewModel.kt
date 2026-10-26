@@ -235,6 +235,11 @@ class WeatherViewModel @Inject constructor(
      * to a real location clears an active preview. Use [favoriteCurrentLocation] to save it. */
     fun setLocationOverride(lat: Double, lon: Double, name: String) {
         cancelSharedText()
+        applyLocationOverride(lat, lon, name)
+    }
+
+    /** [setLocationOverride] without cancelling the shared-text job, which calls it when it finds the place. */
+    private fun applyLocationOverride(lat: Double, lon: Double, name: String) {
         _uiState.value = WeatherUiState.Loading
         privatePrefs.edit {
             putFloat("advanced_override_lat", lat.toFloat())
@@ -262,14 +267,15 @@ class WeatherViewModel @Inject constructor(
                 val parsed = withContext(Dispatchers.IO) { SharedLocationParser.parseLocationText(text) }
                 if (parsed != null) {
                     val name = parsed.name ?: "%.4f, %.4f".format(Locale.US, parsed.latitude, parsed.longitude)
-                    setLocationOverride(parsed.latitude, parsed.longitude, name)
+                    finishSharedText()
+                    applyLocationOverride(parsed.latitude, parsed.longitude, name)
                     return@launch
                 }
                 val searchQuery = withContext(Dispatchers.IO) { SharedLocationParser.extractSearchQuery(text) }
                 val match = if (searchQuery.isNullOrBlank()) null
                     else weatherRepository.searchLocation(searchQuery).getOrNull()?.firstOrNull()
-                isResolvingSharedLocation = false
-                if (match != null) setLocationOverride(match.latitude, match.longitude, match.name) else fetchWeather()
+                finishSharedText()
+                if (match != null) applyLocationOverride(match.latitude, match.longitude, match.name) else fetchWeather()
             } finally {
                 if (sharedTextJob === coroutineContext[Job]) isResolvingSharedLocation = false
             }
@@ -279,6 +285,11 @@ class WeatherViewModel @Inject constructor(
     /** Stops a shared text that is still being resolved, so it cannot replace a place the user picked after it. */
     private fun cancelSharedText() {
         sharedTextJob?.cancel()
+        finishSharedText()
+    }
+
+    /** Marks the shared text as resolved; called by its own job, which must not cancel itself. */
+    private fun finishSharedText() {
         sharedTextJob = null
         isResolvingSharedLocation = false
     }
