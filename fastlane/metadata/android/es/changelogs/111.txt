@@ -1,0 +1,4 @@
+- Nuevo icono: el termómetro está abajo a la izquierda y Madagascar está resaltado. El icono temático (Android 13 y posteriores) ahora muestra el globo.
+- Los widgets muestran el número de alertas meteorológicas activas.
+- Fondo Blue Marble más nítido.
+- Página Acerca de: lee en la app la licencia GPL v3 completa y las licencias de los iconos.

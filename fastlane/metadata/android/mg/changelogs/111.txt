@@ -1,0 +1,4 @@
+- Kisary vaovao ho an'ny fampiharana: eo ambany ankavia ny mari-pana, ary asongadina i Madagasikara. Ny kisary miloko araka ny lohahevitra (Android 13 sy aorian'izay) dia mampiseho ny tany izao.
+- Asehon'ny widget ny isan'ny fampitandremana momba ny toetrandro mihatra.
+- Mazava kokoa ny sarin'ny tany ao ambadika.
+- Pejy Mombamomba: vakio ao amin'ny fampiharana ny lisansa GNU GPL v3 na vaovao kokoa feno sy ny lisansan'ny kisary.

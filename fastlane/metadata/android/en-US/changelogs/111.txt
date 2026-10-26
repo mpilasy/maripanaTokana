@@ -1,0 +1,4 @@
+- New app icon: the thermometer is at the lower left, and Madagascar is highlighted. The themed icon (Android 13 and later) now shows the globe.
+- Widgets show the number of active weather alerts.
+- Sharper Blue Marble background.
+- About page: read the full GPL v3 license and the licenses of the icons in the app.

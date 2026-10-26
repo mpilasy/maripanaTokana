@@ -1,0 +1,4 @@
+- Nouvelle icône : le thermomètre est en bas à gauche et Madagascar est mis en valeur. L'icône à thème (Android 13 et plus) affiche maintenant le globe.
+- Les widgets affichent le nombre d'alertes météo actives.
+- Fond Blue Marble plus net.
+- Page À propos : lisez dans l'app la licence GPL v3 complète et les licences des icônes.

@@ -8,6 +8,8 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 `v1.0.18-*` tags) are not listed. There is no 1.4.2 tag: that version was withdrawn.
 
 ## [Unreleased]
+
+## [1.5.31] - 2026-10-26
 - License: a GPL v3 section 7 additional permission lets anyone convey the Standard APK with Google Play services (README).
 - About page (Android): tap Meteocons to read its MIT License text in the app.
 - Each source file starts with SPDX lines for the copyright holder and the license (GPL-3.0-or-later).
@@ -18,6 +20,7 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 - Android widgets: the alert badge shows the number of active weather alerts. The widgets did not load alerts before, so the badge never showed.
 - New app icon: the same Blue Marble Earth, sharper, with the thermometer at the lower left and Madagascar highlighted. The themed icon (Android 13 and later) shows the globe, Madagascar and the thermometer; before, it was a solid square. Also the web app icons and the store icon.
 - The Blue Marble background is sharper (1440 px, from the full photo), and Madagascar is faintly raised. The Android image is a WebP now, half the size of the old PNG.
+- Each GitHub release shows its notes from this file. The release build and the version check fail when a version has no notes in this file or no store changelog in each language.
 
 ## [1.5.30] - 2026-10-26
 - Android: the forecast and the place name load at the same time, so a refresh is one network round trip shorter.
