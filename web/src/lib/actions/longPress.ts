@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /**
  * Svelte action: calls `callback` after the element is held for 500 ms (touch, mouse or pen), or on
  * the context-menu gesture. The click that ends a long press is swallowed so it doesn't also fire.

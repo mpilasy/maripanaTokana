@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import type { WeatherAlert, AlertLevel } from '$lib/domain/weatherData';
 
 // Coarse fallback for when reverse geocoding fails — mirrors isInAustralia/isInJapan/isInUS.

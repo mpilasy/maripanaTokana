@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { writable, get } from 'svelte/store';
 import type { WeatherData } from '$lib/domain/weatherData';
 import { classifyError, HttpError } from '$lib/api/http';

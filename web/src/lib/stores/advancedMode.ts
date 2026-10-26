@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { writable } from 'svelte/store';
 import { restoreGpsWeather } from '$lib/stores/weather';
 import { clearAdvancedModeOverride } from '$lib/stores/savedLocations';

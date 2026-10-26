@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /**
  * Plus Codes (Open Location Code, an open standard: https://github.com/google/open-location-code).
  * Full codes ("6GCRPR6C+24") decode offline; short codes ("PR6C+24 Nairobi") need a nearby

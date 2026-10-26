@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { describe, expect, it } from 'vitest';
 import { precipOutlook } from './precipOutlook';
 import type { HourlyForecast, MinutelyForecast } from './weatherData';

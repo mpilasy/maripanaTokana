@@ -187,3 +187,13 @@ WorkManager adds the permissions it needs to refresh the widgets: `WAKE_LOCK`, `
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. See [LICENSE](LICENSE).
 
 Versions up to and including 1.5.24 were released under the MIT License.
+
+### Additional permission for Google Play services
+
+Additional permission under GNU GPL version 3 section 7: if you modify this program, or any covered work, by linking or combining it with the Google Play services libraries (or a modified version of those libraries), containing parts covered by the terms of the Android Software Development Kit License Agreement, the licensors of this program grant you additional permission to convey the resulting work.
+
+Only the Standard APK uses Google Play services. The F-Droid APK does not use it and does not need this permission.
+
+### Third-party notices
+
+The weather icons are [Meteocons](https://github.com/basmilius/weather-icons) by Bas Milius, under the MIT License. The fonts are under the SIL Open Font License 1.1. The license texts are in `app/src/main/res/raw/`, `web/static/icons/weather/` and `web/static/fonts/`, and the About page of the app shows them.

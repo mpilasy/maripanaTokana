@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package orinasa.njarasoa.maripanatokana.domain.model
 
 // Each level's range (Low, Moderate, High, Very High, Extreme); the last is capped so it can be drawn

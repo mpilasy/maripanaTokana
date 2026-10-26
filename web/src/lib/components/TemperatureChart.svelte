@@ -1,3 +1,5 @@
+<!-- SPDX-FileCopyrightText: Orinasa Njarasoa -->
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
 	import { SUPPORTED_LOCALES, localizeDigits } from '$lib/i18n/index';
 	import { localeIndex } from '$lib/stores/preferences';

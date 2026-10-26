@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { proxyResponse } from '$lib/server/proxy';

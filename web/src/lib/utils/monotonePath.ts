@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /** SVG path through the points as a monotone cubic spline (no overshoot between points). */
 export function monotonePath(pts: { x: number; y: number }[]): string {
 	const n = pts.length;

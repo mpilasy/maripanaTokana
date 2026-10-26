@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { get } from 'svelte/store';
 import { parseLocationText } from '$lib/domain/sharedLocationParser';
 import { matchesRegionQualifier } from '$lib/domain/regionQualifier';

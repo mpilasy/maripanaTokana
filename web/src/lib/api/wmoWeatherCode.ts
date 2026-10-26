@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /** Returns an i18n key string for the WMO weather code description. */
 export function wmoDescriptionKey(code: number): string {
 	switch (code) {

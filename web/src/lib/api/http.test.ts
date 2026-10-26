@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { describe, expect, it, vi } from 'vitest';
 import { HttpError, NetworkError, classifyError, netFetch, retryOnce } from './http';
 

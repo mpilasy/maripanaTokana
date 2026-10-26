@@ -1,3 +1,5 @@
+<!-- SPDX-FileCopyrightText: Orinasa Njarasoa -->
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
 	/**
 	 * A 270° arc, open at the bottom, with a dot at `fraction` (0-1). Filled up to the dot in `color`, or,

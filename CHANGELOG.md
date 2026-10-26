@@ -8,6 +8,9 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 `v1.0.18-*` tags) are not listed. There is no 1.4.2 tag: that version was withdrawn.
 
 ## [Unreleased]
+- License: a GPL v3 section 7 additional permission lets anyone convey the Standard APK with Google Play services (README).
+- About page (Android): tap Meteocons to read its MIT License text in the app.
+- Each source file starts with SPDX lines for the copyright holder and the license (GPL-3.0-or-later).
 
 ## [1.5.30] - 2026-10-26
 - Android: the forecast and the place name load at the same time, so a refresh is one network round trip shorter.

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import type { WeatherAlert } from '$lib/domain/weatherData';
 import { getLocationInfo, type LocationInfo } from './shared';
 import { fetchNwsAlerts, isInUS } from './nws';

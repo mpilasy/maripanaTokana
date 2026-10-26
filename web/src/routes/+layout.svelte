@@ -1,3 +1,5 @@
+<!-- SPDX-FileCopyrightText: Orinasa Njarasoa -->
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { locale } from 'svelte-i18n';
