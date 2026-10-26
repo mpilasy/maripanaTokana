@@ -1,0 +1,4 @@
+- Hourly temperature chart: the high's label no longer covers the 00:00 or 12:00 label.
+- Widgets: when a refresh fails, they keep the last forecast and try again. Each refresh gets the weather once, not once for each widget, and uses less battery.
+- A shared place that is still being searched no longer replaces a place you picked after it.
+- Store descriptions corrected.

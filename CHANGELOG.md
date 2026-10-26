@@ -8,9 +8,15 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 `v1.0.18-*` tags) are not listed. There is no 1.4.2 tag: that version was withdrawn.
 
 ## [Unreleased]
+
+## [1.5.29] - 2026-10-26
 - Hourly temperature chart: the high's label goes under the line when it would cover the 00:00 or 12:00 label (Android and web).
 - Web: on iPhone and iPad, an Install link in the footer shows how to add the app to the Home Screen, and Help has the same steps. The Home Screen name and a 180x180 icon are set.
 - Docs: README, web README, design, testing, F-Droid and screenshot guides checked against the code and corrected.
+- Android widgets: a failed refresh is reported as failed, so the worker retries up to 3 times; the fetcher keeps the last forecast. Each refresh fetches once, not once for each widget. The forecast cache moves from SharedPreferences to `files/widget_cache/forecast.json`. Standard flavor: the background location request uses balanced power and stops after 20 seconds (#88).
+- Android: a shared place that is still being resolved no longer replaces a place the user picked after it. The background GPS refresh during a preview runs one at a time and fills the GPS cache (#88).
+- Android: MeteoAlarm parsing builds its date parser and regexes once (#88).
+- Store full descriptions (all languages except Malagasy): °C to one decimal place, and 4 tiles for the next 12 hours.
 
 ## [1.5.28] - 2026-10-23
 - Malagasy: the widget low and high use "iva" and "avo"; the Help text puts the language flag at the bottom right ("ankavanan'ny"); store description corrected by the author (Android and web).

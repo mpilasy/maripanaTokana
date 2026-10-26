@@ -1,0 +1,4 @@
+- Tabilao hafanana isan'ora: tsy manarona ny soratra 00:00 na 12:00 intsony ny soratry ny avo indrindra.
+- Widget: rehefa tsy mety ny fanavaozana dia tazoniny ny toetrandro farany ary manandrana indray izy. Indray mandeha ihany no maka ny toetrandro isaky ny fanavaozana, fa tsy indray mandeha isaky ny widget, ary mitsitsy bateria kokoa.
+- Toerana nozaraina mbola karohina dia tsy manolo intsony ny toerana nofidinao taorian'izay.
+- Nahitsy ny famaritana ho an'ny fivarotana.

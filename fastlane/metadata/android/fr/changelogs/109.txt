@@ -1,0 +1,4 @@
+- Graphique horaire des températures : l'étiquette du maximum ne couvre plus l'étiquette 00:00 ou 12:00.
+- Widgets : quand une mise à jour échoue, ils gardent la dernière prévision et réessaient. Chaque mise à jour récupère la météo une seule fois, et non une fois par widget, et utilise moins de batterie.
+- Un lieu partagé encore en cours de recherche ne remplace plus un lieu choisi après lui.
+- Descriptions de la boutique corrigées.

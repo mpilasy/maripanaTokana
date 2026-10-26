@@ -1,0 +1,4 @@
+- Gráfico horario de temperatura: la etiqueta de la máxima ya no cubre la etiqueta 00:00 o 12:00.
+- Widgets: cuando una actualización falla, conservan el último pronóstico y lo intentan de nuevo. Cada actualización obtiene el tiempo una sola vez, no una vez por widget, y usa menos batería.
+- Un lugar compartido que aún se está buscando ya no reemplaza un lugar elegido después.
+- Descripciones de la tienda corregidas.
