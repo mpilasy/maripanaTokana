@@ -38,7 +38,7 @@ export function formatDensity(ratio: number): string {
 	return `× ${Number(ratio.toFixed(2))}`;
 }
 
-export async function deviceInfo(version: string, appLanguage: string): Promise<DeviceRow[]> {
+export async function deviceInfo(appLanguage: string): Promise<DeviceRow[]> {
 	const nav = navigator as Navigator & { userAgentData?: UaData; deviceMemory?: number };
 	const ua = nav.userAgentData;
 	const rows: DeviceRow[] = [];
@@ -74,6 +74,5 @@ export async function deviceInfo(version: string, appLanguage: string): Promise<
 	rows.push({ labelKey: 'device_touch', value: `${nav.maxTouchPoints ?? 0}` });
 	const standalone = matchMedia('(display-mode: standalone)').matches;
 	rows.push({ labelKey: 'device_installer', value: standalone ? 'PWA' : 'Web' });
-	rows.push({ labelKey: 'device_app_build', value: `v${version} · web` });
 	return rows;
 }

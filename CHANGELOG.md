@@ -8,6 +8,7 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 `v1.0.18-*` tags) are not listed. There is no 1.4.2 tag: that version was withdrawn.
 
 ## [Unreleased]
+- Web About page: the device info no longer repeats the app version, which is already at the top of the page.
 - Web About page: Firefox and Safari show a short browser name (for example "Firefox 158"), not the whole user agent, and the pixel density has at most 2 decimals.
 - Web and README: the Obtainium badge adds the app with an APK filter, so Obtainium installs the F-Droid APK and does not ask which of the two APKs to use.
 - Web: with the app in Malagasy, the Add to Home screen steps (the dialog and the iPhone Help section) use the phone language, or English when the app does not have it. The steps name browser menu items, and browsers do not show them in Malagasy.

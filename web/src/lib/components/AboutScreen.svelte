@@ -21,7 +21,7 @@
 	onMount(() => {
 		onAndroid = isAndroid();
 		installable = !isStandalone();
-		deviceInfo(version, SUPPORTED_LOCALES[$localeIndex].tag).then((rows) => (deviceRows = rows));
+		deviceInfo(SUPPORTED_LOCALES[$localeIndex].tag).then((rows) => (deviceRows = rows));
 	});
 </script>
 
