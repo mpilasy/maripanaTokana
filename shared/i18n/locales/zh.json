@@ -320,7 +320,6 @@
 	"device_time_zone": "时区",
 	"device_processor": "处理器",
 	"device_memory": "内存",
-	"device_app_build": "应用版本",
 	"device_installer": "安装来源",
 	"device_touch": "触控点"
 }

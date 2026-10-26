@@ -226,7 +226,6 @@
     <string name="device_time_zone">المنطقة الزمنية</string>
     <string name="device_processor">المعالج</string>
     <string name="device_memory">الذاكرة</string>
-    <string name="device_app_build">إصدار التطبيق</string>
     <string name="device_installer">مُثبّت من</string>
     <string name="device_touch">نقاط اللمس</string>
     <string name="widget_description">الطقس الحالي مع درجة الحرارة بوحدتين</string>

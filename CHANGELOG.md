@@ -8,6 +8,7 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 `v1.0.18-*` tags) are not listed. There is no 1.4.2 tag: that version was withdrawn.
 
 ## [Unreleased]
+- Android About page: the device info no longer has the App build row. The flavor and the version code are now in the small line under the version, with the hash and the build time.
 - Web About page: the device info no longer repeats the app version, which is already at the top of the page.
 - Web About page: Firefox and Safari show a short browser name (for example "Firefox 158"), not the whole user agent, and the pixel density has at most 2 decimals.
 - Web and README: the Obtainium badge adds the app with an APK filter, so Obtainium installs the F-Droid APK and does not ask which of the two APKs to use.

@@ -320,7 +320,6 @@
 	"device_time_zone": "المنطقة الزمنية",
 	"device_processor": "المعالج",
 	"device_memory": "الذاكرة",
-	"device_app_build": "إصدار التطبيق",
 	"device_installer": "مُثبّت من",
 	"device_touch": "نقاط اللمس"
 }

@@ -226,7 +226,6 @@
     <string name="device_time_zone">समय क्षेत्र</string>
     <string name="device_processor">प्रोसेसर</string>
     <string name="device_memory">मेमोरी</string>
-    <string name="device_app_build">एप बिल्ड</string>
     <string name="device_installer">यहाँबाट स्थापना</string>
     <string name="device_touch">टच बिन्दु</string>
     <string name="widget_description">दुई एकाइमा हालको मौसम तापक्रम</string>

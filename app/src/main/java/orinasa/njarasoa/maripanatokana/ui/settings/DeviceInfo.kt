@@ -8,7 +8,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.annotation.StringRes
-import orinasa.njarasoa.maripanatokana.BuildConfig
 import orinasa.njarasoa.maripanatokana.R
 import java.util.Locale
 import java.util.TimeZone
@@ -42,16 +41,6 @@ internal fun deviceInfo(context: Context): List<DeviceRow> {
         val info = ActivityManager.MemoryInfo().also { am.getMemoryInfo(it) }
         rows += DeviceRow(R.string.device_memory, "%.1f GB".format(Locale.US, info.totalMem / 1_073_741_824.0))
     }
-    val versionCode = try {
-        val pi = context.packageManager.getPackageInfo(context.packageName, 0)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) pi.longVersionCode else @Suppress("DEPRECATION") pi.versionCode.toLong()
-    } catch (e: PackageManager.NameNotFoundException) {
-        null
-    }
-    rows += DeviceRow(
-        R.string.device_app_build,
-        "v${BuildConfig.VERSION_NAME}${versionCode?.let { " ($it)" } ?: ""} · ${BuildConfig.FLAVOR} · ${BuildConfig.GIT_HASH}${if (BuildConfig.DEBUG) " · debug" else ""}",
-    )
     val installer = try {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             context.packageManager.getInstallSourceInfo(context.packageName).installingPackageName

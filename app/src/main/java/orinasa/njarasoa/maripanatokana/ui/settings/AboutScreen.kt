@@ -176,7 +176,8 @@ fun AboutScreen(onBack: () -> Unit, onOpenHelp: () -> Unit, languageFlag: String
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
                 )
                 Text(
-                    text = "${stringResource(R.string.hash_version, BuildConfig.GIT_HASH)}${if (BuildConfig.DEBUG) "-d" else ""} • ${BuildConfig.BUILD_TIME}",
+                    // The build details for bug reports: hash, build time, flavor and version code
+                    text = "${stringResource(R.string.hash_version, BuildConfig.GIT_HASH)}${if (BuildConfig.DEBUG) "-d" else ""} • ${BuildConfig.BUILD_TIME} • ${BuildConfig.FLAVOR} (${BuildConfig.VERSION_CODE})",
                     fontSize = 11.sp,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                 )

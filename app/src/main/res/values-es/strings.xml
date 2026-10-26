@@ -226,7 +226,6 @@
     <string name="device_time_zone">Zona horaria</string>
     <string name="device_processor">Procesador</string>
     <string name="device_memory">Memoria</string>
-    <string name="device_app_build">Versión de la app</string>
     <string name="device_installer">Instalada desde</string>
     <string name="device_touch">Puntos táctiles</string>
     <string name="widget_description">Clima actual con temperatura en doble unidad</string>

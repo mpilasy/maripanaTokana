@@ -226,7 +226,6 @@
     <string name="device_time_zone">Time zone</string>
     <string name="device_processor">Processor</string>
     <string name="device_memory">Memory</string>
-    <string name="device_app_build">App build</string>
     <string name="device_installer">Installed from</string>
     <string name="device_touch">Touch points</string>
     <string name="widget_description">Current weather with dual-unit temperature</string>

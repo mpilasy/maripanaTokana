@@ -320,7 +320,6 @@
 	"device_time_zone": "समय क्षेत्र",
 	"device_processor": "प्रोसेसर",
 	"device_memory": "मेमोरी",
-	"device_app_build": "ऐप बिल्ड",
 	"device_installer": "यहाँ से इंस्टॉल",
 	"device_touch": "टच पॉइंट"
 }

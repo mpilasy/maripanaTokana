@@ -320,7 +320,6 @@
 	"device_time_zone": "Fuseau horaire",
 	"device_processor": "Processeur",
 	"device_memory": "Mémoire",
-	"device_app_build": "Version de l'app",
 	"device_installer": "Installée depuis",
 	"device_touch": "Points tactiles"
 }
