@@ -67,7 +67,7 @@
     <string name="activity_uv_safety">Aro-masoandro</string>
     <string name="activity_tier_excellent">Tsara dia tsara</string>
     <string name="activity_tier_good">Tsara</string>
-    <string name="activity_tier_fair">Eo ho eo</string>
+    <string name="activity_tier_fair">Antonony</string>
     <string name="activity_tier_poor">Ratsy</string>
     <string name="detail_temperature">Maripàna</string>
     <string name="detail_precipitation">Orana</string>
@@ -227,7 +227,7 @@
     <string name="device_processor">cpu</string>
     <string name="device_memory">RAM</string>
     <string name="device_installer">Napetraka avy amin\'ny</string>
-    <string name="device_touch">Fitaratra mandray kitika</string>
+    <string name="device_touch">Faritra azo kitihina</string>
     <string name="widget_description">Toetrandro ankehitriny miaraka amin\'ny maripàna roa sosony</string>
     <string name="widget_description_large">Antsipiriany momba ny toetrandro: tsapa, hamandoana, rivotra ary iva/avo</string>
     <string name="detail_no_precip">Tsy misy</string>
@@ -286,14 +286,14 @@
     </string-array>
     <string-array name="uv_labels">
         <item>Iva</item>
-        <item>Eo ho eo</item>
+        <item>Antonony</item>
         <item>Ratsiratsy</item>
         <item>Ratsy be</item>
         <item>Faran\'izay ratsy</item>
     </string-array>
     <string-array name="aqi_tier_labels">
         <item>Tsara</item>
-        <item>Eo ho eo</item>
+        <item>Antonony</item>
         <item>Ratsy</item>
         <item>Ratsy be</item>
         <item>Mampidi-doza</item>

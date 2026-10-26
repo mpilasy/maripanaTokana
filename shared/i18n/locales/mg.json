@@ -90,7 +90,7 @@
 	"activity_uv_safety": "Aro-masoandro",
 	"activity_tier_excellent": "Tsara dia tsara",
 	"activity_tier_good": "Tsara",
-	"activity_tier_fair": "Eo ho eo",
+	"activity_tier_fair": "Antonony",
 	"activity_tier_poor": "Ratsy",
 	"detail_temperature": "Maripàna",
 	"detail_precipitation": "Orana",
@@ -169,14 +169,14 @@
 	],
 	"uv_labels": [
 		"Iva",
-		"Eo ho eo",
+		"Antonony",
 		"Ratsiratsy",
 		"Ratsy be",
 		"Faran'izay ratsy"
 	],
 	"aqi_tier_labels": [
 		"Tsara",
-		"Eo ho eo",
+		"Antonony",
 		"Ratsy",
 		"Ratsy be",
 		"Mampidi-doza"
@@ -321,5 +321,5 @@
 	"device_processor": "cpu",
 	"device_memory": "RAM",
 	"device_installer": "Napetraka avy amin'ny",
-	"device_touch": "Fitaratra mandray kitika"
+	"device_touch": "Faritra azo kitihina"
 }
