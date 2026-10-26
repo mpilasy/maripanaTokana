@@ -200,8 +200,8 @@
 		"android_app_github": "Alaivo ao amin'ny GitHub",
 		"install_badge_small": "Apetrao eo amin'ny",
 		"install_badge_big": "Fidirana",
-		"install_step_menu": "Sokafy ny menion'ny mpitety",
-		"install_step_install": "Tsindrio ny Hametraka ny rindranasa na Apetrao eo amin'ny fidirana"
+		"install_step_menu": "Sokafy ny tadidin'ny mpitety",
+		"install_step_install": "Tap Install app or Add to Home screen"
 	},
 	"android_only": {
 		"widget_description": "Toetrandro ankehitriny miaraka amin'ny maripàna roa sosony",
