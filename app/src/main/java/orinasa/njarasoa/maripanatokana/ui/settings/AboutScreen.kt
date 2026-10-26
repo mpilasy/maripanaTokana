@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package orinasa.njarasoa.maripanatokana.ui.settings
 
 import androidx.annotation.RawRes
@@ -118,7 +121,7 @@ private val creditSections = listOf(
         R.string.about_section_imagery,
         listOf(
             Credit("NASA Blue Marble", license = "Public domain", url = "https://visibleearth.nasa.gov/collection/1484/blue-marble"),
-            Credit("Meteocons", license = "MIT", url = "https://github.com/basmilius/weather-icons", note = "Weather icons by Bas Milius"),
+            Credit("Meteocons", license = "MIT", note = "Weather icons by Bas Milius", textRes = R.raw.meteocons_license),
         ),
     ),
     CreditSection(
@@ -147,9 +150,10 @@ private val creditSections = listOf(
 fun AboutScreen(onBack: () -> Unit, onOpenHelp: () -> Unit, languageFlag: String, onCycleLanguage: () -> Unit) {
     val uriHandler = LocalUriHandler.current
     var openTextRes by rememberSaveable { mutableStateOf<Int?>(null) }
+    var openTextTitle by rememberSaveable { mutableStateOf("") }
     val licenseRes = openTextRes
     if (licenseRes != null) {
-        LicenseTextScreen(title = stringResource(R.string.about_section_fonts), textRes = licenseRes, onBack = { openTextRes = null })
+        LicenseTextScreen(title = openTextTitle, textRes = licenseRes, onBack = { openTextRes = null })
     } else SettingsPage(title = stringResource(R.string.about_title), onBack = onBack, languageFlag = languageFlag, onCycleLanguage = onCycleLanguage) {
         // App identity
         SettingsGroup {
@@ -175,12 +179,19 @@ fun AboutScreen(onBack: () -> Unit, onOpenHelp: () -> Unit, languageFlag: String
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
                 )
+                // Opens the full GPL text, with the Play services permission, in-app
                 Text(
-                    text = stringResource(R.string.about_app_license),
+                    text = stringResource(R.string.about_app_license) + " ›",
                     fontSize = 13.sp,
                     lineHeight = 18.sp,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    modifier = Modifier
+                        .clickable(role = Role.Button) {
+                            openTextTitle = "GNU GPL v3"
+                            openTextRes = R.raw.gpl_license
+                        }
+                        .padding(horizontal = 12.dp, vertical = 4.dp),
                 )
                 Spacer(Modifier.height(8.dp))
                 // How to use the app
@@ -245,7 +256,7 @@ fun AboutScreen(onBack: () -> Unit, onOpenHelp: () -> Unit, languageFlag: String
                         Box(Modifier.fillMaxWidth().height(1.dp).background(Hairline))
                     }
                     val onOpen: (() -> Unit)? = when {
-                        item.textRes != null -> { { openTextRes = item.textRes } }
+                        item.textRes != null -> { { openTextTitle = item.name; openTextRes = item.textRes } }
                         item.url != null -> { { uriHandler.openUri(item.url) } }
                         else -> null
                     }

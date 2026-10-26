@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: Orinasa Njarasoa
+# SPDX-License-Identifier: GPL-3.0-or-later
 import sys
 import os
 import re

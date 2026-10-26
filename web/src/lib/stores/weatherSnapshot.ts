@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import type { WeatherData } from '$lib/domain/weatherData';
 import { Temperature } from '$lib/domain/temperature';
 import { WindSpeed } from '$lib/domain/windSpeed';

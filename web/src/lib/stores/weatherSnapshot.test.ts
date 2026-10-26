@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { beforeEach, describe, expect, it } from 'vitest';
 import { saveSnapshot, loadSnapshot } from './weatherSnapshot';
 import { Temperature } from '$lib/domain/temperature';

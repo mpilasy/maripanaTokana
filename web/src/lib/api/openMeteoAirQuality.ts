@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { AirQualityIndex } from '../domain/airQuality';
 import type { PollenReadings } from '../domain/airQuality';
 import type { HourlyAirQuality } from '../domain/weatherData';

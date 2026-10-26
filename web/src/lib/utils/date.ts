@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 export function formatTime(timestamp: number): string {
 	const d = new Date(timestamp);
 	const hh = String(d.getHours()).padStart(2, '0');

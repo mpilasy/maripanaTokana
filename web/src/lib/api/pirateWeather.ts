@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { HttpError, netFetch, retryOnce } from './http';
 import type { WeatherData, HourlyForecast, DailyForecast, MinutelyForecast } from '$lib/domain/weatherData';
 import { Temperature } from '$lib/domain/temperature';

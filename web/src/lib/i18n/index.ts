@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { register, init, getLocaleFromNavigator } from 'svelte-i18n';
 export { SUPPORTED_LOCALES, localizeDigits } from '$lib/i18n/locales';
 export type { SupportedLocale } from '$lib/i18n/locales';

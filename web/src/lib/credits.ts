@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /**
  * Services, assets and libraries acknowledged on the About page.
  * Keep in sync with app/src/main/java/.../ui/settings/AboutScreen.kt.

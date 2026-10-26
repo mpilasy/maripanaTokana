@@ -1,4 +1,6 @@
 #!/bin/bash
+# SPDX-FileCopyrightText: Orinasa Njarasoa
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 # F-Droid Screenshot Capture Automation
 # Captures 5 screenshots for each of 8 languages

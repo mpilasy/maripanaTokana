@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { version } from '../../package.json';
 const BG_COLOR = '#0E0B3D';
 const PADDING = 32;

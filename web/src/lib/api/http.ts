@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 export const FETCH_TIMEOUT_MS = 10_000;
 
 export class HttpError extends Error {

@@ -1,3 +1,5 @@
+<!-- SPDX-FileCopyrightText: Orinasa Njarasoa -->
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
 	/** A short bar in a level's colour, for cards that sit above a colour legend; the label is for screen readers and hover. */
 	let { color, label }: { color: string; label: string } = $props();

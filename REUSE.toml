@@ -1,0 +1,68 @@
+# Copyright and license data for files that cannot hold an SPDX header.
+# Check with: pipx run reuse lint
+version = 1
+SPDX-PackageName = "maripanaTokana"
+SPDX-PackageSupplier = "Orinasa Njarasoa"
+SPDX-PackageDownloadLocation = "https://github.com/mpilasy/maripanaTokana"
+
+# Default: our own work (docs, metadata, images, translations, config).
+[[annotations]]
+path = "**"
+precedence = "closest"
+SPDX-FileCopyrightText = "Orinasa Njarasoa"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# Font files: each family has its own copyright line in its LICENSE.txt
+# (web) or in app/src/main/res/raw/font_licenses.txt (Android).
+[[annotations]]
+path = ["web/static/fonts/**", "app/src/main/res/font/**", "app/src/main/res/raw/font_licenses.txt"]
+precedence = "override"
+SPDX-FileCopyrightText = "The authors of each font family, as named in its license text"
+SPDX-License-Identifier = "OFL-1.1"
+
+# Meteocons weather icons
+[[annotations]]
+path = ["web/static/icons/weather/**", "app/src/main/res/drawable-nodpi/wx_*.png", "app/src/main/res/raw/meteocons_license.txt"]
+precedence = "override"
+SPDX-FileCopyrightText = "2020-2021 Bas Milius"
+SPDX-License-Identifier = "MIT"
+
+# Material Design icons (vector drawables)
+[[annotations]]
+path = [
+  "app/src/main/res/drawable/ic_activity_laundry.xml",
+  "app/src/main/res/drawable/ic_activity_run.xml",
+  "app/src/main/res/drawable/ic_activity_sun.xml",
+  "app/src/main/res/drawable/ic_device_phone.xml",
+  "app/src/main/res/drawable/ic_font.xml",
+  "app/src/main/res/drawable/ic_grid.xml",
+  "app/src/main/res/drawable/ic_map.xml",
+  "app/src/main/res/drawable/ic_my_location.xml",
+  "app/src/main/res/drawable/ic_refresh.xml",
+  "app/src/main/res/drawable/ic_share.xml",
+  "app/src/main/res/drawable/ic_translate.xml",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "Google LLC"
+SPDX-License-Identifier = "Apache-2.0"
+
+# NASA Blue Marble background
+[[annotations]]
+path = ["web/static/bg-blue-marble.webp", "app/src/main/res/drawable/bg_blue_marble.png"]
+precedence = "override"
+SPDX-FileCopyrightText = "NASA"
+SPDX-License-Identifier = "LicenseRef-PublicDomain"
+
+# Gradle wrapper
+[[annotations]]
+path = ["gradlew", "gradlew.bat", "gradle/wrapper/**"]
+precedence = "override"
+SPDX-FileCopyrightText = "Gradle, Inc. and the Gradle authors"
+SPDX-License-Identifier = "Apache-2.0"
+
+# License texts
+[[annotations]]
+path = ["LICENSE", "app/src/main/res/raw/gpl_license.txt"]
+precedence = "override"
+SPDX-FileCopyrightText = "Free Software Foundation, Inc."
+SPDX-License-Identifier = "GPL-3.0-or-later"

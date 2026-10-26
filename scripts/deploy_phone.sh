@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-FileCopyrightText: Orinasa Njarasoa
+# SPDX-License-Identifier: GPL-3.0-or-later
 set -euo pipefail
 
 APP_ID="orinasa.njarasoa.maripanatokana"

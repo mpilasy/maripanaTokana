@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { lookupLocation } from '$lib/stores/location';
 
 export const USER_AGENT = 'maripanaTokana (mpilasy@duck.com)';

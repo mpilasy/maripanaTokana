@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { cached } from './ttlCache';
 
 export const PROXY_TTL_MS = 5 * 60 * 1000;
