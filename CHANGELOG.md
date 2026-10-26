@@ -8,7 +8,7 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 `v1.0.18-*` tags) are not listed. There is no 1.4.2 tag: that version was withdrawn.
 
 ## [Unreleased]
-- Android build: Kotlin 2.4.21, AGP 9.4.1 and Gradle 9.8.2. Also new versions of activity-compose, kotlinx-serialization and kotlinx-coroutines. The app does not change for users.
+- Android build: compileSdk 37, Kotlin 2.4.21, AGP 9.4.1 and Gradle 9.8.2. Also new versions of Compose (BOM 2026.09.00), core-ktx, lifecycle, activity-compose, hilt-navigation-compose, kotlinx-serialization and kotlinx-coroutines. The target SDK stays 36. The app does not change for users.
 
 ## [1.5.32] - 2026-10-26
 - French and Spanish: the help text, the store descriptions and the changelogs name the language Malagasy, not "malgache".

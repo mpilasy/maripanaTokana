@@ -24,7 +24,7 @@ kotlin {
 
 android {
     namespace = "orinasa.njarasoa.maripanatokana"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "orinasa.njarasoa.maripanatokana"
