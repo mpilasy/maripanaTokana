@@ -445,16 +445,15 @@ Releases are usually made by hand:
 5. Run `python3 scripts/check_version_sync.py`. It fails when the version strings differ, or when the current version has no `CHANGELOG.md` entry or no changelog file in one of the 8 locales.
 6. Commit as `Bump to vX.Y.Z`, push `main`, then create and push the tag `vX.Y.Z`.
 
-Version names (from 1.6.0): `MAJOR.MINOR.YYYYMMDD`, with the release date as the third number, for example `1.6.20261027`. A second release on the same day adds `-1` (`1.6.20261027-1`), a third `-2`, and so on. `versionCode` still adds 1 for each release.
+Version names (after 1.6.0): `MAJOR.MINOR.YYYYMMDDHHMMSS`, with the release time in UTC as the third number, for example `1.6.20261027143005`. Each release gets a new, higher version, also two releases on the same day. UTC has no clock changes, so the order is always correct. The version stays valid semver. `versionCode` still adds 1 for each release.
 
 Do not edit `metadata/orinasa.njarasoa.maripanatokana.yml` by hand. The release workflow updates it.
 
 `scripts/release_fdroid.sh` can do steps 2, 5 and 6:
 ```bash
 ./scripts/release_fdroid.sh [VERSION_NAME] [VERSION_CODE]
-# Example: ./scripts/release_fdroid.sh 1.6.20261027 114
-# Without arguments, the version is MAJOR.MINOR.YYYYMMDD (today), with -1, -2 for more releases on the same day.
-# The version code adds 1.
+# Example: ./scripts/release_fdroid.sh 1.6.20261027143005 114
+# Without arguments, the version is MAJOR.MINOR.YYYYMMDDHHMMSS (now, in UTC). The version code adds 1.
 ```
 
 Write the changelogs and the `CHANGELOG.md` entry first. The script stops if a changelog file or the `CHANGELOG.md` entry is missing.

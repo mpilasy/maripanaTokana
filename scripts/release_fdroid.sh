@@ -5,9 +5,8 @@ set -euo pipefail
 
 # Automated F-Droid Release Script for maripànaTokana
 # Usage: ./scripts/release_fdroid.sh [VERSION_NAME] [VERSION_CODE]
-# Example: ./scripts/release_fdroid.sh 1.6.20261027 114
-# Without arguments, the version is MAJOR.MINOR.YYYYMMDD (today, local time).
-# A second release on the same day adds -1, a third -2, and so on.
+# Example: ./scripts/release_fdroid.sh 1.6.20261027143005 114
+# Without arguments, the version is MAJOR.MINOR.YYYYMMDDHHMMSS (now, in UTC).
 
 if [ $# -lt 2 ]; then
     CURRENT_VERSION=$(grep -E 'versionName\s*=\s*"[^"]+"' app/build.gradle.kts | sed -E 's/.*"([^"]+)".*/\1/')
@@ -17,12 +16,7 @@ if [ $# -lt 2 ]; then
 
     MAJOR=$(echo "$CURRENT_VERSION" | cut -d. -f1)
     MINOR=$(echo "$CURRENT_VERSION" | cut -d. -f2)
-    NEW_VERSION="${MAJOR}.${MINOR}.$(date +%Y%m%d)"
-    if [ "$CURRENT_VERSION" = "$NEW_VERSION" ]; then
-        NEW_VERSION="${NEW_VERSION}-1"
-    elif [[ "$CURRENT_VERSION" == "${NEW_VERSION}-"* ]]; then
-        NEW_VERSION="${NEW_VERSION}-$(( ${CURRENT_VERSION##*-} + 1 ))"
-    fi
+    NEW_VERSION="${MAJOR}.${MINOR}.$(date -u +%Y%m%d%H%M%S)"
 else
     NEW_VERSION="$1"
     NEW_CODE="$2"
