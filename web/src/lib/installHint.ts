@@ -47,3 +47,16 @@ export function isAndroid(): boolean {
 	if (typeof navigator === 'undefined') return false;
 	return /Android/i.test(navigator.userAgent);
 }
+
+/**
+ * The language of the install steps. The steps name browser menu items, and no browser shows them in
+ * Malagasy, so with the app in Malagasy the steps use the first supported phone language, else English.
+ */
+export function instructionsLocale(appTag: string, phoneTags: readonly string[], supported: readonly string[]): string {
+	if (appTag !== 'mg') return appTag;
+	for (const tag of phoneTags) {
+		const base = tag.toLowerCase().split('-')[0];
+		if (base !== 'mg' && supported.includes(base)) return base;
+	}
+	return 'en';
+}

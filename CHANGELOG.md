@@ -8,6 +8,7 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 `v1.0.18-*` tags) are not listed. There is no 1.4.2 tag: that version was withdrawn.
 
 ## [Unreleased]
+- Web: with the app in Malagasy, the Add to Home screen steps (the dialog and the iPhone Help section) use the phone language, or English when the app does not have it. The steps name browser menu items, and browsers do not show them in Malagasy.
 - Web: an "Add to Home screen" badge on the About page, for all browsers. Chrome, Edge and Samsung Internet open their own install dialog; Safari and Firefox show the steps. The footer no longer has the Install link (it was only on iPhone and iPad). The badge hides when the app already runs from the Home screen.
 - Web: the About page no longer links to the web version, because it is the web version. The Android About page keeps the link.
 - Web: on Android, the About page links to the Android app on F-Droid, Obtainium and the GitHub releases, with badges.

@@ -1,44 +1,59 @@
 <!-- SPDX-FileCopyrightText: Orinasa Njarasoa -->
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
-	import { _ } from 'svelte-i18n';
+	import { _, locale, waitLocale } from 'svelte-i18n';
+	import { onMount } from 'svelte';
+	import { get } from 'svelte/store';
+	import { instructionsLocale } from '#lib/installHint.js';
+	import { SUPPORTED_LOCALES } from '#lib/i18n/index.js';
 
 	/**
 	 * The two steps to add the app to the Home Screen, for browsers that give no install prompt:
 	 * Safari on iPhone and iPad (`ios`), else the browser menu (Firefox and others).
 	 */
 	let { onclose, ios = true }: { onclose: () => void; ios?: boolean } = $props();
+
+	// The steps name browser menu items: with the app in Malagasy, they use the phone language
+	const appTag = get(locale) ?? 'en';
+	const tag = instructionsLocale(appTag, navigator.languages ?? [], SUPPORTED_LOCALES.map((l) => l.tag));
+	let ready = $state(tag === appTag);
+	onMount(() => {
+		if (!ready) waitLocale(tag).then(() => (ready = true));
+	});
+	const t = (key: string) => $_(key, { locale: tag });
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <div class="scrim" role="button" tabindex="0" onclick={onclose} onkeydown={(e) => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onclose(); } }}>
-	<div class="dialog" role="dialog" aria-modal="true" aria-labelledby="install-dialog-title" tabindex="-1" onclick={(e) => e.stopPropagation()}
+	<div class="dialog" role="dialog" aria-modal="true" aria-labelledby="install-dialog-title" tabindex="-1" lang={tag} dir={tag === 'ar' ? 'rtl' : undefined} onclick={(e) => e.stopPropagation()}
 		onkeydown={(e) => { if (e.key === 'Escape') onclose(); }}>
-		<h2 id="install-dialog-title" class="title">{$_('help_q_install')}</h2>
+		{#if ready}
+		<h2 id="install-dialog-title" class="title">{t('help_q_install')}</h2>
 
 		<ol class="steps">
 			<li>
 				{#if ios}
 					<!-- The iOS share icon: a box with an arrow up -->
 					<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4M7 10H5v11h14V10h-2" /></svg>
-					<span>{$_('install_step_share')}</span>
+					<span>{t('install_step_share')}</span>
 				{:else}
 					<!-- The browser menu icon: three dots -->
 					<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="19" r="1.5" /></svg>
-					<span>{$_('install_step_menu')}</span>
+					<span>{t('install_step_menu')}</span>
 				{/if}
 			</li>
 			<li>
 				<!-- Add to Home Screen: a box with a plus -->
 				<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4" /><path d="M12 8v8M8 12h8" /></svg>
-				<span>{$_(ios ? 'install_step_add' : 'install_step_install')}</span>
+				<span>{t(ios ? 'install_step_add' : 'install_step_install')}</span>
 			</li>
 		</ol>
 
 		<div class="actions">
-			<button class="action primary" onclick={onclose}>{$_('cd_close')}</button>
+			<button class="action primary" onclick={onclose}>{t('cd_close')}</button>
 		</div>
+		{/if}
 	</div>
 </div>
 
