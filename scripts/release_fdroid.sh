@@ -5,19 +5,24 @@ set -euo pipefail
 
 # Automated F-Droid Release Script for maripànaTokana
 # Usage: ./scripts/release_fdroid.sh [VERSION_NAME] [VERSION_CODE]
-# Example: ./scripts/release_fdroid.sh 1.2.17 60
+# Example: ./scripts/release_fdroid.sh 1.6.20261027 114
+# Without arguments, the version is MAJOR.MINOR.YYYYMMDD (today, local time).
+# A second release on the same day adds -1, a third -2, and so on.
 
 if [ $# -lt 2 ]; then
     CURRENT_VERSION=$(grep -E 'versionName\s*=\s*"[^"]+"' app/build.gradle.kts | sed -E 's/.*"([^"]+)".*/\1/')
     CURRENT_CODE=$(grep -E 'versionCode\s*=\s*[0-9]+' app/build.gradle.kts | sed -E 's/[^0-9]*([0-9]+).*/\1/')
-    
+
     NEW_CODE=$((CURRENT_CODE + 1))
-    
+
     MAJOR=$(echo "$CURRENT_VERSION" | cut -d. -f1)
     MINOR=$(echo "$CURRENT_VERSION" | cut -d. -f2)
-    PATCH=$(echo "$CURRENT_VERSION" | cut -d. -f3)
-    NEW_PATCH=$((PATCH + 1))
-    NEW_VERSION="${MAJOR}.${MINOR}.${NEW_PATCH}"
+    NEW_VERSION="${MAJOR}.${MINOR}.$(date +%Y%m%d)"
+    if [ "$CURRENT_VERSION" = "$NEW_VERSION" ]; then
+        NEW_VERSION="${NEW_VERSION}-1"
+    elif [[ "$CURRENT_VERSION" == "${NEW_VERSION}-"* ]]; then
+        NEW_VERSION="${NEW_VERSION}-$(( ${CURRENT_VERSION##*-} + 1 ))"
+    fi
 else
     NEW_VERSION="$1"
     NEW_CODE="$2"
