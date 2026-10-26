@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Properties

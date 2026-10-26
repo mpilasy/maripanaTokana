@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /** iPhone and iPad browsers never offer to install a web app, so the app tells the user how. */
 // True on iOS when the app is not open from the Home Screen. All iOS browsers can add it there.
 export function canAddToHomeScreen(): boolean {

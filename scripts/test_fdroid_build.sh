@@ -1,4 +1,6 @@
 #!/bin/bash
+# SPDX-FileCopyrightText: Orinasa Njarasoa
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 # F-Droid Build Verification & Testing
 # Performs automated tests on F-Droid flavor build

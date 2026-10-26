@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 export class WindSpeed {
 	private constructor(readonly metersPerSecond: number) {}
 

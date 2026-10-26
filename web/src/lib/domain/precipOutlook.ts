@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import type { HourlyForecast, MinutelyForecast } from './weatherData';
 
 /** What the next 24 hours hold for rain or snow, for the one-line summary on the first page. */

@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-FileCopyrightText: Orinasa Njarasoa
+# SPDX-License-Identifier: GPL-3.0-or-later
 # End-to-end regression test for the F-Droid permission + location + weather flow.
 #
 # Covers 11 scenarios on a single connected emulator:

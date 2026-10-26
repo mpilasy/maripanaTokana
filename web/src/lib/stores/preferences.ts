@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { writable } from 'svelte/store';
 import { fontPairings } from '$lib/fonts';
 import { SUPPORTED_LOCALES } from '$lib/i18n/locales';

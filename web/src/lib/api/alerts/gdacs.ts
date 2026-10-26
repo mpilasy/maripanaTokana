@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import type { GdacsAlertResponse } from '../externalAlertsTypes';
 import type { WeatherAlert, AlertLevel } from '$lib/domain/weatherData';
 import { calculateDistance } from './shared';

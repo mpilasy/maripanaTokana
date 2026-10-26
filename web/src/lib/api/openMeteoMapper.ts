@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import type { OpenMeteoResponse } from './openMeteoTypes';
 import type { WeatherData, HourlyForecast, DailyForecast } from '../domain/weatherData';
 import { Temperature } from '../domain/temperature';

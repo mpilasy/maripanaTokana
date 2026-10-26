@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import type { WeatherAlert, AlertLevel } from '$lib/domain/weatherData';
 
 export const METEOALARM_COUNTRIES = new Set([

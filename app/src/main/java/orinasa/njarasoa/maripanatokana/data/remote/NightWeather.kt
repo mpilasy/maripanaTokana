@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package orinasa.njarasoa.maripanatokana.data.remote
 
 private const val HOUR = 3_600_000L

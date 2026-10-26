@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Orinasa Njarasoa
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import type { Temperature } from './temperature';
 import type { Pressure } from './pressure';
 import type { WindSpeed } from './windSpeed';

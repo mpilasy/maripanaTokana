@@ -1,3 +1,5 @@
+<!-- SPDX-FileCopyrightText: Orinasa Njarasoa -->
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import DualUnitText from './DualUnitText.svelte';
