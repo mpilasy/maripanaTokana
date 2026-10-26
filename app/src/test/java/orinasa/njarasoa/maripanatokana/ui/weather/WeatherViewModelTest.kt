@@ -156,8 +156,11 @@ class WeatherViewModelTest {
 
         vm.setLocationOverride(10.0, 20.0, "Preview")
         awaitCondition { runCatching { coVerify { locationRepository.getFreshLocation() } }.isSuccess }
+        // Let each refresh run: a refresh cancels the one before it while it is still queued
         vm.refresh()
+        advanceUntilIdle()
         vm.refresh()
+        advanceUntilIdle()
         awaitCondition { runCatching { coVerify(exactly = 3) { weatherRepository.getWeather(10.0, 20.0) } }.isSuccess }
 
         coVerify(exactly = 1) { locationRepository.getFreshLocation() }
