@@ -1,0 +1,3 @@
+- Widgets : le bouton d'actualisation ne bloque plus l'app quand le téléphone n'a pas de position récente.
+- Widgets : le nom du lieu correspond toujours à la météo affichée.
+- Outils de compilation et bibliothèques à jour sur Android et sur le web.

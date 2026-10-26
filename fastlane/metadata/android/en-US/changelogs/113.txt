@@ -1,0 +1,3 @@
+- Widgets: the refresh button no longer makes the app stop responding when the phone has no recent location.
+- Widgets: the place name always agrees with the weather shown.
+- Up-to-date build tools and libraries on Android and on the web.

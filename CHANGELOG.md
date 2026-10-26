@@ -8,6 +8,8 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 `v1.0.18-*` tags) are not listed. There is no 1.4.2 tag: that version was withdrawn.
 
 ## [Unreleased]
+
+## [1.6.0] - 2026-10-26
 - Android widgets: the refresh button no longer makes the app stop responding (ANR) when the phone has no recent location. A background job does the refresh.
 - Android widgets: the place name agrees with the weather. Before, after the phone moved, the widget could show the weather for the new place with the name of the old place.
 - Android build: compileSdk 37, Kotlin 2.4.21, AGP 9.4.1 and Gradle 9.8.2. Also new versions of Compose (BOM 2026.09.00), core-ktx, lifecycle, activity-compose, hilt-navigation-compose, kotlinx-serialization and kotlinx-coroutines. The target SDK stays 36. The app does not change for users.

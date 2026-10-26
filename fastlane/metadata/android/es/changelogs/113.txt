@@ -1,0 +1,3 @@
+- Widgets: el botón de actualizar ya no bloquea la app cuando el teléfono no tiene una ubicación reciente.
+- Widgets: el nombre del lugar siempre coincide con el tiempo mostrado.
+- Herramientas y bibliotecas actualizadas en Android y en la web.
