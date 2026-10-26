@@ -1,11 +1,14 @@
 package orinasa.njarasoa.maripanatokana.di
 
+import android.content.Context
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kotlinx.serialization.json.Json
+import okhttp3.Cache
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -21,13 +24,17 @@ import orinasa.njarasoa.maripanatokana.data.remote.NwsApiService
 import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoAirQualityApiService
 import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoApiService
 import orinasa.njarasoa.maripanatokana.data.remote.PirateWeatherApiService
+import orinasa.njarasoa.maripanatokana.data.remote.RateLimitedNominatimApiService
 import retrofit2.Retrofit
+import java.io.File
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
+
+    private const val HTTP_CACHE_BYTES = 10L * 1024 * 1024
 
     @Provides
     @Singleton
@@ -38,10 +45,14 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient {
+    fun provideOkHttpClient(@ApplicationContext context: Context): OkHttpClient {
         val okHttpClientBuilder = OkHttpClient.Builder()
+            // Lets OkHttp honor the sources' Cache-Control and ETag headers
+            .cache(Cache(File(context.cacheDir, "http"), HTTP_CACHE_BYTES))
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
+            // Caps the whole call, below the 45-second fetch timeout of the screen
+            .callTimeout(40, TimeUnit.SECONDS)
 
         if (BuildConfig.DEBUG) {
             okHttpClientBuilder.addInterceptor(
@@ -130,12 +141,13 @@ object NetworkModule {
     @Singleton
     fun provideNominatimApiService(okHttpClient: OkHttpClient, json: Json): NominatimApiService {
         val contentType = "application/json".toMediaType()
-        return Retrofit.Builder()
+        val api = Retrofit.Builder()
             .baseUrl("https://nominatim.openstreetmap.org/")
             .client(okHttpClient)
             .addConverterFactory(json.asConverterFactory(contentType))
             .build()
             .create(NominatimApiService::class.java)
+        return RateLimitedNominatimApiService(api)
     }
 
     @Provides

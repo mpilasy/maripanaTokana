@@ -13,6 +13,7 @@ import orinasa.njarasoa.maripanatokana.data.location.isLatinScript
 import orinasa.njarasoa.maripanatokana.data.remote.BomApiService
 import orinasa.njarasoa.maripanatokana.data.remote.CountryBoundingBoxes
 import orinasa.njarasoa.maripanatokana.data.remote.EcccApiService
+import orinasa.njarasoa.maripanatokana.data.remote.GdacsAlertResponse
 import orinasa.njarasoa.maripanatokana.data.remote.GdacsApiService
 import orinasa.njarasoa.maripanatokana.data.remote.GeocodingResult
 import orinasa.njarasoa.maripanatokana.data.remote.JmaApiService
@@ -53,6 +54,9 @@ class WeatherRepositoryImpl @Inject constructor(
     private val geocodingSelector: GeocodingSourceSelector,
     private val countryResolver: CountryResolver,
 ) : WeatherRepository {
+
+    // The GDACS feed lists events for the whole world: one download serves all places for a few minutes
+    private val gdacsFeed = ExpiringValue<Pair<String, String>, GdacsAlertResponse>(GDACS_FEED_TTL_MS)
 
     private val prefs get() = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
 
@@ -106,16 +110,21 @@ class WeatherRepositoryImpl @Inject constructor(
 
     override suspend fun getWeather(lat: Double, lon: Double): Result<WeatherData> = withContext(Dispatchers.IO) {
         try {
-            val sourceData = weatherSourceSelector.current().getForecast(lat, lon)
-
-            val (locationName, locationSubtext) = try {
-                geocodingSelector.current().reverseGeocode(lat, lon, currentLocale())
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                AppLog.w(TAG, "reverse geocode failed", e)
-                "%.2f, %.2f".format(Locale.US, lat, lon) to null
+            // The place name does not depend on the forecast: look it up while the forecast loads
+            val (sourceData, place) = coroutineScope {
+                val placeDeferred = async {
+                    try {
+                        geocodingSelector.current().reverseGeocode(lat, lon, currentLocale())
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        AppLog.w(TAG, "reverse geocode failed", e)
+                        "%.2f, %.2f".format(Locale.US, lat, lon) to null
+                    }
+                }
+                weatherSourceSelector.current().getForecast(lat, lon) to placeDeferred.await()
             }
+            val (locationName, locationSubtext) = place
 
             Result.success(sourceData.copy(
                 locationName = locationName,
@@ -196,7 +205,7 @@ class WeatherRepositoryImpl @Inject constructor(
                     val minLat = lat - latDelta
                     val maxLat = lat + latDelta
 
-                    gdacsApiService.searchEvents(fromDate, toDate).features
+                    gdacsFeed.get(fromDate to toDate) { gdacsApiService.searchEvents(fromDate, toDate) }.features
                         .filter { f ->
                             val fLat = f.geometry.coordinates[1]
                             val fLon = f.geometry.coordinates[0]
@@ -572,6 +581,7 @@ class WeatherRepositoryImpl @Inject constructor(
         private val NON_WORD = Regex("[^\\p{L}\\p{N}]+")
         private const val GDACS_SEARCH_RADIUS_KM = 500
         private const val GDACS_SEARCH_DAYS = 7
+        private const val GDACS_FEED_TTL_MS = 10 * 60 * 1000L
         private const val NHC_SEARCH_RADIUS_KM = 1500
         private val NHC_CLASSIFICATION_NAMES = mapOf(
             "TD" to "Tropical Depression", "SD" to "Subtropical Depression",

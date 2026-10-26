@@ -79,6 +79,7 @@ maripanaTokana/
 │   │   │   │   │   ├── OpenMeteoMapper.kt       # Weather API response -> domain model
 │   │   │   │   │   ├── PirateWeatherApiService.kt / PirateWeatherMapper.kt # Pirate Weather API + mapper
 │   │   │   │   │   ├── NominatimApiService.kt   # Nominatim geocoding API
+│   │   │   │   │   ├── RateLimitedNominatimApiService.kt # 1 request per second, reverse results kept
 │   │   │   │   │   ├── NwsApiService.kt / GdacsApiService.kt / MeteoAlarmApiService.kt
 │   │   │   │   │   ├── JmaApiService.kt / EcccApiService.kt / BomApiService.kt / NhcApiService.kt # Alert APIs
 │   │   │   │   │   └── WmoWeatherCode.kt        # Weather code -> description string resource
@@ -86,6 +87,7 @@ maripanaTokana/
 │   │   │   │   │   ├── WeatherRepositoryImpl.kt  # Weather, alerts & geocoding orchestrator
 │   │   │   │   │   ├── LocationRepositoryImpl.kt # GPS location repository
 │   │   │   │   │   ├── CountryResolver.kt        # Country of a place, for the alert sources
+│   │   │   │   │   ├── ExpiringValue.kt          # One value kept for a time (GDACS feed)
 │   │   │   │   │   └── WeatherCache.kt           # Last weather data, one JSON file per place (gps, saved id, preview)
 │   │   │   │   ├── settings/
 │   │   │   │   │   └── AppSettingsRepository.kt # SharedPreferences settings repository
@@ -246,6 +248,8 @@ Holds the complete weather snapshot: current conditions, official weather alerts
 - **Air Quality & Pollen (`OpenMeteoAirQualityApiService.kt`)**: Requests current AQI, per-pollutant values, CAMS pollen variables, and the hourly AQI forecast (`forecast_days=5`, which feeds the 10-day forecast).
 - **Geocoding**: the user picks the System Geocoder or Nominatim in Settings (Advanced Mode). The default is the System Geocoder in the standard flavor and Nominatim in the F-Droid flavor. Place search uses the Open-Meteo Geocoding API first, with Nominatim as fallback. Place names are split into primary city name and region/country subtext. The location details card shows the coordinates in DMS and decimal, and the Plus Code.
 - **Pirate Weather** has no air quality, so the Air quality tabs do not show with that source.
+- **Network**: all services share one OkHttp client with a 10 MB HTTP cache (`cacheDir/http`) and a 40-second call timeout. The forecast and the place name load at the same time.
+- **Nominatim policy**: `RateLimitedNominatimApiService` sends one request at a time, at most one per second, and keeps the last 32 reverse results by coordinates and language. One refresh asks for the same place up to 3 times (name, Latin-letter name, country for alerts).
 
 ---
 
@@ -353,7 +357,7 @@ Settings, Help and About share the `SettingsPage` layout. Help has three section
 Official alerts are fetched from 7 upstream sources: NWS (US), GDACS (global), MeteoAlarm (Europe), JMA (Japan), ECCC (Canada), BOM (Australia), and NHC (hurricanes).
 - **Derived alerts removed**: Derived/algorithmic alerts were removed in v1.2.1 to prevent false alarms.
 - **Multiple Alerts UI**: Multi-source alerts display merged source badges on the banner, with individual expand/collapse triggers per alert. The banner is collapsed by default: orange for a watch, red for a warning or emergency. Source badges link to the alert.
-- **Coverage**: each source is used only for its countries (with bounding boxes as fallback). GDACS is skipped where a regional source covers the place.
+- **Coverage**: each source is used only for its countries (with bounding boxes as fallback). GDACS is skipped where a regional source covers the place. The GDACS feed lists events for the whole world, so one download is kept for 10 minutes.
 - **Loading**: alerts load after the weather shows. Results for other coordinates are dropped.
 
 ---
