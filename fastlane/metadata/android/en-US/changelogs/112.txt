@@ -1,0 +1,1 @@
+- French and Spanish: the help text now names the language Malagasy.

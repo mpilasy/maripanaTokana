@@ -9,6 +9,9 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.5.32] - 2026-10-26
+- French and Spanish: the help text, the store descriptions and the changelogs name the language Malagasy, not "malgache".
+
 ## [1.5.31] - 2026-10-26
 - License: a GPL v3 section 7 additional permission lets anyone convey the Standard APK with Google Play services (README).
 - About page (Android): tap Meteocons to read its MIT License text in the app.
