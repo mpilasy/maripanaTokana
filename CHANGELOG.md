@@ -8,6 +8,7 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 `v1.0.18-*` tags) are not listed. There is no 1.4.2 tag: that version was withdrawn.
 
 ## [Unreleased]
+- Web: the About page no longer links to the web version, because it is the web version. The Android About page keeps the link.
 - Web: on Android, a card under Activities links to the Android app on F-Droid and Obtainium, with the same badges as the README.
 
 ## [1.6.20261026193250] - 2026-10-26
