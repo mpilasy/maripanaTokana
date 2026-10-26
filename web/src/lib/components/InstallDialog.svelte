@@ -79,6 +79,8 @@
 		display: flex;
 		flex-direction: column;
 		color: white;
+		/* The About page centres its top card, where the badge opens this dialog */
+		text-align: start;
 	}
 
 	.title {
