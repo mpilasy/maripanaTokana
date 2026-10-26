@@ -51,13 +51,13 @@ The file should have no `plugins {}` block — just `pluginManagement`, `depende
 
 F-Droid doesn't allow downloading JDKs during builds. Combined with `jvmToolchain(21)` (vendor-agnostic), the build uses whatever JDK 21 is already on the server.
 
-**`android.dependenciesInfo.includeInApk=false` and `android.dependenciesInfo.includeInBundle=false` — MUST be set**
+**`dependenciesInfo { includeInApk = false; includeInBundle = false }` — MUST stay in `app/build.gradle.kts`**
 
 AGP 8+ embeds a "Dependency metadata" block in the APK's signing block by default. F-Droid's `fdroid-suss` scanner rejects any APK containing this block:
 
 > "Found extra signing block 'Dependency metadata'"
 
-Without these flags, `check apk` fails even when the build and reproducibility checks pass.
+Without this block, `check apk` fails even when the build and reproducibility checks pass. `gradle.properties` also has `android.dependenciesInfo.includeInApk=false` and `android.dependenciesInfo.includeInBundle=false`. Keep both, but the `dependenciesInfo` block in `app/build.gradle.kts` is the setting to check first.
 
 ### `gradle/gradle-daemon-jvm.properties`
 
@@ -92,9 +92,15 @@ The line must be `Binaries: ` — colon, **space**, then newline — with the UR
 
 ### `app/proguard-rules.pro`
 
-**R8 keep rules for Room/WorkManager — CRITICAL for release builds**
+**R8 keep rules — CRITICAL for release builds**
 
-WorkManager uses Room internally (`WorkDatabase_Impl`), and Room-generated `_Impl` classes are instantiated via reflection. R8 strips their no-arg constructors, causing a `NoSuchMethodException` crash at startup. The following rules must stay in `proguard-rules.pro`:
+Release builds use `isMinifyEnabled = true` and `isShrinkResources = true`. `proguard-rules.pro` has three groups of keep rules, and all must stay:
+
+- **Room and WorkManager.** WorkManager uses Room internally (`WorkDatabase_Impl`), and Room-generated `_Impl` classes are instantiated via reflection. R8 strips their no-arg constructors, causing a `NoSuchMethodException` crash at startup.
+- **Location.** `LocationListener` implementations and the `data.location` package, for `NativeLocationProvider` (F-Droid flavor).
+- **Kotlin Serialization.** All `@Serializable` classes in `data.remote` and their `$$serializer` classes. Without them, R8 removes fields that only the generated serializers use, and the API responses do not parse.
+
+The Room and WorkManager rules:
 
 ```proguard
 # Room: keep generated _Impl classes (instantiated via reflection)
@@ -106,24 +112,30 @@ WorkManager uses Room internally (`WorkDatabase_Impl`), and Room-generated `_Imp
 -keep class androidx.work.impl.** { *; }
 ```
 
-Without these rules, the app crashes immediately on startup in any minified build (`isMinifyEnabled = true`).
+Without these rules, the app crashes immediately on startup in any minified build.
 
 ### Quick Diagnostic Checklist
 
-If the **GitHub Actions build** fails, check in order:
+If the **GitHub Actions build** or a local build fails, check in order:
 
 1. Is `kotlin { jvmToolchain(21) }` present in `app/build.gradle.kts`? (missing = JetBrains JDK error)
-2. Is `kotlin.android` in the plugins block? (present = extension conflict)
-3. Is foojay in `settings.gradle.kts`? (present = fdroid-suss blocks it)
-4. Does `gradle-daemon-jvm.properties` have `toolchainVendor`? (present = Gradle daemon won't start)
-5. Is `auto-provisioning` set to `enabled`? (will try to download JDKs and fail)
-6. Are Room/WorkManager R8 keep rules in `proguard-rules.pro`? (missing = `NoSuchMethodException: WorkDatabase_Impl` crash at startup)
-7. Does `metadata/*.yml` have `Binaries: ` with trailing space? (missing space = `fdroid rewritemeta` GitLab CI job fails)
+2. Is `kotlin.android` applied in `app/build.gradle.kts`? (present = extension conflict). The root `build.gradle.kts` declares it with `apply false`, which is correct.
+3. Does `gradle-daemon-jvm.properties` have `toolchainVendor`? (present = Gradle daemon won't start)
+4. Are the R8 keep rules in `proguard-rules.pro`? (missing = crash at startup, or API responses that do not parse)
+5. Does `metadata/*.yml` have `Binaries: ` with trailing space? The workflow checks this with `grep -P '^Binaries: $'`.
 
-If the **GitLab MR pipeline** fails, check which job failed:
+These problems show only on F-Droid's GitLab pipeline:
 
-- **`fdroid build`** — actual Gradle build failure. Look at the job log for Kotlin/Gradle errors.
-- **`check apk`** — APK has disallowed signing block or Google Play dependency. Check `android.dependenciesInfo.*=false` in `gradle.properties`.
+1. Is foojay in `settings.gradle.kts`? (present = fdroid-suss blocks it)
+2. Is `auto-provisioning` set to `enabled`? (will try to download JDKs and fail)
+3. Is `dependenciesInfo` missing from `app/build.gradle.kts`? (missing = `check apk` fails)
+
+If the **GitLab MR pipeline** fails, check which job failed. The jobs are: check apk, check source code, schema validation, tools check scripts, fdroid rewritemeta, fdroid lint, git redirect, checkupdates and fdroid build.
+
+- **`fdroid build`** — actual Gradle build failure. Look at the job log for Kotlin/Gradle errors. A 404 on the `Binaries` URL means that the GitHub release APK does not exist yet. Wait for the release workflow, then retry the job.
+- **`checkupdates`** — a tag exists that is newer than `CurrentVersion` in the yml. Add the build entry for the newest tag, or let the bot add it and rebase the MR.
+- **`check apk`** — APK has disallowed signing block or Google Play dependency. Check the `dependenciesInfo` block in `app/build.gradle.kts`.
+- **`check source code`** — `fdroid-suss` found a blocked library or plugin in the source, for example foojay.
 - **`fdroid lint`** — metadata YAML syntax error. Validate with a YAML linter.
 - **`fdroid rewritemeta`** — metadata is not in canonical format. Download the job artifact (`tmp/orinasa.njarasoa.maripanatokana.yml`) to see the diff of what `fdroid rewritemeta` would change. The most common cause is the `Binaries:` trailing space (see above).
 - **`schema validation`** — missing required field or wrong field type in the YAML.
@@ -156,16 +168,18 @@ GET https://gitlab.com/api/v4/projects/mpilasy%2Ffdroiddata/jobs/<job_id>/artifa
 The app has two build flavors configured in `app/build.gradle.kts`:
 
 ### Standard Flavor
-- Uses Google Play Services for location (`libs.play.services.location`)
+- Uses Google Play Services for location (`libs.play.services.location` and `libs.kotlinx.coroutines.play.services`)
 - Includes Accompanist Permissions library for permissions UI
-- Uses `PlayServicesLocationProvider` for enhanced location accuracy
-- Optimized for Google Play distribution
+- Uses `PlayServicesLocationProvider` for location
+- Default geocoder: the system geocoder (`DefaultSettings.kt`)
+- Published only on GitHub releases, as `maripanaTokana-standard-vX.apk` (for Obtainium). The app is not on Google Play.
 - Built with: `./gradlew assembleStandardRelease`
 
 ### F-Droid Flavor
 - Uses only native Android `LocationManager` (no Google Play Services)
 - Uses simplified permissions handling without Accompanist
 - Uses `NativeLocationProvider` for location services
+- Default geocoder: Nominatim (`DefaultSettings.kt`)
 - Fully compatible with F-Droid's requirements
 - Built with: `./gradlew assembleFdroidRelease`
 
@@ -191,8 +205,9 @@ Location: `app/src/standard/java/.../PlayServicesLocationProvider.kt`
 Location: `app/src/fdroid/java/.../NativeLocationProvider.kt`
 - Uses Android's built-in LocationManager
 - Supports GPS_PROVIDER, NETWORK_PROVIDER and PASSIVE_PROVIDER
-- Selects most accurate available location
-- 30-second timeout for fresh location requests. On timeout, it uses any stale cached fix
+- `getLastLocation()` takes the more recent of the GPS and network fixes, and ignores fixes older than 24 hours
+- `getFreshLocation()` takes the first fix from any of the three providers
+- 30-second timeout for fresh location requests. On timeout, it uses a cached fix if one is less than 24 hours old
 
 ## Dependency Injection
 
@@ -202,10 +217,12 @@ Flavor-specific DI modules provide the appropriate LocationProvider:
 Location: `app/src/standard/java/.../di/LocationModule.kt`
 - Provides `FusedLocationProviderClient`
 - Provides `PlayServicesLocationProvider` as `LocationProvider`
+- `LocationBindingModule` in the same file binds `StandardPermissionHandler` as `PermissionHandler`
 
 ### F-Droid Flavor Module
 Location: `app/src/fdroid/java/.../di/LocationModule.kt`
 - Provides `NativeLocationProvider` as `LocationProvider`
+- `LocationBindingModule` in the same file binds `FDroidPermissionHandler` as `PermissionHandler`
 - No Play Services dependencies required
 
 ## UI Adaptations
@@ -221,7 +238,7 @@ Location: `app/src/fdroid/java/.../di/LocationModule.kt`
 - Uses the AndroidX activity result API and `ContextCompat` directly
 - Does not use Accompanist
 
-The two flavors also use different location providers (see above) and different `WidgetWeatherFetcher` classes.
+The two flavors also use different location providers (see above), different `WidgetWeatherFetcher` classes and different `DefaultSettings.kt` files.
 
 ### WidgetWeatherFetcher
 Flavor-specific widget location fetcher implementations:
@@ -240,15 +257,29 @@ Flavor-specific widget location fetcher implementations:
 The F-Droid flavor is configured for reproducible builds:
 
 1. **BUILD_TIME buildConfigField**
-   - Standard flavor: Current timestamp (for Google Play version tracking)
-   - F-Droid flavor: "reproducible" string (for byte-identical builds)
+   - Standard flavor: the local build time (`yyyy-MM-dd HH:mm`), shown in the footer
+   - F-Droid flavor: "reproducible" string (for byte-identical builds). The F-Droid flavor also sets `DISTRIBUTION="fdroid"`
 
-2. **PNG Crunching**
+2. **GIT_HASH buildConfigField**
+   - The short hash of `HEAD`. It is the same for every build of the same commit, so it does not break reproducibility
+
+3. **PNG Crunching**
    - Disabled in release builds for reproducibility (`isCrunchPngs = false` in `app/build.gradle.kts`)
 
-3. **Consistent Dependencies**
+4. **No dependency metadata**
+   - The `dependenciesInfo` block (see above) keeps the signing block identical
+
+5. **Consistent Dependencies**
    - Version-locked in `libs.versions.toml`
    - F-Droid flavor excludes Play Services
+
+### Signing
+
+F-Droid checks that its own build matches the APK at the `Binaries` URL, except for the signature. Then it publishes our signed APK. So all release APKs must use the same key:
+
+- The metadata has `AllowedAPKSigningKeys`, the SHA-256 fingerprint of our signing certificate. `scripts/update_metadata.py` writes it.
+- The release workflow gets the key from the GitHub secrets `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS` and `KEY_PASSWORD`.
+- A local release build is signed only when `keystore.properties` exists or `KEYSTORE_FILE` is set. Otherwise the APK is `app-fdroid-release-unsigned.apk`.
 
 ## Metadata
 
@@ -265,6 +296,7 @@ fastlane/metadata/android/
 │   ├── changelogs/
 │   │   └── {versionCode}.txt
 │   └── images/
+│       ├── icon.png          (512x512, en-US only)
 │       └── phoneScreenshots/
 │           └── 1.png ... 4.png
 ├── mg/  (Malagasy)
@@ -280,17 +312,22 @@ Each language directory contains:
 - `title.txt`: App name (max 50 chars)
 - `short_description.txt`: Short description (max 80 chars)
 - `full_description.txt`: Detailed description with features
-- `changelogs/{versionCode}.txt`: Changelog for each release. Each release needs one file in all 8 locales, under 500 characters
+- `changelogs/{versionCode}.txt`: Changelog for each release. Each new release needs one file in all 8 locales, under 500 characters. Some version codes have no file, because those versions were never released. Some old files (43 and 44) are longer than 500 characters
 - `images/phoneScreenshots/`: Exactly 4 screenshots per language (`1.png` to `4.png`). See [SCREENSHOTS_README.md](./SCREENSHOTS_README.md)
 
 ### F-Droid YAML Metadata
 Located at: `metadata/orinasa.njarasoa.maripanatokana.yml`
 
 Contains:
-- App metadata (license, author, URLs)
+- App metadata: license, categories (`Weather`), author, URLs including `WebSite`, and the `TetheredNet` anti-feature with its text in en-US and mg-MG
 - Build instructions (`subdir: app`, gradle flavor `fdroid`). There are no prebuild steps
-- Version tracking configuration (`UpdateCheckMode: Tags`, `AutoUpdateMode: Version`)
+- Version tracking configuration (`UpdateCheckMode: Tags`, `AutoUpdateMode: Version`, `CurrentVersion`, `CurrentVersionCode`)
 - The `Binaries:` URL. It points to `maripanaTokana-v%v.apk`, the F-Droid flavor APK. The GitHub release also holds `maripanaTokana-standard-v%v.apk`, which F-Droid does not use
+- `AllowedAPKSigningKeys` (see Signing above)
+
+This file is a local copy. The file that F-Droid uses is `metadata/orinasa.njarasoa.maripanatokana.yml` in `fdroid/fdroiddata`, and the two are different:
+- `scripts/update_metadata.py` keeps one build entry here, for the newest version. Upstream, F-Droid's bot keeps the newest few build entries.
+- `License: GPL-3.0-or-later`, `WebSite` and the new `TetheredNet` text are here, but not upstream yet. They wait for MR !53903 (see below).
 
 ## Building for F-Droid
 
@@ -303,7 +340,7 @@ Contains:
 # Generate i18n strings
 node shared/i18n/generate-android-strings.js
 
-# Build F-Droid flavor
+# Build F-Droid flavor (signed only if keystore.properties or KEYSTORE_FILE is set)
 ./gradlew assembleFdroidRelease
 
 # Output location
@@ -314,7 +351,7 @@ ls -lh app/build/outputs/apk/fdroid/release/
 
 ```bash
 # Extract and check for Play Services references
-unzip -q app/build/outputs/apk/fdroid/release/app-fdroid-release.apk -d /tmp/fdroid-apk
+unzip -q app/build/outputs/apk/fdroid/release/app-fdroid-release*.apk -d /tmp/fdroid-apk
 find /tmp/fdroid-apk -name "*.dex" -exec strings {} \; | grep -i "google.android.gms"
 # Should return nothing
 ```
@@ -335,9 +372,15 @@ sha256sum /tmp/build1.apk /tmp/build2.apk
 # Hashes should be identical
 ```
 
+`scripts/test_fdroid_build.sh` runs these checks and more (no Google classes, metadata, fastlane files, reproducibility).
+
 ## Submission Process
 
 The first submission is done. The inclusion MR (`!33362`) merged into `fdroid/fdroiddata` on 2026-06-18. Do not open new MRs for normal releases. See "Maintenance and Updates" below for the release process.
+
+To change other metadata fields, open an MR from the fork `mpilasy/fdroiddata`. MR !53903 (branch `maripanatokana-website`) changes `License` to `GPL-3.0-or-later`, adds `WebSite` and updates the `TetheredNet` text. It is open and waits for review. Keep such an MR to the changed fields only. If it also changes build entries, its `checkupdates` job fails after each new tag.
+
+The license changed from MIT to GPL-3.0-or-later in 1.5.25. Versions up to and including 1.5.24 were released under MIT.
 
 ## Testing Locally
 
@@ -368,7 +411,7 @@ adb install app/build/outputs/apk/fdroid/release/*.apk
 - [ ] 10-day forecast displays all days
 - [ ] Unit toggle works (primary/secondary swap)
 - [ ] Language cycling works (8 languages)
-- [ ] Font cycling works (22 pairings)
+- [ ] Font cycling works (22 font choices)
 - [ ] Pull-to-refresh updates weather
 - [ ] Widgets appear on home screen
 - [ ] Widgets update automatically
@@ -379,7 +422,7 @@ adb install app/build/outputs/apk/fdroid/release/*.apk
 - [ ] Settings screen opens and persists choices across app restart
 - [ ] Nominatim geocoding works (F-Droid flavor default)
 - [ ] NWS alerts appear when in the US
-- [ ] Alert toggles disable/enable individual sources
+- [ ] In Advanced Mode, alert toggles disable/enable individual sources
 - [ ] Pirate Weather key test rejects invalid keys without saving
 
 ### No Google Play Services Verification
@@ -393,13 +436,25 @@ adb shell pm list packages | grep gms
 
 ### For Future Versions
 
-Use the automated release script:
+Releases are usually made by hand:
+
+1. Audit the dependencies (`gradle/libs.versions.toml`, and `npm outdated` and `npm audit` in `web/`), and apply small updates.
+2. Bump the version in `app/build.gradle.kts` (`versionCode` and `versionName`), `web/package.json`, `web/package-lock.json` (2 entries) and `web/src/lib/components/Footer.svelte`.
+3. Write `fastlane/metadata/android/{locale}/changelogs/{versionCode}.txt` in all 8 locales (ar, en-US, es, fr, hi, mg, ne, zh-CN). Keep each file under 500 characters.
+4. Add an entry at the top of `CHANGELOG.md`.
+5. Run `python3 scripts/check_version_sync.py`.
+6. Commit as `Bump to vX.Y.Z`, push `main`, then create and push the tag `vX.Y.Z`.
+
+Do not edit `metadata/orinasa.njarasoa.maripanatokana.yml` by hand. The release workflow updates it.
+
+`scripts/release_fdroid.sh` can do steps 2, 5 and 6:
 ```bash
 ./scripts/release_fdroid.sh [VERSION_NAME] [VERSION_CODE]
-# Example: ./scripts/release_fdroid.sh 1.2.25 68
+# Example: ./scripts/release_fdroid.sh 1.5.29 109
+# Without arguments, it adds 1 to the patch number and to the version code.
 ```
 
-Before you run the script, create `fastlane/metadata/android/{locale}/changelogs/{versionCode}.txt` in all 8 locales (ar, en-US, es, fr, hi, mg, ne, zh-CN). Keep each file under 500 characters. The script stops if one file is missing.
+Write the changelogs and the `CHANGELOG.md` entry first. The script stops if a changelog file is missing. It does not check `CHANGELOG.md`.
 
 The script performs these steps:
 1. Updates the version in `app/build.gradle.kts`, `web/package.json` and `web/src/lib/components/Footer.svelte`.
@@ -412,28 +467,45 @@ The script performs these steps:
 8. Commits the metadata with `[skip ci]`.
 9. Pushes `main` and the tag.
 
-The tag push starts `.github/workflows/fdroid-build.yml`. The build takes about 5 minutes. The workflow:
+The tag push starts `.github/workflows/fdroid-build.yml`. The build takes about 5 to 10 minutes. The workflow:
 1. Builds the F-Droid and standard flavors (`assembleFdroidRelease assembleStandardRelease`).
 2. Creates a GitHub release with two APKs: `maripanaTokana-vX.Y.Z.apk` (F-Droid flavor) and `maripanaTokana-standard-vX.Y.Z.apk` (standard flavor).
-3. Runs `scripts/update_metadata.py` again, validates the `Binaries: ` line, and pushes a `[skip ci]` metadata commit to `main`.
+3. Runs `scripts/update_metadata.py` again, validates the `Binaries: ` line, and pushes an `Update F-Droid metadata for vX.Y.Z [skip ci]` commit to `main` if the file changed. Pull this commit before the next change.
+
+Each push to `main` also starts `ci.yml` (i18n parity, Android unit tests and lint, web check, tests and build) and `version-sync-check.yml`.
 
 F-Droid verifies its own build against the F-Droid APK through the `Binaries:` field. It does not use the standard APK.
 
-Do not push to the old fork branch (`add-maripanatokana`). It is dead. F-Droid's bot finds new tags (`UpdateCheckMode: Tags`, `AutoUpdateMode: Version`) and opens its own `bot: Update maripànaTokana to {versionCode}` MR against `fdroid/fdroiddata`. The bot runs about once a day. It adds only the newest tag it finds, so F-Droid skips some versions if you push more than one tag between runs. Check the status with:
+Do not push to the old fork branch (`add-maripanatokana`). It is dead. F-Droid's bot finds new tags (`UpdateCheckMode: Tags`, `AutoUpdateMode: Version`), and opens and merges its own `bot: Update maripànaTokana to {versionCode}` MR against `fdroid/fdroiddata`. The bot runs once a day, at about 05:00 UTC. It adds only the newest tag it finds, so F-Droid skips some versions if you push more than one tag between runs. It also removes older build entries, so a version that was added but not yet built can be dropped (1.5.24 was replaced by 1.5.28). Check the status with:
 ```
-curl -s "https://gitlab.com/api/v4/projects/fdroid%2Ffdroiddata/merge_requests?search=maripanatokana&per_page=5&order_by=updated_at"
+curl -s "https://gitlab.com/api/v4/projects/fdroid%2Ffdroiddata/merge_requests?search=Tokana&in=title&per_page=5&order_by=updated_at"
 ```
+
+### How Long a Release Takes
+
+After the bot merges a version, F-Droid builds it in its next build cycle, then signs and publishes the cycle. A cycle takes some days, and a new one starts only after the last one ends. Example, 1.5.22 (October 2026):
+
+| Step | Time after the tag |
+|---|---|
+| GitHub release | 8 minutes |
+| Bot MR merged | 7 hours |
+| Build cycle starts | 22 hours |
+| Build cycle ends (51 hours) | 73 hours |
+| Live on F-Droid | 87 hours |
+
+A version that misses a cycle waits for the next one, so it can take a week. Obtainium users get each release from GitHub at once. F-Droid's build status is at `https://f-droid.org/repo/status/running.json`.
 
 ### Screenshots
 
-The store has exactly 4 screenshots per language (`1.png` to `4.png`, 32 in total). Save them to `fastlane/metadata/android/{locale}/images/phoneScreenshots/`. Screenshots do not start a workflow. They reach F-Droid with the next release tag. For the capture method, see [SCREENSHOTS_README.md](./SCREENSHOTS_README.md).
+The store has exactly 4 screenshots per language (`1.png` to `4.png`, 32 in total). Save them to `fastlane/metadata/android/{locale}/images/phoneScreenshots/`. A push of screenshots does not start a release. They reach F-Droid with the next release tag. For the capture method, see [SCREENSHOTS_README.md](./SCREENSHOTS_README.md).
 
 ### Localization Updates
 
 If i18n translations are updated:
 1. Update JSON files in `shared/i18n/locales/`
 2. Run: `node shared/i18n/generate-android-strings.js`
-3. The build process will automatically regenerate Android strings
+3. Run: `node scripts/check_i18n_parity.js`
+4. Commit the JSON files and the generated `app/src/main/res/values*/strings.xml` files. Gradle does not run the generator, and F-Droid builds from the committed `strings.xml` files.
 
 ## References
 

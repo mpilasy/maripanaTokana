@@ -7,9 +7,11 @@ The store has exactly 4 screenshots per language. There are 8 languages, so 32 f
 - Location: `fastlane/metadata/android/{locale}/images/phoneScreenshots/1.png` to `4.png`
 - Locales: ar, en-US, es, fr, hi, mg, ne, zh-CN
 - Format: PNG, 1080x2424, taken on the Pixel emulator
-- Size: about 500-600 KB each. Compress each file with a 256-colour quantize.
+- Size: about 470-620 KB each. Compress each file with a 256-colour quantize.
 
-The screenshots reach F-Droid with the next release tag. They do not start a workflow. See [FDROID.md](./FDROID.md) for the release process.
+The screenshots reach F-Droid with the next release tag. A push of screenshots does not start a release.
+
+The only other store image is `fastlane/metadata/android/en-US/images/icon.png` (512x512). See [FDROID.md](./FDROID.md) for the release process.
 
 ## The 4 Screens
 
@@ -29,13 +31,13 @@ Take all screenshots at Ambila Lemaitso, Madagascar, with the F-Droid debug APK.
    ./gradlew assembleFdroidDebug
    adb install app/build/outputs/apk/fdroid/debug/*.apk
    ```
-   On a phone with more than one user, install for the current user only.
+   On a phone with more than one user, install for the current user only (`adb install --user 0`).
 
 2. Set a mock GPS location (-18.8430, 49.1535). First allow the shell to mock locations:
    ```bash
    adb shell appops set com.android.shell android:mock_location allow
    ```
-   Then, for each of `gps`, `network` and `fused`, run `adb shell cmd location providers add-test-provider <provider>` and `adb shell cmd location providers set-test-provider-enabled <provider> true`. Then run `adb shell cmd location providers set-test-provider-location <provider> --location -18.8430,49.1535`.
+   `scripts/set_default_mock_location.sh` is not for this step: it puts the emulator at Antananarivo. Then, for each of `gps`, `network` and `fused`, run `adb shell cmd location providers add-test-provider <provider>` and `adb shell cmd location providers set-test-provider-enabled <provider> true`. Then run `adb shell cmd location providers set-test-provider-location <provider> --location -18.8430,49.1535`.
 
 3. Set the emulator time zone to `Indian/Antananarivo`. Then the app shows no second time. First write down the current time zone (`adb shell getprop persist.sys.timezone`):
    ```bash
@@ -81,4 +83,4 @@ Take all screenshots at Ambila Lemaitso, Madagascar, with the F-Droid debug APK.
 
 ## Old Script
 
-`scripts/capture_screenshots.sh` is out of date. It takes 5 screenshots and changes the system language. Do not use it as is.
+`scripts/capture_screenshots.sh` is out of date. It takes 5 screenshots, changes the system language, and writes to `en_US` and `zh_CN` folders instead of `en-US` and `zh-CN`. Do not use it as is.

@@ -1,6 +1,21 @@
 # F-Droid Flavor Testing Guide
 
-This document provides comprehensive testing procedures for the maripànaTokana F-Droid flavor.
+This document provides comprehensive testing procedures for the maripànaTokana F-Droid flavor. Most steps also apply to the standard flavor.
+
+## Automated Tests
+
+```bash
+./gradlew testFdroidDebugUnitTest testStandardDebugUnitTest   # JVM unit tests
+./gradlew lintFdroidDebug                                     # Android lint
+```
+
+The unit tests are in `app/src/test/java/orinasa/njarasoa/maripanatokana/` (JUnit 4 and MockK). They cover the domain models (temperature, wind, UV, air quality, precipitation outlook, activities), the location parsers (coordinates, Plus Codes, shared links, place names, scripts), the geocoders, the Open-Meteo mapper, the weather cache, the alert-source failures, the country resolver, the widget formats and `WeatherViewModel`. There are no instrumented tests (`app/src/androidTest` is empty).
+
+CI (`.github/workflows/ci.yml`) runs the i18n parity check, these unit tests, lint (allowed to fail) and the web checks on each push to `main` and on each pull request.
+
+Two scripts test on a device or emulator:
+- `scripts/test_fdroid_build.sh`: builds the F-Droid release, checks that it has no Google classes, checks the metadata and fastlane files, checks that two builds are identical, and tests on a device.
+- `scripts/test_permission_flow.sh`: 11 permission, location and weather scenarios. Start the emulator with `emulator -avd <name> -wipe-data` first. Set `TEST_DEV` to choose the device. It uses the emulator console to set the location.
 
 ## Prerequisites
 
@@ -17,7 +32,7 @@ adb install app/build/outputs/apk/fdroid/debug/app-fdroid-debug.apk
 
 ### Emulator
 ```bash
-# List running emulators
+# List the emulators you have (adb devices lists the running ones)
 emulator -list-avds
 
 # Start emulator
@@ -26,6 +41,14 @@ emulator @<emulator_name>
 # Install APK
 adb install app/build/outputs/apk/fdroid/debug/app-fdroid-debug.apk
 ```
+
+On a phone with more than one user, install for the current user only: `adb install --user 0 ...`.
+
+### Mock Location
+
+To test a fixed place on an emulator:
+- `scripts/set_default_mock_location.sh` puts all running emulators at Antananarivo (`emu geo fix`).
+- For another place, or for the `network` and `fused` providers too, use the test-provider commands in [SCREENSHOTS_README.md](SCREENSHOTS_README.md#method) (step 2), and remove the test providers when you finish (step 9).
 
 ## Pre-Installation Verification
 
@@ -49,7 +72,7 @@ find /tmp/fdroid-test -name "*.dex" -exec strings {} \; | grep -i "PlayServices"
 ### Check APK Size
 ```bash
 ls -lh app/build/outputs/apk/fdroid/debug/app-fdroid-debug.apk
-# Expected: ~15-16MB
+# Expected: about 22 MB (debug). The release APK is about 9 MB.
 ```
 
 ## Functional Testing Checklist
@@ -111,10 +134,25 @@ ls -lh app/build/outputs/apk/fdroid/debug/app-fdroid-debug.apk
 ### UI & Navigation
 
 - [ ] **Location & Saved Places**
-  - [ ] Location header shows city name and subtext
-  - [ ] Heart icon (♥) toggles saving current location to favorites
-  - [ ] Search icon opens SavedLocationsDialog (search, list, reorder, delete)
+  - [ ] Location header shows city name and subtext (region and country)
+  - [ ] Search icon opens the search. You can search by city, postal code, coordinates (decimal or DMS), Plus Code or map link
+  - [ ] A picked result shows as a preview for 12 hours. It is not saved
+  - [ ] The empty heart shows only for a preview. Tapping it saves the place
+  - [ ] Tapping the full heart removes a saved place
+  - [ ] Holding the place name opens the rename dialog (Save, Cancel, Reset)
+  - [ ] The pin icon (shown for a preview or a saved place) goes back to the current location
   - [ ] Swipe left/right or tap arrows to cycle between Current Location and saved places
+  - [ ] Holding an arrow opens the list of places
+  - [ ] The grid icon opens the location details: the place, DMS coordinates and Plus Code. Tapping a line opens a map; holding a line copies it
+  - [ ] The Latin-letters icon shows for place names in another script, and switches the name
+  - [ ] For a place in another time zone, a chip shows its local time
+
+- [ ] **Shared Places**
+  - [ ] Sharing a `geo:` link, a map link (Google, OpenStreetMap, Apple) or coordinates as text to the app opens that place as a preview
+
+- [ ] **Alert Banner**
+  - [ ] The banner shows when there are alerts, and expands on tap
+  - [ ] In Advanced Mode, the app lists the alert sources that failed
 
 - [ ] **Free-Scroll Layout**
   - [ ] All cards sit in one column that scrolls up and down
@@ -218,7 +256,7 @@ Test each of the 8 languages:
 **Language Cycling Test:**
 - [ ] Flag icon visible at the right end of the footer
 - [ ] Tapping the flag cycles through all 8 languages
-- [ ] Cycles in correct order
+- [ ] Cycles in this order: Malagasy, Arabic, English, Spanish, French, Hindi, Nepali, Chinese
 - [ ] Native digits render for ar/hi/ne; standard digits render for the other languages
 
 ### Font Support
@@ -227,7 +265,7 @@ Test each of the 22 font pairings:
 
 - [ ] **Font Icon Visible**
   - [ ] Font icon at the left end of the footer is tappable
-  - [ ] Font name displays next to the icon
+  - [ ] The first font name of the pair displays next to the icon
 
 - [ ] **Font Cycling**
   - [ ] Tapping cycles through all 22 font pairings
@@ -253,6 +291,12 @@ See `app/src/main/java/orinasa/njarasoa/maripanatokana/ui/theme/AppFonts.kt` for
   - [ ] Loading indicator shown during refresh
   - [ ] No UI freezing during refresh
 
+- [ ] **Tap to Refresh**
+  - [ ] Tapping the update time under the place name refreshes the weather
+
+- [ ] **Offline**
+  - [ ] Without a connection, the app shows the last forecast for the place and a "refresh failed" line
+
 ### Location Updates
 
 - [ ] **Location Caching**
@@ -262,7 +306,8 @@ See `app/src/main/java/orinasa/njarasoa/maripanatokana/ui/theme/AppFonts.kt` for
 
 - [ ] **Location Permission Handling**
   - [ ] App requests permission on first launch
-  - [ ] Permission denied → shows error message
+  - [ ] Permission denied → shows an error screen in the app language and, when different, the system language, with "Choose a place" and "Open Settings" buttons
+  - [ ] Without location access, a picked place is saved directly
   - [ ] Permission granted → fetches location
   - [ ] Changing permission in Settings → app adapts
 
@@ -290,11 +335,16 @@ Test both widgets (if configured):
   - [ ] Gear icon visible top-right, always (not gated behind Advanced Mode)
   - [ ] Tapping gear opens Settings screen full-screen
 
+- [ ] **Advanced Mode Off**
+  - [ ] Settings shows the Advanced mode switch, its description and the About row only
+
+Turn on Advanced Mode for the next sections.
+
 - [ ] **Weather Source**
   - [ ] Open-Meteo selected by default; weather loads without API key
   - [ ] Switching to Pirate Weather shows API key input field
   - [ ] "Test" button with a valid key shows success; weather loads from Pirate Weather
-  - [ ] "Test" button with an invalid key shows error; source not saved
+  - [ ] "Test" button with an invalid key shows error; the key is not saved
   - [ ] Source selection persists after closing and reopening Settings
 
 - [ ] **Alert Toggles**
@@ -304,27 +354,21 @@ Test both widgets (if configured):
   - [ ] Toggles persist across app restarts
 
 - [ ] **Geocoding Source**
-  - [ ] System Geocoder selected by default on standard build
-  - [ ] Nominatim option available and works (Advanced Mode location search returns results)
+  - [ ] Nominatim selected by default on the F-Droid build; System Geocoder on the standard build
+  - [ ] Both options work (search returns results)
   - [ ] Geocoding source persists after closing Settings
 
 ### Advanced Mode
 
 - [ ] **Activation**
-  - [ ] Toggling "Advanced mode" on in Settings activates it (no gesture)
-  - [ ] Edit (pencil) icon appears next to the location name
-  - [ ] Tapping the edit icon opens the location override dialog
+  - [ ] Toggling "Advanced mode" on in Settings shows the Weather source, Alerts and Location sections
+  - [ ] It stays on after an app restart, until you turn it off
 
-- [ ] **Location Override**
-  - [ ] Searching for a city updates location instantly
-  - [ ] Entering `lat,lon` updates location instantly
-  - [ ] Coordinates display in DMS format on two lines when toggled
-  - [ ] "My Location" icon in search field resets to GPS
+- [ ] **Deactivation**
+  - [ ] Toggling "Advanced mode" off hides the sections, clears a place preview and goes back to the current location
+  - [ ] Clearing app data resets it
 
-- [ ] **Session & Deactivation**
-  - [ ] Toggling "Advanced mode" off in Settings disables it and clears the override immediately
-  - [ ] A location override expires after 12 hours
-  - [ ] Clearing app cache or data resets it
+Search and place previews do not need Advanced Mode. A preview expires after 12 hours.
 
 ### Performance & Stability
 
@@ -352,11 +396,12 @@ Test both widgets (if configured):
 
 ### Share Functionality
 
-- [ ] **Share Hero Card**
-  - [ ] Share button visible on hero card
+- [ ] **Share a Card**
+  - [ ] Share button visible on each card
   - [ ] Tapping opens share menu
   - [ ] Shares as PNG image
-  - [ ] Image contains card content
+  - [ ] Image contains the place, the card, and a footer with the app name, version and web address
+  - [ ] Image has the date and time in its EXIF data, and no location
   - [ ] Can share via WhatsApp, email, etc.
 
 ### Accessibility
@@ -411,7 +456,7 @@ Recommend testing on:
 adb logcat -c
 
 # Follow app logs
-adb logcat | grep "maripanaTokana\|LocationProvider\|WeatherScreen"
+adb logcat | grep "NativeLocation\|PlayLocation\|WeatherRepo\|OpenMeteo\|WeatherCache\|CountryResolver"
 
 # Save to file
 adb logcat > /tmp/app_logs.txt &
@@ -419,11 +464,9 @@ adb logcat > /tmp/app_logs.txt &
 
 ### Check for Errors
 
-Watch logcat for:
-- `PlayServicesLocationProvider` - Should NOT appear in F-Droid
-- `FusedLocationProviderClient` - Should NOT appear in F-Droid
-- `NativeLocationProvider` - Should appear
-- `LocationManager` - Should appear
+Watch logcat for these tags (the app logs only in debug builds):
+- `PlayLocation` - Should NOT appear in F-Droid
+- `NativeLocation` - Should appear in F-Droid
 - Exception stack traces - Should be none during normal use
 
 ## Performance Metrics
@@ -513,9 +556,10 @@ After testing, fill out this report:
 
 ## Continuous Integration
 
-GitHub Actions automatically builds F-Droid flavor on:
-- Push to version tags (v*)
-- Manual workflow dispatch
+GitHub Actions has three workflows:
+- `fdroid-build.yml`: on a version tag (`v*`), builds the F-Droid and standard release APKs and makes the GitHub release
+- `ci.yml`: on each push to `main` and each pull request, runs the i18n parity check, the unit tests, lint and the web checks
+- `version-sync-check.yml`: checks that the Android and web versions match
 
 Check workflow status: https://github.com/mpilasy/maripanaTokana/actions
 
@@ -547,6 +591,6 @@ Check workflow status: https://github.com/mpilasy/maripanaTokana/actions
 1. Verify all tests pass
 2. Capture screenshots for all 8 languages
 3. Document any found issues
-4. Bump `versionCode`/`versionName`, tag, and push — F-Droid's bot picks up new tags automatically
+4. Release as described in [FDROID.md](FDROID.md#for-future-versions). F-Droid's bot picks up new tags automatically
 
 See [FDROID.md](FDROID.md) for the release/publishing process.

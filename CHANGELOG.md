@@ -1,14 +1,21 @@
 # Changelog
 
 All notable changes to maripànaTokana are documented here, based on the curated
-release notes in `fastlane/metadata/android/en-US/changelogs/`. The Android app
-and Web PWA share one version number as of 1.2.1; before that, only Android was
-versioned. Not every point release has recorded notes (some were build/CI-only
-retriggers with no user-facing change) — those are omitted rather than guessed at.
+release notes in `fastlane/metadata/android/en-US/changelogs/` and the git history.
+The Android app and the web app share one version number as of 1.2.1; before that,
+only Android was versioned. Releases with no change that users can see (build and
+CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
+`v1.0.18-*` tags) are not listed. There is no 1.4.2 tag: that version was withdrawn.
+
+## [Unreleased]
+- Hourly temperature chart: the high's label goes under the line when it would cover the 00:00 or 12:00 label (Android and web).
+- Web: on iPhone and iPad, an Install link in the footer shows how to add the app to the Home Screen, and Help has the same steps. The Home Screen name and a 180x180 icon are set.
+- Docs: README, web README, design, testing, F-Droid and screenshot guides checked against the code and corrected.
 
 ## [1.5.28] - 2026-10-23
 - Malagasy: the widget low and high use "iva" and "avo"; the Help text puts the language flag at the bottom right ("ankavanan'ny"); store description corrected by the author (Android and web).
 - Store descriptions rewritten for the current app in all 8 languages; docs (design, testing, F-Droid, screenshots, web README) updated to the current app.
+- Malagasy short and full descriptions: "mpanjanaka" and "toetrandro" used.
 
 ## [1.5.27] - 2026-10-23
 - MeteoAlarm alerts: area names match only as whole words, so a short name no longer matches inside a longer one ("Ain" inside "Maine-et-Loire") (Android and web). Taken from the old `jules/regional-alerts` branch, with a word match that also works for Greek and Cyrillic names.
@@ -82,6 +89,7 @@ retriggers with no user-facing change) — those are omitted rather than guessed
 - Hourly and 10-day charts use the same chart type per tab: daily wind, UV and air quality switched from bars to zero-based lines; precipitation stays bars on both (Android and web).
 - 10-day temperature chart labels the warmest high and coldest low in both units, and is as tall as the hourly chart (Android and web).
 - Precipitation charts show "No precip" when every value is zero (Android and web).
+- F-Droid metadata: the WebSite field and the list of every server the app contacts.
 
 ## [1.5.10] - 2026-10-19
 - The Minutely Nowcast block only appears when the next two hours hold precipitation; a dry nowcast repeated the main card's rain line (Android and web).
@@ -195,6 +203,20 @@ retriggers with no user-facing change) — those are omitted rather than guessed
 - Web: self-hosted fonts (no Google Fonts), security headers, cached alert proxies, offline app shell.
 - Stability: fixes for fetch races, cancellation handling, malformed weather data and alert desync.
 
+## [1.2.24] - 2026-08-24
+- Places shared to the app as map links open directly.
+- Smoother switching between places.
+- Peak and trough labels on the temperature, air-quality and UV charts.
+
+## [1.2.23] - 2026-08-24
+- Nowcast chart: the maximum label sits below the curve and the minimum label above the baseline.
+
+## [1.2.22] - 2026-08-24
+- Web: the nowcast chart has the same smooth curve and 30-minute axis as Android.
+
+## [1.2.21] - 2026-08-24
+- Android: the nowcast chart is a smooth curve with a 30-minute time axis.
+
 ## [1.2.20] - 2026-08-23
 - Refined Malagasy nowcast headline phrasing for 2-hour clear forecast.
 
@@ -295,21 +317,77 @@ retriggers with no user-facing change) — those are omitted rather than guessed
 - Fix JMA weather alerts: warning type now shown in title, area name shown as description.
 
 ## [1.1.0] - 2026-06-26
+- Version number change only. The features below came in 1.0.40.
+
+## [1.0.40] - 2026-06-26
 - Pluggable weather sources (Open-Meteo default, Pirate Weather optional).
 - Eight weather alert sources (NWS, GDACS, MeteoAlarm, JMA, ECCC, BOM, NHC, WMO SWIC), each individually toggleable in Settings.
 - Settings screen now includes geocoding and source configuration.
+- Web: Node.js server (adapter-node), with server routes for the alert sources that the browser cannot call.
+
+## [1.0.39] - 2026-05-28
+- Loading screen with text that cycles through the languages, and a seconds counter.
+- Fixes to the developer location override.
+
+## [1.0.38] - 2026-05-28
+- Location works on phones without Google services (passive provider).
+- The place name follows the app language.
+- Date format fix.
+- F-Droid: the app is marked as needing network services (TetheredNet).
+
+## [1.0.37] - 2026-05-20
+- The hourly chart fits the screen width, with a band for the part in view and 00:00 and 12:00 labels.
+
+## [1.0.36] - 2026-05-20
+- Faster loading and drawing on Android and web.
 
 ## [1.0.18] - 2026-05-15
 - Technical release to enable F-Droid Reproducible Builds.
 
-## [1.0.11] - 2026-05-06
+## [1.0.17] - 2026-05-08
+- Fixed missing data in release builds (R8 rules for the API data classes).
+- Location callbacks moved off the main thread.
+
+## [1.0.16] - 2026-05-08
+- Errors show in the app language and the phone language.
+- The app detects when location is turned off.
+- Fixed a refresh race. The version shows in the footer.
+
+## [1.0.15] - 2026-05-08
+- Better handling of a denied permission, of approximate-only location and of a removed permission.
+
+## [1.0.14] - 2026-05-08
+- Fixed a hang when the phone has no cached location.
+
+## [1.0.13] - 2026-05-07
+- F-Droid flavor: more fixes to the permission request.
+
+## [1.0.12] - 2026-05-06
+- F-Droid flavor: fixes to the permission request.
+
+## [1.0.11] - 2026-04-22
 - Fixed startup crash caused by R8 stripping WorkManager database classes.
 
-## [1.0.6] - 2026-03-16
+## [1.0.10] - 2026-03-25
+- 10-day temperature chart, with dots and grid lines on the charts.
+- Build fixes for F-Droid (JDK 21 toolchain, no foojay, no JDK downloads).
+
+## [1.0.7] - 2026-03-16
+- Developer Mode: set the location by hand.
+- Tap the GPS coordinates to open a map.
+- The last update time moved to the main card, with a manual refresh.
+- Better alerts and widgets.
+
+## [1.0.6] - 2026-03-07
 - Fixed crash in forecast lists caused by duplicate keys.
 - Gradle upgrade.
 
-## [1.0.4] - 2026-03-04
+## [1.0.5] - 2026-03-04
+- Fixed a race and a leak in the F-Droid location provider.
+- Shared images are made off the main thread.
+- Better accessibility and touch targets.
+
+## [1.0.4] - 2026-03-02
 - Moved language and font selectors to the top for better accessibility.
 - Fixed Docker build issues.
 

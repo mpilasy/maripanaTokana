@@ -11,6 +11,17 @@ npm test         # Run the unit tests (vitest)
 The build should complete with zero errors. One non-blocking warning is expected:
 - Vite warns that some chunks are larger than 500 kB after minification.
 
+### Unit Tests
+
+Vitest runs the `src/**/*.test.ts` files in the Node environment. The settings are in `vite.config.ts`; there is no separate Vitest config file. The tests are next to the code they test:
+- `src/lib/api/`: HTTP helper, Open-Meteo client and mapper, night weather, geocoding search, alert sources (`alerts/index`, `alerts/meteoAlarm`)
+- `src/lib/domain/`: temperature, precipitation outlook, air quality, UV, Plus Codes, shared-location parser, region qualifier, script detection
+- `src/lib/stores/`: weather, location, offline snapshot
+- `src/lib/utils/`: dates
+- `src/lib/server/`: the proxy cache
+
+There are no end-to-end tests. CI (`.github/workflows/ci.yml`) runs `npm ci`, `npm run check`, `npm test` and `npm run build` on each push to `main` and each pull request.
+
 ---
 
 ## 1. Build Verification
@@ -54,9 +65,16 @@ npm run dev
 
 - [ ] **Saved Locations & Navigation**
   - [ ] Location header displays city name and region subtext
-  - [ ] Heart icon (♥) saves current location to favorites
-  - [ ] Search icon opens `SavedLocationsDialog` (search, list, reorder, delete)
+  - [ ] Search icon opens the search (`SavedLocationsDialog`). You can search by city, postal code, coordinates (decimal or DMS), Plus Code or map link
+  - [ ] A picked result shows as a preview for 12 hours. It is not saved
+  - [ ] The empty heart (♡) shows only for a preview. Clicking it saves the place
+  - [ ] Clicking the full heart (♥) removes a saved place
+  - [ ] Holding the place name opens the rename dialog (`RenameLocationDialog`)
+  - [ ] The pin icon (shown for a preview or a saved place) goes back to the current location
   - [ ] Swipe or tap arrow buttons to navigate between saved places
+  - [ ] Holding an arrow opens the list of places
+  - [ ] The grid icon opens the location details (`LocationDetails`): the place, DMS coordinates and Plus Code. Clicking a line opens OpenStreetMap; holding a line copies it
+  - [ ] Opening `/?q=-18.8430,49.1535` (or a map link in `q`) opens that place as a preview
 
 - [ ] **Free-Scroll Layout**
   - [ ] All cards sit in one column that scrolls up and down
@@ -71,7 +89,7 @@ npm run dev
   - [ ] Side column shows the rain or snow outlook when rain or snow is expected
   - [ ] US AQI and EU AQI show in the side column only when air quality is not good
   - [ ] 4 hour tiles show the hours +0, +4, +8 and +12
-  - [ ] Share button and copyright watermark
+  - [ ] Share button and the "© Orinasa Njarasoa" line
 
 - [ ] **Nowcast**
   - [ ] "Minutely Nowcast" shows in the Hourly Forecast card only when precipitation is expected in the next 2 hours (Open-Meteo source)
@@ -101,8 +119,20 @@ npm run dev
 
 - [ ] **About Page**
   - [ ] "About" link in the footer opens the About page
-  - [ ] About page shows the app name, version, and data source credits
+  - [ ] About page shows the app name, version, license, Help link, source code link, "On the web" link, data source credits and device information
+  - [ ] "Help" link on the About page opens the Help page
   - [ ] Back button returns to the weather screen
+
+- [ ] **Install Link (iOS only)**
+  - [ ] On iPhone or iPad, in a browser tab, the footer shows "Install" after About
+  - [ ] "Install" opens a panel with two steps (Share, then Add to Home Screen) and a Close button
+  - [ ] Help has an "Install" section with the same steps
+  - [ ] On other systems, and in the app opened from the Home Screen, neither shows
+  - [ ] To test without an iPhone, use an iPhone user agent and touch emulation in DevTools
+
+- [ ] **Settings**
+  - [ ] With Advanced Mode off, Settings shows the Advanced mode switch, its description, the geocoding information and the About row
+  - [ ] With Advanced Mode on, it also shows the weather source (with the Pirate Weather key test) and the alerts: a master switch and the 7 sources (NWS, GDACS, MeteoAlarm, JMA, ECCC, BOM, NHC)
 
 ---
 
@@ -112,7 +142,7 @@ npm run dev
 - [ ] Tap share button on any card (`SectionCard`) → generates branded PNG with header + card content
 - [ ] On mobile: Web Share API sheet opens with the PNG
 - [ ] On desktop: PNG downloads as `maripanatokana-weather.png`
-- [ ] Screenshot includes copyright watermark at bottom
+- [ ] Screenshot has a footer with `maripànaTokana v<version>` and `https://maripana.njarasoa.org`
 
 ---
 
@@ -168,6 +198,7 @@ Tap the flag emoji in the footer to cycle through languages:
 - [ ] Error screen shows Malagasy text (primary) + English text (secondary, faded) if browser is English
 - [ ] Retry button shows both languages
 - [ ] Retry button is prominent (solid white, bold text)
+- [ ] "Choose a place" and "Open settings" buttons show below it
 
 ---
 
@@ -209,7 +240,7 @@ Tap the font icon (Aa) in the footer to cycle through 22 font pairings.
 
 1. Load the app and note the "Updated at HH:MM" time
 2. Switch to another tab/app
-3. Wait >30 minutes (or temporarily change `STALE_MS` in `weather.ts`)
+3. Wait >30 minutes (or temporarily change `STALE_MS` in `src/lib/stores/weather.ts`)
 4. Switch back to the app tab
 5. [ ] Weather data refreshes automatically
 6. [ ] "Updated at" time updates
@@ -237,13 +268,14 @@ App is available at:
 - [ ] Service worker registers (check DevTools → Application → Service Workers)
 - [ ] Manifest is detected (check DevTools → Application → Manifest)
 - [ ] Chrome shows "Install app" option
+- [ ] On iOS, the footer shows the Install link (see section 4)
+- [ ] The page has `apple-mobile-web-app-title` = maripànaTokana and the 180x180 `apple-touch-icon`
 - [ ] Theme color `#0E0B3D` applies to title bar
 - [ ] All standard Svelte app tests pass (see sections 1-12 above)
 
 ### Performance Checks:
 - [ ] Network tab shows gzip compression on JS/CSS/fonts
 - [ ] Versioned assets have long cache headers (`max-age=31536000`)
-- [ ] HTML files have `no-cache` headers (not cached)
 - [ ] First visit: downloads all assets
 - [ ] Repeat visit: browser checks HTML, reuses cached JS/CSS/fonts (minimal requests)
 - [ ] DevTools → Coverage shows <50% unused JS per app (due to build optimization)
@@ -258,7 +290,7 @@ App is available at:
 2. Open DevTools → Application → Service Workers → check "Offline"
 3. Reload the page
 4. [ ] App shell loads from cache (background, layout visible)
-5. [ ] Weather data loads from cache (last fetched data shown)
+5. [ ] Weather data loads from cache (last fetched data shown, with its real age)
 6. Uncheck "Offline"
 7. Pull-to-refresh or reload
 8. [ ] Fresh data loads from network
@@ -288,7 +320,8 @@ Test at these viewport widths (DevTools → Device toolbar):
 ## 16. Error Handling
 
 - [ ] Deny geolocation → error screen with prominent "Retry" button
-- [ ] Block network requests to `api.open-meteo.com` → error screen with message
+- [ ] Block network requests to `api.open-meteo.com` with no saved forecast → error screen with message
+- [ ] Block them after a forecast was saved → the last forecast shows, with a "refresh failed" line
 - [ ] Click "Retry" on error screen → retries the weather fetch
 - [ ] If browser language differs from app language, error shows dual-language text
 
@@ -308,19 +341,16 @@ Test at these viewport widths (DevTools → Device toolbar):
 ## 18. Advanced Mode
 
 - [ ] **Activation**
-  - [ ] Toggling "Advanced mode" on in Settings activates it (no gesture)
-  - [ ] Edit icon appears next to the location name
-  - [ ] Clicking the edit icon opens the location override dialog
-
-- [ ] **Location Override**
-  - [ ] Search for city (e.g., "Paris") → updates weather instantly
-  - [ ] Enter `lat,lon` (e.g., `48.85,2.35`) → updates weather instantly
-  - [ ] Verify two-line location header: City on line 1, Region/Country on line 2
-  - [ ] Tap location → verify DMS coordinates displayed on two lines (smaller font)
-  - [ ] Click "My Location" icon in search field → resets to actual GPS
-
-- [ ] **Session & Deactivation**
-  - [ ] Toggling "Advanced mode" off in Settings disables it and clears the override immediately
+  - [ ] Toggling "Advanced mode" on in Settings shows the weather source and alert sections
+  - [ ] When alert sources fail, the weather screen lists them
   - [ ] Advanced Mode stays on across reloads (check `advanced_mode_enabled` in localStorage)
-  - [ ] A location override expires after 12 hours (check `advanced_override_set_time` in localStorage)
+
+- [ ] **Deactivation**
+  - [ ] Toggling "Advanced mode" off hides the sections, clears a place preview and goes back to the current location
   - [ ] Clearing browser site data resets it
+
+- [ ] **Place Preview (works without Advanced Mode)**
+  - [ ] Search for a city (e.g., "Paris") → updates weather instantly
+  - [ ] Enter `lat,lon` (e.g., `48.85,2.35`) → updates weather instantly
+  - [ ] Two-line location header: City on line 1, Region/Country on line 2
+  - [ ] A preview expires after 12 hours (check `advanced_override_set_time` in localStorage)

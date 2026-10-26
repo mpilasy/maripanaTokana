@@ -1,7 +1,7 @@
 maripànaTokana (Malagasy for "a single thermometer") is a weather app for Android. It shows every value in metric and imperial units side by side, so you never have to convert. It is also available as a web app at maripana.njarasoa.org, with nothing to install.
 
 <b>Weather at a glance:</b>
-• Main card: current condition, temperature to one decimal place, today's low and high, rain or snow when it is coming, air quality when it is not good, and tiles for the next 4 hours
+• Main card: current condition, temperature (°C to one decimal place), today's low and high, rain or snow when it is coming, air quality when it is not good, and 4 tiles for the next 12 hours
 • Free-scroll layout: below the main card, all other cards are always open
 • Hourly and 10-day forecasts with tabs: Conditions, Precipitation, Wind, Pressure, UV and Air quality, each with an overview chart
 • Minutely nowcast when rain or snow is coming
