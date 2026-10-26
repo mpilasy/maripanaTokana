@@ -2,8 +2,8 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
 	import { _, json } from 'svelte-i18n';
-	import type { AirQualityIndex, AqiTier, PollenTier } from '$lib/domain/airQuality';
-	import { POLLEN_TIERS, pollenTierFor } from '$lib/domain/airQuality';
+	import type { AirQualityIndex, AqiTier, PollenTier } from '#lib/domain/airQuality.js';
+	import { POLLEN_TIERS, pollenTierFor } from '#lib/domain/airQuality.js';
 	import AqiTierBadge from './AqiTierBadge.svelte';
 	import PollenTierBadge from './PollenTierBadge.svelte';
 

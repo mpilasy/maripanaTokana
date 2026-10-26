@@ -3,7 +3,7 @@
 
 import { describe, expect, it } from 'vitest';
 import { mapToWeatherData } from './openMeteoMapper';
-import { computeActivityIndices } from '$lib/domain/activityIndices';
+import { computeActivityIndices } from '#lib/domain/activityIndices.js';
 
 const response: any = {
 	utc_offset_seconds: 0,

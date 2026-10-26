@@ -6,13 +6,13 @@
 		alertsEnabled, alertsNwsEnabled, alertsGdacsEnabled,
 		alertsMeteoAlarmEnabled, alertsJmaEnabled, alertsEcccEnabled,
 		alertsBomEnabled, alertsNhcEnabled,
-	} from '$lib/stores/preferences';
-	import { testPirateWeatherKey } from '$lib/api/pirateWeather';
+	} from '#lib/stores/preferences.js';
+	import { testPirateWeatherKey } from '#lib/api/pirateWeather.js';
 	import { _ } from 'svelte-i18n';
 	import SettingsPage from './SettingsPage.svelte';
-	import { HttpError } from '$lib/api/http';
-	import type { WeatherSource } from '$lib/domain/weatherData';
-	import { advancedModeActive, enableAdvancedMode, disableAdvancedMode } from '$lib/stores/advancedMode';
+	import { HttpError } from '#lib/api/http.js';
+	import type { WeatherSource } from '#lib/domain/weatherData.js';
+	import { advancedModeActive, enableAdvancedMode, disableAdvancedMode } from '#lib/stores/advancedMode.js';
 
 	interface Props { onBack: () => void; onOpenAbout: () => void; }
 	let { onBack, onOpenAbout }: Props = $props();

@@ -2,29 +2,29 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { writable, get } from 'svelte/store';
-import type { WeatherData } from '$lib/domain/weatherData';
-import { classifyError, HttpError } from '$lib/api/http';
-import { saveSnapshot, loadSnapshot } from '$lib/stores/weatherSnapshot';
-import { fetchWeather } from '$lib/api/openMeteo';
-import { fetchPirateWeather } from '$lib/api/pirateWeather';
-import { fetchAllAlerts, type AlertSettings } from '$lib/api/externalAlerts';
-import { mapToWeatherData } from '$lib/api/openMeteoMapper';
-import { fetchAirQuality, mapToAirQuality, mapToHourlyAirQuality } from '$lib/api/openMeteoAirQuality';
-import { getLocationInfo, type LocationInfo } from '$lib/api/alerts/shared';
+import type { WeatherData } from '#lib/domain/weatherData.js';
+import { classifyError, HttpError } from '#lib/api/http.js';
+import { saveSnapshot, loadSnapshot } from '#lib/stores/weatherSnapshot.js';
+import { fetchWeather } from '#lib/api/openMeteo.js';
+import { fetchPirateWeather } from '#lib/api/pirateWeather.js';
+import { fetchAllAlerts, type AlertSettings } from '#lib/api/externalAlerts.js';
+import { mapToWeatherData } from '#lib/api/openMeteoMapper.js';
+import { fetchAirQuality, mapToAirQuality, mapToHourlyAirQuality } from '#lib/api/openMeteoAirQuality.js';
+import { getLocationInfo, type LocationInfo } from '#lib/api/alerts/shared.js';
 import {
 	getCachedLocation, cacheLocation, movedSignificantly,
 	getPosition, reverseGeocode, lookupLocation
-} from '$lib/stores/location';
-import { isLatinScript } from '$lib/domain/script';
+} from '#lib/stores/location.js';
+import { isLatinScript } from '#lib/domain/script.js';
 import {
 	localeIndex,
 	weatherSource, weatherApiKey,
 	alertsEnabled, alertsNwsEnabled, alertsGdacsEnabled,
 	alertsMeteoAlarmEnabled, alertsJmaEnabled, alertsEcccEnabled,
 	alertsBomEnabled, alertsNhcEnabled,
-} from '$lib/stores/preferences';
-import { SUPPORTED_LOCALES } from '$lib/i18n/locales';
-import { activeLocationId, savedLocations, locationOverride, checkOverrideExpiry, displayName, setSavedLocationSubtext } from '$lib/stores/savedLocations';
+} from '#lib/stores/preferences.js';
+import { SUPPORTED_LOCALES } from '#lib/i18n/locales.js';
+import { activeLocationId, savedLocations, locationOverride, checkOverrideExpiry, displayName, setSavedLocationSubtext } from '#lib/stores/savedLocations.js';
 
 export type WeatherState =
 	| { kind: 'loading' }

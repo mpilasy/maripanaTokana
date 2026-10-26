@@ -2,10 +2,10 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
 	import WeatherIcon from './WeatherIcon.svelte';
-	import type { WeatherData } from '$lib/domain/weatherData';
-	import { wmoDescriptionKey } from '$lib/api/wmoWeatherCode';
-	import { precipOutlook } from '$lib/domain/precipOutlook';
-	import { formatHourAtLocation, formatHourInDeviceTime, isRemoteTimezone } from '$lib/utils/date';
+	import type { WeatherData } from '#lib/domain/weatherData.js';
+	import { wmoDescriptionKey } from '#lib/api/wmoWeatherCode.js';
+	import { precipOutlook } from '#lib/domain/precipOutlook.js';
+	import { formatHourAtLocation, formatHourInDeviceTime, isRemoteTimezone } from '#lib/utils/date.js';
 	import DualUnitText from './DualUnitText.svelte';
 	import AqiTierBadge from './AqiTierBadge.svelte';
 	import { _, json } from 'svelte-i18n';

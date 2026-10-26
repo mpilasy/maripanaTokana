@@ -1,10 +1,10 @@
 <!-- SPDX-FileCopyrightText: Orinasa Njarasoa -->
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
-	import { SUPPORTED_LOCALES, localizeDigits } from '$lib/i18n/index';
-	import { localeIndex } from '$lib/stores/preferences';
+	import { SUPPORTED_LOCALES, localizeDigits } from '#lib/i18n/index.js';
+	import { localeIndex } from '#lib/stores/preferences.js';
 	import { _ } from 'svelte-i18n';
-	import type { DailyForecast as DailyForecastType } from '$lib/domain/weatherData';
+	import type { DailyForecast as DailyForecastType } from '#lib/domain/weatherData.js';
 
 	interface Props {
 		forecasts: DailyForecastType[];

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { RequestHandler } from './$types';
-import { proxyResponse } from '$lib/server/proxy';
+import { proxyResponse } from '#lib/server/proxy.js';
 
 const NHC_URL = 'https://www.nhc.noaa.gov/CurrentStorms.json';
 

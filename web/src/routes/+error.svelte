@@ -2,12 +2,12 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 </script>
 
 <div class="error-container">
 	<div class="error-content">
-		<h1 class="error-status">{$page.status}</h1>
+		<h1 class="error-status">{page.status}</h1>
 		<h2 class="error-title">{$_('error_title')}</h2>
 		<button class="retry-button" onclick={() => location.reload()}>
 			{$_('error_retry')}

@@ -2,7 +2,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { wmoDescriptionKey } from '$lib/api/wmoWeatherCode';
+	import { wmoDescriptionKey } from '#lib/api/wmoWeatherCode.js';
 
 	/** A weather condition as a Meteocons icon (MIT, Bas Milius), with day and night variants. */
 	let { code, night = false, size = 32 }: { code: number; night?: boolean; size?: number } = $props();

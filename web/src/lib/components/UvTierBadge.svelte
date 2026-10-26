@@ -1,7 +1,7 @@
 <!-- SPDX-FileCopyrightText: Orinasa Njarasoa -->
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
-	import { uvTier } from '$lib/domain/uv';
+	import { uvTier } from '#lib/domain/uv.js';
 
 	interface Props {
 		uvIndex: number;

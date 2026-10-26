@@ -3,7 +3,7 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import SettingsPage from './SettingsPage.svelte';
-	import { canAddToHomeScreen } from '$lib/installHint';
+	import { canAddToHomeScreen } from '#lib/installHint.js';
 
 	interface Props { onBack: () => void; languageFlag: string; onCycleLanguage: () => void; }
 	let { onBack, languageFlag, onCycleLanguage }: Props = $props();

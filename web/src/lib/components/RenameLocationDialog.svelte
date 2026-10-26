@@ -3,7 +3,7 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import { _ } from 'svelte-i18n';
-	import { displayName, renameSavedLocation, type SavedLocation } from '$lib/stores/savedLocations';
+	import { displayName, renameSavedLocation, type SavedLocation } from '#lib/stores/savedLocations.js';
 
 	/** Names a favorite. Saving a blank name, or Reset, goes back to the place name. */
 	let { location, onclose }: { location: SavedLocation; onclose: () => void } = $props();

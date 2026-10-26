@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { writable, get } from 'svelte/store';
-import { doFetchWeather, keepShownWeather, weatherState } from '$lib/stores/weather';
+import { doFetchWeather, keepShownWeather, weatherState } from '#lib/stores/weather.js';
 
 export interface SavedLocation {
 	id: string;

@@ -3,7 +3,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import DualUnitText from './DualUnitText.svelte';
-	import { longPress } from '$lib/actions/longPress';
+	import { longPress } from '#lib/actions/longPress.js';
 
 	interface Props {
 		title?: string;

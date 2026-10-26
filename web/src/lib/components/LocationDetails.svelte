@@ -2,7 +2,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { longPress } from '$lib/actions/longPress';
+	import { longPress } from '#lib/actions/longPress.js';
 
 	interface Props {
 		/** City, region, country; absent when the name is only coordinates. */

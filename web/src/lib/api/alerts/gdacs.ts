@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { GdacsAlertResponse } from '../externalAlertsTypes';
-import type { WeatherAlert, AlertLevel } from '$lib/domain/weatherData';
+import type { WeatherAlert, AlertLevel } from '#lib/domain/weatherData.js';
 import { calculateDistance } from './shared';
 
 const SEARCH_RADIUS_KM = 500;

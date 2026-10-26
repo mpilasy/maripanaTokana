@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import type { WeatherData } from '$lib/domain/weatherData';
-import { Temperature } from '$lib/domain/temperature';
-import { WindSpeed } from '$lib/domain/windSpeed';
-import { Pressure } from '$lib/domain/pressure';
-import { Precipitation } from '$lib/domain/precipitation';
-import { AirQualityIndex } from '$lib/domain/airQuality';
+import type { WeatherData } from '#lib/domain/weatherData.js';
+import { Temperature } from '#lib/domain/temperature.js';
+import { WindSpeed } from '#lib/domain/windSpeed.js';
+import { Pressure } from '#lib/domain/pressure.js';
+import { Precipitation } from '#lib/domain/precipitation.js';
+import { AirQualityIndex } from '#lib/domain/airQuality.js';
 
 const STORAGE_KEY = 'weather_snapshot_v2';
 // v1 tagged instances by constructor.name, which is minified in production builds.

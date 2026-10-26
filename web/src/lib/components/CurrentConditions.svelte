@@ -3,12 +3,12 @@
 <script lang="ts">
 	import WeatherIcon from './WeatherIcon.svelte';
 	import { _, json } from 'svelte-i18n';
-	import type { WeatherData } from '$lib/domain/weatherData';
-	import { getCardinalDirection } from '$lib/domain/windSpeed';
-	import { AQI_TIER_COLORS, aqiDialPosition } from '$lib/domain/airQuality';
-	import { UV_TIER_COLORS, uvColorFor, uvDialPosition, type UvTier } from '$lib/domain/uv';
+	import type { WeatherData } from '#lib/domain/weatherData.js';
+	import { getCardinalDirection } from '#lib/domain/windSpeed.js';
+	import { AQI_TIER_COLORS, aqiDialPosition } from '#lib/domain/airQuality.js';
+	import { UV_TIER_COLORS, uvColorFor, uvDialPosition, type UvTier } from '#lib/domain/uv.js';
 	import DetailCard from './DetailCard.svelte';
-	import { formatHourAtLocation } from '$lib/utils/date';
+	import { formatHourAtLocation } from '#lib/utils/date.js';
 	import Gauge from './Gauge.svelte';
 	import WindCompass from './WindCompass.svelte';
 	import SunArc from './SunArc.svelte';

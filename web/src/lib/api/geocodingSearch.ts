@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { get } from 'svelte/store';
-import { parseLocationText } from '$lib/domain/sharedLocationParser';
-import { matchesRegionQualifier } from '$lib/domain/regionQualifier';
-import { decodePlusCode, findPlusCode, recoverNearest, type PlusCodeMatch } from '$lib/domain/plusCode';
-import { weatherState } from '$lib/stores/weather';
+import { parseLocationText } from '#lib/domain/sharedLocationParser.js';
+import { matchesRegionQualifier } from '#lib/domain/regionQualifier.js';
+import { decodePlusCode, findPlusCode, recoverNearest, type PlusCodeMatch } from '#lib/domain/plusCode.js';
+import { weatherState } from '#lib/stores/weather.js';
 
 export interface SearchResult {
 	id: number;

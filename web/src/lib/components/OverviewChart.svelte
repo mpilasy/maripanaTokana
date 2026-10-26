@@ -1,7 +1,7 @@
 <!-- SPDX-FileCopyrightText: Orinasa Njarasoa -->
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
-	import { monotonePath } from '$lib/utils/monotonePath';
+	import { monotonePath } from '#lib/utils/monotonePath.js';
 	import TierLegend from './TierLegend.svelte';
 
 	/**

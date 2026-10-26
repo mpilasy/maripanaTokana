@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import type { WeatherAlert, AlertLevel } from '$lib/domain/weatherData';
+import type { WeatherAlert, AlertLevel } from '#lib/domain/weatherData.js';
 
 export function isInJapan(lat: number, lon: number): boolean {
 	return lat >= 24.0 && lat <= 46.0 && lon >= 122.0 && lon <= 154.0;

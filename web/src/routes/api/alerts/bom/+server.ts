@@ -3,7 +3,7 @@
 
 import https from 'node:https';
 import type { RequestHandler } from './$types';
-import { proxyResponse } from '$lib/server/proxy';
+import { proxyResponse } from '#lib/server/proxy.js';
 
 const BOM_URL = 'https://api.weather.bom.gov.au/v1/warnings';
 

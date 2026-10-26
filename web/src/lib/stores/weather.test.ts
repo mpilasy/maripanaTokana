@@ -10,22 +10,22 @@ const fetchWeatherMock = vi.hoisted(() => vi.fn());
 const cachedLocation = vi.hoisted(() => ({ value: { lat: 1, lon: 2, name: 'X', lang: 'mg' } as Record<string, unknown> }));
 const reverseGeocodeMock = vi.hoisted(() => vi.fn(async () => ({ name: 'Y' })));
 
-vi.mock('$lib/stores/location', () => ({
+vi.mock('#lib/stores/location.js', () => ({
 	getCachedLocation: () => cachedLocation.value,
 	cacheLocation: vi.fn(),
 	movedSignificantly: () => false,
 	getPosition: () => getPosition(),
 	reverseGeocode: reverseGeocodeMock,
 }));
-vi.mock('$lib/api/openMeteo', () => ({ fetchWeather: fetchWeatherMock }));
-vi.mock('$lib/api/openMeteoMapper', () => ({ mapToWeatherData: () => ({ ...data }) }));
-vi.mock('$lib/api/openMeteoAirQuality', () => ({
+vi.mock('#lib/api/openMeteo.js', () => ({ fetchWeather: fetchWeatherMock }));
+vi.mock('#lib/api/openMeteoMapper.js', () => ({ mapToWeatherData: () => ({ ...data }) }));
+vi.mock('#lib/api/openMeteoAirQuality.js', () => ({
 	fetchAirQuality: vi.fn(async () => null), mapToAirQuality: vi.fn(), mapToHourlyAirQuality: vi.fn(),
 }));
-vi.mock('$lib/api/alerts/shared', () => ({ getLocationInfo: vi.fn(async () => ({ countryCode: 'FR' })) }));
-vi.mock('$lib/api/externalAlerts', () => ({ fetchAllAlerts: vi.fn(async () => ({ alerts: [], failedSources: [] })) }));
-vi.mock('$lib/stores/weatherSnapshot', () => ({ saveSnapshot: vi.fn(), loadSnapshot: () => null }));
-vi.mock('$lib/stores/preferences', async () => {
+vi.mock('#lib/api/alerts/shared', () => ({ getLocationInfo: vi.fn(async () => ({ countryCode: 'FR' })) }));
+vi.mock('#lib/api/externalAlerts.js', () => ({ fetchAllAlerts: vi.fn(async () => ({ alerts: [], failedSources: [] })) }));
+vi.mock('#lib/stores/weatherSnapshot.js', () => ({ saveSnapshot: vi.fn(), loadSnapshot: () => null }));
+vi.mock('#lib/stores/preferences.js', async () => {
 	const { writable } = await import('svelte/store');
 	return {
 		localeIndex: writable(0), weatherSource: writable('OPEN_METEO'), weatherApiKey: writable(''),
@@ -34,7 +34,7 @@ vi.mock('$lib/stores/preferences', async () => {
 		alertsBomEnabled: writable(false), alertsNhcEnabled: writable(false),
 	};
 });
-vi.mock('$lib/stores/savedLocations', async () => {
+vi.mock('#lib/stores/savedLocations.js', async () => {
 	const { writable } = await import('svelte/store');
 	return {
 		activeLocationId: writable(null), savedLocations: writable([]),
@@ -43,7 +43,7 @@ vi.mock('$lib/stores/savedLocations', async () => {
 });
 
 import { doFetchWeather, weatherState, refreshFailed, refreshError } from './weather';
-import { HttpError } from '$lib/api/http';
+import { HttpError } from '#lib/api/http.js';
 
 describe('doFetchWeather GPS failure after cached weather shown', () => {
 	beforeEach(() => {

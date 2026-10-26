@@ -3,12 +3,12 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import { version } from '../../../package.json';
-	import { creditSections } from '$lib/credits';
+	import { creditSections } from '#lib/credits.js';
 	import SettingsPage from './SettingsPage.svelte';
-	import { deviceInfo, type DeviceRow } from '$lib/deviceInfo';
+	import { deviceInfo, type DeviceRow } from '#lib/deviceInfo.js';
 	import { onMount } from 'svelte';
-	import { SUPPORTED_LOCALES } from '$lib/i18n/index';
-	import { localeIndex } from '$lib/stores/preferences';
+	import { SUPPORTED_LOCALES } from '#lib/i18n/index.js';
+	import { localeIndex } from '#lib/stores/preferences.js';
 
 	interface Props { onBack: () => void; onOpenHelp: () => void; languageFlag: string; onCycleLanguage: () => void; }
 	let { onBack, onOpenHelp, languageFlag, onCycleLanguage }: Props = $props();

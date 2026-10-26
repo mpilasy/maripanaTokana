@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { redirect } from '@sveltejs/kit';
-import type { Handle, HandleServerError } from '@sveltejs/kit';
+import type { Handle, HandleServerError } from '@sveltejs/kit/hooks';
 
 export const handle: Handle = async ({ event, resolve }) => {
 	const path = event.url.pathname;
@@ -20,8 +20,11 @@ export const handle: Handle = async ({ event, resolve }) => {
 	return response;
 };
 
-export const handleError: HandleServerError = ({ event, error, status }) => {
-	if (status !== 404) console.error(`Error at ${event.url.pathname}:`, error);
+// SvelteKit 3 sends all errors here. Log and mask only unexpected errors.
+// Errors from error(...) and from SvelteKit (such as 404) keep their status and message.
+export const handleError: HandleServerError = ({ event, error, kind }) => {
+	if (kind !== 'unknown') return;
+	console.error(`Error at ${event.url.pathname}:`, error);
 	return {
 		message: 'Internal error'
 	};

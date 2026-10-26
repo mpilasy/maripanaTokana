@@ -53,7 +53,7 @@ web/
 │   ├── app.html                          # HTML shell
 │   ├── app.d.ts                          # Global TypeScript declarations
 │   ├── hooks.server.ts                   # /svelte → / redirect, security headers
-│   ├── service-worker.ts                 # PWA offline caching
+│   ├── service-worker/index.ts           # PWA offline caching
 │   ├── routes/                           # URL-mapped pages
 │   │   ├── +layout.svelte                # Root layout: fonts, RTL, i18n init
 │   │   ├── +page.svelte                  # Home page: mounts WeatherScreen
@@ -101,7 +101,7 @@ web/
 │       ├── installHint.ts                # When to show the iOS Install link
 │       └── share.ts                      # html2canvas capture & sharing
 ├── static/                               # Static assets
-├── svelte.config.js / vite.config.ts
+├── vite.config.ts
 ├── Dockerfile / docker-compose.yml
 ```
 
@@ -110,7 +110,7 @@ web/
 ## 3. Build Pipeline
 
 - `npm run dev`: Vite dev server at `localhost:5173`.
-- `npm run build`: Compiles Svelte 5 components, bundles JS into a single chunk (`manualChunks: () => 'app'`), emits Node.js server to `build/`.
+- `npm run build`: Compiles Svelte 5 components, bundles JS into a single chunk (`output.bundleStrategy: 'single'`), emits Node.js server to `build/`.
 - `npm run check`: Type-checks with `svelte-check`.
 - `npm test`: Runs the Vitest unit tests (`src/**/*.test.ts`).
 
@@ -225,7 +225,7 @@ Supports 8 languages (mg, ar, en, es, fr, hi, ne, zh). `svelte-i18n` handles rea
 
 ## 11. Service Worker & Offline
 
-`src/service-worker.ts` uses two caches. `app-{version}` holds page navigations and app assets (NetworkFirst, offline fallback to cache). `api-cache` holds responses from `api.open-meteo.com`, `air-quality-api.open-meteo.com`, and `nominatim.openstreetmap.org` (NetworkFirst, stamped with `X-SW-Cached-At`). The worker does not precache. On activate, it deletes other caches.
+`src/service-worker/index.ts` uses two caches. `app-{version}` holds page navigations and app assets (NetworkFirst, offline fallback to cache). `api-cache` holds responses from `api.open-meteo.com`, `air-quality-api.open-meteo.com`, and `nominatim.openstreetmap.org` (NetworkFirst, stamped with `X-SW-Cached-At`). The worker does not precache. On activate, it deletes other caches.
 
 ---
 
@@ -267,6 +267,6 @@ Containerized via Docker (`node:24-alpine` multi-stage build running `node build
 ## 17. Key Patterns & Decisions
 
 - **Shared i18n Locales**: Symlinked from `shared/i18n/locales/` for 100% parity with Android. `flattenForWeb` adds the `web_only` keys and drops the `android_only` keys. The fallback language is `mg`; on the first run, the browser language is used.
-- **Security**: a report-only Content Security Policy with reports to `/api/csp-report` (`svelte.config.js`), and security headers in `hooks.server.ts`.
-- **Single-Chunk Bundle**: All JS compiled into one chunk (`manualChunks: () => 'app'`).
+- **Security**: a report-only Content Security Policy with reports to `/api/csp-report` (`vite.config.ts`), and security headers in `hooks.server.ts`.
+- **Single-Chunk Bundle**: All JS compiled into one chunk (`output.bundleStrategy: 'single'`).
 - **No Derived Alerts**: Only official meteorological agency alerts are displayed.

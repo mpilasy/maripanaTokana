@@ -3,11 +3,11 @@
 
 import { beforeEach, describe, expect, it } from 'vitest';
 import { saveSnapshot, loadSnapshot } from './weatherSnapshot';
-import { Temperature } from '$lib/domain/temperature';
-import { WindSpeed } from '$lib/domain/windSpeed';
-import { Pressure } from '$lib/domain/pressure';
-import { Precipitation } from '$lib/domain/precipitation';
-import type { WeatherData } from '$lib/domain/weatherData';
+import { Temperature } from '#lib/domain/temperature.js';
+import { WindSpeed } from '#lib/domain/windSpeed.js';
+import { Pressure } from '#lib/domain/pressure.js';
+import { Precipitation } from '#lib/domain/precipitation.js';
+import type { WeatherData } from '#lib/domain/weatherData.js';
 
 const store = new Map<string, string>();
 (globalThis as any).localStorage = {

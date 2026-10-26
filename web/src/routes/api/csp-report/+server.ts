@@ -13,8 +13,8 @@ let throttle: ThrottleWindow = { startTime: Date.now(), count: 0, suppressed: 0 
 const MAX_LOGS_PER_MINUTE = 20;
 const THROTTLE_WINDOW_MS = 60000;
 
-// Receives Content-Security-Policy-Report-Only violation reports (see kit.csp in
-// svelte.config.js). Logs a one-line summary so the policy can be verified before enforcing.
+// Receives Content-Security-Policy-Report-Only violation reports (see csp in
+// vite.config.ts). Logs a one-line summary so the policy can be verified before enforcing.
 export const POST: RequestHandler = async ({ request }) => {
 	// Check content-length header and reject if > 8 KB
 	const contentLength = request.headers.get('content-length');

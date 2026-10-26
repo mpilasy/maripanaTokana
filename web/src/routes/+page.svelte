@@ -2,7 +2,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
 	import { isLoading } from 'svelte-i18n';
-	import WeatherScreen from '$lib/components/WeatherScreen.svelte';
+	import WeatherScreen from '#lib/components/WeatherScreen.svelte';
 </script>
 
 {#if $isLoading}

@@ -3,20 +3,20 @@
 <script lang="ts">
 	import LevelBar from './LevelBar.svelte';
 	import WeatherIcon from './WeatherIcon.svelte';
-	import { dragScroll } from '$lib/actions/dragScroll';
+	import { dragScroll } from '#lib/actions/dragScroll.js';
 	import { _, json } from 'svelte-i18n';
-	import type { HourlyForecast as HourlyForecastType } from '$lib/domain/weatherData';
-	import { getCardinalDirection } from '$lib/domain/windSpeed';
-	import { wmoEmoji } from '$lib/api/wmoWeatherCode';
-	import { formatHourInDeviceTime, formatHourAtLocation, isRemoteTimezone } from '$lib/utils/date';
-	import type { HourlyAirQuality } from '$lib/domain/weatherData';
-	import { AirQualityIndex, AQI_TIER_COLORS, type AqiStandard, type AqiTier } from '$lib/domain/airQuality';
+	import type { HourlyForecast as HourlyForecastType } from '#lib/domain/weatherData.js';
+	import { getCardinalDirection } from '#lib/domain/windSpeed.js';
+	import { wmoEmoji } from '#lib/api/wmoWeatherCode.js';
+	import { formatHourInDeviceTime, formatHourAtLocation, isRemoteTimezone } from '#lib/utils/date.js';
+	import type { HourlyAirQuality } from '#lib/domain/weatherData.js';
+	import { AirQualityIndex, AQI_TIER_COLORS, type AqiStandard, type AqiTier } from '#lib/domain/airQuality.js';
 	import DualUnitText from './DualUnitText.svelte';
 	import WindCompass from './WindCompass.svelte';
 	import TemperatureChart from './TemperatureChart.svelte';
 	import ForecastTabs from './ForecastTabs.svelte';
 	import OverviewChart from './OverviewChart.svelte';
-	import { UV_TIER_COLORS, uvColorFor, type UvTier } from '$lib/domain/uv';
+	import { UV_TIER_COLORS, uvColorFor, type UvTier } from '#lib/domain/uv.js';
 
 	interface Props {
 		forecasts: HourlyForecastType[];

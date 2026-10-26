@@ -3,10 +3,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { locale } from 'svelte-i18n';
-	import { initI18n, SUPPORTED_LOCALES } from '$lib/i18n/index';
-	import { fontPairings } from '$lib/fonts';
-	import { fontIndex, localeIndex } from '$lib/stores/preferences';
-	import { refreshIfStale } from '$lib/stores/weather';
+	import { initI18n, SUPPORTED_LOCALES } from '#lib/i18n/index.js';
+	import { fontPairings } from '#lib/fonts.js';
+	import { fontIndex, localeIndex } from '#lib/stores/preferences.js';
+	import { refreshIfStale } from '#lib/stores/weather.js';
 
 	let { children } = $props();
 

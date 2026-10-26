@@ -3,8 +3,8 @@
 
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { proxyResponse } from '$lib/server/proxy';
-import { USER_AGENT } from '$lib/api/alerts/shared';
+import { proxyResponse } from '#lib/server/proxy.js';
+import { USER_AGENT } from '#lib/api/alerts/shared.js';
 
 export const GET: RequestHandler = async ({ url }) => {
 	const bbox = url.searchParams.get('bbox');

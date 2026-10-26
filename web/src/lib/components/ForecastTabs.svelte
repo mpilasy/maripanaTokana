@@ -1,7 +1,7 @@
 <!-- SPDX-FileCopyrightText: Orinasa Njarasoa -->
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
-	import { dragScroll } from '$lib/actions/dragScroll';
+	import { dragScroll } from '#lib/actions/dragScroll.js';
 
 	/** A row of chips that picks what a forecast card shows. */
 	let { tabs, selected, onSelect }: {

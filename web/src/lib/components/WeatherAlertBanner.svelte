@@ -1,12 +1,12 @@
 <!-- SPDX-FileCopyrightText: Orinasa Njarasoa -->
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
-	import type { WeatherAlert } from '$lib/domain/weatherData';
+	import type { WeatherAlert } from '#lib/domain/weatherData.js';
 	import { slide } from 'svelte/transition';
 	import { _ } from 'svelte-i18n';
-	import { localeIndex } from '$lib/stores/preferences';
-	import { SUPPORTED_LOCALES } from '$lib/i18n/locales';
-	import { formatAlertTime } from '$lib/utils/date';
+	import { localeIndex } from '#lib/stores/preferences.js';
+	import { SUPPORTED_LOCALES } from '#lib/i18n/locales.js';
+	import { formatAlertTime } from '#lib/utils/date.js';
 
 	interface Props {
 		alerts: WeatherAlert[];

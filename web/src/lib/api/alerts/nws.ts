@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { NwsAlertResponse } from '../externalAlertsTypes';
-import type { WeatherAlert, AlertLevel } from '$lib/domain/weatherData';
+import type { WeatherAlert, AlertLevel } from '#lib/domain/weatherData.js';
 import { USER_AGENT } from './shared';
 
 // Coarse fallback for when reverse geocoding fails (e.g. Nominatim rate-limiting) so NWS

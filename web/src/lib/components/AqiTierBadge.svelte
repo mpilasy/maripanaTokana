@@ -1,7 +1,7 @@
 <!-- SPDX-FileCopyrightText: Orinasa Njarasoa -->
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
-	import type { AqiTier } from '$lib/domain/airQuality';
+	import type { AqiTier } from '#lib/domain/airQuality.js';
 
 	interface Props {
 		tier: AqiTier;

@@ -3,8 +3,8 @@
 
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { proxyResponse } from '$lib/server/proxy';
-import { USER_AGENT } from '$lib/api/alerts/shared';
+import { proxyResponse } from '#lib/server/proxy.js';
+import { USER_AGENT } from '#lib/api/alerts/shared.js';
 
 const COUNTRY_SLUGS: Record<string, string> = {
 	at: 'austria', ba: 'bosnia-herzegovina', be: 'belgium', bg: 'bulgaria',

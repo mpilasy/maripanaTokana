@@ -2,7 +2,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import type { ActivityIndices, ActivityTier } from '$lib/domain/activityIndices';
+	import type { ActivityIndices, ActivityTier } from '#lib/domain/activityIndices.js';
 
 	interface Props {
 		indices: ActivityIndices;

@@ -2,11 +2,11 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import type { MinutelyForecast } from '$lib/domain/weatherData';
-	import { Precipitation } from '$lib/domain/precipitation';
-	import { metricPrimary } from '$lib/stores/preferences';
+	import type { MinutelyForecast } from '#lib/domain/weatherData.js';
+	import { Precipitation } from '#lib/domain/precipitation.js';
+	import { metricPrimary } from '#lib/stores/preferences.js';
 	import { onMount } from 'svelte';
-	import { formatHourAtLocation } from '$lib/utils/date';
+	import { formatHourAtLocation } from '#lib/utils/date.js';
 
 	interface Props {
 		items: MinutelyForecast[];

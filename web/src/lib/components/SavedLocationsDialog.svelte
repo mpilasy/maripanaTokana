@@ -2,9 +2,9 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { searchLocations, type SearchResult } from '$lib/api/geocodingSearch';
-	import { showSavedLocationsDialog, setLocationOverride, addSavedLocation } from '$lib/stores/savedLocations';
-	import { weatherState } from '$lib/stores/weather';
+	import { searchLocations, type SearchResult } from '#lib/api/geocodingSearch.js';
+	import { showSavedLocationsDialog, setLocationOverride, addSavedLocation } from '#lib/stores/savedLocations.js';
+	import { weatherState } from '#lib/stores/weather.js';
 	import { get } from 'svelte/store';
 
 	let query = $state('');

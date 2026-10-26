@@ -28,11 +28,11 @@ For the full list, see the [main README](../README.md#features). This list gives
 
 | Component | Technology |
 |-----------|-----------|
-| Framework | SvelteKit 2.70 and Svelte 5.57 (runes) |
-| Language | TypeScript 5.9 |
-| Build tool | Vite 7.3 |
-| Adapter | `@sveltejs/adapter-node` 5.5 |
-| Tests | Vitest 4.1 |
+| Framework | SvelteKit 3.1 and Svelte 5.57 (runes) |
+| Language | TypeScript 6.0 |
+| Build tool | Vite 8.3 |
+| Adapter | `@sveltejs/adapter-node` 6.0 |
+| Tests | Vitest 5.0 |
 | i18n | `svelte-i18n` 4 |
 | Screenshots | `html2canvas` 1.4 |
 | Runtime | Node 24 |
@@ -94,12 +94,12 @@ NWS, GDACS and JMA send CORS headers, so the browser calls them directly.
 
 ### Security
 
-- `svelte.config.js` sets a Content Security Policy in report-only mode. Reports go to `/api/csp-report`.
+- `vite.config.ts` sets a Content Security Policy in report-only mode. Reports go to `/api/csp-report`.
 - `src/hooks.server.ts` sets `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` (location for this site only) and `X-Frame-Options: DENY`. It does not show server error details.
 
 ### Service Worker
 
-`src/service-worker.ts` caches nothing at install. It caches at run time:
+`src/service-worker/index.ts` caches nothing at install. It caches at run time:
 - Open-Meteo forecast and air-quality calls and Nominatim calls: network first, then the cache. Each cached response has its cache time, so the app can show the real age of the data.
 - Pages and the app's own files: network first, then the cache.
 
@@ -128,12 +128,11 @@ web/
 │   ├── routes/               # +page.svelte, +layout.svelte, +error.svelte
 │   │   └── api/              # alerts/{meteoalarm,bom,nhc,eccc} proxies, csp-report
 │   ├── hooks.server.ts       # Security headers
-│   ├── service-worker.ts
+│   ├── service-worker/       # Service worker and its tsconfig
 │   └── app.html
 ├── static/                   # PWA manifest, icons, background, fonts
 ├── docs/                     # DESIGN.md and TESTING.md
-├── svelte.config.js          # SvelteKit config (adapter-node, CSP)
-├── vite.config.ts            # Vite and Vitest config
+├── vite.config.ts            # SvelteKit (adapter-node, CSP), Vite and Vitest config
 └── package.json
 ```
 

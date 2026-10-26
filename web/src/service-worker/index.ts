@@ -1,18 +1,20 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-/// <reference types="@sveltejs/kit" />
-/// <reference no-default-lib="true"/>
-/// <reference lib="esnext" />
-/// <reference lib="webworker" />
+import { self as sw } from '$app/service-worker';
+import { version } from '$app/env';
+import { immutable, assets } from '$app/manifest';
+import { asset } from '$app/paths';
+import type { AssetPath } from '$app/types';
 
-import { build, files, version } from '$service-worker';
-
-const sw = self as unknown as ServiceWorkerGlobalScope;
 const CACHE_APP = `app-${version}`;
 const CACHE_API = 'api-cache';
 
-const APP_ASSETS = new Set([...build, ...files]);
+// Manifest paths are relative to the base path; asset() makes them absolute pathnames.
+const APP_ASSETS = new Set<string>([
+	...immutable.map((file) => asset(file.path as AssetPath)),
+	...assets.map((file) => asset(file.path))
+]);
 
 // Install: activate immediately (no precaching — cache populates via NetworkFirst)
 sw.addEventListener('install', () => {

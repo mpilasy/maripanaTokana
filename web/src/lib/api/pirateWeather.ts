@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { HttpError, netFetch, retryOnce } from './http';
-import type { WeatherData, HourlyForecast, DailyForecast, MinutelyForecast } from '$lib/domain/weatherData';
-import { Temperature } from '$lib/domain/temperature';
-import { WindSpeed } from '$lib/domain/windSpeed';
-import { Pressure } from '$lib/domain/pressure';
-import { Precipitation } from '$lib/domain/precipitation';
+import type { WeatherData, HourlyForecast, DailyForecast, MinutelyForecast } from '#lib/domain/weatherData.js';
+import { Temperature } from '#lib/domain/temperature.js';
+import { WindSpeed } from '#lib/domain/windSpeed.js';
+import { Pressure } from '#lib/domain/pressure.js';
+import { Precipitation } from '#lib/domain/precipitation.js';
 import { nightWeatherCodes } from './nightWeather';
 
 function iconToWmoCode(icon: string): number {

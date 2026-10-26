@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { writable } from 'svelte/store';
-import { fontPairings } from '$lib/fonts';
-import { SUPPORTED_LOCALES } from '$lib/i18n/locales';
-import type { WeatherSource } from '$lib/domain/weatherData';
+import { fontPairings } from '#lib/fonts.js';
+import { SUPPORTED_LOCALES } from '#lib/i18n/locales.js';
+import type { WeatherSource } from '#lib/domain/weatherData.js';
 
 function persistedWritable<T>(key: string, defaultValue: T) {
 	let initial = defaultValue;

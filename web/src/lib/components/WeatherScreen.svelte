@@ -2,45 +2,45 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
 	import { _, json } from 'svelte-i18n';
-	import { weatherState, isRefreshing, doFetchWeather, updateLocationName, refreshFailed, refreshError } from '$lib/stores/weather';
+	import { weatherState, isRefreshing, doFetchWeather, updateLocationName, refreshFailed, refreshError } from '#lib/stores/weather.js';
 	import {
 		initAdvancedMode,
 		advancedModeActive
-	} from '$lib/stores/advancedMode';
+	} from '#lib/stores/advancedMode.js';
 	import SavedLocationsDialog from './SavedLocationsDialog.svelte';
 	import LocationDetails from './LocationDetails.svelte';
 	import RenameLocationDialog from './RenameLocationDialog.svelte';
 	import {
 		showSavedLocationsDialog, openSavedLocationsDialog, activeLocationId, savedLocations, switchToLocation,
 		locationOverride, initLocationOverride, setLocationOverride, favoriteCurrentLocation, unfavoriteCurrentLocation, displayName
-	} from '$lib/stores/savedLocations';
-	import { parseLocationText } from '$lib/domain/sharedLocationParser';
-	import { encodePlusCode, findPlusCode } from '$lib/domain/plusCode';
-	import { longPress } from '$lib/actions/longPress';
-	import { searchLocations } from '$lib/api/geocodingSearch';
-	import { lookupLocation } from '$lib/stores/location';
+	} from '#lib/stores/savedLocations.js';
+	import { parseLocationText } from '#lib/domain/sharedLocationParser.js';
+	import { encodePlusCode, findPlusCode } from '#lib/domain/plusCode.js';
+	import { longPress } from '#lib/actions/longPress.js';
+	import { searchLocations } from '#lib/api/geocodingSearch.js';
+	import { lookupLocation } from '#lib/stores/location.js';
 	import SettingsScreen from './SettingsScreen.svelte';
 	import AboutScreen from './AboutScreen.svelte';
 	import HelpScreen from './HelpScreen.svelte';
-	import { metricPrimary, fontIndex, localeIndex, weatherSource, weatherApiKey, toggleUnits, cycleFont, cycleLanguage } from '$lib/stores/preferences';
-	import { SUPPORTED_LOCALES, localizeDigits } from '$lib/i18n/index';
-	import { fontPairings } from '$lib/fonts';
-	import { formatShortDate, formatTime, formatLocationCurrentTime, isRemoteTimezone, isToday } from '$lib/utils/date';
+	import { metricPrimary, fontIndex, localeIndex, weatherSource, weatherApiKey, toggleUnits, cycleFont, cycleLanguage } from '#lib/stores/preferences.js';
+	import { SUPPORTED_LOCALES, localizeDigits } from '#lib/i18n/index.js';
+	import { fontPairings } from '#lib/fonts.js';
+	import { formatShortDate, formatTime, formatLocationCurrentTime, isRemoteTimezone, isToday } from '#lib/utils/date.js';
 	import HeroCard from './HeroCard.svelte';
 	import WeatherAlertBanner from './WeatherAlertBanner.svelte';
 	import HourlyForecast from './HourlyForecast.svelte';
 	import DailyForecast from './DailyForecast.svelte';
 	import CurrentConditions from './CurrentConditions.svelte';
 	import NowcastCard from './NowcastCard.svelte';
-	import { nowcastHasRain } from '$lib/domain/precipOutlook';
+	import { nowcastHasRain } from '#lib/domain/precipOutlook.js';
 	import AirQualityDetailDialog from './AirQualityDetailDialog.svelte';
 	import SectionCard from './SectionCard.svelte';
 	import ActivitiesCard from './ActivitiesCard.svelte';
-	import { computeActivityIndices } from '$lib/domain/activityIndices';
+	import { computeActivityIndices } from '#lib/domain/activityIndices.js';
 	import Footer from './Footer.svelte';
-	import { captureAndShare } from '$lib/share';
+	import { captureAndShare } from '#lib/share.js';
 	import { onMount } from 'svelte';
-	import { canAddToHomeScreen } from '$lib/installHint';
+	import { canAddToHomeScreen } from '#lib/installHint.js';
 	import InstallDialog from './InstallDialog.svelte';
 
 	let showSettings = $state(false);
@@ -92,14 +92,14 @@
 	if (browserLocaleTag) {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const loaders: Record<string, () => Promise<{ default: any }>> = {
-			en: () => import('$lib/i18n/locales/en.json'),
-			mg: () => import('$lib/i18n/locales/mg.json'),
-			ar: () => import('$lib/i18n/locales/ar.json'),
-			es: () => import('$lib/i18n/locales/es.json'),
-			fr: () => import('$lib/i18n/locales/fr.json'),
-			hi: () => import('$lib/i18n/locales/hi.json'),
-			ne: () => import('$lib/i18n/locales/ne.json'),
-			zh: () => import('$lib/i18n/locales/zh.json'),
+			en: () => import('#lib/i18n/locales/en.json'),
+			mg: () => import('#lib/i18n/locales/mg.json'),
+			ar: () => import('#lib/i18n/locales/ar.json'),
+			es: () => import('#lib/i18n/locales/es.json'),
+			fr: () => import('#lib/i18n/locales/fr.json'),
+			hi: () => import('#lib/i18n/locales/hi.json'),
+			ne: () => import('#lib/i18n/locales/ne.json'),
+			zh: () => import('#lib/i18n/locales/zh.json'),
 		};
 		loaders[browserLocaleTag]?.().then(mod => {
 			const { web_only, android_only, ...shared } = mod.default;
