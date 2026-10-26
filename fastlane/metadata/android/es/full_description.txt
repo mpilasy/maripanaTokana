@@ -1,4 +1,4 @@
-maripànaTokana («un solo termómetro» en malgache) es una aplicación del tiempo para Android. Muestra cada valor en unidades métricas e imperiales una al lado de la otra, así que nunca tendrás que convertir. También está disponible como aplicación web en maripana.njarasoa.org, sin nada que instalar.
+maripànaTokana («un solo termómetro» en malagasy) es una aplicación del tiempo para Android. Muestra cada valor en unidades métricas e imperiales una al lado de la otra, así que nunca tendrás que convertir. También está disponible como aplicación web en maripana.njarasoa.org, sin nada que instalar.
 
 <b>El tiempo de un vistazo:</b>
 • Tarjeta principal: estado actual, temperatura (°C con un decimal), mínima y máxima del día, lluvia o nieve cuando se acercan, calidad del aire cuando no es buena y 4 casillas para las próximas 12 horas
@@ -24,7 +24,7 @@ maripànaTokana («un solo termómetro» en malgache) es una aplicación del tie
 • Tarjeta Detalles del lugar con las coordenadas y el Plus Code
 
 <b>Idiomas y pantalla:</b>
-• 8 idiomas: malgache, árabe, inglés, español, francés, hindi, nepalí y chino. Toca la bandera para cambiar de idioma
+• 8 idiomas: malagasy, árabe, inglés, español, francés, hindi, nepalí y chino. Toca la bandera para cambiar de idioma
 • Dígitos locales para árabe, hindi y nepalí
 • Diseño de derecha a izquierda para árabe
 • 22 pares de fuentes para elegir

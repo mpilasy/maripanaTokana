@@ -191,7 +191,7 @@
     <string name="help_a_place_details">Touchez l\'icône de grille devant la région et le pays. Une carte affiche le lieu, les coordonnées et le Plus Code. Touchez une ligne pour ouvrir le lieu dans une application de carte. Maintenez une ligne pour la copier.</string>
     <string name="help_section_display">Langue, police et unités</string>
     <string name="help_q_language">Comment changer la langue ?</string>
-    <string name="help_a_language">Touchez le drapeau en bas de l\'écran. Chaque appui affiche la langue suivante : malgache, arabe, anglais, espagnol, français, hindi, népalais et chinois.</string>
+    <string name="help_a_language">Touchez le drapeau en bas de l\'écran. Chaque appui affiche la langue suivante : malagasy, arabe, anglais, espagnol, français, hindi, népalais et chinois.</string>
     <string name="help_q_font">Comment changer la police ?</string>
     <string name="help_a_font">Touchez le nom de la police en bas de l\'écran. Chaque appui affiche la paire de polices suivante.</string>
     <string name="help_q_units">Comment changer les unités ?</string>

@@ -1,1 +1,1 @@
-- Amélioration des traductions en malgache pour la recherche de lieux.
+- Amélioration des traductions en malagasy pour la recherche de lieux.

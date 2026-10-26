@@ -1,3 +1,3 @@
 - Nuevo icono de cuadrícula delante de la línea de región: muestra el lugar, las coordenadas y el Plus Code. Toca una línea para compartirla, mantenla pulsada para copiarla.
 - La ubicación actual ahora muestra su región y país.
-- Mantén pulsado un título de tarjeta cortado para verlo completo. Mejores textos en malgache, árabe, hindi, nepalí y chino.
+- Mantén pulsado un título de tarjeta cortado para verlo completo. Mejores textos en malagasy, árabe, hindi, nepalí y chino.

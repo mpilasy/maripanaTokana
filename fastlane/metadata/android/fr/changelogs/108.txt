@@ -1,2 +1,2 @@
-- Malgache : de meilleurs mots dans le widget (minimale et maximale) et dans l'aide, qui place maintenant le drapeau de la langue en bas à droite.
+- Malagasy : de meilleurs mots dans le widget (minimale et maximale) et dans l'aide, qui place maintenant le drapeau de la langue en bas à droite.
 - Nouvelles descriptions de la boutique dans les 8 langues.

@@ -1,4 +1,4 @@
-maripànaTokana (« un seul thermomètre » en malgache) est une application météo pour Android. Elle affiche chaque valeur en unités métriques et impériales côte à côte : plus besoin de convertir. Elle existe aussi en application web sur maripana.njarasoa.org, sans rien installer.
+maripànaTokana (« un seul thermomètre » en malagasy) est une application météo pour Android. Elle affiche chaque valeur en unités métriques et impériales côte à côte : plus besoin de convertir. Elle existe aussi en application web sur maripana.njarasoa.org, sans rien installer.
 
 <b>La météo en un coup d'œil :</b>
 • Carte principale : conditions actuelles, température (au dixième de degré en °C), minimum et maximum du jour, pluie ou neige quand elles arrivent, qualité de l'air quand elle n'est pas bonne, et 4 tuiles pour les 12 prochaines heures
@@ -24,7 +24,7 @@ maripànaTokana (« un seul thermomètre » en malgache) est une application mé
 • Carte Détails du lieu avec les coordonnées et le Plus Code
 
 <b>Langues et affichage :</b>
-• 8 langues : malgache, arabe, anglais, espagnol, français, hindi, népalais et chinois. Touchez le drapeau pour changer de langue
+• 8 langues : malagasy, arabe, anglais, espagnol, français, hindi, népalais et chinois. Touchez le drapeau pour changer de langue
 • Chiffres locaux pour l'arabe, le hindi et le népalais
 • Affichage de droite à gauche pour l'arabe
 • 22 paires de polices au choix
