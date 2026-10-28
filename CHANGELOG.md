@@ -9,6 +9,9 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261028141910] - 2026-10-28
+- No change in the app. The release workflow now does the F-Droid build check (`scripts/fdroid_check.sh`) before it publishes: it builds the tag with fdroidserver in F-Droid's build image and compares the result with the signed APK. If they differ, nothing is published.
+
 ## [1.6.20261028114142] - 2026-10-28
 - F-Droid: the build hash in the app is now always the first 7 characters of the commit. Before, `git rev-parse --short` gave more characters on a clone with more objects, so the F-Droid build of 1.6.20261026220516 did not match the GitHub APK and F-Droid did not publish it.
 - Malagasy: "Antonony" for the Moderate rating and "Faritra azo kitihina" for the touch screen row.

@@ -27,7 +27,7 @@
 			<span class="dot">·</span>
 			<button type="button" class="about-link" onclick={onOpenAbout}>{$_('about_title')}</button>
 		</span>
-		<span class="version">v1.6.20261028114142</span>
+		<span class="version">v1.6.20261028141910</span>
 	</div>
 	<button type="button" class="pill" onclick={onCycleLanguage} aria-label={$_('cd_change_language')}>
 		<span class="flag">{currentFlag}</span>

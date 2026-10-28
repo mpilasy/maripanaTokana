@@ -1,0 +1,1 @@
+- Ningún cambio en la app. Cada versión se comprueba ahora con la compilación de F-Droid antes de publicarla.
