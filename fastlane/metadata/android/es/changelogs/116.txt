@@ -1,0 +1,2 @@
+- F-Droid: el hash de compilación de la app tiene siempre 7 caracteres, así la compilación de F-Droid coincide de nuevo con el APK de GitHub.
+- Mejores textos en malagasy para la valoración Moderado y la fila de la pantalla táctil.

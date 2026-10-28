@@ -1,0 +1,2 @@
+- F-Droid: the build hash in the app now always has 7 characters, so the F-Droid build matches the GitHub APK again.
+- Better Malagasy texts for the Moderate rating and the touch screen row.

@@ -1,0 +1,2 @@
+- F-Droid : le hash de compilation de l'appli a toujours 7 caractères, donc la compilation F-Droid correspond de nouveau à l'APK GitHub.
+- Meilleurs textes malagasy pour la note Modéré et la ligne de l'écran tactile.
