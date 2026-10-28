@@ -1,0 +1,3 @@
+- Nueva tarjeta Luna: fase, parte iluminada, salida y puesta de la luna, y su posición en el cielo.
+- Nueva tarjeta Nubosidad. La tarjeta Sol muestra la duración del día.
+- Todas las tarjetas de detalles: un gráfico en el centro con las dos unidades, y las etiquetas abajo.

@@ -1,0 +1,3 @@
+- Nouvelle carte Lune : phase, partie éclairée, lever et coucher de la lune, et position dans le ciel.
+- Nouvelle carte Couverture nuageuse. La carte Soleil montre la durée du jour.
+- Toutes les cartes de détails : un graphique au milieu avec les deux unités, et les libellés en bas.

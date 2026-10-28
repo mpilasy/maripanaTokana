@@ -1,0 +1,3 @@
+- New Moon card: phase, part lit, moonrise and moonset, and where the moon is in the sky.
+- New Cloud cover card. The Sun card shows the length of the day.
+- All detail cards: one graphic in the middle with both units in it, and the labels at the bottom.
