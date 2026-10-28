@@ -1,0 +1,1 @@
+- Prévisions horaires et journalières : nouvel onglet Humidité. Chaque carte montre l'humidité et le point de rosée, et le graphique montre les deux.

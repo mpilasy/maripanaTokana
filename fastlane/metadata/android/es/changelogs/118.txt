@@ -1,0 +1,1 @@
+- Pronóstico por hora y diario: nueva pestaña Humedad. Cada tarjeta muestra la humedad y el punto de rocío, y el gráfico muestra los dos.

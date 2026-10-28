@@ -1,0 +1,1 @@
+- Hourly and daily forecasts: new Humidity tab. Each card shows the humidity and the dew point, and the chart shows both.
