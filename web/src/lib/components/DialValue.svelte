@@ -7,10 +7,11 @@
 	 * A reading in the middle of a dial: the value, its unit, and the same reading in the other unit.
 	 * `badge` sits in the open bottom of the ring.
 	 */
-	let { value, unit, secondary, badge }: { value: string; unit?: string; secondary?: string; badge?: Snippet } = $props();
+	let { value, unit, secondary, badge, fill = true }: { value: string; unit?: string; secondary?: string; badge?: Snippet; fill?: boolean } = $props();
 </script>
 
-<div class="dial-value">
+<!-- `fill`: over the whole dial, to centre in it; false: only the text's own size -->
+<div class="dial-value" class:inline={!fill}>
 	<span class="value">{value}</span>
 	{#if unit}<span class="unit">{unit}</span>{/if}
 	{#if secondary}<span class="secondary">{secondary}</span>{/if}
@@ -28,6 +29,10 @@
 		align-items: center;
 		justify-content: center;
 		font-feature-settings: var(--font-features);
+	}
+
+	.dial-value.inline {
+		position: static;
 	}
 
 	.value {

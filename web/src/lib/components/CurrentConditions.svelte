@@ -10,11 +10,12 @@
 	import DetailCard from './DetailCard.svelte';
 	import { formatHourAtLocation } from '#lib/utils/date.js';
 	import Gauge from './Gauge.svelte';
-	import WindCompass from './WindCompass.svelte';
 	import SunArc from './SunArc.svelte';
 	import SkyArc from './SkyArc.svelte';
 	import MoonPhaseIcon from './MoonPhaseIcon.svelte';
 	import DialValue from './DialValue.svelte';
+	import CompassDial from './CompassDial.svelte';
+	import LabeledValue from './LabeledValue.svelte';
 	import AqiTierBadge from './AqiTierBadge.svelte';
 	import { moonArcProgress, moonIllumination, moonPhaseIndex, moonPosition, moonTimes } from '#lib/domain/moon.js';
 	import { moonLitPath } from '#lib/utils/moonPath.js';
@@ -69,6 +70,14 @@
 	let pressDual = $derived(data.pressure.displayDual(metricPrimary));
 	let dewDual = $derived(data.dewPoint.displayDual(metricPrimary));
 	let visDual = $derived(visibilityDisplay(data.visibility, metricPrimary));
+	let precipDual = $derived((data.snow ?? data.rain)?.displayDual(metricPrimary));
+	let nowSec = $derived(Date.now() / 1000);
+
+	/** "2.9 m/s" -> ["2.9", "m/s"]: the number for the middle of a dial and its unit under it. */
+	function splitUnit(text: string): [string, string] {
+		const i = text.lastIndexOf(' ');
+		return [text.slice(0, i), text.slice(i + 1)];
+	}
 
 	// The length of the day (hours:minutes), shown under the sun's arc
 	let daylight = $derived.by(() => {
@@ -92,73 +101,98 @@
 
 <div class="conditions-grid">
 	{#if part === 'now'}
+	<!-- Every card: the title, one graphic in the middle with the values in it, labels in the bottom row -->
 	<!-- Temperature / Precipitation -->
-	<DetailCard
-		title={$_('detail_temperature')}
-		value={loc(tempDual[0])}
-		secondaryValue={loc(tempDual[1])}
-		subtitle={`${$_('feels_like')} ${loc(feelsLikeDual[0])} · ${loc(feelsLikeDual[1])}`}
-		{onToggleUnits}
-	/>
-	{#if data.snow}
-		{@const [snowP, snowS] = data.snow.displayDual(metricPrimary)}
-		<DetailCard title={$_('detail_precipitation')} value={loc(snowP)} secondaryValue={loc(snowS)} {onToggleUnits}>
-			{#snippet cornerSnippet()}<WeatherIcon code={71} size={44} />{/snippet}
-		</DetailCard>
-	{:else if data.rain}
-		{@const [rainP, rainS] = data.rain.displayDual(metricPrimary)}
-		<DetailCard title={$_('detail_precipitation')} value={loc(rainP)} secondaryValue={loc(rainS)} {onToggleUnits}>
-			{#snippet cornerSnippet()}<WeatherIcon code={61} size={44} />{/snippet}
-		</DetailCard>
-	{:else}
-		<DetailCard title={$_('detail_precipitation')} value={$_('no_precip')} />
-	{/if}
+	<DetailCard title={$_('detail_temperature')} value={loc(tempDual[0])} {onToggleUnits}>
+		{#snippet centerDialSnippet()}
+			<!-- Where now is between today's low and high -->
+			{@const low = data.tempMin.celsius}
+			{@const high = data.tempMax.celsius}
+			<Gauge fraction={high > low ? (data.temperature.celsius - low) / (high - low) : 0.5} color="#FFB74D">
+				<DialValue value={loc(tempDual[0])} secondary={loc(tempDual[1])} />
+			</Gauge>
+		{/snippet}
+		{#snippet footerSnippet()}
+			<LabeledValue label={$_('feels_like')} value={`${loc(feelsLikeDual[0])} · ${loc(feelsLikeDual[1])}`} />
+		{/snippet}
+	</DetailCard>
+	<DetailCard title={$_('detail_precipitation')} value={precipDual ? loc(precipDual[0]) : $_('no_precip')} onToggleUnits={precipDual ? onToggleUnits : undefined}>
+		{#snippet centerDialSnippet()}
+			<div class="precip-center">
+				<WeatherIcon code={data.snow ? 71 : data.rain ? 61 : data.weatherCode} night={nowSec < data.sunrise || nowSec > data.sunset} size={56} />
+				{#if precipDual}
+					<DialValue value={loc(precipDual[0])} secondary={loc(precipDual[1])} fill={false} />
+				{:else}
+					<DialValue value={$_('no_precip')} fill={false} />
+				{/if}
+			</div>
+		{/snippet}
+		{#snippet footerSnippet()}
+			<!-- The chance of precipitation in the next hour, as on the forecast cards -->
+			<span class="precip-chance">
+				{#if (data.hourlyForecast[0]?.precipProbability ?? 0) > 0}
+					<svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" aria-hidden="true"><path d="M12 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.8 8.2 8 8.2s8-3.22 8-8.2c0-3.32-2.67-7.25-8-11.8z"/></svg>{loc(`${data.hourlyForecast[0].precipProbability}%`)}
+				{/if}
+			</span>
+		{/snippet}
+	</DetailCard>
 
 	<!-- Wind / Gust -->
-	<DetailCard
-		title={$_('detail_wind')}
-		value={loc(windDual[0])}
-		secondaryValue={loc(windDual[1])}
-		subtitle={data.windDeg != null ? loc(`${getCardinalDirection(data.windDeg, $json('cardinal_directions'))} (${data.windDeg}°)`) : '--'}
-		{onToggleUnits}
-	>
-		{#snippet dialSnippet()}
+	<DetailCard title={$_('detail_wind')} value={loc(windDual[0])} {onToggleUnits}>
+		{#snippet centerDialSnippet()}
+			{@const [n, u] = splitUnit(windDual[0])}
 			{#if data.windDeg != null}
-				<WindCompass degrees={data.windDeg} size={56} />
+				<CompassDial degrees={data.windDeg}><DialValue value={loc(n)} unit={u} secondary={loc(windDual[1])} /></CompassDial>
+			{:else}
+				<div class="square"><DialValue value={loc(n)} unit={u} secondary={loc(windDual[1])} /></div>
+			{/if}
+		{/snippet}
+		{#snippet footerSnippet()}
+			{#if data.windDeg != null}
+				<span class="footer-center">{loc(`${getCardinalDirection(data.windDeg, $json('cardinal_directions'))} (${data.windDeg}°)`)}</span>
 			{/if}
 		{/snippet}
 	</DetailCard>
-	<DetailCard
-		title={$_('detail_wind_gust')}
-		value={gustDual ? loc(gustDual[0]) : '--'}
-		secondaryValue={gustDual ? loc(gustDual[1]) : undefined}
-		{onToggleUnits}
-	/>
+	<DetailCard title={$_('detail_wind_gust')} value={gustDual ? loc(gustDual[0]) : '--'} {onToggleUnits}>
+		{#snippet centerDialSnippet()}
+			{#if data.windGust && gustDual}
+				{@const [n, u] = splitUnit(gustDual[0])}
+				<!-- Gusts rarely pass 30 m/s -->
+				<Gauge fraction={data.windGust.metersPerSecond / 30} color="#64B5F6">
+					<DialValue value={loc(n)} unit={u} secondary={loc(gustDual[1])} />
+				</Gauge>
+			{/if}
+		{/snippet}
+	</DetailCard>
 
 	<!-- Pressure / Humidity -->
-	<DetailCard
-		title={$_('detail_pressure')}
-		value={loc(pressDual[0])}
-		secondaryValue={loc(pressDual[1])}
-		{onToggleUnits}
-	>
+	<DetailCard title={$_('detail_pressure')} value={loc(pressDual[0])} {onToggleUnits}>
 		{#snippet centerDialSnippet()}
+			{@const [n, u] = splitUnit(pressDual[0])}
 			<Gauge fraction={(data.pressure.hPa - PRESSURE_MIN_HPA) / (PRESSURE_MAX_HPA - PRESSURE_MIN_HPA)} color="#9B8FFF">
-				<DialValue value={loc(pressDual[0].slice(0, pressDual[0].lastIndexOf(' ')))} unit={pressDual[0].slice(pressDual[0].lastIndexOf(' ') + 1)} secondary={loc(pressDual[1])} />
+				<DialValue value={loc(n)} unit={u} secondary={loc(pressDual[1])} />
 			</Gauge>
 		{/snippet}
 	</DetailCard>
-	<DetailCard
-		title={$_('detail_humidity')}
-		value={data.humidity != null ? loc(`${data.humidity}%`) : '--'}
-		subtitle={`${$_('detail_dewpoint')}\n${loc(dewDual[0])} · ${loc(dewDual[1])}`}
-		fillPercent={data.humidity ?? undefined}
-	/>
+	<DetailCard title={$_('detail_humidity')} value={data.humidity != null ? loc(`${data.humidity}%`) : '--'} {onToggleUnits}>
+		{#snippet centerDialSnippet()}
+			{#if data.humidity != null}
+				<Gauge fraction={data.humidity / 100} color="#64B5F6">
+					<DialValue value={loc(`${data.humidity}%`)} />
+				</Gauge>
+			{/if}
+		{/snippet}
+		{#snippet footerSnippet()}
+			<LabeledValue label={$_('detail_dewpoint')} value={`${loc(dewDual[0])} · ${loc(dewDual[1])}`} />
+		{/snippet}
+	</DetailCard>
 
 	{:else}
 	<!-- Sun / Moon, air quality / UV, cloud cover / visibility (without air quality: UV / cloud cover, then visibility) -->
 	<div class="sky-tile">
 		<span class="tile-title">{$_('detail_sun')}</span>
+		<!-- The arc right under the title, then the times, so the sun's and moon's arcs and times line up -->
+		<div class="sky-content">
 		<div class="arc-box">
 			<SunArc sunrise={data.sunrise} sunset={data.sunset} now={Date.now() / 1000} />
 			{#if daylight}<span class="under-arc">{loc(daylight)}</span>{/if}
@@ -167,10 +201,12 @@
 			<span><span class="sky-label">{$_('detail_sunrise')}</span> {loc(formatTime(data.sunrise))}</span>
 			<span><span class="sky-label">{$_('detail_sunset')}</span> {loc(formatTime(data.sunset))}</span>
 		</div>
+		</div>
 	</div>
 	<!-- The moon, laid out like the sun: its arc, the part lit, rise and set today, phase and direction -->
 	<div class="sky-tile">
 		<span class="tile-title">{$_('detail_moon')}</span>
+		<div class="sky-content">
 		<div class="arc-box">
 			<SkyArc t={moon.arcT} progressColor="#CFC8E8">
 				{#snippet body(x, y)}
@@ -184,12 +220,15 @@
 			<span><span class="sky-label">{$_('detail_moonrise')}</span> {moon.today.rise != null ? loc(formatHourAtLocation(moon.today.rise, data.utcOffsetSeconds)) : '--'}</span>
 			<span><span class="sky-label">{$_('detail_moonset')}</span> {moon.today.set != null ? loc(formatHourAtLocation(moon.today.set, data.utcOffsetSeconds)) : '--'}</span>
 		</div>
-		<span class="moon-phase">
-			<MoonPhaseIcon phase={moon.illumination.phase} southern={moon.southern} size={18} />
-			{($json('moon_phases') as string[])?.[moonPhaseIndex(moon.illumination.phase)] ?? ''}
-		</span>
-		<!-- Fainter while the moon is under the horizon -->
-		<span class="moon-azimuth" class:down={moon.position.altitude < 0}>{loc(`${$_('detail_azimuth')} ${getCardinalDirection(moonAzimuth, $json('cardinal_directions'))} (${moonAzimuth}°)`)}</span>
+		<!-- The direction as a labelled value, like the times; the phase at the end -->
+		<div class="moon-bottom">
+			<LabeledValue label={$_('detail_azimuth')} value={loc(`${getCardinalDirection(moonAzimuth, $json('cardinal_directions'))} (${moonAzimuth}°)`)} />
+			<span class="moon-phase">
+				<MoonPhaseIcon phase={moon.illumination.phase} southern={moon.southern} size={16} />
+				{($json('moon_phases') as string[])?.[moonPhaseIndex(moon.illumination.phase)] ?? ''}
+			</span>
+		</div>
+		</div>
 	</div>
 
 	{#if data.airQuality}
@@ -248,12 +287,17 @@
 	{/snippet}
 
 	{#snippet visibilityCard()}
-		<DetailCard
-			title={$_('detail_visibility')}
-			value={loc(visDual[0])}
-			secondaryValue={loc(visDual[1])}
-			{onToggleUnits}
-		/>
+		<DetailCard title={$_('detail_visibility')} value={loc(visDual[0])} {onToggleUnits}>
+			{#snippet centerDialSnippet()}
+				{#if data.visibility != null}
+					{@const [n, u] = splitUnit(visDual[0])}
+					<!-- On a log scale, 100 m to 20 km: each step down matters more than one up -->
+					<Gauge fraction={Math.log10(Math.max(100, data.visibility) / 100) / Math.log10(200)} color="#80DEEA">
+						<DialValue value={loc(n)} unit={u} secondary={loc(visDual[1])} />
+					</Gauge>
+				{/if}
+			{/snippet}
+		</DetailCard>
 	{/snippet}
 	{/if}
 </div>
@@ -282,6 +326,62 @@
 	}
 
 	/* Under the arc, just above the horizon line */
+	.sky-content {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 6px;
+	}
+
+	.moon-bottom {
+		margin-top: auto;
+		align-self: stretch;
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-end;
+		gap: 6px;
+	}
+
+	.precip-center {
+		width: 100%;
+		aspect-ratio: 1;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 6px;
+	}
+
+	.square {
+		position: relative;
+		width: 100%;
+		aspect-ratio: 1;
+	}
+
+	.precip-chance {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 2px;
+		min-height: 17px;
+		font-size: 13px;
+		color: #64B5F6;
+		font-feature-settings: var(--font-features);
+	}
+
+	.footer-center {
+		display: block;
+		text-align: center;
+		font-size: 13px;
+		color: rgba(255, 255, 255, 0.7);
+	}
+
+	.sky-content > .arc-box,
+	.sky-content > .sky-times {
+		align-self: stretch;
+	}
+
 	.arc-box {
 		position: relative;
 	}
@@ -301,20 +401,13 @@
 
 	.moon-phase {
 		display: flex;
-		align-items: center;
-		gap: 6px;
+		flex-direction: column;
+		align-items: flex-end;
+		gap: 2px;
 		font-size: 12px;
 		line-height: 14px;
+		text-align: end;
 		color: rgba(255, 255, 255, 0.7);
-	}
-
-	.moon-azimuth {
-		font-size: 12px;
-		color: rgba(255, 255, 255, 0.7);
-	}
-
-	.moon-azimuth.down {
-		color: rgba(255, 255, 255, 0.4);
 	}
 
 	.tile-title {

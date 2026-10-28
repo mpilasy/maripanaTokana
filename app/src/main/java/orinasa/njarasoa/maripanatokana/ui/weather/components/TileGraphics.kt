@@ -90,6 +90,35 @@ fun Gauge(
     }
 }
 
+/**
+ * A compass ring for a card's middle: a tick at north and an arrowhead on the ring at where the
+ * wind comes from (degrees, 0 = north), pointing in. The middle is free for [content].
+ */
+@Composable
+fun CompassDial(degrees: Int, modifier: Modifier = Modifier, content: (@Composable () -> Unit)? = null) {
+    Box(modifier, contentAlignment = Alignment.Center) {
+        Canvas(Modifier.fillMaxSize()) {
+            val u = size.minDimension / 48f
+            // The ring stops growing on a large dial, like the gauges
+            val k = minOf(u, 1.6f * density)
+            val r = size.minDimension / 2 - 4 * k
+            drawCircle(Color.White.copy(alpha = 0.18f), r, center, style = Stroke(2.5f * k))
+            drawLine(Color.White.copy(alpha = 0.6f), Offset(center.x, center.y - r - 3 * k), Offset(center.x, center.y - r + 4 * k), 2 * k, StrokeCap.Round)
+            rotate(degrees.toFloat(), center) {
+                val tip = center.y - r + 7 * k
+                val back = center.y - r - 3 * k
+                drawPath(Path().apply {
+                    moveTo(center.x, tip)
+                    lineTo(center.x + 5 * k, back)
+                    lineTo(center.x - 5 * k, back)
+                    close()
+                }, Color(0xFF64B5F6))
+            }
+        }
+        content?.invoke()
+    }
+}
+
 /** A compass ring whose needle points to where the wind comes from (degrees, 0 = north). */
 @Composable
 fun WindCompass(degrees: Int, modifier: Modifier = Modifier, size: Dp = 40.dp) {

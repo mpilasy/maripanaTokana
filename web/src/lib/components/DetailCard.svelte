@@ -14,10 +14,12 @@
 		trailingSnippet?: Snippet;
 		/** A small graphic in the top corner; the value may run under it. */
 		cornerSnippet?: Snippet;
-		/** A dial in the bottom corner, in the space the value leaves free. */
+		/** A dial under the values, e.g. the wind compass. */
 		dialSnippet?: Snippet;
 		/** A dial with the reading in it, in the middle of the card; replaces the value. */
 		centerDialSnippet?: Snippet;
+		/** The card's bottom row, full width: e.g. a label with its value at the start, as on the sun tile. */
+		footerSnippet?: Snippet;
 		onToggleUnits?: () => void;
 		unit?: string;
 		secondaryUnit?: string;
@@ -26,7 +28,7 @@
 		onClick?: () => void;
 	}
 
-	let { title, value, secondaryValue, subtitle, subtitleSnippet, trailingSnippet, cornerSnippet, dialSnippet, centerDialSnippet, onToggleUnits, unit, secondaryUnit, fillPercent, onClick }: Props = $props();
+	let { title, value, secondaryValue, subtitle, subtitleSnippet, trailingSnippet, cornerSnippet, dialSnippet, centerDialSnippet, footerSnippet, onToggleUnits, unit, secondaryUnit, fillPercent, onClick }: Props = $props();
 
 	// A title cut short by the card's width shows in full while held
 	let titleEl = $state<HTMLElement | null>(null);
@@ -53,10 +55,10 @@
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-<div class="detail-card" class:clickable={onClick} class:has-dial={dialSnippet} role={onClick ? 'button' : undefined} tabindex={onClick ? 0 : undefined}
+<div class="detail-card" class:clickable={onClick} role={onClick ? 'button' : undefined} tabindex={onClick ? 0 : undefined}
 	onclick={onClick} onkeydown={(e) => { if (onClick && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onClick(); } }}
 	style:background={fillPercent != null ? `linear-gradient(to top, rgba(100, 181, 246, 0.2), rgba(100, 181, 246, 0.1) ${Math.max(0, fillPercent - 10)}%, var(--surface-tile) ${fillPercent}%)` : undefined}>
-	<div class="card-body" class:centered={centerDialSnippet}>
+	<div class="card-body">
 		{#if title}
 			<span class="card-title" class:beside-corner={cornerSnippet} bind:this={titleEl} title={titleCut ? title : undefined}
 				use:longPress={titleCut ? () => (showFullTitle = true) : null}>{title}</span>
@@ -64,6 +66,9 @@
 				<span class="full-title" role="tooltip">{title}</span>
 			{/if}
 		{/if}
+		<!-- The values: centred across and down the space under the title. A dial sits right under
+		     the title instead, so the dials of two cards side by side line up whatever their bottom rows -->
+		<div class="card-content" class:top={centerDialSnippet}>
 		{#if centerDialSnippet}
 			<!-- As wide as the card allows, up to 132 px, and square -->
 			<!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -75,6 +80,7 @@
 				primary={value}
 				secondary={secondaryValue}
 				primarySize="20px"
+				align="center"
 				onClick={onToggleUnits}
 				primaryUnit={unit}
 				secondaryUnit={secondaryUnit}
@@ -87,15 +93,19 @@
 		{:else if subtitle}
 			<span class="card-subtitle">{subtitle}</span>
 		{/if}
+		{#if dialSnippet}
+			<div class="dial">{@render dialSnippet()}</div>
+		{/if}
+		{#if trailingSnippet}
+			{@render trailingSnippet()}
+		{/if}
+		</div>
+		{#if footerSnippet}
+			<div class="footer">{@render footerSnippet()}</div>
+		{/if}
 	</div>
-	{#if trailingSnippet}
-		{@render trailingSnippet()}
-	{/if}
 	{#if cornerSnippet}
 		<div class="corner">{@render cornerSnippet()}</div>
-	{/if}
-	{#if dialSnippet}
-		<div class="dial">{@render dialSnippet()}</div>
 	{/if}
 </div>
 
@@ -119,15 +129,8 @@
 		pointer-events: none;
 	}
 
-	/* Tall enough for the dial to sit below the value instead of over it */
-	.detail-card.has-dial {
-		min-height: 150px;
-	}
-
 	.dial {
-		position: absolute;
-		bottom: 14px;
-		inset-inline-end: 14px;
+		margin-top: 4px;
 		pointer-events: none;
 	}
 
@@ -140,8 +143,18 @@
 		min-width: 0;
 		display: flex;
 		flex-direction: column;
-		align-self: flex-start;
+		align-self: stretch;
 		gap: 4px;
+	}
+
+	.card-content {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 4px;
+		text-align: center;
 	}
 
 	.card-title {
@@ -187,12 +200,12 @@
 		white-space: pre-line;
 	}
 
-	.card-body.centered {
-		align-items: center;
+	.card-content.top {
+		justify-content: flex-start;
 	}
 
-	.card-body.centered .card-title {
-		align-self: stretch;
+	.footer {
+		margin-top: 2px;
 	}
 
 	.center-dial {
