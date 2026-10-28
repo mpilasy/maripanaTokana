@@ -76,7 +76,16 @@ jobs:
           mv "$STANDARD_APK_PATH" "$STANDARD_APK"
           echo "STANDARD_APK_HASH=$(sha256sum "$STANDARD_APK" | awk '{print $1}')" >> $GITHUB_ENV
           echo "STANDARD_APK_PATH=$STANDARD_APK" >> $GITHUB_ENV
-          
+
+      # F-Droid publishes a version only if its own build is the same as our
+      # signed APK. Stop here, before the metadata and the release, if not.
+      - name: Check the F-Droid build
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          V_NAME=$(grep "versionName =" app/build.gradle.kts | head -n 1 | awk -F'"' '{print $2}')
+          V_CODE=$(grep "versionCode =" app/build.gradle.kts | head -n 1 | sed 's/.*= \(.*\)/\1/' | tr -d '[:space:]')
+          scripts/fdroid_check.sh "$V_NAME" "$V_CODE" "$(git rev-parse HEAD)" "${{ env.RENAMED_APK_PATH }}"
+
       - name: UPDATE METADATA AND PUSH
         if: startsWith(github.ref, 'refs/tags/')
         run: |
