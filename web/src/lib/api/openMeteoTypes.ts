@@ -50,6 +50,8 @@ export interface OpenMeteoDaily {
 	precipitation_sum: (number | null)[];
 	uv_index_max: (number | null)[];
 	pressure_msl_mean?: (number | null)[];
+	relative_humidity_2m_mean?: (number | null)[];
+	dew_point_2m_mean?: (number | null)[];
 }
 
 export interface OpenMeteoHourly {
@@ -62,4 +64,6 @@ export interface OpenMeteoHourly {
 	pressure_msl: (number | null)[];
 	precipitation: (number | null)[];
 	uv_index?: (number | null)[];
+	relative_humidity_2m?: (number | null)[];
+	dew_point_2m?: (number | null)[];
 }

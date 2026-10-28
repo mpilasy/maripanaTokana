@@ -27,11 +27,13 @@
 		legend?: { color: string; label: string }[];
 		/** Shown when every value is zero, so an empty chart reads as none rather than missing data. */
 		emptyLabel?: string;
+		/** A second line on its own scale (another unit), e.g. the dew point under the humidity; line style only. */
+		second?: { values: (number | null)[]; color: string; highLabel?: string; lowLabel?: string } | null;
 	}
 
 	let {
 		values, itemWidth, itemSpacing, scrollLeft = 0, containerWidth = 0, height = 48,
-		style = 'line', fromZero = false, color = 'white', pointColors, highLabel, lowLabel, legend, emptyLabel,
+		style = 'line', fromZero = false, color = 'white', pointColors, highLabel, lowLabel, legend, emptyLabel, second = null,
 	}: Props = $props();
 
 	// Room above and below the line for the labels
@@ -51,15 +53,53 @@
 		return (i * (itemWidth + itemSpacing) + itemWidth / 2) * xScale;
 	}
 
-	function getY(v: number) {
+	function getY(v: number, lo = min, hi = max) {
 		const bottom = zeroBased ? height - 1.5 : height - PAD;
-		return max > min ? bottom - ((v - min) / (max - min)) * (bottom - PAD) : (bottom + PAD) / 2;
+		return hi > lo ? bottom - ((v - lo) / (hi - lo)) * (bottom - PAD) : (bottom + PAD) / 2;
 	}
 
 	let points = $derived(values.flatMap((v, i) => (v != null && Number.isFinite(v) ? [{ x: getX(i), y: getY(v), i, v }] : [])));
 	let highPoint = $derived(points.find((p) => p.v === max));
 	let lowPoint = $derived(points.find((p) => p.v === lowest));
 	let barWidth = $derived(Math.max(2, itemWidth * xScale * 0.6));
+
+	// The second line, on its own scale
+	let second2 = $derived.by(() => {
+		if (!second) return null;
+		const vs = second.values.filter((v): v is number => v != null && Number.isFinite(v));
+		if (!vs.length) return null;
+		const hi = Math.max(...vs);
+		const lo = Math.min(...vs);
+		const pts = second.values.flatMap((v, i) => (v != null && Number.isFinite(v) ? [{ x: getX(i), y: getY(v, lo, hi), i, v }] : []));
+		const high = pts.find((p) => p.v === hi);
+		const low = hi > lo ? pts.find((p) => p.v === lo) : undefined;
+		return {
+			pts,
+			high: high && placeBeside(second.highLabel ?? '', high.x, high.y - 5, highLabel && highPoint ? { text: highLabel, x: highPoint.x, y: highPoint.y - 5 } : null),
+			low: low && placeBeside(second.lowLabel ?? '', low.x, low.y + 11, lowLabel && lowPoint && max > lowest ? { text: lowLabel, x: lowPoint.x, y: zeroBased ? lowPoint.y - 5 : lowPoint.y + 11 } : null),
+		};
+	});
+
+	// The left and right edges of a label, from an estimate of its width (9px bold)
+	function span(text: string, x: number): [number, number] {
+		const width = text.length * 5.5;
+		const a = anchor(x);
+		const left = a === 'start' ? labelX(x) : a === 'end' ? labelX(x) - width : x - width / 2;
+		return [left, left + width];
+	}
+
+	// A label that would overlap the main line's label goes next to it, on its row
+	function placeBeside(text: string, x: number, y: number, other: { text: string; x: number; y: number } | null) {
+		const [left, right] = span(text, x);
+		if (!other) return { x: labelX(x), y, anchor: anchor(x) };
+		const [oLeft, oRight] = span(other.text, other.x);
+		const gap = 6;
+		if (right + gap <= oLeft || left >= oRight + gap) return { x: labelX(x), y, anchor: anchor(x) };
+		const width = right - left;
+		return oRight + gap + width <= svgWidth
+			? { x: oRight + gap, y: other.y, anchor: 'start' as const }
+			: { x: Math.max(width, oLeft - gap), y: other.y, anchor: 'end' as const };
+	}
 
 	// Labels near an edge grow inwards so they stay inside the chart
 	function anchor(x: number): 'start' | 'middle' | 'end' {
@@ -94,10 +134,25 @@
 			<text x={labelX(highPoint.x)} y={Math.max(9, highPoint.y - 3)} text-anchor={anchor(highPoint.x)} font-size="9" font-weight="bold" fill={color}>{highLabel}</text>
 		{/if}
 	{:else}
+		{#if second && second2}
+			<!-- The second line first, so the main line stays on top; its labels come after the main line -->
+			<path d={monotonePath(second2.pts)} fill="none" stroke={second.color} stroke-width="2" />
+			{#each second2.pts as p}
+				<circle cx={p.x} cy={p.y} r="2.5" fill={second.color} />
+			{/each}
+		{/if}
 		<path d={monotonePath(points)} fill="none" stroke={color} stroke-opacity={pointColors ? 0.5 : 1} stroke-width="2" />
 		{#each points as p}
 			<circle cx={p.x} cy={p.y} r="3" fill={pointColors?.[p.i] ?? color} />
 		{/each}
+		{#if second && second2}
+			{#if second2.high && second.highLabel}
+				<text x={second2.high.x} y={second2.high.y} text-anchor={second2.high.anchor} font-size="9" font-weight="bold" fill={second.color}>{second.highLabel}</text>
+			{/if}
+			{#if second2.low && second.lowLabel}
+				<text x={second2.low.x} y={second2.low.y} text-anchor={second2.low.anchor} font-size="9" font-weight="bold" fill={second.color}>{second.lowLabel}</text>
+			{/if}
+		{/if}
 		{#if highPoint && highLabel}
 			<text x={labelX(highPoint.x)} y={highPoint.y - 5} text-anchor={anchor(highPoint.x)} font-size="9" font-weight="bold" fill={pointColors?.[highPoint.i] ?? color}>{highLabel}</text>
 		{/if}

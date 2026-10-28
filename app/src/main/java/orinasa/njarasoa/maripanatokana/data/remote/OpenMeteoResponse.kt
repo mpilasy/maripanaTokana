@@ -55,6 +55,8 @@ data class OpenMeteoDaily(
     @SerialName("precipitation_sum") val precipitationSum: List<Double?> = emptyList(),
     @SerialName("uv_index_max") val uvIndexMax: List<Double?> = emptyList(),
     @SerialName("pressure_msl_mean") val pressureMslMean: List<Double?> = emptyList(),
+    @SerialName("relative_humidity_2m_mean") val relativeHumidityMean: List<Double?> = emptyList(),
+    @SerialName("dew_point_2m_mean") val dewPointMean: List<Double?> = emptyList(),
 )
 
 @Serializable
@@ -68,4 +70,6 @@ data class OpenMeteoHourly(
     @SerialName("pressure_msl") val pressureMsl: List<Double?> = emptyList(),
     @SerialName("precipitation") val precipitation: List<Double?> = emptyList(),
     @SerialName("uv_index") val uvIndex: List<Double?> = emptyList(),
+    @SerialName("relative_humidity_2m") val relativeHumidity: List<Int?> = emptyList(),
+    @SerialName("dew_point_2m") val dewPoint: List<Double?> = emptyList(),
 )

@@ -8,6 +8,8 @@ import androidx.compose.ui.graphics.Color
 // Legacy names kept for the combineBitmaps background fill
 val CardBlue = Color(0xFF2A1FA5)
 val SkyBlue = Color(0xFF64B5F6)
+// The dew point line, next to the SkyBlue humidity line
+val DewAmber = Color(0xFFFFB74D)
 val DarkNavy = Color(0xFF0E0B3D)
 const val DarkNavyColorInt = 0xFF0E0B3D.toInt()
 

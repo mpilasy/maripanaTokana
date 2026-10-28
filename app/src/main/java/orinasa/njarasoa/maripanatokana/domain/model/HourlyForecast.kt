@@ -16,4 +16,6 @@ data class HourlyForecast(
     val pressure: Pressure,
     val precipitation: Precipitation,
     val uvIndex: Double? = null,
+    val humidity: Int? = null, // percentage
+    val dewPoint: Temperature? = null,
 )

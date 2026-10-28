@@ -84,6 +84,8 @@ fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = 
             pressure = Pressure.fromHPa(hourly.pressureMsl.getOrNull(i) ?: Double.NaN),
             precipitation = Precipitation.fromMm(hourly.precipitation.getOrNull(i) ?: Double.NaN),
             uvIndex = hourly.uvIndex.getOrNull(i),
+            humidity = hourly.relativeHumidity.getOrNull(i),
+            dewPoint = hourly.dewPoint.getOrNull(i)?.let { Temperature.fromCelsius(it) },
         )
     }.distinctBy { it.time }
 
@@ -104,6 +106,8 @@ fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = 
             uvIndexMax = daily.uvIndexMax.getOrNull(i) ?: 0.0,
             nightWeatherCode = nightCodes.getOrNull(i),
             pressure = daily.pressureMslMean.getOrNull(i)?.let { Pressure.fromHPa(it) },
+            humidity = daily.relativeHumidityMean.getOrNull(i)?.let { kotlin.math.round(it).toInt() },
+            dewPoint = daily.dewPointMean.getOrNull(i)?.let { Temperature.fromCelsius(it) },
         )
     }.distinctBy { it.date }
 

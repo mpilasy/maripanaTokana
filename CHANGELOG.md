@@ -8,6 +8,7 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 `v1.0.18-*` tags) are not listed. There is no 1.4.2 tag: that version was withdrawn.
 
 ## [Unreleased]
+- Hourly and daily forecasts: a new Humidity tab. Each card shows the relative humidity and the dew point in both units, and the chart under the cards shows the humidity (blue) and the dew point (amber), each on its own scale. The daily values are the means for the day.
 
 ## [1.6.20261028141910] - 2026-10-28
 - No change in the app. The release workflow now does the F-Droid build check (`scripts/fdroid_check.sh`) before it publishes: it builds the tag with fdroidserver in F-Droid's build image and compares the result with the signed APK. If they differ, nothing is published.

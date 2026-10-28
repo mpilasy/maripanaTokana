@@ -12,12 +12,13 @@ const CURRENT_PARAMS = [
 	'precipitation', 'rain', 'snowfall', 'visibility', 'weather_code', 'is_day', 'uv_index', 'cloud_cover'
 ].join(',');
 
-const HOURLY_PARAMS = 'temperature_2m,weather_code,precipitation_probability,wind_speed_10m,wind_direction_10m,pressure_msl,precipitation,uv_index';
+const HOURLY_PARAMS = 'temperature_2m,weather_code,precipitation_probability,wind_speed_10m,wind_direction_10m,pressure_msl,precipitation,uv_index,relative_humidity_2m,dew_point_2m';
 
 const DAILY_PARAMS = [
 	'temperature_2m_max', 'temperature_2m_min', 'weather_code',
 	'precipitation_probability_max', 'sunrise', 'sunset',
-	'wind_speed_10m_max', 'wind_direction_10m_dominant', 'precipitation_sum', 'uv_index_max', 'pressure_msl_mean'
+	'wind_speed_10m_max', 'wind_direction_10m_dominant', 'precipitation_sum', 'uv_index_max', 'pressure_msl_mean',
+	'relative_humidity_2m_mean', 'dew_point_2m_mean'
 ].join(',');
 
 /** Header the service worker sets (epoch millis) on responses it replays from cache. */

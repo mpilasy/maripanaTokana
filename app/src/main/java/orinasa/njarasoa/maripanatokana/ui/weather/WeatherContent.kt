@@ -158,11 +158,13 @@ import orinasa.njarasoa.maripanatokana.domain.model.aqiDialPosition
 import orinasa.njarasoa.maripanatokana.domain.model.uvDialPosition
 import orinasa.njarasoa.maripanatokana.domain.model.AirQualityIndex
 import orinasa.njarasoa.maripanatokana.domain.model.HourlyForecast
+import orinasa.njarasoa.maripanatokana.domain.model.Temperature
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherSource
 import orinasa.njarasoa.maripanatokana.ui.theme.DarkNavyColorInt
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFont
 import orinasa.njarasoa.maripanatokana.ui.theme.SkyBlue
+import orinasa.njarasoa.maripanatokana.ui.theme.DewAmber
 import orinasa.njarasoa.maripanatokana.ui.theme.Hairline
 import orinasa.njarasoa.maripanatokana.ui.theme.HeroGradientBottom
 import orinasa.njarasoa.maripanatokana.ui.theme.HeroGradientTop
@@ -204,6 +206,7 @@ internal enum class ForecastDisplayMode {
     Wind,
     Precipitation,
     Pressure,
+    Humidity,
     AirQuality,
     Uv,
 }
@@ -1257,6 +1260,7 @@ internal fun HourlyForecastRow(
                 ForecastDisplayMode.Precipitation to stringResource(R.string.detail_precipitation),
                 ForecastDisplayMode.Wind to stringResource(R.string.detail_wind),
                 ForecastDisplayMode.Pressure to stringResource(R.string.detail_pressure),
+                ForecastDisplayMode.Humidity to stringResource(R.string.detail_humidity),
                 ForecastDisplayMode.Uv to stringResource(R.string.detail_uv_index),
                 if (hourlyAirQuality.isNotEmpty()) ForecastDisplayMode.AirQuality to stringResource(R.string.detail_air_quality) else null,
             ),
@@ -1351,6 +1355,7 @@ internal fun HourlyForecastRow(
                                     onClick = onToggleUnits,
                                 )
                             }
+                            ForecastDisplayMode.Humidity -> HumidityDewPoint(item.humidity, item.dewPoint, metricPrimary, localizeDigits, onToggleUnits)
                             ForecastDisplayMode.Uv -> {
                                 val uv = item.uvIndex
                                 if (uv != null) {
@@ -1440,6 +1445,16 @@ internal fun HourlyForecastRow(
                         OverviewChart(values, itemWidth, itemSpacing, scrollState.value.toFloat(), totalScrollWidthPx, chartModifier,
                             height = 48.sd(scale), color = AppDarkPrimary, highLabel = dual(hi), lowLabel = dual(lo))
                     }
+                    ForecastDisplayMode.Humidity -> {
+                        val values = forecasts.map { it.humidity?.toDouble() }
+                        val (hi, lo) = extremes(values) { localizeDigits("${forecasts[it].humidity}%") }
+                        val dews = forecasts.map { f -> f.dewPoint?.takeIf { it.celsius.isFinite() }?.let { if (metricPrimary) it.celsius else it.fahrenheit } }
+                        val (dewHi, dewLo) = extremes(dews) { forecasts[it].dewPoint?.displayDual(metricPrimary) }
+                        OverviewChart(values, itemWidth, itemSpacing, scrollState.value.toFloat(), totalScrollWidthPx, chartModifier,
+                            height = 48.sd(scale), color = SkyBlue, highLabel = hi, lowLabel = lo,
+                            legend = listOf(SkyBlue to stringResource(R.string.detail_humidity), DewAmber to stringResource(R.string.detail_dewpoint)),
+                            secondValues = dews, secondColor = DewAmber, secondHighLabel = dual(dewHi), secondLowLabel = dual(dewLo))
+                    }
                     ForecastDisplayMode.Uv -> {
                         val values = forecasts.map { it.uvIndex }
                         val (hi, lo) = extremes(values) { localizeDigits("UV %.1f".format(Locale.US, forecasts[it].uvIndex)) }
@@ -1518,6 +1533,7 @@ internal fun DailyForecastList(
                 ForecastDisplayMode.Precipitation to stringResource(R.string.detail_precipitation),
                 ForecastDisplayMode.Wind to stringResource(R.string.detail_wind),
                 ForecastDisplayMode.Pressure to stringResource(R.string.detail_pressure),
+                ForecastDisplayMode.Humidity to stringResource(R.string.detail_humidity),
                 ForecastDisplayMode.Uv to stringResource(R.string.detail_uv_index),
             ) + listOfNotNull(
                 if (hourlyAirQuality.isNotEmpty()) ForecastDisplayMode.AirQuality to stringResource(R.string.detail_air_quality) else null,
@@ -1621,6 +1637,7 @@ internal fun DailyForecastList(
                                     Text(text = "--", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                                 }
                             }
+                            ForecastDisplayMode.Humidity -> HumidityDewPoint(item.humidity, item.dewPoint, metricPrimary, localizeDigits, onToggleUnits)
                             ForecastDisplayMode.Uv -> {
                                 Text(
                                     text = localizeDigits("%.1f".format(Locale.US, item.uvIndexMax)),
@@ -1721,6 +1738,16 @@ internal fun DailyForecastList(
                         highLabel = hi, lowLabel = lo,
                         legend = AqiTier.entries.map { colorsFor(it).background to aqiTierLabels[it.ordinal] })
                 }
+                ForecastDisplayMode.Humidity -> {
+                    val values = forecasts.map { it.humidity?.toDouble() }
+                    val (hi, lo) = extremes(values) { localizeDigits("${forecasts[it].humidity}%") }
+                    val dews = forecasts.map { f -> f.dewPoint?.takeIf { it.celsius.isFinite() }?.let { if (metricPrimary) it.celsius else it.fahrenheit } }
+                    val (dewHi, dewLo) = extremes(dews) { forecasts[it].dewPoint?.displayDual(metricPrimary) }
+                    OverviewChart(values, itemWidth, itemSpacing, scrollState.value.toFloat(), totalScrollWidthPx, chartModifier,
+                        height = 48.sd(scale), color = SkyBlue, highLabel = hi, lowLabel = lo,
+                        legend = listOf(SkyBlue to stringResource(R.string.detail_humidity), DewAmber to stringResource(R.string.detail_dewpoint)),
+                        secondValues = dews, secondColor = DewAmber, secondHighLabel = dual(dewHi), secondLowLabel = dual(dewLo))
+                }
                 ForecastDisplayMode.Uv -> {
                     val values = forecasts.map { it.uvIndexMax }
                     val (hi, lo) = extremes(values) { localizeDigits("UV %.1f".format(Locale.US, forecasts[it].uvIndexMax)) }
@@ -1733,6 +1760,40 @@ internal fun DailyForecastList(
                 else -> {}
             }
         }
+    }
+}
+
+/** A forecast card's humidity, with the dew point in both units under it. */
+@Composable
+private fun HumidityDewPoint(humidity: Int?, dewPoint: Temperature?, metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
+    val scale = LocalScale.current
+    Text(
+        text = humidity?.let { localizeDigits("$it%") } ?: "--",
+        fontSize = 15f.s(scale),
+        fontWeight = FontWeight.Bold,
+        fontFamily = LocalDisplayFont.current,
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (humidity != null) 1f else 0.5f),
+    )
+    if (dewPoint != null && dewPoint.celsius.isFinite()) {
+        Text(
+            text = stringResource(R.string.detail_dewpoint),
+            fontSize = 9f.s(scale),
+            // Tight lines when a long name (e.g. Malagasy) takes two
+            lineHeight = 10f.s(scale),
+            fontFamily = LocalBodyFont.current,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+            textAlign = TextAlign.Center,
+            maxLines = 2,
+            modifier = Modifier.padding(top = 2.dp),
+        )
+        val (dewP, dewS) = dewPoint.displayDual(metricPrimary)
+        DualUnitText(
+            primary = localizeDigits(dewP),
+            secondary = localizeDigits(dewS),
+            primarySize = 12f.s(scale),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            onClick = onToggleUnits,
+        )
     }
 }
 

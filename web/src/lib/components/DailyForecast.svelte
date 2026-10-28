@@ -10,6 +10,7 @@
 	import { wmoEmoji } from '#lib/api/wmoWeatherCode.js';
 	import { formatDayName, formatDayMonth } from '#lib/utils/date.js';
 	import DualUnitText from './DualUnitText.svelte';
+	import HumidityDewPoint, { DEW_COLOR } from './HumidityDewPoint.svelte';
 	import WindCompass from './WindCompass.svelte';
 	import DailyTemperatureChart from './DailyTemperatureChart.svelte';
 	import OverviewChart from './OverviewChart.svelte';
@@ -44,6 +45,7 @@
 		{ id: 'Precipitation', label: $_('detail_precipitation') },
 		{ id: 'Wind', label: $_('detail_wind') },
 		{ id: 'Pressure', label: $_('detail_pressure') },
+		{ id: 'Humidity', label: $_('detail_humidity') },
 		{ id: 'Uv', label: $_('detail_uv_index') },
 		...(airQuality ? [{ id: 'AirQuality', label: $_('detail_air_quality') }] : []),
 	]);
@@ -102,6 +104,19 @@
 				highLabel: label(indexOfMax(values)),
 				lowLabel: label(indexOfMin(values)),
 				legend: Array.isArray(labels) ? AQI_TIERS.map((t, i) => ({ color: AQI_TIER_COLORS[t], label: labels[i] })) : undefined,
+			};
+		}
+		if (displayMode === 'Humidity') {
+			const values = forecasts.map((f) => f.humidity ?? null);
+			const label = (i: number) => (values[i] != null ? loc(`${values[i]}%`) : undefined);
+			const dews = forecasts.map((f) => (f.dewPoint && Number.isFinite(f.dewPoint.celsius) ? (metricPrimary ? f.dewPoint.celsius : f.dewPoint.fahrenheit) : null));
+			return {
+				values,
+				color: '#64B5F6',
+				highLabel: label(indexOfMax(values)),
+				lowLabel: label(indexOfMin(values)),
+				legend: [{ color: '#64B5F6', label: $_('detail_humidity') }, { color: DEW_COLOR, label: $_('detail_dewpoint') }],
+				second: { values: dews, color: DEW_COLOR, highLabel: dual(forecasts[indexOfMax(dews)]?.dewPoint?.displayDual(metricPrimary)), lowLabel: dual(forecasts[indexOfMin(dews)]?.dewPoint?.displayDual(metricPrimary)) },
 			};
 		}
 		if (displayMode === 'Uv') {
@@ -178,6 +193,8 @@
 					{:else}
 						<span class="uv-value">--</span>
 					{/if}
+				{:else if displayMode === 'Humidity'}
+					<HumidityDewPoint humidity={item.humidity} dewPoint={item.dewPoint} {metricPrimary} {loc} {onToggleUnits} />
 				{:else if displayMode === 'Uv'}
 					{#if item.uvIndexMax != null && Number.isFinite(item.uvIndexMax)}
 						<span class="uv-value">{loc(item.uvIndexMax.toFixed(1))}</span>

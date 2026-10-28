@@ -41,6 +41,8 @@ fun PirateWeatherResponse.toDomain(): WeatherData {
             pressure = Pressure.fromHPa(h.pressure),
             precipitation = Precipitation.fromMm(h.precipIntensity),
             uvIndex = h.uvIndex,
+            humidity = h.humidity?.let { kotlin.math.round(it * 100).toInt() },
+            dewPoint = h.dewPoint?.let { Temperature.fromCelsius(it) },
         )
     }
 
@@ -63,6 +65,8 @@ fun PirateWeatherResponse.toDomain(): WeatherData {
             uvIndexMax = d.uvIndex,
             nightWeatherCode = nightCodes[i],
             pressure = d.pressure?.let { Pressure.fromHPa(it) },
+            humidity = d.humidity?.let { kotlin.math.round(it * 100).toInt() },
+            dewPoint = d.dewPoint?.let { Temperature.fromCelsius(it) },
         )
     }
 

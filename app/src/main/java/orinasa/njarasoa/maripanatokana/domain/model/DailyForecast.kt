@@ -20,4 +20,7 @@ data class DailyForecast(
     val nightWeatherCode: Int? = null,
     /** The day's mean sea-level pressure; missing in data saved before it was fetched. */
     val pressure: Pressure? = null,
+    /** The day's mean relative humidity (percentage) and dew point; missing in data saved before they were fetched. */
+    val humidity: Int? = null,
+    val dewPoint: Temperature? = null,
 )

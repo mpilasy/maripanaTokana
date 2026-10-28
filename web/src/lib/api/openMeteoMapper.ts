@@ -60,6 +60,8 @@ export function mapToWeatherData(response: OpenMeteoResponse, locationName: stri
 						pressure: Pressure.fromHPa(h.pressure_msl?.[actualIndex] ?? NaN),
 						precipitation: Precipitation.fromMm(h.precipitation?.[actualIndex] ?? NaN),
 						uvIndex: h.uv_index?.[actualIndex] ?? null,
+						humidity: h.relative_humidity_2m?.[actualIndex] ?? null,
+						dewPoint: h.dew_point_2m?.[actualIndex] != null ? Temperature.fromCelsius(h.dew_point_2m[actualIndex]!) : null,
 					};
 				});
 
@@ -79,6 +81,8 @@ export function mapToWeatherData(response: OpenMeteoResponse, locationName: stri
 			precipitation: Precipitation.fromMm(d.precipitation_sum?.[i] ?? NaN),
 			uvIndexMax: d.uv_index_max?.[i] ?? null,
 			pressure: Pressure.fromHPa(d.pressure_msl_mean?.[i] ?? NaN),
+			humidity: d.relative_humidity_2m_mean?.[i] != null ? Math.round(d.relative_humidity_2m_mean[i]!) : null,
+			dewPoint: d.dew_point_2m_mean?.[i] != null ? Temperature.fromCelsius(d.dew_point_2m_mean[i]!) : null,
 		};
 	});
 

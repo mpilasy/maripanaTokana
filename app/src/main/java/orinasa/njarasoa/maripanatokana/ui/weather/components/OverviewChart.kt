@@ -52,6 +52,11 @@ internal fun OverviewChart(
     legend: List<Pair<Color, String>>? = null,
     // Shown when every value is zero, so an empty chart reads as none rather than missing data
     emptyLabel: String? = null,
+    // A second line on its own scale (another unit), e.g. the dew point under the humidity; LINE only
+    secondValues: List<Double?>? = null,
+    secondColor: Color = Color.White,
+    secondHighLabel: String? = null,
+    secondLowLabel: String? = null,
 ) {
     val textMeasurer = rememberTextMeasurer()
     val displayFont = LocalDisplayFont.current
@@ -72,24 +77,33 @@ internal fun OverviewChart(
             val pad = 12.dp.toPx()
             val xScale = if (totalScrollWidth > 0f) w / totalScrollWidth else 1f
             fun xFor(i: Int) = (i * (itemWidth.toPx() + spacing.toPx()) + itemWidth.toPx() / 2) * xScale
-            fun yFor(v: Double): Float {
+            fun yFor(v: Double, lo: Double = min, hi: Double = max): Float {
                 val bottom = if (zeroBased) h - 1.5.dp.toPx() else h - pad
-                return if (max > min) (bottom - (v - min) / (max - min) * (bottom - pad)).toFloat() else (bottom + pad) / 2
+                return if (hi > lo) (bottom - (v - lo) / (hi - lo) * (bottom - pad)).toFloat() else (bottom + pad) / 2
             }
             fun colorAt(i: Int) = pointColors?.getOrNull(i) ?: color
 
             val points = values.mapIndexedNotNull { i, v -> if (v != null && v.isFinite()) i to Offset(xFor(i), yFor(v)) else null }
 
-            // Labels near an edge grow inwards so they stay inside the chart
-            fun drawLabel(text: String, i: Int, y: Float) {
-                val layout = textMeasurer.measure(text, TextStyle(color = colorAt(i), fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont))
+            // Labels near an edge grow inwards so they stay inside the chart. A label that would
+            // overlap [avoid] (another label's left and right edges) goes next to it, on its row.
+            fun drawLabel(text: String, i: Int, y: Float, labelColor: Color = colorAt(i), avoid: Pair<Float, Float>? = null, avoidY: Float = y): Pair<Float, Float> {
+                val layout = textMeasurer.measure(text, TextStyle(color = labelColor, fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont))
                 val x = xFor(i)
-                val left = when {
+                val width = layout.size.width.toFloat()
+                var left = when {
                     x < w / 4 -> (x - 4.dp.toPx()).coerceAtLeast(0f)
-                    x > w * 3 / 4 -> (x + 4.dp.toPx() - layout.size.width).coerceAtMost(w - layout.size.width)
-                    else -> x - layout.size.width / 2f
+                    x > w * 3 / 4 -> (x + 4.dp.toPx() - width).coerceAtMost(w - width)
+                    else -> x - width / 2f
                 }
-                drawText(layout, topLeft = Offset(left, y.coerceIn(0f, h - layout.size.height)))
+                var top = y
+                val gap = 6.dp.toPx()
+                if (avoid != null && left < avoid.second + gap && left + width > avoid.first - gap) {
+                    left = if (avoid.second + gap + width <= w) avoid.second + gap else (avoid.first - gap - width).coerceAtLeast(0f)
+                    top = avoidY
+                }
+                drawText(layout, topLeft = Offset(left, top.coerceIn(0f, h - layout.size.height)))
+                return left to left + width
             }
 
             if (style == OverviewStyle.BARS) {
@@ -108,21 +122,41 @@ internal fun OverviewChart(
                     drawLabel(highLabel, highIndex, yFor(max) - 12.dp.toPx())
                 }
             } else {
-                if (points.size >= 2) {
-                    val offsets = points.map { it.second }
+                fun drawCurve(offsets: List<Offset>, lineColor: Color) {
+                    if (offsets.size < 2) return
                     val cps = computeMonotoneCubicControlPoints(offsets)
                     val path = Path().apply {
                         moveTo(offsets[0].x, offsets[0].y)
                         cps.forEachIndexed { k, cp -> cubicTo(cp.cp1.x, cp.cp1.y, cp.cp2.x, cp.cp2.y, offsets[k + 1].x, offsets[k + 1].y) }
                     }
-                    drawPath(path, color.copy(alpha = if (pointColors != null) 0.5f else 1f), style = Stroke(2.dp.toPx()))
+                    drawPath(path, lineColor, style = Stroke(2.dp.toPx()))
                 }
+                // The second line first, so the main line stays on top
+                val second = secondValues?.let { vs ->
+                    val valid2 = vs.filterNotNull().filter { it.isFinite() }
+                    val hi2 = valid2.maxOrNull() ?: return@let null
+                    val lo2 = valid2.min()
+                    val points2 = vs.mapIndexedNotNull { i, v -> if (v != null && v.isFinite()) i to Offset(xFor(i), yFor(v, lo2, hi2)) else null }
+                    drawCurve(points2.map { it.second }, secondColor)
+                    points2.forEach { (_, p) -> drawCircle(secondColor, 2.5.dp.toPx(), p) }
+                    Triple(vs, lo2, hi2)
+                }
+                drawCurve(points.map { it.second }, color.copy(alpha = if (pointColors != null) 0.5f else 1f))
                 points.forEach { (i, p) -> drawCircle(colorAt(i), 3.dp.toPx(), p) }
-                if (highLabel != null && highIndex >= 0) drawLabel(highLabel, highIndex, yFor(max) - 14.dp.toPx())
+                val highY = yFor(max) - 14.dp.toPx()
+                val highSpan = if (highLabel != null && highIndex >= 0) drawLabel(highLabel, highIndex, highY) else null
                 if (zeroBased) drawLine(Color.White.copy(alpha = 0.2f), Offset(0f, h - 0.5f), Offset(w, h - 0.5f), 1.dp.toPx())
                 // Below the point, or above it when the point sits on the zero line
-                if (lowLabel != null && lowIndex >= 0 && max > lowest) {
-                    drawLabel(lowLabel, lowIndex, if (zeroBased) yFor(lowest) - 14.dp.toPx() else yFor(lowest) + 3.dp.toPx())
+                val lowY = if (zeroBased) yFor(lowest) - 14.dp.toPx() else yFor(lowest) + 3.dp.toPx()
+                val lowSpan = if (lowLabel != null && lowIndex >= 0 && max > lowest) drawLabel(lowLabel, lowIndex, lowY) else null
+                // The second line's labels last, so no line covers them
+                second?.let { (vs, lo2, hi2) ->
+                    if (secondHighLabel != null) {
+                        drawLabel(secondHighLabel, vs.indexOf(hi2), yFor(hi2, lo2, hi2) - 14.dp.toPx(), secondColor, highSpan, highY)
+                    }
+                    if (secondLowLabel != null && hi2 > lo2) {
+                        drawLabel(secondLowLabel, vs.indexOf(lo2), yFor(lo2, lo2, hi2) + 3.dp.toPx(), secondColor, lowSpan, lowY)
+                    }
                 }
             }
 

@@ -31,6 +31,8 @@ export interface HourlyForecast {
 	pressure: Pressure;
 	precipitation: Precipitation;
 	uvIndex?: number | null;
+	humidity?: number | null; // percentage
+	dewPoint?: Temperature | null;
 }
 
 export interface HourlyAirQuality {
@@ -53,6 +55,9 @@ export interface DailyForecast {
 	uvIndexMax: number | null;
 	/** The day's mean sea-level pressure; missing in data saved before it was fetched. */
 	pressure?: Pressure;
+	/** The day's mean relative humidity (percentage) and dew point; missing in data saved before they were fetched. */
+	humidity?: number | null;
+	dewPoint?: Temperature | null;
 }
 
 export interface MinutelyForecast {

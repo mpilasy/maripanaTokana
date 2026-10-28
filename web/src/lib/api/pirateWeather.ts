@@ -59,6 +59,8 @@ export async function fetchPirateWeather(lat: number, lon: number, apiKey: strin
 		pressure: Pressure.fromHPa(h.pressure ?? 1013),
 		precipitation: Precipitation.fromMm(h.precipIntensity ?? 0),
 		uvIndex: h.uvIndex ?? null,
+		humidity: h.humidity != null ? Math.round(h.humidity * 100) : null,
+		dewPoint: h.dewPoint != null ? Temperature.fromCelsius(h.dewPoint) : null,
 	}));
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -81,6 +83,8 @@ export async function fetchPirateWeather(lat: number, lon: number, apiKey: strin
 		precipitation: Precipitation.fromMm(day.precipIntensity ?? 0),
 		uvIndexMax: day.uvIndex ?? null,
 		pressure: Pressure.fromHPa(day.pressure ?? NaN),
+		humidity: day.humidity != null ? Math.round(day.humidity * 100) : null,
+		dewPoint: day.dewPoint != null ? Temperature.fromCelsius(day.dewPoint) : null,
 	}));
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
