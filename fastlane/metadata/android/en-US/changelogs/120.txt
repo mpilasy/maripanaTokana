@@ -1,0 +1,2 @@
+- Forecast charts: slide a finger along a chart to see the hour or the day. The row of cards scrolls to it.
+- Share the hourly or daily forecast: the image shows all the hours or days on one line.

@@ -1,0 +1,2 @@
+- Graphiques des prévisions : faites glisser un doigt sur un graphique pour voir l'heure ou le jour. La rangée de cartes défile jusqu'à lui.
+- Partage des prévisions horaires ou journalières : l'image montre toutes les heures ou tous les jours sur une ligne.

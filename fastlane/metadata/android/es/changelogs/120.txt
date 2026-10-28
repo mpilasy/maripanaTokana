@@ -1,0 +1,2 @@
+- Gráficos del pronóstico: desliza un dedo por un gráfico para ver la hora o el día. La fila de tarjetas se desplaza hasta él.
+- Compartir el pronóstico por horas o por días: la imagen muestra todas las horas o todos los días en una línea.

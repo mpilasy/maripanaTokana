@@ -9,6 +9,12 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261028234248] - 2026-10-28
+- Hourly and daily forecast charts: slide a finger along a chart to see the hour or the day under it (a line and a label). The row of cards scrolls to that hour or day. Only a horizontal slide starts it, so the page still scrolls up and down.
+- The share image of the hourly and daily forecasts shows all the hours or days on one line, with the selected tab and the full chart.
+- Web: the weather icons now show in share images.
+- Release workflow: the F-Droid build, our build and the VirusTotal scan run at the same time, so a release takes about 8 minutes instead of 17.
+
 ## [1.6.20261028191734] - 2026-10-28
 - New Moon card next to the Sun card, with the same layout: the moon's arc across the sky, the part lit, moonrise and moonset, the phase (shown as south of the equator when the place is), and the azimuth. The app calculates these on the device (SunCalc formulas).
 - Sun card: the length of the day (hours:minutes) under the arc.
