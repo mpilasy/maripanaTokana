@@ -6,23 +6,22 @@ on:
       - 'v*'
   workflow_dispatch:
 
+# The F-Droid build starts at the same time as our build. The VirusTotal scan
+# starts when our build is done. The release job waits for all three.
 jobs:
   build:
     runs-on: ubuntu-26.04
-    permissions:
-      contents: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
 
       - name: Set up JDK 21
         uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
           java-version: '21'
+          cache: 'gradle'
 
       - name: Set up Node.js
         uses: actions/setup-node@v7
@@ -30,8 +29,11 @@ jobs:
           node-version: '24'
 
       - name: Check the release notes
-        if: startsWith(github.ref, 'refs/tags/')
-        run: python3 scripts/release_notes.py "${{ github.ref_name }}" > "$RUNNER_TEMP/release_notes.md"
+        run: |
+          mkdir -p dist
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            python3 scripts/release_notes.py "${{ github.ref_name }}" > dist/release_notes.md
+          fi
 
       - name: Generate i18n strings
         run: node shared/i18n/generate-android-strings.js
@@ -52,8 +54,7 @@ jobs:
           fi
           ./gradlew assembleFdroidRelease assembleStandardRelease
 
-      - name: RENAME AND HASH
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: RENAME
         run: |
           set -e
           APK_PATH=$(find app/build/outputs/apk/fdroid/release -name "*.apk" | head -n 1)
@@ -61,39 +62,106 @@ jobs:
             echo "::error::Could not find APK file."
             exit 1
           fi
-          RENAMED_APK="app/build/outputs/apk/fdroid/release/maripanaTokana-${{ github.ref_name }}.apk"
-          mv "$APK_PATH" "$RENAMED_APK"
-          HASH=$(sha256sum "$RENAMED_APK" | awk '{print $1}')
-          echo "APK_HASH=$HASH" >> $GITHUB_ENV
-          echo "RENAMED_APK_PATH=$RENAMED_APK" >> $GITHUB_ENV
+          cp "$APK_PATH" "dist/maripanaTokana-${{ github.ref_name }}.apk"
           # The standard APK has its own name: F-Droid's Binaries URL must point to the F-Droid APK only
           STANDARD_APK_PATH=$(find app/build/outputs/apk/standard/release -name "*.apk" | head -n 1)
           if [ -z "$STANDARD_APK_PATH" ]; then
             echo "::error::Could not find standard APK file."
             exit 1
           fi
-          STANDARD_APK="app/build/outputs/apk/standard/release/maripanaTokana-standard-${{ github.ref_name }}.apk"
-          mv "$STANDARD_APK_PATH" "$STANDARD_APK"
-          echo "STANDARD_APK_HASH=$(sha256sum "$STANDARD_APK" | awk '{print $1}')" >> $GITHUB_ENV
-          echo "STANDARD_APK_PATH=$STANDARD_APK" >> $GITHUB_ENV
+          cp "$STANDARD_APK_PATH" "dist/maripanaTokana-standard-${{ github.ref_name }}.apk"
 
-      # F-Droid publishes a version only if its own build is the same as our
-      # signed APK. Stop here, before the metadata and the release, if not.
-      - name: Check the F-Droid build
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Upload the APKs
+        uses: actions/upload-artifact@v7
+        with:
+          name: apks
+          path: dist/
+          if-no-files-found: error
+
+  # F-Droid publishes a version only if its own build is the same as our
+  # signed APK. This job does F-Droid's build. The release job compares.
+  fdroid:
+    runs-on: ubuntu-26.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Do the F-Droid build
         run: |
           V_NAME=$(grep "versionName =" app/build.gradle.kts | head -n 1 | awk -F'"' '{print $2}')
           V_CODE=$(grep "versionCode =" app/build.gradle.kts | head -n 1 | sed 's/.*= \(.*\)/\1/' | tr -d '[:space:]')
-          scripts/fdroid_check.sh "$V_NAME" "$V_CODE" "$(git rev-parse HEAD)" "${{ env.RENAMED_APK_PATH }}"
+          mkdir -p fdroid-out
+          scripts/fdroid_check.sh --build-only "$V_NAME" "$V_CODE" "${{ github.sha }}" fdroid-out/unsigned.apk
 
-      # Stop the release if a VirusTotal engine says that an APK is malicious.
+      - name: Upload the F-Droid APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: fdroid-unsigned
+          path: fdroid-out/unsigned.apk
+          if-no-files-found: error
+
+  # Stop the release if a VirusTotal engine says that an APK is malicious.
+  scan:
+    needs: build
+    runs-on: ubuntu-26.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Download the APKs
+        uses: actions/download-artifact@v8
+        with:
+          name: apks
+          path: dist
+
       - name: Scan the APKs on VirusTotal
-        if: startsWith(github.ref, 'refs/tags/')
         env:
           VT_API_KEY: ${{ secrets.VT_API_KEY }}
+        run: python3 scripts/virustotal_check.py dist/*.apk
+
+  release:
+    needs: [build, fdroid, scan]
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Download the APKs
+        uses: actions/download-artifact@v8
+        with:
+          name: apks
+          path: dist
+
+      - name: Download the F-Droid APK
+        uses: actions/download-artifact@v8
+        with:
+          name: fdroid-unsigned
+          path: fdroid-out
+
+      - name: Install fdroidserver
+        run: pip install fdroidserver --quiet
+
+      - name: Check the F-Droid build
         run: |
-          python3 scripts/virustotal_check.py "${{ env.RENAMED_APK_PATH }}"
-          python3 scripts/virustotal_check.py "${{ env.STANDARD_APK_PATH }}"
+          python3 scripts/fdroid_compare.py "dist/maripanaTokana-${{ github.ref_name }}.apk" fdroid-out/unsigned.apk
+          echo "F-Droid check passed: the F-Droid build is the same as the signed APK."
+
+      - name: HASH
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          RENAMED_APK="dist/maripanaTokana-${{ github.ref_name }}.apk"
+          STANDARD_APK="dist/maripanaTokana-standard-${{ github.ref_name }}.apk"
+          echo "APK_HASH=$(sha256sum "$RENAMED_APK" | awk '{print $1}')" >> $GITHUB_ENV
+          echo "RENAMED_APK_PATH=$RENAMED_APK" >> $GITHUB_ENV
+          echo "STANDARD_APK_HASH=$(sha256sum "$STANDARD_APK" | awk '{print $1}')" >> $GITHUB_ENV
+          echo "STANDARD_APK_PATH=$STANDARD_APK" >> $GITHUB_ENV
 
       - name: UPDATE METADATA AND PUSH
         if: startsWith(github.ref, 'refs/tags/')
@@ -113,7 +181,6 @@ jobs:
             grep "Binaries" "metadata/$APP_ID.yml" | cat -A
             exit 1
           fi
-          pip install fdroidserver --quiet
           # fdroid rewritemeta is run for its own validation (a hard failure here means a
           # real schema/lint problem), but its reformatted output is NOT what gets pushed.
           # It has been observed to non-deterministically alter byte-for-byte formatting
@@ -143,7 +210,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         run: |
           {
-            cat "$RUNNER_TEMP/release_notes.md"
+            cat dist/release_notes.md
             echo
             echo "maripanaTokana-${{ github.ref_name }}.apk (F-Droid version, no Google Play Services)"
             echo "SHA256: ${{ env.APK_HASH }}"

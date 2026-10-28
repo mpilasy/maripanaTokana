@@ -13,11 +13,21 @@ set -euo pipefail
 # the large clone on F-Droid's server.
 #
 # Usage: scripts/fdroid_check.sh VERSION_NAME VERSION_CODE COMMIT SIGNED_APK
+#        scripts/fdroid_check.sh --build-only VERSION_NAME VERSION_CODE COMMIT UNSIGNED_OUT
 # Example: scripts/fdroid_check.sh 1.6.20261028114142 116 ccf3f64... app.apk
 # The commit must be on GitHub, because fdroid build clones from there.
+# With --build-only, the script does not compare. It writes F-Droid's unsigned
+# APK to UNSIGNED_OUT. Compare it later with scripts/fdroid_compare.py. The
+# release workflow does this, so that the F-Droid build and our build can run
+# at the same time.
 
+BUILD_ONLY=
+if [ "${1:-}" = "--build-only" ]; then
+    BUILD_ONLY=1
+    shift
+fi
 if [ $# -ne 4 ]; then
-    echo "Usage: $0 VERSION_NAME VERSION_CODE COMMIT SIGNED_APK" >&2
+    echo "Usage: $0 [--build-only] VERSION_NAME VERSION_CODE COMMIT SIGNED_APK|UNSIGNED_OUT" >&2
     exit 2
 fi
 V_NAME=$1
@@ -30,8 +40,12 @@ ROOT=$(cd "$(dirname "$0")/.." && pwd)
 
 WORK=$(mktemp -d); echo "Work dir: $WORK" >&2
 [ -n "${KEEP:-}" ] || trap 'docker run --rm -v "$WORK:/work" "$IMAGE" rm -rf /work/build /work/tmp /work/unsigned /work/logs >/dev/null 2>&1 || true; rm -rf "$WORK"' EXIT
-mkdir -p "$WORK/metadata" "$WORK/build" "$WORK/ref"
-cp "$APK" "$WORK/ref/$APP_ID.apk"
+mkdir -p "$WORK/metadata" "$WORK/build"
+cp "$ROOT/scripts/fdroid_compare.py" "$WORK/"
+if [ -z "$BUILD_ONLY" ]; then
+    mkdir -p "$WORK/ref"
+    cp "$APK" "$WORK/ref/$APP_ID.apk"
+fi
 
 # Our metadata, with this build. Binaries is removed: the signed APK is not
 # on GitHub yet, so the comparison is done after the build (see inner.sh),
@@ -80,21 +94,27 @@ sudo --preserve-env --user vagrant env PATH=$fdroidserver:$PATH \
     HOME=$home_vagrant GRADLE_USER_HOME=$home_vagrant/.gradle \
     fdroid build --verbose --test --on-server --no-tarball $BUILD
 UNSIGNED=$(ls /work/tmp/${APP_ID}_*.apk)
-cd /tmp
-PYTHONPATH=$fdroidserver python3 -c "
-import sys, tempfile
-from fdroidserver import common
-common.config = common.read_config() if hasattr(common, 'read_config') else {}
-with tempfile.TemporaryDirectory() as d:
-    err = common.verify_apks('/work/ref/$APP_ID.apk', '$UNSIGNED', d)
-print(err or 'compared built binary to supplied reference binary successfully')
-"
+cp "$UNSIGNED" /work/unsigned.apk
+echo "F-Droid build done: $UNSIGNED"
+if [ -f /work/ref/$APP_ID.apk ]; then
+    PYTHONPATH=$fdroidserver python3 /work/fdroid_compare.py /work/ref/$APP_ID.apk "$UNSIGNED" || true
+fi
 EOF
 
 LOG="$WORK/fdroid_build.log"
 set +e
 docker run --rm -e HOST_UID="$(id -u):$(id -g)" -v "$WORK:/work" "$IMAGE" bash /work/inner.sh "$APP_ID:$V_CODE" > "$LOG" 2>&1
 set -e
+if [ -n "$BUILD_ONLY" ]; then
+    if grep -q "^F-Droid build done:" "$LOG"; then
+        cp "$WORK/unsigned.apk" "$APK"
+        echo "F-Droid build of $V_NAME ($V_CODE) done: $APK"
+        exit 0
+    fi
+    tail -60 "$LOG" >&2
+    echo "F-Droid build FAILED for $V_NAME ($V_CODE). See the log above." >&2
+    exit 1
+fi
 if grep -q "compared built binary to supplied reference binary successfully" "$LOG"; then
     echo "F-Droid check passed: the F-Droid build of $V_NAME ($V_CODE) is the same as the signed APK."
     exit 0

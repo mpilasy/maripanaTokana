@@ -51,6 +51,8 @@ The file should have no `plugins {}` block — just `pluginManagement`, `depende
 
 F-Droid doesn't allow downloading JDKs during builds. Combined with `jvmToolchain(21)` (vendor-agnostic), the build uses whatever JDK 21 is already on the server.
 
+**`org.gradle.parallel=true` and `org.gradle.caching=true`** make local and CI builds faster. They do not change the APK: the F-Droid check in the release workflow compares the APKs byte for byte.
+
 **`dependenciesInfo { includeInApk = false; includeInBundle = false }` — MUST stay in `app/build.gradle.kts`**
 
 AGP 8+ embeds a "Dependency metadata" block in the APK's signing block by default. F-Droid's `fdroid-suss` scanner rejects any APK containing this block:
@@ -469,10 +471,13 @@ The script performs these steps:
 8. Commits the metadata with `[skip ci]`.
 9. Pushes `main` and the tag.
 
-The tag push starts `.github/workflows/fdroid-build.yml`. The build takes about 5 to 10 minutes. The workflow:
-1. Builds the F-Droid and standard flavors (`assembleFdroidRelease assembleStandardRelease`).
-2. Checks the release notes first: it stops when `CHANGELOG.md` has no entry for the tag (`scripts/release_notes.py`). Creates a GitHub release with the `CHANGELOG.md` entry as its notes and two APKs: `maripanaTokana-vX.Y.Z.apk` (F-Droid flavor) and `maripanaTokana-standard-vX.Y.Z.apk` (standard flavor).
-3. Runs `scripts/update_metadata.py` again, validates the `Binaries: ` line, and pushes an `Update F-Droid metadata for vX.Y.Z [skip ci]` commit to `main` if the file changed. Pull this commit before the next change.
+The tag push starts `.github/workflows/fdroid-build.yml`. The workflow takes about 10 minutes. It has four jobs:
+1. `build`: checks the release notes first and stops when `CHANGELOG.md` has no entry for the tag (`scripts/release_notes.py`). Then builds the F-Droid and standard flavors (`assembleFdroidRelease assembleStandardRelease`). The Gradle files come from the cache that `ci.yml` saves on `main` (`setup-java` with `cache: 'gradle'`).
+2. `fdroid`: at the same time as `build`, does F-Droid's build of the tag (`scripts/fdroid_check.sh --build-only`).
+3. `scan`: after `build`, scans both APKs on VirusTotal, at the same time as `fdroid`.
+4. `release`: after the other three, compares our F-Droid APK with F-Droid's build (`scripts/fdroid_compare.py`). Then runs `scripts/update_metadata.py` again, validates the `Binaries: ` line, and pushes an `Update F-Droid metadata for vX.Y.Z [skip ci]` commit to `main` if the file changed. Pull this commit before the next change. Last, creates a GitHub release with the `CHANGELOG.md` entry as its notes and two APKs: `maripanaTokana-vX.Y.Z.apk` (F-Droid flavor) and `maripanaTokana-standard-vX.Y.Z.apk` (standard flavor).
+
+A manual run (`workflow_dispatch`) does the same jobs on `main`, but does not update the metadata or make a release.
 
 Each push to `main` also starts `ci.yml` (i18n parity, Android unit tests and lint, web check, tests and build) and `version-sync-check.yml`.
 

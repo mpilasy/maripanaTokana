@@ -3,13 +3,13 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Scan an APK on VirusTotal before a release is published.
 
-Usage: VT_API_KEY=... scripts/virustotal_check.py FILE
+Usage: VT_API_KEY=... scripts/virustotal_check.py FILE [FILE...]
 
-Uploads FILE (or uses the result VirusTotal already has for its SHA-256),
-waits for the analysis, and prints the result. Exits with 1 if one or more
-engines say "malicious". "Suspicious" results are printed but do not fail.
-The public API allows 4 requests a minute, so the script waits 20 s between
-requests.
+Uploads each FILE (or uses the result VirusTotal already has for its SHA-256),
+waits for the analyses, and prints the results. The files are scanned at the
+same time. Exits with 1 if one or more engines say "malicious" for a file.
+"Suspicious" results are printed but do not fail. The public API allows 4
+requests a minute, so the script waits 15 s between requests.
 """
 
 import hashlib
@@ -22,11 +22,17 @@ import urllib.request
 import uuid
 
 API = "https://www.virustotal.com/api/v3"
-WAIT = 20
+WAIT = 15
 TIMEOUT = 30 * 60
 
 
+_last_request = 0.0
+
+
 def request(method, path, key, body=None, content_type=None):
+    global _last_request
+    time.sleep(max(0.0, _last_request + WAIT - time.time()))
+    _last_request = time.time()
     req = urllib.request.Request(API + path, data=body, method=method)
     req.add_header("x-apikey", key)
     if content_type:
@@ -60,37 +66,43 @@ def report(stats, results, sha256):
 
 
 def main():
-    if len(sys.argv) != 2:
+    if len(sys.argv) < 2:
         print(__doc__, file=sys.stderr)
         return 2
-    path = sys.argv[1]
     key = os.environ.get("VT_API_KEY")
     if not key:
         print("VT_API_KEY is not set", file=sys.stderr)
         return 2
-    with open(path, "rb") as f:
-        sha256 = hashlib.sha256(f.read()).hexdigest()
-    print(f"File: {path}\nSHA-256: {sha256}")
 
-    try:
-        attrs = request("GET", f"/files/{sha256}", key)["data"]["attributes"]
-        if attrs.get("last_analysis_results"):
-            print("VirusTotal already has a result for this file.")
-            return report(attrs["last_analysis_stats"], attrs["last_analysis_results"], sha256)
-    except urllib.error.HTTPError as e:
-        if e.code != 404:
-            raise
+    failed = 0
+    pending = {}  # analysis ID -> (path, sha256)
+    for path in sys.argv[1:]:
+        with open(path, "rb") as f:
+            sha256 = hashlib.sha256(f.read()).hexdigest()
+        try:
+            attrs = request("GET", f"/files/{sha256}", key)["data"]["attributes"]
+            if attrs.get("last_analysis_results"):
+                print(f"File: {path}\nSHA-256: {sha256}\nVirusTotal already has a result for this file.")
+                failed |= report(attrs["last_analysis_stats"], attrs["last_analysis_results"], sha256)
+                continue
+        except urllib.error.HTTPError as e:
+            if e.code != 404:
+                raise
+        pending[upload(path, key)] = (path, sha256)
+        print(f"Uploaded {path}. Waiting for the analysis...")
 
-    analysis = upload(path, key)
-    print("Uploaded. Waiting for the analysis...")
     deadline = time.time() + TIMEOUT
-    while time.time() < deadline:
-        time.sleep(WAIT)
-        attrs = request("GET", f"/analyses/{analysis}", key)["data"]["attributes"]
-        if attrs.get("status") == "completed":
-            return report(attrs["stats"], attrs.get("results", {}), sha256)
-    print("The VirusTotal analysis did not complete in time", file=sys.stderr)
-    return 1
+    while pending and time.time() < deadline:
+        for analysis, (path, sha256) in list(pending.items()):
+            attrs = request("GET", f"/analyses/{analysis}", key)["data"]["attributes"]
+            if attrs.get("status") == "completed":
+                print(f"File: {path}\nSHA-256: {sha256}")
+                failed |= report(attrs["stats"], attrs.get("results", {}), sha256)
+                del pending[analysis]
+    for path, _ in pending.values():
+        print(f"The VirusTotal analysis of {path} did not complete in time", file=sys.stderr)
+        failed = 1
+    return failed
 
 
 if __name__ == "__main__":
