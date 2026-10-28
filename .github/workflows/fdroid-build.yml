@@ -86,6 +86,15 @@ jobs:
           V_CODE=$(grep "versionCode =" app/build.gradle.kts | head -n 1 | sed 's/.*= \(.*\)/\1/' | tr -d '[:space:]')
           scripts/fdroid_check.sh "$V_NAME" "$V_CODE" "$(git rev-parse HEAD)" "${{ env.RENAMED_APK_PATH }}"
 
+      # Stop the release if a VirusTotal engine says that an APK is malicious.
+      - name: Scan the APKs on VirusTotal
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          VT_API_KEY: ${{ secrets.VT_API_KEY }}
+        run: |
+          python3 scripts/virustotal_check.py "${{ env.RENAMED_APK_PATH }}"
+          python3 scripts/virustotal_check.py "${{ env.STANDARD_APK_PATH }}"
+
       - name: UPDATE METADATA AND PUSH
         if: startsWith(github.ref, 'refs/tags/')
         run: |
