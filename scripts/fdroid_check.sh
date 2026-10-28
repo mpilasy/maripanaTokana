@@ -52,6 +52,8 @@ cat > "$WORK/inner.sh" <<'EOF'
 #!/bin/bash
 # Follows the "fdroid build" job of fdroiddata's .gitlab-ci.yml.
 set -e
+# Give the files back to the caller, whose user ID can differ from vagrant's.
+trap 'chown -R "$HOST_UID" /work' EXIT
 BUILD=$1
 APP_ID=${BUILD%:*}
 export ANDROID_HOME=/opt/android-sdk
@@ -91,7 +93,7 @@ EOF
 
 LOG="$WORK/fdroid_build.log"
 set +e
-docker run --rm -v "$WORK:/work" "$IMAGE" bash /work/inner.sh "$APP_ID:$V_CODE" > "$LOG" 2>&1
+docker run --rm -e HOST_UID="$(id -u):$(id -g)" -v "$WORK:/work" "$IMAGE" bash /work/inner.sh "$APP_ID:$V_CODE" > "$LOG" 2>&1
 set -e
 if grep -q "compared built binary to supplied reference binary successfully" "$LOG"; then
     echo "F-Droid check passed: the F-Droid build of $V_NAME ($V_CODE) is the same as the signed APK."
