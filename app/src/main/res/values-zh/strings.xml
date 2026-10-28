@@ -81,6 +81,10 @@
     <string name="detail_precipitation">降水</string>
     <string name="detail_cloud_cover">云量</string>
     <string name="detail_sunset">日落</string>
+    <string name="detail_moon">月亮</string>
+    <string name="detail_moonrise">月出</string>
+    <string name="detail_moonset">月落</string>
+    <string name="detail_azimuth">方位角</string>
     <string name="detail_air_quality">空气质量</string>
     <string name="detail_sun">太阳</string>
     <string name="tab_conditions">天气</string>
@@ -297,5 +301,15 @@
         <item>不健康</item>
         <item>非常不健康</item>
         <item>危险</item>
+    </string-array>
+    <string-array name="moon_phases">
+        <item>新月</item>
+        <item>蛾眉月</item>
+        <item>上弦月</item>
+        <item>盈凸月</item>
+        <item>满月</item>
+        <item>亏凸月</item>
+        <item>下弦月</item>
+        <item>残月</item>
     </string-array>
 </resources>

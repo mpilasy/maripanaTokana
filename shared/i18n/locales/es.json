@@ -104,6 +104,10 @@
 	"detail_precipitation": "Precipitación",
 	"detail_cloud_cover": "Nubosidad",
 	"detail_sunset": "Atardecer",
+	"detail_moon": "Luna",
+	"detail_moonrise": "Salida de la luna",
+	"detail_moonset": "Puesta de la luna",
+	"detail_azimuth": "Acimut",
 	"detail_air_quality": "Calidad del aire",
 	"detail_sun": "Sol",
 	"tab_conditions": "Condiciones",
@@ -321,5 +325,15 @@
 	"device_processor": "Procesador",
 	"device_memory": "Memoria",
 	"device_installer": "Instalada desde",
-	"device_touch": "Puntos táctiles"
+	"device_touch": "Puntos táctiles",
+	"moon_phases": [
+		"Luna nueva",
+		"Creciente",
+		"Cuarto creciente",
+		"Gibosa creciente",
+		"Luna llena",
+		"Gibosa menguante",
+		"Cuarto menguante",
+		"Menguante"
+	]
 }

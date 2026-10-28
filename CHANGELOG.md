@@ -8,6 +8,12 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 `v1.0.18-*` tags) are not listed. There is no 1.4.2 tag: that version was withdrawn.
 
 ## [Unreleased]
+- New Moon card next to the Sun card, with the same layout: the moon's arc across the sky, the part lit, moonrise and moonset, the phase (shown as south of the equator when the place is), and the azimuth. The app calculates these on the device (SunCalc formulas).
+- Sun card: the length of the day (hours:minutes) under the arc.
+- Pressure, air quality and UV cards: a large dial in the middle of the card with both units in it; the air quality and UV levels are badges in the dial.
+- New Cloud cover card with a dial, next to Visibility. The precipitation card no longer shows the cloud cover.
+- Humidity card: the dew point label and its values are on separate lines.
+- Malagasy: "Tako-drahona" for cloud cover.
 
 ## [1.6.20261028182225] - 2026-10-28
 - Hourly and daily forecasts: a new Humidity tab. Each card shows the relative humidity and the dew point in both units, and the chart under the cards shows the humidity (blue) and the dew point (amber), each on its own scale. The daily values are the means for the day.

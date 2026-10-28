@@ -104,6 +104,10 @@
 	"detail_precipitation": "降水",
 	"detail_cloud_cover": "云量",
 	"detail_sunset": "日落",
+	"detail_moon": "月亮",
+	"detail_moonrise": "月出",
+	"detail_moonset": "月落",
+	"detail_azimuth": "方位角",
 	"detail_air_quality": "空气质量",
 	"detail_sun": "太阳",
 	"tab_conditions": "天气",
@@ -321,5 +325,15 @@
 	"device_processor": "处理器",
 	"device_memory": "内存",
 	"device_installer": "安装来源",
-	"device_touch": "触控点"
+	"device_touch": "触控点",
+	"moon_phases": [
+		"新月",
+		"蛾眉月",
+		"上弦月",
+		"盈凸月",
+		"满月",
+		"亏凸月",
+		"下弦月",
+		"残月"
+	]
 }

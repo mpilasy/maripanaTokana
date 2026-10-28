@@ -104,6 +104,10 @@
 	"detail_precipitation": "الهطول",
 	"detail_cloud_cover": "الغطاء السحابي",
 	"detail_sunset": "غروب الشمس",
+	"detail_moon": "القمر",
+	"detail_moonrise": "شروق القمر",
+	"detail_moonset": "غروب القمر",
+	"detail_azimuth": "السمت",
 	"detail_air_quality": "جودة الهواء",
 	"detail_sun": "الشمس",
 	"tab_conditions": "الطقس",
@@ -321,5 +325,15 @@
 	"device_processor": "المعالج",
 	"device_memory": "الذاكرة",
 	"device_installer": "مُثبّت من",
-	"device_touch": "نقاط اللمس"
+	"device_touch": "نقاط اللمس",
+	"moon_phases": [
+		"محاق",
+		"هلال متزايد",
+		"تربيع أول",
+		"أحدب متزايد",
+		"بدر",
+		"أحدب متناقص",
+		"تربيع أخير",
+		"هلال متناقص"
+	]
 }

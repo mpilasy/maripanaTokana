@@ -81,6 +81,10 @@
     <string name="detail_precipitation">Précipitations</string>
     <string name="detail_cloud_cover">Couverture nuageuse</string>
     <string name="detail_sunset">Coucher du soleil</string>
+    <string name="detail_moon">Lune</string>
+    <string name="detail_moonrise">Lever de la lune</string>
+    <string name="detail_moonset">Coucher de la lune</string>
+    <string name="detail_azimuth">Azimut</string>
     <string name="detail_air_quality">Qualité de l\'air</string>
     <string name="detail_sun">Soleil</string>
     <string name="tab_conditions">Conditions</string>
@@ -297,5 +301,15 @@
         <item>Mauvaise</item>
         <item>Très mauvaise</item>
         <item>Dangereuse</item>
+    </string-array>
+    <string-array name="moon_phases">
+        <item>Nouvelle lune</item>
+        <item>Premier croissant</item>
+        <item>Premier quartier</item>
+        <item>Gibbeuse croissante</item>
+        <item>Pleine lune</item>
+        <item>Gibbeuse décroissante</item>
+        <item>Dernier quartier</item>
+        <item>Dernier croissant</item>
     </string-array>
 </resources>

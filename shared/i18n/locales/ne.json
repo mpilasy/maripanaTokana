@@ -104,6 +104,10 @@
 	"detail_precipitation": "वर्षा",
 	"detail_cloud_cover": "बादल आवरण",
 	"detail_sunset": "सूर्यास्त",
+	"detail_moon": "चन्द्रमा",
+	"detail_moonrise": "चन्द्रोदय",
+	"detail_moonset": "चन्द्रास्त",
+	"detail_azimuth": "दिगंश",
 	"detail_air_quality": "वायु गुणस्तर",
 	"detail_sun": "सूर्य",
 	"tab_conditions": "मौसम",
@@ -321,5 +325,15 @@
 	"device_processor": "प्रोसेसर",
 	"device_memory": "मेमोरी",
 	"device_installer": "यहाँबाट स्थापना",
-	"device_touch": "टच बिन्दु"
+	"device_touch": "टच बिन्दु",
+	"moon_phases": [
+		"औँसी",
+		"बढ्दो अर्धचन्द्र",
+		"पहिलो चौथाइ",
+		"बढ्दो कुब्ज चन्द्र",
+		"पूर्णिमा",
+		"घट्दो कुब्ज चन्द्र",
+		"अन्तिम चौथाइ",
+		"घट्दो अर्धचन्द्र"
+	]
 }

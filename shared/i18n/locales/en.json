@@ -103,6 +103,10 @@
 	"detail_visibility": "Visibility",
 	"detail_sunrise": "Sunrise",
 	"detail_sunset": "Sunset",
+	"detail_moon": "Moon",
+	"detail_moonrise": "Moonrise",
+	"detail_moonset": "Moonset",
+	"detail_azimuth": "Azimuth",
 	"detail_cloud_cover": "Cloud Cover",
 	"detail_air_quality": "Air Quality",
 	"detail_sun": "Sun",
@@ -321,5 +325,15 @@
 	"device_processor": "Processor",
 	"device_memory": "Memory",
 	"device_installer": "Installed from",
-	"device_touch": "Touch points"
+	"device_touch": "Touch points",
+	"moon_phases": [
+		"New moon",
+		"Waxing crescent",
+		"First quarter",
+		"Waxing gibbous",
+		"Full moon",
+		"Waning gibbous",
+		"Last quarter",
+		"Waning crescent"
+	]
 }

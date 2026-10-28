@@ -80,7 +80,11 @@
     <string name="detail_visibility">Tazana</string>
     <string name="detail_sunrise">Miposaka</string>
     <string name="detail_sunset">Mody</string>
-    <string name="detail_cloud_cover">Rahona</string>
+    <string name="detail_moon">Volana</string>
+    <string name="detail_moonrise">Miposaka</string>
+    <string name="detail_moonset">Mody</string>
+    <string name="detail_azimuth">Todika</string>
+    <string name="detail_cloud_cover">Tako-drahona</string>
     <string name="detail_air_quality">Hadion\'ny rivotra</string>
     <string name="detail_sun">Masoandro</string>
     <string name="tab_conditions">Toetrandro</string>
@@ -297,5 +301,15 @@
         <item>Ratsy</item>
         <item>Ratsy be</item>
         <item>Mampidi-doza</item>
+    </string-array>
+    <string-array name="moon_phases">
+        <item>Maty volana</item>
+        <item>Tsinam-bolana</item>
+        <item>Ampahefany voalohany</item>
+        <item>Volana mitombo</item>
+        <item>Volana feno</item>
+        <item>Volana mihena</item>
+        <item>Ampahefany farany</item>
+        <item>Volana efa ho maty</item>
     </string-array>
 </resources>

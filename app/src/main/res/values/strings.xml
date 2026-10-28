@@ -80,6 +80,10 @@
     <string name="detail_visibility">Visibility</string>
     <string name="detail_sunrise">Sunrise</string>
     <string name="detail_sunset">Sunset</string>
+    <string name="detail_moon">Moon</string>
+    <string name="detail_moonrise">Moonrise</string>
+    <string name="detail_moonset">Moonset</string>
+    <string name="detail_azimuth">Azimuth</string>
     <string name="detail_cloud_cover">Cloud Cover</string>
     <string name="detail_air_quality">Air Quality</string>
     <string name="detail_sun">Sun</string>
@@ -297,5 +301,15 @@
         <item>Unhealthy</item>
         <item>Very Unhealthy</item>
         <item>Hazardous</item>
+    </string-array>
+    <string-array name="moon_phases">
+        <item>New moon</item>
+        <item>Waxing crescent</item>
+        <item>First quarter</item>
+        <item>Waxing gibbous</item>
+        <item>Full moon</item>
+        <item>Waning gibbous</item>
+        <item>Last quarter</item>
+        <item>Waning crescent</item>
     </string-array>
 </resources>

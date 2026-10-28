@@ -104,6 +104,10 @@
 	"detail_precipitation": "वर्षा",
 	"detail_cloud_cover": "बादल आवरण",
 	"detail_sunset": "सूर्यास्त",
+	"detail_moon": "चंद्रमा",
+	"detail_moonrise": "चंद्रोदय",
+	"detail_moonset": "चंद्रास्त",
+	"detail_azimuth": "दिगंश",
 	"detail_air_quality": "वायु गुणवत्ता",
 	"detail_sun": "सूर्य",
 	"tab_conditions": "मौसम",
@@ -321,5 +325,15 @@
 	"device_processor": "प्रोसेसर",
 	"device_memory": "मेमोरी",
 	"device_installer": "यहाँ से इंस्टॉल",
-	"device_touch": "टच पॉइंट"
+	"device_touch": "टच पॉइंट",
+	"moon_phases": [
+		"अमावस्या",
+		"बढ़ता अर्धचंद्र",
+		"प्रथम चतुर्थांश",
+		"बढ़ता कुब्ज चंद्र",
+		"पूर्णिमा",
+		"घटता कुब्ज चंद्र",
+		"अंतिम चतुर्थांश",
+		"घटता अर्धचंद्र"
+	]
 }

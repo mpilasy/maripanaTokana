@@ -81,6 +81,10 @@
     <string name="detail_precipitation">الهطول</string>
     <string name="detail_cloud_cover">الغطاء السحابي</string>
     <string name="detail_sunset">غروب الشمس</string>
+    <string name="detail_moon">القمر</string>
+    <string name="detail_moonrise">شروق القمر</string>
+    <string name="detail_moonset">غروب القمر</string>
+    <string name="detail_azimuth">السمت</string>
     <string name="detail_air_quality">جودة الهواء</string>
     <string name="detail_sun">الشمس</string>
     <string name="tab_conditions">الطقس</string>
@@ -297,5 +301,15 @@
         <item>غير صحية</item>
         <item>غير صحية جدًا</item>
         <item>خطيرة</item>
+    </string-array>
+    <string-array name="moon_phases">
+        <item>محاق</item>
+        <item>هلال متزايد</item>
+        <item>تربيع أول</item>
+        <item>أحدب متزايد</item>
+        <item>بدر</item>
+        <item>أحدب متناقص</item>
+        <item>تربيع أخير</item>
+        <item>هلال متناقص</item>
     </string-array>
 </resources>

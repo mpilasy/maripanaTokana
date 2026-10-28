@@ -103,7 +103,11 @@
 	"detail_visibility": "Tazana",
 	"detail_sunrise": "Miposaka",
 	"detail_sunset": "Mody",
-	"detail_cloud_cover": "Rahona",
+	"detail_moon": "Volana",
+	"detail_moonrise": "Miposaka",
+	"detail_moonset": "Mody",
+	"detail_azimuth": "Todika",
+	"detail_cloud_cover": "Tako-drahona",
 	"detail_air_quality": "Hadion'ny rivotra",
 	"detail_sun": "Masoandro",
 	"tab_conditions": "Toetrandro",
@@ -321,5 +325,15 @@
 	"device_processor": "cpu",
 	"device_memory": "RAM",
 	"device_installer": "Napetraka avy amin'ny",
-	"device_touch": "Faritra azo kitihina"
+	"device_touch": "Faritra azo kitihina",
+	"moon_phases": [
+		"Maty volana",
+		"Tsinam-bolana",
+		"Ampahefany voalohany",
+		"Volana mitombo",
+		"Volana feno",
+		"Volana mihena",
+		"Ampahefany farany",
+		"Volana efa ho maty"
+	]
 }

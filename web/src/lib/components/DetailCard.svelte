@@ -16,6 +16,8 @@
 		cornerSnippet?: Snippet;
 		/** A dial in the bottom corner, in the space the value leaves free. */
 		dialSnippet?: Snippet;
+		/** A dial with the reading in it, in the middle of the card; replaces the value. */
+		centerDialSnippet?: Snippet;
 		onToggleUnits?: () => void;
 		unit?: string;
 		secondaryUnit?: string;
@@ -24,7 +26,7 @@
 		onClick?: () => void;
 	}
 
-	let { title, value, secondaryValue, subtitle, subtitleSnippet, trailingSnippet, cornerSnippet, dialSnippet, onToggleUnits, unit, secondaryUnit, fillPercent, onClick }: Props = $props();
+	let { title, value, secondaryValue, subtitle, subtitleSnippet, trailingSnippet, cornerSnippet, dialSnippet, centerDialSnippet, onToggleUnits, unit, secondaryUnit, fillPercent, onClick }: Props = $props();
 
 	// A title cut short by the card's width shows in full while held
 	let titleEl = $state<HTMLElement | null>(null);
@@ -54,7 +56,7 @@
 <div class="detail-card" class:clickable={onClick} class:has-dial={dialSnippet} role={onClick ? 'button' : undefined} tabindex={onClick ? 0 : undefined}
 	onclick={onClick} onkeydown={(e) => { if (onClick && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onClick(); } }}
 	style:background={fillPercent != null ? `linear-gradient(to top, rgba(100, 181, 246, 0.2), rgba(100, 181, 246, 0.1) ${Math.max(0, fillPercent - 10)}%, var(--surface-tile) ${fillPercent}%)` : undefined}>
-	<div class="card-body">
+	<div class="card-body" class:centered={centerDialSnippet}>
 		{#if title}
 			<span class="card-title" class:beside-corner={cornerSnippet} bind:this={titleEl} title={titleCut ? title : undefined}
 				use:longPress={titleCut ? () => (showFullTitle = true) : null}>{title}</span>
@@ -62,7 +64,13 @@
 				<span class="full-title" role="tooltip">{title}</span>
 			{/if}
 		{/if}
-		{#if secondaryValue}
+		{#if centerDialSnippet}
+			<!-- As wide as the card allows, up to 132 px, and square -->
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<div class="center-dial" onclick={onToggleUnits ? (e) => { e.stopPropagation(); onToggleUnits(); } : undefined}>
+				{@render centerDialSnippet()}
+			</div>
+		{:else if secondaryValue}
 			<DualUnitText
 				primary={value}
 				secondary={secondaryValue}
@@ -175,5 +183,20 @@
 	.card-subtitle {
 		font-size: 12px;
 		color: rgba(255,255,255,0.6);
+		/* A subtitle may hold a label and its values on separate lines */
+		white-space: pre-line;
+	}
+
+	.card-body.centered {
+		align-items: center;
+	}
+
+	.card-body.centered .card-title {
+		align-self: stretch;
+	}
+
+	.center-dial {
+		width: 100%;
+		max-width: 132px;
 	}
 </style>

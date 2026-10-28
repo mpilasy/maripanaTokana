@@ -81,6 +81,10 @@
     <string name="detail_precipitation">Precipitación</string>
     <string name="detail_cloud_cover">Nubosidad</string>
     <string name="detail_sunset">Atardecer</string>
+    <string name="detail_moon">Luna</string>
+    <string name="detail_moonrise">Salida de la luna</string>
+    <string name="detail_moonset">Puesta de la luna</string>
+    <string name="detail_azimuth">Acimut</string>
     <string name="detail_air_quality">Calidad del aire</string>
     <string name="detail_sun">Sol</string>
     <string name="tab_conditions">Condiciones</string>
@@ -297,5 +301,15 @@
         <item>Mala</item>
         <item>Muy mala</item>
         <item>Peligrosa</item>
+    </string-array>
+    <string-array name="moon_phases">
+        <item>Luna nueva</item>
+        <item>Creciente</item>
+        <item>Cuarto creciente</item>
+        <item>Gibosa creciente</item>
+        <item>Luna llena</item>
+        <item>Gibosa menguante</item>
+        <item>Cuarto menguante</item>
+        <item>Menguante</item>
     </string-array>
 </resources>

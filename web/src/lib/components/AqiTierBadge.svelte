@@ -4,19 +4,21 @@
 	import type { AqiTier } from '#lib/domain/airQuality.js';
 
 	interface Props {
-		tier: AqiTier;
+		/** The level; or give `color` for a level of another scale (e.g. UV). */
+		tier?: AqiTier;
+		color?: string;
 		label: string;
 		compact?: boolean;
 		onClick?: () => void;
 	}
 
-	let { tier, label, compact = false, onClick }: Props = $props();
+	let { tier, label, color, compact = false, onClick }: Props = $props();
 </script>
 
 {#if onClick}
-	<button type="button" class="aqi-badge tier-{tier}" class:compact onclick={onClick}>{label}</button>
+	<button type="button" class="aqi-badge tier-{tier}" class:compact style:--tier={color} onclick={onClick}>{label}</button>
 {:else}
-	<span class="aqi-badge tier-{tier}" class:compact>{label}</span>
+	<span class="aqi-badge tier-{tier}" class:compact style:--tier={color}>{label}</span>
 {/if}
 
 <style>

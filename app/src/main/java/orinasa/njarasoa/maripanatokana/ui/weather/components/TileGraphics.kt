@@ -8,6 +8,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -15,8 +17,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -48,12 +52,20 @@ import kotlin.math.sin
  * with [segments], drawn as equal coloured segments (one per level) so the whole scale always shows.
  */
 @Composable
-fun Gauge(fraction: Float, color: Color, modifier: Modifier = Modifier, size: Dp = 40.dp, segments: List<Color>? = null) {
+fun Gauge(
+    // A null size leaves the size to the modifier
+    fraction: Float, color: Color, modifier: Modifier = Modifier, size: Dp? = 40.dp, segments: List<Color>? = null,
+    // Shown in the middle of the dial, e.g. the reading itself
+    content: (@Composable () -> Unit)? = null,
+) {
     val f = if (fraction.isFinite()) fraction.coerceIn(0f, 1f) else 0f
-    Canvas(modifier.size(size)) {
+    Box(if (size != null) modifier.size(size) else modifier, contentAlignment = Alignment.Center) {
+    Canvas(Modifier.fillMaxSize()) {
         val u = this.size.minDimension / 48f
-        val stroke = 4 * u
-        val inset = 4 * u
+        // The ring and the dot stop growing on a large dial
+        val k = minOf(u, 1.6f * density)
+        val stroke = 4 * k
+        val inset = 4 * k
         val arcSize = Size(this.size.width - inset * 2, this.size.height - inset * 2)
         val topLeft = Offset(inset, inset)
         if (segments != null) {
@@ -71,8 +83,10 @@ fun Gauge(fraction: Float, color: Color, modifier: Modifier = Modifier, size: Dp
         val a = Math.toRadians(135.0 + 270.0 * f)
         val r = arcSize.width / 2
         val end = Offset(center.x + r * cos(a).toFloat(), center.y + r * sin(a).toFloat())
-        drawCircle(color, 4.5f * u + 1.25f * u, end)
-        drawCircle(Color.White, 4.5f * u - 1.25f * u, end)
+        drawCircle(color, 4.5f * k + 1.25f * k, end)
+        drawCircle(Color.White, 4.5f * k - 1.25f * k, end)
+    }
+    content?.invoke()
     }
 }
 
@@ -100,6 +114,15 @@ fun WindCompass(degrees: Int, modifier: Modifier = Modifier, size: Dp = 40.dp) {
 @Composable
 fun SunArc(sunrise: Long, sunset: Long, now: Long, modifier: Modifier = Modifier) {
     val t = if (sunset > sunrise) (now - sunrise).toFloat() / (sunset - sunrise) else -1f
+    SkyArc(t, Color(0xFFFFB74D), modifier) { drawCircle(Color(0xFFFFD54F), 5.dp.toPx(), it) }
+}
+
+/**
+ * A dashed arc from rising (left) to setting (right). While [t] (the part of the way done) is in
+ * 0-1, the part done is drawn in [progressColor] and [body] draws the sun or moon at its place.
+ */
+@Composable
+fun SkyArc(t: Float, progressColor: Color, modifier: Modifier = Modifier, body: DrawScope.(Offset) -> Unit) {
     Canvas(modifier) {
         // Half-ellipse across the width, peaking near the top
         val base = size.height * 44f / 52f
@@ -111,11 +134,33 @@ fun SunArc(sunrise: Long, sunset: Long, now: Long, modifier: Modifier = Modifier
         drawArc(Color.White.copy(alpha = 0.25f), 180f, 180f, false, oval.topLeft, oval.size,
             style = Stroke(1.5.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(3.dp.toPx(), 3.dp.toPx()))))
         if (t in 0f..1f) {
-            drawArc(Color(0xFFFFB74D), 180f, 180f * t, false, oval.topLeft, oval.size, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round))
+            drawArc(progressColor, 180f, 180f * t, false, oval.topLeft, oval.size, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round))
             val a = PI * (1 - t)
-            drawCircle(Color(0xFFFFD54F), 5.dp.toPx(), Offset(cx + rx * cos(a).toFloat(), base - ry * sin(a).toFloat()))
+            body(Offset(cx + rx * cos(a).toFloat(), base - ry * sin(a).toFloat()))
         }
     }
+}
+
+/** The moon's lit part for [phase] (0 = new, 0.5 = full); [southern] mirrors it, as it is seen south of the equator. */
+@Composable
+fun MoonPhaseIcon(phase: Double, southern: Boolean, modifier: Modifier = Modifier, size: Dp = 44.dp) {
+    Canvas(modifier.size(size)) { drawMoon(phase, southern, center, this.size.minDimension / 2) }
+}
+
+/** Draws the moon at [c] with radius [r]: a faint full disc and its lit part. */
+fun DrawScope.drawMoon(phase: Double, southern: Boolean, c: Offset, r: Float) {
+    drawCircle(Color(0xFF3A3570), r, c)
+    // The terminator is a half ellipse; cos > 0 is a crescent, cos < 0 a gibbous moon
+    val k = cos(2 * PI * phase)
+    val litRight = (phase < 0.5) != southern
+    val rx = (r * kotlin.math.abs(k)).toFloat()
+    val path = Path().apply {
+        moveTo(c.x, c.y - r)
+        arcTo(Rect(c.x - r, c.y - r, c.x + r, c.y + r), -90f, if (litRight) 180f else -180f, false)
+        arcTo(Rect(c.x - rx, c.y - r, c.x + rx, c.y + r), 90f, if ((k > 0) == litRight) -180f else 180f, false)
+        close()
+    }
+    drawPath(path, Color(0xFFF2EBD3))
 }
 
 /** A vertical track with a blue-to-orange segment from [low] to [high] (fractions of the week's range, 0 = bottom). */

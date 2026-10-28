@@ -81,6 +81,10 @@
     <string name="detail_precipitation">वर्षा</string>
     <string name="detail_cloud_cover">बादल आवरण</string>
     <string name="detail_sunset">सूर्यास्त</string>
+    <string name="detail_moon">चन्द्रमा</string>
+    <string name="detail_moonrise">चन्द्रोदय</string>
+    <string name="detail_moonset">चन्द्रास्त</string>
+    <string name="detail_azimuth">दिगंश</string>
     <string name="detail_air_quality">वायु गुणस्तर</string>
     <string name="detail_sun">सूर्य</string>
     <string name="tab_conditions">मौसम</string>
@@ -297,5 +301,15 @@
         <item>अस्वस्थकर</item>
         <item>धेरै अस्वस्थकर</item>
         <item>खतरनाक</item>
+    </string-array>
+    <string-array name="moon_phases">
+        <item>औँसी</item>
+        <item>बढ्दो अर्धचन्द्र</item>
+        <item>पहिलो चौथाइ</item>
+        <item>बढ्दो कुब्ज चन्द्र</item>
+        <item>पूर्णिमा</item>
+        <item>घट्दो कुब्ज चन्द्र</item>
+        <item>अन्तिम चौथाइ</item>
+        <item>घट्दो अर्धचन्द्र</item>
     </string-array>
 </resources>
