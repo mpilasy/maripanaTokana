@@ -4,18 +4,31 @@
 package orinasa.njarasoa.maripanatokana.ui.weather.components
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
@@ -23,7 +36,9 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
+import kotlin.math.roundToInt
 
 internal enum class OverviewStyle { LINE, BARS }
 
@@ -167,5 +182,71 @@ internal fun OverviewChart(
                 drawRoundRect(Color.White.copy(alpha = 0.06f), Offset(vpLeft, 0f), Size(vpRight - vpLeft, h), androidx.compose.ui.geometry.CornerRadius(6.dp.toPx()))
             }
         }
+    }
+}
+
+/**
+ * Lets the user slide a finger along the chart in [content]: a line and a label (the hour or
+ * the day of [label]) follow the finger, and the row of cards scrolls to the item under it.
+ * Only a horizontal slide starts it, so the page still scrolls up and down.
+ */
+@Composable
+internal fun ChartScrub(
+    count: Int,
+    itemWidth: Dp,
+    spacing: Dp,
+    totalScrollWidth: Float,
+    scrollState: ScrollState,
+    label: (Int) -> String,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    var index by remember { mutableStateOf<Int?>(null) }
+    val scope = rememberCoroutineScope()
+    val haptic = LocalHapticFeedback.current
+    val textMeasurer = rememberTextMeasurer()
+    val displayFont = LocalDisplayFont.current
+    val density = LocalDensity.current
+    val step = with(density) { (itemWidth + spacing).toPx() }
+    val half = with(density) { itemWidth.toPx() / 2 }
+    fun xScale(w: Float) = if (totalScrollWidth > 0f) w / totalScrollWidth else 1f
+    fun select(x: Float, w: Float) {
+        if (count == 0) return
+        val i = ((x / xScale(w) - half) / step).roundToInt().coerceIn(0, count - 1)
+        if (i == index) return
+        index = i
+        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        // The item in the middle of the row
+        scope.launch { scrollState.scrollTo((i * step + half - scrollState.viewportSize / 2f).roundToInt()) }
+    }
+
+    Box(
+        modifier = modifier
+            .pointerInput(count, totalScrollWidth, step) {
+                detectHorizontalDragGestures(
+                    onDragStart = { select(it.x, size.width.toFloat()) },
+                    onDragEnd = { index = null },
+                    onDragCancel = { index = null },
+                ) { change, _ ->
+                    change.consume()
+                    select(change.position.x, size.width.toFloat())
+                }
+            }
+            .drawWithContent {
+                drawContent()
+                val i = index ?: return@drawWithContent
+                val w = size.width
+                val x = (i * step + half) * xScale(w)
+                drawLine(Color.White.copy(alpha = 0.6f), Offset(x, 0f), Offset(x, size.height), 1.dp.toPx())
+                val layout = textMeasurer.measure(label(i), TextStyle(color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont))
+                val padX = 6.dp.toPx()
+                val padY = 2.dp.toPx()
+                val pillWidth = layout.size.width + padX * 2
+                val left = (x - pillWidth / 2).coerceIn(0f, (w - pillWidth).coerceAtLeast(0f))
+                drawRoundRect(Color.Black.copy(alpha = 0.75f), Offset(left, 0f), Size(pillWidth, layout.size.height + padY * 2), CornerRadius(6.dp.toPx()))
+                drawText(layout, topLeft = Offset(left + padX, padY))
+            },
+    ) {
+        content()
     }
 }

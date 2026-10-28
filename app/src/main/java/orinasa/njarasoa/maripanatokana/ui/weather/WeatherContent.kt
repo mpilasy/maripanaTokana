@@ -92,6 +92,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.staticCompositionLocalOf
 import orinasa.njarasoa.maripanatokana.domain.model.ActivityIndices
 import orinasa.njarasoa.maripanatokana.ui.weather.components.ActivitiesCard
@@ -120,6 +121,8 @@ import androidx.compose.ui.layout.FirstBaseline
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.unit.Constraints
+import kotlinx.coroutines.CompletableDeferred
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
@@ -176,6 +179,7 @@ import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 import orinasa.njarasoa.maripanatokana.ui.weather.components.AirQualityDetailDialog
 import orinasa.njarasoa.maripanatokana.ui.weather.components.AqiTierBadge
 import orinasa.njarasoa.maripanatokana.ui.weather.components.TierPill
+import orinasa.njarasoa.maripanatokana.ui.weather.components.ChartScrub
 import orinasa.njarasoa.maripanatokana.ui.weather.components.DailyTemperatureChart
 import orinasa.njarasoa.maripanatokana.ui.weather.components.ForecastTabs
 import orinasa.njarasoa.maripanatokana.ui.weather.components.WeatherIcon
@@ -767,7 +771,8 @@ internal fun WeatherContent(
                 }
             }
             if (data.hourlyForecast.isNotEmpty()) add {
-                SectionCard(stringResource(R.string.section_hourly_forecast), headerGraphicsLayer) {
+                val hourlyMode = remember { mutableStateOf(ForecastDisplayMode.Temperature) }
+                SectionCard(stringResource(R.string.section_hourly_forecast), headerGraphicsLayer, shareWide = true) {
                     if (showNowcast) {
                         Text(
                             text = stringResource(R.string.section_nowcast),
@@ -786,14 +791,15 @@ internal fun WeatherContent(
                     }
                     HourlyForecastRow(data.hourlyForecast, metricPrimary, data.dailySunrise, data.dailySunset, localizeDigits, onToggleUnits, data.utcOffsetSeconds,
                         hourlyAirQuality = data.hourlyAirQuality.takeIf { data.airQuality != null }.orEmpty(),
-                        aqiStandard = data.airQuality?.primaryStandard ?: AqiStandard.US)
+                        aqiStandard = data.airQuality?.primaryStandard ?: AqiStandard.US, modeState = hourlyMode)
                 }
             }
             if (data.dailyForecast.isNotEmpty()) add {
-                SectionCard(stringResource(R.string.section_this_week), headerGraphicsLayer) {
+                val dailyMode = remember { mutableStateOf(ForecastDisplayMode.Temperature) }
+                SectionCard(stringResource(R.string.section_this_week), headerGraphicsLayer, shareWide = true) {
                     DailyForecastList(data.dailyForecast, metricPrimary, localizeDigits, onToggleUnits, data.utcOffsetSeconds,
                         hourlyAirQuality = data.hourlyAirQuality.takeIf { data.airQuality != null }.orEmpty(),
-                        aqiStandard = data.airQuality?.primaryStandard ?: AqiStandard.US)
+                        aqiStandard = data.airQuality?.primaryStandard ?: AqiStandard.US, modeState = dailyMode)
                 }
             }
             add {
@@ -1058,10 +1064,15 @@ internal fun SectionCard(
     headerGraphicsLayer: GraphicsLayer,
     // No surface of its own, for sections whose tiles are already cards
     bare: Boolean = false,
+    // The share image shows the full width of the content (rows that scroll sideways)
+    shareWide: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val bodyFont = LocalBodyFont.current
     val graphicsLayer = rememberGraphicsLayer()
+    val wideLayer = rememberGraphicsLayer()
+    // Set while the hidden full-width copy is drawn for a share image
+    var wideDrawn by remember { mutableStateOf<CompletableDeferred<Unit>?>(null) }
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
     val scale = LocalScale.current
@@ -1094,7 +1105,14 @@ internal fun SectionCard(
                 onClick = {
                     coroutineScope.launch {
                         val header = headerGraphicsLayer.toImageBitmap().asAndroidBitmap()
-                        val content = graphicsLayer.toImageBitmap().asAndroidBitmap()
+                        val layer = if (shareWide) {
+                            val drawn = CompletableDeferred<Unit>()
+                            wideDrawn = drawn
+                            drawn.await()
+                            wideLayer
+                        } else graphicsLayer
+                        val content = layer.toImageBitmap().asAndroidBitmap()
+                        wideDrawn = null
                         shareCardBitmap(context, combineBitmaps(header, content))
                     }
                 },
@@ -1122,8 +1140,30 @@ internal fun SectionCard(
         ) {
             content()
         }
+        // The hidden full-width copy: it takes no room and is drawn only into wideLayer
+        wideDrawn?.let { drawn ->
+            Box(Modifier.layout { measurable, _ ->
+                val placeable = measurable.measure(Constraints())
+                layout(0, 0) { placeable.place(0, 0) }
+            }) {
+                Column(
+                    modifier = Modifier
+                        .padding(start = if (bare) 0.dp else 12.dp, end = if (bare) 0.dp else 12.dp, bottom = 12.dp)
+                        .width(IntrinsicSize.Max)
+                        .drawWithContent {
+                            wideLayer.record { this@drawWithContent.drawContent() }
+                            drawn.complete(Unit)
+                        }
+                ) {
+                    CompositionLocalProvider(LocalWideCapture provides true) { content() }
+                }
+            }
+        }
     }
 }
+
+/** True in the hidden copy of a card that is drawn for a wide share image. */
+internal val LocalWideCapture = staticCompositionLocalOf { false }
 
 /** The text on rain or snow coming in the next 24 hours; null when they stay dry. */
 @Composable
@@ -1235,6 +1275,8 @@ internal fun HourlyForecastRow(
     // Hourly air quality for its tab; the tab is left out without it
     hourlyAirQuality: List<HourlyAirQuality> = emptyList(),
     aqiStandard: AqiStandard = AqiStandard.US,
+    // The selected tab; the caller keeps it, so the share image shows the same tab
+    modeState: MutableState<ForecastDisplayMode> = remember { mutableStateOf(ForecastDisplayMode.Temperature) },
 ) {
     // Bolt: Memoize SimpleDateFormat for location time
     val locationHourFormat = remember(utcOffsetSeconds) { 
@@ -1249,7 +1291,9 @@ internal fun HourlyForecastRow(
     val bodyFont = LocalBodyFont.current
     val fontFeatures = LocalBodyFontFeatures.current
     val scale = LocalScale.current
-    var displayMode by remember { mutableStateOf(ForecastDisplayMode.Temperature) }
+    var displayMode by modeState
+    // In the share image: every item on one line, no scroll
+    val wide = LocalWideCapture.current
     val isRemote = isRemoteTimezone(utcOffsetSeconds)
 
     val scrollState = rememberScrollState()
@@ -1287,7 +1331,7 @@ internal fun HourlyForecastRow(
             if (european) aq.europeanValue to aq.usValue else aq.usValue to aq.europeanValue
         Row(
             horizontalArrangement = Arrangement.spacedBy(itemSpacing),
-            modifier = Modifier.horizontalScroll(scrollState).padding(vertical = 8.dp)
+            modifier = (if (wide) Modifier else Modifier.horizontalScroll(scrollState)).padding(vertical = 8.dp)
         ) {
             forecasts.forEachIndexed { index, item ->
                 Card(
@@ -1412,6 +1456,8 @@ internal fun HourlyForecastRow(
             }
         }
 
+        ChartScrub(forecasts.size, itemWidth, itemSpacing, totalScrollWidthPx, scrollState,
+            label = { localizeDigits(locationHourFormat.format(Date(forecasts[it].time))) }) {
         if (displayMode == ForecastDisplayMode.Temperature) {
             TemperatureChart(
                 forecasts = forecasts,
@@ -1486,6 +1532,7 @@ internal fun HourlyForecastRow(
                 }
             }
         }
+        }
     }
 }
 
@@ -1495,6 +1542,7 @@ internal fun DailyForecastList(
     // Hourly air quality, summed up per day for its tab; the tab is left out without it
     hourlyAirQuality: List<HourlyAirQuality> = emptyList(),
     aqiStandard: AqiStandard = AqiStandard.US,
+    modeState: MutableState<ForecastDisplayMode> = remember { mutableStateOf(ForecastDisplayMode.Temperature) },
 ) {
     val appLocale = LocalConfiguration.current.locales[0]
     // Bolt: Memoize SimpleDateFormat
@@ -1508,7 +1556,9 @@ internal fun DailyForecastList(
     val bodyFont = LocalBodyFont.current
     val fontFeatures = LocalBodyFontFeatures.current
     val scale = LocalScale.current
-    var displayMode by remember { mutableStateOf(ForecastDisplayMode.Temperature) }
+    var displayMode by modeState
+    // In the share image: every item on one line, no scroll
+    val wide = LocalWideCapture.current
 
     val scrollState = rememberScrollState()
     val itemWidth = 96.sd(scale)
@@ -1550,7 +1600,7 @@ internal fun DailyForecastList(
         )
         Row(
             horizontalArrangement = Arrangement.spacedBy(itemSpacing),
-            modifier = Modifier.horizontalScroll(scrollState).padding(vertical = 8.dp)
+            modifier = (if (wide) Modifier else Modifier.horizontalScroll(scrollState)).padding(vertical = 8.dp)
         ) {
         forecasts.forEach { item ->
             // Bolt: Add key to enable smart recomposition
@@ -1694,6 +1744,8 @@ internal fun DailyForecastList(
         }
         }
 
+        ChartScrub(forecasts.size, itemWidth, itemSpacing, totalScrollWidthPx, scrollState,
+            label = { localizeDigits("${dayFormat.format(Date(forecasts[it].date))} ${dayMonthFormat.format(Date(forecasts[it].date))}") }) {
         if (displayMode == ForecastDisplayMode.Temperature) {
             DailyTemperatureChart(
                 forecasts = forecasts,
@@ -1766,6 +1818,7 @@ internal fun DailyForecastList(
                 }
                 else -> {}
             }
+        }
         }
     }
 }

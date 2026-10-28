@@ -17,6 +17,7 @@
 	import TemperatureChart from './TemperatureChart.svelte';
 	import ForecastTabs from './ForecastTabs.svelte';
 	import OverviewChart from './OverviewChart.svelte';
+	import ChartScrub from './ChartScrub.svelte';
 	import { UV_TIER_COLORS, uvColorFor, type UvTier } from '#lib/domain/uv.js';
 
 	interface Props {
@@ -29,11 +30,15 @@
 		utcOffsetSeconds: number;
 		/** Hourly air quality for its tab; the tab is left out without it. */
 		airQuality?: { forecasts: HourlyAirQuality[]; primaryStandard: AqiStandard } | null;
+		/** In the share image: every item on one line, no scroll. */
+		wide?: boolean;
+		/** The selected tab; the caller keeps it, so the share image shows the same tab. */
+		displayMode?: string;
 	}
 
-	let { forecasts, metricPrimary, dailySunrise, dailySunset, loc, onToggleUnits, utcOffsetSeconds, airQuality = null }: Props = $props();
+	let { forecasts, metricPrimary, dailySunrise, dailySunset, loc, onToggleUnits, utcOffsetSeconds, airQuality = null, wide = false, displayMode = $bindable('Temperature') }: Props = $props();
 
-	let displayMode = $state('Temperature'); // Temperature, Wind, Precipitation, Pressure, AirQuality
+	let scrollEl = $state<HTMLElement | null>(null);
 	let scrollLeft = $state(0);
 	let containerWidth = $state(0);
 
@@ -152,9 +157,9 @@
 	}
 </script>
 
-<div class="hourly-wrapper" bind:clientWidth={containerWidth}>
+<div class="hourly-wrapper" class:wide bind:clientWidth={containerWidth}>
 	<ForecastTabs {tabs} selected={displayMode} onSelect={(id) => (displayMode = id)} />
-	<div class="cards-scroll" use:dragScroll onscroll={(e) => { scrollLeft = e.currentTarget.scrollLeft; }}>
+	<div class="cards-scroll" bind:this={scrollEl} use:dragScroll onscroll={(e) => { scrollLeft = e.currentTarget.scrollLeft; }}>
 	<div class="cards-row">
 		{#each forecasts as item, i}
 			<div class="hourly-card" class:now={i === 0}>
@@ -233,23 +238,25 @@
 	</div>
 	</div>
 
-	{#if displayMode === 'Temperature'}
-		<div class="chart-container">
-			<TemperatureChart
-				{forecasts}
-				{metricPrimary}
-				itemWidth={104}
-				itemSpacing={12}
-				height={64}
-				{scrollLeft}
-				{containerWidth}
-			/>
-		</div>
-	{:else if chart}
-		<div class="chart-container">
-			<OverviewChart {...chart} itemWidth={104} itemSpacing={12} {scrollLeft} {containerWidth} />
-		</div>
-	{/if}
+	<ChartScrub count={forecasts.length} itemWidth={104} itemSpacing={12} {scrollEl} label={(i) => loc(formatHourAtLocation(forecasts[i].time, utcOffsetSeconds))}>
+		{#if displayMode === 'Temperature'}
+			<div class="chart-container">
+				<TemperatureChart
+					{forecasts}
+					{metricPrimary}
+					itemWidth={104}
+					itemSpacing={12}
+					height={64}
+					{scrollLeft}
+					containerWidth={wide ? 0 : containerWidth}
+				/>
+			</div>
+		{:else if chart}
+			<div class="chart-container">
+				<OverviewChart {...chart} itemWidth={104} itemSpacing={12} {scrollLeft} containerWidth={wide ? 0 : containerWidth} />
+			</div>
+		{/if}
+	</ChartScrub>
 </div>
 
 <style>
@@ -265,6 +272,14 @@
 		padding: 8px 0;
 	}
 
+	.hourly-wrapper.wide {
+		width: max-content;
+	}
+
+	.wide .cards-scroll {
+		overflow: visible;
+	}
+
 	.cards-scroll::-webkit-scrollbar {
 		display: none;
 	}
@@ -277,7 +292,6 @@
 	}
 
 	.chart-container {
-		pointer-events: none;
 		margin-top: -8px; /* Pull up slightly to feel "attached" */
 	}
 

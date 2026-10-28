@@ -14,6 +14,7 @@
 	import WindCompass from './WindCompass.svelte';
 	import DailyTemperatureChart from './DailyTemperatureChart.svelte';
 	import OverviewChart from './OverviewChart.svelte';
+	import ChartScrub from './ChartScrub.svelte';
 	import { UV_TIER_COLORS, uvColorFor, type UvTier } from '#lib/domain/uv.js';
 	import { AirQualityIndex, AQI_TIER_COLORS, type AqiStandard, type AqiTier } from '#lib/domain/airQuality.js';
 	import type { HourlyAirQuality } from '#lib/domain/weatherData.js';
@@ -29,14 +30,18 @@
 		utcOffsetSeconds: number;
 		/** Hourly air quality, summed up per day for its tab; the tab is left out without it. */
 		airQuality?: { forecasts: HourlyAirQuality[]; primaryStandard: AqiStandard } | null;
+		/** In the share image: every item on one line, no scroll. */
+		wide?: boolean;
+		/** The selected tab; the caller keeps it, so the share image shows the same tab. */
+		displayMode?: string;
 	}
 
-	let { forecasts, metricPrimary, localeTag, loc, onToggleUnits, utcOffsetSeconds, airQuality = null }: Props = $props();
+	let { forecasts, metricPrimary, localeTag, loc, onToggleUnits, utcOffsetSeconds, airQuality = null, wide = false, displayMode = $bindable('Temperature') }: Props = $props();
 
 	const weekdayNames = $derived($json('weekday_names') as string[] | undefined);
 	const monthNames = $derived($json('month_names') as string[] | undefined);
 
-	let displayMode = $state('Temperature'); // Temperature, Wind, Precipitation, Uv
+	let scrollEl = $state<HTMLElement | null>(null);
 	let scrollLeft = $state(0);
 	let containerWidth = $state(0);
 
@@ -147,9 +152,9 @@
 	}
 </script>
 
-<div class="daily-wrapper" bind:clientWidth={containerWidth}>
+<div class="daily-wrapper" class:wide bind:clientWidth={containerWidth}>
 	<ForecastTabs {tabs} selected={displayMode} onSelect={(id) => (displayMode = id)} />
-	<div class="cards-scroll" use:dragScroll onscroll={(e) => { scrollLeft = e.currentTarget.scrollLeft; }}>
+	<div class="cards-scroll" bind:this={scrollEl} use:dragScroll onscroll={(e) => { scrollLeft = e.currentTarget.scrollLeft; }}>
 	<div class="cards-row">
 		{#each forecasts as item, i}
 			<div class="daily-card" class:today={i === 0}>
@@ -225,23 +230,25 @@
 	</div>
 	</div>
 
-	{#if displayMode === 'Temperature'}
-		<div class="chart-container">
-			<DailyTemperatureChart
-				{forecasts}
-				{metricPrimary}
-				itemWidth={96}
-				itemSpacing={12}
-				height={64}
-				{scrollLeft}
-				{containerWidth}
-			/>
-		</div>
-	{:else if chart}
-		<div class="chart-container">
-			<OverviewChart {...chart} itemWidth={96} itemSpacing={12} {scrollLeft} {containerWidth} />
-		</div>
-	{/if}
+	<ChartScrub count={forecasts.length} itemWidth={96} itemSpacing={12} {scrollEl} label={(i) => `${formatDayName(forecasts[i].date, localeTag, utcOffsetSeconds, true, weekdayNames)} ${loc(formatDayMonth(forecasts[i].date, localeTag, utcOffsetSeconds, monthNames))}`}>
+		{#if displayMode === 'Temperature'}
+			<div class="chart-container">
+				<DailyTemperatureChart
+					{forecasts}
+					{metricPrimary}
+					itemWidth={96}
+					itemSpacing={12}
+					height={64}
+					{scrollLeft}
+					containerWidth={wide ? 0 : containerWidth}
+				/>
+			</div>
+		{:else if chart}
+			<div class="chart-container">
+				<OverviewChart {...chart} itemWidth={96} itemSpacing={12} {scrollLeft} containerWidth={wide ? 0 : containerWidth} />
+			</div>
+		{/if}
+	</ChartScrub>
 </div>
 
 <style>
@@ -257,6 +264,14 @@
 		padding: 8px 0;
 	}
 
+	.daily-wrapper.wide {
+		width: max-content;
+	}
+
+	.wide .cards-scroll {
+		overflow: visible;
+	}
+
 	.cards-scroll::-webkit-scrollbar {
 		display: none;
 	}
@@ -269,7 +284,6 @@
 	}
 
 	.chart-container {
-		pointer-events: none;
 		margin-top: -8px; /* Pull up slightly to feel "attached" */
 	}
 

@@ -258,8 +258,12 @@
 
 	function handleShare(el: HTMLElement) {
 		if (!headerEl) return;
-		captureAndShare(headerEl, el);
+		return captureAndShare(headerEl, el);
 	}
+
+	// The selected forecast tabs, kept here so the share images show the same tabs
+	let hourlyMode = $state('Temperature');
+	let dailyMode = $state('Temperature');
 
 	onMount(() => {
 		doFetchWeather();
@@ -481,6 +485,27 @@
 				{#if data.hourlyForecast.length > 0}
 					<div>
 						<SectionCard title={$_('section_hourly_forecast')} onShare={handleShare}>
+							{#snippet wide()}
+								{#if $weatherSource === 'OPEN_METEO' && data.minutelyForecast && nowcastHasRain(data.minutelyForecast)}
+									<h3 class="sub-title">{$_('section_nowcast')}</h3>
+									<NowcastCard items={data.minutelyForecast} localizeDigits={loc} utcOffsetSeconds={data.utcOffsetSeconds} />
+									<div class="sub-gap"></div>
+								{/if}
+								<HourlyForecast
+									forecasts={data.hourlyForecast}
+									metricPrimary={$metricPrimary}
+									dailySunrise={data.dailySunrise}
+									dailySunset={data.dailySunset}
+									{loc}
+									onToggleUnits={toggleUnits}
+									utcOffsetSeconds={data.utcOffsetSeconds}
+									wide
+									bind:displayMode={hourlyMode}
+									airQuality={data.hourlyAirQuality && data.hourlyAirQuality.length > 0 && data.airQuality
+										? { forecasts: data.hourlyAirQuality, primaryStandard: data.airQuality.primaryStandard }
+										: null}
+								/>
+							{/snippet}
 							{#if $weatherSource === 'OPEN_METEO' && data.minutelyForecast && nowcastHasRain(data.minutelyForecast)}
 								<h3 class="sub-title">{$_('section_nowcast')}</h3>
 								<NowcastCard items={data.minutelyForecast} localizeDigits={loc} utcOffsetSeconds={data.utcOffsetSeconds} />
@@ -494,6 +519,7 @@
 								{loc}
 								onToggleUnits={toggleUnits}
 								utcOffsetSeconds={data.utcOffsetSeconds}
+								bind:displayMode={hourlyMode}
 								airQuality={data.hourlyAirQuality && data.hourlyAirQuality.length > 0 && data.airQuality
 									? { forecasts: data.hourlyAirQuality, primaryStandard: data.airQuality.primaryStandard }
 									: null}
@@ -505,6 +531,21 @@
 				{#if data.dailyForecast.length > 0}
 					<div>
 						<SectionCard title={$_('section_this_week')} onShare={handleShare}>
+							{#snippet wide()}
+								<DailyForecast
+									forecasts={data.dailyForecast}
+									metricPrimary={$metricPrimary}
+									localeTag={SUPPORTED_LOCALES[$localeIndex].tag}
+									{loc}
+									onToggleUnits={toggleUnits}
+									utcOffsetSeconds={data.utcOffsetSeconds}
+									wide
+									bind:displayMode={dailyMode}
+									airQuality={data.hourlyAirQuality && data.hourlyAirQuality.length > 0 && data.airQuality
+										? { forecasts: data.hourlyAirQuality, primaryStandard: data.airQuality.primaryStandard }
+										: null}
+								/>
+							{/snippet}
 							<DailyForecast
 								forecasts={data.dailyForecast}
 								metricPrimary={$metricPrimary}
@@ -512,6 +553,7 @@
 								{loc}
 								onToggleUnits={toggleUnits}
 								utcOffsetSeconds={data.utcOffsetSeconds}
+								bind:displayMode={dailyMode}
 								airQuality={data.hourlyAirQuality && data.hourlyAirQuality.length > 0 && data.airQuality
 									? { forecasts: data.hourlyAirQuality, primaryStandard: data.airQuality.primaryStandard }
 									: null}
