@@ -34,7 +34,8 @@ android {
         versionName = "1.6.20261026220516"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        val gitHash = providers.exec { commandLine("git", "rev-parse", "--short", "HEAD") }.standardOutput.asText.get().trim()
+        // Always 7 characters. "--short" gives more on a clone with more objects (F-Droid's), and then the APKs do not match.
+        val gitHash = providers.exec { commandLine("git", "rev-parse", "HEAD") }.standardOutput.asText.get().trim().take(7)
         buildConfigField("String", "GIT_HASH", "\"$gitHash\"")
     }
 
