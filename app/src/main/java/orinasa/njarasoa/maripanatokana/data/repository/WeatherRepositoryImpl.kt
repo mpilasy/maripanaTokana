@@ -403,18 +403,24 @@ class WeatherRepositoryImpl @Inject constructor(
         needle.isNotEmpty() && hay.windowed(needle.size).any { it == needle }
 
     private fun parseMeteoAlarmAtom(xml: String, subdivisionName: String? = null): List<WeatherAlert> {
-        val alerts = mutableListOf<WeatherAlert>()
-        val factory = XmlPullParserFactory.newInstance().apply { isNamespaceAware = true }
-        val parser = factory.newPullParser()
-        parser.setInput(StringReader(xml))
-        val CAP_NS = "urn:oasis:names:tc:emergency:cap:1.2"
         // One parser for all entries; a feed can hold hundreds
         val onsetParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
-        var inEntry = false
+        return readMeteoAlarmEntries(xml).mapNotNull { meteoAlarmAlert(it, subdivisionName, onsetParser) }
+    }
+
+    /** The CAP fields of one Atom entry in a MeteoAlarm feed. */
+    private class MeteoAlarmEntry {
+        var event = ""; var severity = ""; var onset = ""; var status = ""
+        var description = ""; var areaDesc = ""; var link: String? = null
+    }
+
+    private fun readMeteoAlarmEntries(xml: String): List<MeteoAlarmEntry> {
+        val entries = mutableListOf<MeteoAlarmEntry>()
+        val parser = XmlPullParserFactory.newInstance().apply { isNamespaceAware = true }.newPullParser()
+        parser.setInput(StringReader(xml))
+        var entry: MeteoAlarmEntry? = null
         var currentLocalName = ""
         var currentNs = ""
-        var capEvent = ""; var capSeverity = ""; var capOnset = ""; var capStatus = ""
-        var capDescription = ""; var capAreaDesc = ""; var linkHref: String? = null
         var event = parser.eventType
         while (event != XmlPullParser.END_DOCUMENT) {
             when (event) {
@@ -422,70 +428,50 @@ class WeatherRepositoryImpl @Inject constructor(
                     currentLocalName = parser.name ?: ""
                     currentNs = parser.namespace ?: ""
                     if (currentLocalName == "entry" && currentNs != CAP_NS) {
-                        inEntry = true; capEvent = ""; capSeverity = ""; capOnset = ""; capStatus = ""; capDescription = ""; capAreaDesc = ""; linkHref = null
-                    } else if (inEntry && currentLocalName == "link" && parser.getAttributeValue(null, "rel") == "alternate") {
-                        linkHref = parser.getAttributeValue(null, "href")
+                        entry = MeteoAlarmEntry()
+                    } else if (entry != null && currentLocalName == "link" && parser.getAttributeValue(null, "rel") == "alternate") {
+                        entry.link = parser.getAttributeValue(null, "href")
                     }
                 }
-                XmlPullParser.TEXT -> if (inEntry && currentNs == CAP_NS) {
+                XmlPullParser.TEXT -> if (entry != null && currentNs == CAP_NS) {
                     val text = parser.text ?: ""
                     when (currentLocalName) {
-                        "event" -> capEvent = text
-                        "severity" -> capSeverity = text
-                        "onset" -> capOnset = text
-                        "status" -> capStatus = text
-                        "description" -> capDescription = text
-                        "areaDesc" -> capAreaDesc = text
+                        "event" -> entry.event = text
+                        "severity" -> entry.severity = text
+                        "onset" -> entry.onset = text
+                        "status" -> entry.status = text
+                        "description" -> entry.description = text
+                        "areaDesc" -> entry.areaDesc = text
                     }
                 }
                 XmlPullParser.END_TAG -> {
-                    if ((parser.name ?: "") == "entry" && (parser.namespace ?: "") != CAP_NS && inEntry) {
-                        inEntry = false
-                        if (capEvent.isNotBlank() && (capStatus.isBlank() || capStatus == "Actual")) {
-                            // Filter to user's subdivision when known
-                            if (subdivisionName != null && capAreaDesc.isNotBlank() && !areaMatches(capAreaDesc, subdivisionName)) {
-                                // skip — alert is for a different area
-                            } else {
-                                val level = when (capSeverity.lowercase()) {
-                                    "extreme" -> AlertLevel.EMERGENCY
-                                    "severe" -> AlertLevel.WARNING
-                                    else -> AlertLevel.WATCH
-                                }
-                                val time = try { onsetParser.parse(capOnset)?.time } catch (_: Exception) { null }
-                                alerts.add(WeatherAlert(level, capEvent, capDescription, "meteoalarm", time, capAreaDesc.ifBlank { null }, linkHref))
-                            }
-                        }
+                    if (entry != null && (parser.name ?: "") == "entry" && (parser.namespace ?: "") != CAP_NS) {
+                        entries.add(entry)
+                        entry = null
                     }
                     currentLocalName = ""; currentNs = ""
                 }
             }
             event = parser.next()
         }
-        return alerts
+        return entries
     }
 
-    private fun jmaWarningName(code: String) = when (code) {
-        "01" -> "Special Warning"
-        "02" -> "Heavy Rain Warning"
-        "03" -> "Flood Warning"
-        "04" -> "Storm Warning"
-        "05" -> "Snowstorm Warning"
-        "06" -> "Heavy Snow Warning"
-        "07" -> "Wave Warning"
-        "08" -> "Storm Surge Warning"
-        "10" -> "Heavy Rain Advisory"
-        "12" -> "Strong Wind Advisory"
-        "13" -> "Wave Advisory"
-        "14" -> "Storm Surge Advisory"
-        "16" -> "Flood Advisory"
-        "17" -> "Frost Advisory"
-        "18" -> "Thunder Advisory"
-        "19" -> "Dry Advisory"
-        "20" -> "Dense Fog Advisory"
-        "21" -> "Low Temperature Advisory"
-        "22" -> "Heavy Snow Advisory"
-        else -> "Weather Warning ($code)"
+    /** The alert for [entry], or null when it is not an actual alert or is for an area other than [subdivisionName]. */
+    private fun meteoAlarmAlert(entry: MeteoAlarmEntry, subdivisionName: String?, onsetParser: SimpleDateFormat): WeatherAlert? {
+        if (entry.event.isBlank() || (entry.status.isNotBlank() && entry.status != "Actual")) return null
+        // Filter to user's subdivision when known
+        if (subdivisionName != null && entry.areaDesc.isNotBlank() && !areaMatches(entry.areaDesc, subdivisionName)) return null
+        val level = when (entry.severity.lowercase()) {
+            "extreme" -> AlertLevel.EMERGENCY
+            "severe" -> AlertLevel.WARNING
+            else -> AlertLevel.WATCH
+        }
+        val time = try { onsetParser.parse(entry.onset)?.time } catch (_: Exception) { null }
+        return WeatherAlert(level, entry.event, entry.description, "meteoalarm", time, entry.areaDesc.ifBlank { null }, entry.link)
     }
+
+    private fun jmaWarningName(code: String) = JMA_WARNING_NAMES[code] ?: "Weather Warning ($code)"
 
     companion object {
         private const val TAG = "WeatherRepo"
@@ -504,6 +490,16 @@ class WeatherRepositoryImpl @Inject constructor(
             "HU" to "Hurricane", "EX" to "Post-Tropical Cyclone",
             "PTC" to "Potential Tropical Cyclone", "LO" to "Remnant Low",
             "DB" to "Disturbance", "WV" to "Tropical Wave",
+        )
+        private const val CAP_NS = "urn:oasis:names:tc:emergency:cap:1.2"
+        private val JMA_WARNING_NAMES = mapOf(
+            "01" to "Special Warning", "02" to "Heavy Rain Warning", "03" to "Flood Warning",
+            "04" to "Storm Warning", "05" to "Snowstorm Warning", "06" to "Heavy Snow Warning",
+            "07" to "Wave Warning", "08" to "Storm Surge Warning", "10" to "Heavy Rain Advisory",
+            "12" to "Strong Wind Advisory", "13" to "Wave Advisory", "14" to "Storm Surge Advisory",
+            "16" to "Flood Advisory", "17" to "Frost Advisory", "18" to "Thunder Advisory",
+            "19" to "Dry Advisory", "20" to "Dense Fog Advisory", "21" to "Low Temperature Advisory",
+            "22" to "Heavy Snow Advisory",
         )
         private val AUSTRALIAN_STATE_CODES = mapOf(
             "New South Wales" to "NSW", "Victoria" to "VIC", "Queensland" to "QLD",
