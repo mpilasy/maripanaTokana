@@ -26,7 +26,8 @@ data class SavedLocation(
 fun List<SavedLocation>.sortedByDistanceFrom(lat: Double, lon: Double): List<SavedLocation> =
     sortedBy { greatCircleKm(lat, lon, it.latitude, it.longitude) }
 
-private fun greatCircleKm(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+/** The great-circle (haversine) distance in km between two points. */
+fun greatCircleKm(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
     val dLat = Math.toRadians(lat2 - lat1)
     val dLon = Math.toRadians(lon2 - lon1)
     val a = sin(dLat / 2) * sin(dLat / 2) + cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) * sin(dLon / 2) * sin(dLon / 2)

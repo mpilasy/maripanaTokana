@@ -1,0 +1,4 @@
+- Lugares: toca el nombre o el ▾ delante para abrir la lista de tus lugares, con la distancia a cada uno. Se quitan el deslizamiento y los puntos.
+- Enfriamiento por viento de −28 °C (−18 °F) o menos: debajo se muestra el tiempo hasta la congelación de la piel.
+- Español: se añadieron las tildes en etiquetas y mensajes (por ejemplo «Sensación térmica», «ubicación»).
+- Índice de calor: solo se muestra si supera la temperatura. Con calor muy seco, se muestra «Sensación térmica».

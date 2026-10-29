@@ -157,8 +157,7 @@
     <string name="rename_reset">استعادة</string>
     <string name="rename_cancel">إلغاء</string>
     <string name="rename_save">حفظ</string>
-    <string name="cd_previous_location">الموقع السابق</string>
-    <string name="cd_next_location">الموقع التالي</string>
+    <string name="cd_location_list">أماكني</string>
     <string name="settings_title">الإعدادات</string>
     <string name="settings_back">رجوع</string>
     <string name="settings_advanced_mode">الوضع المتقدم</string>
@@ -197,7 +196,7 @@
     <string name="help_q_favorite_add">كيف أحفظ مكانًا في المفضلة؟</string>
     <string name="help_a_favorite_add">أثناء عرض مكان بحثت عنه، انقر على القلب الفارغ في الأعلى. يحتفظ التطبيق بالمكان بعد ذلك. إذا لم يكن للتطبيق إذن الوصول إلى موقعك، يُحفظ المكان الذي تختاره مباشرة.</string>
     <string name="help_q_favorite_move">كيف أتنقل بين الأماكن المفضلة؟</string>
-    <string name="help_a_favorite_move">اسحب إلى اليسار أو اليمين، أو انقر على الأسهم تحت اسم المكان. كل نقطة هي مكان واحد، والنقطة الأولى هي موقعك الحالي. اضغط مطولًا على سهم لرؤية قائمة أماكنك واختيار أحدها.</string>
+    <string name="help_a_favorite_move">انقر على اسم المكان، أو على السهم الذي قبله، لرؤية قائمة أماكنك: موقعك الحالي أولًا، ثم أماكنك المفضلة. انقر على أحدها للانتقال إليه.</string>
     <string name="help_q_favorite_edit">كيف أعيد تسمية مكان مفضل أو أحذفه؟</string>
     <string name="help_a_favorite_edit">لإعادة تسمية مكان مفضل، اضغط مطولًا على اسمه في الأعلى. لحذفه، انقر على القلب الممتلئ. للعودة إلى موقعك الحالي، انقر على الدبوس.</string>
     <string name="help_q_place_details">كيف أرى الإحداثيات أو أنسخها؟</string>

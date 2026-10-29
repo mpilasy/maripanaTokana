@@ -157,8 +157,7 @@
     <string name="rename_reset">Restablecer</string>
     <string name="rename_cancel">Cancelar</string>
     <string name="rename_save">Guardar</string>
-    <string name="cd_previous_location">Ubicación anterior</string>
-    <string name="cd_next_location">Ubicación siguiente</string>
+    <string name="cd_location_list">Mis lugares</string>
     <string name="settings_title">Ajustes</string>
     <string name="settings_back">Atrás</string>
     <string name="settings_advanced_mode">Modo avanzado</string>
@@ -197,7 +196,7 @@
     <string name="help_q_favorite_add">¿Cómo guardo un favorito?</string>
     <string name="help_a_favorite_add">Mientras se muestra un lugar buscado, toca el corazón vacío en la parte superior. La aplicación guarda entonces el lugar. Si la aplicación no tiene acceso a tu ubicación, el lugar que eliges se guarda directamente.</string>
     <string name="help_q_favorite_move">¿Cómo paso de un favorito a otro?</string>
-    <string name="help_a_favorite_move">Desliza a la izquierda o a la derecha, o toca las flechas bajo el nombre del lugar. Cada punto es un lugar y el primer punto es tu ubicación actual. Mantén pulsada una flecha para ver la lista de tus lugares y elegir uno.</string>
+    <string name="help_a_favorite_move">Toca el nombre del lugar, o la flecha que tiene delante, para ver la lista de tus lugares: primero tu ubicación actual y después tus favoritos. Toca uno para ir a él.</string>
     <string name="help_q_favorite_edit">¿Cómo cambio el nombre de un favorito o lo elimino?</string>
     <string name="help_a_favorite_edit">Para cambiar el nombre de un favorito, mantén pulsado su nombre en la parte superior. Para eliminarlo, toca el corazón lleno. Para volver a tu ubicación actual, toca el marcador.</string>
     <string name="help_q_place_details">¿Cómo veo o copio las coordenadas?</string>

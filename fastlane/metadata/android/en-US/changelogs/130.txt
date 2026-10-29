@@ -1,0 +1,4 @@
+- Places: tap the name or the ▾ before it to open the list of your places, with the distance to each. The swipe and the dots are gone.
+- Wind chill of −28 °C (−18 °F) or colder: the time for bare skin to freeze shows under it.
+- Spanish: accents added to labels and messages (for example "Sensación térmica", "ubicación").
+- Heat index: shown only when it is above the temperature. In very dry heat, "Feels like" shows instead.

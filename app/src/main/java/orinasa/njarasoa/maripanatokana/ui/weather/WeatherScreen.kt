@@ -454,21 +454,9 @@ private fun WeatherMainScreen(
                                 if (activeLocationId != null) viewModel.unfavoriteCurrentLocation()
                                 else viewModel.favoriteCurrentLocation()
                             },
-                            onSwipeToNextLocation = {
-                                if (locationCycleIndex in 0 until locationCycle.lastIndex) {
-                                    viewModel.switchToLocation(locationCycle[locationCycleIndex + 1])
-                                }
-                            },
-                            onSwipeToPreviousLocation = {
-                                if (locationCycleIndex > 0) {
-                                    viewModel.switchToLocation(locationCycle[locationCycleIndex - 1])
-                                }
-                            },
-                            canSwipeToNext = locationCycleIndex in 0 until locationCycle.lastIndex,
-                            canSwipeToPrevious = locationCycleIndex > 0,
-                            locationCount = locationCycle.size,
                             locationIndex = locationCycleIndex,
                             locationNames = listOf<String?>(null) + savedLocations.map { it.displayName },
+                            locationDistancesKm = listOf<Double?>(null) + savedLocations.map { viewModel.distanceFromDeviceKm(it) },
                             onSelectLocation = { i ->
                                 if (i != locationCycleIndex) viewModel.switchToLocation(locationCycle[i])
                             },

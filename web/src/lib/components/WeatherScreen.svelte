@@ -14,11 +14,13 @@
 		showSavedLocationsDialog, openSavedLocationsDialog, activeLocationId, savedLocations, switchToLocation,
 		locationOverride, initLocationOverride, setLocationOverride, favoriteCurrentLocation, unfavoriteCurrentLocation, displayName
 	} from '#lib/stores/savedLocations.js';
+	import type { SavedLocation } from '#lib/stores/savedLocations.js';
 	import { parseLocationText } from '#lib/domain/sharedLocationParser.js';
 	import { encodePlusCode, findPlusCode } from '#lib/domain/plusCode.js';
 	import { longPress } from '#lib/actions/longPress.js';
 	import { searchLocations } from '#lib/api/geocodingSearch.js';
-	import { lookupLocation } from '#lib/stores/location.js';
+	import { getCachedLocation, lookupLocation } from '#lib/stores/location.js';
+	import { calculateDistance } from '#lib/api/alerts/shared.js';
 	import SettingsScreen from './SettingsScreen.svelte';
 	import AboutScreen from './AboutScreen.svelte';
 	import HelpScreen from './HelpScreen.svelte';
@@ -142,7 +144,7 @@
 	let headerActionsWidth = $state(0);
 	// Location whose name is currently shown in Latin letters (null: local script)
 	let romanShownFor = $state<string | null>(null);
-	// Location list opened by holding a pager arrow
+	// The list of places, opened from the place name or the arrow before it
 	let pickerOpen = $state(false);
 	let renaming = $state(false);
 	const savedById = (id: string | null) => $savedLocations.find((l) => l.id === id);
@@ -155,38 +157,17 @@
 		return () => window.removeEventListener('click', close);
 	});
 
-	// Swipe-to-cycle-locations: ignored if the gesture started inside a horizontally-scrolling
-	// forecast strip (.cards-scroll) or tab row, so scrolling those is unaffected.
-	let swipeStartX = $state(0);
-	let swipeStartY = $state(0);
-	let swipeDeltaX = $state(0);
-	let swipeDeltaY = $state(0);
-	let swipeExcluded = $state(false);
-	const SWIPE_THRESHOLD_PX = 80;
-
 	function locationCycle(): (string | null)[] {
 		return [null, ...$savedLocations.map((l) => l.id)];
 	}
-
-	function swipeToNext() {
-		const cycle = locationCycle();
-		const idx = cycle.indexOf($activeLocationId);
-		if (idx !== -1 && idx < cycle.length - 1) switchToLocation(cycle[idx + 1]);
+	let hasLocationList = $derived($savedLocations.length > 0);
+	/** " (12 km)": the distance from the device's last location, in the main unit; empty when that is not known. */
+	function distanceSuffix(l: SavedLocation): string {
+		const here = getCachedLocation();
+		if (!here) return '';
+		const km = calculateDistance(here.lat, here.lon, l.latitude, l.longitude);
+		return loc($metricPrimary ? ` (${Math.round(km)} km)` : ` (${Math.round(km / 1.609344)} mi)`);
 	}
-
-	function swipeToPrevious() {
-		const cycle = locationCycle();
-		const idx = cycle.indexOf($activeLocationId);
-		if (idx > 0) switchToLocation(cycle[idx - 1]);
-	}
-
-	// Tap alternative to swiping, same no-wraparound boundaries.
-	let canGoToPrevious = $derived(locationCycle().indexOf($activeLocationId) > 0);
-	let canGoToNext = $derived.by(() => {
-		const cycle = locationCycle();
-		const idx = cycle.indexOf($activeLocationId);
-		return idx !== -1 && idx < cycle.length - 1;
-	});
 
 	function loc(s: string): string {
 		return localizeDigits(s, SUPPORTED_LOCALES[$localeIndex]);
@@ -224,20 +205,11 @@
 			pullStartY = e.touches[0].clientY;
 			isPulling = true;
 		}
-		swipeExcluded = (e.target as HTMLElement).closest('.cards-scroll, [role="tablist"]') !== null;
-		swipeStartX = e.touches[0].clientX;
-		swipeStartY = e.touches[0].clientY;
-		swipeDeltaX = 0;
-		swipeDeltaY = 0;
 	}
 
 	function handleTouchMove(e: TouchEvent) {
 		if (isPulling) {
 			pullDelta = Math.max(0, e.touches[0].clientY - pullStartY);
-		}
-		if (!swipeExcluded) {
-			swipeDeltaX = e.touches[0].clientX - swipeStartX;
-			swipeDeltaY = e.touches[0].clientY - swipeStartY;
 		}
 	}
 
@@ -247,13 +219,6 @@
 		}
 		pullDelta = 0;
 		isPulling = false;
-
-		if (!swipeExcluded && Math.abs(swipeDeltaX) > SWIPE_THRESHOLD_PX && Math.abs(swipeDeltaX) > Math.abs(swipeDeltaY)) {
-			if (swipeDeltaX < 0) swipeToNext();
-			else swipeToPrevious();
-		}
-		swipeDeltaX = 0;
-		swipeDeltaY = 0;
 	}
 
 	function handleShare(el: HTMLElement) {
@@ -348,7 +313,9 @@
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<div class="header-main" bind:this={headerEl}
 					use:longPress={activeSavedLocation ? () => (renaming = true) : null}>
-					<div class="name-row" style:padding-inline-end="{headerActionsWidth}px">
+					<!-- A tap on the name opens the list of places -->
+					<div class="name-row" style:padding-inline-end="{headerActionsWidth}px"
+						onclick={(e) => { if (hasLocationList) { e.stopPropagation(); pickerOpen = !pickerOpen; } }}>
 						<h1 class="location-name">
 							{#if !subtext && name.includes(',') && !isCoordinatesName(name)}
 								{name.split(',')[0].trim()}
@@ -397,6 +364,34 @@
 					{/if}
 				</div>
 
+				<!-- The arrow before the name, in the margin outside the share image -->
+				{#if hasLocationList}
+					<div class="location-list-box">
+						<button type="button" class="location-list-arrow" aria-label={$_('cd_location_list')} title={$_('cd_location_list')}
+							aria-expanded={pickerOpen} onclick={(e) => { e.stopPropagation(); pickerOpen = !pickerOpen; }}>
+							<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d="M7 10l5 5 5-5z"/></svg>
+						</button>
+						{#if pickerOpen}
+							<div class="location-picker" role="menu" dir={SUPPORTED_LOCALES[$localeIndex].tag === 'ar' ? 'rtl' : 'ltr'}>
+								{#each locationCycle() as id (id ?? 'current')}
+									{@const isCurrent = id === $activeLocationId && !$locationOverride}
+									<button type="button" role="menuitem" class="picker-item" class:current={isCurrent}
+										onclick={(e) => { e.stopPropagation(); pickerOpen = false; if (!isCurrent) switchToLocation(id); }}>
+										<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+											{#if id === null}
+												<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+											{:else}
+												<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+											{/if}
+										</svg>
+										{id === null ? $_('current_location') : (savedById(id) ? displayName(savedById(id)!) + distanceSuffix(savedById(id)!) : id)}
+									</button>
+								{/each}
+							</div>
+						{/if}
+					</div>
+				{/if}
+
 				<div class="header-actions" bind:clientWidth={headerActionsWidth}>
 					<button class="header-action" onclick={openSavedLocationsDialog} aria-label={$_('cd_manage_locations')} title={$_('cd_manage_locations')}>
 						<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
@@ -425,44 +420,6 @@
 					</button>
 				</div>
 			</div>
-
-			<!-- Saved-location pager: ‹ • ● • › -->
-			{#if locationCycle().length > 1}
-				<!-- Holding either arrow lists every location to jump straight to one (works at the ends too) -->
-				<div class="location-pager" dir="ltr">
-					<button class="pager-arrow" class:disabled={!canGoToPrevious} aria-disabled={!canGoToPrevious} aria-label={$_('cd_previous_location')}
-						onclick={swipeToPrevious} use:longPress={() => (pickerOpen = true)}>
-						<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
-					</button>
-					<div class="pager-dots">
-						{#each locationCycle() as id (id ?? 'current')}
-							<span class="pager-dot" class:active={id === $activeLocationId}></span>
-						{/each}
-					</div>
-					<button class="pager-arrow" class:disabled={!canGoToNext} aria-disabled={!canGoToNext} aria-label={$_('cd_next_location')}
-						onclick={swipeToNext} use:longPress={() => (pickerOpen = true)}>
-						<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>
-					</button>
-					{#if pickerOpen}
-						<div class="location-picker" role="menu" dir={SUPPORTED_LOCALES[$localeIndex].tag === 'ar' ? 'rtl' : 'ltr'}>
-							{#each locationCycle() as id (id ?? 'current')}
-								{@const isCurrent = id === $activeLocationId && !$locationOverride}
-								<button type="button" role="menuitem" class="picker-item" class:current={isCurrent}
-									onclick={(e) => { e.stopPropagation(); pickerOpen = false; if (!isCurrent) switchToLocation(id); }}>
-									<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
-										{#if id === null}
-											<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-										{:else}
-											<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-										{/if}
-									</svg>
-									{id === null ? $_('current_location') : (savedById(id) ? displayName(savedById(id)!) : id)}
-								</button>
-							{/each}
-						</div>
-					{/if}
-				</div>
-			{/if}
 
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<!-- Scrollable content -->
@@ -897,25 +854,24 @@
 		color: white;
 	}
 
-	.header-action:focus-visible, .pager-arrow:focus-visible {
+	.header-action:focus-visible, .location-list-arrow:focus-visible {
 		outline: 2px solid rgba(255, 255, 255, 0.5);
 		outline-offset: 2px;
 	}
 
-	.location-pager {
-		position: relative;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding-top: 8px;
-		flex-shrink: 0;
+	/* In the content's start margin, beside the name line */
+	.location-list-box {
+		position: absolute;
+		top: 16px;
+		inset-inline-start: -24px;
 	}
 
-	.pager-arrow {
-		width: 32px;
-		height: 32px;
-		border-radius: 50%;
+	.location-list-arrow {
+		width: 24px;
+		height: 36px;
+		padding: 0;
 		border: none;
+		border-radius: 8px;
 		background: none;
 		color: rgba(255, 255, 255, 0.7);
 		display: flex;
@@ -924,22 +880,10 @@
 		cursor: pointer;
 	}
 
-	/* Long-press targets: no text selection or callout on touch */
-	.pager-arrow {
-		-webkit-touch-callout: none;
-		user-select: none;
-	}
-
-	.pager-arrow.disabled {
-		color: rgba(255, 255, 255, 0.15);
-		cursor: default;
-	}
-
 	.location-picker {
 		position: absolute;
 		top: 100%;
-		left: 50%;
-		translate: -50% 0;
+		inset-inline-start: 0;
 		z-index: 20;
 		min-width: 200px;
 		max-height: 60vh;
@@ -979,25 +923,6 @@
 	.picker-item.current {
 		color: white;
 		font-weight: 700;
-	}
-
-	.pager-dots {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-	}
-
-	.pager-dot {
-		width: 6px;
-		height: 6px;
-		border-radius: 50%;
-		background: rgba(255, 255, 255, 0.3);
-	}
-
-	.pager-dot.active {
-		width: 8px;
-		height: 8px;
-		background: rgba(255, 255, 255, 0.9);
 	}
 
 	.scroll-area {

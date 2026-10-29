@@ -26,6 +26,7 @@ import orinasa.njarasoa.maripanatokana.data.repository.WeatherCache
 import orinasa.njarasoa.maripanatokana.data.source.toFetchError
 import orinasa.njarasoa.maripanatokana.domain.model.FetchError
 import orinasa.njarasoa.maripanatokana.domain.model.SavedLocation
+import orinasa.njarasoa.maripanatokana.domain.model.greatCircleKm
 import orinasa.njarasoa.maripanatokana.domain.model.sortedByDistanceFrom
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.data.settings.AppSettingsRepository
@@ -327,6 +328,12 @@ class WeatherViewModel @Inject constructor(
 
     private fun persistSavedLocations(list: List<SavedLocation>) {
         prefs.edit { putString("saved_locations", Json.encodeToString(savedLocationListSerializer, list)) }
+    }
+
+    /** The distance in km from the device's last location to [location]; null when that is not known. */
+    fun distanceFromDeviceKm(location: SavedLocation): Double? {
+        if (!privatePrefs.contains("lat") || !privatePrefs.contains("lon")) return null
+        return greatCircleKm(privatePrefs.getFloat("lat", 0f).toDouble(), privatePrefs.getFloat("lon", 0f).toDouble(), location.latitude, location.longitude)
     }
 
     /** The list sorted by distance from the device's last location, nearest first; as it is when that is not known. */

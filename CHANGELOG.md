@@ -9,6 +9,10 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261029174922] - 2026-10-29
+- Places: a tap on the place name, or on the ▾ before it, opens the list of places (current location first, then the favorites). Each favorite shows its distance from the device's last location in parentheses, in km (metric) or miles (imperial). Holding the name still renames a favorite. The ▾ is in the start margin, outside the share image, and shows only when there is a favorite.
+- Removed: the swipe between places and the row of dots and arrows under the header (holding an arrow opened the list). The help answer "How do I move between my favorites?" is rewritten in all 8 languages.
+
 ## [1.6.20261029165440] - 2026-10-29
 - Current conditions: when the wind chill is −28 °C (−18 °F) or colder, the time for bare skin to freeze shows under it, in Environment Canada's bands: 10–30 min (−28 to −39), 5–10 min (−40 to −47), 2–5 min (−48 to −54), under 2 min (−55 or colder). The line wraps to the width of the values above it. Malagasy: "Mitsovaka afaka 5–10 minitra".
 

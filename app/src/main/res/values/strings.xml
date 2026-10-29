@@ -157,8 +157,7 @@
     <string name="rename_reset">Reset</string>
     <string name="rename_cancel">Cancel</string>
     <string name="rename_save">Save</string>
-    <string name="cd_previous_location">Previous location</string>
-    <string name="cd_next_location">Next location</string>
+    <string name="cd_location_list">My places</string>
     <string name="settings_title">Settings</string>
     <string name="settings_back">Back</string>
     <string name="settings_advanced_mode">Advanced mode</string>
@@ -197,7 +196,7 @@
     <string name="help_q_favorite_add">How do I save a favorite?</string>
     <string name="help_a_favorite_add">While a searched place shows, tap the empty heart at the top. The app then keeps the place. If the app has no access to your location, a place that you pick is saved directly.</string>
     <string name="help_q_favorite_move">How do I move between my favorites?</string>
-    <string name="help_a_favorite_move">Swipe left or right, or tap the arrows under the place name. Each dot is one place, and the first dot is your current location. Hold an arrow to see the list of your places and pick one.</string>
+    <string name="help_a_favorite_move">Tap the place name, or the arrow before it, to see the list of your places: your current location first, then your favorites. Tap one to go to it.</string>
     <string name="help_q_favorite_edit">How do I rename or remove a favorite?</string>
     <string name="help_a_favorite_edit">To rename a favorite, hold its name at the top. To remove it, tap the full heart. To go back to your current location, tap the pin.</string>
     <string name="help_q_place_details">How do I see or copy the coordinates?</string>

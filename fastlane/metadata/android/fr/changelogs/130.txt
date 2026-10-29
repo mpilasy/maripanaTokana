@@ -1,0 +1,4 @@
+- Lieux : touchez le nom ou le ▾ devant pour ouvrir la liste de vos lieux, avec la distance de chacun. Le balayage et les points sont supprimés.
+- Refroidissement éolien de −28 °C (−18 °F) ou moins : le temps avant une gelure de la peau nue s'affiche dessous.
+- Espagnol : accents ajoutés aux libellés et messages (par exemple « Sensación térmica », « ubicación »).
+- Indice de chaleur : affiché seulement s'il dépasse la température. Par chaleur très sèche, « Ressenti » s'affiche.

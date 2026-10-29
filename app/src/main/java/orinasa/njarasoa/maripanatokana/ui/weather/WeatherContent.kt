@@ -29,9 +29,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import kotlinx.coroutines.delay
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -71,14 +68,13 @@ import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -259,13 +255,9 @@ internal fun WeatherContent(
     isSavedLocation: Boolean = false,
     onGoToCurrentLocation: () -> Unit = {},
     onToggleFavorite: () -> Unit = {},
-    onSwipeToNextLocation: () -> Unit = {},
-    onSwipeToPreviousLocation: () -> Unit = {},
-    canSwipeToNext: Boolean = false,
-    canSwipeToPrevious: Boolean = false,
-    locationCount: Int = 1,
     locationIndex: Int = 0,
-    locationNames: List<String?> = emptyList(), // pager order; null = current (GPS) location
+    locationNames: List<String?> = emptyList(), // list order; null = current (GPS) location
+    locationDistancesKm: List<Double?> = emptyList(), // from the device's last location, same order; null when not known
     onSelectLocation: (Int) -> Unit = {},
     hasLocationOverride: Boolean = false,
     advancedOverrideLat: Double? = null,
@@ -320,28 +312,7 @@ internal fun WeatherContent(
         }
     }
 
-    // Swipe-to-cycle-locations: draggable is nested-scroll-aware, so inner horizontal
-    // LazyRows (hourly/daily forecast) still consume drags themselves; only the leftover
-    // (e.g. dragging at a row's scroll edge, or dragging outside any row) reaches here.
-    val density = LocalDensity.current
-    var horizontalDragAccum by remember { mutableStateOf(0f) }
-    val swipeThresholdPx = with(density) { 80.dp.toPx() }
-    val horizontalDragState = rememberDraggableState { delta -> horizontalDragAccum += delta }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .draggable(
-                orientation = Orientation.Horizontal,
-                state = horizontalDragState,
-                onDragStarted = { horizontalDragAccum = 0f },
-                onDragStopped = {
-                    if (horizontalDragAccum <= -swipeThresholdPx) onSwipeToNextLocation()
-                    else if (horizontalDragAccum >= swipeThresholdPx) onSwipeToPreviousLocation()
-                    horizontalDragAccum = 0f
-                },
-            )
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
     CompositionLocalProvider(LocalScale provides scale) {
     Column(
         modifier = Modifier
@@ -359,6 +330,9 @@ internal fun WeatherContent(
         var headerActionsWidth by remember { mutableIntStateOf(0) }
         val density = LocalDensity.current
         val haptic = LocalHapticFeedback.current
+        // The list of places opens from the name or the arrow before it, when there is a favorite
+        val hasLocationList = locationNames.size > 1
+        var pickerOpen by remember { mutableStateOf(false) }
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -375,17 +349,20 @@ internal fun WeatherContent(
                 },
         ) {
             Column(
-                // Holding a favorite's name renames it
-                modifier = onLocationLongClicked?.let { rename ->
+                // A tap on the name opens the list of places; holding a favorite's name renames it
+                modifier = if (hasLocationList || onLocationLongClicked != null) {
                     Modifier.combinedClickable(
-                        onClick = {},
-                        onLongClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            rename()
+                        onClick = { if (hasLocationList) pickerOpen = true },
+                        onClickLabel = if (hasLocationList) stringResource(R.string.cd_location_list) else null,
+                        onLongClick = onLocationLongClicked?.let { rename ->
+                            {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                rename()
+                            }
                         },
-                        onLongClickLabel = stringResource(R.string.rename_title),
+                        onLongClickLabel = onLocationLongClicked?.let { stringResource(R.string.rename_title) },
                     )
-                } ?: Modifier
+                } else Modifier
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -511,6 +488,64 @@ internal fun WeatherContent(
             }
         }
 
+            // The arrow before the name, in the margin outside the share image
+            if (hasLocationList) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .offset(x = -(24.sd(scale)))
+                        .width(24.sd(scale))
+                        .height(with(density) { 36f.s(scale).toDp() })
+                        .clickable(role = Role.Button, onClickLabel = stringResource(R.string.cd_location_list)) { pickerOpen = true },
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowDropDown,
+                        contentDescription = stringResource(R.string.cd_location_list),
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        modifier = Modifier.size(24.dp),
+                    )
+                    DropdownMenu(
+                        expanded = pickerOpen,
+                        onDismissRequest = { pickerOpen = false },
+                        containerColor = Color(0xFF1A1565), // same as the location dialog
+                        shape = RoundedCornerShape(16.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Hairline),
+                    ) {
+                        // A search preview isn't in the list, so nothing is marked as current then
+                        val currentIndex = if (hasLocationOverride) -1 else locationIndex
+                        locationNames.forEachIndexed { i, name ->
+                            DropdownMenuItem(
+                                text = {
+                                    // The distance from the device in parentheses, in the main unit
+                                    val distance = locationDistancesKm.getOrNull(i)?.let { km ->
+                                        localizeDigits(if (metricPrimary) "${km.roundToInt()} km" else "${(km / 1.609344).roundToInt()} mi")
+                                    }
+                                    Text(
+                                        text = (name ?: stringResource(R.string.current_location)) + (distance?.let { " ($it)" } ?: ""),
+                                        fontFamily = bodyFont,
+                                        fontWeight = if (i == currentIndex) FontWeight.Bold else FontWeight.Normal,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (i == currentIndex) 1f else 0.85f),
+                                    )
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = if (name == null) Icons.Default.LocationOn else Icons.Default.Favorite,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                        modifier = Modifier.size(18.dp),
+                                    )
+                                },
+                                onClick = {
+                                    pickerOpen = false
+                                    onSelectLocation(i)
+                                },
+                            )
+                        }
+                    }
+                }
+            }
+
             // Header actions
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -542,81 +577,6 @@ internal fun WeatherContent(
                     contentDescription = stringResource(R.string.settings_title),
                     onClick = onOpenSettings,
                 )
-            }
-        }
-
-        // Saved-location pager: \u2039 \u2022 \u25CF \u2022 \u203A
-        if (locationCount > 1) {
-            // Holding either arrow lists every location to jump straight to one
-            var pickerOpen by remember { mutableStateOf(false) }
-            Box(modifier = Modifier.fillMaxWidth().padding(top = 8.sd(scale)), contentAlignment = Alignment.Center) {
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                LocationPagerArrow(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                    contentDescription = stringResource(R.string.cd_previous_location),
-                    enabled = canSwipeToPrevious,
-                    onClick = onSwipeToPreviousLocation,
-                    onLongClick = { pickerOpen = true },
-                )
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    repeat(locationCount) { i ->
-                        val active = i == locationIndex
-                        Box(
-                            modifier = Modifier
-                                .size(if (active) 8.dp else 6.dp)
-                                .background(
-                                    MaterialTheme.colorScheme.onSurface.copy(alpha = if (active) 0.9f else 0.3f),
-                                    CircleShape,
-                                )
-                                .align(Alignment.CenterVertically),
-                        )
-                    }
-                }
-                LocationPagerArrow(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = stringResource(R.string.cd_next_location),
-                    enabled = canSwipeToNext,
-                    onClick = onSwipeToNextLocation,
-                    onLongClick = { pickerOpen = true },
-                )
-            }
-            DropdownMenu(
-                expanded = pickerOpen,
-                onDismissRequest = { pickerOpen = false },
-                containerColor = Color(0xFF1A1565), // same as the location dialog
-                shape = RoundedCornerShape(16.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Hairline),
-            ) {
-                // A search preview isn't in the list, so nothing is marked as current then
-                val currentIndex = if (hasLocationOverride) -1 else locationIndex
-                locationNames.forEachIndexed { i, name ->
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text = name ?: stringResource(R.string.current_location),
-                                fontFamily = bodyFont,
-                                fontWeight = if (i == currentIndex) FontWeight.Bold else FontWeight.Normal,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (i == currentIndex) 1f else 0.85f),
-                            )
-                        },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = if (name == null) Icons.Default.LocationOn else Icons.Default.Favorite,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                modifier = Modifier.size(18.dp),
-                            )
-                        },
-                        onClick = {
-                            pickerOpen = false
-                            onSelectLocation(i)
-                        },
-                    )
-                }
-            }
             }
         }
 
@@ -1006,40 +966,6 @@ private fun HeaderAction(
             contentDescription = contentDescription,
             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
             modifier = Modifier.size(22.dp),
-        )
-    }
-}
-
-@Composable
-@OptIn(ExperimentalFoundationApi::class)
-private fun LocationPagerArrow(
-    imageVector: androidx.compose.ui.graphics.vector.ImageVector,
-    contentDescription: String,
-    enabled: Boolean,
-    onClick: () -> Unit,
-    onLongClick: () -> Unit,
-) {
-    val haptic = LocalHapticFeedback.current
-    // Long-press works even at the end of the list, where the tap does nothing
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .size(32.dp)
-            .clip(CircleShape)
-            .combinedClickable(
-                role = Role.Button,
-                onClick = { if (enabled) onClick() },
-                onLongClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    onLongClick()
-                },
-            ),
-    ) {
-        Icon(
-            imageVector = imageVector,
-            contentDescription = contentDescription,
-            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = if (enabled) 0.7f else 0.15f),
-            modifier = Modifier.size(20.dp),
         )
     }
 }

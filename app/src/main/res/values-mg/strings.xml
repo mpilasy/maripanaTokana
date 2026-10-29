@@ -157,8 +157,7 @@
     <string name="rename_reset">Averina</string>
     <string name="rename_cancel">Aoka ihany</string>
     <string name="rename_save">Tehirizina</string>
-    <string name="cd_previous_location">Toerana teo aloha</string>
-    <string name="cd_next_location">Toerana manaraka</string>
+    <string name="cd_location_list">Ireo tadidy</string>
     <string name="settings_title">Fandrindrana</string>
     <string name="settings_back">Hiverina</string>
     <string name="settings_advanced_mode">Fomba mandroso</string>
@@ -197,7 +196,7 @@
     <string name="help_q_favorite_add">Ahoana no hanamarihako toerana ho tadidiana?</string>
     <string name="help_a_favorite_add">Rehefa miseho ny toerana notadiavina, tsindrio ny fo foana eo ambony. Ho tadidian\'ny rindranasa io toerana io avy eo. Raha tsy mahazo ny toerana misy anao ny rindranasa, dia voatahiry avy hatrany ny toerana nofidinao.</string>
     <string name="help_q_favorite_move">Ahoana no hifindrako amin\'ireo toerana tiako?</string>
-    <string name="help_a_favorite_move">Ahisao miankavia na miankavanana ny efijery, na tsindrio ireo zana-tsipìka (miankavia na miankavanana) eo ambanin\'ny anaran\'ny toerana. Toerana iray ny teboka tsirairay, ary ny teboka voalohany no toerana misy anao. Tazomy ny zana-tsipìka iray mba hahitana ny lisitry ny toeranao sy hisafidianana iray.</string>
+    <string name="help_a_favorite_move">Tsindrio ny anaran\'ny toerana, na ny zana-tsipìka eo alohany, mba hahitana ny lisitry ny toerana voafidy: ny toerana izao aloha, avy eo ireo toerana nosafidianao ho tadidiana. Fidio ny tianao ho hita.</string>
     <string name="help_q_favorite_edit">Ahoana no hanovako ny anarana na hamafana toerana voatadidy?</string>
     <string name="help_a_favorite_edit">Mba hanovana ny anaran\'ny toerana tadidy, tazomy ny anarany eo ambony. Mba hamafana azy, tsindrio ny fo feno. Mba hiverenana amin\'ny toerana misy anao, tsindrio ny paingotra.</string>
     <string name="help_q_place_details">Ahoana no ahitako na andikako ny GPS?</string>

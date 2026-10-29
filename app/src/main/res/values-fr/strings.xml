@@ -157,8 +157,7 @@
     <string name="rename_reset">Réinitialiser</string>
     <string name="rename_cancel">Annuler</string>
     <string name="rename_save">Enregistrer</string>
-    <string name="cd_previous_location">Emplacement précédent</string>
-    <string name="cd_next_location">Emplacement suivant</string>
+    <string name="cd_location_list">Mes lieux</string>
     <string name="settings_title">Paramètres</string>
     <string name="settings_back">Retour</string>
     <string name="settings_advanced_mode">Mode avancé</string>
@@ -197,7 +196,7 @@
     <string name="help_q_favorite_add">Comment enregistrer un favori ?</string>
     <string name="help_a_favorite_add">Pendant qu\'un lieu recherché s\'affiche, touchez le cœur vide en haut. L\'application garde alors ce lieu. Si l\'application n\'a pas accès à votre position, le lieu choisi est enregistré directement.</string>
     <string name="help_q_favorite_move">Comment passer d\'un favori à l\'autre ?</string>
-    <string name="help_a_favorite_move">Balayez vers la gauche ou la droite, ou touchez les flèches sous le nom du lieu. Chaque point est un lieu ; le premier point est votre position actuelle. Maintenez une flèche pour voir la liste de vos lieux et en choisir un.</string>
+    <string name="help_a_favorite_move">Touchez le nom du lieu, ou la flèche devant, pour voir la liste de vos lieux : d\'abord votre position actuelle, puis vos favoris. Touchez-en un pour y aller.</string>
     <string name="help_q_favorite_edit">Comment renommer ou supprimer un favori ?</string>
     <string name="help_a_favorite_edit">Pour renommer un favori, maintenez son nom en haut. Pour le supprimer, touchez le cœur plein. Pour revenir à votre position actuelle, touchez l\'épingle.</string>
     <string name="help_q_place_details">Comment voir ou copier les coordonnées ?</string>
