@@ -8,6 +8,7 @@ import orinasa.njarasoa.maripanatokana.ui.weather.components.FontPicker
 import orinasa.njarasoa.maripanatokana.ui.weather.components.LanguageFlagButton
 import android.content.Intent
 import orinasa.njarasoa.maripanatokana.domain.model.ThermalIndices
+import orinasa.njarasoa.maripanatokana.domain.model.greatCircleKm
 import orinasa.njarasoa.maripanatokana.domain.model.FetchError
 import android.graphics.Bitmap
 import androidx.core.graphics.createBitmap
@@ -257,7 +258,7 @@ internal fun WeatherContent(
     onToggleFavorite: () -> Unit = {},
     locationIndex: Int = 0,
     locationNames: List<String?> = emptyList(), // list order; null = current (GPS) location
-    locationDistancesKm: List<Double?> = emptyList(), // from the device's last location, same order; null when not known
+    locationCoordinates: List<Pair<Double, Double>?> = emptyList(), // same order as locationNames; null when not known
     onSelectLocation: (Int) -> Unit = {},
     hasLocationOverride: Boolean = false,
     advancedOverrideLat: Double? = null,
@@ -514,11 +515,15 @@ internal fun WeatherContent(
                     ) {
                         // A search preview isn't in the list, so nothing is marked as current then
                         val currentIndex = if (hasLocationOverride) -1 else locationIndex
-                        locationNames.forEachIndexed { i, name ->
+                        // The distances from the place on screen: the current location first, then the favorites nearest first
+                        val distancesKm = locationCoordinates.map { c -> c?.let { greatCircleKm(displayLat, displayLon, it.first, it.second) } }
+                        val order = listOf(0) + (1 until locationNames.size).sortedBy { distancesKm.getOrNull(it) ?: Double.MAX_VALUE }
+                        order.forEach { i ->
+                            val name = locationNames[i]
                             DropdownMenuItem(
                                 text = {
-                                    // The distance from the device in parentheses, in the main unit
-                                    val distance = locationDistancesKm.getOrNull(i)?.let { km ->
+                                    // The distance in parentheses, in the main unit; none for the place on screen
+                                    val distance = distancesKm.getOrNull(i)?.takeIf { i != currentIndex }?.let { km ->
                                         localizeDigits(if (metricPrimary) "${km.roundToInt()} km" else "${(km / 1.609344).roundToInt()} mi")
                                     }
                                     Text(

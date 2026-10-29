@@ -456,7 +456,7 @@ private fun WeatherMainScreen(
                             },
                             locationIndex = locationCycleIndex,
                             locationNames = listOf<String?>(null) + savedLocations.map { it.displayName },
-                            locationDistancesKm = listOf<Double?>(null) + savedLocations.map { viewModel.distanceFromDeviceKm(it) },
+                            locationCoordinates = listOf(viewModel.deviceLocation()) + savedLocations.map { it.latitude to it.longitude },
                             onSelectLocation = { i ->
                                 if (i != locationCycleIndex) viewModel.switchToLocation(locationCycle[i])
                             },

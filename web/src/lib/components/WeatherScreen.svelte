@@ -14,7 +14,6 @@
 		showSavedLocationsDialog, openSavedLocationsDialog, activeLocationId, savedLocations, switchToLocation,
 		locationOverride, initLocationOverride, setLocationOverride, favoriteCurrentLocation, unfavoriteCurrentLocation, displayName
 	} from '#lib/stores/savedLocations.js';
-	import type { SavedLocation } from '#lib/stores/savedLocations.js';
 	import { parseLocationText } from '#lib/domain/sharedLocationParser.js';
 	import { encodePlusCode, findPlusCode } from '#lib/domain/plusCode.js';
 	import { longPress } from '#lib/actions/longPress.js';
@@ -157,15 +156,21 @@
 		return () => window.removeEventListener('click', close);
 	});
 
-	function locationCycle(): (string | null)[] {
-		return [null, ...$savedLocations.map((l) => l.id)];
-	}
 	let hasLocationList = $derived($savedLocations.length > 0);
-	/** " (12 km)": the distance from the device's last location, in the main unit; empty when that is not known. */
-	function distanceSuffix(l: SavedLocation): string {
+	/**
+	 * The list of places with their distance in km from the place on screen at (`lat`, `lon`): the current
+	 * location first, then the favorites nearest first. The distance is null when the device location is not known.
+	 */
+	function placeList(lat: number, lon: number): { id: string | null; km: number | null }[] {
 		const here = getCachedLocation();
-		if (!here) return '';
-		const km = calculateDistance(here.lat, here.lon, l.latitude, l.longitude);
+		const favorites = $savedLocations
+			.map((l) => ({ id: l.id as string | null, km: calculateDistance(lat, lon, l.latitude, l.longitude) as number | null }))
+			.sort((a, b) => a.km! - b.km!);
+		return [{ id: null, km: here ? calculateDistance(lat, lon, here.lat, here.lon) : null }, ...favorites];
+	}
+	/** " (12 km)" in the main unit; empty when not known. */
+	function distanceSuffix(km: number | null): string {
+		if (km == null) return '';
 		return loc($metricPrimary ? ` (${Math.round(km)} km)` : ` (${Math.round(km / 1.609344)} mi)`);
 	}
 
@@ -373,7 +378,7 @@
 						</button>
 						{#if pickerOpen}
 							<div class="location-picker" role="menu" dir={SUPPORTED_LOCALES[$localeIndex].tag === 'ar' ? 'rtl' : 'ltr'}>
-								{#each locationCycle() as id (id ?? 'current')}
+								{#each placeList(data.latitude, data.longitude) as { id, km } (id ?? 'current')}
 									{@const isCurrent = id === $activeLocationId && !$locationOverride}
 									<button type="button" role="menuitem" class="picker-item" class:current={isCurrent}
 										onclick={(e) => { e.stopPropagation(); pickerOpen = false; if (!isCurrent) switchToLocation(id); }}>
@@ -384,7 +389,8 @@
 												<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
 											{/if}
 										</svg>
-										{id === null ? $_('current_location') : (savedById(id) ? displayName(savedById(id)!) + distanceSuffix(savedById(id)!) : id)}
+										<!-- No distance for the place on screen -->
+										{(id === null ? $_('current_location') : (savedById(id) ? displayName(savedById(id)!) : id)) + (isCurrent ? '' : distanceSuffix(km))}
 									</button>
 								{/each}
 							</div>

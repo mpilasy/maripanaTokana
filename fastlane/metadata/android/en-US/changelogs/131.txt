@@ -1,0 +1,8 @@
+Since 1.5.28:
+- Places: tap the name or the ▾ for the list, with distances from the place on screen.
+- Heat index and wind chill, with the time to frostbite.
+- New Moon and Cloud cover cards; day length in words.
+- Forecast tabs: humidity, heat index, wind chill; slide along a chart.
+- Hold the flag or the font button for a list.
+- Better share images and widgets; faster Android refresh.
+- New icon; Spanish accents; Malagasy fixes.

@@ -1,0 +1,8 @@
+Depuis 1.5.28 :
+- Lieux : touchez le nom ou le ▾ pour la liste, avec les distances depuis le lieu affiché.
+- Indice de chaleur et refroidissement éolien, avec le temps avant gelure.
+- Cartes Lune et Couverture nuageuse ; durée du jour en mots.
+- Onglets : humidité, indice de chaleur, refroidissement éolien ; glissez sur un graphique.
+- Maintenez le drapeau ou la police pour une liste.
+- Images partagées et widgets améliorés.
+- Nouvelle icône ; accents espagnols.

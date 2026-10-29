@@ -1,0 +1,8 @@
+Hatramin'ny 1.5.28:
+- Toerana: tsindrio ny anarana na ny ▾ hahitana ny lisitra sy ny halavirana.
+- Hafanana tsapa sy hatsiaka tsapa, miaraka amin'ny fotoana mitsovaka.
+- Karatra vaovao: Volana sy Tako-drahona; halavan'ny andro amin'ny teny.
+- Vinavina: hamandoana, hafanana tsapa, hatsiaka tsapa; asosay ny rantsantananao amin'ny sary.
+- Tazomy ny saina na ny bokotra endri-tsoratra: misy lisitra.
+- Sary zaraina sy widget tsara kokoa.
+- Sary famantarana vaovao; fanitsiana Espaniola sy Malagasy.

@@ -9,6 +9,11 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261029185249] - 2026-10-29
+- Place list: the distances are now from the place on screen, not from the device, and the favorites are sorted nearest first from that place. "Current location" stays first and shows its distance when another place is on screen. The place on screen shows no distance.
+- Malagasy: "Ny misy antsika" for the current location in the list.
+- Store notes: they now cover every version that is not yet on the F-Droid page (since 1.5.28), as a summary, because F-Droid builds only the newest tag. `docs/FDROID.md` describes the rule.
+
 ## [1.6.20261029174922] - 2026-10-29
 - Places: a tap on the place name, or on the ▾ before it, opens the list of places (current location first, then the favorites). Each favorite shows its distance from the device's last location in parentheses, in km (metric) or miles (imperial). Holding the name still renames a favorite. The ▾ is in the start margin, outside the share image, and shows only when there is a favorite.
 - Removed: the swipe between places and the row of dots and arrows under the header (holding an arrow opened the list). The help answer "How do I move between my favorites?" is rewritten in all 8 languages.

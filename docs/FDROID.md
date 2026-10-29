@@ -442,7 +442,7 @@ Releases are usually made by hand:
 
 1. Audit the dependencies (`gradle/libs.versions.toml`, and `npm outdated` and `npm audit` in `web/`), and apply small updates.
 2. Bump the version in `app/build.gradle.kts` (`versionCode` and `versionName`), `web/package.json`, `web/package-lock.json` (2 entries) and `web/src/lib/components/Footer.svelte`.
-3. Write `fastlane/metadata/android/{locale}/changelogs/{versionCode}.txt` in all 8 locales (ar, en-US, es, fr, hi, mg, ne, zh-CN). Keep each file under 500 characters.
+3. Write `fastlane/metadata/android/{locale}/changelogs/{versionCode}.txt` in all 8 locales (ar, en-US, es, fr, hi, mg, ne, zh-CN). Keep each file under 500 characters. F-Droid builds only the newest tag, so its page shows only the newest file. The file must cover every version that is not yet on the F-Droid page at release time: all versions newer than `suggestedVersionCode` from `https://f-droid.org/api/v1/packages/orinasa.njarasoa.maripanatokana`. Put the newest change first. When the lines do not fit in 500 characters, shorten them or combine them into a summary; do not drop a version.
 4. Add an entry at the top of `CHANGELOG.md` (move the Unreleased items into it). Each release must have notes: the GitHub release shows this entry.
 5. Run `python3 scripts/check_version_sync.py`. It fails when the version strings differ, or when the current version has no `CHANGELOG.md` entry or no changelog file in one of the 8 locales.
 6. Commit as `Bump to vX.Y.Z`, push `main`, then create and push the tag `vX.Y.Z`.
