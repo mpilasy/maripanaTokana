@@ -9,6 +9,9 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261029031929] - 2026-10-29
+- No change in the app. The Malagasy store notes are corrected ("sarina maripàna", "rehefa ilaina"). The store notes repeat those of 1.6.20261029031501, because F-Droid builds only the newest tag.
+
 ## [1.6.20261029031501] - 2026-10-29
 - Heat index and wind chill, calculated on the device with the NWS formulas. The app shows one felt value next to the temperature (hero card, under the low/high, and the Temperature card): the heat index from 27 °C (80 °F), the wind chill at 10 °C (50 °F) or lower with wind over 4.8 km/h (3 mph), else "Feels like" from the weather source. A thermometer icon with a plus (heat) or a minus (cold) goes with them.
 - Hourly and 10-day forecasts: a Heat index or Wind chill tab after the Conditions tab, only when one hour or day has the value. The daily heat index uses the day's high with the humidity from the day's mean dew point; the daily wind chill uses the day's low with the day's wind.
