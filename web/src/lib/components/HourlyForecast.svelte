@@ -18,6 +18,7 @@
 	import ForecastTabs from './ForecastTabs.svelte';
 	import OverviewChart from './OverviewChart.svelte';
 	import ChartScrub from './ChartScrub.svelte';
+	import { shareItemsPerLine } from '#lib/utils/shareLayout.js';
 	import { UV_TIER_COLORS, uvColorFor, type UvTier } from '#lib/domain/uv.js';
 
 	interface Props {
@@ -30,15 +31,18 @@
 		utcOffsetSeconds: number;
 		/** Hourly air quality for its tab; the tab is left out without it. */
 		airQuality?: { forecasts: HourlyAirQuality[]; primaryStandard: AqiStandard } | null;
-		/** In the share image: every item on one line, no scroll. */
-		wide?: boolean;
+		/** In the share image: the items wrap in rows, only the selected tab shows. */
+		shareCopy?: boolean;
 		/** The selected tab; the caller keeps it, so the share image shows the same tab. */
 		displayMode?: string;
 	}
 
-	let { forecasts, metricPrimary, dailySunrise, dailySunset, loc, onToggleUnits, utcOffsetSeconds, airQuality = null, wide = false, displayMode = $bindable('Temperature') }: Props = $props();
+	let { forecasts, metricPrimary, dailySunrise, dailySunset, loc, onToggleUnits, utcOffsetSeconds, airQuality = null, shareCopy = false, displayMode = $bindable('Temperature') }: Props = $props();
 
 	let scrollEl = $state<HTMLElement | null>(null);
+	// Share image: 6 items a line at most, so that chat apps do not shrink the image much
+	let perLine = $derived(shareItemsPerLine(forecasts.length, 6));
+	let gridWidth = $derived(perLine * 104 + (perLine - 1) * 12);
 	let scrollLeft = $state(0);
 	let containerWidth = $state(0);
 
@@ -157,10 +161,10 @@
 	}
 </script>
 
-<div class="hourly-wrapper" class:wide bind:clientWidth={containerWidth}>
-	<ForecastTabs {tabs} selected={displayMode} onSelect={(id) => (displayMode = id)} />
+<div class="hourly-wrapper" class:share={shareCopy} style:width={shareCopy ? `${gridWidth}px` : undefined} bind:clientWidth={containerWidth}>
+	<ForecastTabs tabs={shareCopy ? tabs.filter((t) => t.id === displayMode) : tabs} selected={displayMode} onSelect={(id) => (displayMode = id)} />
 	<div class="cards-scroll" bind:this={scrollEl} use:dragScroll onscroll={(e) => { scrollLeft = e.currentTarget.scrollLeft; }}>
-	<div class="cards-row">
+	<div class="cards-row" style:grid-template-columns={shareCopy ? `repeat(${perLine}, 104px)` : undefined}>
 		{#each forecasts as item, i}
 			<div class="hourly-card" class:now={i === 0}>
 				<span class="hour">{loc(formatHourAtLocation(item.time, utcOffsetSeconds))}</span>
@@ -248,12 +252,12 @@
 					itemSpacing={12}
 					height={64}
 					{scrollLeft}
-					containerWidth={wide ? 0 : containerWidth}
+					{containerWidth} showBand={!shareCopy}
 				/>
 			</div>
 		{:else if chart}
 			<div class="chart-container">
-				<OverviewChart {...chart} itemWidth={104} itemSpacing={12} {scrollLeft} containerWidth={wide ? 0 : containerWidth} />
+				<OverviewChart {...chart} itemWidth={104} itemSpacing={12} {scrollLeft} {containerWidth} showBand={!shareCopy} />
 			</div>
 		{/if}
 	</ChartScrub>
@@ -272,12 +276,13 @@
 		padding: 8px 0;
 	}
 
-	.hourly-wrapper.wide {
-		width: max-content;
+	.share .cards-scroll {
+		overflow: visible;
 	}
 
-	.wide .cards-scroll {
-		overflow: visible;
+	.share .cards-row {
+		display: grid;
+		row-gap: 12px;
 	}
 
 	.cards-scroll::-webkit-scrollbar {

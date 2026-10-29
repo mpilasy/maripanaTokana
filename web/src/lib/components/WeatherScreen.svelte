@@ -485,7 +485,7 @@
 				{#if data.hourlyForecast.length > 0}
 					<div>
 						<SectionCard title={$_('section_hourly_forecast')} onShare={handleShare}>
-							{#snippet wide()}
+							{#snippet shareCopy()}
 								{#if $weatherSource === 'OPEN_METEO' && data.minutelyForecast && nowcastHasRain(data.minutelyForecast)}
 									<h3 class="sub-title">{$_('section_nowcast')}</h3>
 									<NowcastCard items={data.minutelyForecast} localizeDigits={loc} utcOffsetSeconds={data.utcOffsetSeconds} />
@@ -499,7 +499,7 @@
 									{loc}
 									onToggleUnits={toggleUnits}
 									utcOffsetSeconds={data.utcOffsetSeconds}
-									wide
+									shareCopy
 									bind:displayMode={hourlyMode}
 									airQuality={data.hourlyAirQuality && data.hourlyAirQuality.length > 0 && data.airQuality
 										? { forecasts: data.hourlyAirQuality, primaryStandard: data.airQuality.primaryStandard }
@@ -531,7 +531,7 @@
 				{#if data.dailyForecast.length > 0}
 					<div>
 						<SectionCard title={$_('section_this_week')} onShare={handleShare}>
-							{#snippet wide()}
+							{#snippet shareCopy()}
 								<DailyForecast
 									forecasts={data.dailyForecast}
 									metricPrimary={$metricPrimary}
@@ -539,7 +539,7 @@
 									{loc}
 									onToggleUnits={toggleUnits}
 									utcOffsetSeconds={data.utcOffsetSeconds}
-									wide
+									shareCopy
 									bind:displayMode={dailyMode}
 									airQuality={data.hourlyAirQuality && data.hourlyAirQuality.length > 0 && data.airQuality
 										? { forecasts: data.hourlyAirQuality, primaryStandard: data.airQuality.primaryStandard }

@@ -29,10 +29,12 @@
 		emptyLabel?: string;
 		/** A second line on its own scale (another unit), e.g. the dew point under the humidity; line style only. */
 		second?: { values: (number | null)[]; color: string; highLabel?: string; lowLabel?: string } | null;
+		/** The band that marks the part of the row in view; off in a share image. */
+		showBand?: boolean;
 	}
 
 	let {
-		values, itemWidth, itemSpacing, scrollLeft = 0, containerWidth = 0, height = 48,
+		values, itemWidth, itemSpacing, scrollLeft = 0, containerWidth = 0, showBand = true, height = 48,
 		style = 'line', fromZero = false, color = 'white', pointColors, highLabel, lowLabel, legend, emptyLabel, second = null,
 	}: Props = $props();
 
@@ -111,7 +113,7 @@
 		return a === 'start' ? Math.max(0, x - 4) : a === 'end' ? Math.min(svgWidth, x + 4) : x;
 	}
 
-	let showViewport = $derived(containerWidth > 0 && totalWidth > containerWidth);
+	let showViewport = $derived(showBand && containerWidth > 0 && totalWidth > containerWidth);
 	let vpLeft = $derived(showViewport ? Math.max(0, scrollLeft / totalWidth * svgWidth) : 0);
 	let vpRight = $derived(showViewport ? Math.min(svgWidth, (scrollLeft + containerWidth) / totalWidth * svgWidth) : svgWidth);
 </script>

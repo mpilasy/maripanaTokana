@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import orinasa.njarasoa.maripanatokana.ui.weather.LocalShareCopy
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.rotate
@@ -223,12 +224,14 @@ fun LevelBar(color: Color, label: String, modifier: Modifier = Modifier) {
 /** A row of chips that picks what a forecast card shows. */
 @Composable
 fun <T> ForecastTabs(tabs: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit, modifier: Modifier = Modifier) {
+    // A share image shows only the selected tab
+    val shownTabs = if (LocalShareCopy.current) tabs.filter { it.first == selected } else tabs
     val bodyFont = LocalBodyFont.current
     Row(
         modifier = modifier.horizontalScroll(rememberScrollState()).padding(bottom = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        tabs.forEach { (id, label) ->
+        shownTabs.forEach { (id, label) ->
             val isSelected = id == selected
             Text(
                 text = label,

@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import orinasa.njarasoa.maripanatokana.ui.weather.LocalShareCopy
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -85,6 +86,8 @@ internal fun OverviewChart(
 
     Column(modifier = modifier) {
         legend?.let { TierLegend(it, modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp)) }
+        // No band in a share image: it shows every item
+        val showBand = !LocalShareCopy.current
         Canvas(modifier = Modifier.fillMaxWidth().height(height)) {
             val h = size.height
             val w = size.width
@@ -176,7 +179,7 @@ internal fun OverviewChart(
             }
 
             // The part of the row scrolled into view, as a light band
-            if (totalScrollWidth > w) {
+            if (showBand && totalScrollWidth > w) {
                 val vpLeft = (scrollOffset / totalScrollWidth * w).coerceIn(0f, w)
                 val vpRight = ((scrollOffset + w) / totalScrollWidth * w).coerceIn(0f, w)
                 drawRoundRect(Color.White.copy(alpha = 0.06f), Offset(vpLeft, 0f), Size(vpRight - vpLeft, h), androidx.compose.ui.geometry.CornerRadius(6.dp.toPx()))

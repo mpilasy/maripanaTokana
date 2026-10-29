@@ -14,9 +14,11 @@
 		height?: number;
 		scrollLeft?: number;
 		containerWidth?: number;
+		/** The band that marks the part of the row in view; off in a share image. */
+		showBand?: boolean;
 	}
 
-	let { forecasts, metricPrimary, itemWidth, itemSpacing, height = 40, scrollLeft = 0, containerWidth = 0 }: Props = $props();
+	let { forecasts, metricPrimary, itemWidth, itemSpacing, height = 40, scrollLeft = 0, containerWidth = 0, showBand = true }: Props = $props();
 
 	let temps = $derived(forecasts.map(f => metricPrimary ? f.temperature.celsius : f.temperature.fahrenheit));
 	const loc = (s: string) => localizeDigits(s, SUPPORTED_LOCALES[$localeIndex]);
@@ -166,7 +168,7 @@
 		return a === 'start' ? Math.max(0, x - 4) : a === 'end' ? Math.min(svgWidth, x + 4) : x;
 	}
 
-	let showViewport = $derived(containerWidth > 0 && totalWidth > containerWidth);
+	let showViewport = $derived(showBand && containerWidth > 0 && totalWidth > containerWidth);
 	let vpLeft = $derived(showViewport ? Math.max(0, scrollLeft / totalWidth * svgWidth) : 0);
 	let vpRight = $derived(showViewport ? Math.min(svgWidth, (scrollLeft + containerWidth) / totalWidth * svgWidth) : svgWidth);
 </script>

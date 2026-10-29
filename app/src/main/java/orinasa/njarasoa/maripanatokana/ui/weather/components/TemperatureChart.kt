@@ -10,6 +10,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import orinasa.njarasoa.maripanatokana.ui.weather.LocalShareCopy
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
@@ -94,6 +95,8 @@ fun TemperatureChart(
     } else Modifier
 
     Box(modifier = modifier.then(summaryModifier)) {
+        // No band in a share image: it shows every item
+        val showBand = !LocalShareCopy.current
         Canvas(modifier = Modifier.fillMaxSize()) {
             val height = size.height
             val width = size.width
@@ -228,7 +231,7 @@ fun TemperatureChart(
             }
 
             // The part of the row scrolled into view, as a light band
-            if (totalScrollWidth > width) {
+            if (showBand && totalScrollWidth > width) {
                 val vpLeft = (scrollOffset / totalScrollWidth * width).coerceIn(0f, width)
                 val vpRight = ((scrollOffset + width) / totalScrollWidth * width).coerceIn(0f, width)
                 drawRoundRect(Color.White.copy(alpha = 0.06f), Offset(vpLeft, 0f), Size(vpRight - vpLeft, height), androidx.compose.ui.geometry.CornerRadius(6.dp.toPx()))

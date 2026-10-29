@@ -15,6 +15,7 @@
 	import DailyTemperatureChart from './DailyTemperatureChart.svelte';
 	import OverviewChart from './OverviewChart.svelte';
 	import ChartScrub from './ChartScrub.svelte';
+	import { shareItemsPerLine } from '#lib/utils/shareLayout.js';
 	import { UV_TIER_COLORS, uvColorFor, type UvTier } from '#lib/domain/uv.js';
 	import { AirQualityIndex, AQI_TIER_COLORS, type AqiStandard, type AqiTier } from '#lib/domain/airQuality.js';
 	import type { HourlyAirQuality } from '#lib/domain/weatherData.js';
@@ -30,18 +31,21 @@
 		utcOffsetSeconds: number;
 		/** Hourly air quality, summed up per day for its tab; the tab is left out without it. */
 		airQuality?: { forecasts: HourlyAirQuality[]; primaryStandard: AqiStandard } | null;
-		/** In the share image: every item on one line, no scroll. */
-		wide?: boolean;
+		/** In the share image: the items wrap in rows, only the selected tab shows. */
+		shareCopy?: boolean;
 		/** The selected tab; the caller keeps it, so the share image shows the same tab. */
 		displayMode?: string;
 	}
 
-	let { forecasts, metricPrimary, localeTag, loc, onToggleUnits, utcOffsetSeconds, airQuality = null, wide = false, displayMode = $bindable('Temperature') }: Props = $props();
+	let { forecasts, metricPrimary, localeTag, loc, onToggleUnits, utcOffsetSeconds, airQuality = null, shareCopy = false, displayMode = $bindable('Temperature') }: Props = $props();
 
 	const weekdayNames = $derived($json('weekday_names') as string[] | undefined);
 	const monthNames = $derived($json('month_names') as string[] | undefined);
 
 	let scrollEl = $state<HTMLElement | null>(null);
+	// Share image: 5 items a line at most, so that chat apps do not shrink the image much
+	let perLine = $derived(shareItemsPerLine(forecasts.length, 5));
+	let gridWidth = $derived(perLine * 96 + (perLine - 1) * 12);
 	let scrollLeft = $state(0);
 	let containerWidth = $state(0);
 
@@ -152,10 +156,10 @@
 	}
 </script>
 
-<div class="daily-wrapper" class:wide bind:clientWidth={containerWidth}>
-	<ForecastTabs {tabs} selected={displayMode} onSelect={(id) => (displayMode = id)} />
+<div class="daily-wrapper" class:share={shareCopy} style:width={shareCopy ? `${gridWidth}px` : undefined} bind:clientWidth={containerWidth}>
+	<ForecastTabs tabs={shareCopy ? tabs.filter((t) => t.id === displayMode) : tabs} selected={displayMode} onSelect={(id) => (displayMode = id)} />
 	<div class="cards-scroll" bind:this={scrollEl} use:dragScroll onscroll={(e) => { scrollLeft = e.currentTarget.scrollLeft; }}>
-	<div class="cards-row">
+	<div class="cards-row" style:grid-template-columns={shareCopy ? `repeat(${perLine}, 96px)` : undefined}>
 		{#each forecasts as item, i}
 			<div class="daily-card" class:today={i === 0}>
 				<span class="day-name">{formatDayName(item.date, localeTag, utcOffsetSeconds, true, weekdayNames)}</span>
@@ -240,12 +244,12 @@
 					itemSpacing={12}
 					height={64}
 					{scrollLeft}
-					containerWidth={wide ? 0 : containerWidth}
+					{containerWidth} showBand={!shareCopy}
 				/>
 			</div>
 		{:else if chart}
 			<div class="chart-container">
-				<OverviewChart {...chart} itemWidth={96} itemSpacing={12} {scrollLeft} containerWidth={wide ? 0 : containerWidth} />
+				<OverviewChart {...chart} itemWidth={96} itemSpacing={12} {scrollLeft} {containerWidth} showBand={!shareCopy} />
 			</div>
 		{/if}
 	</ChartScrub>
@@ -264,12 +268,13 @@
 		padding: 8px 0;
 	}
 
-	.daily-wrapper.wide {
-		width: max-content;
+	.share .cards-scroll {
+		overflow: visible;
 	}
 
-	.wide .cards-scroll {
-		overflow: visible;
+	.share .cards-row {
+		display: grid;
+		row-gap: 12px;
 	}
 
 	.cards-scroll::-webkit-scrollbar {

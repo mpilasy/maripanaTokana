@@ -14,9 +14,11 @@
 		height?: number;
 		scrollLeft?: number;
 		containerWidth?: number;
+		/** The band that marks the part of the row in view; off in a share image. */
+		showBand?: boolean;
 	}
 
-	let { forecasts, metricPrimary, itemWidth, itemSpacing, height = 48, scrollLeft = 0, containerWidth = 0 }: Props = $props();
+	let { forecasts, metricPrimary, itemWidth, itemSpacing, height = 48, scrollLeft = 0, containerWidth = 0, showBand = true }: Props = $props();
 
 	const loc = (s: string) => localizeDigits(s, SUPPORTED_LOCALES[$localeIndex]);
 	let ariaLabel = $derived.by(() => {
@@ -137,7 +139,7 @@
 	let maxPath = $derived(generateMonotonePath(maxPoints));
 	let minPath = $derived(generateMonotonePath(minPoints));
 
-	let showViewport = $derived(containerWidth > 0 && totalWidth > containerWidth);
+	let showViewport = $derived(showBand && containerWidth > 0 && totalWidth > containerWidth);
 	let vpLeft = $derived(showViewport ? Math.max(0, scrollLeft / totalWidth * svgWidth) : 0);
 	let vpRight = $derived(showViewport ? Math.min(svgWidth, (scrollLeft + containerWidth) / totalWidth * svgWidth) : svgWidth);
 </script>

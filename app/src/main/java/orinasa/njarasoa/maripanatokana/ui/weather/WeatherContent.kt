@@ -772,7 +772,7 @@ internal fun WeatherContent(
             }
             if (data.hourlyForecast.isNotEmpty()) add {
                 val hourlyMode = remember { mutableStateOf(ForecastDisplayMode.Temperature) }
-                SectionCard(stringResource(R.string.section_hourly_forecast), headerGraphicsLayer, shareWide = true) {
+                SectionCard(stringResource(R.string.section_hourly_forecast), headerGraphicsLayer, shareCopy = true) {
                     if (showNowcast) {
                         Text(
                             text = stringResource(R.string.section_nowcast),
@@ -796,7 +796,7 @@ internal fun WeatherContent(
             }
             if (data.dailyForecast.isNotEmpty()) add {
                 val dailyMode = remember { mutableStateOf(ForecastDisplayMode.Temperature) }
-                SectionCard(stringResource(R.string.section_this_week), headerGraphicsLayer, shareWide = true) {
+                SectionCard(stringResource(R.string.section_this_week), headerGraphicsLayer, shareCopy = true) {
                     DailyForecastList(data.dailyForecast, metricPrimary, localizeDigits, onToggleUnits, data.utcOffsetSeconds,
                         hourlyAirQuality = data.hourlyAirQuality.takeIf { data.airQuality != null }.orEmpty(),
                         aqiStandard = data.airQuality?.primaryStandard ?: AqiStandard.US, modeState = dailyMode)
@@ -1064,14 +1064,14 @@ internal fun SectionCard(
     headerGraphicsLayer: GraphicsLayer,
     // No surface of its own, for sections whose tiles are already cards
     bare: Boolean = false,
-    // The share image shows the full width of the content (rows that scroll sideways)
-    shareWide: Boolean = false,
+    // The share image shows a copy of the content with every item (rows that scroll sideways wrap)
+    shareCopy: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val bodyFont = LocalBodyFont.current
     val graphicsLayer = rememberGraphicsLayer()
     val wideLayer = rememberGraphicsLayer()
-    // Set while the hidden full-width copy is drawn for a share image
+    // Set while the hidden share copy is drawn for a share image
     var wideDrawn by remember { mutableStateOf<CompletableDeferred<Unit>?>(null) }
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -1105,7 +1105,7 @@ internal fun SectionCard(
                 onClick = {
                     coroutineScope.launch {
                         val header = headerGraphicsLayer.toImageBitmap().asAndroidBitmap()
-                        val layer = if (shareWide) {
+                        val layer = if (shareCopy) {
                             val drawn = CompletableDeferred<Unit>()
                             wideDrawn = drawn
                             drawn.await()
@@ -1140,7 +1140,7 @@ internal fun SectionCard(
         ) {
             content()
         }
-        // The hidden full-width copy: it takes no room and is drawn only into wideLayer
+        // The hidden share copy: it takes no room and is drawn only into wideLayer
         wideDrawn?.let { drawn ->
             Box(Modifier.layout { measurable, _ ->
                 val placeable = measurable.measure(Constraints())
@@ -1155,15 +1155,21 @@ internal fun SectionCard(
                             drawn.complete(Unit)
                         }
                 ) {
-                    CompositionLocalProvider(LocalWideCapture provides true) { content() }
+                    CompositionLocalProvider(LocalShareCopy provides true) { content() }
                 }
             }
         }
     }
 }
 
-/** True in the hidden copy of a card that is drawn for a wide share image. */
-internal val LocalWideCapture = staticCompositionLocalOf { false }
+/** Items a line in a share image: at most [max], and the lines as even as possible. */
+internal fun shareItemsPerLine(count: Int, max: Int): Int {
+    val lines = (count + max - 1) / max
+    return if (lines <= 1) count.coerceAtLeast(1) else (count + lines - 1) / lines
+}
+
+/** True in the hidden copy of a card that is drawn for a share image: rows wrap, only the selected tab shows. */
+internal val LocalShareCopy = staticCompositionLocalOf { false }
 
 /** The text on rain or snow coming in the next 24 hours; null when they stay dry. */
 @Composable
@@ -1292,8 +1298,8 @@ internal fun HourlyForecastRow(
     val fontFeatures = LocalBodyFontFeatures.current
     val scale = LocalScale.current
     var displayMode by modeState
-    // In the share image: every item on one line, no scroll
-    val wide = LocalWideCapture.current
+    // In the share image: the items wrap in rows, no scroll
+    val wide = LocalShareCopy.current
     val isRemote = isRemoteTimezone(utcOffsetSeconds)
 
     val scrollState = rememberScrollState()
@@ -1329,10 +1335,7 @@ internal fun HourlyForecastRow(
         val european = aqiStandard == AqiStandard.EUROPEAN
         fun aqDual(aq: HourlyAirQuality) =
             if (european) aq.europeanValue to aq.usValue else aq.usValue to aq.europeanValue
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(itemSpacing),
-            modifier = (if (wide) Modifier else Modifier.horizontalScroll(scrollState)).padding(vertical = 8.dp)
-        ) {
+        val cards: @Composable () -> Unit = {
             forecasts.forEachIndexed { index, item ->
                 Card(
                     modifier = Modifier.width(itemWidth),
@@ -1455,6 +1458,22 @@ internal fun HourlyForecastRow(
                 }
             }
         }
+        if (wide) {
+            // 6 items a line, so that chat apps do not shrink the image much
+            val perLine = shareItemsPerLine(forecasts.size, 6)
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(itemSpacing),
+                verticalArrangement = Arrangement.spacedBy(itemSpacing),
+                maxItemsInEachRow = perLine,
+                // 1 dp more: the rounded card widths can add up to more than the rounded total
+                modifier = Modifier.width(itemWidth * perLine + itemSpacing * (perLine - 1) + 1.dp).padding(vertical = 8.dp),
+            ) { cards() }
+        } else {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(itemSpacing),
+                modifier = Modifier.horizontalScroll(scrollState).padding(vertical = 8.dp),
+            ) { cards() }
+        }
 
         ChartScrub(forecasts.size, itemWidth, itemSpacing, totalScrollWidthPx, scrollState,
             label = { localizeDigits(locationHourFormat.format(Date(forecasts[it].time))) }) {
@@ -1557,8 +1576,8 @@ internal fun DailyForecastList(
     val fontFeatures = LocalBodyFontFeatures.current
     val scale = LocalScale.current
     var displayMode by modeState
-    // In the share image: every item on one line, no scroll
-    val wide = LocalWideCapture.current
+    // In the share image: the items wrap in rows, no scroll
+    val wide = LocalShareCopy.current
 
     val scrollState = rememberScrollState()
     val itemWidth = 96.sd(scale)
@@ -1598,10 +1617,7 @@ internal fun DailyForecastList(
             selected = displayMode,
             onSelect = { displayMode = it },
         )
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(itemSpacing),
-            modifier = (if (wide) Modifier else Modifier.horizontalScroll(scrollState)).padding(vertical = 8.dp)
-        ) {
+        val cards: @Composable () -> Unit = {
         forecasts.forEach { item ->
             // Bolt: Add key to enable smart recomposition
             androidx.compose.runtime.key(item.date) {
@@ -1742,6 +1758,22 @@ internal fun DailyForecastList(
                 }
             }
         }
+        }
+        if (wide) {
+            // 5 items a line, so that chat apps do not shrink the image much
+            val perLine = shareItemsPerLine(forecasts.size, 5)
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(itemSpacing),
+                verticalArrangement = Arrangement.spacedBy(itemSpacing),
+                maxItemsInEachRow = perLine,
+                // 1 dp more: the rounded card widths can add up to more than the rounded total
+                modifier = Modifier.width(itemWidth * perLine + itemSpacing * (perLine - 1) + 1.dp).padding(vertical = 8.dp),
+            ) { cards() }
+        } else {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(itemSpacing),
+                modifier = Modifier.horizontalScroll(scrollState).padding(vertical = 8.dp),
+            ) { cards() }
         }
 
         ChartScrub(forecasts.size, itemWidth, itemSpacing, totalScrollWidthPx, scrollState,
