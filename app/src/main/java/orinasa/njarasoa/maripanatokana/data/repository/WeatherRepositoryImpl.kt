@@ -151,302 +151,214 @@ class WeatherRepositoryImpl @Inject constructor(
 
         val countryInfo = countryResolver.resolve(lat, lon)
         val countryCode = countryInfo?.countryCode
-        val australianStateCode = mapOf(
-            "New South Wales" to "NSW", "Victoria" to "VIC", "Queensland" to "QLD",
-            "Western Australia" to "WA", "South Australia" to "SA", "Tasmania" to "TAS",
-            "Australian Capital Territory" to "ACT", "Northern Territory" to "NT"
-        )[countryInfo?.adminArea ?: ""]
 
         // Coordinate-based fallbacks so a Geocoder failure (e.g. no geocoder backend on some
         // de-Googled/F-Droid devices) doesn't silently suppress a country-gated source.
         val inUS = countryCode == "us" || CountryBoundingBoxes.isInUS(lat, lon)
         val inCanada = countryCode == "ca" || CountryBoundingBoxes.isInCanada(lat, lon)
         val inAustralia = countryCode == "au" || CountryBoundingBoxes.isInAustralia(lat, lon)
+        val inJapan = JmaAreaCodes.isInJapan(lat, lon)
+        val meteoAlarmSlug = countryCode?.let { METEOALARM_SLUGS[it] }
 
-        val coveredByRegional = inUS ||
-            inCanada ||
-            inAustralia ||
-            countryCode in METEOALARM_COUNTRIES ||
-            JmaAreaCodes.isInJapan(lat, lon)
+        val coveredByRegional = inUS || inCanada || inAustralia || countryCode in METEOALARM_COUNTRIES || inJapan
 
         val failed = java.util.concurrent.CopyOnWriteArrayList<String>()
 
+        // Each source runs at the same time; a failure gives no alerts from that source and adds its name to `failed`
+        fun source(name: String, enabled: Boolean, fetch: suspend () -> List<WeatherAlert>) = async {
+            if (!enabled) return@async emptyList()
+            try {
+                fetch()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                failed.add(name)
+                AppLog.w(TAG, "$name alerts failed", e)
+                emptyList()
+            }
+        }
+
         try {
-            // 1. Official NWS Alerts
-            val nwsDeferred = async {
-                if (!settings.alertsNwsEnabled || !inUS) return@async emptyList<WeatherAlert>()
-                try {
-                    val point = String.format(Locale.US, "%.4f,%.4f", lat, lon)
-                    val nwsParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
-                    nwsApiService.getActiveAlerts(point).features.map { f ->
-                        val p = f.properties
-                        val level = if (p.severity == "Extreme" || p.severity == "Severe") AlertLevel.WARNING else AlertLevel.WATCH
-                        val time = p.sent?.let {
-                            try { nwsParser.parse(it)?.time } catch (_: Exception) { null }
-                        }
-                        WeatherAlert(level, p.event, p.description + (p.instruction?.let { "\n\n$it" } ?: ""), "nws", time, p.headline, f.id)
-                    }
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    failed.add("NWS")
-                    AppLog.w(TAG, "NWS alerts failed", e)
-                    emptyList()
-                }
-            }
+            val sources = listOf(
+                source("NWS", settings.alertsNwsEnabled && inUS) { nwsAlerts(lat, lon) },
+                // Skipped when a regional source covers the area
+                source("GDACS", settings.alertsGdacsEnabled && !coveredByRegional) { gdacsAlerts(lat, lon) },
+                source("MeteoAlarm", settings.alertsMeteoAlarmEnabled) {
+                    meteoAlarmSlug?.let { meteoAlarmAlerts(it, countryInfo?.subdivision) } ?: emptyList()
+                },
+                source("JMA", settings.alertsJmaEnabled && inJapan) { jmaAlerts(lat, lon) },
+                source("ECCC", settings.alertsEcccEnabled && inCanada) { ecccAlerts(lat, lon) },
+                source("BOM", settings.alertsBomEnabled && inAustralia) { bomAlerts(countryInfo?.adminArea) },
+                source("NHC", settings.alertsNhcEnabled) { nhcAlerts(lat, lon) },
+            ).map { it.await() }
 
-            // 2. Global GDACS Alerts (skipped when a regional source covers the area)
-            val gdacsDeferred = async {
-                if (!settings.alertsGdacsEnabled || coveredByRegional) return@async emptyList<WeatherAlert>()
-                try {
-                    val toDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
-                    val fromDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(System.currentTimeMillis() - GDACS_SEARCH_DAYS * 24 * 60 * 60 * 1000L))
-                    val gdacsParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
-
-                    val latDelta = GDACS_SEARCH_RADIUS_KM / 111.0
-                    val lonDelta = if (Math.abs(lat) < 89.0) GDACS_SEARCH_RADIUS_KM / (111.0 * Math.cos(Math.toRadians(lat))) else 360.0
-                    val minLat = lat - latDelta
-                    val maxLat = lat + latDelta
-
-                    gdacsFeed.get(fromDate to toDate) { gdacsApiService.searchEvents(fromDate, toDate) }.features
-                        .filter { f ->
-                            val fLat = f.geometry.coordinates[1]
-                            val fLon = f.geometry.coordinates[0]
-                            if (fLat < minLat || fLat > maxLat) return@filter false
-                            val dLon = Math.abs(fLon - lon)
-                            val shortestDLon = if (dLon > 180.0) 360.0 - dLon else dLon
-                            if (shortestDLon > lonDelta) return@filter false
-                            calculateDistance(lat, lon, fLat, fLon) < GDACS_SEARCH_RADIUS_KM
-                        }
-                        .map { f ->
-                            val p = f.properties
-                            val level = when (p.alertlevel) {
-                                "red" -> AlertLevel.EMERGENCY
-                                "orange" -> AlertLevel.WARNING
-                                else -> AlertLevel.WATCH
-                            }
-                            val time = p.fromdate?.let {
-                                try { gdacsParser.parse(it)?.time } catch (_: Exception) { null }
-                            }
-                            val reportUrl = try { p.url?.get("report")?.jsonPrimitive?.content } catch (_: Exception) { null }
-                            WeatherAlert(level, "GDACS: ${p.eventtype} - ${p.name}", p.description, "gdacs", time, null, reportUrl)
-                        }
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    failed.add("GDACS")
-                    AppLog.w(TAG, "GDACS alerts failed", e)
-                    emptyList()
-                }
-            }
-
-            // 3. MeteoAlarm (Europe)
-            val meteoAlarmDeferred = async {
-                if (!settings.alertsMeteoAlarmEnabled) return@async emptyList<WeatherAlert>()
-                val code = countryCode ?: return@async emptyList()
-                val slug = METEOALARM_SLUGS[code] ?: return@async emptyList()
-                val subdivision = countryInfo?.subdivision
-                try {
-                    parseMeteoAlarmAtom(meteoAlarmApiService.getAlerts(slug).string(), subdivision)
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    failed.add("MeteoAlarm")
-                    AppLog.w(TAG, "MeteoAlarm alerts failed", e)
-                    emptyList()
-                }
-            }
-
-            // 4. JMA (Japan)
-            val jmaDeferred = async {
-                if (!settings.alertsJmaEnabled) return@async emptyList<WeatherAlert>()
-                if (!JmaAreaCodes.isInJapan(lat, lon)) return@async emptyList()
-                try {
-                    val areaCode = JmaAreaCodes.nearestPrefectureCode(lat, lon)
-                    val response = jmaApiService.getWarnings(areaCode)
-                    val isoParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
-                    val warningMap = linkedMapOf<String, Pair<AlertLevel, LinkedHashSet<String>>>()
-                    response.areaTypes.flatMap { it.areas }.forEach { area ->
-                        val areaName = JmaAreaCodes.prefectureName(area.code)
-                        area.warnings
-                            .filter { it.status == "発表" || it.status == "継続" }
-                            .forEach { w ->
-                                val level = when {
-                                    w.code == "01" -> AlertLevel.EMERGENCY
-                                    w.code.toIntOrNull()?.let { it <= 8 } == true -> AlertLevel.WARNING
-                                    else -> AlertLevel.WATCH
-                                }
-                                val warnName = jmaWarningName(w.code)
-                                val existing = warningMap[warnName]
-                                if (existing == null) {
-                                    warningMap[warnName] = Pair(level, linkedSetOf<String>().also { if (areaName != null) it.add(areaName) })
-                                } else {
-                                    if (areaName != null) existing.second.add(areaName)
-                                    if (level.ordinal > existing.first.ordinal) warningMap[warnName] = Pair(level, existing.second)
-                                }
-                            }
-                    }
-                    warningMap.map { (warnName, pair) ->
-                        WeatherAlert(pair.first, warnName, pair.second.joinToString(", "), "jma", null, null, null)
-                    }
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    failed.add("JMA")
-                    AppLog.w(TAG, "JMA alerts failed", e)
-                    emptyList()
-                }
-            }
-
-            // 5. ECCC (Canada)
-            val ecccDeferred = async {
-                if (!settings.alertsEcccEnabled) return@async emptyList<WeatherAlert>()
-                if (!inCanada) return@async emptyList()
-                try {
-                    val delta = 1.0
-                    val bbox = String.format(Locale.US, "%.4f,%.4f,%.4f,%.4f", lon - delta, lat - delta, lon + delta, lat + delta)
-                    val ecccParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.US)
-                    ecccApiService.getAlerts(bbox = bbox).features.map { f ->
-                        val p = f.properties
-                        val level = when (p.alertType.lowercase()) {
-                            "warning" -> AlertLevel.WARNING
-                            else -> AlertLevel.WATCH
-                        }
-                        val time = p.publicationDatetime?.let { try { ecccParser.parse(it)?.time } catch (_: Exception) { null } }
-                        WeatherAlert(level, p.alertNameEn.ifBlank { "ECCC Alert" }, p.alertTextEn, "eccc", time, null, null)
-                    }
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    failed.add("ECCC")
-                    AppLog.w(TAG, "ECCC alerts failed", e)
-                    emptyList()
-                }
-            }
-
-            // 6. BOM (Australia)
-            val bomDeferred = async {
-                if (!settings.alertsBomEnabled || !inAustralia) return@async emptyList<WeatherAlert>()
-                try {
-                    val bomParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
-                    bomApiService.getWarnings().data
-                        .filter { it.warningAction != "cancelled" }
-                        .filter { w -> australianStateCode == null || w.states.isEmpty() || australianStateCode in w.states }
-                        .map { w ->
-                            val level = when (w.phase.lowercase()) {
-                                "warning" -> AlertLevel.WARNING
-                                else -> AlertLevel.WATCH
-                            }
-                            val time = w.issueTime?.let { try { bomParser.parse(it)?.time } catch (_: Exception) { null } }
-                            val eventType = w.shortTitle.ifBlank { w.shortDescription }
-                            val area = if (w.state.isNotBlank()) "${w.state}: ${w.title}" else w.title
-                            WeatherAlert(level, eventType, area, "bom", time, null, null)
-                        }
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    failed.add("BOM")
-                    AppLog.w(TAG, "BOM alerts failed", e)
-                    emptyList()
-                }
-            }
-
-            // 7. NHC — National Hurricane Center (Atlantic + Eastern Pacific basins, proximity-filtered)
-            val nhcDeferred = async {
-                if (!settings.alertsNhcEnabled) return@async emptyList<WeatherAlert>()
-                try {
-                    val nhcParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
-                    nhcApiService.getCurrentStorms().activeStorms
-                        .filter { calculateDistance(lat, lon, it.lat, it.lon) < NHC_SEARCH_RADIUS_KM }
-                        .map { storm ->
-                            val knots = storm.intensity.toIntOrNull() ?: 0
-                            val level = when {
-                                storm.classification == "HU" && knots >= 96 -> AlertLevel.EMERGENCY
-                                storm.classification == "HU" -> AlertLevel.WARNING
-                                storm.classification == "TS" -> AlertLevel.WARNING
-                                else -> AlertLevel.WATCH
-                            }
-                            val time = storm.advisory?.issuance?.let { try { nhcParser.parse(it)?.time } catch (_: Exception) { null } }
-
-                            val classificationName = NHC_CLASSIFICATION_NAMES[storm.classification]
-                            val title = if (classificationName != null) "$classificationName ${storm.name}" else "NHC: ${storm.name}"
-
-                            val statsParts = mutableListOf<String>()
-                            if (knots > 0) statsParts.add("winds ~${Math.round(knots * 1.15078)} mph")
-                            storm.pressure.toIntOrNull()?.let { statsParts.add("central pressure $it mb") }
-                            storm.movementSpeed?.let { speed ->
-                                statsParts.add(
-                                    if (speed > 0) "moving ${compassFromDegrees(storm.movementDir ?: 0)} at $speed mph"
-                                    else "stationary"
-                                )
-                            }
-                            val statsSentence = statsParts.joinToString(", ").ifBlank { null }
-                                ?.replaceFirstChar { it.uppercase() }?.plus(".")
-
-                            val distanceKm = Math.round(calculateDistance(lat, lon, storm.lat, storm.lon))
-                            val distanceMi = Math.round(distanceKm * 0.621371)
-                            val distanceSentence = "~$distanceKm km ($distanceMi mi) from your location."
-
-                            val description = listOfNotNull(statsSentence, distanceSentence).joinToString(" ").ifBlank { storm.name }
-
-                            WeatherAlert(level, title, description, "nhc", time, null, storm.advisory?.url)
-                        }
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    failed.add("NHC")
-                    AppLog.w(TAG, "NHC alerts failed", e)
-                    emptyList()
-                }
-            }
-
-            val nwsAlerts = nwsDeferred.await()
-            val gdacsAlerts = gdacsDeferred.await()
-            val meteoAlarmAlerts = meteoAlarmDeferred.await()
-            val jmaAlerts = jmaDeferred.await()
-            val ecccAlerts = ecccDeferred.await()
-            val bomAlerts = bomDeferred.await()
-            val nhcAlerts = nhcDeferred.await()
-
-            val combinedAlerts = ArrayList<WeatherAlert>(
-                nwsAlerts.size + gdacsAlerts.size + meteoAlarmAlerts.size + jmaAlerts.size +
-                    ecccAlerts.size + bomAlerts.size + nhcAlerts.size
-            )
             val keys = HashSet<String>()
-            for (item in nwsAlerts) {
-                val key = item.titleKey + item.source
-                if (keys.add(key)) combinedAlerts.add(item)
-            }
-            for (item in gdacsAlerts) {
-                val key = item.titleKey + item.source
-                if (keys.add(key)) combinedAlerts.add(item)
-            }
-            for (item in meteoAlarmAlerts) {
-                val key = item.titleKey + item.source
-                if (keys.add(key)) combinedAlerts.add(item)
-            }
-            for (item in jmaAlerts) {
-                val key = item.titleKey + item.source
-                if (keys.add(key)) combinedAlerts.add(item)
-            }
-            for (item in ecccAlerts) {
-                val key = item.titleKey + item.source
-                if (keys.add(key)) combinedAlerts.add(item)
-            }
-            for (item in bomAlerts) {
-                val key = item.titleKey + item.source
-                if (keys.add(key)) combinedAlerts.add(item)
-            }
-            for (item in nhcAlerts) {
-                val key = item.titleKey + item.source
-                if (keys.add(key)) combinedAlerts.add(item)
-            }
+            val combinedAlerts = sources.flatten().filter { keys.add(it.titleKey + it.source) }
             Result.success(AlertsResult(combinedAlerts, ALERT_SOURCE_ORDER.filter { it in failed }))
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    /** Official NWS alerts (United States). */
+    private suspend fun nwsAlerts(lat: Double, lon: Double): List<WeatherAlert> {
+        val point = String.format(Locale.US, "%.4f,%.4f", lat, lon)
+        val nwsParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
+        return nwsApiService.getActiveAlerts(point).features.map { f ->
+            val p = f.properties
+            val level = if (p.severity == "Extreme" || p.severity == "Severe") AlertLevel.WARNING else AlertLevel.WATCH
+            val time = p.sent?.let {
+                try { nwsParser.parse(it)?.time } catch (_: Exception) { null }
+            }
+            WeatherAlert(level, p.event, p.description + (p.instruction?.let { "\n\n$it" } ?: ""), "nws", time, p.headline, f.id)
+        }
+    }
+
+    /** Global GDACS alerts within GDACS_SEARCH_RADIUS_KM. */
+    private suspend fun gdacsAlerts(lat: Double, lon: Double): List<WeatherAlert> {
+        val toDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+        val fromDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(System.currentTimeMillis() - GDACS_SEARCH_DAYS * 24 * 60 * 60 * 1000L))
+        val gdacsParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
+
+        val latDelta = GDACS_SEARCH_RADIUS_KM / 111.0
+        val lonDelta = if (Math.abs(lat) < 89.0) GDACS_SEARCH_RADIUS_KM / (111.0 * Math.cos(Math.toRadians(lat))) else 360.0
+        val minLat = lat - latDelta
+        val maxLat = lat + latDelta
+
+        return gdacsFeed.get(fromDate to toDate) { gdacsApiService.searchEvents(fromDate, toDate) }.features
+            .filter { f ->
+                val fLat = f.geometry.coordinates[1]
+                val fLon = f.geometry.coordinates[0]
+                if (fLat < minLat || fLat > maxLat) return@filter false
+                val dLon = Math.abs(fLon - lon)
+                val shortestDLon = if (dLon > 180.0) 360.0 - dLon else dLon
+                if (shortestDLon > lonDelta) return@filter false
+                calculateDistance(lat, lon, fLat, fLon) < GDACS_SEARCH_RADIUS_KM
+            }
+            .map { f ->
+                val p = f.properties
+                val level = when (p.alertlevel) {
+                    "red" -> AlertLevel.EMERGENCY
+                    "orange" -> AlertLevel.WARNING
+                    else -> AlertLevel.WATCH
+                }
+                val time = p.fromdate?.let {
+                    try { gdacsParser.parse(it)?.time } catch (_: Exception) { null }
+                }
+                val reportUrl = try { p.url?.get("report")?.jsonPrimitive?.content } catch (_: Exception) { null }
+                WeatherAlert(level, "GDACS: ${p.eventtype} - ${p.name}", p.description, "gdacs", time, null, reportUrl)
+            }
+    }
+
+    /** MeteoAlarm alerts (Europe) for the country feed [slug], kept to [subdivision] when it is known. */
+    private suspend fun meteoAlarmAlerts(slug: String, subdivision: String?): List<WeatherAlert> =
+        parseMeteoAlarmAtom(meteoAlarmApiService.getAlerts(slug).string(), subdivision)
+
+    /** JMA warnings (Japan), one alert for each warning type with the prefectures it covers. */
+    private suspend fun jmaAlerts(lat: Double, lon: Double): List<WeatherAlert> {
+        val areaCode = JmaAreaCodes.nearestPrefectureCode(lat, lon)
+        val response = jmaApiService.getWarnings(areaCode)
+        val warningMap = linkedMapOf<String, Pair<AlertLevel, LinkedHashSet<String>>>()
+        response.areaTypes.flatMap { it.areas }.forEach { area ->
+            val areaName = JmaAreaCodes.prefectureName(area.code)
+            area.warnings
+                .filter { it.status == "発表" || it.status == "継続" }
+                .forEach { w ->
+                    val level = when {
+                        w.code == "01" -> AlertLevel.EMERGENCY
+                        w.code.toIntOrNull()?.let { it <= 8 } == true -> AlertLevel.WARNING
+                        else -> AlertLevel.WATCH
+                    }
+                    val warnName = jmaWarningName(w.code)
+                    val existing = warningMap[warnName]
+                    if (existing == null) {
+                        warningMap[warnName] = Pair(level, linkedSetOf<String>().also { if (areaName != null) it.add(areaName) })
+                    } else {
+                        if (areaName != null) existing.second.add(areaName)
+                        if (level.ordinal > existing.first.ordinal) warningMap[warnName] = Pair(level, existing.second)
+                    }
+                }
+        }
+        return warningMap.map { (warnName, pair) ->
+            WeatherAlert(pair.first, warnName, pair.second.joinToString(", "), "jma", null, null, null)
+        }
+    }
+
+    /** ECCC alerts (Canada) within about 1° of the place. */
+    private suspend fun ecccAlerts(lat: Double, lon: Double): List<WeatherAlert> {
+        val delta = 1.0
+        val bbox = String.format(Locale.US, "%.4f,%.4f,%.4f,%.4f", lon - delta, lat - delta, lon + delta, lat + delta)
+        val ecccParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.US)
+        return ecccApiService.getAlerts(bbox = bbox).features.map { f ->
+            val p = f.properties
+            val level = when (p.alertType.lowercase()) {
+                "warning" -> AlertLevel.WARNING
+                else -> AlertLevel.WATCH
+            }
+            val time = p.publicationDatetime?.let { try { ecccParser.parse(it)?.time } catch (_: Exception) { null } }
+            WeatherAlert(level, p.alertNameEn.ifBlank { "ECCC Alert" }, p.alertTextEn, "eccc", time, null, null)
+        }
+    }
+
+    /** BOM warnings (Australia) for the state named [adminArea], or all states when it is not known. */
+    private suspend fun bomAlerts(adminArea: String?): List<WeatherAlert> {
+        val stateCode = AUSTRALIAN_STATE_CODES[adminArea ?: ""]
+        val bomParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
+        return bomApiService.getWarnings().data
+            .filter { it.warningAction != "cancelled" }
+            .filter { w -> stateCode == null || w.states.isEmpty() || stateCode in w.states }
+            .map { w ->
+                val level = when (w.phase.lowercase()) {
+                    "warning" -> AlertLevel.WARNING
+                    else -> AlertLevel.WATCH
+                }
+                val time = w.issueTime?.let { try { bomParser.parse(it)?.time } catch (_: Exception) { null } }
+                val eventType = w.shortTitle.ifBlank { w.shortDescription }
+                val area = if (w.state.isNotBlank()) "${w.state}: ${w.title}" else w.title
+                WeatherAlert(level, eventType, area, "bom", time, null, null)
+            }
+    }
+
+    /** NHC (National Hurricane Center) storms in the Atlantic and Eastern Pacific within NHC_SEARCH_RADIUS_KM. */
+    private suspend fun nhcAlerts(lat: Double, lon: Double): List<WeatherAlert> {
+        val nhcParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
+        return nhcApiService.getCurrentStorms().activeStorms
+            .filter { calculateDistance(lat, lon, it.lat, it.lon) < NHC_SEARCH_RADIUS_KM }
+            .map { storm ->
+                val knots = storm.intensity.toIntOrNull() ?: 0
+                val level = when {
+                    storm.classification == "HU" && knots >= 96 -> AlertLevel.EMERGENCY
+                    storm.classification == "HU" -> AlertLevel.WARNING
+                    storm.classification == "TS" -> AlertLevel.WARNING
+                    else -> AlertLevel.WATCH
+                }
+                val time = storm.advisory?.issuance?.let { try { nhcParser.parse(it)?.time } catch (_: Exception) { null } }
+
+                val classificationName = NHC_CLASSIFICATION_NAMES[storm.classification]
+                val title = if (classificationName != null) "$classificationName ${storm.name}" else "NHC: ${storm.name}"
+
+                val statsParts = mutableListOf<String>()
+                if (knots > 0) statsParts.add("winds ~${Math.round(knots * 1.15078)} mph")
+                storm.pressure.toIntOrNull()?.let { statsParts.add("central pressure $it mb") }
+                storm.movementSpeed?.let { speed ->
+                    statsParts.add(
+                        if (speed > 0) "moving ${compassFromDegrees(storm.movementDir ?: 0)} at $speed mph"
+                        else "stationary"
+                    )
+                }
+                val statsSentence = statsParts.joinToString(", ").ifBlank { null }
+                    ?.replaceFirstChar { it.uppercase() }?.plus(".")
+
+                val distanceKm = Math.round(calculateDistance(lat, lon, storm.lat, storm.lon))
+                val distanceMi = Math.round(distanceKm * 0.621371)
+                val distanceSentence = "~$distanceKm km ($distanceMi mi) from your location."
+
+                val description = listOfNotNull(statsSentence, distanceSentence).joinToString(" ").ifBlank { storm.name }
+
+                WeatherAlert(level, title, description, "nhc", time, null, storm.advisory?.url)
+            }
     }
 
     private fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
@@ -592,6 +504,11 @@ class WeatherRepositoryImpl @Inject constructor(
             "HU" to "Hurricane", "EX" to "Post-Tropical Cyclone",
             "PTC" to "Potential Tropical Cyclone", "LO" to "Remnant Low",
             "DB" to "Disturbance", "WV" to "Tropical Wave",
+        )
+        private val AUSTRALIAN_STATE_CODES = mapOf(
+            "New South Wales" to "NSW", "Victoria" to "VIC", "Queensland" to "QLD",
+            "Western Australia" to "WA", "South Australia" to "SA", "Tasmania" to "TAS",
+            "Australian Capital Territory" to "ACT", "Northern Territory" to "NT"
         )
         private val NHC_COMPASS_DIRECTIONS = arrayOf(
             "N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
