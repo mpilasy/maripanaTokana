@@ -61,6 +61,7 @@
     <string name="section_nowcast">Prévisions minute par minute</string>
     <string name="nowcast_no_precip">Aucune précipitation prévue dans les 2 prochaines heures</string>
     <string name="nowcast_starts_in">Précipitations prévues dans ~%1$s min</string>
+    <string name="daylight_duration">%1$s h %2$s min</string>
     <string name="nowcast_ongoing">Précipitations prévues pour les 2 prochaines heures</string>
     <string name="activity_running">Course à pied</string>
     <string name="activity_laundry">Séchage du linge</string>

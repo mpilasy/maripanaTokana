@@ -1,0 +1,4 @@
+- Durée du jour : affichée en heures et minutes (10 h 38 min).
+- Indice de chaleur et refroidissement éolien : affichés près de la température quand ils s'appliquent, avec une icône de thermomètre. Les prévisions horaires et sur 10 jours ont un onglet pour chacun.
+- Valeurs en deux unités : la seconde unité est maintenant plus petite et sous la première.
+- Graphiques : une valeur manquante laisse un vide. Glisser le long d'un graphique fait défiler les cartes en douceur.

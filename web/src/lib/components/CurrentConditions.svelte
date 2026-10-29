@@ -85,11 +85,11 @@
 		return [text.slice(0, i), text.slice(i + 1)];
 	}
 
-	// The length of the day (hours:minutes), shown under the sun's arc
+	// The length of the day (hours and minutes), shown under the sun's arc
 	let daylight = $derived.by(() => {
 		if (data.sunset <= data.sunrise) return null;
 		const minutes = Math.floor((data.sunset - data.sunrise) / 60);
-		return `${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, '0')}`;
+		return $_('daylight_duration', { values: { hours: Math.floor(minutes / 60), minutes: minutes % 60 } });
 	});
 
 	// The moon at the place now; today runs from its midnight

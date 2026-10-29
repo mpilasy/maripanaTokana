@@ -9,6 +9,9 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261029121958] - 2026-10-29
+- Day length under the sun's arc: hours and minutes with units ("10h 38m"; Malagasy "10o sy 38m"), in place of "10:38". The store notes also repeat those of 1.6.20261029031501, because F-Droid builds only the newest tag.
+
 ## [1.6.20261029031929] - 2026-10-29
 - No change in the app. The Malagasy store notes are corrected ("sarina maripàna", "rehefa ilaina"). The store notes repeat those of 1.6.20261029031501, because F-Droid builds only the newest tag.
 

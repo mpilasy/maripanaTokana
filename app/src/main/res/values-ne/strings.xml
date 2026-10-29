@@ -61,6 +61,7 @@
     <string name="section_nowcast">मिनेट-दर-मिनेट पूर्वानुमान</string>
     <string name="nowcast_no_precip">आगामी २ घण्टामा वर्षाको सम्भावना छैन</string>
     <string name="nowcast_starts_in">~%1$s मिनेटमा वर्षा सुरु हुने सम्भावना छ</string>
+    <string name="daylight_duration">%1$s घ %2$s मि</string>
     <string name="nowcast_ongoing">आगामी २ घण्टासम्म वर्षा भइरहने सम्भावना छ</string>
     <string name="activity_running">दौडनु</string>
     <string name="activity_laundry">लुगा सुकाउनु</string>

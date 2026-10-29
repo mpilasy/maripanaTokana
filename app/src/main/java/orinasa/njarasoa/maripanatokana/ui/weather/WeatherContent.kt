@@ -2560,11 +2560,11 @@ private fun SunTile(sunrise: Long, sunset: Long, timeFormat: SimpleDateFormat, l
         ) {
             Box(Modifier.fillMaxWidth().heightIn(max = 64.dp).aspectRatio(120f / 52f)) {
                 SunArc(sunrise, sunset, System.currentTimeMillis() / 1000, Modifier.fillMaxSize())
-                // The length of the day (hours:minutes), under the arc, above the horizon line
+                // The length of the day (hours and minutes), under the arc, above the horizon line
                 if (sunset > sunrise) {
                     val minutes = (sunset - sunrise) / 60
                     Text(
-                        text = localizeDigits("%d:%02d".format(Locale.US, minutes / 60, minutes % 60)),
+                        text = localizeDigits(stringResource(R.string.daylight_duration, "${minutes / 60}", "${minutes % 60}")),
                         fontSize = 13f.s(scale),
                         fontWeight = FontWeight.Bold,
                         fontFamily = LocalDisplayFont.current,

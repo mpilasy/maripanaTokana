@@ -84,6 +84,7 @@
 	"section_nowcast": "Prévisions minute par minute",
 	"nowcast_no_precip": "Aucune précipitation prévue dans les 2 prochaines heures",
 	"nowcast_starts_in": "Précipitations prévues dans ~{minutes} min",
+	"daylight_duration": "{hours} h {minutes} min",
 	"nowcast_ongoing": "Précipitations prévues pour les 2 prochaines heures",
 	"activity_running": "Course à pied",
 	"activity_laundry": "Séchage du linge",

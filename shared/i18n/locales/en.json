@@ -84,6 +84,7 @@
 	"section_nowcast": "Minutely Nowcast",
 	"nowcast_no_precip": "No precipitation expected in the next 2 hours",
 	"nowcast_starts_in": "Precipitation starting in ~{minutes} min",
+	"daylight_duration": "{hours}h {minutes}m",
 	"nowcast_ongoing": "Precipitation expected for the next 2 hours",
 	"activity_running": "Running",
 	"activity_laundry": "Drying Laundry",
