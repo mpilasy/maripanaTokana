@@ -1,0 +1,4 @@
+- Enfriamiento por viento de −28 °C (−18 °F) o menos: debajo se muestra el tiempo hasta la congelación de la piel.
+- Español: se añadieron las tildes en etiquetas y mensajes (por ejemplo «Sensación térmica», «ubicación»).
+- Índice de calor: solo se muestra si supera la temperatura. Con calor muy seco, se muestra «Sensación térmica».
+- Mantén pulsada la bandera o el botón de fuente para elegir de una lista de idiomas o fuentes.

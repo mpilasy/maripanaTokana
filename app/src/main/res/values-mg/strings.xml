@@ -83,6 +83,8 @@
     <string name="detail_dewpoint">Maripàna manando</string>
     <string name="detail_heat_index">Hafanana tsapa</string>
     <string name="detail_wind_chill">Hatsiaka tsapa</string>
+    <string name="frostbite_minutes">Mitsovaka afaka %1$s minitra</string>
+    <string name="frostbite_under_minutes">Mitsovaka afaka latsaky ny %1$s minitra</string>
     <string name="detail_uv_index">Tahan\'ny tara-masoandro</string>
     <string name="detail_visibility">Tazana</string>
     <string name="detail_sunrise">Miposaka</string>

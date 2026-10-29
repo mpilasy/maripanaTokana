@@ -104,6 +104,8 @@
 	"detail_dewpoint": "ओस अंक",
 	"detail_heat_index": "ताप सूचकांक",
 	"detail_wind_chill": "पवन शीतलन",
+	"frostbite_minutes": "{minutes}\u00a0मिनट में शीतदंश",
+	"frostbite_under_minutes": "{minutes}\u00a0मिनट से कम में शीतदंश",
 	"detail_uv_index": "यूवी सूचकांक",
 	"detail_visibility": "दृश्यता",
 	"detail_sunrise": "सूर्योदय",

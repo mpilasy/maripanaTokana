@@ -104,6 +104,8 @@
 	"detail_dewpoint": "Punto de rocío",
 	"detail_heat_index": "Índice de calor",
 	"detail_wind_chill": "Enfriamiento por viento",
+	"frostbite_minutes": "Congelación en {minutes}\u00a0min",
+	"frostbite_under_minutes": "Congelación en menos de {minutes}\u00a0min",
 	"detail_uv_index": "Índice UV",
 	"detail_visibility": "Visibilidad",
 	"detail_sunrise": "Amanecer",

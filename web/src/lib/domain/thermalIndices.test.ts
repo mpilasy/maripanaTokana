@@ -4,7 +4,7 @@
 import { describe, expect, it } from 'vitest';
 import { Temperature } from './temperature.js';
 import { WindSpeed } from './windSpeed.js';
-import { heatIndex, relativeHumidity, windChill } from './thermalIndices.js';
+import { frostbiteMinutes, heatIndex, relativeHumidity, windChill } from './thermalIndices.js';
 
 // Reference values from the NWS heat index and wind chill charts
 const f = (v: number) => Temperature.fromFahrenheit(v);
@@ -39,6 +39,18 @@ describe('windChill', () => {
 	it('is null when warm or calm', () => {
 		expect(windChill(f(51), mph(20))).toBeNull();
 		expect(windChill(f(30), mph(3))).toBeNull();
+	});
+});
+
+describe('frostbiteMinutes', () => {
+	it('follows the Environment Canada bands', () => {
+		const c = (v: number) => Temperature.fromCelsius(v);
+		expect(frostbiteMinutes(c(-27))).toBeNull();
+		expect(frostbiteMinutes(c(-28))).toEqual([10, 30]);
+		expect(frostbiteMinutes(c(-39.4))).toEqual([10, 30]);
+		expect(frostbiteMinutes(c(-40))).toEqual([5, 10]);
+		expect(frostbiteMinutes(c(-54))).toEqual([2, 5]);
+		expect(frostbiteMinutes(c(-55))).toEqual([0, 2]);
 	});
 });
 

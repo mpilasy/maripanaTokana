@@ -33,6 +33,21 @@ export function windChill(temperature: Temperature, wind: WindSpeed): Temperatur
 	return Temperature.fromFahrenheit(35.74 + 0.6215 * t - 35.75 * p + 0.4275 * t * p);
 }
 
+/**
+ * Environment Canada's time for exposed skin to freeze at `windChill`, as the band's [fewest, most] minutes.
+ * Fewest is 0 for the "under 2 minutes" band. Null when the wind chill is above −28 °C (−18 °F).
+ */
+export function frostbiteMinutes(windChill: Temperature): [number, number] | null {
+	const c = windChill.celsius;
+	if (!Number.isFinite(c)) return null;
+	const r = Math.round(c);
+	if (r > -28) return null;
+	if (r >= -39) return [10, 30];
+	if (r >= -47) return [5, 10];
+	if (r >= -54) return [2, 5];
+	return [0, 2];
+}
+
 /** The relative humidity (%) of air at `temperature` with `dewPoint` (Magnus formula); null when not known. */
 export function relativeHumidity(temperature: Temperature, dewPoint: Temperature | null | undefined): number | null {
 	const t = temperature.celsius;

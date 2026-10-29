@@ -9,7 +9,7 @@
 	import DualUnitText from './DualUnitText.svelte';
 	import AqiTierBadge from './AqiTierBadge.svelte';
 	import FeltIcon from './FeltIcon.svelte';
-	import { heatIndex, windChill } from '#lib/domain/thermalIndices.js';
+	import { frostbiteMinutes, heatIndex, windChill } from '#lib/domain/thermalIndices.js';
 	import { HEAT_COLOR, CHILL_COLOR } from '#lib/utils/feltColors.js';
 	import { _, json } from 'svelte-i18n';
 
@@ -62,6 +62,14 @@
 	let feltDual = $derived((felt ?? data.feelsLike).displayDual(metricPrimary));
 	let feltLabel = $derived($_(heat ? 'detail_heat_index' : felt ? 'detail_wind_chill' : 'feels_like'));
 	let feltColor = $derived(heat ? HEAT_COLOR : felt ? CHILL_COLOR : 'rgba(255,255,255,0.6)');
+	// How fast bare skin freezes at this wind chill (Environment Canada's bands)
+	let frostbite = $derived.by(() => {
+		const band = !heat && felt ? frostbiteMinutes(felt) : null;
+		if (!band) return null;
+		return band[0] === 0
+			? $_('frostbite_under_minutes', { values: { minutes: band[1] } })
+			: $_('frostbite_minutes', { values: { minutes: `${band[0]}\u2060–\u2060${band[1]}` } });
+	});
 
 	function isNightAt(time: number): boolean {
 		let day = 0;
@@ -109,6 +117,7 @@
 					{#if felt}<FeltIcon kind={heat ? 'heat' : 'cold'} color={feltColor} size={32} />{/if}
 					<DualUnitText primary={loc(feltDual[0])} secondary={loc(feltDual[1])} primarySize="15px" onClick={onToggleUnits} />
 				</div>
+				{#if frostbite}<span class="hero-felt-label hero-frostbite" style:color={feltColor}>{loc(frostbite)}</span>{/if}
 			</div>
 		</div>
 
@@ -267,6 +276,12 @@
 
 	.hero-felt-values {
 		display: flex;
+	}
+
+	/* Wraps to the width of the values above, so it does not make the column wider */
+	.hero-frostbite {
+		width: 0;
+		min-width: 100%;
 	}
 
 	.next-hours {

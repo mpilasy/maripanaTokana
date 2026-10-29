@@ -21,6 +21,8 @@ const ANDROID_RES = join(__dirname, '..', '..', 'app', 'src', 'main', 'res');
 // Placeholder mappings per key: ordered list of {name} placeholders → %N$s
 // Keys with a single placeholder get %1$s, keys with multiple get %1$s, %2$s, etc.
 const PLACEHOLDER_ORDER = {
+	frostbite_minutes: ['minutes'],
+	frostbite_under_minutes: ['minutes'],
 	updated_time: ['time'],
 	settings_api_error: ['code'],
 	hash_version: ['hash'],

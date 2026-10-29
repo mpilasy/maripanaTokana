@@ -81,6 +81,8 @@
     <string name="detail_dewpoint">शीतबिन्दु</string>
     <string name="detail_heat_index">ताप सूचकांक</string>
     <string name="detail_wind_chill">हावाको चिसोपन</string>
+    <string name="frostbite_minutes">%1$s मिनेटमा तुषारदंश</string>
+    <string name="frostbite_under_minutes">%1$s मिनेटभन्दा कममा तुषारदंश</string>
     <string name="detail_uv_index">UV सूचकाङ्क</string>
     <string name="detail_visibility">दृश्यता</string>
     <string name="detail_sunrise">सूर्योदय</string>

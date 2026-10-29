@@ -47,6 +47,17 @@ class ThermalIndicesTest {
     }
 
     @Test
+    fun frostbiteMinutes_followsTheEnvironmentCanadaBands() {
+        fun c(v: Double) = Temperature.fromCelsius(v)
+        assertNull(ThermalIndices.frostbiteMinutes(c(-27.0)))
+        assertEquals(10 to 30, ThermalIndices.frostbiteMinutes(c(-28.0)))
+        assertEquals(10 to 30, ThermalIndices.frostbiteMinutes(c(-39.4)))
+        assertEquals(5 to 10, ThermalIndices.frostbiteMinutes(c(-40.0)))
+        assertEquals(2 to 5, ThermalIndices.frostbiteMinutes(c(-54.0)))
+        assertEquals(0 to 2, ThermalIndices.frostbiteMinutes(c(-55.0)))
+    }
+
+    @Test
     fun relativeHumidity_fromTheDewPoint() {
         assertEquals(55, ThermalIndices.relativeHumidity(Temperature.fromCelsius(30.0), Temperature.fromCelsius(20.0)))
         assertEquals(100, ThermalIndices.relativeHumidity(Temperature.fromCelsius(15.0), Temperature.fromCelsius(15.0)))

@@ -106,6 +106,8 @@
 	"detail_dewpoint": "Dew Point",
 	"detail_heat_index": "Heat Index",
 	"detail_wind_chill": "Wind Chill",
+	"frostbite_minutes": "Frostbite in {minutes}\u00a0min",
+	"frostbite_under_minutes": "Frostbite in under {minutes}\u00a0min",
 	"detail_uv_index": "UV Index",
 	"detail_visibility": "Visibility",
 	"detail_sunrise": "Sunrise",

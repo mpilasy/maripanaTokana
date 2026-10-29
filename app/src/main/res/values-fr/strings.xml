@@ -81,6 +81,8 @@
     <string name="detail_dewpoint">Point de rosée</string>
     <string name="detail_heat_index">Indice de chaleur</string>
     <string name="detail_wind_chill">Refroidissement éolien</string>
+    <string name="frostbite_minutes">Gelure en %1$s min</string>
+    <string name="frostbite_under_minutes">Gelure en moins de %1$s min</string>
     <string name="detail_uv_index">Indice UV</string>
     <string name="detail_visibility">Visibilité</string>
     <string name="detail_sunrise">Lever du soleil</string>

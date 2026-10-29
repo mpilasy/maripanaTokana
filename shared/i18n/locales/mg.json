@@ -106,6 +106,8 @@
 	"detail_dewpoint": "Maripàna manando",
 	"detail_heat_index": "Hafanana tsapa",
 	"detail_wind_chill": "Hatsiaka tsapa",
+	"frostbite_minutes": "Mitsovaka afaka {minutes}\u00a0minitra",
+	"frostbite_under_minutes": "Mitsovaka afaka latsaky ny {minutes}\u00a0minitra",
 	"detail_uv_index": "Tahan'ny tara-masoandro",
 	"detail_visibility": "Tazana",
 	"detail_sunrise": "Miposaka",

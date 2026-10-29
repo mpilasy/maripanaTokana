@@ -701,6 +701,26 @@ internal fun WeatherContent(
                                     }
                                 },
                                 range = {
+                                    val feltColor = when {
+                                        heroHeat != null -> HeatOrange
+                                        heroFelt != null -> ChillBlue
+                                        else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                    }
+                                    // How fast bare skin freezes at this wind chill (Environment Canada's bands), wrapped to the width of the values
+                                    UnderAtSameWidth(under = {
+                                        heroFelt?.takeIf { heroHeat == null }?.let { ThermalIndices.frostbiteMinutes(it) }?.let { (low, high) ->
+                                            Text(
+                                                text = localizeDigits(
+                                                    if (low == 0) stringResource(R.string.frostbite_under_minutes, "$high")
+                                                    else stringResource(R.string.frostbite_minutes, "$low\u2060\u2013\u2060$high")
+                                                ),
+                                                fontSize = 12f.s(scale),
+                                                lineHeight = 15f.s(scale),
+                                                fontFamily = bodyFont,
+                                                color = feltColor,
+                                            )
+                                        }
+                                    }) {
                                     Column(modifier = Modifier.padding(top = 8.sd(scale)), verticalArrangement = Arrangement.spacedBy(8.sd(scale))) {
                                         DualUnitText(
                                             primary = localizeDigits("\u2193$minP \u2191$maxP"),
@@ -710,11 +730,6 @@ internal fun WeatherContent(
                                         // How the temperature feels, next to it: the heat index or the wind chill when one applies, else feels like
                                         val (feltP, feltS) = (heroFelt ?: data.feelsLike).displayDual(metricPrimary)
                                         Column {
-                                            val feltColor = when {
-                                                heroHeat != null -> HeatOrange
-                                                heroFelt != null -> ChillBlue
-                                                else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                                            }
                                             Text(
                                                 text = if (heroFelt != null) heroFeltLabel else stringResource(R.string.feels_like),
                                                 fontSize = 12f.s(scale),
@@ -734,6 +749,7 @@ internal fun WeatherContent(
                                                 DualUnitText(primary = localizeDigits(feltP), secondary = localizeDigits(feltS), primarySize = 15f.s(scale), onClick = onToggleUnits)
                                             }
                                         }
+                                    }
                                     }
                                 },
                                 side = if (outlook == null && aqi == null) null else {
@@ -1232,6 +1248,20 @@ private fun glanceOutlookText(data: WeatherData, localizeDigits: (String) -> Str
         PrecipOutlook.Kind.STOPS -> stringResource(if (outlook.snow) R.string.outlook_snow_until else R.string.outlook_rain_until, time)
         PrecipOutlook.Kind.ALL_DAY -> stringResource(if (outlook.snow) R.string.outlook_snow_all_day else R.string.outlook_rain_all_day)
         PrecipOutlook.Kind.DRY -> null
+    }
+}
+
+/** [content] with [under] below it. [under] wraps to [content]'s width, so it does not make the column wider. */
+@Composable
+private fun UnderAtSameWidth(under: @Composable () -> Unit, content: @Composable () -> Unit) {
+    Layout(contents = listOf(content, under)) { (main, below), constraints ->
+        val top = main.map { it.measure(constraints) }
+        val width = top.maxOfOrNull { it.width } ?: 0
+        val bottom = below.map { it.measure(Constraints(maxWidth = width)) }
+        layout(width, (top + bottom).sumOf { it.height }) {
+            var y = 0
+            (top + bottom).forEach { it.place(0, y); y += it.height }
+        }
     }
 }
 

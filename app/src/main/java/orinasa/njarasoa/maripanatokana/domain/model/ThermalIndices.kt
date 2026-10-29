@@ -38,6 +38,22 @@ object ThermalIndices {
         return Temperature.fromFahrenheit(35.74 + 0.6215 * t - 35.75 * p + 0.4275 * t * p)
     }
 
+    /**
+     * Environment Canada's time for exposed skin to freeze at [windChill], as the band's (fewest, most) minutes.
+     * Fewest is 0 for the "under 2 minutes" band. Null when the wind chill is above −28 °C (−18 °F).
+     */
+    fun frostbiteMinutes(windChill: Temperature): Pair<Int, Int>? {
+        val c = windChill.celsius
+        if (!c.isFinite()) return null
+        return when (c.roundToInt()) {
+            in -39..-28 -> 10 to 30
+            in -47..-40 -> 5 to 10
+            in -54..-48 -> 2 to 5
+            in Int.MIN_VALUE..-55 -> 0 to 2
+            else -> null
+        }
+    }
+
     /** The relative humidity (%) of air at [temperature] with [dewPoint] (Magnus formula); null when not known. */
     fun relativeHumidity(temperature: Temperature, dewPoint: Temperature?): Int? {
         val t = temperature.celsius

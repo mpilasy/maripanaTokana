@@ -83,6 +83,8 @@
     <string name="detail_dewpoint">Dew Point</string>
     <string name="detail_heat_index">Heat Index</string>
     <string name="detail_wind_chill">Wind Chill</string>
+    <string name="frostbite_minutes">Frostbite in %1$s min</string>
+    <string name="frostbite_under_minutes">Frostbite in under %1$s min</string>
     <string name="detail_uv_index">UV Index</string>
     <string name="detail_visibility">Visibility</string>
     <string name="detail_sunrise">Sunrise</string>

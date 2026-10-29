@@ -104,6 +104,8 @@
 	"detail_dewpoint": "Point de rosée",
 	"detail_heat_index": "Indice de chaleur",
 	"detail_wind_chill": "Refroidissement éolien",
+	"frostbite_minutes": "Gelure en {minutes}\u00a0min",
+	"frostbite_under_minutes": "Gelure en moins de {minutes}\u00a0min",
 	"detail_uv_index": "Indice UV",
 	"detail_visibility": "Visibilité",
 	"detail_sunrise": "Lever du soleil",

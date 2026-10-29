@@ -104,6 +104,8 @@
 	"detail_dewpoint": "शीतबिन्दु",
 	"detail_heat_index": "ताप सूचकांक",
 	"detail_wind_chill": "हावाको चिसोपन",
+	"frostbite_minutes": "{minutes}\u00a0मिनेटमा तुषारदंश",
+	"frostbite_under_minutes": "{minutes}\u00a0मिनेटभन्दा कममा तुषारदंश",
 	"detail_uv_index": "UV सूचकाङ्क",
 	"detail_visibility": "दृश्यता",
 	"detail_sunrise": "सूर्योदय",

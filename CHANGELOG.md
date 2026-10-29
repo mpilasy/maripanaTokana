@@ -9,6 +9,9 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261029165440] - 2026-10-29
+- Current conditions: when the wind chill is −28 °C (−18 °F) or colder, the time for bare skin to freeze shows under it, in Environment Canada's bands: 10–30 min (−28 to −39), 5–10 min (−40 to −47), 2–5 min (−48 to −54), under 2 min (−55 or colder). The line wraps to the width of the values above it. Malagasy: "Mitsovaka afaka 5–10 minitra".
+
 ## [1.6.20261029135939] - 2026-10-29
 - Spanish: missing accents added in 13 strings ("Sensación térmica" in the app and the widget, "ubicación", "aplicación", "última", "más", "precipitación", "Presión", "Índice UV", "Pronóstico por hora", "mín./máx.").
 

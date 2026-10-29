@@ -104,6 +104,8 @@
 	"detail_dewpoint": "نقطة الندى",
 	"detail_heat_index": "مؤشر الحرارة",
 	"detail_wind_chill": "برودة الرياح",
+	"frostbite_minutes": "قضمة الصقيع خلال {minutes}\u00a0دقيقة",
+	"frostbite_under_minutes": "قضمة الصقيع خلال أقل من {minutes}\u00a0دقيقة",
 	"detail_uv_index": "مؤشر الأشعة فوق البنفسجية",
 	"detail_visibility": "الرؤية",
 	"detail_sunrise": "شروق الشمس",
