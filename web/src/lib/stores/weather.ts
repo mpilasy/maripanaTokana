@@ -24,7 +24,10 @@ import {
 	alertsBomEnabled, alertsNhcEnabled,
 } from '#lib/stores/preferences.js';
 import { SUPPORTED_LOCALES } from '#lib/i18n/locales.js';
-import { activeLocationId, savedLocations, locationOverride, checkOverrideExpiry, displayName, setSavedLocationSubtext } from '#lib/stores/savedLocations.js';
+import {
+	activeLocationId, savedLocations, locationOverride, checkOverrideExpiry, displayName, setSavedLocationSubtext,
+	type AdvancedOverrideLocation, type SavedLocation
+} from '#lib/stores/savedLocations.js';
 
 export type WeatherState =
 	| { kind: 'loading' }
@@ -220,122 +223,135 @@ export function restoreGpsWeather() {
 
 export async function doFetchWeather() {
 	const gen = ++fetchGeneration;
-	const current = get(weatherState);
-	if (current.kind !== 'success') {
-		// Show the last saved snapshot (original timestamp) while the fetch runs
-		const snapshot = loadSnapshot(currentSnapshotKey());
-		if (snapshot) {
-			weatherState.set({ kind: 'success', data: snapshot });
-			isRefreshing.set(true);
-		} else {
-			weatherState.set({ kind: 'loading' });
-		}
-	} else {
-		isRefreshing.set(true);
-	}
-
+	showSnapshotWhileLoading();
 	try {
 		checkOverrideExpiry();
 		const override = get(locationOverride);
-		if (override) {
-			const data = await fetchAtLocation(override.lat, override.lon, override.name, override.subtext);
-			if (gen !== fetchGeneration) return;
-			setWeatherData(data);
-			isRefreshing.set(false);
-			spawnGpsCacheRefresh();
-			return;
-		}
-
-		const activeSavedId = get(activeLocationId);
-		if (activeSavedId) {
-			const savedLocation = get(savedLocations).find((l) => l.id === activeSavedId);
-			if (savedLocation) {
-				// The region and country are looked up again in the current language; the favorite keeps its
-				// name (or the user's own) and falls back to the saved line when the lookup fails
-				const looked = await fetchAtLocation(savedLocation.latitude, savedLocation.longitude, undefined, undefined, SUPPORTED_LOCALES[get(localeIndex)]?.tag);
-				if (gen !== fetchGeneration) return;
-				if (looked.locationSubtext) setSavedLocationSubtext(savedLocation.id, looked.locationSubtext);
-				const data = { ...looked, locationName: displayName(savedLocation), locationSubtext: looked.locationSubtext ?? savedLocation.subtext };
-				setWeatherData(data);
-				isRefreshing.set(false);
-				return;
-			}
-		}
-
-		// Step 1: try cached location for instant result
-		const cached = getCachedLocation();
-		let data: WeatherData | null = null;
-		const localeTag = SUPPORTED_LOCALES[get(localeIndex)]?.tag;
-
-		// The saved name only if it is in the current language; otherwise look it up again
-		const nameFits = cached?.lang === localeTag;
-
-		// Start fetching weather for cached location immediately if available
-		const cachedFetchPromise = cached
-			? fetchAtLocation(cached.lat, cached.lon, nameFits ? cached.name : undefined, nameFits ? cached.subtext : undefined, localeTag)
-			: null;
-
-		// Start getting fresh location concurrently
-		const freshLocationPromise = getPosition();
-		freshLocationPromise.catch(() => {}); // handled below; avoid unhandled rejection on early exit
-
-		let cachedShown = false;
-		let cachedError: unknown = null;
-		if (cachedFetchPromise) {
-			try {
-				data = await cachedFetchPromise;
-				if (gen !== fetchGeneration) return;
-				setWeatherData(data);
-				cachedShown = true;
-			} catch (err) {
-				if (gen !== fetchGeneration) return;
-				// A 4xx (bad key, rate limit) would fail identically for any location: don't ask again.
-				if (err instanceof HttpError && err.status < 500) throw err;
-				// Otherwise still try the fresh position below
-				cachedError = err;
-			}
-		}
-
-		// Step 2: get fresh location
-		let fresh: Awaited<typeof freshLocationPromise>;
-		try {
-			fresh = await freshLocationPromise;
-		} catch (err) {
-			if (gen !== fetchGeneration) return;
-			// Cached-location weather is already on screen; a failed GPS fix is not a failed refresh.
-			if (cachedShown) {
-				console.warn('Fresh position failed; keeping cached-location weather', err);
-				return;
-			}
-			throw err;
-		}
-		if (gen !== fetchGeneration) return;
-
-		// Re-fetch if moved significantly or if we had no cached location
-		// Cached-location fetch failed and we haven't moved: the same request would just fail again.
-		if (cachedError && cached && !movedSignificantly(cached.lat, cached.lon, fresh.lat, fresh.lon)) throw cachedError;
-
-		if (!cached || !cachedShown || movedSignificantly(cached.lat, cached.lon, fresh.lat, fresh.lon)) {
-			data = await fetchAtLocation(fresh.lat, fresh.lon, undefined, undefined, localeTag);
-			if (gen !== fetchGeneration) return;
-			setWeatherData(data);
-			cacheLocation(fresh.lat, fresh.lon, data.locationName, data.locationSubtext, localeTag);
-		} else {
-			// Update cached coordinates to fresher ones, keeping the name shown (looked up again when its language changed)
-			cacheLocation(fresh.lat, fresh.lon, data?.locationName ?? cached.name, data?.locationSubtext ?? cached.subtext, localeTag);
-		}
+		const favorite = activeSavedLocation();
+		if (override) await fetchPreview(gen, override);
+		else if (favorite) await fetchFavorite(gen, favorite);
+		else await fetchDeviceLocation(gen);
 	} catch (err) {
-		if (gen !== fetchGeneration) return;
-		const current = get(weatherState);
-		const message = classifyError(err, get(weatherSource) === 'PIRATE_WEATHER' ? [401, 403] : []);
-		if (current.kind !== 'success') {
-			weatherState.set({ kind: 'error', message });
-		} else {
-			refreshFailed.set(true);
-			refreshError.set(refreshErrorReason(message));
-		}
+		if (gen === fetchGeneration) showFetchError(err);
 	} finally {
 		if (gen === fetchGeneration) isRefreshing.set(false);
+	}
+}
+
+/** Keeps the weather on screen, or shows the last saved snapshot (original timestamp), while the fetch runs. */
+function showSnapshotWhileLoading() {
+	if (get(weatherState).kind === 'success') {
+		isRefreshing.set(true);
+		return;
+	}
+	const snapshot = loadSnapshot(currentSnapshotKey());
+	if (snapshot) {
+		weatherState.set({ kind: 'success', data: snapshot });
+		isRefreshing.set(true);
+	} else {
+		weatherState.set({ kind: 'loading' });
+	}
+}
+
+async function fetchPreview(gen: number, override: AdvancedOverrideLocation) {
+	const data = await fetchAtLocation(override.lat, override.lon, override.name, override.subtext);
+	if (gen !== fetchGeneration) return;
+	setWeatherData(data);
+	isRefreshing.set(false);
+	spawnGpsCacheRefresh();
+}
+
+async function fetchFavorite(gen: number, savedLocation: SavedLocation) {
+	// The region and country are looked up again in the current language; the favorite keeps its
+	// name (or the user's own) and falls back to the saved line when the lookup fails
+	const looked = await fetchAtLocation(savedLocation.latitude, savedLocation.longitude, undefined, undefined, SUPPORTED_LOCALES[get(localeIndex)]?.tag);
+	if (gen !== fetchGeneration) return;
+	if (looked.locationSubtext) setSavedLocationSubtext(savedLocation.id, looked.locationSubtext);
+	setWeatherData({ ...looked, locationName: displayName(savedLocation), locationSubtext: looked.locationSubtext ?? savedLocation.subtext });
+	isRefreshing.set(false);
+}
+
+/** Shows the weather at the cached position at once, then at a fresh position when the device moved. */
+async function fetchDeviceLocation(gen: number) {
+	const cached = getCachedLocation();
+	const localeTag = SUPPORTED_LOCALES[get(localeIndex)]?.tag;
+	// The saved name only if it is in the current language; otherwise look it up again
+	const nameFits = cached?.lang === localeTag;
+
+	// Start fetching weather for cached location immediately if available
+	const cachedFetchPromise = cached
+		? fetchAtLocation(cached.lat, cached.lon, nameFits ? cached.name : undefined, nameFits ? cached.subtext : undefined, localeTag)
+		: null;
+
+	// Start getting fresh location concurrently
+	const freshLocationPromise = getPosition();
+	freshLocationPromise.catch(() => {}); // handled below; avoid unhandled rejection on early exit
+
+	const shown = cachedFetchPromise ? await showCachedLocationWeather(gen, cachedFetchPromise) : { data: null, error: null };
+	if (!shown) return;
+	const { data, error: cachedError } = shown;
+	const cachedShown = data !== null;
+
+	const fresh = await freshPosition(gen, freshLocationPromise, cachedShown);
+	if (!fresh) return;
+
+	const moved = !cached || movedSignificantly(cached.lat, cached.lon, fresh.lat, fresh.lon);
+	// Cached-location fetch failed and we haven't moved: the same request would just fail again.
+	if (cachedError && !moved) throw cachedError;
+
+	if (moved || !cachedShown) {
+		const freshData = await fetchAtLocation(fresh.lat, fresh.lon, undefined, undefined, localeTag);
+		if (gen !== fetchGeneration) return;
+		setWeatherData(freshData);
+		cacheLocation(fresh.lat, fresh.lon, freshData.locationName, freshData.locationSubtext, localeTag);
+	} else {
+		// Update cached coordinates to fresher ones, keeping the name shown (looked up again when its language changed)
+		cacheLocation(fresh.lat, fresh.lon, data.locationName, data.locationSubtext, localeTag);
+	}
+}
+
+/** The fresh position; null when a newer fetch started, or when it failed while the cached-location weather is shown. */
+async function freshPosition(gen: number, locating: ReturnType<typeof getPosition>, cachedShown: boolean): Promise<Awaited<ReturnType<typeof getPosition>> | null> {
+	try {
+		const fresh = await locating;
+		return gen === fetchGeneration ? fresh : null;
+	} catch (err) {
+		if (gen !== fetchGeneration) return null;
+		// Cached-location weather is already on screen; a failed GPS fix is not a failed refresh.
+		if (cachedShown) {
+			console.warn('Fresh position failed; keeping cached-location weather', err);
+			return null;
+		}
+		throw err;
+	}
+}
+
+/**
+ * Shows the weather fetched for the cached position. Returns it, or the error when the fresh position may
+ * still work; null when a newer fetch started. Throws a 4xx (bad key, rate limit): it would fail identically
+ * for any location, so it is not worth asking again.
+ */
+async function showCachedLocationWeather(gen: number, fetching: Promise<WeatherData>): Promise<{ data: WeatherData | null; error: unknown } | null> {
+	try {
+		const data = await fetching;
+		if (gen !== fetchGeneration) return null;
+		setWeatherData(data);
+		return { data, error: null };
+	} catch (err) {
+		if (gen !== fetchGeneration) return null;
+		if (err instanceof HttpError && err.status < 500) throw err;
+		return { data: null, error: err };
+	}
+}
+
+/** An error screen when nothing is shown yet; otherwise keeps the old weather and marks the refresh as failed. */
+function showFetchError(err: unknown) {
+	const message = classifyError(err, get(weatherSource) === 'PIRATE_WEATHER' ? [401, 403] : []);
+	if (get(weatherState).kind !== 'success') {
+		weatherState.set({ kind: 'error', message });
+	} else {
+		refreshFailed.set(true);
+		refreshError.set(refreshErrorReason(message));
 	}
 }
 
