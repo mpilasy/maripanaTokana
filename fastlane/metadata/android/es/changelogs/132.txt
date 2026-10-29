@@ -1,0 +1,9 @@
+Desde 1.5.28:
+- Lugares: toca el nombre o el ▾ para ver la lista, con distancias.
+- Índice de calor y enfriamiento por viento, con el tiempo hasta la congelación.
+- Tarjetas Luna y Nubosidad.
+- Noche polar y sol de medianoche, con sus fechas.
+- Pestañas: humedad, índice de calor, enfriamiento por viento; una línea en 0 °C.
+- Mantén pulsada la bandera o la fuente para una lista.
+- Mejores imágenes compartidas y widgets.
+- Nuevo icono; acentos.

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { describe, expect, it } from 'vitest';
-import { moonArcProgress, moonIllumination, moonPhaseIndex, moonPosition, moonTimes } from './moon';
+import { moonArcProgress, moonIllumination, moonPhaseIndex, moonPosition, moonTimes, polarPeriod } from './moon';
 
 // Reference values from SunCalc's own tests (2013-03-05 UTC, 50.5° N, 30.5° E), as in MoonTest.kt
 const lat = 50.5;
@@ -38,5 +38,20 @@ describe('moon', () => {
 		const days = [{ rise: 1000, set: 3000 }];
 		expect(moonArcProgress(2000, days)).toBe(0.5);
 		expect(moonArcProgress(3500, days)).toBe(-1);
+	});
+});
+
+describe('polarPeriod', () => {
+	const day = (iso: string) => Date.parse(iso + 'T12:00:00Z');
+	const near = (ms: number, iso: string) => expect(Math.abs(ms - day(iso))).toBeLessThanOrEqual(2 * 86_400_000);
+	it('finds the polar night at Alert', () => {
+		const p = polarPeriod(day('2026-10-29'), 82.5, false);
+		near(p.since, '2026-10-14');
+		near(p.until, '2027-02-27');
+	});
+	it('finds the midnight sun at the South Pole', () => {
+		const p = polarPeriod(day('2026-10-29'), -89.99, true);
+		near(p.since, '2026-09-22');
+		near(p.until, '2027-03-21');
 	});
 });

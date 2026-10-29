@@ -10,6 +10,7 @@
 	import { wmoEmoji } from '#lib/api/wmoWeatherCode.js';
 	import { formatHourInDeviceTime, formatHourAtLocation, isRemoteTimezone } from '#lib/utils/date.js';
 	import type { HourlyAirQuality } from '#lib/domain/weatherData.js';
+	import { isDaytime } from '#lib/domain/weatherData.js';
 	import { AirQualityIndex, AQI_TIER_COLORS, type AqiStandard, type AqiTier } from '#lib/domain/airQuality.js';
 	import DualUnitText from './DualUnitText.svelte';
 	import HumidityDewPoint, { DEW_COLOR } from './HumidityDewPoint.svelte';
@@ -117,7 +118,7 @@
 		if (displayMode === 'HeatIndex' || displayMode === 'WindChill') {
 			const felt = displayMode === 'HeatIndex' ? heatByItem : chillByItem;
 			const values = felt.map((t) => (t ? (metricPrimary ? t.celsius : t.fahrenheit) : null));
-			return { values, color: displayMode === 'HeatIndex' ? HEAT_COLOR : CHILL_COLOR, highLabel: dual(felt[indexOfMax(values)]?.displayDual(metricPrimary)), lowLabel: dual(felt[indexOfMin(values)]?.displayDual(metricPrimary)) };
+			return { values, freezingAt: metricPrimary ? 0 : 32, color: displayMode === 'HeatIndex' ? HEAT_COLOR : CHILL_COLOR, highLabel: dual(felt[indexOfMax(values)]?.displayDual(metricPrimary)), lowLabel: dual(felt[indexOfMin(values)]?.displayDual(metricPrimary)) };
 		}
 		if (displayMode === 'Humidity') {
 			const values = forecasts.map((f) => f.humidity ?? null);
@@ -171,7 +172,7 @@
 		}
 		const sr = dailySunrise[dayIdx] ?? 0;
 		const ss = dailySunset[dayIdx] ?? 0;
-		return time < sr || time > ss;
+		return !isDaytime(time, sr, ss);
 	}
 </script>
 

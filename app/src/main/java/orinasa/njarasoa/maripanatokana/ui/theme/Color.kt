@@ -13,6 +13,8 @@ val DewAmber = Color(0xFFFFB74D)
 // Heat index and wind chill
 val HeatOrange = Color(0xFFFF7043)
 val ChillBlue = Color(0xFF90CAF9)
+/** The faint line at freezing (0 °C, 32 °F) in the temperature charts. */
+val FreezingLine = Color(0x5990CAF9)
 val DarkNavy = Color(0xFF0E0B3D)
 const val DarkNavyColorInt = 0xFF0E0B3D.toInt()
 

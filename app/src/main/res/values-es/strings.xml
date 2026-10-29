@@ -62,6 +62,10 @@
     <string name="nowcast_no_precip">No se esperan precipitaciones en las próximas 2 horas</string>
     <string name="nowcast_starts_in">Precipitación en ~%1$s min</string>
     <string name="daylight_duration">%1$s\n%2$s</string>
+    <string name="polar_night">Noche polar</string>
+    <string name="midnight_sun">Sol de medianoche</string>
+    <string name="polar_since">Desde</string>
+    <string name="polar_until">Hasta</string>
     <string name="daylight_hours_one">%1$s hora</string>
     <string name="daylight_hours_other">%1$s horas</string>
     <string name="daylight_minutes_one">%1$s minuto</string>

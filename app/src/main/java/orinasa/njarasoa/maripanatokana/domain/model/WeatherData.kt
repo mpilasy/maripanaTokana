@@ -46,3 +46,9 @@ data class WeatherData(
     val airQuality: AirQualityIndex? = null,
     val hourlyAirQuality: List<HourlyAirQuality> = emptyList(),
 )
+
+/**
+ * Whether [time] is between [sunrise] and [sunset] (same unit). In a polar night the two are equal
+ * (00:00 on both), so no time is day; in a midnight sun they are 24 hours apart, so all of it is.
+ */
+fun isDaytime(time: Long, sunrise: Long, sunset: Long): Boolean = sunset > sunrise && time in sunrise..sunset

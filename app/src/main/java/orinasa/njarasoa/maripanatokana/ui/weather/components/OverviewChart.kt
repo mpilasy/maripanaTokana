@@ -45,6 +45,8 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 import kotlin.math.roundToInt
+import androidx.compose.ui.graphics.PathEffect
+import orinasa.njarasoa.maripanatokana.ui.theme.FreezingLine
 
 internal enum class OverviewStyle { LINE, BARS }
 
@@ -93,6 +95,8 @@ internal fun OverviewChart(
     secondColor: Color = Color.White,
     secondHighLabel: String? = null,
     secondLowLabel: String? = null,
+    // For temperatures: a faint line at freezing (0 °C, 32 °F) when it is inside the chart; LINE only
+    freezingAt: Double? = null,
 ) {
     val textMeasurer = rememberTextMeasurer()
     val displayFont = LocalDisplayFont.current
@@ -117,7 +121,8 @@ internal fun OverviewChart(
             fun xFor(i: Int) = (i * (itemWidth.toPx() + spacing.toPx()) + itemWidth.toPx() / 2) * xScale
             fun yFor(v: Double, lo: Double = min, hi: Double = max): Float {
                 val bottom = if (zeroBased) h - 1.5.dp.toPx() else h - pad
-                return if (hi > lo) (bottom - (v - lo) / (hi - lo) * (bottom - pad)).toFloat() else (bottom + pad) / 2
+                // All values the same: at the bottom when they are 0 or the chart starts at 0, else in the middle
+                return if (hi > lo) (bottom - (v - lo) / (hi - lo) * (bottom - pad)).toFloat() else if (zeroBased || v == 0.0) bottom else (bottom + pad) / 2
             }
             fun colorAt(i: Int) = pointColors?.getOrNull(i) ?: color
 
@@ -185,6 +190,10 @@ internal fun OverviewChart(
                     drawCurve(points2, secondColor)
                     points2.forEach { (_, p) -> drawCircle(secondColor, 2.5.dp.toPx(), p) }
                     Triple(vs, lo2, hi2)
+                }
+                if (freezingAt != null && max > min && freezingAt in min..max) {
+                    val fy = yFor(freezingAt)
+                    drawLine(FreezingLine, Offset(0f, fy), Offset(w, fy), 1.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 3.dp.toPx())))
                 }
                 drawCurve(points, color.copy(alpha = if (pointColors != null) 0.5f else 1f))
                 points.forEach { (i, p) -> drawCircle(colorAt(i), 3.dp.toPx(), p) }

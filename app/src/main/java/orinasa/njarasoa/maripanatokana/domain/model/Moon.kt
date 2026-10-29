@@ -64,11 +64,11 @@ object Moon {
     }
 
     /** Altitude in radians, with refraction; azimuth in radians from south, westward (SunCalc's). */
-    private fun rawPosition(ms: Long, lat: Double, lon: Double): Pair<Double, Double> {
+    private fun rawPosition(ms: Long, lat: Double, lon: Double, sun: Boolean = false): Pair<Double, Double> {
         val lw = RAD * -lon
         val phi = RAD * lat
         val d = toDays(ms)
-        val c = moonCoords(d)
+        val c = if (sun) sunCoords(d) else moonCoords(d)
         val h = siderealTime(d, lw) - c.ra
         val az = atan2(sin(h), cos(h) * sin(phi) - tan(c.dec) * cos(phi))
         val alt = asin(sin(phi) * sin(c.dec) + cos(phi) * cos(c.dec) * cos(h))
@@ -77,6 +77,12 @@ object Moon {
 
     fun position(ms: Long, lat: Double, lon: Double): Position {
         val (az, alt) = rawPosition(ms, lat, lon)
+        return Position(((az / RAD + 180) % 360 + 360) % 360, alt / RAD)
+    }
+
+    /** The sun's place in the sky, as [position] gives the moon's. */
+    fun sunPosition(ms: Long, lat: Double, lon: Double): Position {
+        val (az, alt) = rawPosition(ms, lat, lon, sun = true)
         return Position(((az / RAD + 180) % 360 + 360) % 360, alt / RAD)
     }
 
@@ -128,6 +134,27 @@ object Moon {
             h0 = h2
         }
         return Times(rise?.let { dayStart + (it * 3_600_000).toLong() }, set?.let { dayStart + (it * 3_600_000).toLong() })
+    }
+
+    /** The first and last day (epoch millis, within about a day) of a polar night or midnight sun. */
+    data class PolarPeriod(val since: Long, val until: Long)
+
+    /**
+     * The polar night ([midnightSun] false: the sun stays down all day) or the midnight sun (it stays up)
+     * that includes [ms] at latitude [lat], from the sun's height at noon and at midnight on each day.
+     */
+    fun polarPeriod(ms: Long, lat: Double, midnightSun: Boolean): PolarPeriod {
+        // The sun's upper edge, with refraction, is on the horizon at -0.833°
+        fun holds(t: Long): Boolean {
+            val dec = sunCoords(toDays(t)).dec / RAD
+            return if (midnightSun) abs(lat + dec) - 90 >= -0.833 else 90 - abs(lat - dec) <= -0.833
+        }
+        val day = DAY_MS.toLong()
+        var since = ms
+        while (since - ms > -366 * day && holds(since - day)) since -= day
+        var until = ms
+        while (until - ms < 366 * day && holds(until + day)) until += day
+        return PolarPeriod(since, until)
     }
 
     /** Index into moon_phases: new, waxing crescent, first quarter, waxing gibbous, full, waning gibbous, last quarter, waning crescent. */

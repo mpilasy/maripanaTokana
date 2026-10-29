@@ -9,6 +9,12 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261029195135] - 2026-10-29
+- Sun tile in a polar night or midnight sun (Open-Meteo sends sunrise and sunset at 00:00 for them): no arc and no times, but "Polar night" or "Midnight sun" in the middle of the tile with the first and last day of the period ("Since" / "Until"), calculated on the device from the sun's declination. In a midnight sun, the sun's azimuth shows under the dates. Malagasy: "Tsy miposaka ny masoandro", "Tsy mody ny masoandro", "Nanomboka", "Vita".
+- Day and night icons: a polar night is night all day and a midnight sun is day all day (the main card, the hourly cards, the tiles and the widgets). Before, the 00:00 card showed a sun in a polar night.
+- Charts: a line of zeros is at the bottom of the chart, not in the middle (for example the UV at the North Pole).
+- Temperature charts (hourly, 10-day, heat index and wind chill tabs): a faint dashed line at freezing (0 °C, 32 °F) when it is inside the chart.
+
 ## [1.6.20261029185249] - 2026-10-29
 - Place list: the distances are now from the place on screen, not from the device, and the favorites are sorted nearest first from that place. "Current location" stays first and shows its distance when another place is on screen. The place on screen shows no distance.
 - Malagasy: "Ny misy antsika" for the current location in the list.

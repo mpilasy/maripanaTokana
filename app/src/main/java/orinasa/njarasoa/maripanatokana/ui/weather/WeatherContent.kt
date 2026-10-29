@@ -9,6 +9,7 @@ import orinasa.njarasoa.maripanatokana.ui.weather.components.LanguageFlagButton
 import android.content.Intent
 import orinasa.njarasoa.maripanatokana.domain.model.ThermalIndices
 import orinasa.njarasoa.maripanatokana.domain.model.greatCircleKm
+import orinasa.njarasoa.maripanatokana.domain.model.isDaytime
 import orinasa.njarasoa.maripanatokana.domain.model.FetchError
 import android.graphics.Bitmap
 import androidx.core.graphics.createBitmap
@@ -630,7 +631,7 @@ internal fun WeatherContent(
                         ) {
                             // Condition line
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                WeatherIcon(data.weatherCode, night = data.timestamp !in (data.sunrise * 1000)..(data.sunset * 1000), size = 64.sd(scale))
+                                WeatherIcon(data.weatherCode, night = !isDaytime(data.timestamp, data.sunrise * 1000, data.sunset * 1000), size = 64.sd(scale))
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = stringResource(wmoDescriptionRes(data.weatherCode)),
@@ -1268,7 +1269,7 @@ private fun NextHoursStrip(data: WeatherData, metricPrimary: Boolean, localizeDi
                     DeviceTime(localizeDigits(formatHourInDeviceTime(hour.time)))
                 }
                 val dayIdx = data.dailySunrise.indexOfLast { it <= hour.time }.coerceAtLeast(0)
-                val isNight = hour.time !in data.dailySunrise.getOrElse(dayIdx) { 0L }..data.dailySunset.getOrElse(dayIdx) { 0L }
+                val isNight = !isDaytime(hour.time, data.dailySunrise.getOrElse(dayIdx) { 0L }, data.dailySunset.getOrElse(dayIdx) { 0L })
                 WeatherIcon(hour.weatherCode, night = isNight, size = 40.sd(scale))
                 val (tP, tS) = hour.temperature.displayDual(metricPrimary)
                 DualUnitText(
@@ -1377,7 +1378,7 @@ internal fun HourlyForecastRow(
                         val dayIdx = dailySunrise.indexOfLast { it <= item.time }.coerceAtLeast(0)
                         val sr = dailySunrise.getOrElse(dayIdx) { 0L }
                         val ss = dailySunset.getOrElse(dayIdx) { 0L }
-                        WeatherIcon(item.weatherCode, night = item.time !in sr..ss, size = 44.sd(scale))
+                        WeatherIcon(item.weatherCode, night = !isDaytime(item.time, sr, ss), size = 44.sd(scale))
                         
                         Spacer(modifier = Modifier.height(4.dp))
 
@@ -1569,7 +1570,7 @@ internal fun HourlyForecastRow(
                         val (hi, lo) = extremes(values) { felt[it]?.displayDual(metricPrimary) }
                         OverviewChart(values, itemWidth, itemSpacing, scrollState.value.toFloat(), totalScrollWidthPx, chartModifier,
                             height = 48.sd(scale), color = if (displayMode == ForecastDisplayMode.HeatIndex) HeatOrange else ChillBlue,
-                            highLabel = dual(hi), lowLabel = dual(lo))
+                            highLabel = dual(hi), lowLabel = dual(lo), freezingAt = if (metricPrimary) 0.0 else 32.0)
                     }
                     else -> {}
                 }
@@ -1885,7 +1886,7 @@ internal fun DailyForecastList(
                     val (hi, lo) = extremes(values) { felt[it]?.displayDual(metricPrimary) }
                     OverviewChart(values, itemWidth, itemSpacing, scrollState.value.toFloat(), totalScrollWidthPx, chartModifier,
                         height = 48.sd(scale), color = if (displayMode == ForecastDisplayMode.HeatIndex) HeatOrange else ChillBlue,
-                        highLabel = dual(hi), lowLabel = dual(lo))
+                        highLabel = dual(hi), lowLabel = dual(lo), freezingAt = if (metricPrimary) 0.0 else 32.0)
                 }
                 else -> {}
             }
@@ -2064,7 +2065,7 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
                     onToggleUnits = if (amount != null) onToggleUnits else null,
                     centerDial = { dialModifier ->
                         Column(dialModifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                            WeatherIcon(iconCode, night = nowSec !in data.sunrise..data.sunset, size = 56.sd(scale))
+                            WeatherIcon(iconCode, night = !isDaytime(nowSec, data.sunrise, data.sunset), size = 56.sd(scale))
                             Spacer(modifier = Modifier.height(6.dp))
                             if (amount != null) {
                                 val (p, sec) = amount.displayDual(metricPrimary)
@@ -2234,7 +2235,7 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
 
             // Sun / Moon, air quality / UV, cloud cover / visibility (without air quality: UV / cloud cover, then visibility)
             TileRow {
-                SunTile(data.sunrise, data.sunset, timeFormat, localizeDigits, tile.weight(1f))
+                SunTile(data.sunrise, data.sunset, data.latitude, data.longitude, timeFormat, localizeDigits, tile.weight(1f))
                 if (data.latitude != null && data.longitude != null) {
                     MoonTile(data.latitude, data.longitude, data.utcOffsetSeconds, timeFormat, localizeDigits, tile.weight(1f))
                 }
@@ -2510,9 +2511,11 @@ private fun DialValue(value: String, unit: String? = null, secondary: String? = 
 }
 
 @Composable
-private fun SunTile(sunrise: Long, sunset: Long, timeFormat: SimpleDateFormat, localizeDigits: (String) -> String, modifier: Modifier) {
+private fun SunTile(sunrise: Long, sunset: Long, latitude: Double?, longitude: Double?, timeFormat: SimpleDateFormat, localizeDigits: (String) -> String, modifier: Modifier) {
     val bodyFont = LocalBodyFont.current
     val scale = LocalScale.current
+    val density = LocalDensity.current
+    var titleHeight by remember { mutableIntStateOf(0) }
     Column(
         modifier = modifier.background(TileSurface, RoundedCornerShape(16.dp)).padding(16.sd(scale)),
         verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -2522,41 +2525,66 @@ private fun SunTile(sunrise: Long, sunset: Long, timeFormat: SimpleDateFormat, l
             fontSize = 13f.s(scale),
             fontFamily = bodyFont,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+            modifier = Modifier.onSizeChanged { titleHeight = it.height },
         )
-        // The arc right under the title, then the times, so the sun's and moon's arcs and times line up
+        // Polar night (the sun stays down all day) or midnight sun (up all day): no rise or set, as for the moon
+        val polarNight = sunset <= sunrise
+        val midnightSun = sunset - sunrise >= 86_400
+        val polar = polarNight || midnightSun
+        // Then the tile shows the first and last day of that period in place of the arc's times
+        val appLocale = LocalConfiguration.current.locales[0]
+        val dayMonthFormat = remember(appLocale, timeFormat) { SimpleDateFormat("d MMM", appLocale).apply { timeZone = timeFormat.timeZone } }
+        val period = if (polar && latitude != null) remember(latitude, midnightSun) { Moon.polarPeriod(System.currentTimeMillis(), latitude, midnightSun) } else null
+        // The arc right under the title, then the times, so the sun's and moon's arcs and times line up;
+        // in a polar night or midnight sun, its text and dates in the middle of the tile
         Column(
-            modifier = Modifier.weight(1f).fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+            // A bottom space as tall as the title puts the polar block in the middle of the whole tile
+            modifier = Modifier.weight(1f).fillMaxWidth().padding(bottom = if (polar) with(density) { titleHeight.toDp() } + 6.dp else 0.dp),
+            verticalArrangement = if (polar) Arrangement.spacedBy(12.dp, Alignment.CenterVertically) else Arrangement.spacedBy(6.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Box(Modifier.fillMaxWidth().heightIn(max = 144.dp).aspectRatio(120f / 76f)) {
-                SunArc(sunrise, sunset, System.currentTimeMillis() / 1000, Modifier.fillMaxSize())
-                // The length of the day (hours and minutes), in the middle of the arc
-                if (sunset > sunrise) {
+            Box(if (polar) Modifier.fillMaxWidth() else Modifier.fillMaxWidth().heightIn(max = 144.dp).aspectRatio(120f / 76f)) {
+                // No arc in a polar night or midnight sun: the sun does not cross the horizon
+                if (!polar) SunArc(sunrise, sunset, System.currentTimeMillis() / 1000, Modifier.fillMaxSize())
+                // The length of the day (hours and minutes) in the middle of the arc, or the polar night or midnight sun
+                run {
                     val minutes = (sunset - sunrise) / 60
                     val h = minutes / 60
                     val m = minutes % 60
                     Text(
-                        text = localizeDigits(stringResource(
-                            R.string.daylight_duration,
-                            stringResource(if (h == 1L) R.string.daylight_hours_one else R.string.daylight_hours_other, "$h"),
-                            stringResource(if (m == 1L) R.string.daylight_minutes_one else R.string.daylight_minutes_other, "$m"),
-                        )),
-                        fontSize = 13f.s(scale),
+                        text = when {
+                            polarNight -> stringResource(R.string.polar_night)
+                            midnightSun -> stringResource(R.string.midnight_sun)
+                            else -> localizeDigits(stringResource(
+                                R.string.daylight_duration,
+                                stringResource(if (h == 1L) R.string.daylight_hours_one else R.string.daylight_hours_other, "$h"),
+                                stringResource(if (m == 1L) R.string.daylight_minutes_one else R.string.daylight_minutes_other, "$m"),
+                            ))
+                        },
+                        fontSize = (if (polar) 16f else 13f).s(scale),
                         fontWeight = FontWeight.Bold,
                         fontFamily = LocalDisplayFont.current,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                         textAlign = TextAlign.Center,
-                        lineHeight = 15f.s(scale),
+                        lineHeight = (if (polar) 19f else 15f).s(scale),
                         // Long texts (Malagasy) take more than one line inside the arc
-                        modifier = Modifier.align(Alignment.Center).fillMaxWidth(0.6f),
+                        modifier = Modifier.align(Alignment.Center).fillMaxWidth(if (polar) 1f else 0.6f),
                     )
                 }
             }
-            Row(modifier = Modifier.fillMaxWidth()) {
-                listOf(R.string.detail_sunrise to sunrise, R.string.detail_sunset to sunset).forEachIndexed { i, (label, time) ->
-                    if (i == 1) Spacer(modifier = Modifier.weight(1f))
-                    Column(horizontalAlignment = if (i == 0) Alignment.Start else Alignment.End) {
+            // The polar dates are side by side when they fit, else one under the other
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = if (polar) Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally) else Arrangement.SpaceBetween,
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                val times = if (polar) {
+                    listOf(R.string.polar_since to period?.since?.let { dayMonthFormat.format(Date(it)) }, R.string.polar_until to period?.until?.let { dayMonthFormat.format(Date(it)) })
+                } else {
+                    listOf(R.string.detail_sunrise to timeFormat.format(Date(sunrise * 1000)), R.string.detail_sunset to timeFormat.format(Date(sunset * 1000)))
+                }
+                times.forEachIndexed { i, (label, time) ->
+                    Column(horizontalAlignment = if (polar) Alignment.CenterHorizontally else if (i == 0) Alignment.Start else Alignment.End) {
                         Text(
                             text = stringResource(label),
                             fontSize = 11f.s(scale),
@@ -2564,7 +2592,7 @@ private fun SunTile(sunrise: Long, sunset: Long, timeFormat: SimpleDateFormat, l
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                         )
                         Text(
-                            text = localizeDigits(timeFormat.format(Date(time * 1000))),
+                            text = time?.let { localizeDigits(it) } ?: "--",
                             fontSize = 15f.s(scale),
                             fontWeight = FontWeight.Bold,
                             fontFamily = LocalDisplayFont.current,
@@ -2572,6 +2600,12 @@ private fun SunTile(sunrise: Long, sunset: Long, timeFormat: SimpleDateFormat, l
                         )
                     }
                 }
+            }
+            // In a midnight sun, where the sun is now: it goes round the sky, so its direction changes all day
+            if (midnightSun && latitude != null && longitude != null) {
+                val directions = stringArrayResource(R.array.cardinal_directions)
+                val az = Moon.sunPosition(System.currentTimeMillis(), latitude, longitude).azimuth.roundToInt() % 360
+                LabeledValue(stringResource(R.string.detail_azimuth), localizeDigits("${directions[((az * 16 + 180) / 360) % 16]} (%d°)".format(Locale.US, az)), centered = true)
             }
         }
     }

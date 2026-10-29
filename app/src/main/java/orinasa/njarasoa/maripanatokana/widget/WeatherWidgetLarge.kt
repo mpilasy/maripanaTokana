@@ -41,6 +41,7 @@ import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.data.remote.wmoDescriptionRes
 import orinasa.njarasoa.maripanatokana.ui.weather.components.weatherIconRes
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
+import orinasa.njarasoa.maripanatokana.domain.model.isDaytime
 import orinasa.njarasoa.maripanatokana.widget.theme.WidgetColorProviders
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -163,7 +164,7 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
                 )
                 Spacer(modifier = GlanceModifier.width(12.dp))
                 Image(
-                    provider = widgetImage(context, weatherIconRes(data.weatherCode, night = data.timestamp !in (data.sunrise * 1000)..(data.sunset * 1000))),
+                    provider = widgetImage(context, weatherIconRes(data.weatherCode, night = !isDaytime(data.timestamp, data.sunrise * 1000, data.sunset * 1000))),
                     contentDescription = null,
                     modifier = GlanceModifier.size(28.dp),
                 )

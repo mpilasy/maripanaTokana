@@ -127,7 +127,7 @@
 		if (displayMode === 'HeatIndex' || displayMode === 'WindChill') {
 			const felt = displayMode === 'HeatIndex' ? heatByItem : chillByItem;
 			const values = felt.map((t) => (t ? (metricPrimary ? t.celsius : t.fahrenheit) : null));
-			return { values, color: displayMode === 'HeatIndex' ? HEAT_COLOR : CHILL_COLOR, highLabel: dual(felt[indexOfMax(values)]?.displayDual(metricPrimary)), lowLabel: dual(felt[indexOfMin(values)]?.displayDual(metricPrimary)) };
+			return { values, freezingAt: metricPrimary ? 0 : 32, color: displayMode === 'HeatIndex' ? HEAT_COLOR : CHILL_COLOR, highLabel: dual(felt[indexOfMax(values)]?.displayDual(metricPrimary)), lowLabel: dual(felt[indexOfMin(values)]?.displayDual(metricPrimary)) };
 		}
 		if (displayMode === 'Humidity') {
 			const values = forecasts.map((f) => f.humidity ?? null);

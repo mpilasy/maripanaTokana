@@ -19,6 +19,8 @@ export interface MoonIllumination { fraction: number; phase: number }
 export interface MoonPosition { azimuth: number; altitude: number }
 /** Epoch millis; null when the moon does not rise (or set) in the 24 hours searched. */
 export interface MoonTimes { rise: number | null; set: number | null }
+/** The first and last day (epoch millis, within about a day) of a polar night or midnight sun. */
+export interface PolarPeriod { since: number; until: number }
 
 const toDays = (ms: number) => ms / DAY_MS - 0.5 + J1970 - J2000;
 const rightAscension = (l: number, b: number) => Math.atan2(Math.sin(l) * Math.cos(E) - Math.tan(b) * Math.sin(E), Math.cos(l));
@@ -47,11 +49,11 @@ function moonCoords(d: number) {
 }
 
 /** Altitude in radians, with refraction; azimuth in radians from south, westward (SunCalc's). */
-function rawPosition(ms: number, lat: number, lon: number): [number, number] {
+function rawPosition(ms: number, lat: number, lon: number, sun = false): [number, number] {
 	const lw = RAD * -lon;
 	const phi = RAD * lat;
 	const d = toDays(ms);
-	const c = moonCoords(d);
+	const c = sun ? sunCoords(d) : moonCoords(d);
 	const h = siderealTime(d, lw) - c.ra;
 	const az = Math.atan2(Math.sin(h), Math.cos(h) * Math.sin(phi) - Math.tan(c.dec) * Math.cos(phi));
 	const alt = Math.asin(Math.sin(phi) * Math.sin(c.dec) + Math.cos(phi) * Math.cos(c.dec) * Math.cos(h));
@@ -60,6 +62,12 @@ function rawPosition(ms: number, lat: number, lon: number): [number, number] {
 
 export function moonPosition(ms: number, lat: number, lon: number): MoonPosition {
 	const [az, alt] = rawPosition(ms, lat, lon);
+	return { azimuth: (((az / RAD + 180) % 360) + 360) % 360, altitude: alt / RAD };
+}
+
+/** The sun's place in the sky, as `moonPosition` gives the moon's. */
+export function sunPosition(ms: number, lat: number, lon: number): MoonPosition {
+	const [az, alt] = rawPosition(ms, lat, lon, true);
 	return { azimuth: (((az / RAD + 180) % 360) + 360) % 360, altitude: alt / RAD };
 }
 
@@ -116,6 +124,23 @@ export function moonTimes(dayStart: number, lat: number, lon: number): MoonTimes
 }
 
 /** Index into moon_phases: new, waxing crescent, first quarter, waxing gibbous, full, waning gibbous, last quarter, waning crescent. */
+/**
+ * The polar night (`midnightSun` false: the sun stays down all day) or the midnight sun (it stays up)
+ * that includes `ms` at latitude `lat`, from the sun's height at noon and at midnight on each day.
+ */
+export function polarPeriod(ms: number, lat: number, midnightSun: boolean): PolarPeriod {
+	// The sun's upper edge, with refraction, is on the horizon at -0.833°
+	const holds = (t: number) => {
+		const dec = sunCoords(toDays(t)).dec / RAD;
+		return midnightSun ? Math.abs(lat + dec) - 90 >= -0.833 : 90 - Math.abs(lat - dec) <= -0.833;
+	};
+	let since = ms;
+	while (since - ms > -366 * DAY_MS && holds(since - DAY_MS)) since -= DAY_MS;
+	let until = ms;
+	while (until - ms < 366 * DAY_MS && holds(until + DAY_MS)) until += DAY_MS;
+	return { since, until };
+}
+
 export function moonPhaseIndex(phase: number): number {
 	return Math.trunc(phase * 8 + 0.5) % 8;
 }

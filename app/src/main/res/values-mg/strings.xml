@@ -62,6 +62,10 @@
     <string name="nowcast_no_precip">Tsy hisy orana ao anatin\'ny adiny roa ho avy</string>
     <string name="nowcast_starts_in">Hanomboka ny orana afaka ~%1$s minitra</string>
     <string name="daylight_duration">%1$s\nsy\n%2$s</string>
+    <string name="polar_night">Tsy miposaka ny masoandro</string>
+    <string name="midnight_sun">Tsy mody ny masoandro</string>
+    <string name="polar_since">Nanomboka</string>
+    <string name="polar_until">Vita</string>
     <string name="daylight_hours_one">Adiny %1$s</string>
     <string name="daylight_hours_other">Adiny %1$s</string>
     <string name="daylight_minutes_one">%1$s minitra</string>

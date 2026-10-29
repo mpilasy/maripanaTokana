@@ -6,6 +6,7 @@
 	import { localeIndex } from '#lib/stores/preferences.js';
 	import { _ } from 'svelte-i18n';
 	import type { HourlyForecast } from '#lib/domain/weatherData.js';
+	import { FREEZING_LINE } from '#lib/utils/feltColors.js';
 
 	interface Props {
 		forecasts: HourlyForecast[];
@@ -38,6 +39,7 @@
 	let paddedMin = $derived(minTemp - (tempRange * 0.15));
 	let paddedMax = $derived(maxTemp + (tempRange * 0.15));
 	let paddedRange = $derived(paddedMax - paddedMin);
+	let freezing = $derived(metricPrimary ? 0 : 32);
 
 	let totalWidth = $derived(forecasts.length * itemWidth + (forecasts.length - 1) * itemSpacing);
 	let svgWidth = $derived(containerWidth > 0 ? containerWidth : totalWidth);
@@ -196,6 +198,10 @@
 		<text x={x} y="9" text-anchor="middle" font-size="8" fill="white" fill-opacity="0.45">12:00</text>
 	{/each}
 
+	<!-- A faint line at freezing (0 °C, 32 °F) when it is inside the chart -->
+	{#if freezing >= paddedMin && freezing <= paddedMax}
+		<line x1="0" x2={svgWidth} y1={getY(freezing)} y2={getY(freezing)} stroke={FREEZING_LINE} stroke-width="1" stroke-dasharray="4 3" />
+	{/if}
 	{#if fillPathStr}
 		<path d={fillPathStr} fill="url(#fillGradient)" />
 	{/if}

@@ -2,7 +2,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
 	import WeatherIcon from './WeatherIcon.svelte';
-	import type { WeatherData } from '#lib/domain/weatherData.js';
+	import { isDaytime, type WeatherData } from '#lib/domain/weatherData.js';
 	import { wmoDescriptionKey } from '#lib/api/wmoWeatherCode.js';
 	import { precipOutlook } from '#lib/domain/precipOutlook.js';
 	import { formatHourAtLocation, formatHourInDeviceTime, isRemoteTimezone } from '#lib/utils/date.js';
@@ -25,7 +25,7 @@
 
 	let cardEl = $state<HTMLElement | null>(null);
 
-	let isNight = $derived(data.timestamp < data.sunrise * 1000 || data.timestamp > data.sunset * 1000);
+	let isNight = $derived(!isDaytime(data.timestamp, data.sunrise * 1000, data.sunset * 1000));
 	let description = $derived($_( wmoDescriptionKey(data.weatherCode)));
 	let tempDual = $derived(data.temperature.displayDualMixed(metricPrimary));
 	let maxDual = $derived(data.tempMax.displayDual(metricPrimary));
@@ -76,7 +76,7 @@
 		for (let i = data.dailySunrise.length - 1; i >= 0; i--) {
 			if (data.dailySunrise[i] <= time) { day = i; break; }
 		}
-		return time < (data.dailySunrise[day] ?? 0) || time > (data.dailySunset[day] ?? 0);
+		return !isDaytime(time, data.dailySunrise[day] ?? 0, data.dailySunset[day] ?? 0);
 	}
 
 	function handleShare(e: MouseEvent) {

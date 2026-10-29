@@ -106,3 +106,11 @@ export interface WeatherData {
 	hourlyAirQuality?: HourlyAirQuality[];
 	minutelyForecast?: MinutelyForecast[];
 }
+
+/**
+ * Whether `time` is between `sunrise` and `sunset` (same unit). In a polar night the two are equal
+ * (00:00 on both), so no time is day; in a midnight sun they are 24 hours apart, so all of it is.
+ */
+export function isDaytime(time: number, sunrise: number, sunset: number): boolean {
+	return sunset > sunrise && time >= sunrise && time <= sunset;
+}

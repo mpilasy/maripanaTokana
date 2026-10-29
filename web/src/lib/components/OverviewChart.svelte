@@ -4,6 +4,7 @@
 	import { runsOf, splitDual } from '#lib/utils/dualLabel.js';
 	import { monotonePath } from '#lib/utils/monotonePath.js';
 	import TierLegend from './TierLegend.svelte';
+	import { FREEZING_LINE } from '#lib/utils/feltColors.js';
 
 	/**
 	 * The chart under a row of forecast cards: every item at once, squeezed to the card's width,
@@ -20,6 +21,8 @@
 		style?: 'line' | 'bars';
 		/** Scale from zero, with zero on the bottom edge: for amounts where 0 means none (wind, UV, AQI). */
 		fromZero?: boolean;
+		/** For temperatures: a faint line at freezing (0 °C, 32 °F) when it is inside the chart. */
+		freezingAt?: number | null;
 		color?: string;
 		/** One color per point, e.g. by tier; overrides `color` for the dots and bars. */
 		pointColors?: string[];
@@ -36,7 +39,7 @@
 
 	let {
 		values, itemWidth, itemSpacing, scrollLeft = 0, containerWidth = 0, showBand = true, height = 48,
-		style = 'line', fromZero = false, color = 'white', pointColors, highLabel, lowLabel, legend, emptyLabel, second = null,
+		style = 'line', fromZero = false, color = 'white', pointColors, highLabel, lowLabel, legend, emptyLabel, second = null, freezingAt = null,
 	}: Props = $props();
 
 	// Room above and below the line for the labels
@@ -58,7 +61,8 @@
 
 	function getY(v: number, lo = min, hi = max) {
 		const bottom = zeroBased ? height - 1.5 : height - PAD;
-		return hi > lo ? bottom - ((v - lo) / (hi - lo)) * (bottom - PAD) : (bottom + PAD) / 2;
+		// All values the same: at the bottom when they are 0 or the chart starts at 0, else in the middle
+		return hi > lo ? bottom - ((v - lo) / (hi - lo)) * (bottom - PAD) : zeroBased || v === 0 ? bottom : (bottom + PAD) / 2;
 	}
 
 	let points = $derived(values.flatMap((v, i) => (v != null && Number.isFinite(v) ? [{ x: getX(i), y: getY(v), i, v }] : [])));
@@ -145,6 +149,9 @@
 			{/each}
 		{/if}
 		<!-- A missing value leaves a gap: each run of points with no missing value is its own curve -->
+		{#if freezingAt != null && max > min && freezingAt >= min && freezingAt <= max}
+			<line x1="0" x2={svgWidth} y1={getY(freezingAt)} y2={getY(freezingAt)} stroke={FREEZING_LINE} stroke-width="1" stroke-dasharray="4 3" />
+		{/if}
 		<path d={runsOf(points).filter((r) => r.length > 1).map((r) => monotonePath(r)).join(' ')} fill="none" stroke={color} stroke-opacity={pointColors ? 0.5 : 1} stroke-width="2" />
 		{#each points as p}
 			<circle cx={p.x} cy={p.y} r="3" fill={pointColors?.[p.i] ?? color} />

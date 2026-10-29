@@ -1,0 +1,9 @@
+Hatramin'ny 1.5.28:
+- Toerana: tsindrio ny anarana na ny ▾ hahitana ny lisitra sy ny halavirana.
+- Hafanana tsapa sy hatsiaka tsapa, miaraka amin'ny fotoana mitsovaka.
+- Karatra vaovao: Volana sy Tako-drahona.
+- Tsy miposaka na tsy mody ny masoandro: aseho ny daty.
+- Vinavina: hamandoana, hafanana tsapa, hatsiaka tsapa; tsipika amin'ny 0 °C.
+- Tazomy ny saina na ny endri-tsoratra: misy lisitra.
+- Sary zaraina sy widget tsara kokoa.
+- Sary famantarana vaovao.

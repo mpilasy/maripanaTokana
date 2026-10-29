@@ -1,0 +1,9 @@
+Depuis 1.5.28 :
+- Lieux : touchez le nom ou le ▾ pour la liste, avec les distances.
+- Indice de chaleur et refroidissement éolien, avec le temps avant gelure.
+- Cartes Lune et Couverture nuageuse.
+- Nuit polaire et soleil de minuit, avec leurs dates.
+- Onglets : humidité, indice de chaleur, refroidissement éolien ; une ligne au gel.
+- Maintenez le drapeau ou la police pour une liste.
+- Images partagées et widgets améliorés.
+- Nouvelle icône.

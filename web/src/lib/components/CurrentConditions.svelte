@@ -5,12 +5,14 @@
 	import { HEAT_COLOR, CHILL_COLOR } from '#lib/utils/feltColors.js';
 	import WeatherIcon from './WeatherIcon.svelte';
 	import { _, json } from 'svelte-i18n';
-	import type { WeatherData } from '#lib/domain/weatherData.js';
+	import { isDaytime, type WeatherData } from '#lib/domain/weatherData.js';
 	import { getCardinalDirection } from '#lib/domain/windSpeed.js';
 	import { AQI_TIER_COLORS, aqiDialPosition } from '#lib/domain/airQuality.js';
 	import { UV_TIER_COLORS, uvColorFor, uvDialPosition, type UvTier } from '#lib/domain/uv.js';
 	import DetailCard from './DetailCard.svelte';
-	import { formatHourAtLocation } from '#lib/utils/date.js';
+	import { formatDayMonth, formatHourAtLocation } from '#lib/utils/date.js';
+	import { localeIndex } from '#lib/stores/preferences.js';
+	import { SUPPORTED_LOCALES } from '#lib/i18n/index.js';
 	import Gauge from './Gauge.svelte';
 	import SunArc from './SunArc.svelte';
 	import SkyArc from './SkyArc.svelte';
@@ -19,7 +21,7 @@
 	import CompassDial from './CompassDial.svelte';
 	import LabeledValue from './LabeledValue.svelte';
 	import AqiTierBadge from './AqiTierBadge.svelte';
-	import { moonArcProgress, moonIllumination, moonPhaseIndex, moonPosition, moonTimes } from '#lib/domain/moon.js';
+	import { moonArcProgress, moonIllumination, moonPhaseIndex, moonPosition, moonTimes, polarPeriod, sunPosition } from '#lib/domain/moon.js';
 	import { moonLitPath } from '#lib/utils/moonPath.js';
 
 	interface Props {
@@ -85,9 +87,19 @@
 		return [text.slice(0, i), text.slice(i + 1)];
 	}
 
-	// The length of the day (hours and minutes), shown under the sun's arc
+	// Polar night (the sun stays down all day) or midnight sun (up all day): no rise or set, as for the moon
+	let polarNight = $derived(data.sunset <= data.sunrise);
+	let midnightSun = $derived(data.sunset - data.sunrise >= 86_400);
+	let polar = $derived(polarNight || midnightSun);
+	// Then the tile shows the first and last day of that period in place of the arc's times
+	let period = $derived(polar ? polarPeriod(Date.now(), data.latitude, midnightSun) : null);
+	// In a midnight sun, where the sun is now: it goes round the sky, so its direction changes all day
+	let sunAzimuth = $derived(midnightSun ? Math.round(sunPosition(Date.now(), data.latitude, data.longitude).azimuth) % 360 : null);
+	const dayMonth = (ms: number) => loc(formatDayMonth(ms, SUPPORTED_LOCALES[$localeIndex].tag, data.utcOffsetSeconds, $json('month_names') as string[] | undefined));
+	// The length of the day (hours and minutes) in the middle of the sun's arc, or the polar night or midnight sun
 	let daylight = $derived.by(() => {
-		if (data.sunset <= data.sunrise) return null;
+		if (polarNight) return $_('polar_night');
+		if (midnightSun) return $_('midnight_sun');
 		const minutes = Math.floor((data.sunset - data.sunrise) / 60);
 		const h = Math.floor(minutes / 60);
 		const m = minutes % 60;
@@ -132,7 +144,7 @@
 	<DetailCard title={$_('detail_precipitation')} value={precipDual ? loc(precipDual[0]) : $_('no_precip')} onToggleUnits={precipDual ? onToggleUnits : undefined}>
 		{#snippet centerDialSnippet()}
 			<div class="precip-center">
-				<WeatherIcon code={data.snow ? 71 : data.rain ? 61 : data.weatherCode} night={nowSec < data.sunrise || nowSec > data.sunset} size={56} />
+				<WeatherIcon code={data.snow ? 71 : data.rain ? 61 : data.weatherCode} night={!isDaytime(nowSec, data.sunrise, data.sunset)} size={56} />
 				{#if precipDual}
 					<DialValue value={loc(precipDual[0])} secondary={loc(precipDual[1])} fill={false} />
 				{:else}
@@ -205,15 +217,24 @@
 	<div class="sky-tile">
 		<span class="tile-title">{$_('detail_sun')}</span>
 		<!-- The arc right under the title, then the times, so the sun's and moon's arcs and times line up -->
-		<div class="sky-content">
+		<div class="sky-content" class:polar>
 		<div class="arc-box">
-			<SunArc sunrise={data.sunrise} sunset={data.sunset} now={Date.now() / 1000} />
-			{#if daylight}<span class="under-arc mid-arc">{loc(daylight)}</span>{/if}
+			<!-- No arc in a polar night or midnight sun: the sun does not cross the horizon -->
+			{#if !polar}<SunArc sunrise={data.sunrise} sunset={data.sunset} now={Date.now() / 1000} />{/if}
+			{#if daylight}<span class="under-arc mid-arc" class:polar>{loc(daylight)}</span>{/if}
 		</div>
 		<div class="sky-times">
-			<span><span class="sky-label">{$_('detail_sunrise')}</span> {loc(formatTime(data.sunrise))}</span>
-			<span><span class="sky-label">{$_('detail_sunset')}</span> {loc(formatTime(data.sunset))}</span>
+			{#if period}
+				<span><span class="sky-label">{$_('polar_since')}</span> {dayMonth(period.since)}</span>
+				<span><span class="sky-label">{$_('polar_until')}</span> {dayMonth(period.until)}</span>
+			{:else}
+				<span><span class="sky-label">{$_('detail_sunrise')}</span> {loc(formatTime(data.sunrise))}</span>
+				<span><span class="sky-label">{$_('detail_sunset')}</span> {loc(formatTime(data.sunset))}</span>
+			{/if}
 		</div>
+		{#if sunAzimuth != null}
+			<LabeledValue label={$_('detail_azimuth')} value={loc(`${getCardinalDirection(sunAzimuth, $json('cardinal_directions'))} (${sunAzimuth}°)`)} centered />
+		{/if}
 		</div>
 	</div>
 	<!-- The moon, laid out like the sun: its arc, the part lit, rise and set today, phase and direction -->
@@ -324,6 +345,7 @@
 	}
 
 	.sky-tile {
+		position: relative;
 		background: var(--surface-tile);
 		border-radius: 16px;
 		padding: 16px;
@@ -399,6 +421,37 @@
 		position: relative;
 	}
 
+	/* Polar night or midnight sun: the text and the dates in the middle of the tile */
+	/* Over the whole tile, so the block is in its middle and not only under the title */
+	.sky-content.polar {
+		position: absolute;
+		inset: 0;
+		padding: 16px;
+		justify-content: center;
+		gap: 12px;
+	}
+
+	.sky-content.polar > .arc-box {
+		align-self: stretch;
+	}
+
+	.sky-content.polar .mid-arc {
+		position: static;
+		display: block;
+		transform: none;
+	}
+
+	/* The dates side by side when they fit, else one under the other */
+	.sky-content.polar > .sky-times {
+		justify-content: center;
+		flex-wrap: wrap;
+		gap: 6px 16px;
+	}
+
+	.sky-content.polar > .sky-times > span {
+		align-items: center;
+	}
+
 	.under-arc {
 		position: absolute;
 		/* Long texts (Malagasy) take more than one line inside the arc */
@@ -420,6 +473,11 @@
 		bottom: auto;
 		top: 50%;
 		transform: translateY(-50%);
+	}
+
+	/* Polar night or midnight sun: the text alone, larger */
+	.mid-arc.polar {
+		font-size: 16px;
 	}
 
 	.moon-phase {

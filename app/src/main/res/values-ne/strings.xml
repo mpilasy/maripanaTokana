@@ -62,6 +62,10 @@
     <string name="nowcast_no_precip">आगामी २ घण्टामा वर्षाको सम्भावना छैन</string>
     <string name="nowcast_starts_in">~%1$s मिनेटमा वर्षा सुरु हुने सम्भावना छ</string>
     <string name="daylight_duration">%1$s\n%2$s</string>
+    <string name="polar_night">ध्रुवीय रात</string>
+    <string name="midnight_sun">मध्यरातको सूर्य</string>
+    <string name="polar_since">सुरु</string>
+    <string name="polar_until">अन्त्य</string>
     <string name="daylight_hours_one">%1$s घण्टा</string>
     <string name="daylight_hours_other">%1$s घण्टा</string>
     <string name="daylight_minutes_one">%1$s मिनेट</string>

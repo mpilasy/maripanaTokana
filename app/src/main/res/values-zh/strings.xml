@@ -62,6 +62,10 @@
     <string name="nowcast_no_precip">未来 2 小时无降水预报</string>
     <string name="nowcast_starts_in">预计约 %1$s 分钟后开始降水</string>
     <string name="daylight_duration">%1$s\n%2$s</string>
+    <string name="polar_night">极夜</string>
+    <string name="midnight_sun">极昼</string>
+    <string name="polar_since">开始</string>
+    <string name="polar_until">结束</string>
     <string name="daylight_hours_one">%1$s小时</string>
     <string name="daylight_hours_other">%1$s小时</string>
     <string name="daylight_minutes_one">%1$s分钟</string>

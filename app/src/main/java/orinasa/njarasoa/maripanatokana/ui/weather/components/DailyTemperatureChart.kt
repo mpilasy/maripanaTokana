@@ -31,6 +31,7 @@ import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.domain.model.DailyForecast
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 import java.util.Calendar
+import orinasa.njarasoa.maripanatokana.ui.theme.FreezingLine
 
 @Composable
 fun DailyTemperatureChart(
@@ -114,6 +115,12 @@ fun DailyTemperatureChart(
 
             // Room above the highs for the warmest's label and below the lows for the coldest's
             val labelRoom = 13.dp.toPx()
+            // A faint line at freezing (0 °C, 32 °F) when it is inside the chart
+            val freezing = if (metricPrimary) 0.0 else 32.0
+            if (freezing in paddedMin..paddedMax) {
+                val fy = labelRoom + (height - 2 * labelRoom) * (1 - ((freezing - paddedMin) / paddedRange).toFloat())
+                drawLine(FreezingLine, Offset(0f, fy), Offset(width, fy), 1.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 3.dp.toPx())))
+            }
             val maxPoints = maxTemps.mapIndexed { i, temp ->
                 val x = xFor(i)
                 val y = labelRoom + (height - 2 * labelRoom) * (1 - ((temp - paddedMin) / paddedRange).toFloat())

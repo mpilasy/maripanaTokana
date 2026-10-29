@@ -62,6 +62,10 @@
     <string name="nowcast_no_precip">لا تتوفر توقعات بهطول الأمطار خلال الساعتين القادمتين</string>
     <string name="nowcast_starts_in">من المتوقع بدء الهطول خلال ~%1$s دقيقة</string>
     <string name="daylight_duration">%1$s\n%2$s</string>
+    <string name="polar_night">ليل قطبي</string>
+    <string name="midnight_sun">شمس منتصف الليل</string>
+    <string name="polar_since">منذ</string>
+    <string name="polar_until">حتى</string>
     <string name="daylight_hours_one">%1$s ساعة</string>
     <string name="daylight_hours_other">%1$s ساعة</string>
     <string name="daylight_minutes_one">%1$s دقيقة</string>

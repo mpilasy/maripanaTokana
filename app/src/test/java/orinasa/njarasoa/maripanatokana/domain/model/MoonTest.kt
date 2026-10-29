@@ -42,4 +42,22 @@ class MoonTest {
         assertEquals(0, Moon.phaseIndex(0.98))
         assertEquals(4, Moon.phaseIndex(0.5))
     }
+
+    private fun noon(date: String) = Instant.parse("${date}T12:00:00Z").toEpochMilli()
+
+    private fun assertNear(date: String, ms: Long) = assertEquals(noon(date).toDouble(), ms.toDouble(), 2 * 86_400_000.0)
+
+    @Test
+    fun polarNightAtAlert() {
+        val p = Moon.polarPeriod(noon("2026-10-29"), 82.5, midnightSun = false)
+        assertNear("2026-10-14", p.since)
+        assertNear("2027-02-27", p.until)
+    }
+
+    @Test
+    fun midnightSunAtTheSouthPole() {
+        val p = Moon.polarPeriod(noon("2026-10-29"), -89.99, midnightSun = true)
+        assertNear("2026-09-22", p.since)
+        assertNear("2027-03-21", p.until)
+    }
 }
