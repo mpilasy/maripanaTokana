@@ -61,7 +61,11 @@
     <string name="section_nowcast">توقعات دقيقة بدقيقة</string>
     <string name="nowcast_no_precip">لا تتوفر توقعات بهطول الأمطار خلال الساعتين القادمتين</string>
     <string name="nowcast_starts_in">من المتوقع بدء الهطول خلال ~%1$s دقيقة</string>
-    <string name="daylight_duration">%1$s س %2$s د</string>
+    <string name="daylight_duration">%1$s\n%2$s</string>
+    <string name="daylight_hours_one">%1$s ساعة</string>
+    <string name="daylight_hours_other">%1$s ساعة</string>
+    <string name="daylight_minutes_one">%1$s دقيقة</string>
+    <string name="daylight_minutes_other">%1$s دقيقة</string>
     <string name="nowcast_ongoing">هطول أمطار متوقع خلال الساعتين القادمتين</string>
     <string name="activity_running">الركض</string>
     <string name="activity_laundry">تجفيف الغسيل</string>

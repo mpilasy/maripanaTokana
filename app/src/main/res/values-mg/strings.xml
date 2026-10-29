@@ -61,7 +61,11 @@
     <string name="section_nowcast">Orana isa-minitra</string>
     <string name="nowcast_no_precip">Tsy hisy orana ao anatin\'ny adiny roa ho avy</string>
     <string name="nowcast_starts_in">Hanomboka ny orana afaka ~%1$s minitra</string>
-    <string name="daylight_duration">%1$so sy %2$sm</string>
+    <string name="daylight_duration">%1$s\nsy\n%2$s</string>
+    <string name="daylight_hours_one">Adiny %1$s</string>
+    <string name="daylight_hours_other">Adiny %1$s</string>
+    <string name="daylight_minutes_one">%1$s minitra</string>
+    <string name="daylight_minutes_other">%1$s minitra</string>
     <string name="nowcast_ongoing">Hisy orana mandritra ny 2 ora manaraka</string>
     <string name="activity_running">Fanatanjahantena</string>
     <string name="activity_laundry">Fanahazan-damba</string>

@@ -9,6 +9,9 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261029125014] - 2026-10-29
+- Sun and moon tiles: the arcs are taller. The day length is in the middle of the sun's arc, in words on two lines ("12 hours" / "45 minutes"; Malagasy "Adiny 12" / "sy" / "45 minitra"), with a singular form for 1. The moon's lit part is in the middle of its arc. The store notes also repeat those of 1.6.20261029031501, because F-Droid builds only the newest tag.
+
 ## [1.6.20261029121958] - 2026-10-29
 - Day length under the sun's arc: hours and minutes with units ("10h 38m"; Malagasy "10o sy 38m"), in place of "10:38". The store notes also repeat those of 1.6.20261029031501, because F-Droid builds only the newest tag.
 

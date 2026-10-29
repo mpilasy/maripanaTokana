@@ -61,7 +61,11 @@
     <string name="section_nowcast">Minutely Nowcast</string>
     <string name="nowcast_no_precip">No precipitation expected in the next 2 hours</string>
     <string name="nowcast_starts_in">Precipitation starting in ~%1$s min</string>
-    <string name="daylight_duration">%1$sh %2$sm</string>
+    <string name="daylight_duration">%1$s\n%2$s</string>
+    <string name="daylight_hours_one">%1$s hour</string>
+    <string name="daylight_hours_other">%1$s hours</string>
+    <string name="daylight_minutes_one">%1$s minute</string>
+    <string name="daylight_minutes_other">%1$s minutes</string>
     <string name="nowcast_ongoing">Precipitation expected for the next 2 hours</string>
     <string name="activity_running">Running</string>
     <string name="activity_laundry">Drying Laundry</string>

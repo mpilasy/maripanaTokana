@@ -155,9 +155,9 @@ fun SunArc(sunrise: Long, sunset: Long, now: Long, modifier: Modifier = Modifier
 fun SkyArc(t: Float, progressColor: Color, modifier: Modifier = Modifier, body: DrawScope.(Offset) -> Unit) {
     Canvas(modifier) {
         // Half-ellipse across the width, peaking near the top
-        val base = size.height * 44f / 52f
+        val base = size.height * 68f / 76f
         val rx = size.width * 52f / 120f
-        val ry = size.height * 36f / 52f
+        val ry = size.height * 60f / 76f
         val cx = size.width / 2
         val oval = Rect(cx - rx, base - ry, cx + rx, base + ry)
         drawLine(Color.White.copy(alpha = 0.15f), Offset(0f, base), Offset(size.width, base), 1.dp.toPx())

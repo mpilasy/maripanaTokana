@@ -9,8 +9,8 @@
 	 */
 	let { t, progressColor, body }: { t: number; progressColor: string; body: Snippet<[number, number]> } = $props();
 
-	// Half-ellipse from (8,44) to (112,44) peaking at y=8
-	const W = 120, H = 52, CX = 60, RX = 52, RY = 36, BASE = 44;
+	// Half-ellipse from (8,68) to (112,68) peaking at y=8
+	const W = 120, H = 76, CX = 60, RX = 52, RY = 60, BASE = 68;
 	let up = $derived(t >= 0 && t <= 1);
 	let pos = $derived.by(() => {
 		const a = Math.PI * (1 - Math.min(1, Math.max(0, t)));
@@ -32,6 +32,6 @@
 <style>
 	.sky-arc {
 		display: block;
-		max-height: 64px;
+		max-height: 144px;
 	}
 </style>

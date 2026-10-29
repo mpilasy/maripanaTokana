@@ -1,0 +1,4 @@
+- Day length in hours and minutes (12 hours 45 minutes), in a larger arc.
+- Heat index and wind chill: shown next to the temperature when they apply, with a thermometer icon. The hourly and 10-day forecasts have a tab for each.
+- Values in two units: the second unit is now smaller and under the first one.
+- Charts: a missing value leaves a gap. Sliding along a chart scrolls the cards smoothly.

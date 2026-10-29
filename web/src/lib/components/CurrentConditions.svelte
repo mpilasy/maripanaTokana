@@ -89,7 +89,14 @@
 	let daylight = $derived.by(() => {
 		if (data.sunset <= data.sunrise) return null;
 		const minutes = Math.floor((data.sunset - data.sunrise) / 60);
-		return $_('daylight_duration', { values: { hours: Math.floor(minutes / 60), minutes: minutes % 60 } });
+		const h = Math.floor(minutes / 60);
+		const m = minutes % 60;
+		return $_('daylight_duration', {
+			values: {
+				hours: $_(h === 1 ? 'daylight_hours_one' : 'daylight_hours_other', { values: { count: h } }),
+				minutes: $_(m === 1 ? 'daylight_minutes_one' : 'daylight_minutes_other', { values: { count: m } }),
+			},
+		});
 	});
 
 	// The moon at the place now; today runs from its midnight
@@ -201,7 +208,7 @@
 		<div class="sky-content">
 		<div class="arc-box">
 			<SunArc sunrise={data.sunrise} sunset={data.sunset} now={Date.now() / 1000} />
-			{#if daylight}<span class="under-arc">{loc(daylight)}</span>{/if}
+			{#if daylight}<span class="under-arc mid-arc">{loc(daylight)}</span>{/if}
 		</div>
 		<div class="sky-times">
 			<span><span class="sky-label">{$_('detail_sunrise')}</span> {loc(formatTime(data.sunrise))}</span>
@@ -220,7 +227,7 @@
 					<path d={moonLitPath(moon.illumination.phase, moon.southern, x, y, 7)} fill="#F2EBD3" />
 				{/snippet}
 			</SkyArc>
-			<span class="under-arc">{loc(`${Math.round(moon.illumination.fraction * 100)}%`)}</span>
+			<span class="under-arc mid-arc">{loc(`${Math.round(moon.illumination.fraction * 100)}%`)}</span>
 		</div>
 		<div class="sky-times">
 			<span><span class="sky-label">{$_('detail_moonrise')}</span> {moon.today.rise != null ? loc(formatHourAtLocation(moon.today.rise, data.utcOffsetSeconds)) : '--'}</span>
@@ -394,15 +401,25 @@
 
 	.under-arc {
 		position: absolute;
-		left: 0;
-		right: 0;
-		bottom: 23%;
+		/* Long texts (Malagasy) take more than one line inside the arc */
+		left: 20%;
+		right: 20%;
+		bottom: 15%;
 		text-align: center;
+		line-height: 1.15;
+		white-space: pre-line;
 		font-family: var(--font-display);
 		font-size: 13px;
 		font-weight: 700;
 		color: rgba(255, 255, 255, 0.8);
 		font-feature-settings: var(--font-features);
+	}
+
+	/* The length of the day and the moon's part lit, in the middle of the arc */
+	.mid-arc {
+		bottom: auto;
+		top: 50%;
+		transform: translateY(-50%);
 	}
 
 	.moon-phase {

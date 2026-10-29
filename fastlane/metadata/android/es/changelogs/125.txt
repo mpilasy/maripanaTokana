@@ -1,0 +1,4 @@
+- Duración del día en horas y minutos (12 horas 45 minutos), en un arco más grande.
+- Índice de calor y enfriamiento por viento: se muestran junto a la temperatura cuando se aplican, con un icono de termómetro. Los pronósticos por horas y de 10 días tienen una pestaña para cada uno.
+- Valores en dos unidades: la segunda unidad ahora es más pequeña y va debajo de la primera.
+- Gráficos: un valor que falta deja un hueco. Deslizar por un gráfico desplaza las tarjetas con suavidad.

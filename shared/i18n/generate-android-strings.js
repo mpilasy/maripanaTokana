@@ -30,6 +30,10 @@ const PLACEHOLDER_ORDER = {
 	alert_count_title: ['count'],
 	nowcast_starts_in: ['minutes'],
 	daylight_duration: ['hours', 'minutes'],
+	daylight_hours_one: ['count'],
+	daylight_hours_other: ['count'],
+	daylight_minutes_one: ['count'],
+	daylight_minutes_other: ['count'],
 	alert_sources_unavailable: ['sources'],
 	refresh_failed: ['time'],
 	outlook_rain_from: ['time'],
@@ -48,6 +52,7 @@ const FORMATTED_FALSE_KEYS = new Set(['visibility_km', 'visibility_mi']);
 /**
  * Escape a string value for Android XML.
  * - Apostrophes → backslash-escaped
+ * - Line breaks → \n (aapt turns a raw line break into a space)
  * - XML special chars &, <, > → entities
  * - Non-ASCII supplementary chars (emoji) → numeric XML entities
  */
@@ -59,6 +64,7 @@ function escapeXml(s) {
 		else if (ch === '<') result += '&lt;';
 		else if (ch === '>') result += '&gt;';
 		else if (ch === "'") result += "\\'";
+		else if (ch === '\n') result += '\\n';
 		else if (cp > 0xffff) result += `&#x${cp.toString(16)};`;
 		else result += ch;
 	}

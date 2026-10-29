@@ -2558,18 +2558,27 @@ private fun SunTile(sunrise: Long, sunset: Long, timeFormat: SimpleDateFormat, l
             verticalArrangement = Arrangement.spacedBy(6.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Box(Modifier.fillMaxWidth().heightIn(max = 64.dp).aspectRatio(120f / 52f)) {
+            Box(Modifier.fillMaxWidth().heightIn(max = 144.dp).aspectRatio(120f / 76f)) {
                 SunArc(sunrise, sunset, System.currentTimeMillis() / 1000, Modifier.fillMaxSize())
-                // The length of the day (hours and minutes), under the arc, above the horizon line
+                // The length of the day (hours and minutes), in the middle of the arc
                 if (sunset > sunrise) {
                     val minutes = (sunset - sunrise) / 60
+                    val h = minutes / 60
+                    val m = minutes % 60
                     Text(
-                        text = localizeDigits(stringResource(R.string.daylight_duration, "${minutes / 60}", "${minutes % 60}")),
+                        text = localizeDigits(stringResource(
+                            R.string.daylight_duration,
+                            stringResource(if (h == 1L) R.string.daylight_hours_one else R.string.daylight_hours_other, "$h"),
+                            stringResource(if (m == 1L) R.string.daylight_minutes_one else R.string.daylight_minutes_other, "$m"),
+                        )),
                         fontSize = 13f.s(scale),
                         fontWeight = FontWeight.Bold,
                         fontFamily = LocalDisplayFont.current,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                        modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 12.dp),
+                        textAlign = TextAlign.Center,
+                        lineHeight = 15f.s(scale),
+                        // Long texts (Malagasy) take more than one line inside the arc
+                        modifier = Modifier.align(Alignment.Center).fillMaxWidth(0.6f),
                     )
                 }
             }
@@ -2635,16 +2644,16 @@ private fun MoonTile(lat: Double, lon: Double, utcOffsetSeconds: Int, timeFormat
             verticalArrangement = Arrangement.spacedBy(6.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Box(Modifier.fillMaxWidth().heightIn(max = 64.dp).aspectRatio(120f / 52f)) {
+            Box(Modifier.fillMaxWidth().heightIn(max = 144.dp).aspectRatio(120f / 76f)) {
                 SkyArc(arcT, Color(0xFFCFC8E8), Modifier.fillMaxSize()) { drawMoon(illumination.phase, southern, it, 7.dp.toPx()) }
-                // The part lit, under the arc, where the sun tile shows the length of the day
+                // The part lit, in the middle of the arc, where the sun tile shows the length of the day
                 Text(
                     text = localizeDigits("%d%%".format(Locale.US, kotlin.math.round(illumination.fraction * 100).toInt())),
                     fontSize = 13f.s(scale),
                     fontWeight = FontWeight.Bold,
                     fontFamily = LocalDisplayFont.current,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                    modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 12.dp),
+                    modifier = Modifier.align(Alignment.Center),
                 )
             }
             Row(modifier = Modifier.fillMaxWidth()) {

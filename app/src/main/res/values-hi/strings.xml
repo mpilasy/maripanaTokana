@@ -61,7 +61,11 @@
     <string name="section_nowcast">मिनट दर मिनट पूर्वानुमान</string>
     <string name="nowcast_no_precip">अगले २ घंटों में कोई बारिश की संभावना नहीं है</string>
     <string name="nowcast_starts_in">~%1$s मिनट में बारिश शुरू होने की संभावना है</string>
-    <string name="daylight_duration">%1$s घं %2$s मि</string>
+    <string name="daylight_duration">%1$s\n%2$s</string>
+    <string name="daylight_hours_one">%1$s घंटा</string>
+    <string name="daylight_hours_other">%1$s घंटे</string>
+    <string name="daylight_minutes_one">%1$s मिनट</string>
+    <string name="daylight_minutes_other">%1$s मिनट</string>
     <string name="nowcast_ongoing">अगले २ घंटों तक बारिश जारी रहने की संभावना है</string>
     <string name="activity_running">दौड़ना</string>
     <string name="activity_laundry">कपड़े सुखाना</string>
