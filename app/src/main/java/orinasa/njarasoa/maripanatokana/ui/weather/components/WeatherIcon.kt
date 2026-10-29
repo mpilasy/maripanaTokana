@@ -16,22 +16,25 @@ import androidx.compose.ui.unit.dp
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.data.remote.wmoDescriptionRes
 
-/** Meteocons artwork (MIT, Bas Milius) for a WMO weather code, with day and night variants. */
+/** Meteocons artwork (MIT, Bas Milius) for each WMO code group, as (day, night). */
+private val WEATHER_ICONS = mapOf(
+    listOf(0) to (R.drawable.wx_clear_day to R.drawable.wx_clear_night),
+    listOf(1, 2) to (R.drawable.wx_partly_cloudy_day to R.drawable.wx_partly_cloudy_night),
+    listOf(3) to (R.drawable.wx_overcast to R.drawable.wx_overcast),
+    listOf(45, 48) to (R.drawable.wx_fog_day to R.drawable.wx_fog_night),
+    listOf(51, 53, 55) to (R.drawable.wx_drizzle to R.drawable.wx_drizzle),
+    listOf(56, 57, 66, 67) to (R.drawable.wx_sleet to R.drawable.wx_sleet),
+    listOf(61, 63, 65) to (R.drawable.wx_rain to R.drawable.wx_rain),
+    listOf(71, 73, 75, 77) to (R.drawable.wx_snow to R.drawable.wx_snow),
+    listOf(80, 81, 82) to (R.drawable.wx_partly_cloudy_day_rain to R.drawable.wx_partly_cloudy_night_rain),
+    listOf(85, 86) to (R.drawable.wx_partly_cloudy_day_snow to R.drawable.wx_partly_cloudy_night_snow),
+    listOf(95, 96, 99) to (R.drawable.wx_thunderstorms_day_rain to R.drawable.wx_thunderstorms_night_rain),
+).flatMap { (codes, icons) -> codes.map { it to icons } }.toMap()
+
+/** The icon for a WMO weather code, with day and night variants. */
 @DrawableRes
-internal fun weatherIconRes(code: Int, night: Boolean): Int = when (code) {
-    0 -> if (night) R.drawable.wx_clear_night else R.drawable.wx_clear_day
-    1, 2 -> if (night) R.drawable.wx_partly_cloudy_night else R.drawable.wx_partly_cloudy_day
-    3 -> R.drawable.wx_overcast
-    45, 48 -> if (night) R.drawable.wx_fog_night else R.drawable.wx_fog_day
-    51, 53, 55 -> R.drawable.wx_drizzle
-    56, 57, 66, 67 -> R.drawable.wx_sleet
-    61, 63, 65 -> R.drawable.wx_rain
-    71, 73, 75, 77 -> R.drawable.wx_snow
-    80, 81, 82 -> if (night) R.drawable.wx_partly_cloudy_night_rain else R.drawable.wx_partly_cloudy_day_rain
-    85, 86 -> if (night) R.drawable.wx_partly_cloudy_night_snow else R.drawable.wx_partly_cloudy_day_snow
-    95, 96, 99 -> if (night) R.drawable.wx_thunderstorms_night_rain else R.drawable.wx_thunderstorms_day_rain
-    else -> R.drawable.wx_not_available
-}
+internal fun weatherIconRes(code: Int, night: Boolean): Int =
+    WEATHER_ICONS[code]?.let { if (night) it.second else it.first } ?: R.drawable.wx_not_available
 
 /**
  * A weather condition as an icon. The artwork leaves wide margins in its square, so the icon takes

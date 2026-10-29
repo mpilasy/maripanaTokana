@@ -11,16 +11,21 @@ import orinasa.njarasoa.maripanatokana.domain.model.Temperature
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.model.WindSpeed
 
-private fun pirateIconToWmo(icon: String): Int = when (icon) {
-    "clear-day", "clear-night" -> 0
-    "partly-cloudy-day", "partly-cloudy-night" -> 2
-    "cloudy" -> 3
-    "fog" -> 45
-    "rain" -> 63
-    "sleet" -> 77
-    "snow" -> 73
-    else -> 0
-}
+// The same on the web (pirateWeather.ts). Sleet is freezing rain (66), so it gets the sleet icon.
+private val PIRATE_ICON_WMO = mapOf(
+    "clear-day" to 0, "clear-night" to 0,
+    "partly-cloudy-day" to 2, "partly-cloudy-night" to 2,
+    "cloudy" to 3,
+    "fog" to 45,
+    "drizzle" to 53,
+    "rain" to 63,
+    "sleet" to 66,
+    "snow" to 73,
+    "thunderstorm" to 95,
+    "wind" to 3,
+)
+
+private fun pirateIconToWmo(icon: String): Int = PIRATE_ICON_WMO[icon] ?: 0
 
 fun PirateWeatherResponse.toDomain(): WeatherData {
     val utcOffset = (offsetHours * 3600).toInt()

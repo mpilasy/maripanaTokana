@@ -9,20 +9,23 @@ import { Pressure } from '#lib/domain/pressure.js';
 import { Precipitation } from '#lib/domain/precipitation.js';
 import { nightWeatherCodes } from './nightWeather';
 
+// The same on Android (PirateWeatherMapper.kt). Sleet is freezing rain (66), so it gets the sleet icon.
+// A Map, not an object: an icon name such as "constructor" must not find an inherited property
+const ICON_WMO_CODES = new Map<string, number>([
+	['clear-day', 0], ['clear-night', 0],
+	['partly-cloudy-day', 2], ['partly-cloudy-night', 2],
+	['cloudy', 3],
+	['fog', 45],
+	['drizzle', 53],
+	['rain', 63],
+	['sleet', 66],
+	['snow', 73],
+	['thunderstorm', 95],
+	['wind', 3]
+]);
+
 function iconToWmoCode(icon: string): number {
-	switch (icon) {
-		case 'clear-day': case 'clear-night': return 0;
-		case 'partly-cloudy-day': case 'partly-cloudy-night': return 2;
-		case 'cloudy': return 3;
-		case 'fog': return 45;
-		case 'drizzle': return 51;
-		case 'rain': return 61;
-		case 'sleet': return 85;
-		case 'snow': return 71;
-		case 'thunderstorm': return 95;
-		case 'wind': return 3;
-		default: return 0;
-	}
+	return ICON_WMO_CODES.get(icon) ?? 0;
 }
 
 export async function testPirateWeatherKey(apiKey: string): Promise<void> {
