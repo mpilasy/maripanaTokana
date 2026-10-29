@@ -1,0 +1,4 @@
+- Spanish: accents added to labels and messages (for example "Sensación térmica", "ubicación").
+- Heat index: shown only when it is above the temperature. In very dry heat, "Feels like" shows instead.
+- Hold the flag or the font button to pick from a list of languages or fonts.
+- Day length in hours and minutes (12 hours 45 minutes), in a larger arc.

@@ -9,6 +9,9 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261029135939] - 2026-10-29
+- Spanish: missing accents added in 13 strings ("Sensación térmica" in the app and the widget, "ubicación", "aplicación", "última", "más", "precipitación", "Presión", "Índice UV", "Pronóstico por hora", "mín./máx.").
+
 ## [1.6.20261029134909] - 2026-10-29
 - Heat index: shown only when it is above the air temperature. In very dry heat (for example Kidal, Mali: 37.9 °C at 12 % humidity gives 35 °C), the NWS formula falls below the temperature; then "Feels like" from the weather source shows, and the forecast tab shows a dash for that hour or day. The wind chill is always below the temperature, so it needs no such rule.
 

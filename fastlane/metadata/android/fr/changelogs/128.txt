@@ -1,0 +1,4 @@
+- Espagnol : accents ajoutés aux libellés et messages (par exemple « Sensación térmica », « ubicación »).
+- Indice de chaleur : affiché seulement s'il dépasse la température. Par chaleur très sèche, « Ressenti » s'affiche.
+- Maintenez le drapeau ou le bouton de police pour choisir dans la liste des langues ou des polices.
+- Durée du jour en heures et minutes (12 heures 45 minutes), dans un arc plus grand.
