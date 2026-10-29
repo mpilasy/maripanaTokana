@@ -15,7 +15,7 @@ import kotlin.math.sqrt
  */
 object ThermalIndices {
 
-    /** The heat index (Rothfusz regression with the NWS adjustments), at 80 °F (27 °C) and above. */
+    /** The heat index (Rothfusz regression with the NWS adjustments), at 80 °F (27 °C) and above, when it is above the temperature. */
     fun heatIndex(temperature: Temperature, humidity: Int?): Temperature? {
         val t = temperature.fahrenheit
         val rh = humidity?.toDouble() ?: return null
@@ -24,6 +24,8 @@ object ThermalIndices {
             0.05481717 * rh * rh + 0.00122874 * t * t * rh + 0.00085282 * t * rh * rh - 0.00000199 * t * t * rh * rh
         if (rh < 13 && t <= 112) hi -= (13 - rh) / 4 * sqrt((17 - abs(t - 95)) / 17)
         if (rh > 85 && t <= 87) hi += (rh - 85) / 10 * ((87 - t) / 5)
+        // In very dry air the index falls below the air temperature; then the source's "feels like" shows instead
+        if (hi <= t) return null
         return Temperature.fromFahrenheit(hi)
     }
 

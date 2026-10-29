@@ -10,7 +10,7 @@ import type { DailyForecast } from './weatherData.js';
  * Each is null outside the range where the NWS uses it.
  */
 
-/** The heat index (Rothfusz regression with the NWS adjustments), at 80 °F (27 °C) and above. */
+/** The heat index (Rothfusz regression with the NWS adjustments), at 80 °F (27 °C) and above, when it is above the temperature. */
 export function heatIndex(temperature: Temperature, humidity: number | null | undefined): Temperature | null {
 	const t = temperature.fahrenheit;
 	if (humidity == null || !Number.isFinite(t) || t < 80) return null;
@@ -19,6 +19,8 @@ export function heatIndex(temperature: Temperature, humidity: number | null | un
 		0.05481717 * rh * rh + 0.00122874 * t * t * rh + 0.00085282 * t * rh * rh - 0.00000199 * t * t * rh * rh;
 	if (rh < 13 && t <= 112) hi -= ((13 - rh) / 4) * Math.sqrt((17 - Math.abs(t - 95)) / 17);
 	if (rh > 85 && t <= 87) hi += ((rh - 85) / 10) * ((87 - t) / 5);
+	// In very dry air the index falls below the air temperature; then the source's "feels like" shows instead
+	if (hi <= t) return null;
 	return Temperature.fromFahrenheit(hi);
 }
 

@@ -13,13 +13,19 @@ const mph = (v: number) => WindSpeed.fromMph(v);
 describe('heatIndex', () => {
 	it('matches the NWS chart', () => {
 		expect(Math.abs(heatIndex(f(90), 70)!.fahrenheit - 106)).toBeLessThan(1);
-		expect(Math.abs(heatIndex(f(80), 40)!.fahrenheit - 80)).toBeLessThan(1);
+		expect(Math.abs(heatIndex(f(80), 60)!.fahrenheit - 82)).toBeLessThan(1);
 		expect(Math.abs(heatIndex(f(100), 40)!.fahrenheit - 109)).toBeLessThan(1);
 	});
 
 	it('is null below 80 °F or without humidity', () => {
 		expect(heatIndex(f(79), 90)).toBeNull();
 		expect(heatIndex(f(90), null)).toBeNull();
+	});
+
+	it('is null when not above the temperature', () => {
+		// Very dry heat (Kidal, Mali: 100 °F at 12 %) gives about 95 °F
+		expect(heatIndex(f(100), 12)).toBeNull();
+		expect(heatIndex(f(80), 40)).toBeNull();
 	});
 });
 

@@ -9,6 +9,9 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261029134909] - 2026-10-29
+- Heat index: shown only when it is above the air temperature. In very dry heat (for example Kidal, Mali: 37.9 °C at 12 % humidity gives 35 °C), the NWS formula falls below the temperature; then "Feels like" from the weather source shows, and the forecast tab shows a dash for that hour or day. The wind chill is always below the temperature, so it needs no such rule.
+
 ## [1.6.20261029133216] - 2026-10-29
 - Footer: holding the language flag opens a list of the languages (flag and the language's own name); holding the font button opens a list of the 22 font pairings, each name in its own display font. The list opens next to the button and starts at the current item. A tap still shows the next language or font. The Help and About pages have the same language list.
 - Android: the language list no longer opens far above the flag (the standard menu keeps 48 dp from the screen edges).

@@ -16,7 +16,7 @@ class ThermalIndicesTest {
     @Test
     fun heatIndex_matchesTheNwsChart() {
         assertEquals(106.0, ThermalIndices.heatIndex(f(90.0), 70)!!.fahrenheit, 1.0)
-        assertEquals(80.0, ThermalIndices.heatIndex(f(80.0), 40)!!.fahrenheit, 1.0)
+        assertEquals(82.0, ThermalIndices.heatIndex(f(80.0), 60)!!.fahrenheit, 1.0)
         assertEquals(109.0, ThermalIndices.heatIndex(f(100.0), 40)!!.fahrenheit, 1.0)
     }
 
@@ -24,6 +24,13 @@ class ThermalIndicesTest {
     fun heatIndex_isNullBelow80F() {
         assertNull(ThermalIndices.heatIndex(f(79.0), 90))
         assertNull(ThermalIndices.heatIndex(f(90.0), null))
+    }
+
+    @Test
+    fun heatIndex_isNullWhenNotAboveTheTemperature() {
+        // Very dry heat (Kidal, Mali: 100 °F at 12 %) gives about 95 °F
+        assertNull(ThermalIndices.heatIndex(f(100.0), 12))
+        assertNull(ThermalIndices.heatIndex(f(80.0), 40))
     }
 
     @Test
