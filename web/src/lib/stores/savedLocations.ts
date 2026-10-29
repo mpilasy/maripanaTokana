@@ -3,6 +3,8 @@
 
 import { writable, get } from 'svelte/store';
 import { doFetchWeather, keepShownWeather, weatherState } from '#lib/stores/weather.js';
+import { getCachedLocation } from '#lib/stores/location.js';
+import { calculateDistance } from '#lib/api/alerts/shared.js';
 
 export interface SavedLocation {
 	id: string;
@@ -16,6 +18,13 @@ export interface SavedLocation {
 
 export function displayName(location: SavedLocation): string {
 	return location.label ?? location.name;
+}
+
+/** The list sorted by distance from the device's last location, nearest first; as it is when that is not known. */
+export function sortedByDistance(list: SavedLocation[]): SavedLocation[] {
+	const here = getCachedLocation();
+	if (!here) return list;
+	return [...list].sort((a, b) => calculateDistance(here.lat, here.lon, a.latitude, a.longitude) - calculateDistance(here.lat, here.lon, b.latitude, b.longitude));
 }
 
 const SAVED_LOCATIONS_KEY = 'saved_locations';
@@ -124,7 +133,7 @@ export function addSavedLocation(result: { name: string; latitude: number; longi
 	const subtext = [result.admin1, result.country].filter(Boolean).join(', ') || undefined;
 	const current = get(savedLocations);
 	if (!current.some((l) => l.id === id)) {
-		const updated = [...current, { id, name: result.name, subtext, latitude: result.latitude, longitude: result.longitude }];
+		const updated = sortedByDistance([...current, { id, name: result.name, subtext, latitude: result.latitude, longitude: result.longitude }]);
 		savedLocations.set(updated);
 		persistSavedLocations(updated);
 	}
@@ -146,7 +155,7 @@ export function favoriteCurrentLocation() {
 	const id = `${override.lat},${override.lon}`;
 	const current = get(savedLocations);
 	if (!current.some((l) => l.id === id)) {
-		const updated = [...current, { id, name: override.name, subtext: override.subtext, latitude: override.lat, longitude: override.lon }];
+		const updated = sortedByDistance([...current, { id, name: override.name, subtext: override.subtext, latitude: override.lat, longitude: override.lon }]);
 		savedLocations.set(updated);
 		persistSavedLocations(updated);
 	}

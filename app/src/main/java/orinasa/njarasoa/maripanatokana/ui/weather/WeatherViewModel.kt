@@ -26,6 +26,7 @@ import orinasa.njarasoa.maripanatokana.data.repository.WeatherCache
 import orinasa.njarasoa.maripanatokana.data.source.toFetchError
 import orinasa.njarasoa.maripanatokana.domain.model.FetchError
 import orinasa.njarasoa.maripanatokana.domain.model.SavedLocation
+import orinasa.njarasoa.maripanatokana.domain.model.sortedByDistanceFrom
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.data.settings.AppSettingsRepository
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherSource
@@ -327,6 +328,12 @@ class WeatherViewModel @Inject constructor(
         prefs.edit { putString("saved_locations", Json.encodeToString(savedLocationListSerializer, list)) }
     }
 
+    /** The list sorted by distance from the device's last location, nearest first; as it is when that is not known. */
+    private fun sortedByDistance(list: List<SavedLocation>): List<SavedLocation> {
+        if (!privatePrefs.contains("lat") || !privatePrefs.contains("lon")) return list
+        return list.sortedByDistanceFrom(privatePrefs.getFloat("lat", 0f).toDouble(), privatePrefs.getFloat("lon", 0f).toDouble())
+    }
+
     fun onManageLocationsClicked() {
         _showSavedLocationsDialog.value = true
     }
@@ -343,7 +350,7 @@ class WeatherViewModel @Inject constructor(
         val subtext = listOfNotNull(result.admin1, result.country).joinToString(", ").ifBlank { null }
         val current = _savedLocations.value
         val updated = if (current.any { it.id == id }) current else {
-            current + SavedLocation(id = id, name = result.name, subtext = subtext, latitude = result.latitude, longitude = result.longitude)
+            sortedByDistance(current + SavedLocation(id = id, name = result.name, subtext = subtext, latitude = result.latitude, longitude = result.longitude))
         }
         _savedLocations.value = updated
         persistSavedLocations(updated)
@@ -370,7 +377,7 @@ class WeatherViewModel @Inject constructor(
         val current = _savedLocations.value
         val shownName = current.find { it.id == id }?.displayName ?: name
         if (current.none { it.id == id }) {
-            val updated = current + SavedLocation(id = id, name = name, subtext = subtext, latitude = lat, longitude = lon)
+            val updated = sortedByDistance(current + SavedLocation(id = id, name = name, subtext = subtext, latitude = lat, longitude = lon))
             _savedLocations.value = updated
             persistSavedLocations(updated)
         }
