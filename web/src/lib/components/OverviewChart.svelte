@@ -1,6 +1,7 @@
 <!-- SPDX-FileCopyrightText: Orinasa Njarasoa -->
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
+	import { runsOf, splitDual } from '#lib/utils/dualLabel.js';
 	import { monotonePath } from '#lib/utils/monotonePath.js';
 	import TierLegend from './TierLegend.svelte';
 
@@ -133,37 +134,38 @@
 			<text x={svgWidth / 2} y={height / 2 + 3} text-anchor="middle" font-size="10" font-weight="bold" fill={color}>{emptyLabel}</text>
 		{/if}
 		{#if highPoint && max > 0 && highLabel}
-			<text x={labelX(highPoint.x)} y={Math.max(9, highPoint.y - 3)} text-anchor={anchor(highPoint.x)} font-size="9" font-weight="bold" fill={color}>{highLabel}</text>
+			<text x={labelX(highPoint.x)} y={Math.max(9, highPoint.y - 3)} text-anchor={anchor(highPoint.x)} font-size="9" font-weight="bold" fill={color}>{splitDual(highLabel)[0]}{#if splitDual(highLabel)[1]}<tspan font-size="0.8em" font-weight="500" fill-opacity="0.7">{" " + splitDual(highLabel)[1]}</tspan>{/if}</text>
 		{/if}
 	{:else}
 		{#if second && second2}
 			<!-- The second line first, so the main line stays on top; its labels come after the main line -->
-			<path d={monotonePath(second2.pts)} fill="none" stroke={second.color} stroke-width="2" />
+			<path d={runsOf(second2.pts).filter((r) => r.length > 1).map((r) => monotonePath(r)).join(' ')} fill="none" stroke={second.color} stroke-width="2" />
 			{#each second2.pts as p}
 				<circle cx={p.x} cy={p.y} r="2.5" fill={second.color} />
 			{/each}
 		{/if}
-		<path d={monotonePath(points)} fill="none" stroke={color} stroke-opacity={pointColors ? 0.5 : 1} stroke-width="2" />
+		<!-- A missing value leaves a gap: each run of points with no missing value is its own curve -->
+		<path d={runsOf(points).filter((r) => r.length > 1).map((r) => monotonePath(r)).join(' ')} fill="none" stroke={color} stroke-opacity={pointColors ? 0.5 : 1} stroke-width="2" />
 		{#each points as p}
 			<circle cx={p.x} cy={p.y} r="3" fill={pointColors?.[p.i] ?? color} />
 		{/each}
 		{#if second && second2}
 			{#if second2.high && second.highLabel}
-				<text x={second2.high.x} y={second2.high.y} text-anchor={second2.high.anchor} font-size="9" font-weight="bold" fill={second.color}>{second.highLabel}</text>
+				<text x={second2.high.x} y={second2.high.y} text-anchor={second2.high.anchor} font-size="9" font-weight="bold" fill={second.color}>{splitDual(second.highLabel)[0]}{#if splitDual(second.highLabel)[1]}<tspan font-size="0.8em" font-weight="500" fill-opacity="0.7">{" " + splitDual(second.highLabel)[1]}</tspan>{/if}</text>
 			{/if}
 			{#if second2.low && second.lowLabel}
-				<text x={second2.low.x} y={second2.low.y} text-anchor={second2.low.anchor} font-size="9" font-weight="bold" fill={second.color}>{second.lowLabel}</text>
+				<text x={second2.low.x} y={second2.low.y} text-anchor={second2.low.anchor} font-size="9" font-weight="bold" fill={second.color}>{splitDual(second.lowLabel)[0]}{#if splitDual(second.lowLabel)[1]}<tspan font-size="0.8em" font-weight="500" fill-opacity="0.7">{" " + splitDual(second.lowLabel)[1]}</tspan>{/if}</text>
 			{/if}
 		{/if}
 		{#if highPoint && highLabel}
-			<text x={labelX(highPoint.x)} y={highPoint.y - 5} text-anchor={anchor(highPoint.x)} font-size="9" font-weight="bold" fill={pointColors?.[highPoint.i] ?? color}>{highLabel}</text>
+			<text x={labelX(highPoint.x)} y={highPoint.y - 5} text-anchor={anchor(highPoint.x)} font-size="9" font-weight="bold" fill={pointColors?.[highPoint.i] ?? color}>{splitDual(highLabel)[0]}{#if splitDual(highLabel)[1]}<tspan font-size="0.8em" font-weight="500" fill-opacity="0.7">{" " + splitDual(highLabel)[1]}</tspan>{/if}</text>
 		{/if}
 		{#if zeroBased}
 			<line x1="0" y1={height - 0.5} x2={svgWidth} y2={height - 0.5} stroke="white" stroke-width="1" stroke-opacity="0.2" />
 		{/if}
 		{#if lowPoint && lowLabel && max > lowest}
 			<!-- Below the point, or above it when the point sits on the zero line -->
-			<text x={labelX(lowPoint.x)} y={zeroBased ? lowPoint.y - 5 : lowPoint.y + 11} text-anchor={anchor(lowPoint.x)} font-size="9" font-weight="bold" fill={pointColors?.[lowPoint.i] ?? color}>{lowLabel}</text>
+			<text x={labelX(lowPoint.x)} y={zeroBased ? lowPoint.y - 5 : lowPoint.y + 11} text-anchor={anchor(lowPoint.x)} font-size="9" font-weight="bold" fill={pointColors?.[lowPoint.i] ?? color}>{splitDual(lowLabel)[0]}{#if splitDual(lowLabel)[1]}<tspan font-size="0.8em" font-weight="500" fill-opacity="0.7">{" " + splitDual(lowLabel)[1]}</tspan>{/if}</text>
 		{/if}
 	{/if}
 

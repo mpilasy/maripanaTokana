@@ -99,6 +99,8 @@
 	"detail_pressure": "Pressure",
 	"detail_humidity": "Humidity",
 	"detail_dewpoint": "Dew Point",
+	"detail_heat_index": "Heat Index",
+	"detail_wind_chill": "Wind Chill",
 	"detail_uv_index": "UV Index",
 	"detail_visibility": "Visibility",
 	"detail_sunrise": "Sunrise",

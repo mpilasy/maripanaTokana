@@ -245,7 +245,7 @@ fun NowcastCard(
 
                 // A dot on the peak, its amount in the top corner away from it, clear of the line
                 drawCircle(chartLineColor, 3.dp.toPx(), maxPoint)
-                val maxTextLayout = textMeasurer.measure(yLabelText, maxLabelStyle)
+                val maxTextLayout = textMeasurer.measure(dualLabel(yLabelText, maxLabelStyle.color), maxLabelStyle)
                 val maxTextX = if (maxPoint.x > width / 2) 0f else width - maxTextLayout.size.width
                 drawText(maxTextLayout, topLeft = Offset(maxTextX, 0f))
 

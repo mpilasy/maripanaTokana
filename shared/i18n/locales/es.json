@@ -97,6 +97,8 @@
 	"detail_pressure": "Presion",
 	"detail_humidity": "Humedad",
 	"detail_dewpoint": "Punto de rocío",
+	"detail_heat_index": "Índice de calor",
+	"detail_wind_chill": "Enfriamiento por viento",
 	"detail_uv_index": "Indice UV",
 	"detail_visibility": "Visibilidad",
 	"detail_sunrise": "Amanecer",

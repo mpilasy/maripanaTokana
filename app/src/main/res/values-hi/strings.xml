@@ -74,6 +74,8 @@
     <string name="detail_pressure">दबाव</string>
     <string name="detail_humidity">आर्द्रता</string>
     <string name="detail_dewpoint">ओस अंक</string>
+    <string name="detail_heat_index">ताप सूचकांक</string>
+    <string name="detail_wind_chill">पवन शीतलन</string>
     <string name="detail_uv_index">यूवी सूचकांक</string>
     <string name="detail_visibility">दृश्यता</string>
     <string name="detail_sunrise">सूर्योदय</string>

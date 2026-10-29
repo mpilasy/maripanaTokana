@@ -18,6 +18,9 @@
 	import ForecastTabs from './ForecastTabs.svelte';
 	import OverviewChart from './OverviewChart.svelte';
 	import ChartScrub from './ChartScrub.svelte';
+	import FeltValue from './FeltValue.svelte';
+	import { heatIndex, windChill } from '#lib/domain/thermalIndices.js';
+	import { HEAT_COLOR, CHILL_COLOR } from '#lib/utils/feltColors.js';
 	import { shareItemsPerLine } from '#lib/utils/shareLayout.js';
 	import { UV_TIER_COLORS, uvColorFor, type UvTier } from '#lib/domain/uv.js';
 
@@ -48,8 +51,14 @@
 
 	let isRemote = $derived(isRemoteTimezone(utcOffsetSeconds));
 
+	// Each hour's heat index and wind chill; each tab shows only when one hour has it
+	let heatByItem = $derived(forecasts.map((f) => heatIndex(f.temperature, f.humidity)));
+	let chillByItem = $derived(forecasts.map((f) => windChill(f.temperature, f.windSpeed)));
+
 	let tabs = $derived([
 		{ id: 'Temperature', label: $_('tab_conditions') },
+		...(heatByItem.some((t) => t) ? [{ id: 'HeatIndex', label: $_('detail_heat_index') }] : []),
+		...(chillByItem.some((t) => t) ? [{ id: 'WindChill', label: $_('detail_wind_chill') }] : []),
 		{ id: 'Precipitation', label: $_('detail_precipitation') },
 		{ id: 'Wind', label: $_('detail_wind') },
 		{ id: 'Pressure', label: $_('detail_pressure') },
@@ -104,6 +113,11 @@
 		if (displayMode === 'Pressure') {
 			const values = forecasts.map((f) => (metricPrimary ? f.pressure.hPa : f.pressure.inHg));
 			return { values, color: '#9B8FFF', highLabel: dual(forecasts[indexOfMax(values)]?.pressure.displayDual(metricPrimary)), lowLabel: dual(forecasts[indexOfMin(values)]?.pressure.displayDual(metricPrimary)) };
+		}
+		if (displayMode === 'HeatIndex' || displayMode === 'WindChill') {
+			const felt = displayMode === 'HeatIndex' ? heatByItem : chillByItem;
+			const values = felt.map((t) => (t ? (metricPrimary ? t.celsius : t.fahrenheit) : null));
+			return { values, color: displayMode === 'HeatIndex' ? HEAT_COLOR : CHILL_COLOR, highLabel: dual(felt[indexOfMax(values)]?.displayDual(metricPrimary)), lowLabel: dual(felt[indexOfMin(values)]?.displayDual(metricPrimary)) };
 		}
 		if (displayMode === 'Humidity') {
 			const values = forecasts.map((f) => f.humidity ?? null);
@@ -215,6 +229,8 @@
 					/>
 				{:else if displayMode === 'Humidity'}
 					<HumidityDewPoint humidity={item.humidity} dewPoint={item.dewPoint} {metricPrimary} {loc} {onToggleUnits} />
+				{:else if displayMode === 'HeatIndex' || displayMode === 'WindChill'}
+					<FeltValue value={(displayMode === 'HeatIndex' ? heatByItem : chillByItem)[i]} {metricPrimary} {loc} {onToggleUnits} />
 				{:else if displayMode === 'Uv'}
 					{#if item.uvIndex != null && Number.isFinite(item.uvIndex)}
 						<span class="uv-value">{loc(item.uvIndex.toFixed(1))}</span>

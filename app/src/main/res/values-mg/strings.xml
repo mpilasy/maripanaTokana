@@ -76,6 +76,8 @@
     <string name="detail_pressure">Tsindry Atmosferika</string>
     <string name="detail_humidity">Hamandoana</string>
     <string name="detail_dewpoint">Maripàna manando</string>
+    <string name="detail_heat_index">Hafanana tsapa</string>
+    <string name="detail_wind_chill">Hatsiaka tsapa</string>
     <string name="detail_uv_index">Tahan\'ny tara-masoandro</string>
     <string name="detail_visibility">Tazana</string>
     <string name="detail_sunrise">Miposaka</string>
@@ -89,10 +91,10 @@
     <string name="detail_sun">Masoandro</string>
     <string name="tab_conditions">Toetrandro</string>
     <string name="outlook_rain_from">Orana manomboka amin\'ny %1$s</string>
-    <string name="outlook_rain_until">Orana hatramin\'ny %1$s eo ho eo</string>
+    <string name="outlook_rain_until">Orana hatramin\'ny %1$s eo ho eo</string>
     <string name="outlook_rain_all_day">Orana tontolon\'ny andro</string>
     <string name="outlook_snow_from">Ranomandry manomboka amin\'ny %1$s</string>
-    <string name="outlook_snow_until">Ranomandry hatramin\'ny %1$s eo ho eo</string>
+    <string name="outlook_snow_until">Ranomandry hatramin\'ny %1$s eo ho eo</string>
     <string name="outlook_snow_all_day">Ranomandry tontolon\'ny andro</string>
     <string name="air_quality_us_aqi">AQI US</string>
     <string name="air_quality_eu_aqi">AQI EU</string>

@@ -1,11 +1,24 @@
 <!-- SPDX-FileCopyrightText: Orinasa Njarasoa -->
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
-	/** A small label with its value under it, at the start or the end of a card's bottom row (like sunrise and sunset). */
-	let { label, value, end = false }: { label: string; value: string; end?: boolean } = $props();
+	import FeltIcon from './FeltIcon.svelte';
+	/**
+	 * A small label with its value under it (and the other unit under that, smaller), at the start or
+	 * the end of a card's bottom row (like sunrise and sunset), or in its middle.
+	 */
+	let { label, value, secondary, end = false, centered = false, icon }: {
+		label: string; value: string; secondary?: string; end?: boolean; centered?: boolean;
+		/** An icon beside the value, as tall as the value and the other unit: a thermometer with a plus for the heat index, with a minus for the wind chill. */
+		icon?: { kind: 'heat' | 'cold'; color: string } | null;
+	} = $props();
 </script>
 
-<span class="labeled" class:end><span class="label">{label}</span>{value}</span>
+<span class="labeled" class:end class:centered
+	><span class="label">{label}</span
+	><!-- The icon beside the value and the other unit, as tall as both --><span class="values-row"
+		>{#if icon}<FeltIcon kind={icon.kind} color={icon.color} />{/if}<span class="values">{value}{#if secondary}<span class="secondary">{secondary}</span>{/if}</span></span
+	></span
+>
 
 <style>
 	.labeled {
@@ -27,10 +40,40 @@
 		align-items: flex-end;
 	}
 
+	.labeled.centered {
+		text-align: center;
+		align-items: center;
+	}
+
 	.label {
 		font-family: var(--font-body, inherit);
 		font-size: 11px;
 		font-weight: 400;
 		color: rgba(255, 255, 255, 0.5);
+	}
+
+	.values-row {
+		display: flex;
+	}
+
+	.values {
+		display: flex;
+		flex-direction: column;
+		align-items: inherit;
+	}
+
+	.labeled.end .values {
+		align-items: flex-end;
+	}
+
+	.labeled.centered .values {
+		align-items: center;
+	}
+
+	/* The other unit, under the value and smaller */
+	.secondary {
+		font-size: 12px;
+		font-weight: 400;
+		color: rgba(255, 255, 255, 0.6);
 	}
 </style>

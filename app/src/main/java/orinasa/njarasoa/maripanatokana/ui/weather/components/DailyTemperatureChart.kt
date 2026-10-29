@@ -193,7 +193,7 @@ fun DailyTemperatureChart(
 
             // The warmest high above its point, the coldest low below its point
             fun drawLabel(text: String, color: Color, point: Offset, above: Boolean) {
-                val layout = textMeasurer.measure(localizeDigits(text), TextStyle(color = color, fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont))
+                val layout = textMeasurer.measure(dualLabel(localizeDigits(text), color), TextStyle(color = color, fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont))
                 val x = (point.x - layout.size.width / 2f).coerceIn(4.dp.toPx(), width - layout.size.width - 4.dp.toPx())
                 val y = if (above) (point.y - layout.size.height - 2.dp.toPx()).coerceAtLeast(0f)
                     else (point.y + 2.dp.toPx()).coerceAtMost(height - layout.size.height)

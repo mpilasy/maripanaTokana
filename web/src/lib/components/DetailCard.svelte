@@ -99,8 +99,12 @@
 		{#if trailingSnippet}
 			{@render trailingSnippet()}
 		{/if}
+		<!-- Under a dial, the bottom row sits in the middle of the space that is left -->
+		{#if centerDialSnippet && footerSnippet}
+			<div class="footer-middle">{@render footerSnippet()}</div>
+		{/if}
 		</div>
-		{#if footerSnippet}
+		{#if footerSnippet && !centerDialSnippet}
 			<div class="footer">{@render footerSnippet()}</div>
 		{/if}
 	</div>
@@ -206,6 +210,15 @@
 
 	.footer {
 		margin-top: 2px;
+	}
+
+	.footer-middle {
+		flex: 1;
+		align-self: stretch;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		margin-top: 6px;
 	}
 
 	.center-dial {

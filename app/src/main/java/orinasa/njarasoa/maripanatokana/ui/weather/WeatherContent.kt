@@ -4,6 +4,7 @@
 package orinasa.njarasoa.maripanatokana.ui.weather
 
 import android.content.Intent
+import orinasa.njarasoa.maripanatokana.domain.model.ThermalIndices
 import orinasa.njarasoa.maripanatokana.domain.model.FetchError
 import android.graphics.Bitmap
 import androidx.core.graphics.createBitmap
@@ -168,6 +169,8 @@ import orinasa.njarasoa.maripanatokana.ui.theme.DarkNavyColorInt
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFont
 import orinasa.njarasoa.maripanatokana.ui.theme.SkyBlue
 import orinasa.njarasoa.maripanatokana.ui.theme.DewAmber
+import orinasa.njarasoa.maripanatokana.ui.theme.HeatOrange
+import orinasa.njarasoa.maripanatokana.ui.theme.ChillBlue
 import orinasa.njarasoa.maripanatokana.ui.theme.Hairline
 import orinasa.njarasoa.maripanatokana.ui.theme.HeroGradientBottom
 import orinasa.njarasoa.maripanatokana.ui.theme.HeroGradientTop
@@ -220,6 +223,8 @@ internal enum class ForecastDisplayMode {
     Humidity,
     AirQuality,
     Uv,
+    HeatIndex,
+    WindChill,
 }
 
 internal val LocalScale = staticCompositionLocalOf { 1f }
@@ -673,6 +678,10 @@ internal fun WeatherContent(
                             val outlook = glanceOutlookText(data, localizeDigits)
                             // Air quality only when it is not good, with both indices as on the air quality card
                             val aqi = data.airQuality?.takeIf { it.primaryTier != AqiTier.GOOD }
+                            // The heat index or the wind chill, only when one applies
+                            val heroHeat = ThermalIndices.heatIndex(data.temperature, data.humidity)
+                            val heroFelt = heroHeat ?: ThermalIndices.windChill(data.temperature, data.windSpeed)
+                            val heroFeltLabel = stringResource(if (heroHeat != null) R.string.detail_heat_index else R.string.detail_wind_chill)
                             HeroTemperatureLayout(
                                 temperature = {
                                     Box(modifier = Modifier.padding(top = 8.sd(scale))) {
@@ -686,12 +695,39 @@ internal fun WeatherContent(
                                     }
                                 },
                                 range = {
-                                    Box(modifier = Modifier.padding(top = 8.sd(scale))) {
+                                    Column(modifier = Modifier.padding(top = 8.sd(scale)), verticalArrangement = Arrangement.spacedBy(8.sd(scale))) {
                                         DualUnitText(
                                             primary = localizeDigits("\u2193$minP \u2191$maxP"),
                                             secondary = localizeDigits("\u2193$minS \u2191$maxS"),
                                             onClick = onToggleUnits,
                                         )
+                                        // How the temperature feels, next to it: the heat index or the wind chill when one applies, else feels like
+                                        val (feltP, feltS) = (heroFelt ?: data.feelsLike).displayDual(metricPrimary)
+                                        Column {
+                                            val feltColor = when {
+                                                heroHeat != null -> HeatOrange
+                                                heroFelt != null -> ChillBlue
+                                                else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                            }
+                                            Text(
+                                                text = if (heroFelt != null) heroFeltLabel else stringResource(R.string.feels_like),
+                                                fontSize = 12f.s(scale),
+                                                fontFamily = bodyFont,
+                                                color = feltColor,
+                                            )
+                                            // A thermometer with a plus for the heat index, with a minus for the wind chill, as tall as the two numbers
+                                            Row(modifier = Modifier.height(IntrinsicSize.Min), verticalAlignment = Alignment.CenterVertically) {
+                                                if (heroFelt != null) {
+                                                    Icon(
+                                                        painter = painterResource(if (heroHeat != null) R.drawable.ic_heat else R.drawable.ic_cold),
+                                                        contentDescription = null,
+                                                        tint = feltColor,
+                                                        modifier = Modifier.fillMaxHeight().aspectRatio(1f).padding(end = 4.dp),
+                                                    )
+                                                }
+                                                DualUnitText(primary = localizeDigits(feltP), secondary = localizeDigits(feltS), primarySize = 15f.s(scale), onClick = onToggleUnits)
+                                            }
+                                        }
                                     }
                                 },
                                 side = if (outlook == null && aqi == null) null else {
@@ -711,12 +747,13 @@ internal fun WeatherContent(
                                                 val usLabel = stringResource(R.string.air_quality_us_aqi)
                                                 val euLabel = stringResource(R.string.air_quality_eu_aqi)
                                                 val european = it.primaryStandard == AqiStandard.EUROPEAN
-                                                Text(
-                                                    text = localizeDigits("$aqiP ${if (european) euLabel else usLabel} · $aqiS ${if (european) usLabel else euLabel}"),
-                                                    fontSize = 13f.s(scale),
-                                                    fontFamily = bodyFont,
-                                                    textAlign = TextAlign.End,
-                                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                                                DualUnitText(
+                                                    primary = localizeDigits(aqiP.toString()),
+                                                    secondary = localizeDigits(aqiS.toString()),
+                                                    primaryUnit = if (european) euLabel else usLabel,
+                                                    secondaryUnit = if (european) usLabel else euLabel,
+                                                    primarySize = 14f.s(scale),
+                                                    horizontalAlignment = Alignment.End,
                                                 )
                                                 AqiTierBadge(
                                                     tier = it.primaryTier,
@@ -1310,10 +1347,16 @@ internal fun HourlyForecastRow(
         (itemWidth * forecasts.size + itemSpacing * (forecasts.size - 1)).toPx()
     }
 
+    // Each hour's heat index and wind chill; each tab shows only when one hour has it
+    val heatByItem = remember(forecasts) { forecasts.map { ThermalIndices.heatIndex(it.temperature, it.humidity) } }
+    val chillByItem = remember(forecasts) { forecasts.map { ThermalIndices.windChill(it.temperature, it.windSpeed) } }
+
     Column(modifier = Modifier.fillMaxWidth()) {
         ForecastTabs(
             tabs = listOfNotNull(
                 ForecastDisplayMode.Temperature to stringResource(R.string.tab_conditions),
+                if (heatByItem.any { it != null }) ForecastDisplayMode.HeatIndex to stringResource(R.string.detail_heat_index) else null,
+                if (chillByItem.any { it != null }) ForecastDisplayMode.WindChill to stringResource(R.string.detail_wind_chill) else null,
                 ForecastDisplayMode.Precipitation to stringResource(R.string.detail_precipitation),
                 ForecastDisplayMode.Wind to stringResource(R.string.detail_wind),
                 ForecastDisplayMode.Pressure to stringResource(R.string.detail_pressure),
@@ -1410,6 +1453,8 @@ internal fun HourlyForecastRow(
                                 )
                             }
                             ForecastDisplayMode.Humidity -> HumidityDewPoint(item.humidity, item.dewPoint, metricPrimary, localizeDigits, onToggleUnits)
+                            ForecastDisplayMode.HeatIndex -> FeltValue(heatByItem[index], metricPrimary, localizeDigits, onToggleUnits)
+                            ForecastDisplayMode.WindChill -> FeltValue(chillByItem[index], metricPrimary, localizeDigits, onToggleUnits)
                             ForecastDisplayMode.Uv -> {
                                 val uv = item.uvIndex
                                 if (uv != null) {
@@ -1547,6 +1592,14 @@ internal fun HourlyForecastRow(
                             highLabel = hi?.let(localizeDigits), lowLabel = lo?.let(localizeDigits),
                             legend = AqiTier.entries.map { colorsFor(it).background to aqiTierLabels[it.ordinal] })
                     }
+                    ForecastDisplayMode.HeatIndex, ForecastDisplayMode.WindChill -> {
+                        val felt = if (displayMode == ForecastDisplayMode.HeatIndex) heatByItem else chillByItem
+                        val values = felt.map { t -> t?.let { if (metricPrimary) it.celsius else it.fahrenheit } }
+                        val (hi, lo) = extremes(values) { felt[it]?.displayDual(metricPrimary) }
+                        OverviewChart(values, itemWidth, itemSpacing, scrollState.value.toFloat(), totalScrollWidthPx, chartModifier,
+                            height = 48.sd(scale), color = if (displayMode == ForecastDisplayMode.HeatIndex) HeatOrange else ChillBlue,
+                            highLabel = dual(hi), lowLabel = dual(lo))
+                    }
                     else -> {}
                 }
             }
@@ -1602,16 +1655,21 @@ internal fun DailyForecastList(
     fun barFraction(celsius: Double): Float =
         if (weekHigh > weekLow && celsius.isFinite()) ((celsius - weekLow) / (weekHigh - weekLow)).toFloat() else 0.5f
 
+    // Each day's heat index and wind chill; each tab shows only when one day has it
+    val heatByItem = remember(forecasts) { forecasts.map { ThermalIndices.heatIndex(it) } }
+    val chillByItem = remember(forecasts) { forecasts.map { ThermalIndices.windChill(it) } }
+
     Column(modifier = Modifier.fillMaxWidth()) {
         ForecastTabs(
-            tabs = listOf(
+            tabs = listOfNotNull(
                 ForecastDisplayMode.Temperature to stringResource(R.string.tab_conditions),
+                if (heatByItem.any { it != null }) ForecastDisplayMode.HeatIndex to stringResource(R.string.detail_heat_index) else null,
+                if (chillByItem.any { it != null }) ForecastDisplayMode.WindChill to stringResource(R.string.detail_wind_chill) else null,
                 ForecastDisplayMode.Precipitation to stringResource(R.string.detail_precipitation),
                 ForecastDisplayMode.Wind to stringResource(R.string.detail_wind),
                 ForecastDisplayMode.Pressure to stringResource(R.string.detail_pressure),
                 ForecastDisplayMode.Humidity to stringResource(R.string.detail_humidity),
                 ForecastDisplayMode.Uv to stringResource(R.string.detail_uv_index),
-            ) + listOfNotNull(
                 if (hourlyAirQuality.isNotEmpty()) ForecastDisplayMode.AirQuality to stringResource(R.string.detail_air_quality) else null,
             ),
             selected = displayMode,
@@ -1711,6 +1769,8 @@ internal fun DailyForecastList(
                                 }
                             }
                             ForecastDisplayMode.Humidity -> HumidityDewPoint(item.humidity, item.dewPoint, metricPrimary, localizeDigits, onToggleUnits)
+                            ForecastDisplayMode.HeatIndex -> FeltValue(heatByItem[forecasts.indexOf(item)], metricPrimary, localizeDigits, onToggleUnits)
+                            ForecastDisplayMode.WindChill -> FeltValue(chillByItem[forecasts.indexOf(item)], metricPrimary, localizeDigits, onToggleUnits)
                             ForecastDisplayMode.Uv -> {
                                 Text(
                                     text = localizeDigits("%.1f".format(Locale.US, item.uvIndexMax)),
@@ -1848,11 +1908,36 @@ internal fun DailyForecastList(
                         highLabel = hi, lowLabel = lo,
                         legend = listOf(1.0, 4.0, 7.0, 9.0, 11.0).mapIndexed { k, sample -> colorsFor(sample).background to uvLabels[k] })
                 }
+                ForecastDisplayMode.HeatIndex, ForecastDisplayMode.WindChill -> {
+                    val felt = if (displayMode == ForecastDisplayMode.HeatIndex) heatByItem else chillByItem
+                    val values = felt.map { t -> t?.let { if (metricPrimary) it.celsius else it.fahrenheit } }
+                    val (hi, lo) = extremes(values) { felt[it]?.displayDual(metricPrimary) }
+                    OverviewChart(values, itemWidth, itemSpacing, scrollState.value.toFloat(), totalScrollWidthPx, chartModifier,
+                        height = 48.sd(scale), color = if (displayMode == ForecastDisplayMode.HeatIndex) HeatOrange else ChillBlue,
+                        highLabel = dual(hi), lowLabel = dual(lo))
+                }
                 else -> {}
             }
         }
         }
     }
+}
+
+/** A forecast card's heat index or wind chill in both units; "--" for an item where it does not apply. */
+@Composable
+private fun FeltValue(t: Temperature?, metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
+    if (t == null) {
+        Text(text = "--", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+        return
+    }
+    val (p, s) = t.displayDual(metricPrimary)
+    DualUnitText(
+        primary = localizeDigits(p),
+        secondary = localizeDigits(s),
+        primarySize = 14f.s(LocalScale.current),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        onClick = onToggleUnits,
+    )
 }
 
 /** A forecast card's humidity, with the dew point in both units under it. */
@@ -1964,22 +2049,38 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
     Column(verticalArrangement = Arrangement.spacedBy(gap)) {
         if (part == DetailsPart.NOW) {
             // Every tile: the title, one graphic in the middle with the values in it, labels in the bottom row
+            val heatIndex = ThermalIndices.heatIndex(data.temperature, data.humidity)
+            val windChill = ThermalIndices.windChill(data.temperature, data.windSpeed)
+
             // Temperature / Precipitation
             TileRow {
                 val (tempP, tempS) = data.temperature.displayDual(metricPrimary)
-                val (flP, flS) = data.feelsLike.displayDual(metricPrimary)
-                val low = data.tempMin.celsius
-                val high = data.tempMax.celsius
+                // How it feels: the heat index or the wind chill when one applies, else feels like
+                val felt = heatIndex ?: windChill
+                val (flP, flS) = (felt ?: data.feelsLike).displayDual(metricPrimary)
+                val feltLabel = stringResource(
+                    when {
+                        heatIndex != null -> R.string.detail_heat_index
+                        windChill != null -> R.string.detail_wind_chill
+                        else -> R.string.feels_like
+                    }
+                )
                 DetailCard(localizeDigits(tempP), tile.weight(1f),
                     title = stringResource(R.string.detail_temperature),
                     onToggleUnits = onToggleUnits,
                     centerDial = { dialModifier ->
                         // Where now is between today's low and high
+                        val low = data.tempMin.celsius
+                        val high = data.tempMax.celsius
                         Gauge(if (high > low) ((data.temperature.celsius - low) / (high - low)).toFloat() else 0.5f, Color(0xFFFFB74D), dialModifier, size = null) {
                             DialValue(localizeDigits(tempP), secondary = localizeDigits(tempS))
                         }
                     },
-                    footer = { LabeledValue(stringResource(R.string.feels_like), "${localizeDigits(flP)} · ${localizeDigits(flS)}") })
+                    footer = {
+                        LabeledValue(feltLabel, localizeDigits(flP), secondary = localizeDigits(flS), centered = true,
+                            labelIcon = if (heatIndex != null) R.drawable.ic_heat else if (windChill != null) R.drawable.ic_cold else null,
+                            labelIconTint = if (heatIndex != null) HeatOrange else ChillBlue)
+                    })
                 val amount = data.snow ?: data.rain
                 val nowSec = System.currentTimeMillis() / 1000
                 val iconCode = when {
@@ -2068,8 +2169,9 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
                             DialValue(localizeDigits("%d%%".format(Locale.US, h)))
                         }
                     } },
-                    footer = { LabeledValue(stringResource(R.string.detail_dewpoint), "${localizeDigits(dewP)} · ${localizeDigits(dewS)}") })
+                    footer = { LabeledValue(stringResource(R.string.detail_dewpoint), localizeDigits(dewP), secondary = localizeDigits(dewS), centered = true) })
             }
+
         } else {
             @Composable
             fun AirQualityTile(aqi: AirQualityIndex, modifier: Modifier) {
@@ -2315,37 +2417,77 @@ internal fun DetailCard(
                     Spacer(modifier = Modifier.height(8.dp))
                     it()
                 }
+                // Under a dial, the bottom row sits in the middle of the space that is left
+                if (centerDial != null) footer?.let {
+                    Box(Modifier.weight(1f).fillMaxWidth().padding(top = 6.dp), contentAlignment = Alignment.Center) { it() }
+                }
                 trailingContent?.invoke()
             }
-            footer?.let {
+            if (centerDial == null) footer?.let {
                 Spacer(modifier = Modifier.height(6.dp))
-                Box(Modifier.fillMaxWidth()) { it() }
+                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { it() }
             }
         }
         }
     }
 }
 
-/** A small label with its value under it, at the start or the end of a card's bottom row (like sunrise and sunset). */
+/**
+ * A small label with its value under it (and the other unit under that), at the start or the end of a
+ * card's bottom row (like sunrise and sunset), or in its middle.
+ */
 @Composable
-private fun LabeledValue(label: String, value: String, end: Boolean = false) {
+private fun LabeledValue(
+    label: String,
+    value: String,
+    end: Boolean = false,
+    secondary: String? = null,
+    centered: Boolean = false,
+    // An icon beside the value, as tall as the value and the other unit, in its colour
+    labelIcon: Int? = null,
+    labelIconTint: Color = Color.Unspecified,
+) {
     val scale = LocalScale.current
-    Column(horizontalAlignment = if (end) Alignment.End else Alignment.Start) {
+    val textAlign = when {
+        centered -> TextAlign.Center
+        end -> TextAlign.End
+        else -> TextAlign.Start
+    }
+    Column(horizontalAlignment = if (centered) Alignment.CenterHorizontally else if (end) Alignment.End else Alignment.Start) {
         Text(
             text = label,
             fontSize = 11f.s(scale),
             fontFamily = LocalBodyFont.current,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
         )
-        Text(
-            text = value,
-            fontSize = 15f.s(scale),
-            fontWeight = FontWeight.Bold,
-            fontFamily = LocalDisplayFont.current,
-            color = MaterialTheme.colorScheme.onSurface,
-            textAlign = if (end) TextAlign.End else TextAlign.Start,
-            style = TextStyle(fontFeatureSettings = LocalBodyFontFeatures.current),
-        )
+        // The icon beside the value and the other unit, as tall as both
+        Row(modifier = Modifier.height(IntrinsicSize.Min), verticalAlignment = Alignment.CenterVertically) {
+            labelIcon?.let {
+                Icon(painter = painterResource(it), contentDescription = null, tint = labelIconTint, modifier = Modifier.fillMaxHeight().aspectRatio(1f).padding(end = 4.dp))
+            }
+            Column(horizontalAlignment = if (centered) Alignment.CenterHorizontally else if (end) Alignment.End else Alignment.Start) {
+                Text(
+                    text = value,
+                    fontSize = 15f.s(scale),
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = LocalDisplayFont.current,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = textAlign,
+                    style = TextStyle(fontFeatureSettings = LocalBodyFontFeatures.current),
+                )
+                // The other unit under the value, smaller
+                secondary?.let {
+                    Text(
+                        text = it,
+                        fontSize = 12f.s(scale),
+                        fontFamily = LocalDisplayFont.current,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        textAlign = textAlign,
+                        style = TextStyle(fontFeatureSettings = LocalBodyFontFeatures.current),
+                    )
+                }
+            }
+        }
     }
 }
 

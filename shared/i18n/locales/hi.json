@@ -97,6 +97,8 @@
 	"detail_pressure": "दबाव",
 	"detail_humidity": "आर्द्रता",
 	"detail_dewpoint": "ओस अंक",
+	"detail_heat_index": "ताप सूचकांक",
+	"detail_wind_chill": "पवन शीतलन",
 	"detail_uv_index": "यूवी सूचकांक",
 	"detail_visibility": "दृश्यता",
 	"detail_sunrise": "सूर्योदय",

@@ -1,6 +1,8 @@
 <!-- SPDX-FileCopyrightText: Orinasa Njarasoa -->
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
+	import { heatIndex, windChill } from '#lib/domain/thermalIndices.js';
+	import { HEAT_COLOR, CHILL_COLOR } from '#lib/utils/feltColors.js';
 	import WeatherIcon from './WeatherIcon.svelte';
 	import { _, json } from 'svelte-i18n';
 	import type { WeatherData } from '#lib/domain/weatherData.js';
@@ -64,7 +66,11 @@
 	}
 
 	let tempDual = $derived(data.temperature.displayDual(metricPrimary));
-	let feelsLikeDual = $derived(data.feelsLike.displayDual(metricPrimary));
+	// How it feels: the heat index or the wind chill when one applies, else feels like
+	let heat = $derived(heatIndex(data.temperature, data.humidity));
+	let felt = $derived(heat ?? windChill(data.temperature, data.windSpeed));
+	let feltDual = $derived((felt ?? data.feelsLike).displayDual(metricPrimary));
+	let feltLabel = $derived($_(heat ? 'detail_heat_index' : felt ? 'detail_wind_chill' : 'feels_like'));
 	let windDual = $derived(data.windSpeed.displayDual(metricPrimary));
 	let gustDual = $derived(data.windGust?.displayDual(metricPrimary));
 	let pressDual = $derived(data.pressure.displayDual(metricPrimary));
@@ -113,7 +119,7 @@
 			</Gauge>
 		{/snippet}
 		{#snippet footerSnippet()}
-			<LabeledValue label={$_('feels_like')} value={`${loc(feelsLikeDual[0])} · ${loc(feelsLikeDual[1])}`} />
+			<LabeledValue label={feltLabel} value={loc(feltDual[0])} secondary={loc(feltDual[1])} centered icon={heat ? { kind: 'heat', color: HEAT_COLOR } : felt ? { kind: 'cold', color: CHILL_COLOR } : null} />
 		{/snippet}
 	</DetailCard>
 	<DetailCard title={$_('detail_precipitation')} value={precipDual ? loc(precipDual[0]) : $_('no_precip')} onToggleUnits={precipDual ? onToggleUnits : undefined}>
@@ -183,7 +189,7 @@
 			{/if}
 		{/snippet}
 		{#snippet footerSnippet()}
-			<LabeledValue label={$_('detail_dewpoint')} value={`${loc(dewDual[0])} · ${loc(dewDual[1])}`} />
+			<LabeledValue label={$_('detail_dewpoint')} value={loc(dewDual[0])} secondary={loc(dewDual[1])} centered />
 		{/snippet}
 	</DetailCard>
 

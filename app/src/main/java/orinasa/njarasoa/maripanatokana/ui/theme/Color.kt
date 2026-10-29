@@ -10,6 +10,9 @@ val CardBlue = Color(0xFF2A1FA5)
 val SkyBlue = Color(0xFF64B5F6)
 // The dew point line, next to the SkyBlue humidity line
 val DewAmber = Color(0xFFFFB74D)
+// Heat index and wind chill
+val HeatOrange = Color(0xFFFF7043)
+val ChillBlue = Color(0xFF90CAF9)
 val DarkNavy = Color(0xFF0E0B3D)
 const val DarkNavyColorInt = 0xFF0E0B3D.toInt()
 

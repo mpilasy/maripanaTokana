@@ -97,6 +97,8 @@
 	"detail_pressure": "الضغط الجوي",
 	"detail_humidity": "الرطوبة",
 	"detail_dewpoint": "نقطة الندى",
+	"detail_heat_index": "مؤشر الحرارة",
+	"detail_wind_chill": "برودة الرياح",
 	"detail_uv_index": "مؤشر الأشعة فوق البنفسجية",
 	"detail_visibility": "الرؤية",
 	"detail_sunrise": "شروق الشمس",

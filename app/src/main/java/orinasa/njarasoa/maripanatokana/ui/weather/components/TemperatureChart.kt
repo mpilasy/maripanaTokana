@@ -202,7 +202,7 @@ fun TemperatureChart(
             val maxTempObj = forecasts[maxMiddleIdx].temperature
             val maxTempText = maxTempObj.displayDual(metricPrimary).let { (p, s) -> "$p · $s" }
             val maxLabelStyle = TextStyle(color = Color(0xFFFF7043), fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont)
-            val maxLayout = textMeasurer.measure(maxTempText, maxLabelStyle)
+            val maxLayout = textMeasurer.measure(dualLabel(maxTempText, maxLabelStyle.color), maxLabelStyle)
             val maxTextX = (maxPoint.x - maxLayout.size.width / 2f).coerceIn(4.dp.toPx(), width - maxLayout.size.width - 4.dp.toPx())
             // Above the peak, or under the line where it would cover a 00:00 or 12:00 label
             val timeLabelBoxes = (midnightIndices.map { it to "00:00" } + noonIndices.map { it to "12:00" }).map { (idx, text) ->
@@ -223,7 +223,7 @@ fun TemperatureChart(
             val minTempObj = forecasts[minMiddleIdx].temperature
             val minTempText = minTempObj.displayDual(metricPrimary).let { (p, s) -> "$p · $s" }
             val minLabelStyle = TextStyle(color = Color(0xFF64B5F6), fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont)
-            val minLayout = textMeasurer.measure(minTempText, minLabelStyle)
+            val minLayout = textMeasurer.measure(dualLabel(minTempText, minLabelStyle.color), minLabelStyle)
             val minTextX = (minPoint.x - minLayout.size.width / 2f).coerceIn(4.dp.toPx(), width - minLayout.size.width - 4.dp.toPx())
             val minTextY = (minPoint.y + 2.dp.toPx()).coerceAtMost(height - minLayout.size.height)
             if (Math.abs(maxPoint.x - minPoint.x) > 30.dp.toPx() || Math.abs(maxTextY - minTextY) > 12.dp.toPx()) {

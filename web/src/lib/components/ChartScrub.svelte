@@ -41,7 +41,7 @@
 		index = i;
 		navigator.vibrate?.(5);
 		// The item in the middle of the row
-		if (scrollEl) scrollEl.scrollLeft = i * step + itemWidth / 2 - scrollEl.clientWidth / 2;
+		scrollEl?.scrollTo({ left: i * step + itemWidth / 2 - scrollEl.clientWidth / 2, behavior: 'smooth' });
 	}
 
 	function onPointerDown(e: PointerEvent) {

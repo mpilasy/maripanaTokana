@@ -18,10 +18,10 @@
 
 {#snippet content()}
 	<div class="primary" style:font-size={primarySize}
-		><bdi dir="ltr">{primary}{#if primaryUnit}<span class="unit" style:font-size="calc({primarySize} * 0.55)"> {primaryUnit}</span>{/if}</bdi></div
+		><bdi dir="ltr">{primary}{#if primaryUnit}<span class="unit" style:font-size="calc({primarySize} * 0.55)">{" " + primaryUnit}</span>{/if}</bdi></div
 	>
 	<div class="secondary" style:font-size="calc({primarySize} * {secondaryScale})"
-		><bdi dir="ltr">{secondary}{#if secondaryUnit}<span class="unit" style:font-size="calc({primarySize} * 0.55)"> {secondaryUnit}</span>{/if}</bdi></div
+		><bdi dir="ltr">{secondary}{#if secondaryUnit}<span class="unit" style:font-size="calc({primarySize} * 0.55)">{" " + secondaryUnit}</span>{/if}</bdi></div
 	>
 {/snippet}
 

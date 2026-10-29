@@ -8,6 +8,9 @@
 	import { formatHourAtLocation, formatHourInDeviceTime, isRemoteTimezone } from '#lib/utils/date.js';
 	import DualUnitText from './DualUnitText.svelte';
 	import AqiTierBadge from './AqiTierBadge.svelte';
+	import FeltIcon from './FeltIcon.svelte';
+	import { heatIndex, windChill } from '#lib/domain/thermalIndices.js';
+	import { HEAT_COLOR, CHILL_COLOR } from '#lib/utils/feltColors.js';
 	import { _, json } from 'svelte-i18n';
 
 	interface Props {
@@ -46,14 +49,19 @@
 
 	// Air quality only when it is not good, with both indices as on the air quality card
 	let aqi = $derived(data.airQuality && data.airQuality.primaryTier !== 'good' ? data.airQuality : null);
-	let aqiText = $derived.by(() => {
-		if (!aqi) return '';
-		const [p, s] = aqi.displayDual();
+	let aqiDual = $derived(aqi?.displayDual());
+	let aqiUnits = $derived.by(() => {
 		const us = $_('air_quality_us_aqi');
 		const eu = $_('air_quality_eu_aqi');
-		const european = aqi.primaryStandard === 'EUROPEAN';
-		return `${loc(p)} ${european ? eu : us} · ${loc(s)} ${european ? us : eu}`;
+		return aqi?.primaryStandard === 'EUROPEAN' ? [eu, us] : [us, eu];
 	});
+
+	// How the temperature feels, next to it: the heat index or the wind chill when one applies, else feels like
+	let heat = $derived(heatIndex(data.temperature, data.humidity));
+	let felt = $derived(heat ?? windChill(data.temperature, data.windSpeed));
+	let feltDual = $derived((felt ?? data.feelsLike).displayDual(metricPrimary));
+	let feltLabel = $derived($_(heat ? 'detail_heat_index' : felt ? 'detail_wind_chill' : 'feels_like'));
+	let feltColor = $derived(heat ? HEAT_COLOR : felt ? CHILL_COLOR : 'rgba(255,255,255,0.6)');
 
 	function isNightAt(time: number): boolean {
 		let day = 0;
@@ -93,6 +101,15 @@
 				secondary={loc(`↓${minDual[1]} ↑${maxDual[1]}`)}
 				onClick={onToggleUnits}
 			/>
+			<div class="hero-felt">
+				<span class="hero-felt-label" style:color={feltColor}>{feltLabel}</span>
+				<!-- A thermometer with a plus for the heat index, with a minus for the wind chill, as tall as the two numbers -->
+				<div class="hero-felt-values">
+					<!-- 32 px: the height of the 15 px value and its other unit -->
+					{#if felt}<FeltIcon kind={heat ? 'heat' : 'cold'} color={feltColor} size={32} />{/if}
+					<DualUnitText primary={loc(feltDual[0])} secondary={loc(feltDual[1])} primarySize="15px" onClick={onToggleUnits} />
+				</div>
+			</div>
 		</div>
 
 		<!-- Rain or snow and air quality fill the space beside the °F and high/low lines -->
@@ -102,7 +119,9 @@
 					<p class="hero-outlook">{outlook}</p>
 				{/if}
 				{#if aqi}
-					<p class="hero-aqi">{aqiText}</p>
+					{#if aqiDual}
+						<DualUnitText primary={loc(String(aqiDual[0]))} secondary={loc(String(aqiDual[1]))} primaryUnit={aqiUnits[0]} secondaryUnit={aqiUnits[1]} primarySize="14px" align="end" />
+					{/if}
 					<AqiTierBadge tier={aqi.primaryTier} label={($json('aqi_tier_labels') as string[])?.[AQI_TIERS.indexOf(aqi.primaryTier)] ?? ''} compact />
 				{/if}
 			</div>
@@ -236,10 +255,18 @@
 		color: rgba(255,255,255,0.85);
 	}
 
-	.hero-aqi {
-		margin: 0;
-		font-size: 13px;
-		color: rgba(255,255,255,0.75);
+	.hero-felt {
+		margin-top: 8px;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.hero-felt-label {
+		font-size: 12px;
+	}
+
+	.hero-felt-values {
+		display: flex;
 	}
 
 	.next-hours {

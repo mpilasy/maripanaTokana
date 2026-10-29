@@ -15,6 +15,9 @@
 	import DailyTemperatureChart from './DailyTemperatureChart.svelte';
 	import OverviewChart from './OverviewChart.svelte';
 	import ChartScrub from './ChartScrub.svelte';
+	import FeltValue from './FeltValue.svelte';
+	import { dailyHeatIndex, dailyWindChill } from '#lib/domain/thermalIndices.js';
+	import { HEAT_COLOR, CHILL_COLOR } from '#lib/utils/feltColors.js';
 	import { shareItemsPerLine } from '#lib/utils/shareLayout.js';
 	import { UV_TIER_COLORS, uvColorFor, type UvTier } from '#lib/domain/uv.js';
 	import { AirQualityIndex, AQI_TIER_COLORS, type AqiStandard, type AqiTier } from '#lib/domain/airQuality.js';
@@ -49,8 +52,14 @@
 	let scrollLeft = $state(0);
 	let containerWidth = $state(0);
 
+	// Each day's heat index and wind chill; each tab shows only when one day has it
+	let heatByItem = $derived(forecasts.map((d) => dailyHeatIndex(d)));
+	let chillByItem = $derived(forecasts.map((d) => dailyWindChill(d)));
+
 	let tabs = $derived([
 		{ id: 'Temperature', label: $_('tab_conditions') },
+		...(heatByItem.some((t) => t) ? [{ id: 'HeatIndex', label: $_('detail_heat_index') }] : []),
+		...(chillByItem.some((t) => t) ? [{ id: 'WindChill', label: $_('detail_wind_chill') }] : []),
 		{ id: 'Precipitation', label: $_('detail_precipitation') },
 		{ id: 'Wind', label: $_('detail_wind') },
 		{ id: 'Pressure', label: $_('detail_pressure') },
@@ -114,6 +123,11 @@
 				lowLabel: label(indexOfMin(values)),
 				legend: Array.isArray(labels) ? AQI_TIERS.map((t, i) => ({ color: AQI_TIER_COLORS[t], label: labels[i] })) : undefined,
 			};
+		}
+		if (displayMode === 'HeatIndex' || displayMode === 'WindChill') {
+			const felt = displayMode === 'HeatIndex' ? heatByItem : chillByItem;
+			const values = felt.map((t) => (t ? (metricPrimary ? t.celsius : t.fahrenheit) : null));
+			return { values, color: displayMode === 'HeatIndex' ? HEAT_COLOR : CHILL_COLOR, highLabel: dual(felt[indexOfMax(values)]?.displayDual(metricPrimary)), lowLabel: dual(felt[indexOfMin(values)]?.displayDual(metricPrimary)) };
 		}
 		if (displayMode === 'Humidity') {
 			const values = forecasts.map((f) => f.humidity ?? null);
@@ -204,6 +218,8 @@
 					{/if}
 				{:else if displayMode === 'Humidity'}
 					<HumidityDewPoint humidity={item.humidity} dewPoint={item.dewPoint} {metricPrimary} {loc} {onToggleUnits} />
+				{:else if displayMode === 'HeatIndex' || displayMode === 'WindChill'}
+					<FeltValue value={(displayMode === 'HeatIndex' ? heatByItem : chillByItem)[i]} {metricPrimary} {loc} {onToggleUnits} />
 				{:else if displayMode === 'Uv'}
 					{#if item.uvIndexMax != null && Number.isFinite(item.uvIndexMax)}
 						<span class="uv-value">{loc(item.uvIndexMax.toFixed(1))}</span>

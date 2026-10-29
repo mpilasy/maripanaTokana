@@ -76,6 +76,8 @@
     <string name="detail_pressure">Pressure</string>
     <string name="detail_humidity">Humidity</string>
     <string name="detail_dewpoint">Dew Point</string>
+    <string name="detail_heat_index">Heat Index</string>
+    <string name="detail_wind_chill">Wind Chill</string>
     <string name="detail_uv_index">UV Index</string>
     <string name="detail_visibility">Visibility</string>
     <string name="detail_sunrise">Sunrise</string>

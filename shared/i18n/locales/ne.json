@@ -97,6 +97,8 @@
 	"detail_pressure": "वायुमण्डलीय चाप",
 	"detail_humidity": "आर्द्रता",
 	"detail_dewpoint": "शीतबिन्दु",
+	"detail_heat_index": "ताप सूचकांक",
+	"detail_wind_chill": "हावाको चिसोपन",
 	"detail_uv_index": "UV सूचकाङ्क",
 	"detail_visibility": "दृश्यता",
 	"detail_sunrise": "सूर्योदय",

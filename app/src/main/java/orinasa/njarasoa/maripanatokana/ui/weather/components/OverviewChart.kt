@@ -3,6 +3,11 @@
 
 package orinasa.njarasoa.maripanatokana.ui.weather.components
 
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -42,6 +47,21 @@ import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 import kotlin.math.roundToInt
 
 internal enum class OverviewStyle { LINE, BARS }
+
+/**
+ * A chart label "primary · secondary" (both units) on one line, with the secondary unit smaller and
+ * dimmer and no dot, as everywhere in the app the primary unit stands out. Other labels are kept as they are.
+ */
+internal fun dualLabel(text: String, color: Color): AnnotatedString {
+    val i = text.indexOf(" · ")
+    if (i < 0) return AnnotatedString(text)
+    return buildAnnotatedString {
+        append(text.substring(0, i))
+        withStyle(SpanStyle(color = color.copy(alpha = color.alpha * 0.7f), fontSize = 0.8.em, fontWeight = FontWeight.Medium)) {
+            append(" " + text.substring(i + 3))
+        }
+    }
+}
 
 /**
  * The chart under a row of forecast cards: every item at once, squeezed to the card's width,
@@ -106,7 +126,7 @@ internal fun OverviewChart(
             // Labels near an edge grow inwards so they stay inside the chart. A label that would
             // overlap [avoid] (another label's left and right edges) goes next to it, on its row.
             fun drawLabel(text: String, i: Int, y: Float, labelColor: Color = colorAt(i), avoid: Pair<Float, Float>? = null, avoidY: Float = y): Pair<Float, Float> {
-                val layout = textMeasurer.measure(text, TextStyle(color = labelColor, fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont))
+                val layout = textMeasurer.measure(dualLabel(text, labelColor), TextStyle(color = labelColor, fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont))
                 val x = xFor(i)
                 val width = layout.size.width.toFloat()
                 var left = when {
@@ -140,14 +160,21 @@ internal fun OverviewChart(
                     drawLabel(highLabel, highIndex, yFor(max) - 12.dp.toPx())
                 }
             } else {
-                fun drawCurve(offsets: List<Offset>, lineColor: Color) {
-                    if (offsets.size < 2) return
-                    val cps = computeMonotoneCubicControlPoints(offsets)
-                    val path = Path().apply {
-                        moveTo(offsets[0].x, offsets[0].y)
-                        cps.forEachIndexed { k, cp -> cubicTo(cp.cp1.x, cp.cp1.y, cp.cp2.x, cp.cp2.y, offsets[k + 1].x, offsets[k + 1].y) }
+                // A missing value leaves a gap: each run of points with no missing value is its own curve
+                fun drawCurve(points: List<Pair<Int, Offset>>, lineColor: Color) {
+                    val runs = mutableListOf<MutableList<Offset>>()
+                    points.forEachIndexed { k, (i, p) ->
+                        if (k == 0 || i != points[k - 1].first + 1) runs += mutableListOf<Offset>()
+                        runs.last() += p
                     }
-                    drawPath(path, lineColor, style = Stroke(2.dp.toPx()))
+                    runs.filter { it.size >= 2 }.forEach { offsets ->
+                        val cps = computeMonotoneCubicControlPoints(offsets)
+                        val path = Path().apply {
+                            moveTo(offsets[0].x, offsets[0].y)
+                            cps.forEachIndexed { k, cp -> cubicTo(cp.cp1.x, cp.cp1.y, cp.cp2.x, cp.cp2.y, offsets[k + 1].x, offsets[k + 1].y) }
+                        }
+                        drawPath(path, lineColor, style = Stroke(2.dp.toPx()))
+                    }
                 }
                 // The second line first, so the main line stays on top
                 val second = secondValues?.let { vs ->
@@ -155,11 +182,11 @@ internal fun OverviewChart(
                     val hi2 = valid2.maxOrNull() ?: return@let null
                     val lo2 = valid2.min()
                     val points2 = vs.mapIndexedNotNull { i, v -> if (v != null && v.isFinite()) i to Offset(xFor(i), yFor(v, lo2, hi2)) else null }
-                    drawCurve(points2.map { it.second }, secondColor)
+                    drawCurve(points2, secondColor)
                     points2.forEach { (_, p) -> drawCircle(secondColor, 2.5.dp.toPx(), p) }
                     Triple(vs, lo2, hi2)
                 }
-                drawCurve(points.map { it.second }, color.copy(alpha = if (pointColors != null) 0.5f else 1f))
+                drawCurve(points, color.copy(alpha = if (pointColors != null) 0.5f else 1f))
                 points.forEach { (i, p) -> drawCircle(colorAt(i), 3.dp.toPx(), p) }
                 val highY = yFor(max) - 14.dp.toPx()
                 val highSpan = if (highLabel != null && highIndex >= 0) drawLabel(highLabel, highIndex, highY) else null
@@ -220,7 +247,7 @@ internal fun ChartScrub(
         index = i
         haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
         // The item in the middle of the row
-        scope.launch { scrollState.scrollTo((i * step + half - scrollState.viewportSize / 2f).roundToInt()) }
+        scope.launch { scrollState.animateScrollTo((i * step + half - scrollState.viewportSize / 2f).roundToInt()) }
     }
 
     Box(

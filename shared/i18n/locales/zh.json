@@ -97,6 +97,8 @@
 	"detail_pressure": "气压",
 	"detail_humidity": "湿度",
 	"detail_dewpoint": "露点",
+	"detail_heat_index": "酷热指数",
+	"detail_wind_chill": "风寒指数",
 	"detail_uv_index": "紫外线指数",
 	"detail_visibility": "能见度",
 	"detail_sunrise": "日出",

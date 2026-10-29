@@ -1,6 +1,7 @@
 <!-- SPDX-FileCopyrightText: Orinasa Njarasoa -->
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
+	import { splitDual } from '#lib/utils/dualLabel.js';
 	import { _ } from 'svelte-i18n';
 	import type { MinutelyForecast } from '#lib/domain/weatherData.js';
 	import { Precipitation } from '#lib/domain/precipitation.js';
@@ -217,7 +218,7 @@
 						{#if maxPointInfo}
 							<!-- A dot on the peak, its amount in the top corner away from it, clear of the line -->
 							<circle cx={maxPointInfo.x} cy={maxPointInfo.y} r="3" fill="#38bdf8" />
-							<text x={maxPointInfo.x > containerWidth / 2 ? 0 : containerWidth} y="10" text-anchor={maxPointInfo.x > containerWidth / 2 ? 'start' : 'end'} font-size="9" font-weight="bold" fill="#38bdf8">{yMaxLabelText}</text>
+							<text x={maxPointInfo.x > containerWidth / 2 ? 0 : containerWidth} y="10" text-anchor={maxPointInfo.x > containerWidth / 2 ? 'start' : 'end'} font-size="9" font-weight="bold" fill="#38bdf8">{splitDual(yMaxLabelText)[0]}{#if splitDual(yMaxLabelText)[1]}<tspan font-size="0.8em" font-weight="500" fill-opacity="0.7">{" " + splitDual(yMaxLabelText)[1]}</tspan>{/if}</text>
 						{/if}
 
 						<!-- Min legend on baseline min point -->
