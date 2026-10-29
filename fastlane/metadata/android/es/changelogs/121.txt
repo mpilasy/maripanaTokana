@@ -1,0 +1,2 @@
+- Compartir el pronóstico por horas o por días: las horas y los días ahora van en varias filas, así la imagen se ve nítida en las aplicaciones de mensajería.
+- Favoritos: al añadir un lugar, la lista se ordena por distancia, el más cercano primero.

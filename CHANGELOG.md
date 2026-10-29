@@ -9,6 +9,10 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261029003459] - 2026-10-28
+- Share images of the hourly and daily forecasts: the items wrap in rows (at most 6 hours or 5 days a line), with only the selected tab. Chat apps shrink large images (Telegram to 1280 px), so the one-line image of 1.6.20261028234248 became unreadable.
+- Favorites: when you add a place, the list is sorted by distance from the device's last location, nearest first.
+
 ## [1.6.20261028234248] - 2026-10-28
 - Hourly and daily forecast charts: slide a finger along a chart to see the hour or the day under it (a line and a label). The row of cards scrolls to that hour or day. Only a horizontal slide starts it, so the page still scrolls up and down.
 - The share image of the hourly and daily forecasts shows all the hours or days on one line, with the selected tab and the full chart.

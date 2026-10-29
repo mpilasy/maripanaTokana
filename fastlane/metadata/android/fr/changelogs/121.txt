@@ -1,0 +1,2 @@
+- Partage des prévisions horaires ou journalières : les heures et les jours sont maintenant sur plusieurs lignes, donc l'image reste nette dans les applications de messagerie.
+- Favoris : quand vous ajoutez un emplacement, la liste est triée par distance, le plus proche en premier.

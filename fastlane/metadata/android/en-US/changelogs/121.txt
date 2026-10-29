@@ -1,0 +1,2 @@
+- Share the hourly or daily forecast: the hours and days now wrap in rows, so the image stays sharp in chat apps.
+- Favorites: when you add a place, the list is sorted by distance, nearest first.
