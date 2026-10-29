@@ -52,6 +52,14 @@ export function cycleFont() {
 	fontIndex.update((i) => (i + 1) % fontPairings.length);
 }
 
+export function selectFont(i: number) {
+	fontIndex.set(i);
+}
+
 export function cycleLanguage() {
 	localeIndex.update((i) => (i + 1) % SUPPORTED_LOCALES.length);
+}
+
+export function selectLanguage(i: number) {
+	localeIndex.set(i);
 }

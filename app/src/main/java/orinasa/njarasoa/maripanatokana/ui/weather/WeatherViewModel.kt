@@ -44,7 +44,8 @@ import orinasa.njarasoa.maripanatokana.data.location.shortPlaceName
 import java.util.Locale
 import javax.inject.Inject
 
-data class SupportedLocale(val tag: String, val flag: String, val nativeZero: Char? = null) {
+/** [name] is the language's own name, for the language list. */
+data class SupportedLocale(val tag: String, val flag: String, val name: String, val nativeZero: Char? = null) {
     // Java lacks CLDR data for "mg" — fall back to French (same convention)
     private val decimalSep: Char = java.text.DecimalFormatSymbols(
         java.util.Locale.forLanguageTag(if (tag == "mg") "fr" else tag)
@@ -67,14 +68,14 @@ data class SupportedLocale(val tag: String, val flag: String, val nativeZero: Ch
 }
 
 val supportedLocales = listOf(
-    SupportedLocale("mg", "🇲🇬"),
-    SupportedLocale("ar", "🇸🇦", '٠'),  // ٠
-    SupportedLocale("en", "🇬🇧"),
-    SupportedLocale("es", "🇪🇸"),
-    SupportedLocale("fr", "🇫🇷"),
-    SupportedLocale("hi", "🇮🇳", '०'),  // ०
-    SupportedLocale("ne", "🇳🇵", '०'),  // ०
-    SupportedLocale("zh", "🇨🇳"),
+    SupportedLocale("mg", "🇲🇬", "Malagasy"),
+    SupportedLocale("ar", "🇸🇦", "العربية", '٠'),  // ٠
+    SupportedLocale("en", "🇬🇧", "English"),
+    SupportedLocale("es", "🇪🇸", "Español"),
+    SupportedLocale("fr", "🇫🇷", "Français"),
+    SupportedLocale("hi", "🇮🇳", "हिन्दी", '०'),  // ०
+    SupportedLocale("ne", "🇳🇵", "नेपाली", '०'),  // ०
+    SupportedLocale("zh", "🇨🇳", "中文"),
 )
 
 @HiltViewModel
@@ -439,14 +440,16 @@ class WeatherViewModel @Inject constructor(
         prefs.edit { putBoolean("metric_primary", newValue) }
     }
 
-    fun cycleFont() {
-        val newIndex = (_fontIndex.value + 1) % fontPairings.size
+    fun cycleFont() = selectFont((_fontIndex.value + 1) % fontPairings.size)
+
+    fun selectFont(newIndex: Int) {
         _fontIndex.value = newIndex
         prefs.edit { putInt("font_index", newIndex) }
     }
 
-    fun cycleLanguage() {
-        val newIndex = (_localeIndex.value + 1) % supportedLocales.size
+    fun cycleLanguage() = selectLanguage((_localeIndex.value + 1) % supportedLocales.size)
+
+    fun selectLanguage(newIndex: Int) {
         _localeIndex.value = newIndex
         prefs.edit { putInt("locale_index", newIndex) }
         relocalizePlaceName()

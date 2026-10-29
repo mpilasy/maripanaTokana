@@ -3,6 +3,9 @@
 
 package orinasa.njarasoa.maripanatokana.ui.weather
 
+import androidx.compose.foundation.layout.PaddingValues
+import orinasa.njarasoa.maripanatokana.ui.weather.components.FontPicker
+import orinasa.njarasoa.maripanatokana.ui.weather.components.LanguageFlagButton
 import android.content.Intent
 import orinasa.njarasoa.maripanatokana.domain.model.ThermalIndices
 import orinasa.njarasoa.maripanatokana.domain.model.FetchError
@@ -237,12 +240,15 @@ internal fun WeatherContent(
     data: WeatherData,
     metricPrimary: Boolean,
     fontName: String,
+    fontIndex: Int,
     currentFlag: String,
     localizeDigits: (String) -> String,
     osTimeFormat: java.text.DateFormat,
     onToggleUnits: () -> Unit,
     onCycleFont: () -> Unit,
+    onSelectFont: (Int) -> Unit,
     onCycleLanguage: () -> Unit,
+    onSelectLanguage: (Int) -> Unit,
     onRefresh: () -> Unit,
     onLocationLongClicked: (() -> Unit)? = null, // set for a favorite: opens its rename dialog
     onManageLocationsClicked: () -> Unit = {},
@@ -890,16 +896,23 @@ internal fun WeatherContent(
                     .padding(top = 4.dp, bottom = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                // Font icon + name
+                // Font icon + name: a tap shows the next font; holding it lists them
+                var fontPickerOpen by remember { mutableStateOf(false) }
+                val haptic = LocalHapticFeedback.current
+                Box {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .clip(RoundedCornerShape(50))
                         .alpha(0.7f)
-                        .clickable(
+                        .combinedClickable(
                             onClick = onCycleFont,
                             role = Role.Button,
-                            onClickLabel = stringResource(R.string.cd_change_font)
+                            onClickLabel = stringResource(R.string.cd_change_font),
+                            onLongClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                fontPickerOpen = true
+                            },
                         )
                         .padding(horizontal = 10.dp, vertical = 6.dp),
                 ) {
@@ -917,6 +930,8 @@ internal fun WeatherContent(
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         maxLines = 1,
                     )
+                }
+                if (fontPickerOpen) FontPicker(fontIndex, onSelectFont, onDismiss = { fontPickerOpen = false })
                 }
                 // "Help" and "About" (which credits the data sources) + version, centered between the font and
                 // the flag; they wrap rather than push the flag off the screen
@@ -948,18 +963,13 @@ internal fun WeatherContent(
                     )
                 }
                 // Language flag
-                Text(
-                    text = currentFlag,
+                LanguageFlagButton(
+                    flag = currentFlag,
                     fontSize = 16f.s(scale),
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(50))
-                        .alpha(0.7f)
-                        .clickable(
-                            onClick = onCycleLanguage,
-                            role = Role.Button,
-                            onClickLabel = stringResource(R.string.cd_change_language)
-                        )
-                        .padding(horizontal = 10.dp, vertical = 3.dp),
+                    padding = PaddingValues(horizontal = 10.dp, vertical = 3.dp),
+                    onCycleLanguage = onCycleLanguage,
+                    onSelectLanguage = onSelectLanguage,
+                    alpha = 0.7f,
                 )
             }
         }

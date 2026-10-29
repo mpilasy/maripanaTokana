@@ -4,19 +4,20 @@
 export interface SupportedLocale {
 	tag: string;
 	flag: string;
+	name: string; // the language's own name, for the language list
 	nativeZero?: number; // Unicode code point of native zero digit
 	decimalSep?: string; // Override for decimal separator
 }
 
 export const SUPPORTED_LOCALES: SupportedLocale[] = [
-	{ tag: 'mg', flag: '\uD83C\uDDF2\uD83C\uDDEC', decimalSep: ',' },
-	{ tag: 'ar', flag: '\uD83C\uDDF8\uD83C\uDDE6', nativeZero: 0x0660, decimalSep: '\u066B' },
-	{ tag: 'en', flag: '\uD83C\uDDEC\uD83C\uDDE7' },
-	{ tag: 'es', flag: '\uD83C\uDDEA\uD83C\uDDF8', decimalSep: ',' },
-	{ tag: 'fr', flag: '\uD83C\uDDEB\uD83C\uDDF7', decimalSep: ',' },
-	{ tag: 'hi', flag: '\uD83C\uDDEE\uD83C\uDDF3', nativeZero: 0x0966 },
-	{ tag: 'ne', flag: '\uD83C\uDDF3\uD83C\uDDF5', nativeZero: 0x0966 },
-	{ tag: 'zh', flag: '\uD83C\uDDE8\uD83C\uDDF3' },
+	{ tag: 'mg', flag: '\uD83C\uDDF2\uD83C\uDDEC', name: 'Malagasy', decimalSep: ',' },
+	{ tag: 'ar', flag: '\uD83C\uDDF8\uD83C\uDDE6', name: 'العربية', nativeZero: 0x0660, decimalSep: '\u066B' },
+	{ tag: 'en', flag: '\uD83C\uDDEC\uD83C\uDDE7', name: 'English' },
+	{ tag: 'es', flag: '\uD83C\uDDEA\uD83C\uDDF8', name: 'Español', decimalSep: ',' },
+	{ tag: 'fr', flag: '\uD83C\uDDEB\uD83C\uDDF7', name: 'Français', decimalSep: ',' },
+	{ tag: 'hi', flag: '\uD83C\uDDEE\uD83C\uDDF3', name: 'हिन्दी', nativeZero: 0x0966 },
+	{ tag: 'ne', flag: '\uD83C\uDDF3\uD83C\uDDF5', name: 'नेपाली', nativeZero: 0x0966 },
+	{ tag: 'zh', flag: '\uD83C\uDDE8\uD83C\uDDF3', name: '中文' },
 ];
 
 /**

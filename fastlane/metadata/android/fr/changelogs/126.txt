@@ -1,0 +1,4 @@
+- Maintenez le drapeau ou le bouton de police pour choisir dans la liste des langues ou des polices.
+- Durée du jour en heures et minutes (12 heures 45 minutes), dans un arc plus grand.
+- Indice de chaleur et refroidissement éolien : affichés près de la température quand ils s'appliquent, avec une icône de thermomètre. Les prévisions horaires et sur 10 jours ont un onglet pour chacun.
+- Valeurs en deux unités : la seconde unité est maintenant plus petite et sous la première.

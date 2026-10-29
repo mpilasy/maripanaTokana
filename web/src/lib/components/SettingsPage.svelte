@@ -8,18 +8,25 @@
 <script lang="ts">
 	import { onMount, type Snippet } from 'svelte';
 	import { _ } from 'svelte-i18n';
+	import { longPress } from '#lib/actions/longPress.js';
+	import PickerMenu from './PickerMenu.svelte';
+	import { SUPPORTED_LOCALES } from '#lib/i18n/locales.js';
+	import { localeIndex, selectLanguage } from '#lib/stores/preferences.js';
 
 	/** Shared shell for Settings-style pages: gradient + Blue Marble background, back header, scrolling body. */
 	interface Props {
 		title: string;
 		onBack: () => void;
 		children: Snippet;
-		/** The language flag at the bottom, as in the main screen's footer: a tap shows the next language. */
+		/** The language flag at the top, as in the main screen's footer: a tap shows the next language, holding it lists them. */
 		languageFlag?: string;
 		onCycleLanguage?: () => void;
 	}
 
 	let { title, onBack, children, languageFlag, onCycleLanguage }: Props = $props();
+
+	let pickerOpen = $state(false);
+	const languageItems = SUPPORTED_LOCALES.map((l) => ({ lead: l.flag, label: l.name, lang: l.tag }));
 
 	const id = Symbol();
 	onMount(() => {
@@ -46,7 +53,10 @@
 		</button>
 		<h2>{title}</h2>
 		{#if languageFlag && onCycleLanguage}
-			<button type="button" class="page-flag" onclick={onCycleLanguage} aria-label={$_('cd_change_language')}>{languageFlag}</button>
+			<span class="flag-box">
+				<button type="button" class="page-flag" onclick={onCycleLanguage} use:longPress={() => (pickerOpen = true)} aria-label={$_('cd_change_language')}>{languageFlag}</button>
+				<PickerMenu bind:open={pickerOpen} items={languageItems} current={$localeIndex} onSelect={selectLanguage} />
+			</span>
 		{/if}
 	</header>
 	{@render children()}
@@ -120,8 +130,12 @@
 	}
 
 	/* Shared building blocks for pages rendered inside this shell */
-	.page-flag {
+	.flag-box {
+		position: relative;
 		margin-inline-start: auto;
+	}
+
+	.page-flag {
 		padding: 6px 10px;
 		border: none;
 		border-radius: 999px;

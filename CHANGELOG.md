@@ -9,6 +9,11 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261029133216] - 2026-10-29
+- Footer: holding the language flag opens a list of the languages (flag and the language's own name); holding the font button opens a list of the 22 font pairings, each name in its own display font. The list opens next to the button and starts at the current item. A tap still shows the next language or font. The Help and About pages have the same language list.
+- Android: the language list no longer opens far above the flag (the standard menu keeps 48 dp from the screen edges).
+- Store notes: the newest lines of the earlier notes follow, as far as the 500-character limit allows, because F-Droid builds only the newest tag.
+
 ## [1.6.20261029125014] - 2026-10-29
 - Sun and moon tiles: the arcs are taller. The day length is in the middle of the sun's arc, in words on two lines ("12 hours" / "45 minutes"; Malagasy "Adiny 12" / "sy" / "45 minitra"), with a singular form for 1. The moon's lit part is in the middle of its arc. The store notes also repeat those of 1.6.20261029031501, because F-Droid builds only the newest tag.
 

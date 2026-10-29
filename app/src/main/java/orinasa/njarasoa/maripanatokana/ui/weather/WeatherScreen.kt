@@ -114,9 +114,9 @@ fun WeatherScreen(
     ) {
         MaterialTheme(typography = buildTypography(pairing)) {
         if (showHelp) {
-            HelpScreen(onBack = { showHelp = false }, languageFlag = supportedLocales[localeIndex].flag, onCycleLanguage = viewModel::cycleLanguage)
+            HelpScreen(onBack = { showHelp = false }, languageFlag = supportedLocales[localeIndex].flag, onCycleLanguage = viewModel::cycleLanguage, onSelectLanguage = viewModel::selectLanguage)
         } else if (showAbout) {
-            AboutScreen(onBack = { showAbout = false }, onOpenHelp = { showHelp = true }, languageFlag = supportedLocales[localeIndex].flag, onCycleLanguage = viewModel::cycleLanguage)
+            AboutScreen(onBack = { showAbout = false }, onOpenHelp = { showHelp = true }, languageFlag = supportedLocales[localeIndex].flag, onCycleLanguage = viewModel::cycleLanguage, onSelectLanguage = viewModel::selectLanguage)
         } else if (showSettings) {
             SettingsScreen(onBack = { showSettings = false }, onOpenAbout = { showAbout = true })
         } else {
@@ -426,6 +426,7 @@ private fun WeatherMainScreen(
                             refreshError = refreshError,
                             advancedMode = advancedModeActive,
                             fontName = pairing.name,
+                            fontIndex = fontIndex,
                             currentFlag = supportedLocales[localeIndex].flag,
                             localizeDigits = supportedLocales[localeIndex]::localizeDigits,
                             osTimeFormat = SimpleDateFormat(
@@ -434,7 +435,9 @@ private fun WeatherMainScreen(
                             ),
                             onToggleUnits = { viewModel.toggleUnits() },
                             onCycleFont = { viewModel.cycleFont() },
+                            onSelectFont = { viewModel.selectFont(it) },
                             onCycleLanguage = { viewModel.cycleLanguage() },
+                            onSelectLanguage = { viewModel.selectLanguage(it) },
                             onRefresh = { viewModel.refresh() },
                             onLocationLongClicked = if (activeSavedLocation != null && advancedOverrideLat == null) {
                                 { showRenameDialog = true }

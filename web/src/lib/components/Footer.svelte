@@ -2,6 +2,11 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
+	import { longPress } from '#lib/actions/longPress.js';
+	import PickerMenu from './PickerMenu.svelte';
+	import { SUPPORTED_LOCALES } from '#lib/i18n/locales.js';
+	import { fontPairings } from '#lib/fonts.js';
+	import { fontIndex, localeIndex, selectFont, selectLanguage } from '#lib/stores/preferences.js';
 
 	interface Props {
 		fontName: string;
@@ -13,13 +18,31 @@
 	}
 
 	let { fontName, currentFlag, onCycleFont, onCycleLanguage, onOpenAbout, onOpenHelp }: Props = $props();
+	// Holding the flag or the font lists every language or font to pick one
+	let pickerOpen = $state(false);
+	let fontPickerOpen = $state(false);
+	const languageItems = SUPPORTED_LOCALES.map((l) => ({ lead: l.flag, label: l.name, lang: l.tag }));
+	// Each font name in its own display font
+	const fontItems = fontPairings.map((p) => ({ label: p.name, font: p.displayFamily }));
 </script>
 
+<!-- The font list draws each name in its font, so it loads them all while it is open -->
+<svelte:head>
+	{#if fontPickerOpen}
+		{#each fontPairings as p (p.name)}
+			{#if p.fontCssUrl}<link href={p.fontCssUrl} rel="stylesheet" />{/if}
+		{/each}
+	{/if}
+</svelte:head>
+
 <footer class="footer" dir="ltr">
-	<button type="button" class="pill" onclick={onCycleFont} aria-label={$_('cd_change_font')}>
-		<span class="icon">Aa</span>
-		<span class="name">{fontName.split(' + ')[0]}</span>
-	</button>
+	<span class="picker-box">
+		<button type="button" class="pill" onclick={onCycleFont} use:longPress={() => (fontPickerOpen = true)} aria-label={$_('cd_change_font')}>
+			<span class="icon">Aa</span>
+			<span class="name">{fontName.split(' + ')[0]}</span>
+		</button>
+		<PickerMenu bind:open={fontPickerOpen} items={fontItems} current={$fontIndex} onSelect={selectFont} above alignStart />
+	</span>
 	<!-- Help, and About (which credits the data sources) -->
 	<div class="footer-credits">
 		<span class="links">
@@ -27,11 +50,14 @@
 			<span class="dot">·</span>
 			<button type="button" class="about-link" onclick={onOpenAbout}>{$_('about_title')}</button>
 		</span>
-		<span class="version">v1.6.20261029125014</span>
+		<span class="version">v1.6.20261029133216</span>
 	</div>
-	<button type="button" class="pill" onclick={onCycleLanguage} aria-label={$_('cd_change_language')}>
-		<span class="flag">{currentFlag}</span>
-	</button>
+	<span class="picker-box">
+		<button type="button" class="pill" onclick={onCycleLanguage} use:longPress={() => (pickerOpen = true)} aria-label={$_('cd_change_language')}>
+			<span class="flag">{currentFlag}</span>
+		</button>
+		<PickerMenu bind:open={pickerOpen} items={languageItems} current={$localeIndex} onSelect={selectLanguage} above />
+	</span>
 </footer>
 
 <style>
@@ -81,6 +107,11 @@
 		font-size: 11px;
 		color: rgba(255, 255, 255, 0.6);
 		white-space: nowrap;
+	}
+
+	.picker-box {
+		position: relative;
+		flex-shrink: 0;
 	}
 
 	.flag {

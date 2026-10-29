@@ -149,14 +149,14 @@ private val creditSections = listOf(
 )
 
 @Composable
-fun AboutScreen(onBack: () -> Unit, onOpenHelp: () -> Unit, languageFlag: String, onCycleLanguage: () -> Unit) {
+fun AboutScreen(onBack: () -> Unit, onOpenHelp: () -> Unit, languageFlag: String, onCycleLanguage: () -> Unit, onSelectLanguage: (Int) -> Unit) {
     val uriHandler = LocalUriHandler.current
     var openTextRes by rememberSaveable { mutableStateOf<Int?>(null) }
     var openTextTitle by rememberSaveable { mutableStateOf("") }
     val licenseRes = openTextRes
     if (licenseRes != null) {
         LicenseTextScreen(title = openTextTitle, textRes = licenseRes, onBack = { openTextRes = null })
-    } else SettingsPage(title = stringResource(R.string.about_title), onBack = onBack, languageFlag = languageFlag, onCycleLanguage = onCycleLanguage) {
+    } else SettingsPage(title = stringResource(R.string.about_title), onBack = onBack, languageFlag = languageFlag, onCycleLanguage = onCycleLanguage, onSelectLanguage = onSelectLanguage) {
         // App identity
         SettingsGroup {
             Column(

@@ -13,6 +13,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import orinasa.njarasoa.maripanatokana.ui.theme.Hairline
+import orinasa.njarasoa.maripanatokana.ui.weather.components.LanguageFlagButton
+import androidx.compose.foundation.layout.PaddingValues
 import orinasa.njarasoa.maripanatokana.ui.theme.SectionSurface
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -281,9 +283,10 @@ fun SettingsScreen(
 internal fun SettingsPage(
     title: String,
     onBack: () -> Unit,
-    // The language flag at the bottom, as in the main screen's footer: a tap shows the next language
+    // The language flag at the top, as in the main screen's footer: a tap shows the next language, holding it lists them
     languageFlag: String? = null,
     onCycleLanguage: (() -> Unit)? = null,
+    onSelectLanguage: ((Int) -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
     BackHandler(onBack = onBack)
@@ -316,18 +319,13 @@ internal fun SettingsPage(
                 }
                 Spacer(Modifier.width(8.dp))
                 Text(title, color = MaterialTheme.colorScheme.onSurface, fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                if (languageFlag != null && onCycleLanguage != null) {
-                    Text(
-                        text = languageFlag,
+                if (languageFlag != null && onCycleLanguage != null && onSelectLanguage != null) {
+                    LanguageFlagButton(
+                        flag = languageFlag,
                         fontSize = 22.sp,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(50))
-                            .clickable(
-                                onClick = onCycleLanguage,
-                                role = Role.Button,
-                                onClickLabel = stringResource(R.string.cd_change_language),
-                            )
-                            .padding(horizontal = 10.dp, vertical = 4.dp),
+                        padding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                        onCycleLanguage = onCycleLanguage,
+                        onSelectLanguage = onSelectLanguage,
                     )
                 }
             }

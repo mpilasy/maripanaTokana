@@ -56,8 +56,8 @@ private val helpSections = listOf(
 
 /** How to use the app: short questions and answers, in the same shell as Settings and About. */
 @Composable
-fun HelpScreen(onBack: () -> Unit, languageFlag: String, onCycleLanguage: () -> Unit) {
-    SettingsPage(title = stringResource(R.string.help_title), onBack = onBack, languageFlag = languageFlag, onCycleLanguage = onCycleLanguage) {
+fun HelpScreen(onBack: () -> Unit, languageFlag: String, onCycleLanguage: () -> Unit, onSelectLanguage: (Int) -> Unit) {
+    SettingsPage(title = stringResource(R.string.help_title), onBack = onBack, languageFlag = languageFlag, onCycleLanguage = onCycleLanguage, onSelectLanguage = onSelectLanguage) {
         helpSections.forEachIndexed { sectionIndex, section ->
             if (sectionIndex > 0) Spacer(Modifier.height(24.dp))
             SectionHeader(stringResource(section.titleRes))
