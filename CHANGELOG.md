@@ -9,6 +9,14 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261029031501] - 2026-10-29
+- Heat index and wind chill, calculated on the device with the NWS formulas. The app shows one felt value next to the temperature (hero card, under the low/high, and the Temperature card): the heat index from 27 °C (80 °F), the wind chill at 10 °C (50 °F) or lower with wind over 4.8 km/h (3 mph), else "Feels like" from the weather source. A thermometer icon with a plus (heat) or a minus (cold) goes with them.
+- Hourly and 10-day forecasts: a Heat index or Wind chill tab after the Conditions tab, only when one hour or day has the value. The daily heat index uses the day's high with the humidity from the day's mean dew point; the daily wind chill uses the day's low with the day's wind.
+- Values in two units: the secondary unit is under the primary and smaller in the card bottom rows and the hero air quality; chart labels draw it smaller and dimmer.
+- Detail cards: the bottom row is centred, and under a dial it sits in the middle of the space that is left.
+- Charts: a missing value leaves a gap in the line. Sliding along a chart scrolls the row of cards smoothly.
+- Malagasy: "Hafanana tsapa" (heat index) and "Hatsiaka tsapa" (wind chill). In "until" messages, the time and "eo ho eo" wrap together.
+
 ## [1.6.20261029003459] - 2026-10-28
 - Share images of the hourly and daily forecasts: the items wrap in rows (at most 6 hours or 5 days a line), with only the selected tab. Chat apps shrink large images (Telegram to 1280 px), so the one-line image of 1.6.20261028234248 became unreadable.
 - Favorites: when you add a place, the list is sorted by distance from the device's last location, nearest first.
