@@ -1,0 +1,9 @@
+Desde 1.5.28:
+- Lugares: toca el nombre o el ▾ para ver la lista, con distancias.
+- Índice de calor y enfriamiento por viento, con el tiempo hasta la congelación.
+- Tarjetas Luna y Nubosidad; diales con escala.
+- Noche polar, sol de medianoche; salida del sol y de la luna de noche.
+- Pestañas: humedad, índice de calor, enfriamiento por viento.
+- Las alertas muestran su nivel en palabras.
+- El encabezado se reduce al desplazarse.
+- Mejores imágenes compartidas, widgets y accesibilidad.

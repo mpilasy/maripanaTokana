@@ -1,0 +1,9 @@
+Depuis 1.5.28 :
+- Lieux : touchez le nom ou le ▾ pour la liste, avec les distances.
+- Indice de chaleur et refroidissement éolien, avec le temps avant gelure.
+- Cartes Lune et Couverture nuageuse ; cadrans gradués.
+- Nuit polaire, soleil de minuit ; lever du soleil et de la lune la nuit.
+- Onglets : humidité, indice de chaleur, refroidissement éolien.
+- Les alertes indiquent leur niveau en mots.
+- L'en-tête se réduit au défilement.
+- Images partagées, widgets et accessibilité améliorés.

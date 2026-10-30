@@ -9,6 +9,21 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261030191159] - 2026-10-30
+- Alerts: each alert shows its level in words (Watch, Warning, Emergency; Malagasy Mailo, Tandremo, Loza) next to the title. Emergency has its own colour (purple) and icon. The number dots and source badges have dark text on light colours, or white on dark.
+- Web: the alert banner and its rows work from the keyboard (Enter or Space) and tell screen readers if they are open. Values that change units are read as their value, not as "Toggle units". The refresh button keeps the data age in its name. The page follows prefers-reduced-motion, and font sizes are in rem, so the browser text size applies.
+- Android: TalkBack says "Show details" or "Hide details" on alerts; section titles, the place name and the nowcast title are headings; long presses have labels. The status bar and navigation bar icons are always light. Titles can wrap to 2 lines at large font scale.
+- Arabic: dial values, feels like and dew point keep the unit after the number ("١٦°C", not "C°١٦").
+- Contrast: the heat-index orange, activity badges, phone-time lines, day dates, font button, Help and About links and the version are at least 4.5:1.
+- Header: after a short scroll it shrinks to one row (place name, local time, refresh, search, settings). At the top of the page it opens again.
+- Dials: wind gust, pressure, visibility and cloud cover show their minimum and maximum at the arc ends, in both units.
+- Night: the sun and the moon show as a faint dot under the horizon, with "Rises in …" (Malagasy "Hiposaka afaka …"). Sun protection shows "Not needed" ("Tsy ilaina") at night.
+- Precipitation tile: the chance reads "60% chance" ("Mety 60%").
+- Footer: a ▾ after the font name and after the flag opens the full list ("Asehoy daholo"). The place list has a rename button on each favourite. The loading screen shows "Choose a place" after 5 seconds.
+- Touch targets: at least 48 dp on Android and 44 px on web, with no change to the look.
+- Desktop web: the header shows at the top of the window (the page was 62 px taller than a 900 px window), and the scrollbar is dark.
+- Android build: KSP 2.3.13.
+
 ## [1.6.20261030023347] - 2026-10-30
 - Android, Pirate Weather: the minutely nowcast card now works (the app reads the minutely block of the response, as the web does).
 - Pirate Weather: the Android app and the web now give the same values for the same response. The web shows the next 24 hours from now (before: the first 48 hours of the response, which could include past hours), uses the current temperature for today's low and high when there is no daily data, and shows no rain or snow at 0 mm. Android rounds percentages and visibility to the nearest whole number (before: cut down) and shows no value, not 0, when the response has no humidity, cloud cover, visibility, wind direction or UV index. Both use the same weather codes for the Pirate Weather icons: drizzle 53, rain 63, sleet 66 (freezing rain, with the sleet icon), snow 73, thunderstorm 95 and wind 3.
