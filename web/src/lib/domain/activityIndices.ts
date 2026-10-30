@@ -17,38 +17,30 @@ export function computeActivityIndices(data: WeatherData): ActivityIndices {
 	const windMs = data.windSpeed.metersPerSecond;
 	const precipMm = (data.rain?.mm ?? 0) + (data.snow?.mm ?? 0);
 	const uv = data.uvIndex ?? 6.0; // neutral (FAIR) when unavailable
-
-	let runningTier: ActivityTier = 'FAIR';
-	if (precipMm > 0 || tempC < 0 || tempC > 32 || windMs > 12) {
-		runningTier = 'POOR';
-	} else if (tempC >= 8 && tempC <= 22 && humidity < 70 && windMs < 7) {
-		runningTier = 'EXCELLENT';
-	} else if (tempC >= 2 && tempC <= 28 && humidity < 85) {
-		runningTier = 'GOOD';
-	}
-
-	let laundryTier: ActivityTier = 'FAIR';
-	if (precipMm > 0 || humidity > 80) {
-		laundryTier = 'POOR';
-	} else if (tempC > 18 && humidity < 50 && windMs >= 2) {
-		laundryTier = 'EXCELLENT';
-	} else if (tempC > 12 && humidity < 65) {
-		laundryTier = 'GOOD';
-	}
-
-	let uvTier: ActivityTier = 'POOR';
-	if (uv < 3) {
-		uvTier = 'EXCELLENT';
-	} else if (uv < 6) {
-		uvTier = 'GOOD';
-	} else if (uv < 8) {
-		uvTier = 'FAIR';
-	}
-
-	const result: ActivityIndices = {
-		running: runningTier,
-		laundry: laundryTier,
-		uvSafety: uvTier
+	return {
+		running: runningTier(tempC, humidity, windMs, precipMm),
+		laundry: laundryTier(tempC, humidity, windMs, precipMm),
+		uvSafety: uvTier(uv)
 	};
-	return result;
+}
+
+function runningTier(tempC: number, humidity: number, windMs: number, precipMm: number): ActivityTier {
+	if (precipMm > 0 || tempC < 0 || tempC > 32 || windMs > 12) return 'POOR';
+	if (tempC >= 8 && tempC <= 22 && humidity < 70 && windMs < 7) return 'EXCELLENT';
+	if (tempC >= 2 && tempC <= 28 && humidity < 85) return 'GOOD';
+	return 'FAIR';
+}
+
+function laundryTier(tempC: number, humidity: number, windMs: number, precipMm: number): ActivityTier {
+	if (precipMm > 0 || humidity > 80) return 'POOR';
+	if (tempC > 18 && humidity < 50 && windMs >= 2) return 'EXCELLENT';
+	if (tempC > 12 && humidity < 65) return 'GOOD';
+	return 'FAIR';
+}
+
+function uvTier(uv: number): ActivityTier {
+	if (uv < 3) return 'EXCELLENT';
+	if (uv < 6) return 'GOOD';
+	if (uv < 8) return 'FAIR';
+	return 'POOR';
 }
