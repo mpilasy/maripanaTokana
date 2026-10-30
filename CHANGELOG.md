@@ -9,6 +9,19 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261030194342] - 2026-10-30
+- Folded header: the place name always shows (on a narrow phone such as the Xperia XZ2 Compact it disappeared when the place was not the current location). The heart and pin hide while the header is folded, and the local-time chip shows only if it fits in full.
+- Temperature tile: today's low and high at the dial ends, in both units; the footer shows only the heat index or the wind chill (the hero already shows "Feels like").
+- Alerts: titles have no "GDACS: " or "NHC: " prefix; the badge names the source. Web: in Arabic the alert stripe is on the start side.
+- Hero: the precipitation start ("Rain from 05:00") is on its own line under the condition; "© Orinasa Njarasoa" shows only in share images.
+- The "Sun & Air" section is now "Sky & Air" (Malagasy "Lanitra sy rivotra"). The "Default" font name is translated (Malagasy "Mahazatra").
+- Charts: the Android high and low labels use the same placement as the web, so they no longer cover the line at the edges. In Arabic, all chart labels keep the unit after the number.
+- Android: alert times use the app language and its digits.
+- Accessibility: share buttons say what they share; screen readers skip the hero icon and the clock emoji; on the web the temperature dial works from the keyboard. The UV, air quality and pollen badges have text at 4.5:1 or more.
+- Place list: distances show both units ("12 km · 7 mi").
+- Dials: the end labels stay clear of the knob. Tile titles wrap to 2 lines (Malagasy "Tahan'ny tara-masoandro" was cut).
+- Folded header: after a failed refresh, the refresh icon is red and its label says that the refresh failed.
+
 ## [1.6.20261030191159] - 2026-10-30
 - Alerts: each alert shows its level in words (Watch, Warning, Emergency; Malagasy Mailo, Tandremo, Loza) next to the title. Emergency has its own colour (purple) and icon. The number dots and source badges have dark text on light colours, or white on dark.
 - Web: the alert banner and its rows work from the keyboard (Enter or Space) and tell screen readers if they are open. Values that change units are read as their value, not as "Toggle units". The refresh button keeps the data age in its name. The page follows prefers-reduced-motion, and font sizes are in rem, so the browser text size applies.
