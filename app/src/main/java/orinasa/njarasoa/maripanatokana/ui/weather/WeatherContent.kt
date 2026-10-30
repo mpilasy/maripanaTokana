@@ -105,7 +105,6 @@ import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
@@ -886,7 +885,6 @@ internal fun WeatherContent(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .clip(RoundedCornerShape(50))
-                        .alpha(0.7f)
                         .combinedClickable(
                             onClick = onCycleFont,
                             role = Role.Button,
@@ -902,14 +900,14 @@ internal fun WeatherContent(
                         painter = painterResource(R.drawable.ic_font),
                         contentDescription = stringResource(R.string.cd_change_font),
                         modifier = Modifier.size(14.dp),
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = fontName.substringBefore(" + "),
                         fontSize = 11f.s(scale),
                         fontFamily = bodyFont,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                         maxLines = 1,
                     )
                 }
@@ -928,7 +926,7 @@ internal fun WeatherContent(
                                 text = stringResource(label),
                                 fontSize = 10f.s(scale),
                                 lineHeight = 13f.s(scale),
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                                 textDecoration = TextDecoration.Underline,
                                 modifier = Modifier
                                     .clickable(onClick = open, role = Role.Button)
@@ -940,7 +938,7 @@ internal fun WeatherContent(
                         text = "v${BuildConfig.VERSION_NAME}",
                         fontSize = 9f.s(scale),
                         lineHeight = 12f.s(scale),
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         textAlign = TextAlign.Center,
                     )
                 }
@@ -1595,7 +1593,7 @@ internal fun DailyForecastList(
                             text = localizeDigits(dayMonthFormat.format(Date(item.date))),
                             fontSize = 9f.s(scale),
                             fontFamily = bodyFont,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
                             textAlign = TextAlign.Center,
                             modifier = Modifier.fillMaxWidth(),
                         )
@@ -1923,7 +1921,7 @@ private fun DeviceTime(time: String, modifier: Modifier = Modifier) {
             text = time,
             fontSize = 9f.s(scale),
             fontFamily = LocalBodyFont.current,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
             style = TextStyle(fontFeatureSettings = LocalBodyFontFeatures.current),
         )
         Icon(
@@ -2008,7 +2006,7 @@ private fun TemperatureTile(data: WeatherData, metricPrimary: Boolean, localizeD
         footer = {
             LabeledValue(feltLabel, localizeDigits(flP), secondary = localizeDigits(flS), centered = true,
                 labelIcon = if (heatIndex != null) R.drawable.ic_heat else if (windChill != null) R.drawable.ic_cold else null,
-                labelIconTint = if (heatIndex != null) HeatOrange else ChillBlue)
+                labelIconTint = if (heatIndex != null) HeatOrange else ChillBlue, ltr = true)
         })
 }
 
@@ -2118,7 +2116,7 @@ private fun HumidityTile(data: WeatherData, metricPrimary: Boolean, localizeDigi
                 DialValue(localizeDigits("%d%%".format(Locale.US, h)))
             }
         } },
-        footer = { LabeledValue(stringResource(R.string.detail_dewpoint), localizeDigits(dewP), secondary = localizeDigits(dewS), centered = true) })
+        footer = { LabeledValue(stringResource(R.string.detail_dewpoint), localizeDigits(dewP), secondary = localizeDigits(dewS), centered = true, ltr = true) })
 }
 
 /** Sun / Moon, air quality / UV, cloud cover / visibility (without air quality: UV / cloud cover, then visibility). */
@@ -2400,8 +2398,11 @@ private fun LabeledValue(
     // An icon beside the value, as tall as the value and the other unit, in its colour
     labelIcon: Int? = null,
     labelIconTint: Color = Color.Unspecified,
+    // A number with its unit: keep the unit after the number in Arabic ("١٦°C", not "C°١٦")
+    ltr: Boolean = false,
 ) {
     val scale = LocalScale.current
+    val direction = if (ltr) TextDirection.Ltr else TextDirection.Unspecified
     val textAlign = when {
         centered -> TextAlign.Center
         end -> TextAlign.End
@@ -2427,7 +2428,7 @@ private fun LabeledValue(
                     fontFamily = LocalDisplayFont.current,
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = textAlign,
-                    style = TextStyle(fontFeatureSettings = LocalBodyFontFeatures.current),
+                    style = TextStyle(fontFeatureSettings = LocalBodyFontFeatures.current, textDirection = direction),
                 )
                 // The other unit under the value, smaller
                 secondary?.let {
@@ -2437,7 +2438,7 @@ private fun LabeledValue(
                         fontFamily = LocalDisplayFont.current,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         textAlign = textAlign,
-                        style = TextStyle(fontFeatureSettings = LocalBodyFontFeatures.current),
+                        style = TextStyle(fontFeatureSettings = LocalBodyFontFeatures.current, textDirection = direction),
                     )
                 }
             }
@@ -2466,7 +2467,8 @@ private fun DialValue(value: String, unit: String? = null, secondary: String? = 
             fontWeight = FontWeight.Bold,
             fontFamily = LocalDisplayFont.current,
             color = MaterialTheme.colorScheme.onSurface,
-            style = TextStyle(fontFeatureSettings = LocalBodyFontFeatures.current),
+            // Ltr: keep the unit after the number in Arabic ("١٦°C", not "C°١٦"), as on the web
+            style = TextStyle(fontFeatureSettings = LocalBodyFontFeatures.current, textDirection = TextDirection.Ltr),
         )
         unit?.let {
             Text(
@@ -2484,7 +2486,7 @@ private fun DialValue(value: String, unit: String? = null, secondary: String? = 
                 lineHeight = 14f.s(scale),
                 fontFamily = LocalDisplayFont.current,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                style = TextStyle(fontFeatureSettings = LocalBodyFontFeatures.current),
+                style = TextStyle(fontFeatureSettings = LocalBodyFontFeatures.current, textDirection = TextDirection.Ltr),
                 modifier = Modifier.padding(top = 2.dp),
             )
         }

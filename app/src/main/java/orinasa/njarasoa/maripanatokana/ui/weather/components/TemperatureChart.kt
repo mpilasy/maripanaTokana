@@ -208,7 +208,7 @@ fun TemperatureChart(
             val maxPoint = points[maxMiddleIdx]
             val maxTempObj = forecasts[maxMiddleIdx].temperature
             val maxTempText = maxTempObj.displayDual(metricPrimary).let { (p, s) -> "$p · $s" }
-            val maxLabelStyle = TextStyle(color = Color(0xFFFF7043), fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont)
+            val maxLabelStyle = TextStyle(color = Color(0xFFFF8A65), fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont)
             val maxLayout = textMeasurer.measure(dualLabel(maxTempText, maxLabelStyle.color), maxLabelStyle)
             val maxTextX = (maxPoint.x - maxLayout.size.width / 2f).coerceIn(4.dp.toPx(), width - maxLayout.size.width - 4.dp.toPx())
             // Above the peak, or under the line where it would cover a 00:00 or 12:00 label

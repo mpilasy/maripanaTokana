@@ -164,6 +164,9 @@
 	"alert_show_details": "عرض التفاصيل",
 	"alert_hide_details": "إخفاء التفاصيل",
 	"alert_count_title": "{count} تنبيهات",
+	"alert_level_watch": "مراقبة",
+	"alert_level_warning": "تحذير",
+	"alert_level_emergency": "طوارئ",
 	"locations_title": "المواقع",
 	"locations_search_hint": "البحث عن مدينة أو رمز بريدي",
 	"cardinal_directions": [

@@ -78,7 +78,6 @@
 		background: none;
 		border: none;
 		padding: 6px 8px;
-		opacity: 0.7;
 		border-radius: 999px;
 		transition: background 0.2s, transform 0.1s;
 		font-family: inherit;
@@ -100,12 +99,12 @@
 
 	.icon {
 		font-size: 13px;
-		color: rgba(255, 255, 255, 0.6);
+		color: rgba(255, 255, 255, 0.7);
 	}
 
 	.name {
 		font-size: 11px;
-		color: rgba(255, 255, 255, 0.6);
+		color: rgba(255, 255, 255, 0.7);
 		white-space: nowrap;
 	}
 
@@ -148,13 +147,13 @@
 		cursor: pointer;
 		font-size: 10px;
 		line-height: 13px;
-		color: rgba(255,255,255,0.5);
+		color: rgba(255,255,255,0.7);
 		text-decoration: underline;
 	}
 
 	.version {
 		font-size: 9px;
 		line-height: 12px;
-		color: rgba(255,255,255,0.3);
+		color: rgba(255,255,255,0.6);
 	}
 </style>

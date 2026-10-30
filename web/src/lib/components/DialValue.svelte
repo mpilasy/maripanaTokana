@@ -12,9 +12,10 @@
 
 <!-- `fill`: over the whole dial, to centre in it; false: only the text's own size -->
 <div class="dial-value" class:inline={!fill}>
-	<span class="value">{value}</span>
-	{#if unit}<span class="unit">{unit}</span>{/if}
-	{#if secondary}<span class="secondary">{secondary}</span>{/if}
+	<!-- dir="ltr": keep the unit after the number in Arabic ("١٦°C", not "C°١٦") -->
+	<span class="value" dir="ltr">{value}</span>
+	{#if unit}<span class="unit" dir="ltr">{unit}</span>{/if}
+	{#if secondary}<span class="secondary" dir="ltr">{secondary}</span>{/if}
 </div>
 {#if badge}
 	<div class="badge">{@render badge()}</div>

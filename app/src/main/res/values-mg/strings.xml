@@ -141,6 +141,9 @@
     <string name="alert_show_details">Asehoy ny andinindininy</string>
     <string name="alert_hide_details">Afeno ny andinindininy</string>
     <string name="alert_count_title">Filazana %1$s</string>
+    <string name="alert_level_watch">Mailo</string>
+    <string name="alert_level_warning">Tandremo</string>
+    <string name="alert_level_emergency">Loza</string>
     <string name="locations_title">Toerana</string>
     <string name="locations_search_hint">Anaran-tanàna na kaody</string>
     <string name="cd_change_font">Ovay ny endri-tsoratra</string>

@@ -214,7 +214,7 @@
 	{/each}
 
 	{#if maxPointInfo}
-		<text x={labelX(maxPointInfo.x)} y={maxPointInfo.y} text-anchor={anchor(maxPointInfo.x)} font-size="9" font-weight="bold" fill="#FF7043">{splitDual(maxPointInfo.label)[0]}{#if splitDual(maxPointInfo.label)[1]}<tspan font-size="0.8em" font-weight="500" fill-opacity="0.7">{" " + splitDual(maxPointInfo.label)[1]}</tspan>{/if}</text>
+		<text x={labelX(maxPointInfo.x)} y={maxPointInfo.y} text-anchor={anchor(maxPointInfo.x)} font-size="9" font-weight="bold" fill="#FF8A65">{splitDual(maxPointInfo.label)[0]}{#if splitDual(maxPointInfo.label)[1]}<tspan font-size="0.8em" font-weight="500" fill-opacity="0.7">{" " + splitDual(maxPointInfo.label)[1]}</tspan>{/if}</text>
 	{/if}
 	{#if minPointInfo}
 		<text x={labelX(minPointInfo.x)} y={minPointInfo.y} text-anchor={anchor(minPointInfo.x)} font-size="9" font-weight="bold" fill="#64B5F6">{splitDual(minPointInfo.label)[0]}{#if splitDual(minPointInfo.label)[1]}<tspan font-size="0.8em" font-weight="500" fill-opacity="0.7">{" " + splitDual(minPointInfo.label)[1]}</tspan>{/if}</text>

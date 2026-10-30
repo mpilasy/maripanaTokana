@@ -208,7 +208,7 @@ fun DailyTemperatureChart(
             }
             val warmest = maxTemps.indices.maxByOrNull { maxTemps[it] }
             val coldest = minTemps.indices.minByOrNull { minTemps[it] }
-            if (warmest != null) drawLabel(forecasts[warmest].tempMax.displayDual(metricPrimary).let { (p, s) -> "$p · $s" }, Color(0xFFFF7043), maxPoints[warmest], above = true)
+            if (warmest != null) drawLabel(forecasts[warmest].tempMax.displayDual(metricPrimary).let { (p, s) -> "$p · $s" }, Color(0xFFFF8A65), maxPoints[warmest], above = true)
             if (coldest != null) drawLabel(forecasts[coldest].tempMin.displayDual(metricPrimary).let { (p, s) -> "$p · $s" }, Color(0xFF64B5F6), minPoints[coldest], above = false)
 
             // The part of the row scrolled into view, as a light band

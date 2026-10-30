@@ -7,6 +7,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,6 +43,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -55,6 +58,43 @@ import orinasa.njarasoa.maripanatokana.ui.weather.LocalScale
 import orinasa.njarasoa.maripanatokana.ui.weather.s
 import orinasa.njarasoa.maripanatokana.ui.weather.sd
 
+// The level colours, as on the web (WeatherAlertBanner.svelte). Dark text on them is at least 5:1.
+private fun levelColor(level: AlertLevel): Color = when (level) {
+    AlertLevel.WATCH -> Color(0xFFFFA500)
+    AlertLevel.WARNING -> Color(0xFFFF4444)
+    AlertLevel.EMERGENCY -> Color(0xFFE040FB)
+}
+
+private val OnLevel = Color(0xFF1A1A1A)
+
+private fun levelIcon(level: AlertLevel): String = when (level) {
+    AlertLevel.WATCH -> "⚠️"
+    AlertLevel.WARNING -> "❗"
+    AlertLevel.EMERGENCY -> "🚨"
+}
+
+/** The level in words, so that it does not depend on colour only. */
+@Composable
+private fun AlertLevelLabel(level: AlertLevel) {
+    val scale = LocalScale.current
+    Text(
+        text = stringResource(
+            when (level) {
+                AlertLevel.WATCH -> R.string.alert_level_watch
+                AlertLevel.WARNING -> R.string.alert_level_warning
+                AlertLevel.EMERGENCY -> R.string.alert_level_emergency
+            }
+        ).uppercase(),
+        fontSize = 11f.s(scale),
+        fontWeight = FontWeight.ExtraBold,
+        color = OnLevel,
+        maxLines = 1,
+        modifier = Modifier
+            .background(levelColor(level), RoundedCornerShape(4.dp))
+            .padding(horizontal = 6.sd(scale), vertical = 2.sd(scale))
+    )
+}
+
 @Composable
 private fun AlertSourceBadge(
     alert: WeatherAlert,
@@ -62,10 +102,11 @@ private fun AlertSourceBadge(
     fontSize: TextUnit = 10.sp,
 ) {
     val scale = LocalScale.current
+    // White on a dark tint, or dark on white for a link: both at least 4.5:1 on every banner colour
     Surface(
-        color = if (alert.link != null) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+        color = if (alert.link != null) Color.White.copy(alpha = 0.85f) else Color.Black.copy(alpha = 0.3f),
         shape = RoundedCornerShape(4.dp),
-        modifier = if (alert.link != null) Modifier.clickable {
+        modifier = if (alert.link != null) Modifier.clickable(role = Role.Button) {
             try { uriHandler.openUri(alert.link) } catch (_: Exception) {}
         } else Modifier
     ) {
@@ -73,7 +114,7 @@ private fun AlertSourceBadge(
             text = alert.source.uppercase(),
             fontSize = fontSize,
             fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.onSurface,
+            color = if (alert.link != null) OnLevel else Color.White,
             modifier = Modifier.padding(horizontal = 4.sd(scale), vertical = 2.sd(scale))
         )
     }
@@ -100,10 +141,9 @@ fun WeatherAlertBanner(
         else -> AlertLevel.WATCH
     }
 
-    val bannerColor = when (topLevel) {
-        AlertLevel.WATCH -> Color(0xFFFFA500).copy(alpha = 0.15f)
-        else -> Color(0xFFFF4444).copy(alpha = 0.15f)
-    }
+    val bannerColor = levelColor(topLevel).copy(alpha = 0.15f)
+    val showDetails = stringResource(R.string.alert_show_details)
+    val hideDetails = stringResource(R.string.alert_hide_details)
 
     val topAlert = alerts.find { it.level == topLevel } ?: alerts.first()
     val distinctSources = remember(alerts) { alerts.map { it.source }.distinct() }
@@ -120,7 +160,10 @@ fun WeatherAlertBanner(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onToggle() }
+                    .clickable(
+                        role = Role.Button,
+                        onClickLabel = if (expanded) hideDetails else showDetails,
+                    ) { onToggle() }
                     .padding(12.sd(scale)),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -130,9 +173,12 @@ fun WeatherAlertBanner(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        text = if (topLevel == AlertLevel.WATCH) "⚠️" else "❗",
-                        fontSize = 18f.s(scale)
+                        text = levelIcon(topLevel),
+                        fontSize = 18f.s(scale),
+                        modifier = Modifier.clearAndSetSemantics {}
                     )
+                    Spacer(modifier = Modifier.width(8.sd(scale)))
+                    AlertLevelLabel(topLevel)
                     Spacer(modifier = Modifier.width(8.sd(scale)))
                     Column(modifier = Modifier.weight(1f)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -196,29 +242,32 @@ fun WeatherAlertBanner(
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .let { if (collapsible) it.clickable { itemExpanded = !itemExpanded } else it }
+                                .let {
+                                    if (collapsible) it.clickable(
+                                        role = Role.Button,
+                                        onClickLabel = if (itemExpanded) hideDetails else showDetails,
+                                    ) { itemExpanded = !itemExpanded } else it
+                                }
                                 .animateContentSize()
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 if (alerts.size > 1) {
-                                    val circleColor = when (alert.level) {
-                                        AlertLevel.WATCH -> Color(0xFFFFA500)
-                                        else -> Color(0xFFFF4444)
-                                    }
                                     Surface(
-                                        color = circleColor,
+                                        color = levelColor(alert.level),
                                         shape = CircleShape,
-                                        modifier = Modifier.size(18.sd(scale))
+                                        modifier = Modifier.size(18.sd(scale)).clearAndSetSemantics {}
                                     ) {
                                         Box(contentAlignment = Alignment.Center) {
                                             Text(
                                                 text = "${index + 1}",
                                                 fontSize = 10f.s(scale),
                                                 fontWeight = FontWeight.Bold,
-                                                color = MaterialTheme.colorScheme.onSurface
+                                                color = OnLevel
                                             )
                                         }
                                     }
+                                    Spacer(modifier = Modifier.width(6.sd(scale)))
+                                    AlertLevelLabel(alert.level)
                                     Spacer(modifier = Modifier.width(6.sd(scale)))
                                 }
                                 val title = context.resources.getIdentifier(alert.titleKey, "string", context.packageName).let { id ->

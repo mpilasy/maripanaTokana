@@ -87,7 +87,7 @@
 	.badge {
 		/* A tint of the level's colour, with the text in a lighter shade of it */
 		background: color-mix(in srgb, var(--tier) 22%, transparent);
-		color: color-mix(in srgb, var(--tier) 70%, white);
+		color: color-mix(in srgb, var(--tier) 50%, white);
 		font-family: var(--font-display);
 		font-size: 13px;
 		font-weight: 700;

@@ -6,8 +6,10 @@
 	 * A small label with its value under it (and the other unit under that, smaller), at the start or
 	 * the end of a card's bottom row (like sunrise and sunset), or in its middle.
 	 */
-	let { label, value, secondary, end = false, centered = false, icon }: {
+	let { label, value, secondary, end = false, centered = false, icon, ltr = false }: {
 		label: string; value: string; secondary?: string; end?: boolean; centered?: boolean;
+		/** A number with its unit: keep the unit after the number in Arabic ("١٦°C", not "C°١٦") */
+		ltr?: boolean;
 		/** An icon beside the value, as tall as the value and the other unit: a thermometer with a plus for the heat index, with a minus for the wind chill. */
 		icon?: { kind: 'heat' | 'cold'; color: string } | null;
 	} = $props();
@@ -16,7 +18,7 @@
 <span class="labeled" class:end class:centered
 	><span class="label">{label}</span
 	><!-- The icon beside the value and the other unit, as tall as both --><span class="values-row"
-		>{#if icon}<FeltIcon kind={icon.kind} color={icon.color} />{/if}<span class="values">{value}{#if secondary}<span class="secondary">{secondary}</span>{/if}</span></span
+		>{#if icon}<FeltIcon kind={icon.kind} color={icon.color} />{/if}<span class="values"><bdi dir={ltr ? 'ltr' : undefined}>{value}</bdi>{#if secondary}<span class="secondary" dir={ltr ? 'ltr' : undefined}>{secondary}</span>{/if}</span></span
 	></span
 >
 

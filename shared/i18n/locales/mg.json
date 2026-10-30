@@ -164,6 +164,9 @@
 	"alert_show_details": "Asehoy ny andinindininy",
 	"alert_hide_details": "Afeno ny andinindininy",
 	"alert_count_title": "Filazana {count}",
+	"alert_level_watch": "Mailo",
+	"alert_level_warning": "Tandremo",
+	"alert_level_emergency": "Loza",
 	"locations_title": "Toerana",
 	"locations_search_hint": "Anaran-tanàna na kaody",
 	"cardinal_directions": [

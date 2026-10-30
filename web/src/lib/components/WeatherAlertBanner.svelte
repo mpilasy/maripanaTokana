@@ -33,6 +33,15 @@
 	let topAlert = $derived(alerts.find(a => a.level === topLevel) || alerts[0]);
 	let localeTag = $derived(SUPPORTED_LOCALES[$localeIndex].tag);
 
+	const LEVEL_ICON: Record<string, string> = { watch: '⚠️', warning: '❗', emergency: '🚨' };
+
+	// Enter or Space opens a header or a row, as on a button. Keys on the source links inside it stay with the links.
+	function onKey(e: KeyboardEvent, toggle: () => void) {
+		if (e.target !== e.currentTarget || (e.key !== 'Enter' && e.key !== ' ')) return;
+		e.preventDefault();
+		toggle();
+	}
+
 	const LEVEL_RANK: Record<string, number> = { watch: 0, warning: 1, emergency: 2 };
 	let distinctSources = $derived([...new Set(alerts.map(a => a.source))]);
 	// One representative alert per source (the most severe) to back that source's badge link.
@@ -45,18 +54,12 @@
 </script>
 
 {#if alerts.length > 0 && topAlert}
-	<div class="alert-banner" class:watch={topLevel === 'watch'} class:warning={topLevel === 'warning' || topLevel === 'emergency'}>
-		<!-- svelte-ignore a11y_click_events_have_key_events -->
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="banner-header" onclick={() => onToggle?.()}>
+	<div class="alert-banner level-{topLevel}">
+		<!-- The header holds the source links, so it is a role="button" and not a <button> -->
+		<div class="banner-header" role="button" tabindex="0" aria-expanded={expanded} onclick={() => onToggle?.()} onkeydown={(e) => onKey(e, () => onToggle?.())}>
 			<div class="icon-text">
-				<span class="alert-icon">
-					{#if topLevel === 'watch'}
-						&#9888;
-					{:else}
-						&#10071;
-					{/if}
-				</span>
+				<span class="alert-icon" aria-hidden="true">{LEVEL_ICON[topLevel]}</span>
+				<span class="level-label level-{topLevel}">{$_(`alert_level_${topLevel}`)}</span>
 				<span class="alert-title">
 					{#if alerts.length > 1}
 						{$_('alert_count_title', { values: { count: alerts.length } })}
@@ -85,7 +88,7 @@
 				{/if}
 			</div>
 			<span class="spacer"></span>
-			<span class="chevron" class:expanded={expanded}>&#9660;</span>
+			<span class="chevron" class:expanded={expanded} aria-hidden="true">&#9660;</span>
 		</div>
 
 		{#if expanded}
@@ -94,14 +97,15 @@
 					{@const collapsible = alerts.length > 1}
 					{@const itemExpanded = !collapsible || expandedItems.has(index)}
 					<div class="alert-item">
-						<!-- svelte-ignore a11y_click_events_have_key_events -->
-						<!-- svelte-ignore a11y_no_static_element_interactions -->
-						<div class="item-title-row" class:clickable-row={collapsible} onclick={() => collapsible && toggleItem(index)}>
+						<!-- The row is a button only when it folds; svelte-check cannot see the dynamic role -->
+						<!-- svelte-ignore a11y_no_static_element_interactions, a11y_no_noninteractive_tabindex -->
+						<div class="item-title-row" class:clickable-row={collapsible}
+							role={collapsible ? 'button' : undefined} tabindex={collapsible ? 0 : undefined} aria-expanded={collapsible ? itemExpanded : undefined}
+							onclick={() => collapsible && toggleItem(index)} onkeydown={(e) => collapsible && onKey(e, () => toggleItem(index))}>
 							<div class="item-title-group">
 								{#if alerts.length > 1}
-									<span class="alert-number" class:watch={alert.level === 'watch'} class:warning={alert.level !== 'watch'}>
-										{index + 1}
-									</span>
+									<span class="alert-number level-{alert.level}" aria-hidden="true">{index + 1}</span>
+									<span class="level-label level-{alert.level}">{$_(`alert_level_${alert.level}`)}</span>
 								{/if}
 								<div class="item-title">{alert.title}</div>
 							</div>
@@ -114,7 +118,7 @@
 									<span class="source-badge">{alert.source.toUpperCase()}</span>
 								{/if}
 								{#if collapsible}
-									<span class="chevron item-chevron" class:expanded={itemExpanded}>&#9660;</span>
+									<span class="chevron item-chevron" class:expanded={itemExpanded} aria-hidden="true">&#9660;</span>
 								{/if}
 							</div>
 						</div>
@@ -148,14 +152,26 @@
 		transition: background 0.2s;
 	}
 
-	.alert-banner.watch {
-		border-left-color: #FFA500;
-		background: rgba(255, 165, 0, 0.15);
+	/* The level colours, as on Android (WeatherAlertBanner.kt). Dark text on them is at least 5:1. */
+	.level-watch { --level: #FFA500; }
+	.level-warning { --level: #FF4444; }
+	.level-emergency { --level: #E040FB; }
+
+	.alert-banner {
+		border-left-color: var(--level);
+		background: color-mix(in srgb, var(--level) 15%, transparent);
 	}
 
-	.alert-banner.warning {
-		border-left-color: #FF4444;
-		background: rgba(255, 68, 68, 0.15);
+	.level-label {
+		flex-shrink: 0;
+		background: var(--level);
+		color: #1A1A1A;
+		padding: 2px 6px;
+		border-radius: 4px;
+		font-size: 11px;
+		font-weight: 800;
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
 	}
 
 	.banner-header {
@@ -166,6 +182,19 @@
 		gap: 12px;
 		cursor: pointer;
 		user-select: none;
+	}
+
+	.banner-header:focus-visible, .item-title-row:focus-visible {
+		outline: 2px solid rgba(255, 255, 255, 0.7);
+		border-radius: 12px;
+	}
+
+	.banner-header:focus-visible {
+		outline-offset: -2px;
+	}
+
+	.item-title-row:focus-visible {
+		outline-offset: 4px;
 	}
 
 	.icon-text {
@@ -193,8 +222,9 @@
 		gap: 4px;
 	}
 
-.source-badge {
-		background: rgba(255, 255, 255, 0.2);
+	/* White on a dark tint, or dark on white for a link: both at least 4.5:1 on every banner colour */
+	.source-badge {
+		background: rgba(0, 0, 0, 0.3);
 		padding: 2px 6px;
 		border-radius: 4px;
 		font-size: 10px;
@@ -210,12 +240,13 @@
 	}
 
 	.source-badge.clickable {
-		background: rgba(255, 255, 255, 0.4);
+		background: rgba(255, 255, 255, 0.85);
+		color: #1A1A1A;
 		transition: background 0.2s;
 	}
 
 	.source-badge.clickable:hover {
-		background: rgba(255, 255, 255, 0.6);
+		background: white;
 	}
 
 	.chevron {
@@ -279,15 +310,8 @@
 		border-radius: 50%;
 		font-size: 10px;
 		font-weight: 800;
-		color: white;
-	}
-
-	.alert-number.watch {
-		background: #FFA500;
-	}
-
-	.alert-number.warning {
-		background: #FF4444;
+		color: #1A1A1A;
+		background: var(--level);
 	}
 
 	.alert-item:first-child {

@@ -150,7 +150,7 @@
 			</Gauge>
 		{/snippet}
 		{#snippet footerSnippet()}
-			<LabeledValue label={feltLabel} value={loc(feltDual[0])} secondary={loc(feltDual[1])} centered icon={heat ? { kind: 'heat', color: HEAT_COLOR } : felt ? { kind: 'cold', color: CHILL_COLOR } : null} />
+			<LabeledValue label={feltLabel} value={loc(feltDual[0])} secondary={loc(feltDual[1])} centered ltr icon={heat ? { kind: 'heat', color: HEAT_COLOR } : felt ? { kind: 'cold', color: CHILL_COLOR } : null} />
 		{/snippet}
 	</DetailCard>
 {/snippet}
@@ -236,7 +236,7 @@
 			{/if}
 		{/snippet}
 		{#snippet footerSnippet()}
-			<LabeledValue label={$_('detail_dewpoint')} value={loc(dewDual[0])} secondary={loc(dewDual[1])} centered />
+			<LabeledValue label={$_('detail_dewpoint')} value={loc(dewDual[0])} secondary={loc(dewDual[1])} centered ltr />
 		{/snippet}
 	</DetailCard>
 {/snippet}

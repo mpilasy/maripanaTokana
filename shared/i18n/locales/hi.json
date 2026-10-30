@@ -164,6 +164,9 @@
 	"alert_show_details": "विवरण दिखाएँ",
 	"alert_hide_details": "विवरण छिपाएँ",
 	"alert_count_title": "{count} अलर्ट",
+	"alert_level_watch": "निगरानी",
+	"alert_level_warning": "चेतावनी",
+	"alert_level_emergency": "आपातकाल",
 	"locations_title": "स्थान",
 	"locations_search_hint": "शहर या ज़िप कोड खोजें",
 	"cardinal_directions": [

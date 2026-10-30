@@ -1,7 +1,6 @@
 <!-- SPDX-FileCopyrightText: Orinasa Njarasoa -->
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
-	import { _ } from 'svelte-i18n';
 	interface Props {
 		primary: string;
 		secondary: string;
@@ -31,7 +30,6 @@
 		class="dual-unit clickable"
 		style:text-align={align}
 		onclick={onClick}
-		aria-label={$_('cd_toggle_units')}
 	>
 		{@render content()}
 	</button>

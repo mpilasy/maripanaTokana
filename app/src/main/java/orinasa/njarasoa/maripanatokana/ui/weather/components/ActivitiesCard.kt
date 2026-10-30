@@ -116,7 +116,7 @@ private fun ActivityRow(
             fontFamily = LocalDisplayFont.current,
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold,
-            color = lerp(tint, Color.White, 0.3f),
+            color = lerp(tint, Color.White, 0.5f),
             modifier = Modifier
                 .clip(RoundedCornerShape(12.dp))
                 .background(tint.copy(alpha = 0.22f))

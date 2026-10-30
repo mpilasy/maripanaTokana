@@ -164,6 +164,9 @@
 	"alert_show_details": "Ver detalles",
 	"alert_hide_details": "Ocultar detalles",
 	"alert_count_title": "{count} alertas",
+	"alert_level_watch": "Vigilancia",
+	"alert_level_warning": "Aviso",
+	"alert_level_emergency": "Emergencia",
 	"locations_title": "Ubicaciones",
 	"locations_search_hint": "Buscar ciudad o código postal",
 	"cardinal_directions": [

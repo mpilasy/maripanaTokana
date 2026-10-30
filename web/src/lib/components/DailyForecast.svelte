@@ -328,7 +328,7 @@
 
 	.day-date {
 		font-size: 9px;
-		color: rgba(255,255,255,0.4);
+		color: rgba(255,255,255,0.65);
 		width: 100%;
 		text-align: center;
 	}

@@ -11,7 +11,7 @@ val SkyBlue = Color(0xFF64B5F6)
 // The dew point line, next to the SkyBlue humidity line
 val DewAmber = Color(0xFFFFB74D)
 // Heat index and wind chill
-val HeatOrange = Color(0xFFFF7043)
+val HeatOrange = Color(0xFFFF8A65)
 val ChillBlue = Color(0xFF90CAF9)
 /** The faint line at freezing (0 °C, 32 °F) in the temperature charts. */
 val FreezingLine = Color(0x5990CAF9)

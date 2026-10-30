@@ -141,6 +141,9 @@
     <string name="alert_show_details">Voir les détails</string>
     <string name="alert_hide_details">Masquer les détails</string>
     <string name="alert_count_title">%1$s alertes</string>
+    <string name="alert_level_watch">Vigilance</string>
+    <string name="alert_level_warning">Alerte</string>
+    <string name="alert_level_emergency">Urgence</string>
     <string name="locations_title">Emplacements</string>
     <string name="locations_search_hint">Rechercher une ville ou un code postal</string>
     <string name="cd_change_font">Changer la police</string>

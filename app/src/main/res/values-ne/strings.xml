@@ -141,6 +141,9 @@
     <string name="alert_show_details">विवरण देखाउनुहोस्</string>
     <string name="alert_hide_details">विवरण लुकाउनुहोस्</string>
     <string name="alert_count_title">%1$s अलर्ट</string>
+    <string name="alert_level_watch">निगरानी</string>
+    <string name="alert_level_warning">चेतावनी</string>
+    <string name="alert_level_emergency">आपतकाल</string>
     <string name="locations_title">स्थानहरू</string>
     <string name="locations_search_hint">सहर वा जिप कोड खोज्नुहोस्</string>
     <string name="cd_change_font">फन्ट परिवर्तन गर्नुहोस्</string>
