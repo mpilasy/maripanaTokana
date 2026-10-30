@@ -3,6 +3,7 @@
 <script lang="ts">
 	import { heatIndex, windChill } from '#lib/domain/thermalIndices.js';
 	import { HEAT_COLOR, CHILL_COLOR } from '#lib/utils/feltColors.js';
+	import { equalRowTitles } from '#lib/utils/equalRowTitles.js';
 	import WeatherIcon from './WeatherIcon.svelte';
 	import { _, json } from 'svelte-i18n';
 	import { isDaytime, type WeatherData } from '#lib/domain/weatherData.js';
@@ -162,7 +163,7 @@
 	let moonDown = $derived(moon.position.altitude < 0);
 </script>
 
-<div class="conditions-grid">
+<div class="conditions-grid" use:equalRowTitles>
 	{#if part === 'now'}{@render nowTiles()}{:else}{@render skyTiles()}{/if}
 </div>
 

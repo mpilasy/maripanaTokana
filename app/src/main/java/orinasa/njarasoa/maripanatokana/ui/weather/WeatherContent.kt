@@ -99,6 +99,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -106,6 +107,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.staticCompositionLocalOf
 import orinasa.njarasoa.maripanatokana.domain.model.ActivityIndices
 import orinasa.njarasoa.maripanatokana.ui.weather.components.ActivitiesCard
@@ -2129,12 +2131,25 @@ internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeForma
 /** Two tiles side by side, as tall as the taller one. */
 @Composable
 private fun TileRow(content: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
-        horizontalArrangement = Arrangement.spacedBy(10.sd(LocalScale.current)),
-        content = content,
-    )
+    CompositionLocalProvider(LocalRowTitles provides remember { RowTitles() }) {
+        Row(
+            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+            horizontalArrangement = Arrangement.spacedBy(10.sd(LocalScale.current)),
+            content = content,
+        )
+    }
 }
+
+/**
+ * The line counts of the tile titles in one row. Each title takes as many lines as the longest one,
+ * so the dials under them line up when one title wraps. Twin: web/src/lib/utils/equalRowTitles.ts.
+ */
+private class RowTitles {
+    val lines = mutableStateMapOf<Any, Int>()
+    val maxLines: Int get() = lines.values.maxOrNull() ?: 1
+}
+
+private val LocalRowTitles = staticCompositionLocalOf<RowTitles?> { null }
 
 /** Every tile: the title, one graphic in the middle with the values in it, labels in the bottom row. */
 @Composable
@@ -2487,6 +2502,9 @@ internal fun DetailCard(
             if (title != null) {
                 // The title wraps to two lines; a title still cut short shows in full while held
                 var titleCut by remember(title) { mutableStateOf(false) }
+                val rowTitles = LocalRowTitles.current
+                val titleKey = remember { Any() }
+                DisposableEffect(rowTitles) { onDispose { rowTitles?.lines?.remove(titleKey) } }
                 TooltipBox(
                     positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
                     tooltip = { PlainTooltip { Text(title) } },
@@ -2496,10 +2514,17 @@ internal fun DetailCard(
                     Text(
                         text = title,
                         fontSize = 13f.s(scale),
+                        // Two lines close together, as on the web
+                        lineHeight = 17f.s(scale),
                         fontFamily = bodyFont,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         maxLines = 2,
-                        onTextLayout = { titleCut = it.hasVisualOverflow },
+                        // As many lines as the longest title in the row (minLines adds height, not lines)
+                        minLines = (rowTitles?.maxLines ?: 1).coerceIn(1, 2),
+                        onTextLayout = {
+                            titleCut = it.hasVisualOverflow
+                            rowTitles?.lines?.set(titleKey, it.lineCount)
+                        },
                         // Clear of the corner graphic
                         modifier = if (cornerContent != null) Modifier.padding(end = 34.dp) else Modifier,
                     )
