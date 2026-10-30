@@ -6,7 +6,9 @@
 Usage: VT_API_KEY=... scripts/virustotal_check.py FILE [FILE...]
 
 Uploads each FILE (or uses the result VirusTotal already has for its SHA-256),
-waits for the analyses, and prints the results. The files are scanned at the
+waits for the analyses, and prints the results. When VirusTotal already has the
+file but no result yet (for example, an earlier run uploaded it), the script
+waits for that result and does not upload the file again. The files are scanned at the
 same time. Exits with 1 if one or more engines say "malicious" for a file.
 "Suspicious" results are printed but do not fail. The public API allows 4
 requests a minute, so the script waits 15 s between requests.
@@ -76,6 +78,7 @@ def main():
 
     failed = 0
     pending = {}  # analysis ID -> (path, sha256)
+    known = {}  # sha256 -> path, for files that VirusTotal has but has not analysed yet
     for path in sys.argv[1:]:
         with open(path, "rb") as f:
             sha256 = hashlib.sha256(f.read()).hexdigest()
@@ -84,22 +87,43 @@ def main():
             if attrs.get("last_analysis_results"):
                 print(f"File: {path}\nSHA-256: {sha256}\nVirusTotal already has a result for this file.")
                 failed |= report(attrs["last_analysis_stats"], attrs["last_analysis_results"], sha256)
-                continue
+            else:
+                known[sha256] = path
+                print(f"VirusTotal has {path} but no result yet. Waiting for the analysis...")
+            continue
         except urllib.error.HTTPError as e:
             if e.code != 404:
                 raise
-        pending[upload(path, key)] = (path, sha256)
-        print(f"Uploaded {path}. Waiting for the analysis...")
+        try:
+            pending[upload(path, key)] = (path, sha256)
+            print(f"Uploaded {path}. Waiting for the analysis...")
+        except urllib.error.HTTPError as e:
+            # 409: the file is already being uploaded or analysed
+            if e.code != 409:
+                raise
+            known[sha256] = path
+            print(f"VirusTotal is already analysing {path}. Waiting for the analysis...")
 
     deadline = time.time() + TIMEOUT
-    while pending and time.time() < deadline:
+    while (pending or known) and time.time() < deadline:
         for analysis, (path, sha256) in list(pending.items()):
             attrs = request("GET", f"/analyses/{analysis}", key)["data"]["attributes"]
             if attrs.get("status") == "completed":
                 print(f"File: {path}\nSHA-256: {sha256}")
                 failed |= report(attrs["stats"], attrs.get("results", {}), sha256)
                 del pending[analysis]
-    for path, _ in pending.values():
+        for sha256, path in list(known.items()):
+            try:
+                attrs = request("GET", f"/files/{sha256}", key)["data"]["attributes"]
+            except urllib.error.HTTPError as e:
+                if e.code != 404:
+                    raise
+                continue
+            if attrs.get("last_analysis_results"):
+                print(f"File: {path}\nSHA-256: {sha256}")
+                failed |= report(attrs["last_analysis_stats"], attrs["last_analysis_results"], sha256)
+                del known[sha256]
+    for path in [p for p, _ in pending.values()] + list(known.values()):
         print(f"The VirusTotal analysis of {path} did not complete in time", file=sys.stderr)
         failed = 1
     return failed
