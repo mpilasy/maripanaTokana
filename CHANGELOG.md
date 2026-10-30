@@ -9,6 +9,11 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261030204811] - 2026-10-30
+- Tiles: the dials in one row line up when one title wraps to two lines (for example Malagasy "Tahan'ny tara-masoandro" next to "Hadion'ny rivotra"). Each title in a row takes as many lines as the longest one.
+- Android: the two lines of a tile title sit close together, as on the web.
+- Release workflow: the VirusTotal check waits for a file that VirusTotal already has instead of uploading it again. A rerun had failed with "409 Conflict".
+
 ## [1.6.20261030194342] - 2026-10-30
 - Folded header: the place name always shows (on a narrow phone such as the Xperia XZ2 Compact it disappeared when the place was not the current location). The heart and pin hide while the header is folded, and the local-time chip shows only if it fits in full.
 - Temperature tile: today's low and high at the dial ends, in both units; the footer shows only the heat index or the wind chill (the hero already shows "Feels like").
