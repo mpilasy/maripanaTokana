@@ -9,6 +9,14 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261030023347] - 2026-10-30
+- Android, Pirate Weather: the minutely nowcast card now works (the app reads the minutely block of the response, as the web does).
+- Pirate Weather: the Android app and the web now give the same values for the same response. The web shows the next 24 hours from now (before: the first 48 hours of the response, which could include past hours), uses the current temperature for today's low and high when there is no daily data, and shows no rain or snow at 0 mm. Android rounds percentages and visibility to the nearest whole number (before: cut down) and shows no value, not 0, when the response has no humidity, cloud cover, visibility, wind direction or UV index. Both use the same weather codes for the Pirate Weather icons: drizzle 53, rain 63, sleet 66 (freezing rain, with the sleet icon), snow 73, thunderstorm 95 and wind 3.
+- Alerts: MeteoAlarm alerts stay when the region name is empty or blank (before, Android dropped them all). The web now uses the Android rules: it skips a MeteoAlarm entry with no event name, reads the severity in any case, gives no time for an onset it cannot read, and gives an unknown NHC storm type the title "NHC: {name}".
+- Android: the daily humidity from Open-Meteo and the moon's lit percentage round .5 up, as on the web.
+- Code: long functions split into smaller ones with the same structure on both platforms (alerts, Pirate Weather, activity indices, weather fetch, forecast cards, detail tiles, sun tile); lookup tables are maps. The screens do not change. Average cyclomatic complexity 2.4; 2 functions above lizard's limits (19 before).
+- Web dependencies: `@sveltejs/kit` 3.1.1 and `@sveltejs/adapter-node` 6.0.1.
+
 ## [1.6.20261029195135] - 2026-10-29
 - Sun tile in a polar night or midnight sun (Open-Meteo sends sunrise and sunset at 00:00 for them): no arc and no times, but "Polar night" or "Midnight sun" in the middle of the tile with the first and last day of the period ("Since" / "Until"), calculated on the device from the sun's declination. In a midnight sun, the sun's azimuth shows under the dates. Malagasy: "Tsy miposaka ny masoandro", "Tsy mody ny masoandro", "Nanomboka", "Vita".
 - Day and night icons: a polar night is night all day and a midnight sun is day all day (the main card, the hourly cards, the tiles and the widgets). Before, the 00:00 card showed a sun in a polar night.

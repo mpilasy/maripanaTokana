@@ -50,7 +50,7 @@
 			<span class="dot">·</span>
 			<button type="button" class="about-link" onclick={onOpenAbout}>{$_('about_title')}</button>
 		</span>
-		<span class="version">v1.6.20261029195135</span>
+		<span class="version">v1.6.20261030023347</span>
 	</div>
 	<span class="picker-box">
 		<button type="button" class="pill" onclick={onCycleLanguage} use:longPress={() => (pickerOpen = true)} aria-label={$_('cd_change_language')}>

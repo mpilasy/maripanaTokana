@@ -1,7 +1,7 @@
 {
 	"name": "maripanatokana-web",
 	"private": true,
-	"version": "1.6.20261029195135",
+	"version": "1.6.20261030023347",
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",
@@ -17,8 +17,8 @@
 		"svelte-i18n": "^4.0.0"
 	},
 	"devDependencies": {
-		"@sveltejs/adapter-node": "^6.0.0",
-		"@sveltejs/kit": "^3.1.0",
+		"@sveltejs/adapter-node": "^6.0.1",
+		"@sveltejs/kit": "^3.1.1",
 		"@sveltejs/vite-plugin-svelte": "^7.3.1",
 		"@types/node": "^26.6.4",
 		"svelte": "^5.57.3",
