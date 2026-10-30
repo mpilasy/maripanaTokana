@@ -152,15 +152,8 @@ class WeatherRepositoryImpl @Inject constructor(
         val countryInfo = countryResolver.resolve(lat, lon)
         val countryCode = countryInfo?.countryCode
 
-        // Coordinate-based fallbacks so a Geocoder failure (e.g. no geocoder backend on some
-        // de-Googled/F-Droid devices) doesn't silently suppress a country-gated source.
-        val inUS = countryCode == "us" || CountryBoundingBoxes.isInUS(lat, lon)
-        val inCanada = countryCode == "ca" || CountryBoundingBoxes.isInCanada(lat, lon)
-        val inAustralia = countryCode == "au" || CountryBoundingBoxes.isInAustralia(lat, lon)
-        val inJapan = JmaAreaCodes.isInJapan(lat, lon)
+        val region = AlertRegions.of(lat, lon, countryCode)
         val meteoAlarmSlug = countryCode?.let { METEOALARM_SLUGS[it] }
-
-        val coveredByRegional = inUS || inCanada || inAustralia || countryCode in METEOALARM_COUNTRIES || inJapan
 
         val failed = java.util.concurrent.CopyOnWriteArrayList<String>()
 
@@ -180,15 +173,15 @@ class WeatherRepositoryImpl @Inject constructor(
 
         try {
             val sources = listOf(
-                source("NWS", settings.alertsNwsEnabled && inUS) { nwsAlerts(lat, lon) },
+                source("NWS", settings.alertsNwsEnabled && region.inUS) { nwsAlerts(lat, lon) },
                 // Skipped when a regional source covers the area
-                source("GDACS", settings.alertsGdacsEnabled && !coveredByRegional) { gdacsAlerts(lat, lon) },
+                source("GDACS", settings.alertsGdacsEnabled && !region.coveredByRegional) { gdacsAlerts(lat, lon) },
                 source("MeteoAlarm", settings.alertsMeteoAlarmEnabled) {
                     meteoAlarmSlug?.let { meteoAlarmAlerts(it, countryInfo?.subdivision) } ?: emptyList()
                 },
-                source("JMA", settings.alertsJmaEnabled && inJapan) { jmaAlerts(lat, lon) },
-                source("ECCC", settings.alertsEcccEnabled && inCanada) { ecccAlerts(lat, lon) },
-                source("BOM", settings.alertsBomEnabled && inAustralia) { bomAlerts(countryInfo?.adminArea) },
+                source("JMA", settings.alertsJmaEnabled && region.inJapan) { jmaAlerts(lat, lon) },
+                source("ECCC", settings.alertsEcccEnabled && region.inCanada) { ecccAlerts(lat, lon) },
+                source("BOM", settings.alertsBomEnabled && region.inAustralia) { bomAlerts(countryInfo?.adminArea) },
                 source("NHC", settings.alertsNhcEnabled) { nhcAlerts(lat, lon) },
             ).map { it.await() }
 
@@ -199,6 +192,30 @@ class WeatherRepositoryImpl @Inject constructor(
             throw e
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+
+    /** The regions with their own alert source that hold the place. The web has the same in `alerts/index.ts`. */
+    private class AlertRegions(
+        val inUS: Boolean,
+        val inCanada: Boolean,
+        val inAustralia: Boolean,
+        val inJapan: Boolean,
+        val inMeteoAlarm: Boolean,
+    ) {
+        /** A regional source covers the place, so GDACS is not needed. */
+        val coveredByRegional get() = inUS || inCanada || inAustralia || inJapan || inMeteoAlarm
+
+        companion object {
+            // Coordinate-based fallbacks so a Geocoder failure (e.g. no geocoder backend on some
+            // de-Googled/F-Droid devices) doesn't silently suppress a country-gated source.
+            fun of(lat: Double, lon: Double, countryCode: String?) = AlertRegions(
+                inUS = countryCode == "us" || CountryBoundingBoxes.isInUS(lat, lon),
+                inCanada = countryCode == "ca" || CountryBoundingBoxes.isInCanada(lat, lon),
+                inAustralia = countryCode == "au" || CountryBoundingBoxes.isInAustralia(lat, lon),
+                inJapan = JmaAreaCodes.isInJapan(lat, lon),
+                inMeteoAlarm = countryCode in METEOALARM_COUNTRIES,
+            )
         }
     }
 

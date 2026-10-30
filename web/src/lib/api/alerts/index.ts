@@ -31,9 +31,38 @@ export interface AlertSettings {
 	alertsNhcEnabled: boolean;
 }
 
+const ALERT_SOURCE_ORDER = ['NWS', 'GDACS', 'MeteoAlarm', 'JMA', 'ECCC', 'BOM', 'NHC'];
+
 export interface AlertsResult {
 	alerts: WeatherAlert[];
 	failedSources: string[];
+}
+
+/** The regions with their own alert source that hold the place. Android has the same in `WeatherRepositoryImpl.kt`. */
+interface AlertRegions {
+	inUS: boolean;
+	inCanada: boolean;
+	inAustralia: boolean;
+	inJapan: boolean;
+	inMeteoAlarm: boolean;
+}
+
+// Coordinate-based fallbacks so a failed/rate-limited reverse-geocode (cc === '') doesn't
+// silently suppress a country-gated source — reverse geocoding is an extra network call
+// that can fail independently of the alert fetch itself.
+function alertRegions(lat: number, lon: number, cc: string): AlertRegions {
+	return {
+		inUS: cc === 'us' || isInUS(lat, lon),
+		inCanada: cc === 'ca' || isInCanada(lat, lon),
+		inAustralia: cc === 'au' || isInAustralia(lat, lon),
+		inJapan: isInJapan(lat, lon),
+		inMeteoAlarm: METEOALARM_COUNTRIES.has(cc)
+	};
+}
+
+/** A regional source covers the place, so GDACS is not needed. */
+function coveredByRegional(r: AlertRegions): boolean {
+	return r.inUS || r.inCanada || r.inAustralia || r.inJapan || r.inMeteoAlarm;
 }
 
 export async function fetchAllAlerts(
@@ -49,42 +78,39 @@ export async function fetchAllAlerts(
 	const { countryCode, stateCode, subdivisionName } = locationInfo ?? await getLocationInfo(lat, lon);
 	const cc = countryCode ?? '';
 
-	// Coordinate-based fallbacks so a failed/rate-limited reverse-geocode (cc === '') doesn't
-	// silently suppress a country-gated source — reverse geocoding is an extra network call
-	// that can fail independently of the alert fetch itself.
-	const inUS = cc === 'us' || isInUS(lat, lon);
-	const inCanada = cc === 'ca' || isInCanada(lat, lon);
-	const inAustralia = cc === 'au' || isInAustralia(lat, lon);
+	const region = alertRegions(lat, lon, cc);
 
-	const coveredByRegional =
-		inUS || inCanada || inAustralia ||
-		METEOALARM_COUNTRIES.has(cc) || isInJapan(lat, lon);
+	const failed = new Set<string>();
 
-	const sources: [string, Promise<WeatherAlert[]> | null][] = [
-		['NWS', (settings.alertsNwsEnabled && inUS) ? fetchNwsAlerts(lat, lon) : null],
-		['GDACS', (settings.alertsGdacsEnabled && !coveredByRegional) ? fetchGdacsAlerts(lat, lon) : null],
-		['MeteoAlarm', settings.alertsMeteoAlarmEnabled ? fetchMeteoAlarmAlerts(lat, lon, cc, subdivisionName) : null],
-		['JMA', settings.alertsJmaEnabled ? fetchJmaAlerts(lat, lon) : null],
-		['ECCC', (settings.alertsEcccEnabled && inCanada) ? fetchEcccAlerts(lat, lon, 'ca') : null],
-		['BOM', (settings.alertsBomEnabled && inAustralia) ? fetchBomAlerts(stateCode) : null],
-		['NHC', settings.alertsNhcEnabled ? fetchNhcAlerts(lat, lon) : null],
-	];
-	const active = sources.filter((s): s is [string, Promise<WeatherAlert[]>] => s[1] !== null);
-	const results = await Promise.allSettled(active.map(([, p]) => p));
-
-	const sourceAlerts: WeatherAlert[] = [];
-	const failedSources: string[] = [];
-	results.forEach((r, i) => {
-		if (r.status === 'fulfilled') {
-			sourceAlerts.push(...r.value);
-		} else {
-			failedSources.push(active[i][0]);
-			console.warn(`${active[i][0]} alerts unavailable:`, r.reason instanceof Error ? r.reason.message : 'fetch failed');
+	// Each source runs at the same time; a failure gives no alerts from that source and adds its name to `failed`
+	async function source(name: string, enabled: boolean, fetch: () => Promise<WeatherAlert[]>): Promise<WeatherAlert[]> {
+		if (!enabled) return [];
+		try {
+			return await fetch();
+		} catch (e) {
+			failed.add(name);
+			console.warn(`${name} alerts unavailable:`, e instanceof Error ? e.message : 'fetch failed');
+			return [];
 		}
-	});
+	}
 
-	const alerts = sourceAlerts.filter((a, i, self) =>
-		i === self.findIndex(t => t.title === a.title && t.source === a.source)
-	);
-	return { alerts, failedSources };
+	const sources = await Promise.all([
+		source('NWS', settings.alertsNwsEnabled && region.inUS, () => fetchNwsAlerts(lat, lon)),
+		// Skipped when a regional source covers the area
+		source('GDACS', settings.alertsGdacsEnabled && !coveredByRegional(region), () => fetchGdacsAlerts(lat, lon)),
+		source('MeteoAlarm', settings.alertsMeteoAlarmEnabled && region.inMeteoAlarm, () => fetchMeteoAlarmAlerts(lat, lon, cc, subdivisionName)),
+		source('JMA', settings.alertsJmaEnabled && region.inJapan, () => fetchJmaAlerts(lat, lon)),
+		source('ECCC', settings.alertsEcccEnabled && region.inCanada, () => fetchEcccAlerts(lat, lon, 'ca')),
+		source('BOM', settings.alertsBomEnabled && region.inAustralia, () => fetchBomAlerts(stateCode)),
+		source('NHC', settings.alertsNhcEnabled, () => fetchNhcAlerts(lat, lon)),
+	]);
+
+	const keys = new Set<string>();
+	const alerts = sources.flat().filter((a) => {
+		const key = a.title + a.source;
+		if (keys.has(key)) return false;
+		keys.add(key);
+		return true;
+	});
+	return { alerts, failedSources: ALERT_SOURCE_ORDER.filter((s) => failed.has(s)) };
 }
