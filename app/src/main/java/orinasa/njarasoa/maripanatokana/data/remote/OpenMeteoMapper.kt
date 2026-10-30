@@ -10,6 +10,7 @@ import orinasa.njarasoa.maripanatokana.domain.model.Pressure
 import orinasa.njarasoa.maripanatokana.domain.model.Temperature
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.model.WindSpeed
+import kotlin.math.roundToInt
 import java.util.Calendar
 import java.util.TimeZone
 
@@ -106,7 +107,7 @@ fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = 
             uvIndexMax = daily.uvIndexMax.getOrNull(i) ?: 0.0,
             nightWeatherCode = nightCodes.getOrNull(i),
             pressure = daily.pressureMslMean.getOrNull(i)?.let { Pressure.fromHPa(it) },
-            humidity = daily.relativeHumidityMean.getOrNull(i)?.let { kotlin.math.round(it).toInt() },
+            humidity = daily.relativeHumidityMean.getOrNull(i)?.roundToInt(),
             dewPoint = daily.dewPointMean.getOrNull(i)?.let { Temperature.fromCelsius(it) },
         )
     }.distinctBy { it.date }

@@ -14,6 +14,7 @@ data class PirateWeatherResponse(
     @SerialName("currently") val currently: PirateWeatherCurrent,
     @SerialName("hourly") val hourly: PirateWeatherHourlyBlock = PirateWeatherHourlyBlock(),
     @SerialName("daily") val daily: PirateWeatherDailyBlock = PirateWeatherDailyBlock(),
+    @SerialName("minutely") val minutely: PirateWeatherMinutelyBlock = PirateWeatherMinutelyBlock(),
 )
 
 @Serializable
@@ -25,14 +26,25 @@ data class PirateWeatherCurrent(
     @SerialName("temperature") val temperature: Double,
     @SerialName("apparentTemperature") val apparentTemperature: Double,
     @SerialName("dewPoint") val dewPoint: Double = 0.0,
-    @SerialName("humidity") val humidity: Double = 0.0,
+    @SerialName("humidity") val humidity: Double? = null,
     @SerialName("pressure") val pressure: Double = 1013.0,
     @SerialName("windSpeed") val windSpeed: Double = 0.0,
     @SerialName("windGust") val windGust: Double? = null,
-    @SerialName("windBearing") val windBearing: Int = 0,
-    @SerialName("cloudCover") val cloudCover: Double = 0.0,
-    @SerialName("uvIndex") val uvIndex: Double = 0.0,
-    @SerialName("visibility") val visibility: Double = 16.0,
+    @SerialName("windBearing") val windBearing: Int? = null,
+    @SerialName("cloudCover") val cloudCover: Double? = null,
+    @SerialName("uvIndex") val uvIndex: Double? = null,
+    @SerialName("visibility") val visibility: Double? = null,
+)
+
+@Serializable
+data class PirateWeatherMinutelyBlock(
+    @SerialName("data") val data: List<PirateWeatherMinutely> = emptyList(),
+)
+
+@Serializable
+data class PirateWeatherMinutely(
+    @SerialName("time") val time: Long,
+    @SerialName("precipIntensity") val precipIntensity: Double = 0.0,
 )
 
 @Serializable

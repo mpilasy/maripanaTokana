@@ -36,7 +36,6 @@ export async function testPirateWeatherKey(apiKey: string): Promise<void> {
 	if (!res.ok) throw new HttpError(res.status);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function fetchPirateWeather(lat: number, lon: number, apiKey: string, locationName: string, locationSubtext?: string): Promise<WeatherData> {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const d: any = await retryOnce(async () => {
@@ -47,12 +46,69 @@ export async function fetchPirateWeather(lat: number, lon: number, apiKey: strin
 		if (!res.ok) throw new HttpError(res.status, `Pirate Weather ${res.status}`);
 		return res.json();
 	});
+	return mapPirateWeather(d, lat, lon, locationName, locationSubtext);
+}
 
+/** The forecast in the app's model. Android has the same split in PirateWeatherMapper.kt. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapPirateWeather(d: any, lat: number, lon: number, locationName: string, locationSubtext?: string): WeatherData {
 	const c = d.currently;
-	const offsetSec = Math.round((d.offset ?? 0) * 3600);
-
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const hourly: HourlyForecast[] = (d.hourly?.data ?? []).slice(0, 48).map((h: any) => ({
+	const days: any[] = (d.daily?.data ?? []).slice(0, 10);
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const todayRaw: any = d.daily?.data?.[0];
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const hourlyRaw: any[] = d.hourly?.data ?? [];
+
+	return {
+		temperature: Temperature.fromCelsius(c.temperature),
+		feelsLike: Temperature.fromCelsius(c.apparentTemperature),
+		tempMin: Temperature.fromCelsius(todayRaw ? todayRaw.temperatureMin : c.temperature),
+		tempMax: Temperature.fromCelsius(todayRaw ? todayRaw.temperatureMax : c.temperature),
+		weatherCode: iconToWmoCode(c.icon),
+		locationName,
+		locationSubtext,
+		latitude: lat,
+		longitude: lon,
+		...currentConditions(c),
+		sunrise: todayRaw ? todayRaw.sunriseTime : 0,
+		sunset: todayRaw ? todayRaw.sunsetTime : 0,
+		dailySunrise: days.map((day) => (day.sunriseTime ?? 0) * 1000),
+		dailySunset: days.map((day) => (day.sunsetTime ?? 0) * 1000),
+		hourlyForecast: hourlyForecast(hourlyRaw),
+		minutelyForecast: minutelyForecast(d.minutely?.data ?? []),
+		dailyForecast: dailyForecast(days, hourlyRaw),
+		alerts: [],
+		alertsLoading: true,
+		timestamp: Date.now(),
+		utcOffsetSeconds: Math.round((d.offset ?? 0) * 3600),
+	};
+}
+
+/** The current conditions that have a default or may be missing. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function currentConditions(c: any) {
+	return {
+		pressure: Pressure.fromHPa(c.pressure ?? 1013),
+		humidity: c.humidity != null ? Math.round(c.humidity * 100) : null,
+		dewPoint: Temperature.fromCelsius(c.dewPoint ?? 0),
+		windSpeed: WindSpeed.fromMetersPerSecond(c.windSpeed ?? 0),
+		windDeg: c.windBearing ?? null,
+		windGust: c.windGust != null ? WindSpeed.fromMetersPerSecond(c.windGust) : null,
+		rain: c.precipType === 'rain' && c.precipIntensity > 0 ? Precipitation.fromMm(c.precipIntensity) : null,
+		snow: c.precipType === 'snow' && c.precipIntensity > 0 ? Precipitation.fromMm(c.precipIntensity) : null,
+		uvIndex: c.uvIndex ?? null,
+		cloudCover: c.cloudCover != null ? Math.round(c.cloudCover * 100) : null,
+		visibility: c.visibility != null ? Math.round(c.visibility * 1000) : null,
+	};
+}
+
+/** The next 24 hours, from the first hour that has not passed. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function hourlyForecast(data: any[]): HourlyForecast[] {
+	const nowMillis = Date.now();
+	const startIndex = Math.max(0, data.findIndex((h) => h.time * 1000 >= nowMillis));
+	return data.slice(startIndex, startIndex + 24).map((h) => ({
 		time: h.time * 1000,
 		temperature: Temperature.fromCelsius(h.temperature),
 		weatherCode: iconToWmoCode(h.icon),
@@ -65,16 +121,18 @@ export async function fetchPirateWeather(lat: number, lon: number, apiKey: strin
 		humidity: h.humidity != null ? Math.round(h.humidity * 100) : null,
 		dewPoint: h.dewPoint != null ? Temperature.fromCelsius(h.dewPoint) : null,
 	}));
+}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const days: any[] = (d.daily?.data ?? []).slice(0, 10);
+/** The days, with the night weather taken from the hourly forecast. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function dailyForecast(days: any[], hourly: any[]): DailyForecast[] {
 	const nightCodes = nightWeatherCodes(
-		hourly.map((h) => h.time),
-		hourly.map((h) => h.weatherCode),
+		hourly.map((h) => h.time * 1000),
+		hourly.map((h) => iconToWmoCode(h.icon)),
 		days.map((day) => (day.sunsetTime ?? 0) * 1000),
 		days.map((day) => (day.sunriseTime ?? 0) * 1000),
 	);
-	const daily: DailyForecast[] = days.map((day, i) => ({
+	return days.map((day, i) => ({
 		date: day.time * 1000,
 		tempMax: Temperature.fromCelsius(day.temperatureMax),
 		tempMin: Temperature.fromCelsius(day.temperatureMin),
@@ -89,53 +147,12 @@ export async function fetchPirateWeather(lat: number, lon: number, apiKey: strin
 		humidity: day.humidity != null ? Math.round(day.humidity * 100) : null,
 		dewPoint: day.dewPoint != null ? Temperature.fromCelsius(day.dewPoint) : null,
 	}));
+}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const todayRaw: any = d.daily?.data?.[0];
-
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const minutelyForecast: MinutelyForecast[] = (d.minutely?.data ?? []).map((m: any) => ({
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function minutelyForecast(data: any[]): MinutelyForecast[] {
+	return data.map((m) => ({
 		time: m.time * 1000,
 		precipitation: Precipitation.fromMm(m.precipIntensity ?? 0),
 	}));
-
-	return {
-		temperature: Temperature.fromCelsius(c.temperature),
-		feelsLike: Temperature.fromCelsius(c.apparentTemperature),
-		tempMin: todayRaw
-			? Temperature.fromCelsius(todayRaw.temperatureMin)
-			: Temperature.fromCelsius(c.temperature - 3),
-		tempMax: todayRaw
-			? Temperature.fromCelsius(todayRaw.temperatureMax)
-			: Temperature.fromCelsius(c.temperature + 3),
-		weatherCode: iconToWmoCode(c.icon),
-		locationName,
-		locationSubtext,
-		latitude: lat,
-		longitude: lon,
-		pressure: Pressure.fromHPa(c.pressure ?? 1013),
-		humidity: c.humidity != null ? Math.round(c.humidity * 100) : null,
-		dewPoint: Temperature.fromCelsius(c.dewPoint ?? 0),
-		windSpeed: WindSpeed.fromMetersPerSecond(c.windSpeed ?? 0),
-		windDeg: c.windBearing ?? null,
-		windGust: c.windGust != null ? WindSpeed.fromMetersPerSecond(c.windGust) : null,
-		rain: c.precipType === 'rain' ? Precipitation.fromMm(c.precipIntensity ?? 0) : null,
-		snow: c.precipType === 'snow' ? Precipitation.fromMm(c.precipIntensity ?? 0) : null,
-		uvIndex: c.uvIndex ?? null,
-		cloudCover: c.cloudCover != null ? Math.round(c.cloudCover * 100) : null,
-		visibility: c.visibility != null ? c.visibility * 1000 : null,
-		sunrise: todayRaw ? todayRaw.sunriseTime : 0,
-		sunset: todayRaw ? todayRaw.sunsetTime : 0,
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		dailySunrise: (d.daily?.data ?? []).slice(0, 10).map((day: any) => (day.sunriseTime ?? 0) * 1000),
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		dailySunset: (d.daily?.data ?? []).slice(0, 10).map((day: any) => (day.sunsetTime ?? 0) * 1000),
-		hourlyForecast: hourly,
-		minutelyForecast,
-		dailyForecast: daily,
-		alerts: [],
-		alertsLoading: true,
-		timestamp: Date.now(),
-		utcOffsetSeconds: offsetSec,
-	};
 }

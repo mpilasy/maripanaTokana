@@ -2653,7 +2653,7 @@ private fun MoonTile(lat: Double, lon: Double, utcOffsetSeconds: Int, timeFormat
                 SkyArc(arcT, Color(0xFFCFC8E8), Modifier.fillMaxSize()) { drawMoon(illumination.phase, southern, it, 7.dp.toPx()) }
                 // The part lit, in the middle of the arc, where the sun tile shows the length of the day
                 Text(
-                    text = localizeDigits("%d%%".format(Locale.US, kotlin.math.round(illumination.fraction * 100).toInt())),
+                    text = localizeDigits("%d%%".format(Locale.US, (illumination.fraction * 100).roundToInt())),
                     fontSize = 13f.s(scale),
                     fontWeight = FontWeight.Bold,
                     fontFamily = LocalDisplayFont.current,
