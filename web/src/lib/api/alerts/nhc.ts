@@ -46,32 +46,18 @@ export async function fetchNhcAlerts(lat: number, lon: number): Promise<WeatherA
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		.map((s: any) => {
 			const knots = parseInt(s.intensity ?? '', 10) || 0;
-			const level: AlertLevel = s.classification === 'HU' && knots >= 96 ? 'emergency'
-				: (s.classification === 'HU' || s.classification === 'TS') ? 'warning' : 'watch';
 
-			const classificationName = CLASSIFICATION_NAMES[s.classification] ?? s.classification;
+			const classificationName = CLASSIFICATION_NAMES[s.classification];
 			const title = classificationName ? `${classificationName} ${s.name}` : `NHC: ${s.name}`;
-
-			const statsParts: string[] = [];
-			if (knots > 0) statsParts.push(`winds ~${Math.round(knots * KNOTS_TO_MPH)} mph`);
-			const pressure = parseInt(s.pressure ?? '', 10);
-			if (!isNaN(pressure)) statsParts.push(`central pressure ${pressure} mb`);
-			if (typeof s.movementSpeed === 'number') {
-				statsParts.push(s.movementSpeed > 0
-					? `moving ${compassFromDegrees(s.movementDir ?? 0)} at ${s.movementSpeed} mph`
-					: 'stationary');
-			}
-			const joined = statsParts.join(', ');
-			const statsSentence = joined ? joined.charAt(0).toUpperCase() + joined.slice(1) + '.' : '';
 
 			const distanceKm = Math.round(calculateDistance(lat, lon, s.latitudeNumeric, s.longitudeNumeric));
 			const distanceMi = Math.round(distanceKm * KM_TO_MI);
 			const distanceSentence = `~${distanceKm} km (${distanceMi} mi) from your location.`;
 
-			const description = [statsSentence, distanceSentence].filter(Boolean).join(' ') || s.name || '';
+			const description = [nhcStats(s, knots), distanceSentence].filter(Boolean).join(' ') || s.name || '';
 
 			return {
-				level,
+				level: nhcLevel(s.classification, knots),
 				title,
 				description,
 				source: 'nhc' as const,
@@ -79,4 +65,26 @@ export async function fetchNhcAlerts(lat: number, lon: number): Promise<WeatherA
 				link: s.advisory?.url,
 			};
 		});
+}
+
+/** The same rules as nhcLevel in WeatherRepositoryImpl.kt. */
+export function nhcLevel(classification: string, knots: number): AlertLevel {
+	if (classification === 'HU' && knots >= 96) return 'emergency';
+	if (classification === 'HU' || classification === 'TS') return 'warning';
+	return 'watch';
+}
+
+/** The storm's winds, pressure and movement as one sentence; empty when none is known. */
+export function nhcStats(s: { pressure?: string; movementSpeed?: number; movementDir?: number }, knots: number): string {
+	const statsParts: string[] = [];
+	if (knots > 0) statsParts.push(`winds ~${Math.round(knots * KNOTS_TO_MPH)} mph`);
+	const pressure = parseInt(s.pressure ?? '', 10);
+	if (!isNaN(pressure)) statsParts.push(`central pressure ${pressure} mb`);
+	if (typeof s.movementSpeed === 'number') {
+		statsParts.push(s.movementSpeed > 0
+			? `moving ${compassFromDegrees(s.movementDir ?? 0)} at ${s.movementSpeed} mph`
+			: 'stationary');
+	}
+	const joined = statsParts.join(', ');
+	return joined ? joined.charAt(0).toUpperCase() + joined.slice(1) + '.' : '';
 }

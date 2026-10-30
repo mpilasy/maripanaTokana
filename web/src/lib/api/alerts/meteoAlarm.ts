@@ -47,36 +47,58 @@ export async function fetchMeteoAlarmAlerts(lat: number, lon: number, countryCod
 	if (!METEOALARM_COUNTRIES.has(countryCode)) return [];
 	const res = await fetch(`/api/alerts/meteoalarm?country=${countryCode}`, { signal: AbortSignal.timeout(10_000) });
 	if (!res.ok) throw new Error(`HTTP ${res.status}`);
-	const text = await res.text();
-	const parser = new DOMParser();
-	const doc = parser.parseFromString(text, 'application/xml');
-	const CAP = 'urn:oasis:names:tc:emergency:cap:1.2';
-	const alerts: WeatherAlert[] = [];
-	for (const entry of Array.from(doc.getElementsByTagName('entry'))) {
-		const g = (tag: string) => entry.getElementsByTagNameNS(CAP, tag)[0]?.textContent ?? '';
-		const status = g('status');
-		if (status && status !== 'Actual') continue;
-		const event = g('event') || 'Alert';
-		const severity = g('severity');
-		const desc = g('description');
-		const areaDesc = g('areaDesc');
-		const onset = g('onset');
-		const linkEl = entry.querySelector('link[rel="alternate"]');
-		const link = linkEl?.getAttribute('href') || undefined;
-		// Filter to user's subdivision when known; skip alerts for other areas
-		if (subdivisionName && areaDesc && !areaMatches(areaDesc, subdivisionName)) continue;
-		// Android mapping: extreme→emergency, severe→warning, else→watch
-		const level: AlertLevel = severity === 'Extreme' ? 'emergency'
-			: severity === 'Severe' ? 'warning' : 'watch';
-		alerts.push({
-			level,
-			title: event,
-			description: desc,
-			source: 'meteoalarm',
-			time: onset ? new Date(onset).getTime() : undefined,
-			headline: areaDesc || undefined,
-			link,
-		});
-	}
-	return alerts;
+	return readMeteoAlarmEntries(await res.text())
+		.map((e) => meteoAlarmAlert(e, subdivisionName))
+		.filter((a): a is WeatherAlert => a !== null);
+}
+
+/** The CAP fields of one Atom entry in a MeteoAlarm feed. */
+export interface MeteoAlarmEntry {
+	event: string;
+	severity: string;
+	onset: string;
+	status: string;
+	description: string;
+	areaDesc: string;
+	link?: string;
+}
+
+const CAP_NS = 'urn:oasis:names:tc:emergency:cap:1.2';
+
+function readMeteoAlarmEntries(xml: string): MeteoAlarmEntry[] {
+	const doc = new DOMParser().parseFromString(xml, 'application/xml');
+	return Array.from(doc.getElementsByTagName('entry')).map((entry) => {
+		const g = (tag: string) => entry.getElementsByTagNameNS(CAP_NS, tag)[0]?.textContent ?? '';
+		return {
+			event: g('event'),
+			severity: g('severity'),
+			onset: g('onset'),
+			status: g('status'),
+			description: g('description'),
+			areaDesc: g('areaDesc'),
+			link: entry.querySelector('link[rel="alternate"]')?.getAttribute('href') || undefined
+		};
+	});
+}
+
+/**
+ * The alert for `entry`, or null when it is not an actual alert or is for an area other than
+ * `subdivisionName`. The same rules as meteoAlarmAlert in WeatherRepositoryImpl.kt.
+ */
+export function meteoAlarmAlert(entry: MeteoAlarmEntry, subdivisionName: string | null): WeatherAlert | null {
+	if (!entry.event.trim() || (entry.status.trim() && entry.status !== 'Actual')) return null;
+	// Filter to user's subdivision when known
+	if (subdivisionName?.trim() && entry.areaDesc.trim() && !areaMatches(entry.areaDesc, subdivisionName)) return null;
+	const severity = entry.severity.toLowerCase();
+	const level: AlertLevel = severity === 'extreme' ? 'emergency' : severity === 'severe' ? 'warning' : 'watch';
+	const time = entry.onset ? new Date(entry.onset).getTime() : NaN;
+	return {
+		level,
+		title: entry.event,
+		description: entry.description,
+		source: 'meteoalarm',
+		time: Number.isNaN(time) ? undefined : time,
+		headline: entry.areaDesc.trim() ? entry.areaDesc : undefined,
+		link: entry.link
+	};
 }

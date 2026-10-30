@@ -23,6 +23,7 @@ import orinasa.njarasoa.maripanatokana.data.remote.JmaApiService
 import orinasa.njarasoa.maripanatokana.data.remote.JmaAreaCodes
 import orinasa.njarasoa.maripanatokana.data.remote.MeteoAlarmApiService
 import orinasa.njarasoa.maripanatokana.data.remote.NhcApiService
+import orinasa.njarasoa.maripanatokana.data.remote.NhcStorm
 import orinasa.njarasoa.maripanatokana.data.remote.NwsApiService
 import orinasa.njarasoa.maripanatokana.data.settings.AppSettingsRepository
 import orinasa.njarasoa.maripanatokana.data.source.GeocodingSourceSelector
@@ -345,37 +346,41 @@ class WeatherRepositoryImpl @Inject constructor(
             .filter { calculateDistance(lat, lon, it.lat, it.lon) < NHC_SEARCH_RADIUS_KM }
             .map { storm ->
                 val knots = storm.intensity.toIntOrNull() ?: 0
-                val level = when {
-                    storm.classification == "HU" && knots >= 96 -> AlertLevel.EMERGENCY
-                    storm.classification == "HU" -> AlertLevel.WARNING
-                    storm.classification == "TS" -> AlertLevel.WARNING
-                    else -> AlertLevel.WATCH
-                }
                 val time = storm.advisory?.issuance?.let { try { nhcParser.parse(it)?.time } catch (_: Exception) { null } }
 
                 val classificationName = NHC_CLASSIFICATION_NAMES[storm.classification]
                 val title = if (classificationName != null) "$classificationName ${storm.name}" else "NHC: ${storm.name}"
 
-                val statsParts = mutableListOf<String>()
-                if (knots > 0) statsParts.add("winds ~${Math.round(knots * 1.15078)} mph")
-                storm.pressure.toIntOrNull()?.let { statsParts.add("central pressure $it mb") }
-                storm.movementSpeed?.let { speed ->
-                    statsParts.add(
-                        if (speed > 0) "moving ${compassFromDegrees(storm.movementDir ?: 0)} at $speed mph"
-                        else "stationary"
-                    )
-                }
-                val statsSentence = statsParts.joinToString(", ").ifBlank { null }
-                    ?.replaceFirstChar { it.uppercase() }?.plus(".")
-
                 val distanceKm = Math.round(calculateDistance(lat, lon, storm.lat, storm.lon))
                 val distanceMi = Math.round(distanceKm * 0.621371)
                 val distanceSentence = "~$distanceKm km ($distanceMi mi) from your location."
 
-                val description = listOfNotNull(statsSentence, distanceSentence).joinToString(" ").ifBlank { storm.name }
+                val description = listOfNotNull(nhcStats(storm, knots), distanceSentence).joinToString(" ").ifBlank { storm.name }
 
-                WeatherAlert(level, title, description, "nhc", time, null, storm.advisory?.url)
+                WeatherAlert(nhcLevel(storm.classification, knots), title, description, "nhc", time, null, storm.advisory?.url)
             }
+    }
+
+    /** The same rules as nhcLevel in the web's `alerts/nhc.ts`. */
+    private fun nhcLevel(classification: String, knots: Int): AlertLevel = when {
+        classification == "HU" && knots >= 96 -> AlertLevel.EMERGENCY
+        classification == "HU" || classification == "TS" -> AlertLevel.WARNING
+        else -> AlertLevel.WATCH
+    }
+
+    /** The storm's winds, pressure and movement as one sentence; null when none is known. */
+    private fun nhcStats(storm: NhcStorm, knots: Int): String? {
+        val statsParts = mutableListOf<String>()
+        if (knots > 0) statsParts.add("winds ~${Math.round(knots * 1.15078)} mph")
+        storm.pressure.toIntOrNull()?.let { statsParts.add("central pressure $it mb") }
+        storm.movementSpeed?.let { speed ->
+            statsParts.add(
+                if (speed > 0) "moving ${compassFromDegrees(storm.movementDir ?: 0)} at $speed mph"
+                else "stationary"
+            )
+        }
+        return statsParts.joinToString(", ").ifBlank { null }
+            ?.replaceFirstChar { it.uppercase() }?.plus(".")
     }
 
     private fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
@@ -478,7 +483,7 @@ class WeatherRepositoryImpl @Inject constructor(
     private fun meteoAlarmAlert(entry: MeteoAlarmEntry, subdivisionName: String?, onsetParser: SimpleDateFormat): WeatherAlert? {
         if (entry.event.isBlank() || (entry.status.isNotBlank() && entry.status != "Actual")) return null
         // Filter to user's subdivision when known
-        if (subdivisionName != null && entry.areaDesc.isNotBlank() && !areaMatches(entry.areaDesc, subdivisionName)) return null
+        if (!subdivisionName.isNullOrBlank() && entry.areaDesc.isNotBlank() && !areaMatches(entry.areaDesc, subdivisionName)) return null
         val level = when (entry.severity.lowercase()) {
             "extreme" -> AlertLevel.EMERGENCY
             "severe" -> AlertLevel.WARNING
