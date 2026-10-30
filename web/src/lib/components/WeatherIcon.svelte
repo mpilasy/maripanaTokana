@@ -5,7 +5,8 @@
 	import { wmoDescriptionKey } from '#lib/api/wmoWeatherCode.js';
 
 	/** A weather condition as a Meteocons icon (MIT, Bas Milius), with day and night variants. */
-	let { code, night = false, size = 32 }: { code: number; night?: boolean; size?: number } = $props();
+	/** `decorative`: no text for screen readers, when the description is next to the icon. */
+	let { code, night = false, size = 32, decorative = false }: { code: number; night?: boolean; size?: number; decorative?: boolean } = $props();
 
 	function iconName(c: number, n: boolean): string {
 		const dn = n ? 'night' : 'day';
@@ -28,7 +29,7 @@
 
 <!-- The artwork leaves wide margins in its 64-unit box; a negative margin pulls neighbours closer -->
 <img class="weather-icon" src="/icons/weather/{iconName(code, night)}.svg" width={size} height={size} style:margin="{-size * 0.12}px"
-	alt={$_(wmoDescriptionKey(code))} draggable="false" />
+	alt={decorative ? '' : $_(wmoDescriptionKey(code))} draggable="false" />
 
 <style>
 	.weather-icon {

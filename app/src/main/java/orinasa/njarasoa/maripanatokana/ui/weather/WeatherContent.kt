@@ -24,6 +24,12 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.text
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -357,6 +363,8 @@ internal fun WeatherContent(
             if (android.text.format.DateUtils.isToday(data.timestamp)) screenTimeFormat.format(Date(data.timestamp))
             else "${dateFormat.format(Date(data.timestamp))}, ${screenTimeFormat.format(Date(data.timestamp))}"
         ))
+        val refreshFailedText = stringResource(R.string.refresh_failed, localizeDigits(screenTimeFormat.format(Date(data.timestamp)))) +
+            (refreshError?.let { " \u00B7 " + stringResource(it.messageResId) } ?: "")
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -388,24 +396,24 @@ internal fun WeatherContent(
                     )
                 } else Modifier
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
+                HeaderNameLine(
                     // As tall as the action buttons, so the name stays in line with them when the header folds
                     modifier = Modifier.padding(end = with(density) { headerActionsWidth.toDp() }).heightIn(min = 40.dp),
-                ) {
-                    Text(
-                        text = locationName,
-                        fontSize = nameSize.s(scale),
-                        lineHeight = (nameSize * 1.2f).s(scale),
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = displayFont,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false).semantics { heading() },
-                    )
+                    name = {
+                        Text(
+                            text = locationName,
+                            fontSize = nameSize.s(scale),
+                            lineHeight = (nameSize * 1.2f).s(scale),
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = displayFont,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.semantics { heading() },
+                        )
+                    },
                     // Discreet switch between the local script and Latin letters
-                    if (data.romanName != null) {
+                    trailing = if (data.romanName != null) { {
                         TouchTarget(
                             Modifier.clip(CircleShape).clickable(role = Role.Button) { showRoman = !showRoman },
                             modifier = Modifier.padding(start = 6.dp),
@@ -417,13 +425,12 @@ internal fun WeatherContent(
                                 modifier = Modifier.padding(4.dp).size(18.dp),
                             )
                         }
-                    }
+                    } } else null,
                     // Folded: the place's time moves up from the second line
-                    if (isRemote && headerCollapsed) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        LocalTimeChip(data.utcOffsetSeconds, appLocale, localizeDigits)
-                    }
-                }
+                    optional = if (isRemote && headerCollapsed) { {
+                        LocalTimeChip(data.utcOffsetSeconds, appLocale, localizeDigits, Modifier.padding(start = 8.dp))
+                    } } else null,
+                )
                 val plusCode = remember(displayLat, displayLon) { PlusCode.encode(displayLat, displayLon) }
                 val decimalCoordinates = formatDecimalCoordinates(displayLat, displayLon)
                 // The second line always shows: the region and country, or else the coordinates
@@ -502,8 +509,7 @@ internal fun WeatherContent(
             if (refreshFailed) {
                 TouchTarget(Modifier.clickable(role = Role.Button, onClickLabel = stringResource(R.string.cd_refresh)) { onRefresh() }) {
                     Text(
-                        text = stringResource(R.string.refresh_failed, localizeDigits(screenTimeFormat.format(Date(data.timestamp)))) +
-                            (refreshError?.let { " \u00B7 " + stringResource(it.messageResId) } ?: ""),
+                        text = refreshFailedText,
                         fontSize = 13f.s(scale),
                         fontFamily = bodyFont,
                         color = MaterialTheme.colorScheme.error,
@@ -549,9 +555,11 @@ internal fun WeatherContent(
                             val name = locationNames[i]
                             DropdownMenuItem(
                                 text = {
-                                    // The distance in parentheses, in the main unit; none for the place on screen
+                                    // The distance in parentheses, in the main unit then the other; none for the place on screen
                                     val distance = distancesKm.getOrNull(i)?.takeIf { i != currentIndex }?.let { km ->
-                                        localizeDigits(if (metricPrimary) "${km.roundToInt()} km" else "${(km / 1.609344).roundToInt()} mi")
+                                        val kmText = "${km.roundToInt()} km"
+                                        val miText = "${(km / 1.609344).roundToInt()} mi"
+                                        localizeDigits(if (metricPrimary) "$kmText · $miText" else "$miText · $kmText")
                                     }
                                     Text(
                                         text = (name ?: stringResource(R.string.current_location)) + (distance?.let { " ($it)" } ?: ""),
@@ -611,10 +619,11 @@ internal fun WeatherContent(
                             .clip(CircleShape)
                             .clickable(onClick = onRefresh, role = Role.Button, onClickLabel = stringResource(R.string.cd_refresh)),
                     ) {
+                        // A failed refresh: the error colour and text of the "refresh failed" line it replaces
                         Icon(
                             imageVector = Icons.Default.Refresh,
-                            contentDescription = updatedText,
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+                            contentDescription = if (refreshFailed) "$updatedText \u00B7 $refreshFailedText" else updatedText,
+                            tint = if (refreshFailed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
                             modifier = Modifier.size(22.dp),
                         )
                     }
@@ -624,7 +633,8 @@ internal fun WeatherContent(
                     contentDescription = stringResource(R.string.cd_manage_locations),
                     onClick = onManageLocationsClicked,
                 )
-                if (isSavedLocation || hasLocationOverride) {
+                // Folded: no favourite and current-location buttons, so the name keeps its room
+                if ((isSavedLocation || hasLocationOverride) && !headerCollapsed) {
                     HeaderAction(
                         imageVector = if (isSavedLocation) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                         contentDescription = stringResource(
@@ -674,13 +684,22 @@ internal fun WeatherContent(
                     val graphicsLayer = rememberGraphicsLayer()
                     val coroutineScope = rememberCoroutineScope()
                     val heroShape = RoundedCornerShape(28.dp)
+                    // The copyright line is only in the share image, under the card
+                    val textMeasurer = rememberTextMeasurer()
+                    val copyrightStyle = TextStyle(fontSize = 9f.s(scale), lineHeight = 11f.s(scale), fontFamily = bodyFont,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f))
                     Box {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .drawWithContent {
-                                    graphicsLayer.record {
+                                    val copyright = textMeasurer.measure("© Orinasa Njarasoa", copyrightStyle)
+                                    val gap = 8.dp.toPx()
+                                    val cardWidth = size.width
+                                    val cardHeight = size.height
+                                    graphicsLayer.record(size = IntSize(cardWidth.roundToInt(), (cardHeight + gap + copyright.size.height).roundToInt())) {
                                         this@drawWithContent.drawContent()
+                                        drawText(copyright, topLeft = Offset((cardWidth - copyright.size.width) / 2, cardHeight + gap))
                                     }
                                     drawContent()
                                 }
@@ -691,7 +710,9 @@ internal fun WeatherContent(
                         ) {
                             // Condition line
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                WeatherIcon(data.weatherCode, night = !isDaytime(data.timestamp, data.sunrise * 1000, data.sunset * 1000), size = 64.sd(scale))
+                                // No screen reader text: the description is next to it
+                                WeatherIcon(data.weatherCode, night = !isDaytime(data.timestamp, data.sunrise * 1000, data.sunset * 1000), size = 64.sd(scale),
+                                    modifier = Modifier.clearAndSetSemantics {})
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = stringResource(wmoDescriptionRes(data.weatherCode)),
@@ -703,11 +724,19 @@ internal fun WeatherContent(
                                     overflow = TextOverflow.Ellipsis,
                                 )
                             }
+                            // Rain or snow coming: its own line under the condition
+                            glanceOutlookText(data, localizeDigits)?.let {
+                                Text(
+                                    text = it,
+                                    fontSize = 14f.s(scale),
+                                    fontFamily = bodyFont,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+                                )
+                            }
 
                             val (tempPrimary, tempSecondary) = data.temperature.displayDualMixed(metricPrimary)
                             val (maxP, maxS) = data.tempMax.displayDual(metricPrimary)
                             val (minP, minS) = data.tempMin.displayDual(metricPrimary)
-                            val outlook = glanceOutlookText(data, localizeDigits)
                             // Air quality only when it is not good, with both indices as on the air quality card
                             val aqi = data.airQuality?.takeIf { it.primaryTier != AqiTier.GOOD }
                             // The heat index or the wind chill, only when one applies
@@ -778,19 +807,10 @@ internal fun WeatherContent(
                                     }
                                     }
                                 },
-                                side = if (outlook == null && aqi == null) null else {
+                                side = if (aqi == null) null else {
                                     {
                                         Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                            outlook?.let {
-                                                Text(
-                                                    text = it,
-                                                    fontSize = 14f.s(scale),
-                                                    fontFamily = bodyFont,
-                                                    textAlign = TextAlign.End,
-                                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
-                                                )
-                                            }
-                                            aqi?.let {
+                                            aqi.let {
                                                 val (aqiP, aqiS) = it.displayDual()
                                                 val usLabel = stringResource(R.string.air_quality_us_aqi)
                                                 val euLabel = stringResource(R.string.air_quality_eu_aqi)
@@ -815,18 +835,6 @@ internal fun WeatherContent(
                                 },
                             )
                             NextHoursStrip(data, metricPrimary, localizeDigits, onToggleUnits)
-
-                            Text(
-                                text = "© Orinasa Njarasoa",
-                                fontSize = 9f.s(scale),
-                                lineHeight = 11f.s(scale),
-                                fontFamily = bodyFont,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 8.dp),
-                                textAlign = TextAlign.Center,
-                            )
                         }
                         // The 36 dp circle in the same place as before, in a 48 dp hit area
                         Box(
@@ -850,7 +858,7 @@ internal fun WeatherContent(
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.ic_share),
-                                    contentDescription = stringResource(R.string.cd_share),
+                                    contentDescription = "${stringResource(R.string.cd_share)}: $locationName",
                                     tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
                                     modifier = Modifier.size(16.dp),
                                 )
@@ -1053,18 +1061,55 @@ internal fun ShowAllChevron(onClick: () -> Unit, alpha: Float = 0.7f) {
 
 /** The place's own time in a small chip, after the region line (or after the name in the folded header). */
 @Composable
-private fun LocalTimeChip(utcOffsetSeconds: Int, appLocale: Locale, localizeDigits: (String) -> String) {
+private fun LocalTimeChip(utcOffsetSeconds: Int, appLocale: Locale, localizeDigits: (String) -> String, modifier: Modifier = Modifier) {
+    val time = localizeDigits(formatLocationCurrentTime(utcOffsetSeconds, appLocale))
     Text(
-        text = "\uD83D\uDD53 ${localizeDigits(formatLocationCurrentTime(utcOffsetSeconds, appLocale))}",
+        text = "\uD83D\uDD53 $time",
         fontSize = 12f.s(LocalScale.current),
         fontFamily = LocalDisplayFont.current,
         fontWeight = FontWeight.SemiBold,
         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
         maxLines = 1,
-        modifier = Modifier
+        modifier = modifier
+            // Screen readers read the time only, not the clock emoji
+            .clearAndSetSemantics { text = AnnotatedString(time) }
             .background(TileSurface, RoundedCornerShape(50))
             .padding(horizontal = 8.dp, vertical = 2.dp),
     )
+}
+
+/**
+ * The name line of the header. The name takes the free width first (one line, cut with "…"), after it comes
+ * [trailing], then [optional] only when it fits in full in the width that is left; else [optional] does not show.
+ * Twin: the .name-row in web/src/lib/components/WeatherScreen.svelte
+ */
+@Composable
+private fun HeaderNameLine(
+    name: @Composable () -> Unit,
+    trailing: (@Composable () -> Unit)?,
+    optional: (@Composable () -> Unit)?,
+    modifier: Modifier = Modifier,
+) {
+    Layout(contents = listOf(name, trailing ?: {}, optional ?: {}), modifier = modifier) { (nameM, trailingM, optionalM), constraints ->
+        val loose = constraints.copy(minWidth = 0, minHeight = 0)
+        val after = trailingM.map { it.measure(loose) }
+        val afterWidth = after.sumOf { it.width }
+        val namePlaceable = nameM.map { it.measure(loose.copy(maxWidth = maxOf(0, constraints.maxWidth - afterWidth))) }
+        val used = afterWidth + namePlaceable.sumOf { it.width }
+        val extra = optionalM.map { it.measure(loose.copy(maxWidth = Constraints.Infinity)) }
+            .takeIf { o -> used + o.sumOf { it.width } <= constraints.maxWidth }.orEmpty()
+        val row = namePlaceable + after + extra
+        val w = maxOf(constraints.minWidth, row.sumOf { it.width })
+        val h = maxOf(constraints.minHeight, row.maxOfOrNull { it.height } ?: 0)
+        layout(w, h) {
+            // Start to end, centred down the line; placeRelative turns the order in Arabic
+            var x = 0
+            row.forEach { p ->
+                p.placeRelative(x, (h - p.height) / 2)
+                x += p.width
+            }
+        }
+    }
 }
 
 /**
@@ -1249,7 +1294,7 @@ internal fun SectionCard(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_share),
-                    contentDescription = stringResource(R.string.cd_share),
+                    contentDescription = "${stringResource(R.string.cd_share)}: $title",
                     modifier = Modifier.size(16.dp),
                 )
             }
@@ -2109,22 +2154,14 @@ private fun NowTiles(data: WeatherData, metricPrimary: Boolean, localizeDigits: 
     }
 }
 
-/** The temperature on a dial between today's low and high, and how it feels. */
+/** The temperature on a dial between today's low and high, and the heat index or the wind chill when one applies. */
 @Composable
 private fun TemperatureTile(data: WeatherData, metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit, modifier: Modifier) {
     val heatIndex = ThermalIndices.heatIndex(data.temperature, data.humidity)
     val windChill = ThermalIndices.windChill(data.temperature, data.windSpeed)
     val (tempP, tempS) = data.temperature.displayDual(metricPrimary)
-    // How it feels: the heat index or the wind chill when one applies, else feels like
+    // The plain feels-like temperature is in the hero, so the tile shows only these two
     val felt = heatIndex ?: windChill
-    val (flP, flS) = (felt ?: data.feelsLike).displayDual(metricPrimary)
-    val feltLabel = stringResource(
-        when {
-            heatIndex != null -> R.string.detail_heat_index
-            windChill != null -> R.string.detail_wind_chill
-            else -> R.string.feels_like
-        }
-    )
     DetailCard(localizeDigits(tempP), modifier,
         title = stringResource(R.string.detail_temperature),
         onToggleUnits = onToggleUnits,
@@ -2132,15 +2169,20 @@ private fun TemperatureTile(data: WeatherData, metricPrimary: Boolean, localizeD
             // Where now is between today's low and high
             val low = data.tempMin.celsius
             val high = data.tempMax.celsius
+            val (lowP, lowS) = data.tempMin.displayDual(metricPrimary)
+            val (highP, highS) = data.tempMax.displayDual(metricPrimary)
             Gauge(if (high > low) ((data.temperature.celsius - low) / (high - low)).toFloat() else 0.5f, Color(0xFFFFB74D), dialModifier, size = null) {
                 DialValue(localizeDigits(tempP), secondary = localizeDigits(tempS))
+                DialEnds(dialEnd(lowP, localizeDigits), dialEnd(highP, localizeDigits), dialEnd(lowS, localizeDigits), dialEnd(highS, localizeDigits))
             }
         },
-        footer = {
-            LabeledValue(feltLabel, localizeDigits(flP), secondary = localizeDigits(flS), centered = true,
-                labelIcon = if (heatIndex != null) R.drawable.ic_heat else if (windChill != null) R.drawable.ic_cold else null,
+        footer = felt?.let { f -> @Composable {
+            val (flP, flS) = f.displayDual(metricPrimary)
+            LabeledValue(stringResource(if (heatIndex != null) R.string.detail_heat_index else R.string.detail_wind_chill),
+                localizeDigits(flP), secondary = localizeDigits(flS), centered = true,
+                labelIcon = if (heatIndex != null) R.drawable.ic_heat else R.drawable.ic_cold,
                 labelIconTint = if (heatIndex != null) HeatOrange else ChillBlue, ltr = true)
-        })
+        } })
 }
 
 /** The rain or snow now, and the chance of precipitation in the next hour. */
@@ -2443,7 +2485,7 @@ internal fun DetailCard(
         }
         Column(modifier = Modifier.fillMaxHeight().fillMaxWidth().padding(16.sd(scale))) {
             if (title != null) {
-                // A title cut short by the card's width shows in full while held
+                // The title wraps to two lines; a title still cut short shows in full while held
                 var titleCut by remember(title) { mutableStateOf(false) }
                 TooltipBox(
                     positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
@@ -2456,8 +2498,7 @@ internal fun DetailCard(
                         fontSize = 13f.s(scale),
                         fontFamily = bodyFont,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 2,
                         onTextLayout = { titleCut = it.hasVisualOverflow },
                         // Clear of the corner graphic
                         modifier = if (cornerContent != null) Modifier.padding(end = 34.dp) else Modifier,
@@ -2692,13 +2733,15 @@ private fun DialEnds(min: String, max: String, minSecondary: String? = null, max
             val k = minOf(minOf(w, h) / 48f, 1.6f * density)
             val r = (w - 8 * k) / 2
             val dx = r * 0.7071f
-            val top = h / 2f + r * 0.7071f + 2 * k + 2.dp.toPx()
+            // Twin: dialEndTop in web/src/lib/components/Gauge.svelte
+            // 2 dp under the knob (radius 4.5 k + half its 2.5 k stroke) when it is at an end of the arc
+            val dialEndTop = h / 2f + r * 0.7071f + 5.75f * k + 2.dp.toPx()
             // The arc does not turn in Arabic, so the lowest value stays at the bottom left
             listOf(low to w / 2f - dx, high to w / 2f + dx).forEach { (p, x) ->
                 p.place(
                     (x - p.width / 2f).roundToInt().coerceIn(0, maxOf(0, w - p.width)),
                     // May pass the dial's bottom on a small dial: the tile's padding under it takes the rest
-                    top.roundToInt(),
+                    dialEndTop.roundToInt(),
                 )
             }
         }

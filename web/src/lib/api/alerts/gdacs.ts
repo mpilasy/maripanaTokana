@@ -39,7 +39,7 @@ export async function fetchGdacsAlerts(lat: number, lon: number): Promise<Weathe
 				: p.alertlevel === 'orange' ? 'warning' : 'watch';
 			return {
 				level,
-				title: `GDACS: ${p.eventtype} - ${p.name}`,
+				title: `${p.eventtype} - ${p.name}`,
 				description: p.description,
 				source: 'gdacs' as const,
 				time: p.fromdate ? new Date(p.fromdate).getTime() : undefined,

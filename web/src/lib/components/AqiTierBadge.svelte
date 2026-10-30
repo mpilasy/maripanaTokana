@@ -29,7 +29,7 @@
 	.aqi-badge {
 		/* A tint of the level's colour, with the text in a lighter shade of it */
 		background: color-mix(in srgb, var(--tier) 22%, transparent);
-		color: color-mix(in srgb, var(--tier) 70%, white);
+		color: color-mix(in srgb, var(--tier) 50%, white);
 		display: inline-block;
 		max-width: 100%;
 		box-sizing: border-box;

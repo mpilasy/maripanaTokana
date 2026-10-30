@@ -176,7 +176,10 @@
 	/** " (12 km)" in the main unit; empty when not known. */
 	function distanceSuffix(km: number | null): string {
 		if (km == null) return '';
-		return loc($metricPrimary ? ` (${Math.round(km)} km)` : ` (${Math.round(km / 1.609344)} mi)`);
+		// The main unit, then the other
+		const kmText = `${Math.round(km)} km`;
+		const miText = `${Math.round(km / 1.609344)} mi`;
+		return loc($metricPrimary ? ` (${kmText} · ${miText})` : ` (${miText} · ${kmText})`);
 	}
 
 	function loc(s: string): string {
@@ -315,11 +318,14 @@
 		{@const showRoman = !!data.romanName && romanShownFor === romanKey}
 		{@const name = showRoman ? data.romanName! : data.locationName}
 		{@const subtext = showRoman ? data.romanSubtext : data.locationSubtext}
+		<!-- The name on the first header line: without the region when the name holds it after a comma -->
+		{@const shownName = !subtext && name.includes(',') && !isCoordinatesName(name) ? name.split(',')[0].trim() : name}
 		<!-- The second header line always shows: the region and country, or else the coordinates
 		     (the Plus Code when the name itself is already the coordinates) -->
 		{@const region = subtext || (name.includes(',') && !isCoordinatesName(name) ? name.split(',').slice(1).join(',').trim() : '')}
 		{@const plusCode = encodePlusCode(data.latitude, data.longitude)}
 		{@const decimal = `${data.latitude.toFixed(4)}, ${data.longitude.toFixed(4)}`}
+		{@const refreshFailedText = $_('refresh_failed', { values: { time: loc(formatTime(data.timestamp)) } }) + ($refreshError ? ' · ' + $_($refreshError) : '')}
 		{@const updatedText = $_('updated_time', { values: { time: loc(isToday(data.timestamp)
 			? formatTime(data.timestamp)
 			: `${formatShortDate(data.timestamp, SUPPORTED_LOCALES[$localeIndex].tag, weekdayNames, monthNames)}, ${formatTime(data.timestamp)}`) } })}
@@ -349,13 +355,7 @@
 					<!-- A tap on the name opens the list of places -->
 					<div class="name-row" style:padding-inline-end="{headerActionsWidth}px"
 						onclick={(e) => { if (hasLocationList) { e.stopPropagation(); pickerOpen = !pickerOpen; } }}>
-						<h1 class="location-name">
-							{#if !subtext && name.includes(',') && !isCoordinatesName(name)}
-								{name.split(',')[0].trim()}
-							{:else}
-								{name}
-							{/if}
-						</h1>
+						<h1 class="location-name">{shownName}</h1>
 						{#if data.romanName}
 							<!-- Discreet switch between the local script and Latin letters; resets per location -->
 							<button type="button" class="script-toggle touch-target" class:active={showRoman} aria-label={$_('cd_roman_name')}
@@ -365,8 +365,10 @@
 								</svg>
 							</button>
 						{/if}
+						<!-- Twin: HeaderNameLine in app/src/main/java/orinasa/njarasoa/maripanatokana/ui/weather/WeatherContent.kt -->
+						<!-- The name has priority: the time shows only when all of it fits after the name -->
 						{#if headerCollapsed && remoteTime}
-							<span class="location-time">&#x1F553; {remoteTime}</span>
+							<span class="location-time-fit"><span class="location-time"><span aria-hidden="true">&#x1F553;</span> {remoteTime}</span></span>
 						{/if}
 					</div>
 					{#if !headerCollapsed}
@@ -379,7 +381,7 @@
 							{plusCode} lat={data.latitude} lon={data.longitude} />
 						<p class="location-subtext" dir={region ? undefined : 'ltr'}>{region || (isCoordinatesName(name) ? plusCode : decimal)}</p>
 						{#if remoteTime}
-							<span class="location-time">&#x1F553; {remoteTime}</span>
+							<span class="location-time"><span aria-hidden="true">&#x1F553;</span> {remoteTime}</span>
 						{/if}
 					</div>
 					<!-- The visible time stays in the button's name; "Refresh" follows it for screen readers -->
@@ -397,7 +399,7 @@
 					</button>
 					{#if $refreshFailed}
 						<button type="button" class="refresh-failed touch-target" onclick={(e) => { e.stopPropagation(); doFetchWeather(); }}>
-							{$_('refresh_failed', { values: { time: loc(formatTime(data.timestamp)) } })}{#if $refreshError}{' · '}{$_($refreshError)}{/if}
+							{refreshFailedText}
 						</button>
 					{/if}
 					</div>
@@ -445,18 +447,20 @@
 				<div class="header-actions" bind:clientWidth={headerActionsWidth}>
 					<!-- Collapsed: the refresh button, named with the data age as the "Updated" line it replaces -->
 					{#if headerCollapsed}
-						<button class="header-action touch-target" onclick={doFetchWeather} title={$_('cd_refresh')}>
+						<!-- After a failed refresh: in the colour of the "refresh failed" text, and named with it -->
+						<button class="header-action touch-target" class:failed={$refreshFailed} onclick={doFetchWeather} title={$_('cd_refresh')}>
 							<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 								<path d="M23 4v6h-6"/>
 								<path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
 							</svg>
-							<span class="sr-only">{updatedText} {$_('cd_refresh')}</span>
+							<span class="sr-only">{updatedText}{#if $refreshFailed}{' ' + refreshFailedText}{/if} {$_('cd_refresh')}</span>
 						</button>
 					{/if}
 					<button class="header-action touch-target" onclick={openSavedLocationsDialog} aria-label={$_('cd_manage_locations')} title={$_('cd_manage_locations')}>
 						<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
 					</button>
-					{#if $activeLocationId !== null || $locationOverride !== null}
+					<!-- Folded: no favourite and current-location buttons, so the name has room -->
+					{#if !headerCollapsed && ($activeLocationId !== null || $locationOverride !== null)}
 						<button
 							class="header-action touch-target"
 							onclick={() => { if ($activeLocationId !== null) unfavoriteCurrentLocation(); else favoriteCurrentLocation(); }}
@@ -497,7 +501,7 @@
 					{#if $advancedModeActive && (data.failedAlertSources?.length ?? 0) > 0}
 						<div class="alert-sources-unavailable">{$_('alert_sources_unavailable', { values: { sources: data.failedAlertSources?.join(', ') } })}</div>
 					{/if}
-					<HeroCard {data} metricPrimary={$metricPrimary} {loc} onToggleUnits={toggleUnits} onShare={handleShare} />
+					<HeroCard {data} placeName={shownName} metricPrimary={$metricPrimary} {loc} onToggleUnits={toggleUnits} onShare={handleShare} />
 				</div>
 
 				{#if data.hourlyForecast.length > 0}
@@ -811,6 +815,25 @@
 
 	.name-row .location-time {
 		margin-inline-start: 8px;
+		line-height: 1rem;
+	}
+
+	/* As tall as the time, which goes to a hidden second line when it does not fit: it is not cut.
+	   It gives up its width before the name does */
+	.location-time-fit {
+		flex: 0 1000 auto;
+		min-width: 0;
+		height: calc(1rem + 4px);
+		display: flex;
+		flex-wrap: wrap;
+		align-content: flex-start;
+		overflow: hidden;
+	}
+
+	/* No width; holds the first line open when the time goes to the second */
+	.location-time-fit::before {
+		content: '';
+		height: 100%;
 	}
 
 	.script-toggle {
@@ -846,6 +869,8 @@
 	.header.collapsed .location-name {
 		font-size: 1.25rem;
 		line-height: 1.5rem;
+		/* Never shrinks to nothing */
+		min-width: 4em;
 	}
 
 	.subtext-row {
@@ -955,6 +980,11 @@
 	.header-action:hover {
 		background: var(--surface-tile);
 		color: white;
+	}
+
+	/* The colour of the "refresh failed" text */
+	.header-action.failed {
+		color: #ff6b6b;
 	}
 
 	.header-action:focus-visible, .location-list-arrow:focus-visible {

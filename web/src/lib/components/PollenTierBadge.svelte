@@ -18,6 +18,9 @@
 	/* Reuses UvTierBadge's Low/Moderate/High/Very High colors (green/yellow/orange/red) — same
 	   four-tier semantics, so the same color ramp applies. */
 	.pollen-badge {
+		/* A tint of the level's colour, with the text in a lighter shade of it, as on the activity badges */
+		background: color-mix(in srgb, var(--tier) 22%, transparent);
+		color: color-mix(in srgb, var(--tier) 50%, white);
 		display: inline-block;
 		padding: 2px 8px;
 		border-radius: 999px;
@@ -31,8 +34,8 @@
 		padding: 1px 6px;
 	}
 
-	.tier-low { background: #299501; color: #fff; }
-	.tier-moderate { background: #F7E401; color: #1a1a1a; }
-	.tier-high { background: #F85900; color: #fff; }
-	.tier-very_high { background: #D8001D; color: #fff; }
+	.tier-low { --tier: #299501; }
+	.tier-moderate { --tier: #F7E401; }
+	.tier-high { --tier: #F85900; }
+	.tier-very_high { --tier: #D8001D; }
 </style>

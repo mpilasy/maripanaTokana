@@ -3,6 +3,7 @@
 
 package orinasa.njarasoa.maripanatokana.ui.weather.components
 
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -131,14 +132,10 @@ internal fun OverviewChart(
             // Labels near an edge grow inwards so they stay inside the chart. A label that would
             // overlap [avoid] (another label's left and right edges) goes next to it, on its row.
             fun drawLabel(text: String, i: Int, y: Float, labelColor: Color = colorAt(i), avoid: Pair<Float, Float>? = null, avoidY: Float = y): Pair<Float, Float> {
-                val layout = textMeasurer.measure(dualLabel(text, labelColor), TextStyle(color = labelColor, fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont))
-                val x = xFor(i)
+                // Ltr: keep the unit after the number in Arabic ("١٤°C", not "C°١٤")
+                val layout = textMeasurer.measure(dualLabel(text, labelColor), TextStyle(color = labelColor, fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont, textDirection = TextDirection.Ltr))
                 val width = layout.size.width.toFloat()
-                var left = when {
-                    x < w / 4 -> (x - 4.dp.toPx()).coerceAtLeast(0f)
-                    x > w * 3 / 4 -> (x + 4.dp.toPx() - width).coerceAtMost(w - width)
-                    else -> x - width / 2f
-                }
+                var left = chartLabelLeft(xFor(i), width, w, 4.dp.toPx())
                 var top = y
                 val gap = 6.dp.toPx()
                 if (avoid != null && left < avoid.second + gap && left + width > avoid.first - gap) {

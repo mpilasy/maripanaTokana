@@ -266,7 +266,7 @@ class WeatherRepositoryImpl @Inject constructor(
                     try { gdacsParser.parse(it)?.time } catch (_: Exception) { null }
                 }
                 val reportUrl = try { p.url?.get("report")?.jsonPrimitive?.content } catch (_: Exception) { null }
-                WeatherAlert(level, "GDACS: ${p.eventtype} - ${p.name}", p.description, "gdacs", time, null, reportUrl)
+                WeatherAlert(level, "${p.eventtype} - ${p.name}", p.description, "gdacs", time, null, reportUrl)
             }
     }
 
@@ -349,7 +349,7 @@ class WeatherRepositoryImpl @Inject constructor(
                 val time = storm.advisory?.issuance?.let { try { nhcParser.parse(it)?.time } catch (_: Exception) { null } }
 
                 val classificationName = NHC_CLASSIFICATION_NAMES[storm.classification]
-                val title = if (classificationName != null) "$classificationName ${storm.name}" else "NHC: ${storm.name}"
+                val title = if (classificationName != null) "$classificationName ${storm.name}" else storm.name
 
                 val distanceKm = Math.round(calculateDistance(lat, lon, storm.lat, storm.lon))
                 val distanceMi = Math.round(distanceKm * 0.621371)

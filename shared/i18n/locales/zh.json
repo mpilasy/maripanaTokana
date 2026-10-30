@@ -78,7 +78,7 @@
 	"no_precip": "无降水",
 	"precip_chance": "概率 {value}",
 	"section_current_conditions": "当前状况",
-	"section_sun_air": "阳光与空气",
+	"section_sun_air": "天空与空气",
 	"section_hourly_forecast": "逐时预报",
 	"section_this_week": "10天预报",
 	"section_activities": "生活指数",
@@ -244,6 +244,7 @@
 		"acquiring_location": "我们在哪里？"
 	},
 	"cd_change_font": "更换字体",
+	"font_default": "默认",
 	"cd_change_language": "更改语言",
 	"cd_show_all": "显示全部",
 	"cd_toggle_units": "切换单位",

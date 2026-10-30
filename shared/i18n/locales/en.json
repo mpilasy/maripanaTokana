@@ -78,7 +78,7 @@
 	"no_precip": "No precip",
 	"precip_chance": "{value} chance",
 	"section_current_conditions": "Current Conditions",
-	"section_sun_air": "Sun & Air",
+	"section_sun_air": "Sky & Air",
 	"section_hourly_forecast": "Hourly Forecast",
 	"section_this_week": "10-Day Forecast",
 	"section_activities": "Activities",
@@ -244,6 +244,7 @@
 		"acquiring_location": "Where are we?"
 	},
 	"cd_change_font": "Change font",
+	"font_default": "Default",
 	"cd_change_language": "Change language",
 	"cd_show_all": "Show all",
 	"cd_toggle_units": "Toggle units",

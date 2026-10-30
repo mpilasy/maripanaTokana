@@ -78,7 +78,7 @@
 	"no_precip": "لا هطول",
 	"precip_chance": "احتمال {value}",
 	"section_current_conditions": "الأحوال الحالية",
-	"section_sun_air": "الشمس والهواء",
+	"section_sun_air": "السماء والهواء",
 	"section_hourly_forecast": "التوقعات بالساعة",
 	"section_this_week": "توقعات ١٠ أيام",
 	"section_activities": "مؤشرات الأنشطة",
@@ -244,6 +244,7 @@
 		"acquiring_location": "أين نحن؟"
 	},
 	"cd_change_font": "تغيير الخط",
+	"font_default": "افتراضي",
 	"cd_change_language": "تغيير اللغة",
 	"cd_show_all": "عرض الكل",
 	"cd_toggle_units": "تبديل الوحدات",

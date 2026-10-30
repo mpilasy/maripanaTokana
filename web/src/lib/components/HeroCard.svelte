@@ -15,13 +15,15 @@
 
 	interface Props {
 		data: WeatherData;
+		/** The place's name, for the share button's label. */
+		placeName: string;
 		metricPrimary: boolean;
 		loc: (s: string) => string;
 		onToggleUnits: () => void;
 		onShare?: (el: HTMLElement) => void;
 	}
 
-	let { data, metricPrimary, loc, onToggleUnits, onShare }: Props = $props();
+	let { data, placeName, metricPrimary, loc, onToggleUnits, onShare }: Props = $props();
 
 	let cardEl = $state<HTMLElement | null>(null);
 
@@ -88,9 +90,13 @@
 <div class="hero-wrap">
 	<div class="hero-card" bind:this={cardEl}>
 		<div class="hero-condition">
-			<WeatherIcon code={data.weatherCode} night={isNight} size={64} />
+			<WeatherIcon code={data.weatherCode} night={isNight} size={64} decorative />
 			<span class="hero-description">{description}</span>
 		</div>
+		<!-- Rain or snow coming, on its own line under the condition -->
+		{#if outlook}
+			<p class="hero-outlook">{outlook}</p>
+		{/if}
 
 		<div class="hero-mid">
 		<div class="hero-temp">
@@ -121,18 +127,13 @@
 			</div>
 		</div>
 
-		<!-- Rain or snow and air quality fill the space beside the °F and high/low lines -->
-		{#if outlook || aqi}
+		<!-- Air quality fills the space beside the °F and high/low lines -->
+		{#if aqi}
 			<div class="hero-side">
-				{#if outlook}
-					<p class="hero-outlook">{outlook}</p>
+				{#if aqiDual}
+					<DualUnitText primary={loc(String(aqiDual[0]))} secondary={loc(String(aqiDual[1]))} primaryUnit={aqiUnits[0]} secondaryUnit={aqiUnits[1]} primarySize="0.875rem" align="end" />
 				{/if}
-				{#if aqi}
-					{#if aqiDual}
-						<DualUnitText primary={loc(String(aqiDual[0]))} secondary={loc(String(aqiDual[1]))} primaryUnit={aqiUnits[0]} secondaryUnit={aqiUnits[1]} primarySize="0.875rem" align="end" />
-					{/if}
-					<AqiTierBadge tier={aqi.primaryTier} label={($json('aqi_tier_labels') as string[])?.[AQI_TIERS.indexOf(aqi.primaryTier)] ?? ''} compact />
-				{/if}
+				<AqiTierBadge tier={aqi.primaryTier} label={($json('aqi_tier_labels') as string[])?.[AQI_TIERS.indexOf(aqi.primaryTier)] ?? ''} compact />
 			</div>
 		{/if}
 		</div>
@@ -154,11 +155,12 @@
 			</div>
 		{/if}
 
-		<div class="copyright">&copy; Orinasa Njarasoa</div>
+		<!-- Only in share images: captureAndShare shows it in its copy of the page -->
+		<div class="copyright" data-share-only>&copy; Orinasa Njarasoa</div>
 	</div>
 
 	{#if onShare}
-		<button class="share-btn touch-target" onclick={handleShare} aria-label={$_('cd_share')}>
+		<button class="share-btn touch-target" onclick={handleShare} aria-label={`${$_('cd_share')}: ${placeName}`}>
 			<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 				<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
 				<polyline points="16 6 12 2 8 6"/>
@@ -259,7 +261,8 @@
 	}
 
 	.hero-outlook {
-		margin: 0;
+		margin: 4px 0 0;
+		text-align: start;
 		font-size: 0.875rem;
 		color: rgba(255,255,255,0.85);
 	}
@@ -332,5 +335,6 @@
 		font-size: 0.5625rem;
 		color: rgba(255,255,255,0.25);
 		margin-top: 8px;
+		display: none;
 	}
 </style>

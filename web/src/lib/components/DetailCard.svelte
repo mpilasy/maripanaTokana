@@ -70,9 +70,11 @@
 		     the title instead, so the dials of two cards side by side line up whatever their bottom rows -->
 		<div class="card-content" class:top={centerDialSnippet}>
 		{#if centerDialSnippet}
-			<!-- As wide as the card allows, up to 132 px, and square -->
-			<!-- svelte-ignore a11y_click_events_have_key_events -->
-			<div class="center-dial" onclick={onToggleUnits ? (e) => { e.stopPropagation(); onToggleUnits(); } : undefined}>
+			<!-- As wide as the card allows, up to 132 px, and square; a tap or Enter/Space changes the units -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div class="center-dial" role={onToggleUnits ? 'button' : undefined} tabindex={onToggleUnits ? 0 : undefined}
+				onclick={onToggleUnits ? (e) => { e.stopPropagation(); onToggleUnits(); } : undefined}
+				onkeydown={onToggleUnits ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onToggleUnits(); } } : undefined}>
 				{@render centerDialSnippet()}
 			</div>
 		{:else if secondaryValue}
@@ -161,12 +163,11 @@
 		text-align: center;
 	}
 
+	/* A long title (Malagasy) wraps to the next line; it is not cut short */
 	.card-title {
 		font-size: 0.8125rem;
 		color: rgba(255,255,255,0.6);
-		white-space: nowrap;
 		overflow: hidden;
-		text-overflow: ellipsis;
 		margin-bottom: 2px;
 	}
 
@@ -224,5 +225,11 @@
 	.center-dial {
 		width: 100%;
 		max-width: 132px;
+	}
+
+	.center-dial:focus-visible {
+		outline: 2px solid rgba(255, 255, 255, 0.5);
+		outline-offset: 2px;
+		border-radius: 8px;
 	}
 </style>

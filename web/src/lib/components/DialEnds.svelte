@@ -10,7 +10,7 @@
 	let { min, max }: { min: [string, string?]; max: [string, string?] } = $props();
 </script>
 
-<!-- The arc ends at 135° and 405°: 20.5 % and 79.5 % across, 79.5 % down; the labels start under the stroke -->
+<!-- The arc ends at 135° and 405°: 20.5 % and 79.5 % across; the labels start 2 px under a knob at an end (the Gauge sets the top) -->
 {#each [{ end: min, x: 20.5 }, { end: max, x: 79.5 }] as { end, x } (x)}
 	<span class="dial-end" style:left="{x}%" dir="ltr">
 		<span class="primary">{end[0]}</span>
@@ -21,7 +21,7 @@
 <style>
 	.dial-end {
 		position: absolute;
-		top: 85%;
+		top: var(--dial-end-top, 85%);
 		transform: translateX(-50%);
 		display: flex;
 		flex-direction: column;

@@ -55,7 +55,7 @@
     <string name="no_precip">无降水</string>
     <string name="precip_chance">概率 %1$s</string>
     <string name="section_current_conditions">当前状况</string>
-    <string name="section_sun_air">阳光与空气</string>
+    <string name="section_sun_air">天空与空气</string>
     <string name="section_hourly_forecast">逐时预报</string>
     <string name="section_this_week">10天预报</string>
     <string name="section_activities">生活指数</string>
@@ -150,6 +150,7 @@
     <string name="locations_title">位置</string>
     <string name="locations_search_hint">搜索城市或邮编</string>
     <string name="cd_change_font">更换字体</string>
+    <string name="font_default">默认</string>
     <string name="cd_change_language">更改语言</string>
     <string name="cd_show_all">显示全部</string>
     <string name="cd_toggle_units">切换单位</string>

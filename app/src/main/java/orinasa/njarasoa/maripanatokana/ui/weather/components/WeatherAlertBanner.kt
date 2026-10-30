@@ -41,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
@@ -304,11 +305,13 @@ fun WeatherAlertBanner(
                             }
                             if (alert.time != null) {
                                 Spacer(modifier = Modifier.height(2.sd(scale)))
-                                val timeFormat = remember(alert.time) {
-                                    java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault())
+                                // The app's language order for day, month, year, 24-hour time, as formatAlertTime on the web
+                                val appLocale = LocalConfiguration.current.locales[0]
+                                val timeFormat = remember(appLocale) {
+                                    java.text.SimpleDateFormat(android.text.format.DateFormat.getBestDateTimePattern(appLocale, "yyyyMMddHHmm"), appLocale)
                                 }
                                 Text(
-                                    text = timeFormat.format(java.util.Date(alert.time)),
+                                    text = localizeDigits(timeFormat.format(java.util.Date(alert.time))),
                                     fontSize = 11f.s(scale),
                                     fontFamily = bodyFont,
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),

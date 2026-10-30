@@ -22,8 +22,11 @@
 	let pickerOpen = $state(false);
 	let fontPickerOpen = $state(false);
 	const languageItems = SUPPORTED_LOCALES.map((l) => ({ lead: l.flag, label: l.name, lang: l.tag }));
+	// Twin: fontLabel in app/src/main/java/orinasa/njarasoa/maripanatokana/ui/weather/components/FooterPickers.kt
+	/** The pairing's name; the default pairing's name is translated, the others are proper names. */
+	const fontLabel = (name: string) => (name === fontPairings[0].name ? $_('font_default') : name);
 	// Each font name in its own display font
-	const fontItems = fontPairings.map((p) => ({ label: p.name, font: p.displayFamily }));
+	let fontItems = $derived(fontPairings.map((p) => ({ label: fontLabel(p.name), font: p.displayFamily })));
 </script>
 
 <!-- The font list draws each name in its font, so it loads them all while it is open -->
@@ -48,7 +51,7 @@
 	<span class="picker-box">
 		<button type="button" class="pill touch-target" onclick={onCycleFont} use:longPress={() => (fontPickerOpen = true)} aria-label={$_('cd_change_font')}>
 			<span class="icon">Aa</span>
-			<span class="name">{fontName.split(' + ')[0]}</span>
+			<span class="name">{fontLabel(fontName).split(' + ')[0]}</span>
 		</button>
 		{@render showAll(() => (fontPickerOpen = !fontPickerOpen), fontPickerOpen)}
 		<PickerMenu bind:open={fontPickerOpen} items={fontItems} current={$fontIndex} onSelect={selectFont} above alignStart />

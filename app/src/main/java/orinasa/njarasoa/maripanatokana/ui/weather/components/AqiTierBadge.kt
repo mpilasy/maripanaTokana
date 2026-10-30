@@ -58,9 +58,10 @@ internal fun TierPill(
     // In narrow forecast cards: stay on one line, shrinking the text to fit before cutting it short
     singleLine: Boolean = false,
 ) {
-    // A tint of the level's colour, with the text in a lighter shade of it (foreground is kept for callers but unused)
+    // A tint of the level's colour, with the text in a lighter shade of it (foreground is kept for callers but unused).
+    // The same rule as the activity badges: half white keeps the text at 4.5:1 or more on the tint
     val tint = background.copy(alpha = 0.22f)
-    val text = lerp(background, Color.White, 0.3f)
+    val text = lerp(background, Color.White, 0.5f)
     if (singleLine) {
         BasicText(
             text = label,

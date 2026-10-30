@@ -55,7 +55,7 @@
     <string name="no_precip">No precip</string>
     <string name="precip_chance">%1$s chance</string>
     <string name="section_current_conditions">Current Conditions</string>
-    <string name="section_sun_air">Sun &amp; Air</string>
+    <string name="section_sun_air">Sky &amp; Air</string>
     <string name="section_hourly_forecast">Hourly Forecast</string>
     <string name="section_this_week">10-Day Forecast</string>
     <string name="section_activities">Activities</string>
@@ -150,6 +150,7 @@
     <string name="locations_title">Locations</string>
     <string name="locations_search_hint">Search city or zip</string>
     <string name="cd_change_font">Change font</string>
+    <string name="font_default">Default</string>
     <string name="cd_change_language">Change language</string>
     <string name="cd_show_all">Show all</string>
     <string name="cd_toggle_units">Toggle units</string>

@@ -6,6 +6,17 @@ package orinasa.njarasoa.maripanatokana.ui.weather.components
 import androidx.compose.ui.geometry.Offset
 import kotlin.math.sqrt
 
+/**
+ * The left edge of a chart label for a point at [x]. Near an edge the label grows inwards from [pad] past the
+ * point, so it stays inside the chart; in the middle half it is centred on the point.
+ * Twin: anchor and labelX in web/src/lib/components/TemperatureChart.svelte
+ */
+internal fun chartLabelLeft(x: Float, labelWidth: Float, chartWidth: Float, pad: Float): Float = when {
+    x < chartWidth / 4 -> (x - pad).coerceAtLeast(0f)
+    x > chartWidth * 3 / 4 -> (x + pad).coerceAtMost(chartWidth) - labelWidth
+    else -> x - labelWidth / 2
+}
+
 internal data class ControlPoints(val cp1: Offset, val cp2: Offset)
 
 internal fun computeMonotoneCubicControlPoints(points: List<Offset>): List<ControlPoints> {

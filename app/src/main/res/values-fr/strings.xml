@@ -55,7 +55,7 @@
     <string name="no_precip">Pas de précipitations</string>
     <string name="precip_chance">Probabilité %1$s</string>
     <string name="section_current_conditions">Conditions actuelles</string>
-    <string name="section_sun_air">Soleil et air</string>
+    <string name="section_sun_air">Ciel et air</string>
     <string name="section_hourly_forecast">Prévisions horaires</string>
     <string name="section_this_week">Prévisions à 10 jours</string>
     <string name="section_activities">Activités</string>
@@ -150,6 +150,7 @@
     <string name="locations_title">Emplacements</string>
     <string name="locations_search_hint">Rechercher une ville ou un code postal</string>
     <string name="cd_change_font">Changer la police</string>
+    <string name="font_default">Par défaut</string>
     <string name="cd_change_language">Changer la langue</string>
     <string name="cd_show_all">Tout afficher</string>
     <string name="cd_toggle_units">Changer d’unités</string>

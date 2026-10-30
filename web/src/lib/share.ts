@@ -138,7 +138,11 @@ export async function captureAndShare(
 ): Promise<void> {
 	const { default: html2canvas } = await import('html2canvas');
 
-	const opts = { backgroundColor: BG_COLOR, scale: 2, useCORS: true, logging: false };
+	const opts = {
+		backgroundColor: BG_COLOR, scale: 2, useCORS: true, logging: false,
+		// Show the parts that are only for share images (the hero's copyright)
+		onclone: (doc: Document) => doc.querySelectorAll<HTMLElement>('[data-share-only]').forEach((el) => { el.style.display = 'block'; }),
+	};
 
 	// Capture both elements
 	const [headerCapture, contentCapture] = await Promise.all([

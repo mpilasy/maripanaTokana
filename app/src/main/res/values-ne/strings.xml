@@ -55,7 +55,7 @@
     <string name="no_precip">वर्षा छैन</string>
     <string name="precip_chance">सम्भावना %1$s</string>
     <string name="section_current_conditions">हालको अवस्था</string>
-    <string name="section_sun_air">सूर्य र हावा</string>
+    <string name="section_sun_air">आकाश र हावा</string>
     <string name="section_hourly_forecast">प्रति घण्टा पूर्वानुमान</string>
     <string name="section_this_week">१० दिनको पूर्वानुमान</string>
     <string name="section_activities">गतिविधि सूचकांक</string>
@@ -150,6 +150,7 @@
     <string name="locations_title">स्थानहरू</string>
     <string name="locations_search_hint">सहर वा जिप कोड खोज्नुहोस्</string>
     <string name="cd_change_font">फन्ट परिवर्तन गर्नुहोस्</string>
+    <string name="font_default">पूर्वनिर्धारित</string>
     <string name="cd_change_language">भाषा परिवर्तन गर्नुहोस्</string>
     <string name="cd_show_all">सबै देखाउनुहोस्</string>
     <string name="cd_toggle_units">एकाइ बदल्नुहोस्</string>

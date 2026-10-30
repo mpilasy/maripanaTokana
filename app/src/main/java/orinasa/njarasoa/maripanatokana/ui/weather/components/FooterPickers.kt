@@ -55,6 +55,7 @@ import androidx.compose.ui.window.PopupProperties
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.ui.theme.Hairline
 import orinasa.njarasoa.maripanatokana.ui.theme.fontPairings
+import orinasa.njarasoa.maripanatokana.ui.theme.localName
 import orinasa.njarasoa.maripanatokana.ui.weather.supportedLocales
 
 /**
@@ -133,7 +134,7 @@ internal fun FontPicker(currentIndex: Int, onSelectFont: (Int) -> Unit, onDismis
         leading = null,
         label = { i, current ->
             Text(
-                text = fontPairings[i].name,
+                text = fontPairings[i].localName(),
                 fontFamily = fontPairings[i].display,
                 fontWeight = if (current) FontWeight.Bold else FontWeight.Normal,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (current) 1f else 0.85f),

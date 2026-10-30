@@ -78,7 +78,7 @@
 	"no_precip": "Pas de précipitations",
 	"precip_chance": "Probabilité {value}",
 	"section_current_conditions": "Conditions actuelles",
-	"section_sun_air": "Soleil et air",
+	"section_sun_air": "Ciel et air",
 	"section_hourly_forecast": "Prévisions horaires",
 	"section_this_week": "Prévisions à 10 jours",
 	"section_activities": "Activités",
@@ -244,6 +244,7 @@
 		"acquiring_location": "Où sommes-nous ?"
 	},
 	"cd_change_font": "Changer la police",
+	"font_default": "Par défaut",
 	"cd_change_language": "Changer la langue",
 	"cd_show_all": "Tout afficher",
 	"cd_toggle_units": "Changer d’unités",

@@ -55,7 +55,7 @@
     <string name="no_precip">Tsy misy orana</string>
     <string name="precip_chance">Mety %1$s</string>
     <string name="section_current_conditions">Izao</string>
-    <string name="section_sun_air">Masoandro sy rivotra</string>
+    <string name="section_sun_air">Lanitra sy rivotra</string>
     <string name="section_hourly_forecast">Isan\'ora</string>
     <string name="section_this_week">Ny folo andro manaraka</string>
     <string name="section_activities">Asa sy lalao</string>
@@ -150,6 +150,7 @@
     <string name="locations_title">Toerana</string>
     <string name="locations_search_hint">Anaran-tanàna na kaody</string>
     <string name="cd_change_font">Ovay ny endri-tsoratra</string>
+    <string name="font_default">Mahazatra</string>
     <string name="cd_change_language">Ovay ny teny</string>
     <string name="cd_show_all">Asehoy daholo</string>
     <string name="cd_toggle_units">Ovay ny venty</string>

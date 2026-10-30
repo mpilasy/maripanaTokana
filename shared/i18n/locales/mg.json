@@ -78,7 +78,7 @@
 	"no_precip": "Tsy misy orana",
 	"precip_chance": "Mety {value}",
 	"section_current_conditions": "Izao",
-	"section_sun_air": "Masoandro sy rivotra",
+	"section_sun_air": "Lanitra sy rivotra",
 	"section_hourly_forecast": "Isan'ora",
 	"section_this_week": "Ny folo andro manaraka",
 	"section_activities": "Asa sy lalao",
@@ -244,6 +244,7 @@
 		"acquiring_location": "Aiza isika?"
 	},
 	"cd_change_font": "Ovay ny endri-tsoratra",
+	"font_default": "Mahazatra",
 	"cd_change_language": "Ovay ny teny",
 	"cd_show_all": "Asehoy daholo",
 	"cd_toggle_units": "Ovay ny venty",

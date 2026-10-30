@@ -149,7 +149,7 @@
 		border-radius: 16px;
 		overflow: hidden;
 		background: rgba(255, 255, 255, 0.1);
-		border-left: 4px solid transparent;
+		border-inline-start: 4px solid transparent;
 		transition: background 0.2s;
 	}
 
@@ -159,7 +159,7 @@
 	.level-emergency { --level: #E040FB; }
 
 	.alert-banner {
-		border-left-color: var(--level);
+		border-inline-start-color: var(--level);
 		background: color-mix(in srgb, var(--level) 15%, transparent);
 	}
 
@@ -231,13 +231,13 @@
 		font-size: 0.625rem;
 		font-weight: 800;
 		color: white;
-		margin-left: 4px;
+		margin-inline-start: 4px;
 		letter-spacing: 0.5px;
 		text-decoration: none;
 	}
 
 	.source-badges .source-badge {
-		margin-left: 0;
+		margin-inline-start: 0;
 	}
 
 	.source-badge.clickable {

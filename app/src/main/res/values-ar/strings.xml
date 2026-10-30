@@ -55,7 +55,7 @@
     <string name="no_precip">لا هطول</string>
     <string name="precip_chance">احتمال %1$s</string>
     <string name="section_current_conditions">الأحوال الحالية</string>
-    <string name="section_sun_air">الشمس والهواء</string>
+    <string name="section_sun_air">السماء والهواء</string>
     <string name="section_hourly_forecast">التوقعات بالساعة</string>
     <string name="section_this_week">توقعات ١٠ أيام</string>
     <string name="section_activities">مؤشرات الأنشطة</string>
@@ -150,6 +150,7 @@
     <string name="locations_title">المواقع</string>
     <string name="locations_search_hint">البحث عن مدينة أو رمز بريدي</string>
     <string name="cd_change_font">تغيير الخط</string>
+    <string name="font_default">افتراضي</string>
     <string name="cd_change_language">تغيير اللغة</string>
     <string name="cd_show_all">عرض الكل</string>
     <string name="cd_toggle_units">تبديل الوحدات</string>

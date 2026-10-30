@@ -63,6 +63,7 @@ import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFontFeatures
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 import orinasa.njarasoa.maripanatokana.ui.theme.buildTypography
 import orinasa.njarasoa.maripanatokana.ui.theme.fontPairings
+import orinasa.njarasoa.maripanatokana.ui.theme.localName
 import orinasa.njarasoa.maripanatokana.ui.weather.components.RenameLocationDialog
 import orinasa.njarasoa.maripanatokana.ui.weather.components.SavedLocationsDialog
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -450,7 +451,7 @@ private fun WeatherMainScreen(
                             refreshFailed = refreshFailed,
                             refreshError = refreshError,
                             advancedMode = advancedModeActive,
-                            fontName = pairing.name,
+                            fontName = pairing.localName(),
                             fontIndex = fontIndex,
                             currentFlag = supportedLocales[localeIndex].flag,
                             localizeDigits = supportedLocales[localeIndex]::localizeDigits,

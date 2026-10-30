@@ -4,7 +4,9 @@
 package orinasa.njarasoa.maripanatokana.ui.theme
 
 import androidx.compose.material3.Typography
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -207,6 +209,13 @@ val fontPairings = listOf(
     FontPairing("Archivo + Archivo Narrow", Archivo, ArchivoNarrow, bodyFontFeatures = "tnum"),
     FontPairing("Roboto + Lora", FontFamily.Default, Lora),
 )
+
+/**
+ * The name to show for a pairing: "Default" in the app's language; the other names are font names and stay.
+ * Twin: the same rule for the font pairing names on the web (web/src/lib/fonts.ts)
+ */
+@Composable
+fun FontPairing.localName(): String = if (this === fontPairings.first()) stringResource(R.string.font_default) else name
 
 val LocalDisplayFont = compositionLocalOf<FontFamily> { FontFamily.Default }
 val LocalBodyFont = compositionLocalOf<FontFamily> { FontFamily.Default }

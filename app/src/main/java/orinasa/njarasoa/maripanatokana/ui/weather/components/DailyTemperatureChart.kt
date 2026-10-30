@@ -3,6 +3,7 @@
 
 package orinasa.njarasoa.maripanatokana.ui.weather.components
 
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -200,8 +201,9 @@ fun DailyTemperatureChart(
 
             // The warmest high above its point, the coldest low below its point
             fun drawLabel(text: String, color: Color, point: Offset, above: Boolean) {
-                val layout = textMeasurer.measure(dualLabel(localizeDigits(text), color), TextStyle(color = color, fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont))
-                val x = (point.x - layout.size.width / 2f).coerceIn(4.dp.toPx(), width - layout.size.width - 4.dp.toPx())
+                // Ltr: keep the unit after the number in Arabic ("١٤°C", not "C°١٤")
+                val layout = textMeasurer.measure(dualLabel(localizeDigits(text), color), TextStyle(color = color, fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont, textDirection = TextDirection.Ltr))
+                val x = chartLabelLeft(point.x, layout.size.width.toFloat(), width, 4.dp.toPx())
                 val y = if (above) (point.y - layout.size.height - 2.dp.toPx()).coerceAtLeast(0f)
                     else (point.y + 2.dp.toPx()).coerceAtMost(height - layout.size.height)
                 drawText(layout, topLeft = Offset(x, y))

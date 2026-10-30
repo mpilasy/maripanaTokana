@@ -48,7 +48,7 @@ export async function fetchNhcAlerts(lat: number, lon: number): Promise<WeatherA
 			const knots = parseInt(s.intensity ?? '', 10) || 0;
 
 			const classificationName = CLASSIFICATION_NAMES[s.classification];
-			const title = classificationName ? `${classificationName} ${s.name}` : `NHC: ${s.name}`;
+			const title = classificationName ? `${classificationName} ${s.name}` : s.name;
 
 			const distanceKm = Math.round(calculateDistance(lat, lon, s.latitudeNumeric, s.longitudeNumeric));
 			const distanceMi = Math.round(distanceKm * KM_TO_MI);

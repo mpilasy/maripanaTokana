@@ -177,11 +177,11 @@
 
 	{#if maxPoints[warmest]}
 		{@const p = maxPoints[warmest]}
-		<text x={labelX(p.x)} y={Math.max(9, p.y - 4)} text-anchor={anchor(p.x)} font-size="9" font-weight="bold" fill="#FF8A65">{splitDual(loc(forecasts[warmest].tempMax.displayDual(metricPrimary).join(' · ')))[0]}{#if splitDual(loc(forecasts[warmest].tempMax.displayDual(metricPrimary).join(' · ')))[1]}<tspan font-size="0.8em" font-weight="500" fill-opacity="0.7">{" " + splitDual(loc(forecasts[warmest].tempMax.displayDual(metricPrimary).join(' · ')))[1]}</tspan>{/if}</text>
+		<text x={labelX(p.x)} y={Math.max(9, p.y - 4)} text-anchor={anchor(p.x)} direction="ltr" font-size="9" font-weight="bold" fill="#FF8A65">{splitDual(loc(forecasts[warmest].tempMax.displayDual(metricPrimary).join(' · ')))[0]}{#if splitDual(loc(forecasts[warmest].tempMax.displayDual(metricPrimary).join(' · ')))[1]}<tspan font-size="0.8em" font-weight="500" fill-opacity="0.7">{" " + splitDual(loc(forecasts[warmest].tempMax.displayDual(metricPrimary).join(' · ')))[1]}</tspan>{/if}</text>
 	{/if}
 	{#if minPoints[coldest]}
 		{@const p = minPoints[coldest]}
-		<text x={labelX(p.x)} y={Math.min(height - 1, p.y + 11)} text-anchor={anchor(p.x)} font-size="9" font-weight="bold" fill="#64B5F6">{splitDual(loc(forecasts[coldest].tempMin.displayDual(metricPrimary).join(' · ')))[0]}{#if splitDual(loc(forecasts[coldest].tempMin.displayDual(metricPrimary).join(' · ')))[1]}<tspan font-size="0.8em" font-weight="500" fill-opacity="0.7">{" " + splitDual(loc(forecasts[coldest].tempMin.displayDual(metricPrimary).join(' · ')))[1]}</tspan>{/if}</text>
+		<text x={labelX(p.x)} y={Math.min(height - 1, p.y + 11)} text-anchor={anchor(p.x)} direction="ltr" font-size="9" font-weight="bold" fill="#64B5F6">{splitDual(loc(forecasts[coldest].tempMin.displayDual(metricPrimary).join(' · ')))[0]}{#if splitDual(loc(forecasts[coldest].tempMin.displayDual(metricPrimary).join(' · ')))[1]}<tspan font-size="0.8em" font-weight="500" fill-opacity="0.7">{" " + splitDual(loc(forecasts[coldest].tempMin.displayDual(metricPrimary).join(' · ')))[1]}</tspan>{/if}</text>
 	{/if}
 
 	{#if showViewport}

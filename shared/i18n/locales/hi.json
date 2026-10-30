@@ -78,7 +78,7 @@
 	"no_precip": "वर्षा नहीं",
 	"precip_chance": "संभावना {value}",
 	"section_current_conditions": "वर्तमान स्थिति",
-	"section_sun_air": "सूर्य और हवा",
+	"section_sun_air": "आकाश और वायु",
 	"section_hourly_forecast": "प्रति घंटा पूर्वानुमान",
 	"section_this_week": "१० दिन का पूर्वानुमान",
 	"section_activities": "गतिविधियों के सूचकांक",
@@ -244,6 +244,7 @@
 		"acquiring_location": "हम कहाँ हैं?"
 	},
 	"cd_change_font": "फ़ॉन्ट बदलें",
+	"font_default": "डिफ़ॉल्ट",
 	"cd_change_language": "भाषा बदलें",
 	"cd_show_all": "सभी दिखाएँ",
 	"cd_toggle_units": "इकाइयाँ बदलें",

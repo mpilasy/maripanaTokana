@@ -7,7 +7,13 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import orinasa.njarasoa.maripanatokana.data.remote.GdacsAlertResponse
+import orinasa.njarasoa.maripanatokana.data.remote.GdacsApiService
+import orinasa.njarasoa.maripanatokana.data.remote.GdacsFeature
+import orinasa.njarasoa.maripanatokana.data.remote.GdacsGeometry
+import orinasa.njarasoa.maripanatokana.data.remote.GdacsProperties
 import orinasa.njarasoa.maripanatokana.data.remote.NhcApiService
+import orinasa.njarasoa.maripanatokana.data.remote.NhcStorm
 import orinasa.njarasoa.maripanatokana.data.remote.NhcStormCollection
 import orinasa.njarasoa.maripanatokana.data.remote.NominatimApiService
 import orinasa.njarasoa.maripanatokana.data.remote.NwsApiService
@@ -19,6 +25,7 @@ import org.junit.Test
 class AlertSourceFailureTest {
     private val nws = mockk<NwsApiService>()
     private val nhc = mockk<NhcApiService>()
+    private val gdacs = mockk<GdacsApiService>()
     private val nominatim = mockk<NominatimApiService>()
 
     private fun repo(settings: AppSettings): WeatherRepositoryImpl {
@@ -27,7 +34,7 @@ class AlertSourceFailureTest {
         return WeatherRepositoryImpl(
             context = mockk(relaxed = true),
             nwsApiService = nws,
-            gdacsApiService = mockk(),
+            gdacsApiService = gdacs,
             meteoAlarmApiService = mockk(),
             jmaApiService = mockk(),
             ecccApiService = mockk(),
@@ -66,5 +73,20 @@ class AlertSourceFailureTest {
         val settings = AppSettings(alertsGdacsEnabled = false, alertsNhcEnabled = false)
         val result = repo(settings).fetchAlerts(-18.88, 47.51).getOrThrow()
         assertEquals(emptyList<String>(), result.failedSources)
+    }
+
+    @Test
+    fun `GDACS and NHC titles have no source prefix`() = runTest {
+        coEvery { nominatim.reverse(any(), any(), any(), any()) } throws java.io.IOException("offline")
+        coEvery { gdacs.searchEvents(any(), any(), any()) } returns GdacsAlertResponse(listOf(
+            GdacsFeature(GdacsProperties("Freddy", "TC", "orange", "Tropical cyclone"), GdacsGeometry(listOf(47.6, -18.9))),
+        ))
+        coEvery { nhc.getCurrentStorms() } returns NhcStormCollection(listOf(
+            NhcStorm(name = "Alpha", classification = "XX", lat = -18.9, lon = 47.6),
+        ))
+        // Antananarivo: no regional source covers it, so GDACS runs. The NHC type "XX" has no name.
+        val alerts = repo(AppSettings()).fetchAlerts(-18.88, 47.51).getOrThrow().alerts
+        assertEquals("TC - Freddy", alerts.single { it.source == "gdacs" }.titleKey)
+        assertEquals("Alpha", alerts.single { it.source == "nhc" }.titleKey)
     }
 }

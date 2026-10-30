@@ -3,6 +3,7 @@
 
 package orinasa.njarasoa.maripanatokana.ui.weather.components
 
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -208,9 +209,11 @@ fun TemperatureChart(
             val maxPoint = points[maxMiddleIdx]
             val maxTempObj = forecasts[maxMiddleIdx].temperature
             val maxTempText = maxTempObj.displayDual(metricPrimary).let { (p, s) -> "$p · $s" }
-            val maxLabelStyle = TextStyle(color = Color(0xFFFF8A65), fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont)
+            // Ltr: keep the unit after the number in Arabic ("١٤°C", not "C°١٤")
+            val maxLabelStyle = TextStyle(color = Color(0xFFFF8A65), fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont, textDirection = TextDirection.Ltr)
             val maxLayout = textMeasurer.measure(dualLabel(maxTempText, maxLabelStyle.color), maxLabelStyle)
-            val maxTextX = (maxPoint.x - maxLayout.size.width / 2f).coerceIn(4.dp.toPx(), width - maxLayout.size.width - 4.dp.toPx())
+            // Near an edge the label grows inwards, as on the web, so it does not cover the line or pass the edge
+            val maxTextX = chartLabelLeft(maxPoint.x, maxLayout.size.width.toFloat(), width, 4.dp.toPx())
             // Above the peak, or under the line where it would cover a 00:00 or 12:00 label
             val timeLabelBoxes = (midnightIndices.map { it to "00:00" } + noonIndices.map { it to "12:00" }).map { (idx, text) ->
                 val x = (idx * (itemWidthPx + spacingPx) + itemWidthPx / 2) * xScale
@@ -229,9 +232,9 @@ fun TemperatureChart(
             val minPoint = points[minMiddleIdx]
             val minTempObj = forecasts[minMiddleIdx].temperature
             val minTempText = minTempObj.displayDual(metricPrimary).let { (p, s) -> "$p · $s" }
-            val minLabelStyle = TextStyle(color = Color(0xFF64B5F6), fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont)
+            val minLabelStyle = TextStyle(color = Color(0xFF64B5F6), fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont, textDirection = TextDirection.Ltr)
             val minLayout = textMeasurer.measure(dualLabel(minTempText, minLabelStyle.color), minLabelStyle)
-            val minTextX = (minPoint.x - minLayout.size.width / 2f).coerceIn(4.dp.toPx(), width - minLayout.size.width - 4.dp.toPx())
+            val minTextX = chartLabelLeft(minPoint.x, minLayout.size.width.toFloat(), width, 4.dp.toPx())
             val minTextY = (minPoint.y + 2.dp.toPx()).coerceAtMost(height - minLayout.size.height)
             if (Math.abs(maxPoint.x - minPoint.x) > 30.dp.toPx() || Math.abs(maxTextY - minTextY) > 12.dp.toPx()) {
                 drawText(minLayout, topLeft = Offset(minTextX, minTextY))

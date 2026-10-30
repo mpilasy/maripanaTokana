@@ -74,11 +74,10 @@
 	}
 
 	let tempDual = $derived(data.temperature.displayDual(metricPrimary));
-	// How it feels: the heat index or the wind chill when one applies, else feels like
+	// The heat index or the wind chill when one applies; the hero shows the plain "feels like"
 	let heat = $derived(heatIndex(data.temperature, data.humidity));
 	let felt = $derived(heat ?? windChill(data.temperature, data.windSpeed));
-	let feltDual = $derived((felt ?? data.feelsLike).displayDual(metricPrimary));
-	let feltLabel = $derived($_(heat ? 'detail_heat_index' : felt ? 'detail_wind_chill' : 'feels_like'));
+	let feltDual = $derived(felt?.displayDual(metricPrimary));
 	let windDual = $derived(data.windSpeed.displayDual(metricPrimary));
 	let gustDual = $derived(data.windGust?.displayDual(metricPrimary));
 	let pressDual = $derived(data.pressure.displayDual(metricPrimary));
@@ -177,21 +176,28 @@
 	{@render humidityTile()}
 {/snippet}
 
-<!-- The temperature on a dial between today's low and high, and how it feels -->
+<!-- The temperature on a dial between today's low and high, and the heat index or the wind chill when one applies -->
 {#snippet temperatureTile()}
-	<DetailCard title={$_('detail_temperature')} value={loc(tempDual[0])} {onToggleUnits}>
+	<DetailCard title={$_('detail_temperature')} value={loc(tempDual[0])} {onToggleUnits} footerSnippet={feltDual ? temperatureFooter : undefined}>
 		{#snippet centerDialSnippet()}
 			<!-- Where now is between today's low and high -->
 			{@const low = data.tempMin.celsius}
 			{@const high = data.tempMax.celsius}
+			{@const lowDual = data.tempMin.displayDual(metricPrimary)}
+			{@const highDual = data.tempMax.displayDual(metricPrimary)}
 			<Gauge fraction={high > low ? (data.temperature.celsius - low) / (high - low) : 0.5} color="#FFB74D">
 				<DialValue value={loc(tempDual[0])} secondary={loc(tempDual[1])} />
+				<!-- The readings with their units: the middle of this dial has no unit row -->
+				<DialEnds min={[loc(lowDual[0]), loc(lowDual[1])]} max={[loc(highDual[0]), loc(highDual[1])]} />
 			</Gauge>
 		{/snippet}
-		{#snippet footerSnippet()}
-			<LabeledValue label={feltLabel} value={loc(feltDual[0])} secondary={loc(feltDual[1])} centered ltr icon={heat ? { kind: 'heat', color: HEAT_COLOR } : felt ? { kind: 'cold', color: CHILL_COLOR } : null} />
-		{/snippet}
 	</DetailCard>
+{/snippet}
+
+{#snippet temperatureFooter()}
+	{#if feltDual}
+		<LabeledValue label={$_(heat ? 'detail_heat_index' : 'detail_wind_chill')} value={loc(feltDual[0])} secondary={loc(feltDual[1])} centered ltr icon={heat ? { kind: 'heat', color: HEAT_COLOR } : { kind: 'cold', color: CHILL_COLOR }} />
+	{/if}
 {/snippet}
 
 <!-- The rain or snow now, and the chance of precipitation in the next hour -->

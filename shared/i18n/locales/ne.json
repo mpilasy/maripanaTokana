@@ -78,7 +78,7 @@
 	"no_precip": "वर्षा छैन",
 	"precip_chance": "सम्भावना {value}",
 	"section_current_conditions": "हालको अवस्था",
-	"section_sun_air": "सूर्य र हावा",
+	"section_sun_air": "आकाश र हावा",
 	"section_hourly_forecast": "प्रति घण्टा पूर्वानुमान",
 	"section_this_week": "१० दिनको पूर्वानुमान",
 	"section_activities": "गतिविधि सूचकांक",
@@ -244,6 +244,7 @@
 		"acquiring_location": "हामी कहाँ छौं?"
 	},
 	"cd_change_font": "फन्ट परिवर्तन गर्नुहोस्",
+	"font_default": "पूर्वनिर्धारित",
 	"cd_change_language": "भाषा परिवर्तन गर्नुहोस्",
 	"cd_show_all": "सबै देखाउनुहोस्",
 	"cd_toggle_units": "एकाइ बदल्नुहोस्",
