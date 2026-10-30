@@ -179,63 +179,7 @@
 				<span class="day-name">{formatDayName(item.date, localeTag, utcOffsetSeconds, true, weekdayNames)}</span>
 				<span class="day-date">{loc(formatDayMonth(item.date, localeTag, utcOffsetSeconds, monthNames))}</span>
 				<WeatherIcon code={item.weatherCode} size={44} />
-				{#if displayMode === 'Temperature'}
-					{@const [maxP, maxS] = item.tempMax.displayDual(metricPrimary)}
-					{@const [minP, minS] = item.tempMin.displayDual(metricPrimary)}
-					<DualUnitText primary={loc(maxP)} secondary={loc(maxS)} primarySize="13px" align="center" onClick={onToggleUnits} />
-					<div class="range-track" aria-hidden="true">
-						<div class="range-fill" style:bottom="{barPercent(item.tempMin.celsius)}%" style:top="{100 - barPercent(item.tempMax.celsius)}%"></div>
-					</div>
-					<DualUnitText primary={loc(minP)} secondary={loc(minS)} primarySize="13px" align="center" onClick={onToggleUnits} />
-				{:else if displayMode === 'Wind'}
-					{@const [windP, windS] = item.windSpeed.displayDual(metricPrimary)}
-					<DualUnitText
-						primary={loc(windP)}
-						secondary={loc(windS)}
-						primarySize="13px"
-						align="center"
-						onClick={onToggleUnits}
-					/>
-					<span class="wind-dir">
-						<WindCompass degrees={item.windDeg} size={18} />
-						{getCardinalDirection(item.windDeg, $json('cardinal_directions'))}
-					</span>
-				{:else if displayMode === 'Precipitation'}
-					{@const [rainP, rainS] = item.precipitation.displayDual(metricPrimary)}
-					<DualUnitText
-						primary={loc(rainP)}
-						secondary={loc(rainS)}
-						primarySize="13px"
-						align="center"
-						onClick={onToggleUnits}
-					/>
-				{:else if displayMode === 'Pressure'}
-					{#if item.pressure && Number.isFinite(item.pressure.hPa)}
-						{@const [pressP, pressS] = item.pressure.displayDual(metricPrimary)}
-						<DualUnitText primary={loc(pressP)} secondary={loc(pressS)} primarySize="13px" align="center" onClick={onToggleUnits} />
-					{:else}
-						<span class="uv-value">--</span>
-					{/if}
-				{:else if displayMode === 'Humidity'}
-					<HumidityDewPoint humidity={item.humidity} dewPoint={item.dewPoint} {metricPrimary} {loc} {onToggleUnits} />
-				{:else if displayMode === 'HeatIndex' || displayMode === 'WindChill'}
-					<FeltValue value={(displayMode === 'HeatIndex' ? heatByItem : chillByItem)[i]} {metricPrimary} {loc} {onToggleUnits} />
-				{:else if displayMode === 'Uv'}
-					{#if item.uvIndexMax != null && Number.isFinite(item.uvIndexMax)}
-						<span class="uv-value">{loc(item.uvIndexMax.toFixed(1))}</span>
-						<LevelBar color={uvColorFor(item.uvIndexMax)} label={uvLabel(item.uvIndexMax)} />
-					{:else}
-						<span class="uv-value">--</span>
-					{/if}
-				{:else if displayMode === 'AirQuality'}
-					{@const aq = aqByDay[i]}
-					{#if aq}
-						<DualUnitText primary={loc(String(aq[0]))} secondary={loc(String(aq[1]))} primaryUnit={aqiUnits[0]} secondaryUnit={aqiUnits[1]} primarySize="13px" align="center" />
-						<LevelBar color={AQI_TIER_COLORS[aqTier(aq[0])]} label={aqTierLabel(aq[0])} />
-					{:else}
-						<span class="uv-value">--</span>
-					{/if}
-				{/if}
+				{@render dailyCardValue(item, i)}
 				<!-- Chance of precipitation, only where it describes the weather -->
 				<span class="daily-precip">
 					{#if item.precipProbability > 0 && (displayMode === 'Temperature' || displayMode === 'Precipitation')}
@@ -270,6 +214,56 @@
 		{/if}
 	</ChartScrub>
 </div>
+
+
+<!-- The value under a daily card's icon for the tab displayMode. Android has the same in DailyCardValue (WeatherContent.kt). -->
+{#snippet dailyCardValue(item: DailyForecastType, i: number)}
+	{#if displayMode === 'Temperature'}
+		{@render cardDualValue(item.tempMax.displayDual(metricPrimary))}
+		<div class="range-track" aria-hidden="true">
+			<div class="range-fill" style:bottom="{barPercent(item.tempMin.celsius)}%" style:top="{100 - barPercent(item.tempMax.celsius)}%"></div>
+		</div>
+		{@render cardDualValue(item.tempMin.displayDual(metricPrimary))}
+	{:else if displayMode === 'Wind'}
+		{@render cardDualValue(item.windSpeed.displayDual(metricPrimary))}
+		<span class="wind-dir">
+			<WindCompass degrees={item.windDeg} size={18} />
+			{getCardinalDirection(item.windDeg, $json('cardinal_directions'))}
+		</span>
+	{:else if displayMode === 'Precipitation'}
+		{@render cardDualValue(item.precipitation.displayDual(metricPrimary))}
+	{:else if displayMode === 'Pressure'}
+		{#if item.pressure && Number.isFinite(item.pressure.hPa)}
+			{@render cardDualValue(item.pressure.displayDual(metricPrimary))}
+		{:else}
+			<span class="uv-value">--</span>
+		{/if}
+	{:else if displayMode === 'Humidity'}
+		<HumidityDewPoint humidity={item.humidity} dewPoint={item.dewPoint} {metricPrimary} {loc} {onToggleUnits} />
+	{:else if displayMode === 'HeatIndex' || displayMode === 'WindChill'}
+		<FeltValue value={(displayMode === 'HeatIndex' ? heatByItem : chillByItem)[i]} {metricPrimary} {loc} {onToggleUnits} />
+	{:else if displayMode === 'Uv'}
+		{#if item.uvIndexMax != null && Number.isFinite(item.uvIndexMax)}
+			<span class="uv-value">{loc(item.uvIndexMax.toFixed(1))}</span>
+			<LevelBar color={uvColorFor(item.uvIndexMax)} label={uvLabel(item.uvIndexMax)} />
+		{:else}
+			<span class="uv-value">--</span>
+		{/if}
+	{:else if displayMode === 'AirQuality'}
+		{@const aq = aqByDay[i]}
+		{#if aq}
+			<DualUnitText primary={loc(String(aq[0]))} secondary={loc(String(aq[1]))} primaryUnit={aqiUnits[0]} secondaryUnit={aqiUnits[1]} primarySize="13px" align="center" />
+			<LevelBar color={AQI_TIER_COLORS[aqTier(aq[0])]} label={aqTierLabel(aq[0])} />
+		{:else}
+			<span class="uv-value">--</span>
+		{/if}
+	{/if}
+{/snippet}
+
+<!-- A value in both units on a forecast card; a tap swaps the units -->
+{#snippet cardDualValue(dual: [string, string])}
+	<DualUnitText primary={loc(dual[0])} secondary={loc(dual[1])} primarySize="13px" align="center" onClick={onToggleUnits} />
+{/snippet}
 
 <style>
 	.daily-wrapper {

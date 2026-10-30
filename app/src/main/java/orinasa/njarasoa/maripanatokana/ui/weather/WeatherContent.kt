@@ -1382,85 +1382,7 @@ internal fun HourlyForecastRow(
                         
                         Spacer(modifier = Modifier.height(4.dp))
 
-                        when(displayMode) {
-                            ForecastDisplayMode.Temperature -> {
-                                val (tempP, tempS) = item.temperature.displayDual(metricPrimary)
-                                DualUnitText(
-                                    primary = localizeDigits(tempP),
-                                    secondary = localizeDigits(tempS),
-                                    primarySize = 14f.s(scale),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    onClick = onToggleUnits,
-                                )
-                            }
-                            ForecastDisplayMode.Wind -> {
-                                val (windP, windS) = item.windSpeed.displayDual(metricPrimary)
-                                DualUnitText(
-                                    primary = localizeDigits(windP),
-                                    secondary = localizeDigits(windS),
-                                    primarySize = 14f.s(scale),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    onClick = onToggleUnits,
-                                )
-                                WindDirectionLabel(item.windDirection)
-                            }
-                            ForecastDisplayMode.Precipitation -> {
-                                val (rainP, rainS) = item.precipitation.displayDual(metricPrimary)
-                                DualUnitText(
-                                    primary = localizeDigits(rainP),
-                                    secondary = localizeDigits(rainS),
-                                    primarySize = 14f.s(scale),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    onClick = onToggleUnits,
-                                )
-                            }
-                            ForecastDisplayMode.Pressure -> {
-                                val (pressP, pressS) = item.pressure.displayDual(metricPrimary)
-                                DualUnitText(
-                                    primary = localizeDigits(pressP),
-                                    secondary = localizeDigits(pressS),
-                                    primarySize = 14f.s(scale),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    onClick = onToggleUnits,
-                                )
-                            }
-                            ForecastDisplayMode.Humidity -> HumidityDewPoint(item.humidity, item.dewPoint, metricPrimary, localizeDigits, onToggleUnits)
-                            ForecastDisplayMode.HeatIndex -> FeltValue(heatByItem[index], metricPrimary, localizeDigits, onToggleUnits)
-                            ForecastDisplayMode.WindChill -> FeltValue(chillByItem[index], metricPrimary, localizeDigits, onToggleUnits)
-                            ForecastDisplayMode.Uv -> {
-                                val uv = item.uvIndex
-                                if (uv != null) {
-                                    Text(
-                                        text = localizeDigits("%.1f".format(Locale.US, uv)),
-                                        fontSize = 15f.s(scale),
-                                        fontWeight = FontWeight.Bold,
-                                        fontFamily = LocalDisplayFont.current,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                    )
-                                    LevelBar(colorsFor(uv).background, uvLabels[uvTierIndex(uv)])
-                                } else {
-                                    Text(text = "--", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
-                                }
-                            }
-                            ForecastDisplayMode.AirQuality -> {
-                                val aq = aqByHour[index]
-                                if (aq != null) {
-                                    val (p, s) = aqDual(aq)
-                                    DualUnitText(
-                                        primary = localizeDigits(p.toString()),
-                                        secondary = localizeDigits(s.toString()),
-                                        primarySize = 14f.s(scale),
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        primaryUnit = if (european) euAqiLabel else usAqiLabel,
-                                        secondaryUnit = if (european) usAqiLabel else euAqiLabel,
-                                    )
-                                    val tier = aq.tier(aqiStandard)
-                                    LevelBar(colorsFor(tier).background, aqiTierLabels[tier.ordinal])
-                                } else {
-                                    Text(text = "--", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
-                                }
-                            }
-                        }
+                        HourlyCardValue(item, displayMode, heatByItem[index], chillByItem[index], aqByHour[index], aqiStandard, metricPrimary, localizeDigits, onToggleUnits)
 
                         Spacer(modifier = Modifier.height(4.dp))
                         PrecipChance(
@@ -1680,97 +1602,9 @@ internal fun DailyForecastList(
                         Spacer(modifier = Modifier.height(4.dp))
                         WeatherIcon(item.weatherCode, size = 44.sd(scale))
                         Spacer(modifier = Modifier.height(4.dp))
-                        when (displayMode) {
-                            ForecastDisplayMode.Temperature -> {
-                                val (maxP, maxS) = item.tempMax.displayDual(metricPrimary)
-                                val (minP, minS) = item.tempMin.displayDual(metricPrimary)
-                                DualUnitText(
-                                    primary = localizeDigits(maxP),
-                                    secondary = localizeDigits(maxS),
-                                    primarySize = 13f.s(scale),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    onClick = onToggleUnits,
-                                )
-                                TemperatureRangeBar(
-                                    low = barFraction(item.tempMin.celsius),
-                                    high = barFraction(item.tempMax.celsius),
-                                    modifier = Modifier.padding(vertical = 4.dp).width(6.dp).height(56.sd(scale)),
-                                )
-                                DualUnitText(
-                                    primary = localizeDigits(minP),
-                                    secondary = localizeDigits(minS),
-                                    primarySize = 13f.s(scale),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    onClick = onToggleUnits,
-                                )
-                            }
-                            ForecastDisplayMode.Wind -> {
-                                val (windP, windS) = item.windSpeed.displayDual(metricPrimary)
-                                DualUnitText(
-                                    primary = localizeDigits(windP),
-                                    secondary = localizeDigits(windS),
-                                    primarySize = 13f.s(scale),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    onClick = onToggleUnits,
-                                )
-                                WindDirectionLabel(item.windDirection)
-                            }
-                            ForecastDisplayMode.Precipitation -> {
-                                val (rainP, rainS) = item.precipitation.displayDual(metricPrimary)
-                                DualUnitText(
-                                    primary = localizeDigits(rainP),
-                                    secondary = localizeDigits(rainS),
-                                    primarySize = 13f.s(scale),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    onClick = onToggleUnits,
-                                )
-                            }
-                            ForecastDisplayMode.Pressure -> {
-                                val pressure = item.pressure
-                                if (pressure != null && pressure.hPa.isFinite()) {
-                                    val (pressP, pressS) = pressure.displayDual(metricPrimary)
-                                    DualUnitText(
-                                        primary = localizeDigits(pressP),
-                                        secondary = localizeDigits(pressS),
-                                        primarySize = 13f.s(scale),
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        onClick = onToggleUnits,
-                                    )
-                                } else {
-                                    Text(text = "--", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
-                                }
-                            }
-                            ForecastDisplayMode.Humidity -> HumidityDewPoint(item.humidity, item.dewPoint, metricPrimary, localizeDigits, onToggleUnits)
-                            ForecastDisplayMode.HeatIndex -> FeltValue(heatByItem[forecasts.indexOf(item)], metricPrimary, localizeDigits, onToggleUnits)
-                            ForecastDisplayMode.WindChill -> FeltValue(chillByItem[forecasts.indexOf(item)], metricPrimary, localizeDigits, onToggleUnits)
-                            ForecastDisplayMode.Uv -> {
-                                Text(
-                                    text = localizeDigits("%.1f".format(Locale.US, item.uvIndexMax)),
-                                    fontSize = 15f.s(scale),
-                                    fontWeight = FontWeight.Bold,
-                                    fontFamily = LocalDisplayFont.current,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                )
-                                LevelBar(colorsFor(item.uvIndexMax).background, uvLabels[uvTierIndex(item.uvIndexMax)])
-                            }
-                            ForecastDisplayMode.AirQuality -> {
-                                val aq = aqByDay.getOrNull(forecasts.indexOf(item))
-                                if (aq != null) {
-                                    DualUnitText(
-                                        primary = localizeDigits(aq.first.toString()),
-                                        secondary = localizeDigits(aq.second.toString()),
-                                        primarySize = 13f.s(scale),
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        primaryUnit = if (european) euAqiLabel else usAqiLabel,
-                                        secondaryUnit = if (european) usAqiLabel else euAqiLabel,
-                                    )
-                                    val tier = AirQualityIndex.tierFor(aq.first, aqiStandard)
-                                    LevelBar(colorsFor(tier).background, aqiTierLabels[tier.ordinal])
-                                } else {
-                                    Text(text = "--", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
-                                }
-                            }
-                        }
+                        val i = forecasts.indexOf(item)
+                        DailyCardValue(item, displayMode, heatByItem[i], chillByItem[i], aqByDay.getOrNull(i), aqiStandard,
+                            barFraction(item.tempMin.celsius), barFraction(item.tempMax.celsius), metricPrimary, localizeDigits, onToggleUnits)
                         Spacer(modifier = Modifier.height(4.dp))
                         PrecipChance(
                             percent = item.precipProbability,
@@ -1896,6 +1730,113 @@ internal fun DailyForecastList(
 }
 
 /** A forecast card's heat index or wind chill in both units; "--" for an item where it does not apply. */
+/** A value in both units on a forecast card, the primary one [size] big; a tap swaps the units. */
+@Composable
+private fun CardDualValue(dual: Pair<String, String>, size: TextUnit, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
+    DualUnitText(
+        primary = localizeDigits(dual.first),
+        secondary = localizeDigits(dual.second),
+        primarySize = size,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        onClick = onToggleUnits,
+    )
+}
+
+/** A faint "--" for a value a forecast card does not have. */
+@Composable
+private fun MissingCardValue() {
+    Text(text = "--", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+}
+
+/** A UV index on a forecast card, with its level under it. */
+@Composable
+private fun UvCardValue(uv: Double, localizeDigits: (String) -> String) {
+    Text(
+        text = localizeDigits("%.1f".format(Locale.US, uv)),
+        fontSize = 15f.s(LocalScale.current),
+        fontWeight = FontWeight.Bold,
+        fontFamily = LocalDisplayFont.current,
+        color = MaterialTheme.colorScheme.onSurface,
+    )
+    LevelBar(colorsFor(uv).background, stringArrayResource(R.array.uv_labels)[uvTierIndex(uv)])
+}
+
+/** An air quality value on a forecast card in both standards ([dual]: primary first), with its level under it. */
+@Composable
+private fun AirQualityCardValue(dual: Pair<Int, Int>, aqiStandard: AqiStandard, size: TextUnit, localizeDigits: (String) -> String) {
+    val usAqiLabel = stringResource(R.string.air_quality_us_aqi)
+    val euAqiLabel = stringResource(R.string.air_quality_eu_aqi)
+    val european = aqiStandard == AqiStandard.EUROPEAN
+    DualUnitText(
+        primary = localizeDigits(dual.first.toString()),
+        secondary = localizeDigits(dual.second.toString()),
+        primarySize = size,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        primaryUnit = if (european) euAqiLabel else usAqiLabel,
+        secondaryUnit = if (european) usAqiLabel else euAqiLabel,
+    )
+    val tier = AirQualityIndex.tierFor(dual.first, aqiStandard)
+    LevelBar(colorsFor(tier).background, stringArrayResource(R.array.aqi_tier_labels)[tier.ordinal])
+}
+
+/** The value under an hourly card's icon for the tab [mode]. The web has the same in HourlyForecast.svelte. */
+@Composable
+private fun HourlyCardValue(
+    item: HourlyForecast, mode: ForecastDisplayMode, heat: Temperature?, chill: Temperature?, aq: HourlyAirQuality?,
+    aqiStandard: AqiStandard, metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit,
+) {
+    val size = 14f.s(LocalScale.current)
+    when (mode) {
+        ForecastDisplayMode.Temperature -> CardDualValue(item.temperature.displayDual(metricPrimary), size, localizeDigits, onToggleUnits)
+        ForecastDisplayMode.Wind -> {
+            CardDualValue(item.windSpeed.displayDual(metricPrimary), size, localizeDigits, onToggleUnits)
+            WindDirectionLabel(item.windDirection)
+        }
+        ForecastDisplayMode.Precipitation -> CardDualValue(item.precipitation.displayDual(metricPrimary), size, localizeDigits, onToggleUnits)
+        ForecastDisplayMode.Pressure -> CardDualValue(item.pressure.displayDual(metricPrimary), size, localizeDigits, onToggleUnits)
+        ForecastDisplayMode.Humidity -> HumidityDewPoint(item.humidity, item.dewPoint, metricPrimary, localizeDigits, onToggleUnits)
+        ForecastDisplayMode.HeatIndex -> FeltValue(heat, metricPrimary, localizeDigits, onToggleUnits)
+        ForecastDisplayMode.WindChill -> FeltValue(chill, metricPrimary, localizeDigits, onToggleUnits)
+        ForecastDisplayMode.Uv -> item.uvIndex?.let { UvCardValue(it, localizeDigits) } ?: MissingCardValue()
+        ForecastDisplayMode.AirQuality -> aq?.let {
+            val dual = if (aqiStandard == AqiStandard.EUROPEAN) it.europeanValue to it.usValue else it.usValue to it.europeanValue
+            AirQualityCardValue(dual, aqiStandard, size, localizeDigits)
+        } ?: MissingCardValue()
+    }
+}
+
+/**
+ * The value under a daily card's icon for the tab [mode]; [low] and [high] place the day's range bar on the
+ * week's scale. The web has the same in DailyForecast.svelte.
+ */
+@Composable
+private fun DailyCardValue(
+    item: DailyForecast, mode: ForecastDisplayMode, heat: Temperature?, chill: Temperature?, aq: Pair<Int, Int>?,
+    aqiStandard: AqiStandard, low: Float, high: Float, metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit,
+) {
+    val scale = LocalScale.current
+    val size = 13f.s(scale)
+    when (mode) {
+        ForecastDisplayMode.Temperature -> {
+            CardDualValue(item.tempMax.displayDual(metricPrimary), size, localizeDigits, onToggleUnits)
+            TemperatureRangeBar(low = low, high = high, modifier = Modifier.padding(vertical = 4.dp).width(6.dp).height(56.sd(scale)))
+            CardDualValue(item.tempMin.displayDual(metricPrimary), size, localizeDigits, onToggleUnits)
+        }
+        ForecastDisplayMode.Wind -> {
+            CardDualValue(item.windSpeed.displayDual(metricPrimary), size, localizeDigits, onToggleUnits)
+            WindDirectionLabel(item.windDirection)
+        }
+        ForecastDisplayMode.Precipitation -> CardDualValue(item.precipitation.displayDual(metricPrimary), size, localizeDigits, onToggleUnits)
+        ForecastDisplayMode.Pressure -> item.pressure?.takeIf { it.hPa.isFinite() }
+            ?.let { CardDualValue(it.displayDual(metricPrimary), size, localizeDigits, onToggleUnits) } ?: MissingCardValue()
+        ForecastDisplayMode.Humidity -> HumidityDewPoint(item.humidity, item.dewPoint, metricPrimary, localizeDigits, onToggleUnits)
+        ForecastDisplayMode.HeatIndex -> FeltValue(heat, metricPrimary, localizeDigits, onToggleUnits)
+        ForecastDisplayMode.WindChill -> FeltValue(chill, metricPrimary, localizeDigits, onToggleUnits)
+        ForecastDisplayMode.Uv -> UvCardValue(item.uvIndexMax, localizeDigits)
+        ForecastDisplayMode.AirQuality -> aq?.let { AirQualityCardValue(it, aqiStandard, size, localizeDigits) } ?: MissingCardValue()
+    }
+}
+
 @Composable
 private fun FeltValue(t: Temperature?, metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
     if (t == null) {
@@ -2003,262 +1944,303 @@ internal enum class DetailsPart { NOW, SKY }
 /** NOW: temperature, rain, wind, pressure, humidity; SKY: sun, air quality, UV, visibility. */
 @Composable
 internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat: SimpleDateFormat, localizeDigits: (String) -> String, onToggleUnits: () -> Unit, part: DetailsPart) {
-    val directions = stringArrayResource(R.array.cardinal_directions)
-    val uvLabels = stringArrayResource(R.array.uv_labels)
-    val scale = LocalScale.current
-    val gap = 10.sd(scale)
-    val tile = Modifier.fillMaxHeight()
-
-    @Composable
-    fun TileRow(content: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit) {
-        Row(
-            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
-            horizontalArrangement = Arrangement.spacedBy(gap),
-            content = content,
-        )
+    Column(verticalArrangement = Arrangement.spacedBy(10.sd(LocalScale.current))) {
+        if (part == DetailsPart.NOW) NowTiles(data, metricPrimary, localizeDigits, onToggleUnits)
+        else SkyTiles(data, metricPrimary, timeFormat, localizeDigits, onToggleUnits)
     }
+}
 
-    Column(verticalArrangement = Arrangement.spacedBy(gap)) {
-        if (part == DetailsPart.NOW) {
-            // Every tile: the title, one graphic in the middle with the values in it, labels in the bottom row
-            val heatIndex = ThermalIndices.heatIndex(data.temperature, data.humidity)
-            val windChill = ThermalIndices.windChill(data.temperature, data.windSpeed)
+/** Two tiles side by side, as tall as the taller one. */
+@Composable
+private fun TileRow(content: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+        horizontalArrangement = Arrangement.spacedBy(10.sd(LocalScale.current)),
+        content = content,
+    )
+}
 
-            // Temperature / Precipitation
-            TileRow {
-                val (tempP, tempS) = data.temperature.displayDual(metricPrimary)
-                // How it feels: the heat index or the wind chill when one applies, else feels like
-                val felt = heatIndex ?: windChill
-                val (flP, flS) = (felt ?: data.feelsLike).displayDual(metricPrimary)
-                val feltLabel = stringResource(
-                    when {
-                        heatIndex != null -> R.string.detail_heat_index
-                        windChill != null -> R.string.detail_wind_chill
-                        else -> R.string.feels_like
-                    }
-                )
-                DetailCard(localizeDigits(tempP), tile.weight(1f),
-                    title = stringResource(R.string.detail_temperature),
-                    onToggleUnits = onToggleUnits,
-                    centerDial = { dialModifier ->
-                        // Where now is between today's low and high
-                        val low = data.tempMin.celsius
-                        val high = data.tempMax.celsius
-                        Gauge(if (high > low) ((data.temperature.celsius - low) / (high - low)).toFloat() else 0.5f, Color(0xFFFFB74D), dialModifier, size = null) {
-                            DialValue(localizeDigits(tempP), secondary = localizeDigits(tempS))
-                        }
-                    },
-                    footer = {
-                        LabeledValue(feltLabel, localizeDigits(flP), secondary = localizeDigits(flS), centered = true,
-                            labelIcon = if (heatIndex != null) R.drawable.ic_heat else if (windChill != null) R.drawable.ic_cold else null,
-                            labelIconTint = if (heatIndex != null) HeatOrange else ChillBlue)
-                    })
-                val amount = data.snow ?: data.rain
-                val nowSec = System.currentTimeMillis() / 1000
-                val iconCode = when {
-                    data.snow != null -> 71
-                    data.rain != null -> 61
-                    else -> data.weatherCode
-                }
-                DetailCard(amount?.let { localizeDigits(it.displayDual(metricPrimary).first) } ?: stringResource(R.string.detail_no_precip), tile.weight(1f),
-                    title = stringResource(R.string.detail_precipitation),
-                    onToggleUnits = if (amount != null) onToggleUnits else null,
-                    centerDial = { dialModifier ->
-                        Column(dialModifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                            WeatherIcon(iconCode, night = !isDaytime(nowSec, data.sunrise, data.sunset), size = 56.sd(scale))
-                            Spacer(modifier = Modifier.height(6.dp))
-                            if (amount != null) {
-                                val (p, sec) = amount.displayDual(metricPrimary)
-                                DialValue(localizeDigits(p), secondary = localizeDigits(sec), fill = false)
-                            } else {
-                                DialValue(stringResource(R.string.detail_no_precip), fill = false)
-                            }
-                        }
-                    },
-                    // The chance of precipitation in the next hour, as on the forecast cards
-                    footer = {
-                        PrecipChance(data.hourlyForecast.firstOrNull()?.precipProbability ?: 0, true, 13f.s(scale),
-                            LocalBodyFont.current, LocalBodyFontFeatures.current, localizeDigits)
-                    })
+/** Every tile: the title, one graphic in the middle with the values in it, labels in the bottom row. */
+@Composable
+private fun NowTiles(data: WeatherData, metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
+    val tile = Modifier.fillMaxHeight()
+    TileRow {
+        TemperatureTile(data, metricPrimary, localizeDigits, onToggleUnits, tile.weight(1f))
+        PrecipitationTile(data, metricPrimary, localizeDigits, onToggleUnits, tile.weight(1f))
+    }
+    TileRow {
+        WindTile(data, metricPrimary, localizeDigits, onToggleUnits, tile.weight(1f))
+        GustTile(data, metricPrimary, localizeDigits, onToggleUnits, tile.weight(1f))
+    }
+    TileRow {
+        PressureTile(data, metricPrimary, localizeDigits, onToggleUnits, tile.weight(1f))
+        HumidityTile(data, metricPrimary, localizeDigits, onToggleUnits, tile.weight(1f))
+    }
+}
+
+/** The temperature on a dial between today's low and high, and how it feels. */
+@Composable
+private fun TemperatureTile(data: WeatherData, metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit, modifier: Modifier) {
+    val heatIndex = ThermalIndices.heatIndex(data.temperature, data.humidity)
+    val windChill = ThermalIndices.windChill(data.temperature, data.windSpeed)
+    val (tempP, tempS) = data.temperature.displayDual(metricPrimary)
+    // How it feels: the heat index or the wind chill when one applies, else feels like
+    val felt = heatIndex ?: windChill
+    val (flP, flS) = (felt ?: data.feelsLike).displayDual(metricPrimary)
+    val feltLabel = stringResource(
+        when {
+            heatIndex != null -> R.string.detail_heat_index
+            windChill != null -> R.string.detail_wind_chill
+            else -> R.string.feels_like
+        }
+    )
+    DetailCard(localizeDigits(tempP), modifier,
+        title = stringResource(R.string.detail_temperature),
+        onToggleUnits = onToggleUnits,
+        centerDial = { dialModifier ->
+            // Where now is between today's low and high
+            val low = data.tempMin.celsius
+            val high = data.tempMax.celsius
+            Gauge(if (high > low) ((data.temperature.celsius - low) / (high - low)).toFloat() else 0.5f, Color(0xFFFFB74D), dialModifier, size = null) {
+                DialValue(localizeDigits(tempP), secondary = localizeDigits(tempS))
             }
+        },
+        footer = {
+            LabeledValue(feltLabel, localizeDigits(flP), secondary = localizeDigits(flS), centered = true,
+                labelIcon = if (heatIndex != null) R.drawable.ic_heat else if (windChill != null) R.drawable.ic_cold else null,
+                labelIconTint = if (heatIndex != null) HeatOrange else ChillBlue)
+        })
+}
 
-            // Wind / Gust
-            TileRow {
-                val (windP, windS) = data.windSpeed.displayDual(metricPrimary)
-                val dirLabel = data.windDeg?.let { directions[((it % 360 + 360) % 360 * 16 / 360) % 16] }
-                DetailCard(localizeDigits(windP), tile.weight(1f),
-                    title = stringResource(R.string.detail_wind),
-                    onToggleUnits = onToggleUnits,
-                    centerDial = { dialModifier ->
-                        val (n, u) = splitUnit(windP)
-                        val value = @Composable { DialValue(localizeDigits(n), u, localizeDigits(windS)) }
-                        val deg = data.windDeg
-                        if (deg != null) CompassDial(deg, dialModifier) { value() } else Box(dialModifier) { value() }
-                    },
-                    footer = data.windDeg?.let { deg -> @Composable {
-                        Text(
-                            text = localizeDigits("$dirLabel (%d°)".format(Locale.US, deg)),
-                            fontSize = 13f.s(scale),
-                            fontFamily = LocalBodyFont.current,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    } })
-                val gust = data.windGust
-                DetailCard(gust?.let { localizeDigits(it.displayDual(metricPrimary).first) } ?: "--", tile.weight(1f),
-                    title = stringResource(R.string.detail_wind_gust),
-                    onToggleUnits = onToggleUnits,
-                    centerDial = gust?.let { g -> @Composable { dialModifier ->
-                        val (gP, gS) = g.displayDual(metricPrimary)
-                        val (n, u) = splitUnit(gP)
-                        // Gusts rarely pass 30 m/s
-                        Gauge((g.metersPerSecond / 30).toFloat(), Color(0xFF64B5F6), dialModifier, size = null) {
-                            DialValue(localizeDigits(n), u, localizeDigits(gS))
-                        }
-                    } })
-            }
-
-            // Pressure / Humidity
-            TileRow {
-                val (pressP, pressS) = data.pressure.displayDual(metricPrimary)
-                DetailCard(localizeDigits(pressP), tile.weight(1f),
-                    title = stringResource(R.string.detail_pressure), secondaryValue = localizeDigits(pressS), onToggleUnits = onToggleUnits,
-                    centerDial = { dialModifier ->
-                        // Sea-level pressure rarely leaves 960-1050 hPa
-                        Gauge(((data.pressure.hPa - 960) / 90).toFloat(), AppDarkPrimary, dialModifier, size = null) {
-                            val (n, u) = splitUnit(pressP)
-                            DialValue(localizeDigits(n), u, localizeDigits(pressS))
-                        }
-                    })
-                val (dewP, dewS) = data.dewPoint.displayDual(metricPrimary)
-                val humidity = data.humidity
-                DetailCard(humidity?.let { localizeDigits("%d%%".format(Locale.US, it)) } ?: "--", tile.weight(1f),
-                    title = stringResource(R.string.detail_humidity),
-                    onToggleUnits = onToggleUnits,
-                    centerDial = humidity?.let { h -> @Composable { dialModifier ->
-                        Gauge(h / 100f, SkyBlue, dialModifier, size = null) {
-                            DialValue(localizeDigits("%d%%".format(Locale.US, h)))
-                        }
-                    } },
-                    footer = { LabeledValue(stringResource(R.string.detail_dewpoint), localizeDigits(dewP), secondary = localizeDigits(dewS), centered = true) })
-            }
-
-        } else {
-            @Composable
-            fun AirQualityTile(aqi: AirQualityIndex, modifier: Modifier) {
-                var showAirQualityDetail by remember { mutableStateOf(false) }
-                val usAqiLabel = stringResource(R.string.air_quality_us_aqi)
-                val euAqiLabel = stringResource(R.string.air_quality_eu_aqi)
-                val (aqiP, aqiS) = aqi.displayDual()
-                val european = aqi.primaryStandard == AqiStandard.EUROPEAN
-                DetailCard(localizeDigits(aqiP), modifier,
-                    title = stringResource(R.string.detail_air_quality),
-                    secondaryValue = localizeDigits(aqiS),
-                    unit = if (european) euAqiLabel else usAqiLabel,
-                    secondaryUnit = if (european) usAqiLabel else euAqiLabel,
-                    onClick = { showAirQualityDetail = true },
-                    centerDial = { dialModifier ->
-                        Gauge(aqiDialPosition(if (european) aqi.europeanValue else aqi.usValue, aqi.primaryStandard), colorsFor(aqi.primaryTier).background,
-                        segments = AqiTier.entries.map { colorsFor(it).background }, modifier = dialModifier, size = null) {
-                            DialValue(localizeDigits(aqiP), if (european) euAqiLabel else usAqiLabel,
-                                localizeDigits("$aqiS ${if (european) usAqiLabel else euAqiLabel}"),
-                                badge = { AqiTierBadge(aqi.primaryTier, stringArrayResource(R.array.aqi_tier_labels)[aqi.primaryTier.ordinal], singleLine = true) })
-                        }
-                    })
-                if (showAirQualityDetail) {
-                    AirQualityDetailDialog(
-                        airQuality = aqi,
-                        onDismissRequest = { showAirQualityDetail = false },
-                        localizeDigits = localizeDigits,
-                    )
+/** The rain or snow now, and the chance of precipitation in the next hour. */
+@Composable
+private fun PrecipitationTile(data: WeatherData, metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit, modifier: Modifier) {
+    val scale = LocalScale.current
+    val amount = data.snow ?: data.rain
+    val nowSec = System.currentTimeMillis() / 1000
+    val iconCode = when {
+        data.snow != null -> 71
+        data.rain != null -> 61
+        else -> data.weatherCode
+    }
+    DetailCard(amount?.let { localizeDigits(it.displayDual(metricPrimary).first) } ?: stringResource(R.string.detail_no_precip), modifier,
+        title = stringResource(R.string.detail_precipitation),
+        onToggleUnits = if (amount != null) onToggleUnits else null,
+        centerDial = { dialModifier ->
+            Column(dialModifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                WeatherIcon(iconCode, night = !isDaytime(nowSec, data.sunrise, data.sunset), size = 56.sd(scale))
+                Spacer(modifier = Modifier.height(6.dp))
+                if (amount != null) {
+                    val (p, sec) = amount.displayDual(metricPrimary)
+                    DialValue(localizeDigits(p), secondary = localizeDigits(sec), fill = false)
+                } else {
+                    DialValue(stringResource(R.string.detail_no_precip), fill = false)
                 }
             }
+        },
+        // The chance of precipitation in the next hour, as on the forecast cards
+        footer = {
+            PrecipChance(data.hourlyForecast.firstOrNull()?.precipProbability ?: 0, true, 13f.s(scale),
+                LocalBodyFont.current, LocalBodyFontFeatures.current, localizeDigits)
+        })
+}
 
-            @Composable
-            fun UvTile(modifier: Modifier) {
-                val currentUv = data.uvIndex
-                val uvLabelText = when {
-                    currentUv == null -> ""
-                    currentUv < 3 -> uvLabels[0]
-                    currentUv < 6 -> uvLabels[1]
-                    currentUv < 8 -> uvLabels[2]
-                    currentUv < 11 -> uvLabels[3]
-                    else -> uvLabels[4]
-                }
-                DetailCard(currentUv?.let { localizeDigits("%.1f".format(Locale.US, it)) } ?: "--", modifier,
-                    title = stringResource(R.string.detail_uv_index),
-                    centerDial = currentUv?.let { uv -> @Composable { dialModifier ->
-                        // Same five-level dial as air quality, the dot at the reading's place in its level
-                        Gauge(uvDialPosition(uv), colorsFor(uv).background, dialModifier, size = null,
-                            segments = listOf(1.0, 4.0, 7.0, 9.0, 11.0).map { colorsFor(it).background }) {
-                            DialValue(localizeDigits("%.1f".format(Locale.US, uv)),
-                                badge = { TierPill(uvLabelText, colorsFor(uv).background, colorsFor(uv).text, singleLine = true) })
-                        }
-                    } })
-            }
+/** The wind speed on a compass that shows where it comes from. */
+@Composable
+private fun WindTile(data: WeatherData, metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit, modifier: Modifier) {
+    val scale = LocalScale.current
+    val directions = stringArrayResource(R.array.cardinal_directions)
+    val (windP, windS) = data.windSpeed.displayDual(metricPrimary)
+    val dirLabel = data.windDeg?.let { directions[((it % 360 + 360) % 360 * 16 / 360) % 16] }
+    DetailCard(localizeDigits(windP), modifier,
+        title = stringResource(R.string.detail_wind),
+        onToggleUnits = onToggleUnits,
+        centerDial = { dialModifier ->
+            val (n, u) = splitUnit(windP)
+            val value = @Composable { DialValue(localizeDigits(n), u, localizeDigits(windS)) }
+            val deg = data.windDeg
+            if (deg != null) CompassDial(deg, dialModifier) { value() } else Box(dialModifier) { value() }
+        },
+        footer = data.windDeg?.let { deg -> @Composable {
+            Text(
+                text = localizeDigits("$dirLabel (%d°)".format(Locale.US, deg)),
+                fontSize = 13f.s(scale),
+                fontFamily = LocalBodyFont.current,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        } })
+}
 
-            @Composable
-            fun VisibilityTile(modifier: Modifier) {
-                val visibility = data.visibility
-                val km = stringResource(R.string.visibility_km)
-                val mi = stringResource(R.string.visibility_mi)
-                DetailCard(
-                    visibility?.let { localizeDigits(if (metricPrimary) km.format(Locale.US, it / 1000.0) else mi.format(Locale.US, it / 1609.34)) } ?: "--",
-                    modifier,
-                    title = stringResource(R.string.detail_visibility),
-                    onToggleUnits = onToggleUnits,
-                    centerDial = visibility?.let { v -> @Composable { dialModifier ->
-                        val primary = if (metricPrimary) km.format(Locale.US, v / 1000.0) else mi.format(Locale.US, v / 1609.34)
-                        val secondary = if (metricPrimary) mi.format(Locale.US, v / 1609.34) else km.format(Locale.US, v / 1000.0)
-                        val (n, u) = splitUnit(primary)
-                        // On a log scale, 100 m to 20 km: each step down matters more than one up
-                        val f = (kotlin.math.log10(v.coerceAtLeast(100) / 100.0) / kotlin.math.log10(200.0)).toFloat()
-                        Gauge(f, Color(0xFF80DEEA), dialModifier, size = null) {
-                            DialValue(localizeDigits(n), u, localizeDigits(secondary))
-                        }
-                    } },
-                )
+/** The wind gusts on a dial. */
+@Composable
+private fun GustTile(data: WeatherData, metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit, modifier: Modifier) {
+    val gust = data.windGust
+    DetailCard(gust?.let { localizeDigits(it.displayDual(metricPrimary).first) } ?: "--", modifier,
+        title = stringResource(R.string.detail_wind_gust),
+        onToggleUnits = onToggleUnits,
+        centerDial = gust?.let { g -> @Composable { dialModifier ->
+            val (gP, gS) = g.displayDual(metricPrimary)
+            val (n, u) = splitUnit(gP)
+            // Gusts rarely pass 30 m/s
+            Gauge((g.metersPerSecond / 30).toFloat(), Color(0xFF64B5F6), dialModifier, size = null) {
+                DialValue(localizeDigits(n), u, localizeDigits(gS))
             }
+        } })
+}
 
-            @Composable
-            fun CloudCoverTile(modifier: Modifier) {
-                val cover = data.cloudCover
-                DetailCard(cover?.let { localizeDigits("%d%%".format(Locale.US, it)) } ?: "--", modifier,
-                    title = stringResource(R.string.detail_cloud_cover),
-                    centerDial = cover?.let { c -> @Composable { dialModifier ->
-                        Gauge(c / 100f, Color(0xFFB0BEC5), dialModifier, size = null) {
-                            DialValue(localizeDigits("%d%%".format(Locale.US, c)))
-                        }
-                    } })
+/** The sea-level pressure on a dial. */
+@Composable
+private fun PressureTile(data: WeatherData, metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit, modifier: Modifier) {
+    val (pressP, pressS) = data.pressure.displayDual(metricPrimary)
+    DetailCard(localizeDigits(pressP), modifier,
+        title = stringResource(R.string.detail_pressure), secondaryValue = localizeDigits(pressS), onToggleUnits = onToggleUnits,
+        centerDial = { dialModifier ->
+            // Sea-level pressure rarely leaves 960-1050 hPa
+            Gauge(((data.pressure.hPa - 960) / 90).toFloat(), AppDarkPrimary, dialModifier, size = null) {
+                val (n, u) = splitUnit(pressP)
+                DialValue(localizeDigits(n), u, localizeDigits(pressS))
             }
+        })
+}
 
-            // Sun / Moon, air quality / UV, cloud cover / visibility (without air quality: UV / cloud cover, then visibility)
-            TileRow {
-                SunTile(data.sunrise, data.sunset, data.latitude, data.longitude, timeFormat, localizeDigits, tile.weight(1f))
-                if (data.latitude != null && data.longitude != null) {
-                    MoonTile(data.latitude, data.longitude, data.utcOffsetSeconds, timeFormat, localizeDigits, tile.weight(1f))
-                }
+/** The humidity on a dial, and the dew point. */
+@Composable
+private fun HumidityTile(data: WeatherData, metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit, modifier: Modifier) {
+    val (dewP, dewS) = data.dewPoint.displayDual(metricPrimary)
+    val humidity = data.humidity
+    DetailCard(humidity?.let { localizeDigits("%d%%".format(Locale.US, it)) } ?: "--", modifier,
+        title = stringResource(R.string.detail_humidity),
+        onToggleUnits = onToggleUnits,
+        centerDial = humidity?.let { h -> @Composable { dialModifier ->
+            Gauge(h / 100f, SkyBlue, dialModifier, size = null) {
+                DialValue(localizeDigits("%d%%".format(Locale.US, h)))
             }
-            val aqi = data.airQuality
-            if (aqi != null) {
-                TileRow {
-                    AirQualityTile(aqi, tile.weight(1f))
-                    UvTile(tile.weight(1f))
-                }
-                TileRow {
-                    CloudCoverTile(tile.weight(1f))
-                    VisibilityTile(tile.weight(1f))
-                }
-            } else {
-                TileRow {
-                    UvTile(tile.weight(1f))
-                    CloudCoverTile(tile.weight(1f))
-                }
-                TileRow { VisibilityTile(tile.weight(1f)) }
-            }
+        } },
+        footer = { LabeledValue(stringResource(R.string.detail_dewpoint), localizeDigits(dewP), secondary = localizeDigits(dewS), centered = true) })
+}
+
+/** Sun / Moon, air quality / UV, cloud cover / visibility (without air quality: UV / cloud cover, then visibility). */
+@Composable
+private fun SkyTiles(data: WeatherData, metricPrimary: Boolean, timeFormat: SimpleDateFormat, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
+    val tile = Modifier.fillMaxHeight()
+    TileRow {
+        SunTile(data.sunrise, data.sunset, data.latitude, data.longitude, timeFormat, localizeDigits, tile.weight(1f))
+        if (data.latitude != null && data.longitude != null) {
+            MoonTile(data.latitude, data.longitude, data.utcOffsetSeconds, timeFormat, localizeDigits, tile.weight(1f))
         }
     }
+    val aqi = data.airQuality
+    if (aqi != null) {
+        TileRow {
+            AirQualityTile(aqi, localizeDigits, tile.weight(1f))
+            UvTile(data, localizeDigits, tile.weight(1f))
+        }
+        TileRow {
+            CloudCoverTile(data, localizeDigits, tile.weight(1f))
+            VisibilityTile(data, metricPrimary, localizeDigits, onToggleUnits, tile.weight(1f))
+        }
+    } else {
+        TileRow {
+            UvTile(data, localizeDigits, tile.weight(1f))
+            CloudCoverTile(data, localizeDigits, tile.weight(1f))
+        }
+        TileRow { VisibilityTile(data, metricPrimary, localizeDigits, onToggleUnits, tile.weight(1f)) }
+    }
+}
+
+/** The air quality on a five-level dial; a tap opens its details. */
+@Composable
+private fun AirQualityTile(aqi: AirQualityIndex, localizeDigits: (String) -> String, modifier: Modifier) {
+    var showAirQualityDetail by remember { mutableStateOf(false) }
+    val usAqiLabel = stringResource(R.string.air_quality_us_aqi)
+    val euAqiLabel = stringResource(R.string.air_quality_eu_aqi)
+    val (aqiP, aqiS) = aqi.displayDual()
+    val european = aqi.primaryStandard == AqiStandard.EUROPEAN
+    DetailCard(localizeDigits(aqiP), modifier,
+        title = stringResource(R.string.detail_air_quality),
+        secondaryValue = localizeDigits(aqiS),
+        unit = if (european) euAqiLabel else usAqiLabel,
+        secondaryUnit = if (european) usAqiLabel else euAqiLabel,
+        onClick = { showAirQualityDetail = true },
+        centerDial = { dialModifier ->
+            Gauge(aqiDialPosition(if (european) aqi.europeanValue else aqi.usValue, aqi.primaryStandard), colorsFor(aqi.primaryTier).background,
+            segments = AqiTier.entries.map { colorsFor(it).background }, modifier = dialModifier, size = null) {
+                DialValue(localizeDigits(aqiP), if (european) euAqiLabel else usAqiLabel,
+                    localizeDigits("$aqiS ${if (european) usAqiLabel else euAqiLabel}"),
+                    badge = { AqiTierBadge(aqi.primaryTier, stringArrayResource(R.array.aqi_tier_labels)[aqi.primaryTier.ordinal], singleLine = true) })
+            }
+        })
+    if (showAirQualityDetail) {
+        AirQualityDetailDialog(
+            airQuality = aqi,
+            onDismissRequest = { showAirQualityDetail = false },
+            localizeDigits = localizeDigits,
+        )
+    }
+}
+
+/** The UV index on the same five-level dial as air quality. */
+@Composable
+private fun UvTile(data: WeatherData, localizeDigits: (String) -> String, modifier: Modifier) {
+    val uvLabels = stringArrayResource(R.array.uv_labels)
+    val currentUv = data.uvIndex
+    val uvLabelText = when {
+        currentUv == null -> ""
+        currentUv < 3 -> uvLabels[0]
+        currentUv < 6 -> uvLabels[1]
+        currentUv < 8 -> uvLabels[2]
+        currentUv < 11 -> uvLabels[3]
+        else -> uvLabels[4]
+    }
+    DetailCard(currentUv?.let { localizeDigits("%.1f".format(Locale.US, it)) } ?: "--", modifier,
+        title = stringResource(R.string.detail_uv_index),
+        centerDial = currentUv?.let { uv -> @Composable { dialModifier ->
+            // Same five-level dial as air quality, the dot at the reading's place in its level
+            Gauge(uvDialPosition(uv), colorsFor(uv).background, dialModifier, size = null,
+                segments = listOf(1.0, 4.0, 7.0, 9.0, 11.0).map { colorsFor(it).background }) {
+                DialValue(localizeDigits("%.1f".format(Locale.US, uv)),
+                    badge = { TierPill(uvLabelText, colorsFor(uv).background, colorsFor(uv).text, singleLine = true) })
+            }
+        } })
+}
+
+/** The visibility on a log-scale dial. */
+@Composable
+private fun VisibilityTile(data: WeatherData, metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit, modifier: Modifier) {
+    val visibility = data.visibility
+    val km = stringResource(R.string.visibility_km)
+    val mi = stringResource(R.string.visibility_mi)
+    DetailCard(
+        visibility?.let { localizeDigits(if (metricPrimary) km.format(Locale.US, it / 1000.0) else mi.format(Locale.US, it / 1609.34)) } ?: "--",
+        modifier,
+        title = stringResource(R.string.detail_visibility),
+        onToggleUnits = onToggleUnits,
+        centerDial = visibility?.let { v -> @Composable { dialModifier ->
+            val primary = if (metricPrimary) km.format(Locale.US, v / 1000.0) else mi.format(Locale.US, v / 1609.34)
+            val secondary = if (metricPrimary) mi.format(Locale.US, v / 1609.34) else km.format(Locale.US, v / 1000.0)
+            val (n, u) = splitUnit(primary)
+            // On a log scale, 100 m to 20 km: each step down matters more than one up
+            val f = (kotlin.math.log10(v.coerceAtLeast(100) / 100.0) / kotlin.math.log10(200.0)).toFloat()
+            Gauge(f, Color(0xFF80DEEA), dialModifier, size = null) {
+                DialValue(localizeDigits(n), u, localizeDigits(secondary))
+            }
+        } },
+    )
+}
+
+/** The cloud cover on a dial. */
+@Composable
+private fun CloudCoverTile(data: WeatherData, localizeDigits: (String) -> String, modifier: Modifier) {
+    val cover = data.cloudCover
+    DetailCard(cover?.let { localizeDigits("%d%%".format(Locale.US, it)) } ?: "--", modifier,
+        title = stringResource(R.string.detail_cloud_cover),
+        centerDial = cover?.let { c -> @Composable { dialModifier ->
+            Gauge(c / 100f, Color(0xFFB0BEC5), dialModifier, size = null) {
+                DialValue(localizeDigits("%d%%".format(Locale.US, c)))
+            }
+        } })
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -2527,10 +2509,8 @@ private fun SunTile(sunrise: Long, sunset: Long, latitude: Double?, longitude: D
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
             modifier = Modifier.onSizeChanged { titleHeight = it.height },
         )
-        // Polar night (the sun stays down all day) or midnight sun (up all day): no rise or set, as for the moon
-        val polarNight = sunset <= sunrise
-        val midnightSun = sunset - sunrise >= 86_400
-        val polar = polarNight || midnightSun
+        val midnightSun = isMidnightSun(sunrise, sunset)
+        val polar = isPolarNight(sunrise, sunset) || midnightSun
         // Then the tile shows the first and last day of that period in place of the arc's times
         val appLocale = LocalConfiguration.current.locales[0]
         val dayMonthFormat = remember(appLocale, timeFormat) { SimpleDateFormat("d MMM", appLocale).apply { timeZone = timeFormat.timeZone } }
@@ -2543,72 +2523,110 @@ private fun SunTile(sunrise: Long, sunset: Long, latitude: Double?, longitude: D
             verticalArrangement = if (polar) Arrangement.spacedBy(12.dp, Alignment.CenterVertically) else Arrangement.spacedBy(6.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Box(if (polar) Modifier.fillMaxWidth() else Modifier.fillMaxWidth().heightIn(max = 144.dp).aspectRatio(120f / 76f)) {
-                // No arc in a polar night or midnight sun: the sun does not cross the horizon
-                if (!polar) SunArc(sunrise, sunset, System.currentTimeMillis() / 1000, Modifier.fillMaxSize())
-                // The length of the day (hours and minutes) in the middle of the arc, or the polar night or midnight sun
-                run {
-                    val minutes = (sunset - sunrise) / 60
-                    val h = minutes / 60
-                    val m = minutes % 60
-                    Text(
-                        text = when {
-                            polarNight -> stringResource(R.string.polar_night)
-                            midnightSun -> stringResource(R.string.midnight_sun)
-                            else -> localizeDigits(stringResource(
-                                R.string.daylight_duration,
-                                stringResource(if (h == 1L) R.string.daylight_hours_one else R.string.daylight_hours_other, "$h"),
-                                stringResource(if (m == 1L) R.string.daylight_minutes_one else R.string.daylight_minutes_other, "$m"),
-                            ))
-                        },
-                        fontSize = (if (polar) 16f else 13f).s(scale),
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = LocalDisplayFont.current,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                        textAlign = TextAlign.Center,
-                        lineHeight = (if (polar) 19f else 15f).s(scale),
-                        // Long texts (Malagasy) take more than one line inside the arc
-                        modifier = Modifier.align(Alignment.Center).fillMaxWidth(if (polar) 1f else 0.6f),
-                    )
-                }
-            }
-            // The polar dates are side by side when they fit, else one under the other
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = if (polar) Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally) else Arrangement.SpaceBetween,
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                val times = if (polar) {
-                    listOf(R.string.polar_since to period?.since?.let { dayMonthFormat.format(Date(it)) }, R.string.polar_until to period?.until?.let { dayMonthFormat.format(Date(it)) })
-                } else {
-                    listOf(R.string.detail_sunrise to timeFormat.format(Date(sunrise * 1000)), R.string.detail_sunset to timeFormat.format(Date(sunset * 1000)))
-                }
-                times.forEachIndexed { i, (label, time) ->
-                    Column(horizontalAlignment = if (polar) Alignment.CenterHorizontally else if (i == 0) Alignment.Start else Alignment.End) {
-                        Text(
-                            text = stringResource(label),
-                            fontSize = 11f.s(scale),
-                            fontFamily = bodyFont,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                        )
-                        Text(
-                            text = time?.let { localizeDigits(it) } ?: "--",
-                            fontSize = 15f.s(scale),
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = LocalDisplayFont.current,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                    }
-                }
-            }
+            SunArcWithLength(sunrise, sunset, localizeDigits)
+            SunTimes(sunTimes(sunrise, sunset, period, timeFormat, dayMonthFormat), centered = polar, localizeDigits)
             // In a midnight sun, where the sun is now: it goes round the sky, so its direction changes all day
-            if (midnightSun && latitude != null && longitude != null) {
-                val directions = stringArrayResource(R.array.cardinal_directions)
-                val az = Moon.sunPosition(System.currentTimeMillis(), latitude, longitude).azimuth.roundToInt() % 360
-                LabeledValue(stringResource(R.string.detail_azimuth), localizeDigits("${directions[((az * 16 + 180) / 360) % 16]} (%d°)".format(Locale.US, az)), centered = true)
+            if (midnightSun && latitude != null && longitude != null) SunAzimuth(latitude, longitude, localizeDigits)
+        }
+    }
+}
+
+// Polar night (the sun stays down all day) or midnight sun (up all day): no rise or set, as for the moon
+private fun isPolarNight(sunrise: Long, sunset: Long) = sunset <= sunrise
+private fun isMidnightSun(sunrise: Long, sunset: Long) = sunset - sunrise >= 86_400
+
+/**
+ * The sun's arc today with the length of the day in its middle; in a polar night or midnight sun, only its
+ * name, larger, as the sun does not cross the horizon.
+ */
+@Composable
+private fun SunArcWithLength(sunrise: Long, sunset: Long, localizeDigits: (String) -> String) {
+    val scale = LocalScale.current
+    val polarNight = isPolarNight(sunrise, sunset)
+    val midnightSun = isMidnightSun(sunrise, sunset)
+    val polar = polarNight || midnightSun
+    Box(if (polar) Modifier.fillMaxWidth() else Modifier.fillMaxWidth().heightIn(max = 144.dp).aspectRatio(120f / 76f)) {
+        // No arc in a polar night or midnight sun: the sun does not cross the horizon
+        if (!polar) SunArc(sunrise, sunset, System.currentTimeMillis() / 1000, Modifier.fillMaxSize())
+        // The length of the day (hours and minutes) in the middle of the arc, or the polar night or midnight sun
+        Text(
+            text = when {
+                polarNight -> stringResource(R.string.polar_night)
+                midnightSun -> stringResource(R.string.midnight_sun)
+                else -> localizeDigits(daylightDuration(sunset - sunrise))
+            },
+            fontSize = (if (polar) 16f else 13f).s(scale),
+            fontWeight = FontWeight.Bold,
+            fontFamily = LocalDisplayFont.current,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+            textAlign = TextAlign.Center,
+            lineHeight = (if (polar) 19f else 15f).s(scale),
+            // Long texts (Malagasy) take more than one line inside the arc
+            modifier = Modifier.align(Alignment.Center).fillMaxWidth(if (polar) 1f else 0.6f),
+        )
+    }
+}
+
+/** The sun tile's two times: sunrise and sunset, or the first and last day of the polar [period] when there is one. */
+private fun sunTimes(sunrise: Long, sunset: Long, period: Moon.PolarPeriod?, timeFormat: SimpleDateFormat, dayMonthFormat: SimpleDateFormat): List<Pair<Int, String?>> {
+    return if (isPolarNight(sunrise, sunset) || isMidnightSun(sunrise, sunset)) {
+        listOf(R.string.polar_since to period?.since?.let { dayMonthFormat.format(Date(it)) }, R.string.polar_until to period?.until?.let { dayMonthFormat.format(Date(it)) })
+    } else {
+        listOf(R.string.detail_sunrise to timeFormat.format(Date(sunrise * 1000)), R.string.detail_sunset to timeFormat.format(Date(sunset * 1000)))
+    }
+}
+
+/** The length of a day of [seconds], in hours and minutes. */
+@Composable
+private fun daylightDuration(seconds: Long): String {
+    val minutes = seconds / 60
+    val h = minutes / 60
+    val m = minutes % 60
+    return stringResource(
+        R.string.daylight_duration,
+        stringResource(if (h == 1L) R.string.daylight_hours_one else R.string.daylight_hours_other, "$h"),
+        stringResource(if (m == 1L) R.string.daylight_minutes_one else R.string.daylight_minutes_other, "$m"),
+    )
+}
+
+/**
+ * The sun tile's two times (label to time; null shows "--"): sunrise at the start and sunset at the end, or,
+ * [centered], the polar dates side by side when they fit, else one under the other.
+ */
+@Composable
+private fun SunTimes(times: List<Pair<Int, String?>>, centered: Boolean, localizeDigits: (String) -> String) {
+    val scale = LocalScale.current
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = if (centered) Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally) else Arrangement.SpaceBetween,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        times.forEachIndexed { i, (label, time) ->
+            Column(horizontalAlignment = if (centered) Alignment.CenterHorizontally else if (i == 0) Alignment.Start else Alignment.End) {
+                Text(
+                    text = stringResource(label),
+                    fontSize = 11f.s(scale),
+                    fontFamily = LocalBodyFont.current,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                )
+                Text(
+                    text = time?.let { localizeDigits(it) } ?: "--",
+                    fontSize = 15f.s(scale),
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = LocalDisplayFont.current,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
             }
         }
     }
+}
+
+/** Where the sun is now, as a compass direction and degrees. */
+@Composable
+private fun SunAzimuth(latitude: Double, longitude: Double, localizeDigits: (String) -> String) {
+    val directions = stringArrayResource(R.array.cardinal_directions)
+    val az = Moon.sunPosition(System.currentTimeMillis(), latitude, longitude).azimuth.roundToInt() % 360
+    LabeledValue(stringResource(R.string.detail_azimuth), localizeDigits("${directions[((az * 16 + 180) / 360) % 16]} (%d°)".format(Locale.US, az)), centered = true)
 }
 
 /** The moon, laid out like the sun tile: its arc across the sky, the part lit, rise and set today, phase and direction. */

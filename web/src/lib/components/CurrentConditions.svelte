@@ -7,7 +7,7 @@
 	import { _, json } from 'svelte-i18n';
 	import { isDaytime, type WeatherData } from '#lib/domain/weatherData.js';
 	import { getCardinalDirection } from '#lib/domain/windSpeed.js';
-	import { AQI_TIER_COLORS, aqiDialPosition } from '#lib/domain/airQuality.js';
+	import { AQI_TIER_COLORS, aqiDialPosition, type AirQualityIndex } from '#lib/domain/airQuality.js';
 	import { UV_TIER_COLORS, uvColorFor, uvDialPosition, type UvTier } from '#lib/domain/uv.js';
 	import DetailCard from './DetailCard.svelte';
 	import { formatDayMonth, formatHourAtLocation } from '#lib/utils/date.js';
@@ -125,9 +125,21 @@
 </script>
 
 <div class="conditions-grid">
-	{#if part === 'now'}
-	<!-- Every card: the title, one graphic in the middle with the values in it, labels in the bottom row -->
-	<!-- Temperature / Precipitation -->
+	{#if part === 'now'}{@render nowTiles()}{:else}{@render skyTiles()}{/if}
+</div>
+
+<!-- Every card: the title, one graphic in the middle with the values in it, labels in the bottom row -->
+{#snippet nowTiles()}
+	{@render temperatureTile()}
+	{@render precipitationTile()}
+	{@render windTile()}
+	{@render gustTile()}
+	{@render pressureTile()}
+	{@render humidityTile()}
+{/snippet}
+
+<!-- The temperature on a dial between today's low and high, and how it feels -->
+{#snippet temperatureTile()}
 	<DetailCard title={$_('detail_temperature')} value={loc(tempDual[0])} {onToggleUnits}>
 		{#snippet centerDialSnippet()}
 			<!-- Where now is between today's low and high -->
@@ -141,6 +153,10 @@
 			<LabeledValue label={feltLabel} value={loc(feltDual[0])} secondary={loc(feltDual[1])} centered icon={heat ? { kind: 'heat', color: HEAT_COLOR } : felt ? { kind: 'cold', color: CHILL_COLOR } : null} />
 		{/snippet}
 	</DetailCard>
+{/snippet}
+
+<!-- The rain or snow now, and the chance of precipitation in the next hour -->
+{#snippet precipitationTile()}
 	<DetailCard title={$_('detail_precipitation')} value={precipDual ? loc(precipDual[0]) : $_('no_precip')} onToggleUnits={precipDual ? onToggleUnits : undefined}>
 		{#snippet centerDialSnippet()}
 			<div class="precip-center">
@@ -161,8 +177,10 @@
 			</span>
 		{/snippet}
 	</DetailCard>
+{/snippet}
 
-	<!-- Wind / Gust -->
+<!-- The wind speed on a compass that shows where it comes from -->
+{#snippet windTile()}
 	<DetailCard title={$_('detail_wind')} value={loc(windDual[0])} {onToggleUnits}>
 		{#snippet centerDialSnippet()}
 			{@const [n, u] = splitUnit(windDual[0])}
@@ -178,6 +196,10 @@
 			{/if}
 		{/snippet}
 	</DetailCard>
+{/snippet}
+
+<!-- The wind gusts on a dial -->
+{#snippet gustTile()}
 	<DetailCard title={$_('detail_wind_gust')} value={gustDual ? loc(gustDual[0]) : '--'} {onToggleUnits}>
 		{#snippet centerDialSnippet()}
 			{#if data.windGust && gustDual}
@@ -189,8 +211,10 @@
 			{/if}
 		{/snippet}
 	</DetailCard>
+{/snippet}
 
-	<!-- Pressure / Humidity -->
+<!-- The sea-level pressure on a dial -->
+{#snippet pressureTile()}
 	<DetailCard title={$_('detail_pressure')} value={loc(pressDual[0])} {onToggleUnits}>
 		{#snippet centerDialSnippet()}
 			{@const [n, u] = splitUnit(pressDual[0])}
@@ -199,6 +223,10 @@
 			</Gauge>
 		{/snippet}
 	</DetailCard>
+{/snippet}
+
+<!-- The humidity on a dial, and the dew point -->
+{#snippet humidityTile()}
 	<DetailCard title={$_('detail_humidity')} value={data.humidity != null ? loc(`${data.humidity}%`) : '--'} {onToggleUnits}>
 		{#snippet centerDialSnippet()}
 			{#if data.humidity != null}
@@ -211,9 +239,26 @@
 			<LabeledValue label={$_('detail_dewpoint')} value={loc(dewDual[0])} secondary={loc(dewDual[1])} centered />
 		{/snippet}
 	</DetailCard>
+{/snippet}
 
+<!-- Sun / Moon, air quality / UV, cloud cover / visibility (without air quality: UV / cloud cover, then visibility) -->
+{#snippet skyTiles()}
+	{@render sunTile()}
+	{@render moonTile()}
+	{#if data.airQuality}
+		{@render airQualityTile(data.airQuality)}
+		{@render uvTile()}
+		{@render cloudCoverTile()}
+		{@render visibilityTile()}
 	{:else}
-	<!-- Sun / Moon, air quality / UV, cloud cover / visibility (without air quality: UV / cloud cover, then visibility) -->
+		{@render uvTile()}
+		{@render cloudCoverTile()}
+		<div class="wide">{@render visibilityTile()}</div>
+	{/if}
+{/snippet}
+
+<!-- The sun's arc and times, or the polar night or midnight sun with its dates -->
+{#snippet sunTile()}
 	<div class="sky-tile">
 		<span class="tile-title">{$_('detail_sun')}</span>
 		<!-- The arc right under the title, then the times, so the sun's and moon's arcs and times line up -->
@@ -237,7 +282,10 @@
 		{/if}
 		</div>
 	</div>
-	<!-- The moon, laid out like the sun: its arc, the part lit, rise and set today, phase and direction -->
+{/snippet}
+
+<!-- The moon, laid out like the sun: its arc, the part lit, rise and set today, phase and direction -->
+{#snippet moonTile()}
 	<div class="sky-tile">
 		<span class="tile-title">{$_('detail_moon')}</span>
 		<div class="sky-content">
@@ -264,77 +312,71 @@
 		</div>
 		</div>
 	</div>
+{/snippet}
 
-	{#if data.airQuality}
-		{@const aqi = data.airQuality}
-		{@const [aqiP, aqiS] = aqi.displayDual()}
-		{@const us = $_('air_quality_us_aqi')}
-		{@const eu = $_('air_quality_eu_aqi')}
-		{@const european = aqi.primaryStandard === 'EUROPEAN'}
-		<DetailCard title={$_('detail_air_quality')} value={loc(aqiP)} onClick={onOpenAirQuality}>
-			{#snippet centerDialSnippet()}
-				<Gauge fraction={aqiDialPosition(european ? aqi.europeanValue : aqi.usValue, aqi.primaryStandard)} color={AQI_TIER_COLORS[aqi.primaryTier]}
-					segments={AQI_TIERS.map((t) => AQI_TIER_COLORS[t as keyof typeof AQI_TIER_COLORS])}>
-					<DialValue value={loc(aqiP)} unit={european ? eu : us} secondary={loc(`${aqiS} ${european ? us : eu}`)}>
-						{#snippet badge()}
-							<AqiTierBadge tier={aqi.primaryTier} label={($json('aqi_tier_labels') as string[])?.[AQI_TIERS.indexOf(aqi.primaryTier)] ?? ''} />
-						{/snippet}
+<!-- The air quality on a five-level dial; a tap opens its details -->
+{#snippet airQualityTile(aqi: AirQualityIndex)}
+	{@const [aqiP, aqiS] = aqi.displayDual()}
+	{@const us = $_('air_quality_us_aqi')}
+	{@const eu = $_('air_quality_eu_aqi')}
+	{@const european = aqi.primaryStandard === 'EUROPEAN'}
+	<DetailCard title={$_('detail_air_quality')} value={loc(aqiP)} onClick={onOpenAirQuality}>
+		{#snippet centerDialSnippet()}
+			<Gauge fraction={aqiDialPosition(european ? aqi.europeanValue : aqi.usValue, aqi.primaryStandard)} color={AQI_TIER_COLORS[aqi.primaryTier]}
+				segments={AQI_TIERS.map((t) => AQI_TIER_COLORS[t as keyof typeof AQI_TIER_COLORS])}>
+				<DialValue value={loc(aqiP)} unit={european ? eu : us} secondary={loc(`${aqiS} ${european ? us : eu}`)}>
+					{#snippet badge()}
+						<AqiTierBadge tier={aqi.primaryTier} label={($json('aqi_tier_labels') as string[])?.[AQI_TIERS.indexOf(aqi.primaryTier)] ?? ''} />
+					{/snippet}
+				</DialValue>
+			</Gauge>
+		{/snippet}
+	</DetailCard>
+{/snippet}
+
+<!-- The UV index on the same five-level dial as air quality -->
+{#snippet uvTile()}
+	<DetailCard title={$_('detail_uv_index')} value={data.uvIndex != null ? loc(data.uvIndex.toFixed(1)) : '--'}>
+		{#snippet centerDialSnippet()}
+			{#if data.uvIndex != null}
+				<!-- Same five-level dial as air quality, the dot at the reading's place in its level -->
+				<Gauge fraction={uvDialPosition(data.uvIndex)} color={uvColorFor(data.uvIndex)} segments={UV_TIERS.map((t) => UV_TIER_COLORS[t])}>
+					<DialValue value={loc(data.uvIndex.toFixed(1))}>
+						{#snippet badge()}<AqiTierBadge color={uvColorFor(data.uvIndex!)} label={getUvLabel(data.uvIndex!)} />{/snippet}
 					</DialValue>
 				</Gauge>
-			{/snippet}
-		</DetailCard>
-	{/if}
-	{@render uvCard()}
-	{#if data.airQuality}
-		{@render cloudCard()}
-		{@render visibilityCard()}
-	{:else}
-		{@render cloudCard()}
-		<div class="wide">{@render visibilityCard()}</div>
-	{/if}
+			{/if}
+		{/snippet}
+	</DetailCard>
+{/snippet}
 
-	{#snippet uvCard()}
-		<DetailCard title={$_('detail_uv_index')} value={data.uvIndex != null ? loc(data.uvIndex.toFixed(1)) : '--'}>
-			{#snippet centerDialSnippet()}
-				{#if data.uvIndex != null}
-					<!-- Same five-level dial as air quality, the dot at the reading's place in its level -->
-					<Gauge fraction={uvDialPosition(data.uvIndex)} color={uvColorFor(data.uvIndex)} segments={UV_TIERS.map((t) => UV_TIER_COLORS[t])}>
-						<DialValue value={loc(data.uvIndex.toFixed(1))}>
-							{#snippet badge()}<AqiTierBadge color={uvColorFor(data.uvIndex!)} label={getUvLabel(data.uvIndex!)} />{/snippet}
-						</DialValue>
-					</Gauge>
-				{/if}
-			{/snippet}
-		</DetailCard>
-	{/snippet}
+<!-- The cloud cover on a dial -->
+{#snippet cloudCoverTile()}
+	<DetailCard title={$_('detail_cloud_cover')} value={data.cloudCover != null ? loc(`${data.cloudCover}%`) : '--'}>
+		{#snippet centerDialSnippet()}
+			{#if data.cloudCover != null}
+				<Gauge fraction={data.cloudCover / 100} color="#B0BEC5">
+					<DialValue value={loc(`${data.cloudCover}%`)} />
+				</Gauge>
+			{/if}
+		{/snippet}
+	</DetailCard>
+{/snippet}
 
-	{#snippet cloudCard()}
-		<DetailCard title={$_('detail_cloud_cover')} value={data.cloudCover != null ? loc(`${data.cloudCover}%`) : '--'}>
-			{#snippet centerDialSnippet()}
-				{#if data.cloudCover != null}
-					<Gauge fraction={data.cloudCover / 100} color="#B0BEC5">
-						<DialValue value={loc(`${data.cloudCover}%`)} />
-					</Gauge>
-				{/if}
-			{/snippet}
-		</DetailCard>
-	{/snippet}
-
-	{#snippet visibilityCard()}
-		<DetailCard title={$_('detail_visibility')} value={loc(visDual[0])} {onToggleUnits}>
-			{#snippet centerDialSnippet()}
-				{#if data.visibility != null}
-					{@const [n, u] = splitUnit(visDual[0])}
-					<!-- On a log scale, 100 m to 20 km: each step down matters more than one up -->
-					<Gauge fraction={Math.log10(Math.max(100, data.visibility) / 100) / Math.log10(200)} color="#80DEEA">
-						<DialValue value={loc(n)} unit={u} secondary={loc(visDual[1])} />
-					</Gauge>
-				{/if}
-			{/snippet}
-		</DetailCard>
-	{/snippet}
-	{/if}
-</div>
+<!-- The visibility on a log-scale dial -->
+{#snippet visibilityTile()}
+	<DetailCard title={$_('detail_visibility')} value={loc(visDual[0])} {onToggleUnits}>
+		{#snippet centerDialSnippet()}
+			{#if data.visibility != null}
+				{@const [n, u] = splitUnit(visDual[0])}
+				<!-- On a log scale, 100 m to 20 km: each step down matters more than one up -->
+				<Gauge fraction={Math.log10(Math.max(100, data.visibility) / 100) / Math.log10(200)} color="#80DEEA">
+					<DialValue value={loc(n)} unit={u} secondary={loc(visDual[1])} />
+				</Gauge>
+			{/if}
+		{/snippet}
+	</DetailCard>
+{/snippet}
 
 <style>
 	.conditions-grid {
