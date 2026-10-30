@@ -107,7 +107,14 @@ def main():
     deadline = time.time() + TIMEOUT
     while (pending or known) and time.time() < deadline:
         for analysis, (path, sha256) in list(pending.items()):
-            attrs = request("GET", f"/analyses/{analysis}", key)["data"]["attributes"]
+            try:
+                attrs = request("GET", f"/analyses/{analysis}", key)["data"]["attributes"]
+            except urllib.error.HTTPError as e:
+                # Just after an upload, the analysis can give 404 for a short time; 429 and 5xx are
+                # also temporary. Ask again on the next pass.
+                if e.code not in (404, 429) and e.code < 500:
+                    raise
+                continue
             if attrs.get("status") == "completed":
                 print(f"File: {path}\nSHA-256: {sha256}")
                 failed |= report(attrs["stats"], attrs.get("results", {}), sha256)
@@ -116,7 +123,7 @@ def main():
             try:
                 attrs = request("GET", f"/files/{sha256}", key)["data"]["attributes"]
             except urllib.error.HTTPError as e:
-                if e.code != 404:
+                if e.code not in (404, 429) and e.code < 500:
                     raise
                 continue
             if attrs.get("last_analysis_results"):
