@@ -97,7 +97,7 @@
 			<DualUnitText
 				primary={loc(tempDual[0])}
 				secondary={loc(tempDual[1])}
-				primarySize="80px"
+				primarySize="5rem"
 				secondaryScale={0.32}
 				onClick={onToggleUnits}
 			/>
@@ -115,7 +115,7 @@
 				<div class="hero-felt-values">
 					<!-- 32 px: the height of the 15 px value and its other unit -->
 					{#if felt}<FeltIcon kind={heat ? 'heat' : 'cold'} color={feltColor} size={32} />{/if}
-					<DualUnitText primary={loc(feltDual[0])} secondary={loc(feltDual[1])} primarySize="15px" onClick={onToggleUnits} />
+					<DualUnitText primary={loc(feltDual[0])} secondary={loc(feltDual[1])} primarySize="0.9375rem" onClick={onToggleUnits} />
 				</div>
 				{#if frostbite}<span class="hero-felt-label hero-frostbite" style:color={feltColor}>{loc(frostbite)}</span>{/if}
 			</div>
@@ -129,7 +129,7 @@
 				{/if}
 				{#if aqi}
 					{#if aqiDual}
-						<DualUnitText primary={loc(String(aqiDual[0]))} secondary={loc(String(aqiDual[1]))} primaryUnit={aqiUnits[0]} secondaryUnit={aqiUnits[1]} primarySize="14px" align="end" />
+						<DualUnitText primary={loc(String(aqiDual[0]))} secondary={loc(String(aqiDual[1]))} primaryUnit={aqiUnits[0]} secondaryUnit={aqiUnits[1]} primarySize="0.875rem" align="end" />
 					{/if}
 					<AqiTierBadge tier={aqi.primaryTier} label={($json('aqi_tier_labels') as string[])?.[AQI_TIERS.indexOf(aqi.primaryTier)] ?? ''} compact />
 				{/if}
@@ -148,7 +148,7 @@
 							<span class="next-device-time">{loc(formatHourInDeviceTime(hour.time))}<svg class="next-device-icon" viewBox="0 0 24 24" width="10" height="10" fill="currentColor" aria-hidden="true"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg></span>
 						{/if}
 						<WeatherIcon code={hour.weatherCode} night={isNightAt(hour.time)} size={40} />
-						<DualUnitText primary={loc(hour.temperature.displayDual(metricPrimary)[0])} secondary={loc(hour.temperature.displayDual(metricPrimary)[1])} primarySize="15px" align="center" onClick={onToggleUnits} />
+						<DualUnitText primary={loc(hour.temperature.displayDual(metricPrimary)[0])} secondary={loc(hour.temperature.displayDual(metricPrimary)[1])} primarySize="0.9375rem" align="center" onClick={onToggleUnits} />
 					</div>
 				{/each}
 			</div>
@@ -158,7 +158,7 @@
 	</div>
 
 	{#if onShare}
-		<button class="share-btn" onclick={handleShare} aria-label={$_('cd_share')}>
+		<button class="share-btn touch-target" onclick={handleShare} aria-label={$_('cd_share')}>
 			<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 				<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
 				<polyline points="16 6 12 2 8 6"/>
@@ -219,7 +219,7 @@
 
 	.hero-description {
 		font-family: var(--font-body);
-		font-size: 16px;
+		font-size: 1rem;
 		font-weight: 500;
 		color: rgba(255,255,255,0.9);
 		white-space: nowrap;
@@ -260,7 +260,7 @@
 
 	.hero-outlook {
 		margin: 0;
-		font-size: 14px;
+		font-size: 0.875rem;
 		color: rgba(255,255,255,0.85);
 	}
 
@@ -271,7 +271,7 @@
 	}
 
 	.hero-felt-label {
-		font-size: 12px;
+		font-size: 0.75rem;
 	}
 
 	.hero-felt-values {
@@ -307,7 +307,7 @@
 	.next-device-time {
 		position: relative;
 		margin-top: -4px;
-		font-size: 9px;
+		font-size: 0.5625rem;
 		color: rgba(255,255,255,0.65);
 		font-feature-settings: var(--font-features);
 	}
@@ -322,14 +322,14 @@
 	}
 
 	.next-time {
-		font-size: 12px;
+		font-size: 0.75rem;
 		color: rgba(255,255,255,0.6);
 		font-feature-settings: var(--font-features);
 	}
 
 	.copyright {
 		text-align: center;
-		font-size: 9px;
+		font-size: 0.5625rem;
 		color: rgba(255,255,255,0.25);
 		margin-top: 8px;
 	}

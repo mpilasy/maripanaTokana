@@ -9,6 +9,7 @@
 	let t = $derived(sunset > sunrise ? (now - sunrise) / (sunset - sunrise) : -1);
 </script>
 
-<SkyArc {t} progressColor="#FFB74D">
+<!-- Before sunrise or after sunset: a faint sun under the horizon where it will rise -->
+<SkyArc {t} progressColor="#FFB74D" belowColor="#FFD54F">
 	{#snippet body(x, y)}<circle cx={x} cy={y} r="5" fill="#FFD54F" />{/snippet}
 </SkyArc>

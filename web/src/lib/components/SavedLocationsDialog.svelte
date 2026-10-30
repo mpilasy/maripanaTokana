@@ -115,7 +115,7 @@
 
 	.title {
 		font-family: var(--font-display);
-		font-size: 20px;
+		font-size: 1.25rem;
 		font-weight: 700;
 		margin: 0 0 12px 4px;
 	}
@@ -142,7 +142,7 @@
 		border: none;
 		background: transparent;
 		color: white;
-		font-size: 16px;
+		font-size: 1rem;
 		font-family: inherit;
 	}
 
@@ -210,12 +210,12 @@
 
 	.result-name {
 		font-family: var(--font-body);
-		font-size: 16px;
+		font-size: 1rem;
 		font-weight: 500;
 	}
 
 	.result-meta {
-		font-size: 13px;
+		font-size: 0.8125rem;
 		color: rgba(255, 255, 255, 0.5);
 		white-space: nowrap;
 		overflow: hidden;

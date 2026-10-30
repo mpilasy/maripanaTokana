@@ -40,7 +40,7 @@
 		display: flex;
 		align-items: center;
 		gap: 4px;
-		font-size: 9px;
+		font-size: 0.5625rem;
 		color: rgba(255, 255, 255, 0.65);
 		white-space: nowrap;
 	}

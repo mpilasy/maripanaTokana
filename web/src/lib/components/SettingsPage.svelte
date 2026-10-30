@@ -124,7 +124,7 @@
 	}
 
 	header h2 {
-		font-size: 20px;
+		font-size: 1.25rem;
 		font-weight: 700;
 		margin: 0;
 	}
@@ -140,7 +140,7 @@
 		border: none;
 		border-radius: 999px;
 		background: none;
-		font-size: 22px;
+		font-size: 1.375rem;
 		line-height: 1;
 		cursor: pointer;
 	}
@@ -161,7 +161,7 @@
 	}
 
 	.page :global(.section-title) {
-		font-size: 11px;
+		font-size: 0.6875rem;
 		font-weight: 600;
 		letter-spacing: 1px;
 		text-transform: uppercase;

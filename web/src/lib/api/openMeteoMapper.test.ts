@@ -24,7 +24,7 @@ describe('open-meteo mapper nulls', () => {
 		expect(d.cloudCover).toBeNull();
 		expect(d.windDeg).toBeNull();
 		expect(d.visibility).toBeNull();
-		expect(() => computeActivityIndices(d)).not.toThrow();
-		expect(computeActivityIndices(d).uvSafety).toBe('FAIR');
+		expect(() => computeActivityIndices(d, true)).not.toThrow();
+		expect(computeActivityIndices(d, true).uvSafety).toBe('FAIR');
 	});
 });

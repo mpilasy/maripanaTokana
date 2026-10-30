@@ -40,6 +40,9 @@
 	import { computeActivityIndices } from '#lib/domain/activityIndices.js';
 	import Footer from './Footer.svelte';
 	import { captureAndShare } from '#lib/share.js';
+	import { isDaytime } from '#lib/domain/weatherData.js';
+	import { motionDuration } from '#lib/utils/motion.js';
+	import { slide } from 'svelte/transition';
 	import { onMount } from 'svelte';
 
 	let showSettings = $state(false);
@@ -145,10 +148,12 @@
 	let romanShownFor = $state<string | null>(null);
 	// The list of places, opened from the place name or the arrow before it
 	let pickerOpen = $state(false);
-	let renaming = $state(false);
+	// The favorite in the rename dialog: the one on screen (hold its name) or one in the list of places (its pencil)
+	let renamingId = $state<string | null>(null);
 	const savedById = (id: string | null) => $savedLocations.find((l) => l.id === id);
 	// The favorite on screen (not a preview): holding its name renames it
 	let activeSavedLocation = $derived($locationOverride ? undefined : savedById($activeLocationId));
+	let renamingLocation = $derived(savedById(renamingId));
 	$effect(() => {
 		if (!pickerOpen) return;
 		const close = () => { pickerOpen = false; };
@@ -226,6 +231,15 @@
 		isPulling = false;
 	}
 
+	// Past about 48 px of scroll the header shrinks to one row; it comes back in full at the top.
+	// It expands again only near the top, so a scroll position near 48 px does not make it flicker.
+	let headerCollapsed = $state(false);
+	function handleScroll() {
+		const top = scrollContainer?.scrollTop ?? 0;
+		if (!headerCollapsed && top > 48) headerCollapsed = true;
+		else if (headerCollapsed && top < 8) headerCollapsed = false;
+	}
+
 	function handleShare(el: HTMLElement) {
 		if (!headerEl) return;
 		return captureAndShare(headerEl, el);
@@ -284,6 +298,15 @@
 			<div class="spinner"></div>
 			<p class="acquiring-text">{acquiringStrings[acquiringIndex]}</p>
 			<p class="acquiring-timer">{elapsedSeconds}s</p>
+			<!-- A way out when the location or the weather takes long: the same button as on the error screen -->
+			{#if elapsedSeconds >= 5}
+				<button class="choose-place-btn" onclick={openSavedLocationsDialog}>
+					{$_('choose_place')}
+					{#if showSecondary && browserStrings}
+						<span class="btn-secondary">{browserStrings.choose_place}</span>
+					{/if}
+				</button>
+			{/if}
 		</div>
 
 	{:else if $weatherState.kind === 'success'}
@@ -297,6 +320,10 @@
 		{@const region = subtext || (name.includes(',') && !isCoordinatesName(name) ? name.split(',').slice(1).join(',').trim() : '')}
 		{@const plusCode = encodePlusCode(data.latitude, data.longitude)}
 		{@const decimal = `${data.latitude.toFixed(4)}, ${data.longitude.toFixed(4)}`}
+		{@const updatedText = $_('updated_time', { values: { time: loc(isToday(data.timestamp)
+			? formatTime(data.timestamp)
+			: `${formatShortDate(data.timestamp, SUPPORTED_LOCALES[$localeIndex].tag, weekdayNames, monthNames)}, ${formatTime(data.timestamp)}`) } })}
+		{@const remoteTime = isRemoteTimezone(data.utcOffsetSeconds) ? loc(formatLocationCurrentTime(data.utcOffsetSeconds, SUPPORTED_LOCALES[$localeIndex].tag)) : null}
 		<!-- Pull indicator -->
 		{#if pullDelta > 0}
 			<div class="pull-indicator" style:transform="translateY({Math.min(pullDelta, 100)}px)">
@@ -312,12 +339,13 @@
 
 		<div class="content-wrapper">
 			<!-- Fixed header: full-width location block (captured for share screenshots) with the actions
-			     overlaid on the name line (not captured); only the name shrinks to make room -->
-			<div class="header">
+			     overlaid on the name line (not captured); only the name shrinks to make room.
+			     Collapsed (scrolled down): only the name line, with the local time and a refresh button -->
+			<div class="header" class:collapsed={headerCollapsed}>
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<div class="header-main" bind:this={headerEl}
-					use:longPress={activeSavedLocation ? () => (renaming = true) : null}>
+					use:longPress={activeSavedLocation ? () => (renamingId = activeSavedLocation!.id) : null}>
 					<!-- A tap on the name opens the list of places -->
 					<div class="name-row" style:padding-inline-end="{headerActionsWidth}px"
 						onclick={(e) => { if (hasLocationList) { e.stopPropagation(); pickerOpen = !pickerOpen; } }}>
@@ -330,14 +358,19 @@
 						</h1>
 						{#if data.romanName}
 							<!-- Discreet switch between the local script and Latin letters; resets per location -->
-							<button type="button" class="script-toggle" class:active={showRoman} aria-label={$_('cd_roman_name')}
+							<button type="button" class="script-toggle touch-target" class:active={showRoman} aria-label={$_('cd_roman_name')}
 								onclick={(e) => { e.stopPropagation(); romanShownFor = showRoman ? null : romanKey; }}>
 								<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
 									<path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
 								</svg>
 							</button>
 						{/if}
+						{#if headerCollapsed && remoteTime}
+							<span class="location-time">&#x1F553; {remoteTime}</span>
+						{/if}
 					</div>
+					{#if !headerCollapsed}
+					<div transition:slide={{ duration: motionDuration(200) }}>
 					<div class="subtext-row">
 						<LocationDetails
 							place={isCoordinatesName(name) ? (region || undefined) : [name.includes(',') && !subtext ? name.split(',')[0].trim() : name, region].filter(Boolean).join(', ')}
@@ -345,34 +378,36 @@
 							coordinatesShown={`${formatDMS(data.latitude, 'N', 'S')}  ${formatDMS(data.longitude, 'E', 'W')}`}
 							{plusCode} lat={data.latitude} lon={data.longitude} />
 						<p class="location-subtext" dir={region ? undefined : 'ltr'}>{region || (isCoordinatesName(name) ? plusCode : decimal)}</p>
-						{#if isRemoteTimezone(data.utcOffsetSeconds)}
-							<span class="location-time">&#x1F553; {loc(formatLocationCurrentTime(data.utcOffsetSeconds, SUPPORTED_LOCALES[$localeIndex].tag))}</span>
+						{#if remoteTime}
+							<span class="location-time">&#x1F553; {remoteTime}</span>
 						{/if}
 					</div>
-					<button type="button" class="updated" onclick={(e) => { e.stopPropagation(); doFetchWeather(); }} aria-label={$_('cd_refresh')}>
+					<!-- The visible time stays in the button's name; "Refresh" follows it for screen readers -->
+					<button type="button" class="updated touch-target" onclick={(e) => { e.stopPropagation(); doFetchWeather(); }}>
 						<!-- The fetch time is the phone's; marked as such when the place keeps another time -->
 						{#if isRemoteTimezone(data.utcOffsetSeconds)}
 							<svg class="updated-phone" viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg>
 						{/if}
-						<span class="updated-text">{$_('updated_time', { values: { time: loc(isToday(data.timestamp)
-							? formatTime(data.timestamp)
-							: `${formatShortDate(data.timestamp, SUPPORTED_LOCALES[$localeIndex].tag, weekdayNames, monthNames)}, ${formatTime(data.timestamp)}`) } })}</span>
-						<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+						<span class="updated-text">{updatedText}</span>
+						<span class="sr-only">{$_('cd_refresh')}</span>
+						<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 							<path d="M23 4v6h-6"/>
 							<path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
 						</svg>
 					</button>
 					{#if $refreshFailed}
-						<button type="button" class="refresh-failed" onclick={(e) => { e.stopPropagation(); doFetchWeather(); }}>
+						<button type="button" class="refresh-failed touch-target" onclick={(e) => { e.stopPropagation(); doFetchWeather(); }}>
 							{$_('refresh_failed', { values: { time: loc(formatTime(data.timestamp)) } })}{#if $refreshError}{' · '}{$_($refreshError)}{/if}
 						</button>
+					{/if}
+					</div>
 					{/if}
 				</div>
 
 				<!-- The arrow before the name, in the margin outside the share image -->
 				{#if hasLocationList}
 					<div class="location-list-box">
-						<button type="button" class="location-list-arrow" aria-label={$_('cd_location_list')} title={$_('cd_location_list')}
+						<button type="button" class="location-list-arrow touch-target" aria-label={$_('cd_location_list')} title={$_('cd_location_list')}
 							aria-expanded={pickerOpen} onclick={(e) => { e.stopPropagation(); pickerOpen = !pickerOpen; }}>
 							<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d="M7 10l5 5 5-5z"/></svg>
 						</button>
@@ -380,6 +415,7 @@
 							<div class="location-picker" role="menu" dir={SUPPORTED_LOCALES[$localeIndex].tag === 'ar' ? 'rtl' : 'ltr'}>
 								{#each placeList(data.latitude, data.longitude) as { id, km } (id ?? 'current')}
 									{@const isCurrent = id === $activeLocationId && !$locationOverride}
+									<div class="picker-row">
 									<button type="button" role="menuitem" class="picker-item" class:current={isCurrent}
 										onclick={(e) => { e.stopPropagation(); pickerOpen = false; if (!isCurrent) switchToLocation(id); }}>
 										<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
@@ -392,6 +428,14 @@
 										<!-- No distance for the place on screen -->
 										{(id === null ? $_('current_location') : (savedById(id) ? displayName(savedById(id)!) : id)) + (isCurrent ? '' : distanceSuffix(km))}
 									</button>
+									<!-- A favorite's pencil opens its rename dialog, as holding the name does -->
+									{#if id !== null && savedById(id)}
+										<button type="button" role="menuitem" class="picker-rename" aria-label={$_('rename_title')} title={$_('rename_title')}
+											onclick={(e) => { e.stopPropagation(); pickerOpen = false; renamingId = id; }}>
+											<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+										</button>
+									{/if}
+									</div>
 								{/each}
 							</div>
 						{/if}
@@ -399,12 +443,22 @@
 				{/if}
 
 				<div class="header-actions" bind:clientWidth={headerActionsWidth}>
-					<button class="header-action" onclick={openSavedLocationsDialog} aria-label={$_('cd_manage_locations')} title={$_('cd_manage_locations')}>
+					<!-- Collapsed: the refresh button, named with the data age as the "Updated" line it replaces -->
+					{#if headerCollapsed}
+						<button class="header-action touch-target" onclick={doFetchWeather} title={$_('cd_refresh')}>
+							<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+								<path d="M23 4v6h-6"/>
+								<path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+							</svg>
+							<span class="sr-only">{updatedText} {$_('cd_refresh')}</span>
+						</button>
+					{/if}
+					<button class="header-action touch-target" onclick={openSavedLocationsDialog} aria-label={$_('cd_manage_locations')} title={$_('cd_manage_locations')}>
 						<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
 					</button>
 					{#if $activeLocationId !== null || $locationOverride !== null}
 						<button
-							class="header-action"
+							class="header-action touch-target"
 							onclick={() => { if ($activeLocationId !== null) unfavoriteCurrentLocation(); else favoriteCurrentLocation(); }}
 							aria-label={$_($activeLocationId !== null ? 'cd_remove_favorite' : 'cd_add_favorite')}
 							title={$_($activeLocationId !== null ? 'cd_remove_favorite' : 'cd_add_favorite')}
@@ -417,11 +471,11 @@
 								{/if}
 							</svg>
 						</button>
-						<button class="header-action" onclick={() => switchToLocation(null)} aria-label={$_('cd_go_to_current_location')} title={$_('cd_go_to_current_location')}>
+						<button class="header-action touch-target" onclick={() => switchToLocation(null)} aria-label={$_('cd_go_to_current_location')} title={$_('cd_go_to_current_location')}>
 							<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
 						</button>
 					{/if}
-					<button class="header-action" onclick={() => showSettings = true} aria-label={$_('settings_title')} title={$_('settings_title')}>
+					<button class="header-action touch-target" onclick={() => showSettings = true} aria-label={$_('settings_title')} title={$_('settings_title')}>
 						<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
 					</button>
 				</div>
@@ -433,6 +487,7 @@
 				class="scroll-area"
 				role="region"
 				bind:this={scrollContainer}
+				onscroll={handleScroll}
 				ontouchstart={handleTouchStart}
 				ontouchmove={handleTouchMove}
 				ontouchend={handleTouchEnd}
@@ -539,7 +594,7 @@
 
 				<div>
 					<SectionCard bare title={$_('section_activities')} onShare={handleShare}>
-						<ActivitiesCard indices={computeActivityIndices(data)} />
+						<ActivitiesCard indices={computeActivityIndices(data, isDaytime(Date.now() / 1000, data.sunrise, data.sunset))} />
 					</SectionCard>
 				</div>
 			</div>
@@ -599,8 +654,8 @@
 	{/if}
 </div>
 
-{#if renaming && activeSavedLocation}
-	<RenameLocationDialog location={activeSavedLocation} onclose={() => (renaming = false)} />
+{#if renamingLocation}
+	<RenameLocationDialog location={renamingLocation} onclose={() => (renamingId = null)} />
 {/if}
 
 {#if $showSavedLocationsDialog}
@@ -622,7 +677,7 @@
 
 <style>
 	.alert-sources-unavailable {
-		font-size: 12px;
+		font-size: 0.75rem;
 		color: rgba(255, 255, 255, 0.5);
 		padding: 0 4px 8px;
 	}
@@ -666,15 +721,42 @@
 
 	.acquiring-text {
 		color: white;
-		font-size: 15px;
+		font-size: 0.9375rem;
 		margin: 0;
 		text-align: center;
 	}
 
 	.acquiring-timer {
 		color: rgba(255, 255, 255, 0.4);
-		font-size: 12px;
+		font-size: 0.75rem;
 		margin: 0;
+	}
+
+	/* Same look as the error screen's "Choose a place" button */
+	.choose-place-btn {
+		margin-top: 8px;
+		padding: 12px 36px;
+		background: transparent;
+		color: white;
+		border: 1px solid rgba(255, 255, 255, 0.5);
+		border-radius: 14px;
+		font-size: 1rem;
+		font-weight: 700;
+		cursor: pointer;
+		transition: background 0.2s, transform 0.1s;
+	}
+
+	.choose-place-btn:hover {
+		background: rgba(255, 255, 255, 0.1);
+	}
+
+	.choose-place-btn:focus-visible {
+		outline: 2px solid rgba(255, 255, 255, 0.5);
+		outline-offset: 2px;
+	}
+
+	.choose-place-btn:active {
+		transform: scale(0.97);
 	}
 
 	.content-wrapper {
@@ -722,6 +804,15 @@
 		min-width: 0;
 	}
 
+	/* Collapsed: one row as tall as the action buttons, so they stay in line with the name */
+	.header.collapsed .name-row {
+		min-height: 40px;
+	}
+
+	.name-row .location-time {
+		margin-inline-start: 8px;
+	}
+
 	.script-toggle {
 		flex: none;
 		display: flex;
@@ -741,14 +832,20 @@
 	.location-name {
 		min-width: 0;
 		font-family: var(--font-display);
-		font-size: 30px;
-		line-height: 36px;
+		font-size: 1.875rem;
+		line-height: 2.25rem;
 		font-weight: 700;
 		color: white;
 		margin: 0;
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
+		transition: font-size 0.2s, line-height 0.2s;
+	}
+
+	.header.collapsed .location-name {
+		font-size: 1.25rem;
+		line-height: 1.5rem;
 	}
 
 	.subtext-row {
@@ -760,7 +857,7 @@
 
 	.location-subtext {
 		font-family: var(--font-body);
-		font-size: 14px;
+		font-size: 0.875rem;
 		color: rgba(255, 255, 255, 0.6);
 		white-space: nowrap;
 		overflow: hidden;
@@ -769,7 +866,7 @@
 	}
 
 	.location-time {
-		font-size: 12px;
+		font-size: 0.75rem;
 		color: rgba(255, 255, 255, 0.85);
 		font-family: var(--font-display);
 		font-weight: 600;
@@ -800,7 +897,7 @@
 		background: none;
 		border: none;
 		font-family: var(--font-body);
-		font-size: 13px;
+		font-size: 0.8125rem;
 		color: rgba(255, 255, 255, 0.55);
 		cursor: pointer;
 	}
@@ -827,7 +924,7 @@
 		background: none;
 		border: none;
 		font-family: var(--font-body);
-		font-size: 13px;
+		font-size: 0.8125rem;
 		color: #ff6b6b;
 		cursor: pointer;
 		text-align: start;
@@ -875,6 +972,7 @@
 	.location-list-arrow {
 		width: 24px;
 		height: 36px;
+		transition: height 0.2s;
 		padding: 0;
 		border: none;
 		border-radius: 8px;
@@ -884,6 +982,10 @@
 		align-items: center;
 		justify-content: center;
 		cursor: pointer;
+	}
+
+	.header.collapsed .location-list-arrow {
+		height: 40px;
 	}
 
 	.location-picker {
@@ -901,17 +1003,23 @@
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 	}
 
+	.picker-row {
+		display: flex;
+		align-items: center;
+	}
+
 	.picker-item {
 		display: flex;
 		align-items: center;
 		gap: 12px;
-		width: 100%;
+		flex: 1;
+		min-width: 0;
 		padding: 12px 16px;
 		border: none;
 		background: transparent;
 		color: rgba(255, 255, 255, 0.85);
 		font-family: var(--font-body);
-		font-size: 15px;
+		font-size: 0.9375rem;
 		text-align: start;
 		white-space: nowrap;
 		cursor: pointer;
@@ -931,6 +1039,26 @@
 		font-weight: 700;
 	}
 
+	.picker-rename {
+		flex: none;
+		width: 44px;
+		height: 44px;
+		margin-inline-end: 4px;
+		border: none;
+		border-radius: 50%;
+		background: transparent;
+		color: rgba(255, 255, 255, 0.6);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+	}
+
+	.picker-rename:hover {
+		background: var(--surface-tile);
+		color: white;
+	}
+
 	.scroll-area {
 		flex: 1;
 		min-width: 0;
@@ -938,6 +1066,9 @@
 		overflow-x: hidden;
 		padding: 16px 0;
 		-webkit-overflow-scrolling: touch;
+		/* A dark scrollbar on desktop, to match the dark screen */
+		color-scheme: dark;
+		scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
 		/* Soft fade where content scrolls under the fixed header */
 		-webkit-mask-image: linear-gradient(to bottom, transparent 0, black 16px);
 		mask-image: linear-gradient(to bottom, transparent 0, black 16px);
@@ -953,7 +1084,7 @@
 	.sub-title {
 		margin: 0 4px 8px;
 		font-family: var(--font-body);
-		font-size: 14px;
+		font-size: 0.875rem;
 		font-weight: 600;
 		color: rgba(255, 255, 255, 0.7);
 	}
@@ -1010,19 +1141,19 @@
 
 	.secondary-block h3 {
 		font-family: var(--font-display);
-		font-size: 16px;
+		font-size: 1rem;
 		font-weight: 600;
 		margin-bottom: 8px;
 	}
 
 	.secondary-block p {
-		font-size: 13px;
+		font-size: 0.8125rem;
 		line-height: 1.4;
 	}
 
 	.btn-secondary {
 		display: block;
-		font-size: 11px;
+		font-size: 0.6875rem;
 		opacity: 0.4;
 		margin-top: 4px;
 		font-weight: 400;
@@ -1031,7 +1162,7 @@
 
 	.error-state h2 {
 		font-family: var(--font-display);
-		font-size: 24px;
+		font-size: 1.5rem;
 		font-weight: 700;
 	}
 
@@ -1046,7 +1177,7 @@
 		color: #0E0B3D;
 		border: none;
 		border-radius: 14px;
-		font-size: 18px;
+		font-size: 1.125rem;
 		font-weight: 700;
 		cursor: pointer;
 		transition: background 0.2s, transform 0.1s;
@@ -1056,7 +1187,7 @@
 	.error-state button.settings-btn {
 		margin-top: 8px;
 		padding: 12px 36px;
-		font-size: 16px;
+		font-size: 1rem;
 		background: transparent;
 		color: white;
 		border: 1px solid rgba(255, 255, 255, 0.5);

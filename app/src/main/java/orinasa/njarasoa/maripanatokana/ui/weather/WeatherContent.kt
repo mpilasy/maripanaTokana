@@ -19,6 +19,11 @@ import androidx.core.net.toUri
 import android.graphics.Canvas
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -165,6 +170,8 @@ import orinasa.njarasoa.maripanatokana.domain.model.HourlyForecast
 import orinasa.njarasoa.maripanatokana.domain.model.Temperature
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherSource
+import orinasa.njarasoa.maripanatokana.domain.model.WindSpeed
+import orinasa.njarasoa.maripanatokana.domain.model.Pressure
 import orinasa.njarasoa.maripanatokana.ui.theme.DarkNavyColorInt
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFont
 import orinasa.njarasoa.maripanatokana.ui.theme.SkyBlue
@@ -248,6 +255,7 @@ internal fun WeatherContent(
     onSelectLanguage: (Int) -> Unit,
     onRefresh: () -> Unit,
     onLocationLongClicked: (() -> Unit)? = null, // set for a favorite: opens its rename dialog
+    onRenameLocation: ((Int) -> Unit)? = null, // opens the rename dialog of the favorite at this index of locationNames
     onManageLocationsClicked: () -> Unit = {},
     onOpenSettings: () -> Unit = {},
     onOpenAbout: () -> Unit = {},
@@ -334,6 +342,21 @@ internal fun WeatherContent(
         // The list of places opens from the name or the arrow before it, when there is a favorite
         val hasLocationList = locationNames.size > 1
         var pickerOpen by remember { mutableStateOf(false) }
+        // The header folds to one line when the page scrolls more than 48 dp, and opens again at the top.
+        // It is outside the scrolling column, so the scroll position does not change
+        var headerCollapsed by remember { mutableStateOf(false) }
+        val collapseAfter = with(density) { 48.dp.toPx() }
+        LaunchedEffect(scrollState) {
+            snapshotFlow { scrollState.value }.collect { y ->
+                if (y > collapseAfter) headerCollapsed = true else if (y == 0) headerCollapsed = false
+            }
+        }
+        val nameSize by animateFloatAsState(if (headerCollapsed) 20f else 30f, tween(200), label = "nameSize")
+        val isRemote = isRemoteTimezone(data.utcOffsetSeconds)
+        val updatedText = stringResource(R.string.updated_time, localizeDigits(
+            if (android.text.format.DateUtils.isToday(data.timestamp)) screenTimeFormat.format(Date(data.timestamp))
+            else "${dateFormat.format(Date(data.timestamp))}, ${screenTimeFormat.format(Date(data.timestamp))}"
+        ))
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -367,41 +390,47 @@ internal fun WeatherContent(
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(end = with(density) { headerActionsWidth.toDp() }),
+                    // As tall as the action buttons, so the name stays in line with them when the header folds
+                    modifier = Modifier.padding(end = with(density) { headerActionsWidth.toDp() }).heightIn(min = 40.dp),
                 ) {
                     Text(
                         text = locationName,
-                        fontSize = 30f.s(scale),
-                        lineHeight = 36f.s(scale),
+                        fontSize = nameSize.s(scale),
+                        lineHeight = (nameSize * 1.2f).s(scale),
                         fontWeight = FontWeight.Bold,
                         fontFamily = displayFont,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false),
+                        modifier = Modifier.weight(1f, fill = false).semantics { heading() },
                     )
                     // Discreet switch between the local script and Latin letters
                     if (data.romanName != null) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_translate),
-                            contentDescription = stringResource(R.string.cd_roman_name),
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = if (showRoman) 0.85f else 0.45f),
-                            modifier = Modifier
-                                .padding(start = 6.dp)
-                                .clip(CircleShape)
-                                .clickable(role = Role.Button) { showRoman = !showRoman }
-                                .padding(4.dp)
-                                .size(18.dp),
-                        )
+                        TouchTarget(
+                            Modifier.clip(CircleShape).clickable(role = Role.Button) { showRoman = !showRoman },
+                            modifier = Modifier.padding(start = 6.dp),
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_translate),
+                                contentDescription = stringResource(R.string.cd_roman_name),
+                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = if (showRoman) 0.85f else 0.45f),
+                                modifier = Modifier.padding(4.dp).size(18.dp),
+                            )
+                        }
+                    }
+                    // Folded: the place's time moves up from the second line
+                    if (isRemote && headerCollapsed) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        LocalTimeChip(data.utcOffsetSeconds, appLocale, localizeDigits)
                     }
                 }
-                val isRemote = isRemoteTimezone(data.utcOffsetSeconds)
                 val plusCode = remember(displayLat, displayLon) { PlusCode.encode(displayLat, displayLon) }
                 val decimalCoordinates = formatDecimalCoordinates(displayLat, displayLon)
                 // The second line always shows: the region and country, or else the coordinates
                 // (the Plus Code when the name itself is already the coordinates)
                 val secondLine = locationSubtext
                     ?: if (isCoordinatesName(locationName)) plusCode else decimalCoordinates
+                AnimatedVisibility(!headerCollapsed, enter = expandVertically(tween(200)), exit = shrinkVertically(tween(200))) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     LocationDetails(
                         place = listOfNotNull(locationName.takeUnless { isCoordinatesName(it) }, locationSubtext).joinToString(", ").ifBlank { null },
@@ -416,36 +445,31 @@ internal fun WeatherContent(
                         fontSize = 14f.s(scale),
                         fontFamily = bodyFont,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f, fill = false),
                     )
                     if (isRemote) {
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "\uD83D\uDD53 ${localizeDigits(formatLocationCurrentTime(data.utcOffsetSeconds, appLocale))}",
-                            fontSize = 12f.s(scale),
-                            fontFamily = displayFont,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
-                            maxLines = 1,
-                            modifier = Modifier
-                                .background(TileSurface, RoundedCornerShape(50))
-                                .padding(horizontal = 8.dp, vertical = 2.dp),
-                        )
+                        LocalTimeChip(data.utcOffsetSeconds, appLocale, localizeDigits)
                     }
                 }
+                }
             }
+            // Folded: no "Updated" line; the refresh button in the actions has the data age as its label
+            AnimatedVisibility(!headerCollapsed, enter = expandVertically(tween(200)), exit = shrinkVertically(tween(200))) {
+            Column {
             Spacer(modifier = Modifier.height(6.sd(scale)))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.weight(1f, fill = false).clickable(
+                TouchTarget(
+                    Modifier.clickable(
                         onClick = onRefresh,
                         role = Role.Button,
                         onClickLabel = stringResource(R.string.cd_refresh),
                     ),
+                    modifier = Modifier.weight(1f, fill = false),
                 ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     // The fetch time is the phone's; marked as such when the place keeps another time
                     if (isRemoteTimezone(data.utcOffsetSeconds)) {
                         Icon(
@@ -457,14 +481,11 @@ internal fun WeatherContent(
                         Spacer(modifier = Modifier.width(4.dp))
                     }
                     Text(
-                        text = stringResource(R.string.updated_time, localizeDigits(
-                            if (android.text.format.DateUtils.isToday(data.timestamp)) screenTimeFormat.format(Date(data.timestamp))
-                            else "${dateFormat.format(Date(data.timestamp))}, ${screenTimeFormat.format(Date(data.timestamp))}"
-                        )),
+                        text = updatedText,
                         fontSize = 13f.s(scale),
                         fontFamily = bodyFont,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f, fill = false),
                     )
@@ -476,16 +497,20 @@ internal fun WeatherContent(
                         tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
                     )
                 }
+                }
             }
             if (refreshFailed) {
-                Text(
-                    text = stringResource(R.string.refresh_failed, localizeDigits(screenTimeFormat.format(Date(data.timestamp)))) +
-                        (refreshError?.let { " \u00B7 " + stringResource(it.messageResId) } ?: ""),
-                    fontSize = 13f.s(scale),
-                    fontFamily = bodyFont,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.clickable { onRefresh() },
-                )
+                TouchTarget(Modifier.clickable(role = Role.Button, onClickLabel = stringResource(R.string.cd_refresh)) { onRefresh() }) {
+                    Text(
+                        text = stringResource(R.string.refresh_failed, localizeDigits(screenTimeFormat.format(Date(data.timestamp)))) +
+                            (refreshError?.let { " \u00B7 " + stringResource(it.messageResId) } ?: ""),
+                        fontSize = 13f.s(scale),
+                        fontFamily = bodyFont,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            }
+            }
             }
         }
 
@@ -495,9 +520,11 @@ internal fun WeatherContent(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .align(Alignment.TopStart)
-                        .offset(x = -(24.sd(scale)))
-                        .width(24.sd(scale))
-                        .height(with(density) { 36f.s(scale).toDp() })
+                        // A 48 dp hit area centred in the margin and on the 40 dp name line; it goes a little over the name,
+                        // which opens the same list
+                        .offset(x = -(12.sd(scale)) - 24.dp, y = (-4).dp)
+                        .size(48.dp)
+                        .clip(CircleShape)
                         .clickable(role = Role.Button, onClickLabel = stringResource(R.string.cd_location_list)) { pickerOpen = true },
                 ) {
                     Icon(
@@ -541,6 +568,22 @@ internal fun WeatherContent(
                                         modifier = Modifier.size(18.dp),
                                     )
                                 },
+                                // A favorite's name can change: the same dialog as holding the name on screen
+                                trailingIcon = if (name != null && onRenameLocation != null) {
+                                    {
+                                        IconButton(onClick = {
+                                            pickerOpen = false
+                                            onRenameLocation(i)
+                                        }) {
+                                            Icon(
+                                                imageVector = Icons.Default.Edit,
+                                                contentDescription = stringResource(R.string.rename_title),
+                                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                                modifier = Modifier.size(18.dp),
+                                            )
+                                        }
+                                    }
+                                } else null,
                                 onClick = {
                                     pickerOpen = false
                                     onSelectLocation(i)
@@ -551,13 +594,31 @@ internal fun WeatherContent(
                 }
             }
 
-            // Header actions
+            // Header actions: 48 dp buttons, centred on the 40 dp name line
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
+                    .offset(y = (-4).dp)
                     .onSizeChanged { headerActionsWidth = it.width },
             ) {
+                // Folded: the refresh button takes the place of the "Updated" line, with its text as the label
+                if (headerCollapsed) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .clickable(onClick = onRefresh, role = Role.Button, onClickLabel = stringResource(R.string.cd_refresh)),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = updatedText,
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+                            modifier = Modifier.size(22.dp),
+                        )
+                    }
+                }
                 HeaderAction(
                     imageVector = Icons.Default.Search,
                     contentDescription = stringResource(R.string.cd_manage_locations),
@@ -638,7 +699,7 @@ internal fun WeatherContent(
                                     fontFamily = bodyFont,
                                     fontWeight = FontWeight.Medium,
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
-                                    maxLines = 1,
+                                    maxLines = 2,
                                     overflow = TextOverflow.Ellipsis,
                                 )
                             }
@@ -767,28 +828,33 @@ internal fun WeatherContent(
                                 textAlign = TextAlign.Center,
                             )
                         }
-                        IconButton(
-                            onClick = {
-                                coroutineScope.launch {
-                                    val header = headerGraphicsLayer.toImageBitmap().asAndroidBitmap()
-                                    val content = graphicsLayer.toImageBitmap().asAndroidBitmap()
-                                    shareCardBitmap(context, combineBitmaps(header, content))
-                                }
-                            },
+                        // The 36 dp circle in the same place as before, in a 48 dp hit area
+                        Box(
+                            contentAlignment = Alignment.Center,
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
-                                .padding(8.dp)
-                                .size(36.dp),
-                            colors = IconButtonDefaults.iconButtonColors(
-                                containerColor = TileSurface,
-                                contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
-                            ),
+                                .padding(2.dp)
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .clickable(role = Role.Button) {
+                                    coroutineScope.launch {
+                                        val header = headerGraphicsLayer.toImageBitmap().asAndroidBitmap()
+                                        val content = graphicsLayer.toImageBitmap().asAndroidBitmap()
+                                        shareCardBitmap(context, combineBitmaps(header, content))
+                                    }
+                                },
                         ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_share),
-                                contentDescription = stringResource(R.string.cd_share),
-                                modifier = Modifier.size(16.dp),
-                            )
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.size(36.dp).background(TileSurface, CircleShape),
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_share),
+                                    contentDescription = stringResource(R.string.cd_share),
+                                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                                    modifier = Modifier.size(16.dp),
+                                )
+                            }
                         }
                     }
 
@@ -804,7 +870,7 @@ internal fun WeatherContent(
                             fontWeight = FontWeight.SemiBold,
                             fontFamily = bodyFont,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                            modifier = Modifier.padding(start = 4.dp, bottom = 8.dp),
+                            modifier = Modifier.padding(start = 4.dp, bottom = 8.dp).semantics { heading() },
                         )
                         orinasa.njarasoa.maripanatokana.ui.weather.components.NowcastCard(
                             items = data.minutelyForecast,
@@ -838,7 +904,9 @@ internal fun WeatherContent(
             }
             add {
                 SectionCard(stringResource(R.string.section_activities), headerGraphicsLayer, bare = true) {
-                    val activityIndices = remember(data) { ActivityIndices.fromWeatherData(data) }
+                    // Day or night now, not at the fetch time: the data can be some hours old
+                    val isDay = isDaytime(System.currentTimeMillis() / 1000, data.sunrise, data.sunset)
+                    val activityIndices = remember(data, isDay) { ActivityIndices.fromWeatherData(data, isDay) }
                     ActivitiesCard(indices = activityIndices)
                 }
             }
@@ -881,9 +949,9 @@ internal fun WeatherContent(
                 var fontPickerOpen by remember { mutableStateOf(false) }
                 val haptic = LocalHapticFeedback.current
                 Box {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                TouchTarget(
+                    Modifier
                         .clip(RoundedCornerShape(50))
                         .combinedClickable(
                             onClick = onCycleFont,
@@ -893,8 +961,12 @@ internal fun WeatherContent(
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 fontPickerOpen = true
                             },
-                        )
-                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                            onLongClickLabel = stringResource(R.string.cd_show_all),
+                        ),
+                ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(start = 10.dp, end = 2.dp, top = 6.dp, bottom = 6.dp),
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_font),
@@ -911,6 +983,10 @@ internal fun WeatherContent(
                         maxLines = 1,
                     )
                 }
+                }
+                // A visible way to the list that holding the pill opens
+                ShowAllChevron(onClick = { fontPickerOpen = true })
+                }
                 if (fontPickerOpen) FontPicker(fontIndex, onSelectFont, onDismiss = { fontPickerOpen = false })
                 }
                 // "Help" and "About" (which credits the data sources) + version, centered between the font and
@@ -922,16 +998,16 @@ internal fun WeatherContent(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         listOf(R.string.help_title to onOpenHelp, R.string.about_title to onOpenAbout).forEachIndexed { i, (label, open) ->
                             if (i > 0) Text(" \u00B7 ", fontSize = 10f.s(scale), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f))
-                            Text(
-                                text = stringResource(label),
-                                fontSize = 10f.s(scale),
-                                lineHeight = 13f.s(scale),
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                                textDecoration = TextDecoration.Underline,
-                                modifier = Modifier
-                                    .clickable(onClick = open, role = Role.Button)
-                                    .padding(horizontal = 4.dp, vertical = 2.dp),
-                            )
+                            TouchTarget(Modifier.clickable(onClick = open, role = Role.Button)) {
+                                Text(
+                                    text = stringResource(label),
+                                    fontSize = 10f.s(scale),
+                                    lineHeight = 13f.s(scale),
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                                    textDecoration = TextDecoration.Underline,
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+                                )
+                            }
                         }
                     }
                     Text(
@@ -946,10 +1022,11 @@ internal fun WeatherContent(
                 LanguageFlagButton(
                     flag = currentFlag,
                     fontSize = 16f.s(scale),
-                    padding = PaddingValues(horizontal = 10.dp, vertical = 3.dp),
+                    padding = PaddingValues(start = 10.dp, end = 2.dp, top = 3.dp, bottom = 3.dp),
                     onCycleLanguage = onCycleLanguage,
                     onSelectLanguage = onSelectLanguage,
                     alpha = 0.7f,
+                    footer = true,
                 )
             }
         }
@@ -958,13 +1035,66 @@ internal fun WeatherContent(
     } // end Box
 }
 
+/**
+ * A small down arrow after a footer pill (font, language): a tap opens the same list as holding the pill.
+ * Twin: the chevron buttons in web/src/lib/components/Footer.svelte
+ */
+@Composable
+internal fun ShowAllChevron(onClick: () -> Unit, alpha: Float = 0.7f) {
+    TouchTarget(Modifier.clip(CircleShape).clickable(role = Role.Button, onClick = onClick)) {
+        Icon(
+            imageVector = Icons.Default.KeyboardArrowDown,
+            contentDescription = stringResource(R.string.cd_show_all),
+            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha),
+            modifier = Modifier.padding(end = 6.dp).size(12.dp),
+        )
+    }
+}
+
+/** The place's own time in a small chip, after the region line (or after the name in the folded header). */
+@Composable
+private fun LocalTimeChip(utcOffsetSeconds: Int, appLocale: Locale, localizeDigits: (String) -> String) {
+    Text(
+        text = "\uD83D\uDD53 ${localizeDigits(formatLocationCurrentTime(utcOffsetSeconds, appLocale))}",
+        fontSize = 12f.s(LocalScale.current),
+        fontFamily = LocalDisplayFont.current,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+        maxLines = 1,
+        modifier = Modifier
+            .background(TileSurface, RoundedCornerShape(50))
+            .padding(horizontal = 8.dp, vertical = 2.dp),
+    )
+}
+
+/**
+ * Gives a small control a hit area of at least 48 x 48 dp but keeps its own layout size: the extra room goes
+ * over its neighbours. [clickModifier] (the click, and a clip for the ripple) goes on the hit area; [content] is
+ * the visible control, in the middle of it.
+ */
+@Composable
+internal fun TouchTarget(clickModifier: Modifier, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    Layout(
+        content = { Box(clickModifier, contentAlignment = Alignment.Center) { content() } },
+        modifier = modifier,
+    ) { measurables, constraints ->
+        val target = measurables.first()
+        val min = 48.dp.roundToPx()
+        // The control's own size, from its intrinsic size
+        val w = target.maxIntrinsicWidth(constraints.maxHeight).coerceIn(constraints.minWidth, constraints.maxWidth)
+        val h = target.maxIntrinsicHeight(w).coerceIn(constraints.minHeight, constraints.maxHeight)
+        val placeable = target.measure(Constraints.fixed(maxOf(w, min), maxOf(h, min)))
+        layout(w, h) { placeable.place((w - placeable.width) / 2, (h - placeable.height) / 2) }
+    }
+}
+
 @Composable
 private fun HeaderAction(
     imageVector: androidx.compose.ui.graphics.vector.ImageVector,
     contentDescription: String,
     onClick: () -> Unit,
 ) {
-    IconButton(onClick = onClick, modifier = Modifier.size(40.dp)) {
+    IconButton(onClick = onClick, modifier = Modifier.size(48.dp)) {
         Icon(
             imageVector = imageVector,
             contentDescription = contentDescription,
@@ -1080,8 +1210,10 @@ internal fun SectionCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = if (bare) 4.dp else 16.dp, end = if (bare) 0.dp else 8.dp, top = 6.dp, bottom = 6.dp)
-                .height(44.dp),
+                // The 48 dp share button takes 2 dp more each side than the old 44 dp row: the padding is 2 dp less
+                .padding(start = if (bare) 4.dp else 16.dp, end = if (bare) 0.dp else 2.dp, top = 4.dp, bottom = 4.dp)
+                // Large text: the title can take two lines
+                .heightIn(min = 48.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
@@ -1090,9 +1222,9 @@ internal fun SectionCard(
                 fontWeight = FontWeight.Bold,
                 fontFamily = bodyFont,
                 color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).semantics { heading() },
             )
             IconButton(
                 onClick = {
@@ -1109,7 +1241,8 @@ internal fun SectionCard(
                         shareCardBitmap(context, combineBitmaps(header, content))
                     }
                 },
-                modifier = Modifier.size(36.dp),
+                // No container: 48 dp looks the same as 36 dp, only the hit area grows
+                modifier = Modifier.size(48.dp),
                 colors = IconButtonDefaults.iconButtonColors(
                     contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 ),
@@ -2039,7 +2172,7 @@ private fun PrecipitationTile(data: WeatherData, metricPrimary: Boolean, localiz
         // The chance of precipitation in the next hour, as on the forecast cards
         footer = {
             PrecipChance(data.hourlyForecast.firstOrNull()?.precipProbability ?: 0, true, 13f.s(scale),
-                LocalBodyFont.current, LocalBodyFontFeatures.current, localizeDigits)
+                LocalBodyFont.current, LocalBodyFontFeatures.current, localizeDigits, withLabel = true)
         })
 }
 
@@ -2082,8 +2215,11 @@ private fun GustTile(data: WeatherData, metricPrimary: Boolean, localizeDigits: 
             val (gP, gS) = g.displayDual(metricPrimary)
             val (n, u) = splitUnit(gP)
             // Gusts rarely pass 30 m/s
+            val (lowP, lowS) = WindSpeed.fromMetersPerSecond(0.0).displayDual(metricPrimary)
+            val (highP, highS) = WindSpeed.fromMetersPerSecond(30.0).displayDual(metricPrimary)
             Gauge((g.metersPerSecond / 30).toFloat(), Color(0xFF64B5F6), dialModifier, size = null) {
                 DialValue(localizeDigits(n), u, localizeDigits(gS))
+                DialEnds(dialEnd(lowP, localizeDigits), dialEnd(highP, localizeDigits), dialEnd(lowS, localizeDigits), dialEnd(highS, localizeDigits))
             }
         } })
 }
@@ -2096,9 +2232,12 @@ private fun PressureTile(data: WeatherData, metricPrimary: Boolean, localizeDigi
         title = stringResource(R.string.detail_pressure), secondaryValue = localizeDigits(pressS), onToggleUnits = onToggleUnits,
         centerDial = { dialModifier ->
             // Sea-level pressure rarely leaves 960-1050 hPa
+            val (lowP, lowS) = Pressure.fromHPa(960.0).displayDual(metricPrimary)
+            val (highP, highS) = Pressure.fromHPa(1050.0).displayDual(metricPrimary)
             Gauge(((data.pressure.hPa - 960) / 90).toFloat(), AppDarkPrimary, dialModifier, size = null) {
                 val (n, u) = splitUnit(pressP)
                 DialValue(localizeDigits(n), u, localizeDigits(pressS))
+                DialEnds(dialEnd(lowP, localizeDigits), dialEnd(highP, localizeDigits), dialEnd(lowS, localizeDigits), dialEnd(highS, localizeDigits))
             }
         })
 }
@@ -2124,7 +2263,10 @@ private fun HumidityTile(data: WeatherData, metricPrimary: Boolean, localizeDigi
 private fun SkyTiles(data: WeatherData, metricPrimary: Boolean, timeFormat: SimpleDateFormat, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
     val tile = Modifier.fillMaxHeight()
     TileRow {
-        SunTile(data.sunrise, data.sunset, data.latitude, data.longitude, timeFormat, localizeDigits, tile.weight(1f))
+        // The next sunrise (epoch seconds), for the time until it at night; null when the data has none
+        val nowMs = System.currentTimeMillis()
+        val nextSunrise = (listOf(data.sunrise * 1000) + data.dailySunrise).filter { it > nowMs }.minOrNull()?.div(1000)
+        SunTile(data.sunrise, data.sunset, nextSunrise, data.latitude, data.longitude, timeFormat, localizeDigits, tile.weight(1f))
         if (data.latitude != null && data.longitude != null) {
             MoonTile(data.latitude, data.longitude, data.utcOffsetSeconds, timeFormat, localizeDigits, tile.weight(1f))
         }
@@ -2221,8 +2363,13 @@ private fun VisibilityTile(data: WeatherData, metricPrimary: Boolean, localizeDi
             val (n, u) = splitUnit(primary)
             // On a log scale, 100 m to 20 km: each step down matters more than one up
             val f = (kotlin.math.log10(v.coerceAtLeast(100) / 100.0) / kotlin.math.log10(200.0)).toFloat()
+            fun ends(meters: Double) = if (metricPrimary) km.format(Locale.US, meters / 1000.0) to mi.format(Locale.US, meters / 1609.34)
+                else mi.format(Locale.US, meters / 1609.34) to km.format(Locale.US, meters / 1000.0)
+            val (lowP, lowS) = ends(100.0)
+            val (highP, highS) = ends(20_000.0)
             Gauge(f, Color(0xFF80DEEA), dialModifier, size = null) {
                 DialValue(localizeDigits(n), u, localizeDigits(secondary))
+                DialEnds(dialEnd(lowP, localizeDigits), dialEnd(highP, localizeDigits), dialEnd(lowS, localizeDigits), dialEnd(highS, localizeDigits))
             }
         } },
     )
@@ -2237,6 +2384,8 @@ private fun CloudCoverTile(data: WeatherData, localizeDigits: (String) -> String
         centerDial = cover?.let { c -> @Composable { dialModifier ->
             Gauge(c / 100f, Color(0xFFB0BEC5), dialModifier, size = null) {
                 DialValue(localizeDigits("%d%%".format(Locale.US, c)))
+                // A percentage: the same in both unit systems, so one line
+                DialEnds(localizeDigits("0%"), localizeDigits("100%"))
             }
         } })
 }
@@ -2494,8 +2643,74 @@ private fun DialValue(value: String, unit: String? = null, secondary: String? = 
     }
 }
 
+/**
+ * The lowest and highest values of a [Gauge], small, just under the two ends of its arc: the primary unit
+ * with the secondary unit under it (numbers only: the unit is in the middle of the dial).
+ * Put it in the Gauge's content, next to the [DialValue].
+ * Twin: web/src/lib/components/DialEnds.svelte
+ */
 @Composable
-private fun SunTile(sunrise: Long, sunset: Long, latitude: Double?, longitude: Double?, timeFormat: SimpleDateFormat, localizeDigits: (String) -> String, modifier: Modifier) {
+private fun DialEnds(min: String, max: String, minSecondary: String? = null, maxSecondary: String? = null) {
+    val scale = LocalScale.current
+    val bodyFont = LocalBodyFont.current
+    @Composable
+    fun End(primary: String, secondary: String?) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            // Ltr: keep "%" after the number in Arabic, as in the dial's value
+            Text(
+                text = primary,
+                fontSize = 10f.s(scale),
+                lineHeight = 11f.s(scale),
+                fontFamily = bodyFont,
+                color = Color.White.copy(alpha = 0.6f),
+                style = TextStyle(textDirection = TextDirection.Ltr),
+            )
+            secondary?.let {
+                Text(
+                    text = it,
+                    fontSize = 9f.s(scale),
+                    lineHeight = 10f.s(scale),
+                    fontFamily = bodyFont,
+                    color = Color.White.copy(alpha = 0.5f),
+                    style = TextStyle(textDirection = TextDirection.Ltr),
+                )
+            }
+        }
+    }
+    Layout(
+        content = {
+            End(min, minSecondary)
+            End(max, maxSecondary)
+        },
+        modifier = Modifier.fillMaxSize(),
+    ) { measurables, constraints ->
+        val w = constraints.maxWidth
+        val h = constraints.maxHeight
+        val (low, high) = measurables.map { it.measure(Constraints()) }
+        layout(w, h) {
+            // The same ring as in Gauge: inset and stroke 4 k, ends at 135° and 45° (bottom left and bottom right)
+            val k = minOf(minOf(w, h) / 48f, 1.6f * density)
+            val r = (w - 8 * k) / 2
+            val dx = r * 0.7071f
+            val top = h / 2f + r * 0.7071f + 2 * k + 2.dp.toPx()
+            // The arc does not turn in Arabic, so the lowest value stays at the bottom left
+            listOf(low to w / 2f - dx, high to w / 2f + dx).forEach { (p, x) ->
+                p.place(
+                    (x - p.width / 2f).roundToInt().coerceIn(0, maxOf(0, w - p.width)),
+                    // May pass the dial's bottom on a small dial: the tile's padding under it takes the rest
+                    top.roundToInt(),
+                )
+            }
+        }
+    }
+}
+
+/** A dial end value: the number of [text] ("30.0 m/s" -> "30"), without a trailing ".0", in local digits. */
+private fun dialEnd(text: String, localizeDigits: (String) -> String) =
+    localizeDigits(splitUnit(text).first.removeSuffix(".0"))
+
+@Composable
+private fun SunTile(sunrise: Long, sunset: Long, nextSunrise: Long?, latitude: Double?, longitude: Double?, timeFormat: SimpleDateFormat, localizeDigits: (String) -> String, modifier: Modifier) {
     val bodyFont = LocalBodyFont.current
     val scale = LocalScale.current
     val density = LocalDensity.current
@@ -2526,6 +2741,9 @@ private fun SunTile(sunrise: Long, sunset: Long, latitude: Double?, longitude: D
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             SunArcWithLength(sunrise, sunset, localizeDigits)
+            // At night (not in a polar night or midnight sun): the time until the sun rises
+            val nowSec = System.currentTimeMillis() / 1000
+            if (!polar && nextSunrise != null && (nowSec < sunrise || nowSec > sunset)) RisesIn(nextSunrise - nowSec, localizeDigits)
             SunTimes(sunTimes(sunrise, sunset, period, timeFormat, dayMonthFormat), centered = polar, localizeDigits)
             // In a midnight sun, where the sun is now: it goes round the sky, so its direction changes all day
             if (midnightSun && latitude != null && longitude != null) SunAzimuth(latitude, longitude, localizeDigits)
@@ -2567,6 +2785,30 @@ private fun SunArcWithLength(sunrise: Long, sunset: Long, localizeDigits: (Strin
             modifier = Modifier.align(Alignment.Center).fillMaxWidth(if (polar) 1f else 0.6f),
         )
     }
+}
+
+/** "Rises in 7 hours 49 minutes", small and centred under the horizon of a sun or moon arc, for [seconds] from now. */
+@Composable
+private fun RisesIn(seconds: Long, localizeDigits: (String) -> String) {
+    val minutes = seconds.coerceAtLeast(0) / 60
+    val h = minutes / 60
+    val m = minutes % 60
+    // The day-length text on one line, with no zero part ("Rises in 31 minutes"), as on the web (CurrentConditions.svelte)
+    val duration = when {
+        h == 0L -> stringResource(if (m == 1L) R.string.daylight_minutes_one else R.string.daylight_minutes_other, "$m")
+        m == 0L -> stringResource(if (h == 1L) R.string.daylight_hours_one else R.string.daylight_hours_other, "$h")
+        else -> daylightDuration(seconds).replace('\n', ' ')
+    }
+    Text(
+        // Lower case: the duration is in the middle of a sentence (Malagasy "Hiposaka afaka adiny 7")
+        text = stringResource(R.string.rises_in, localizeDigits(duration.replaceFirstChar { it.lowercase() })),
+        fontSize = 11f.s(LocalScale.current),
+        lineHeight = 14f.s(LocalScale.current),
+        fontFamily = LocalBodyFont.current,
+        color = Color.White.copy(alpha = 0.7f),
+        textAlign = TextAlign.Center,
+        modifier = Modifier.fillMaxWidth(),
+    )
 }
 
 /** The sun tile's two times: sunrise and sunset, or the first and last day of the polar [period] when there is one. */
@@ -2651,6 +2893,8 @@ private fun MoonTile(lat: Double, lon: Double, utcOffsetSeconds: Int, timeFormat
         val next = events.firstOrNull { it.first > now && !it.second }
         if (last != null && last.second && next != null) (now - last.first).toFloat() / (next.first - last.first) else -1f
     }
+    // While the moon is down, its next rise, when the three days have one
+    val nextRise = if (arcT in 0f..1f) null else days.mapNotNull { it.rise }.filter { it > now }.minOrNull()
     val directions = stringArrayResource(R.array.cardinal_directions)
     val southern = lat < 0
     Column(
@@ -2670,7 +2914,9 @@ private fun MoonTile(lat: Double, lon: Double, utcOffsetSeconds: Int, timeFormat
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Box(Modifier.fillMaxWidth().heightIn(max = 144.dp).aspectRatio(120f / 76f)) {
-                SkyArc(arcT, Color(0xFFCFC8E8), Modifier.fillMaxSize()) { drawMoon(illumination.phase, southern, it, 7.dp.toPx()) }
+                SkyArc(arcT, Color(0xFFCFC8E8), Modifier.fillMaxSize(), belowHorizon = nextRise?.let { Color(0xFFCFC8E8).copy(alpha = 0.35f) }) {
+                    drawMoon(illumination.phase, southern, it, 7.dp.toPx())
+                }
                 // The part lit, in the middle of the arc, where the sun tile shows the length of the day
                 Text(
                     text = localizeDigits("%d%%".format(Locale.US, (illumination.fraction * 100).roundToInt())),
@@ -2681,6 +2927,7 @@ private fun MoonTile(lat: Double, lon: Double, utcOffsetSeconds: Int, timeFormat
                     modifier = Modifier.align(Alignment.Center),
                 )
             }
+            nextRise?.let { RisesIn((it - now) / 1000, localizeDigits) }
             Row(modifier = Modifier.fillMaxWidth()) {
                 listOf(R.string.detail_moonrise to today.rise, R.string.detail_moonset to today.set).forEachIndexed { i, (label, time) ->
                     if (i == 1) Spacer(modifier = Modifier.weight(1f))
@@ -2853,7 +3100,11 @@ private val RainDrop: ImageVector = ImageVector.Builder("RainDrop", 24.dp, 24.dp
 
 /** A forecast card's chance of precipitation, behind a raindrop; blank space when [show] is off or the chance is zero. */
 @Composable
-private fun PrecipChance(percent: Int, show: Boolean, fontSize: TextUnit, fontFamily: FontFamily?, fontFeatures: String?, localizeDigits: (String) -> String) {
+private fun PrecipChance(
+    percent: Int, show: Boolean, fontSize: TextUnit, fontFamily: FontFamily?, fontFeatures: String?, localizeDigits: (String) -> String,
+    // "60% chance" in place of the bare "60%", where no column header tells what the percent is
+    withLabel: Boolean = false,
+) {
     Row(
         modifier = Modifier.fillMaxWidth().heightIn(min = with(LocalDensity.current) { (fontSize * 1.3f).toDp() }),
         horizontalArrangement = Arrangement.Center,
@@ -2863,7 +3114,7 @@ private fun PrecipChance(percent: Int, show: Boolean, fontSize: TextUnit, fontFa
             Icon(RainDrop, contentDescription = null, tint = SkyBlue, modifier = Modifier.size(with(LocalDensity.current) { fontSize.toDp() * 0.85f }))
             Spacer(modifier = Modifier.width(2.dp))
             Text(
-                text = localizeDigits("%d%%".format(Locale.US, percent)),
+                text = localizeDigits("%d%%".format(Locale.US, percent)).let { if (withLabel) stringResource(R.string.precip_chance, it) else it },
                 fontSize = fontSize,
                 fontFamily = fontFamily,
                 color = SkyBlue,
@@ -2944,16 +3195,16 @@ private fun LocationDetails(
     val iconTint = Color(0xFF1C1B1F).copy(alpha = 0.55f)
     val divider = Color(0xFF1C1B1F).copy(alpha = 0.1f)
     Box(modifier = modifier) {
-        Icon(
-            painter = painterResource(R.drawable.ic_grid),
-            contentDescription = stringResource(R.string.cd_location_details),
-            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-            modifier = Modifier
-                .clip(CircleShape)
-                .clickable(role = Role.Button) { open = true }
-                .padding(end = 4.dp, top = 2.dp, bottom = 2.dp)
-                .size(16.dp),
-        )
+        TouchTarget(Modifier.clip(CircleShape).clickable(role = Role.Button) { open = true }) {
+            Icon(
+                painter = painterResource(R.drawable.ic_grid),
+                contentDescription = stringResource(R.string.cd_location_details),
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                modifier = Modifier
+                    .padding(end = 4.dp, top = 2.dp, bottom = 2.dp)
+                    .size(16.dp),
+            )
+        }
         DropdownMenu(
             expanded = open,
             onDismissRequest = { open = false },

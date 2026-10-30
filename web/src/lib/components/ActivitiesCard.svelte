@@ -20,6 +20,8 @@
 				return $_('activity_tier_fair');
 			case 'POOR':
 				return $_('activity_tier_poor');
+			case 'NOT_NEEDED':
+				return $_('activity_tier_not_needed');
 		}
 	}
 </script>
@@ -79,7 +81,7 @@
 
 	.title {
 		font-family: var(--font-body);
-		font-size: 15px;
+		font-size: 0.9375rem;
 		font-weight: 500;
 		color: #ffffff;
 	}
@@ -89,7 +91,7 @@
 		background: color-mix(in srgb, var(--tier) 22%, transparent);
 		color: color-mix(in srgb, var(--tier) 50%, white);
 		font-family: var(--font-display);
-		font-size: 13px;
+		font-size: 0.8125rem;
 		font-weight: 700;
 		padding: 4px 10px;
 		border-radius: 12px;
@@ -99,4 +101,6 @@
 	.tier-good { --tier: #0088CC; }
 	.tier-fair { --tier: #F7E401; }
 	.tier-poor { --tier: #F85900; }
+	/* Neutral grey: sun protection at night */
+	.tier-not_needed { --tier: #B0BEC5; }
 </style>

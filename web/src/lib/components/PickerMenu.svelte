@@ -103,7 +103,7 @@
 		background: transparent;
 		color: rgba(255, 255, 255, 0.85);
 		font-family: var(--font-body);
-		font-size: 15px;
+		font-size: 0.9375rem;
 		text-align: start;
 		white-space: nowrap;
 		cursor: pointer;
@@ -119,7 +119,7 @@
 	}
 
 	.lead {
-		font-size: 18px;
+		font-size: 1.125rem;
 		line-height: 1;
 	}
 </style>

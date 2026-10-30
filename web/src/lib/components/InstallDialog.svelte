@@ -85,7 +85,7 @@
 
 	.title {
 		font-family: var(--font-display);
-		font-size: 20px;
+		font-size: 1.25rem;
 		font-weight: 700;
 		margin: 0 0 12px 4px;
 	}
@@ -107,8 +107,8 @@
 		border-radius: 14px;
 		background: var(--surface-tile);
 		font-family: var(--font-body);
-		font-size: 15px;
-		line-height: 20px;
+		font-size: 0.9375rem;
+		line-height: 1.25rem;
 	}
 
 	.steps svg {
@@ -135,7 +135,7 @@
 		background: none;
 		color: white;
 		font-family: inherit;
-		font-size: 14px;
+		font-size: 0.875rem;
 		font-weight: 700;
 		cursor: pointer;
 	}

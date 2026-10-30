@@ -39,6 +39,8 @@ private fun colorsFor(tier: ActivityTier): ActivityColors = when (tier) {
     ActivityTier.GOOD -> ActivityColors(Color(0xFF0088CC), Color.White)
     ActivityTier.FAIR -> ActivityColors(Color(0xFFF7E401), Color(0xFF1A1A1A))
     ActivityTier.POOR -> ActivityColors(Color(0xFFF85900), Color.White)
+    // Neutral grey: no level applies
+    ActivityTier.NOT_NEEDED -> ActivityColors(Color(0xFFB0BEC5), Color(0xFF1A1A1A))
 }
 
 @Composable
@@ -47,6 +49,7 @@ private fun tierLabel(tier: ActivityTier): String = when (tier) {
     ActivityTier.GOOD -> stringResource(R.string.activity_tier_good)
     ActivityTier.FAIR -> stringResource(R.string.activity_tier_fair)
     ActivityTier.POOR -> stringResource(R.string.activity_tier_poor)
+    ActivityTier.NOT_NEEDED -> stringResource(R.string.activity_tier_not_needed)
 }
 
 @Composable

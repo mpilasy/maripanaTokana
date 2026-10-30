@@ -79,7 +79,7 @@
 			<DualUnitText
 				primary={value}
 				secondary={secondaryValue}
-				primarySize="20px"
+				primarySize="1.25rem"
 				align="center"
 				onClick={onToggleUnits}
 				primaryUnit={unit}
@@ -162,7 +162,7 @@
 	}
 
 	.card-title {
-		font-size: 13px;
+		font-size: 0.8125rem;
 		color: rgba(255,255,255,0.6);
 		white-space: nowrap;
 		overflow: hidden;
@@ -177,7 +177,7 @@
 
 	.card-value {
 		font-family: var(--font-display);
-		font-size: 20px;
+		font-size: 1.25rem;
 		font-weight: 700;
 		color: white;
 		font-feature-settings: var(--font-features);
@@ -194,11 +194,11 @@
 		background: #1A1565;
 		border: 1px solid var(--hairline);
 		color: white;
-		font-size: 13px;
+		font-size: 0.8125rem;
 	}
 
 	.card-subtitle {
-		font-size: 12px;
+		font-size: 0.75rem;
 		color: rgba(255,255,255,0.6);
 		/* A subtitle may hold a label and its values on separate lines */
 		white-space: pre-line;

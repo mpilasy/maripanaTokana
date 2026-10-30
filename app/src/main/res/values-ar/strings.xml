@@ -53,6 +53,7 @@
     <string name="updated_time">تم التحديث: %1$s</string>
     <string name="feels_like">الإحساس بالحرارة</string>
     <string name="no_precip">لا هطول</string>
+    <string name="precip_chance">احتمال %1$s</string>
     <string name="section_current_conditions">الأحوال الحالية</string>
     <string name="section_sun_air">الشمس والهواء</string>
     <string name="section_hourly_forecast">التوقعات بالساعة</string>
@@ -70,6 +71,7 @@
     <string name="daylight_hours_other">%1$s ساعة</string>
     <string name="daylight_minutes_one">%1$s دقيقة</string>
     <string name="daylight_minutes_other">%1$s دقيقة</string>
+    <string name="rises_in">يطلع بعد %1$s</string>
     <string name="nowcast_ongoing">هطول أمطار متوقع خلال الساعتين القادمتين</string>
     <string name="activity_running">الركض</string>
     <string name="activity_laundry">تجفيف الغسيل</string>
@@ -78,6 +80,7 @@
     <string name="activity_tier_good">جيد</string>
     <string name="activity_tier_fair">مقبول</string>
     <string name="activity_tier_poor">سيئ</string>
+    <string name="activity_tier_not_needed">غير لازمة</string>
     <string name="detail_wind">الرياح</string>
     <string name="detail_wind_gust">هبّات الرياح</string>
     <string name="detail_pressure">الضغط الجوي</string>
@@ -148,6 +151,7 @@
     <string name="locations_search_hint">البحث عن مدينة أو رمز بريدي</string>
     <string name="cd_change_font">تغيير الخط</string>
     <string name="cd_change_language">تغيير اللغة</string>
+    <string name="cd_show_all">عرض الكل</string>
     <string name="cd_toggle_units">تبديل الوحدات</string>
     <string name="cd_share">شارك</string>
     <string name="cd_refresh">تحديث</string>

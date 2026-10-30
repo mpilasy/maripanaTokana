@@ -10,7 +10,7 @@
 </script>
 
 {#if dual}
-	<DualUnitText primary={loc(dual[0])} secondary={loc(dual[1])} primarySize="14px" align="center" onClick={onToggleUnits} />
+	<DualUnitText primary={loc(dual[0])} secondary={loc(dual[1])} primarySize="0.875rem" align="center" onClick={onToggleUnits} />
 {:else}
 	<span class="none">--</span>
 {/if}

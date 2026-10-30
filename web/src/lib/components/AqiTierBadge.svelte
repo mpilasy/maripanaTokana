@@ -38,7 +38,7 @@
 		text-overflow: ellipsis;
 		padding: 2px 8px;
 		border-radius: 999px;
-		font-size: 12px;
+		font-size: 0.75rem;
 		font-weight: 600;
 		line-height: 1.4;
 		border: none;
@@ -50,7 +50,7 @@
 	}
 
 	.aqi-badge.compact {
-		font-size: 10px;
+		font-size: 0.625rem;
 		padding: 1px 6px;
 	}
 

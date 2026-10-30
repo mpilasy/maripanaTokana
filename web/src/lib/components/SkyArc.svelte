@@ -6,8 +6,9 @@
 	/**
 	 * A dashed arc from rising (left) to setting (right). While `t` (the part of the way done) is in
 	 * 0-1, the part done is drawn in `progressColor` and `body` draws the sun or moon at its place.
+	 * Else, with `belowColor`, a faint dot just under the horizon at the rising end shows it is below.
 	 */
-	let { t, progressColor, body }: { t: number; progressColor: string; body: Snippet<[number, number]> } = $props();
+	let { t, progressColor, body, belowColor }: { t: number; progressColor: string; body: Snippet<[number, number]>; belowColor?: string } = $props();
 
 	// Half-ellipse from (8,68) to (112,68) peaking at y=8
 	const W = 120, H = 76, CX = 60, RX = 52, RY = 60, BASE = 68;
@@ -26,6 +27,8 @@
 	{#if up}
 		<path d={travelled} fill="none" stroke={progressColor} stroke-width="2" stroke-linecap="round" />
 		{@render body(pos.x, pos.y)}
+	{:else if belowColor}
+		<circle cx={CX - RX} cy={BASE + 4} r="3.5" fill={belowColor} fill-opacity="0.35" />
 	{/if}
 </svg>
 

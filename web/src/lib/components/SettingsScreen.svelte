@@ -222,12 +222,12 @@
 	}
 
 	.radio-main {
-		font-size: 15px;
+		font-size: 0.9375rem;
 		color: white;
 	}
 
 	.radio-sub {
-		font-size: 12px;
+		font-size: 0.75rem;
 		color: rgba(255, 255, 255, 0.6);
 	}
 
@@ -240,7 +240,7 @@
 		border-radius: 8px;
 		padding: 10px 14px;
 		color: white;
-		font-size: 14px;
+		font-size: 0.875rem;
 		outline: none;
 		transition: border-color 0.2s;
 	}
@@ -266,7 +266,7 @@
 		border-radius: 8px;
 		color: white;
 		padding: 6px 20px;
-		font-size: 14px;
+		font-size: 0.875rem;
 		cursor: pointer;
 		transition: background 0.2s;
 	}
@@ -281,7 +281,7 @@
 	}
 
 	.status {
-		font-size: 13px;
+		font-size: 0.8125rem;
 	}
 
 	.status.ok {
@@ -301,7 +301,7 @@
 	}
 
 	.toggle-row span {
-		font-size: 15px;
+		font-size: 0.9375rem;
 		color: white;
 	}
 
@@ -367,19 +367,19 @@
 	}
 
 	.check-row span {
-		font-size: 14px;
+		font-size: 0.875rem;
 		color: rgba(255, 255, 255, 0.6);
 	}
 
 	.info-text {
-		font-size: 13px;
+		font-size: 0.8125rem;
 		color: rgba(255, 255, 255, 0.5);
 		line-height: 1.5;
 		margin: 0;
 	}
 
 	.advanced-label {
-		font-size: 15px;
+		font-size: 0.9375rem;
 		color: white;
 		font-weight: 600;
 	}
@@ -406,12 +406,12 @@
 	}
 
 	.about-title {
-		font-size: 15px;
+		font-size: 0.9375rem;
 		font-weight: 600;
 	}
 
 	.about-desc {
-		font-size: 12px;
+		font-size: 0.75rem;
 		color: rgba(255, 255, 255, 0.55);
 	}
 

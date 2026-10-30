@@ -7,6 +7,7 @@
 	import { localeIndex } from '#lib/stores/preferences.js';
 	import { SUPPORTED_LOCALES } from '#lib/i18n/locales.js';
 	import { formatAlertTime } from '#lib/utils/date.js';
+	import { motionDuration } from '#lib/utils/motion.js';
 
 	interface Props {
 		alerts: WeatherAlert[];
@@ -71,7 +72,7 @@
 					<span class="source-badges">
 						{#each sourceRepresentatives as rep (rep.source)}
 							{#if rep.link}
-								<a href={rep.link} target="_blank" rel="noopener noreferrer" class="source-badge clickable" onclick={(e) => e.stopPropagation()}>
+								<a href={rep.link} target="_blank" rel="noopener noreferrer" class="source-badge clickable touch-target" onclick={(e) => e.stopPropagation()}>
 									{rep.source.toUpperCase()}
 								</a>
 							{:else}
@@ -80,7 +81,7 @@
 						{/each}
 					</span>
 				{:else if topAlert.link}
-					<a href={topAlert.link} target="_blank" rel="noopener noreferrer" class="source-badge clickable" onclick={(e) => e.stopPropagation()}>
+					<a href={topAlert.link} target="_blank" rel="noopener noreferrer" class="source-badge clickable touch-target" onclick={(e) => e.stopPropagation()}>
 						{topAlert.source.toUpperCase()}
 					</a>
 				{:else}
@@ -92,7 +93,7 @@
 		</div>
 
 		{#if expanded}
-			<div class="alert-details" transition:slide={{ duration: 300 }}>
+			<div class="alert-details" transition:slide={{ duration: motionDuration(300) }}>
 				{#each alerts as alert, index}
 					{@const collapsible = alerts.length > 1}
 					{@const itemExpanded = !collapsible || expandedItems.has(index)}
@@ -111,7 +112,7 @@
 							</div>
 							<div class="item-title-end">
 								{#if alert.link}
-									<a href={alert.link} target="_blank" rel="noopener noreferrer" class="source-badge clickable" onclick={(e) => e.stopPropagation()}>
+									<a href={alert.link} target="_blank" rel="noopener noreferrer" class="source-badge clickable touch-target" onclick={(e) => e.stopPropagation()}>
 										{alert.source.toUpperCase()}
 									</a>
 								{:else}
@@ -128,7 +129,7 @@
 						{/if}
 
 						{#if itemExpanded}
-							<div transition:slide={{ duration: 200 }}>
+							<div transition:slide={{ duration: motionDuration(200) }}>
 								{#if alert.headline}
 									<div class="alert-headline">{alert.headline}</div>
 								{/if}
@@ -168,7 +169,7 @@
 		color: #1A1A1A;
 		padding: 2px 6px;
 		border-radius: 4px;
-		font-size: 11px;
+		font-size: 0.6875rem;
 		font-weight: 800;
 		text-transform: uppercase;
 		letter-spacing: 0.5px;
@@ -208,11 +209,11 @@
 	}
 
 	.alert-icon {
-		font-size: 18px;
+		font-size: 1.125rem;
 	}
 
 	.alert-title {
-		font-size: 16px;
+		font-size: 1rem;
 		font-weight: 700;
 		color: white;
 	}
@@ -227,7 +228,7 @@
 		background: rgba(0, 0, 0, 0.3);
 		padding: 2px 6px;
 		border-radius: 4px;
-		font-size: 10px;
+		font-size: 0.625rem;
 		font-weight: 800;
 		color: white;
 		margin-left: 4px;
@@ -251,7 +252,7 @@
 
 	.chevron {
 		color: rgba(255, 255, 255, 0.7);
-		font-size: 12px;
+		font-size: 0.75rem;
 		transition: transform 0.3s ease;
 		transform: rotate(-90deg);
 	}
@@ -261,7 +262,7 @@
 	}
 
 	.item-chevron {
-		font-size: 10px;
+		font-size: 0.625rem;
 		color: rgba(255, 255, 255, 0.5);
 	}
 
@@ -308,7 +309,7 @@
 		width: 18px;
 		height: 18px;
 		border-radius: 50%;
-		font-size: 10px;
+		font-size: 0.625rem;
 		font-weight: 800;
 		color: #1A1A1A;
 		background: var(--level);
@@ -320,26 +321,26 @@
 	}
 
 	.item-title {
-		font-size: 14px;
+		font-size: 0.875rem;
 		font-weight: 700;
 		color: white;
 	}
 
 	.alert-time {
-		font-size: 11px;
+		font-size: 0.6875rem;
 		color: rgba(255, 255, 255, 0.5);
 		margin-bottom: 4px;
 	}
 
 	.alert-headline {
-		font-size: 14px;
+		font-size: 0.875rem;
 		font-weight: 700;
 		color: white;
 		margin-bottom: 6px;
 	}
 
 	.item-desc {
-		font-size: 13px;
+		font-size: 0.8125rem;
 		color: rgba(255, 255, 255, 0.8);
 		line-height: 1.4;
 	}

@@ -29,7 +29,7 @@
 		text-overflow: ellipsis;
 		padding: 2px 8px;
 		border-radius: 999px;
-		font-size: 12px;
+		font-size: 0.75rem;
 		font-weight: 600;
 		line-height: 1.4;
 	}

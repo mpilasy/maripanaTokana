@@ -9,6 +9,8 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import orinasa.njarasoa.maripanatokana.ui.weather.TouchTarget
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -103,21 +105,26 @@ private fun AlertSourceBadge(
 ) {
     val scale = LocalScale.current
     // White on a dark tint, or dark on white for a link: both at least 4.5:1 on every banner colour
-    Surface(
-        color = if (alert.link != null) Color.White.copy(alpha = 0.85f) else Color.Black.copy(alpha = 0.3f),
-        shape = RoundedCornerShape(4.dp),
-        modifier = if (alert.link != null) Modifier.clickable(role = Role.Button) {
-            try { uriHandler.openUri(alert.link) } catch (_: Exception) {}
-        } else Modifier
-    ) {
-        Text(
-            text = alert.source.uppercase(),
-            fontSize = fontSize,
-            fontWeight = FontWeight.ExtraBold,
-            color = if (alert.link != null) OnLevel else Color.White,
-            modifier = Modifier.padding(horizontal = 4.sd(scale), vertical = 2.sd(scale))
-        )
+    val badge = @Composable {
+        Surface(
+            color = if (alert.link != null) Color.White.copy(alpha = 0.85f) else Color.Black.copy(alpha = 0.3f),
+            shape = RoundedCornerShape(4.dp),
+        ) {
+            Text(
+                text = alert.source.uppercase(),
+                fontSize = fontSize,
+                fontWeight = FontWeight.ExtraBold,
+                color = if (alert.link != null) OnLevel else Color.White,
+                modifier = Modifier.padding(horizontal = 4.sd(scale), vertical = 2.sd(scale))
+            )
+        }
     }
+    // A link: a 48 dp hit area round the small badge
+    if (alert.link != null) {
+        TouchTarget(Modifier.clip(RoundedCornerShape(4.dp)).clickable(role = Role.Button) {
+            try { uriHandler.openUri(alert.link) } catch (_: Exception) {}
+        }) { badge() }
+    } else badge()
 }
 
 @Composable

@@ -6,7 +6,8 @@
 	import WeatherIcon from './WeatherIcon.svelte';
 	import { _, json } from 'svelte-i18n';
 	import { isDaytime, type WeatherData } from '#lib/domain/weatherData.js';
-	import { getCardinalDirection } from '#lib/domain/windSpeed.js';
+	import { getCardinalDirection, WindSpeed } from '#lib/domain/windSpeed.js';
+	import { Pressure } from '#lib/domain/pressure.js';
 	import { AQI_TIER_COLORS, aqiDialPosition, type AirQualityIndex } from '#lib/domain/airQuality.js';
 	import { UV_TIER_COLORS, uvColorFor, uvDialPosition, type UvTier } from '#lib/domain/uv.js';
 	import DetailCard from './DetailCard.svelte';
@@ -18,6 +19,7 @@
 	import SkyArc from './SkyArc.svelte';
 	import MoonPhaseIcon from './MoonPhaseIcon.svelte';
 	import DialValue from './DialValue.svelte';
+	import DialEnds from './DialEnds.svelte';
 	import CompassDial from './CompassDial.svelte';
 	import LabeledValue from './LabeledValue.svelte';
 	import AqiTierBadge from './AqiTierBadge.svelte';
@@ -41,6 +43,10 @@
 	// Gauge scales: sea-level pressure rarely leaves 960-1050 hPa; AQI tops out at "hazardous"
 	const PRESSURE_MIN_HPA = 960;
 	const PRESSURE_MAX_HPA = 1050;
+	// Gusts rarely pass 30 m/s; visibility on a log scale from 100 m to 20 km
+	const GUST_MAX_MS = 30;
+	const VISIBILITY_MIN_M = 100;
+	const VISIBILITY_MAX_M = 20_000;
 
 	// Sunrise and sunset in the place's own time, like the hourly cards and its clock
 	function formatTime(epochSec: number): string {
@@ -81,6 +87,12 @@
 	let precipDual = $derived((data.snow ?? data.rain)?.displayDual(metricPrimary));
 	let nowSec = $derived(Date.now() / 1000);
 
+	/** The numbers of a dual reading ("960 hPa", "28.35 inHg") for one end of a dial's scale, localized, with no ".0" ("30", not "30.0"). */
+	function dialEnd([primary, secondary]: [string, string]): [string, string] {
+		const number = (text: string) => loc(splitUnit(text)[0].replace(/\.0$/, ''));
+		return [number(primary), number(secondary)];
+	}
+
 	/** "2.9 m/s" -> ["2.9", "m/s"]: the number for the middle of a dial and its unit under it. */
 	function splitUnit(text: string): [string, string] {
 		const i = text.lastIndexOf(' ');
@@ -100,7 +112,12 @@
 	let daylight = $derived.by(() => {
 		if (polarNight) return $_('polar_night');
 		if (midnightSun) return $_('midnight_sun');
-		const minutes = Math.floor((data.sunset - data.sunrise) / 60);
+		return duration(data.sunset - data.sunrise);
+	});
+
+	/** A time of `seconds` in hours and minutes, on two lines. */
+	function duration(seconds: number): string {
+		const minutes = Math.floor(seconds / 60);
 		const h = Math.floor(minutes / 60);
 		const m = minutes % 60;
 		return $_('daylight_duration', {
@@ -109,7 +126,26 @@
 				minutes: $_(m === 1 ? 'daylight_minutes_one' : 'daylight_minutes_other', { values: { count: m } }),
 			},
 		});
-	});
+	}
+
+	/** "Rises in 7 hours 49 minutes" until `riseMs`, on one line, with no zero part ("Rises in 31 minutes"). */
+	function risesIn(riseMs: number): string {
+		const seconds = Math.max(0, (riseMs - Date.now()) / 1000);
+		const minutes = Math.floor(seconds / 60);
+		const h = Math.floor(minutes / 60);
+		const m = minutes % 60;
+		const text = h === 0 ? $_(m === 1 ? 'daylight_minutes_one' : 'daylight_minutes_other', { values: { count: m } })
+			: m === 0 ? $_(h === 1 ? 'daylight_hours_one' : 'daylight_hours_other', { values: { count: h } })
+			: duration(seconds).replace(/\n/g, ' ');
+		// Lower case: the duration is in the middle of a sentence (Malagasy "Hiposaka afaka adiny 7")
+		return loc($_('rises_in', { values: { duration: text.charAt(0).toLowerCase() + text.slice(1) } }));
+	}
+
+	// The sun below the horizon (not in a polar night or midnight sun), and its next rise when the data has it
+	let sunDown = $derived(!polar && (nowSec < data.sunrise || nowSec > data.sunset));
+	let nextSunrise = $derived(
+		!sunDown ? null : nowSec < data.sunrise ? data.sunrise * 1000 : (data.dailySunrise.find((ms) => ms > Date.now()) ?? null)
+	);
 
 	// The moon at the place now; today runs from its midnight
 	let moon = $derived.by(() => {
@@ -119,9 +155,12 @@
 		const days = [-1, 0, 1].map((d) => moonTimes(dayStart + d * 86_400_000, data.latitude, data.longitude));
 		const illumination = moonIllumination(now);
 		const position = moonPosition(now, data.latitude, data.longitude);
-		return { illumination, position, today: days[1], arcT: moonArcProgress(now, days), southern: data.latitude < 0 };
+		// The next moonrise in the three days, for the moon below the horizon
+		const nextRise = days.map((d) => d.rise).find((t): t is number => t != null && t > now) ?? null;
+		return { illumination, position, today: days[1], arcT: moonArcProgress(now, days), southern: data.latitude < 0, nextRise };
 	});
 	let moonAzimuth = $derived(Math.round(moon.position.azimuth) % 360);
+	let moonDown = $derived(moon.position.altitude < 0);
 </script>
 
 <div class="conditions-grid">
@@ -172,7 +211,7 @@
 			<!-- The chance of precipitation in the next hour, as on the forecast cards -->
 			<span class="precip-chance">
 				{#if (data.hourlyForecast[0]?.precipProbability ?? 0) > 0}
-					<svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" aria-hidden="true"><path d="M12 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.8 8.2 8 8.2s8-3.22 8-8.2c0-3.32-2.67-7.25-8-11.8z"/></svg>{loc(`${data.hourlyForecast[0].precipProbability}%`)}
+					<svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" aria-hidden="true"><path d="M12 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.8 8.2 8 8.2s8-3.22 8-8.2c0-3.32-2.67-7.25-8-11.8z"/></svg>{$_('precip_chance', { values: { value: loc(`${data.hourlyForecast[0].precipProbability}%`) } })}
 				{/if}
 			</span>
 		{/snippet}
@@ -205,8 +244,10 @@
 			{#if data.windGust && gustDual}
 				{@const [n, u] = splitUnit(gustDual[0])}
 				<!-- Gusts rarely pass 30 m/s -->
-				<Gauge fraction={data.windGust.metersPerSecond / 30} color="#64B5F6">
+				<Gauge fraction={data.windGust.metersPerSecond / GUST_MAX_MS} color="#64B5F6">
 					<DialValue value={loc(n)} unit={u} secondary={loc(gustDual[1])} />
+					<DialEnds min={dialEnd(WindSpeed.fromMetersPerSecond(0).displayDual(metricPrimary))}
+						max={dialEnd(WindSpeed.fromMetersPerSecond(GUST_MAX_MS).displayDual(metricPrimary))} />
 				</Gauge>
 			{/if}
 		{/snippet}
@@ -220,6 +261,8 @@
 			{@const [n, u] = splitUnit(pressDual[0])}
 			<Gauge fraction={(data.pressure.hPa - PRESSURE_MIN_HPA) / (PRESSURE_MAX_HPA - PRESSURE_MIN_HPA)} color="#9B8FFF">
 				<DialValue value={loc(n)} unit={u} secondary={loc(pressDual[1])} />
+				<DialEnds min={dialEnd(Pressure.fromHPa(PRESSURE_MIN_HPA).displayDual(metricPrimary))}
+					max={dialEnd(Pressure.fromHPa(PRESSURE_MAX_HPA).displayDual(metricPrimary))} />
 			</Gauge>
 		{/snippet}
 	</DetailCard>
@@ -268,6 +311,7 @@
 			{#if !polar}<SunArc sunrise={data.sunrise} sunset={data.sunset} now={Date.now() / 1000} />{/if}
 			{#if daylight}<span class="under-arc mid-arc" class:polar>{loc(daylight)}</span>{/if}
 		</div>
+		{#if nextSunrise != null}<span class="rises-in">{risesIn(nextSunrise)}</span>{/if}
 		<div class="sky-times">
 			{#if period}
 				<span><span class="sky-label">{$_('polar_since')}</span> {dayMonth(period.since)}</span>
@@ -290,7 +334,7 @@
 		<span class="tile-title">{$_('detail_moon')}</span>
 		<div class="sky-content">
 		<div class="arc-box">
-			<SkyArc t={moon.arcT} progressColor="#CFC8E8">
+			<SkyArc t={moon.arcT} progressColor="#CFC8E8" belowColor={moonDown ? '#F2EBD3' : undefined}>
 				{#snippet body(x, y)}
 					<circle cx={x} cy={y} r="7" fill="#3A3570" />
 					<path d={moonLitPath(moon.illumination.phase, moon.southern, x, y, 7)} fill="#F2EBD3" />
@@ -298,6 +342,7 @@
 			</SkyArc>
 			<span class="under-arc mid-arc">{loc(`${Math.round(moon.illumination.fraction * 100)}%`)}</span>
 		</div>
+		{#if moonDown && moon.nextRise != null}<span class="rises-in">{risesIn(moon.nextRise)}</span>{/if}
 		<div class="sky-times">
 			<span><span class="sky-label">{$_('detail_moonrise')}</span> {moon.today.rise != null ? loc(formatHourAtLocation(moon.today.rise, data.utcOffsetSeconds)) : '--'}</span>
 			<span><span class="sky-label">{$_('detail_moonset')}</span> {moon.today.set != null ? loc(formatHourAtLocation(moon.today.set, data.utcOffsetSeconds)) : '--'}</span>
@@ -357,6 +402,7 @@
 			{#if data.cloudCover != null}
 				<Gauge fraction={data.cloudCover / 100} color="#B0BEC5">
 					<DialValue value={loc(`${data.cloudCover}%`)} />
+					<DialEnds min={[loc('0%')]} max={[loc('100%')]} />
 				</Gauge>
 			{/if}
 		{/snippet}
@@ -370,8 +416,9 @@
 			{#if data.visibility != null}
 				{@const [n, u] = splitUnit(visDual[0])}
 				<!-- On a log scale, 100 m to 20 km: each step down matters more than one up -->
-				<Gauge fraction={Math.log10(Math.max(100, data.visibility) / 100) / Math.log10(200)} color="#80DEEA">
+				<Gauge fraction={Math.log10(Math.max(VISIBILITY_MIN_M, data.visibility) / VISIBILITY_MIN_M) / Math.log10(VISIBILITY_MAX_M / VISIBILITY_MIN_M)} color="#80DEEA">
 					<DialValue value={loc(n)} unit={u} secondary={loc(visDual[1])} />
+					<DialEnds min={dialEnd(visibilityDisplay(VISIBILITY_MIN_M, metricPrimary))} max={dialEnd(visibilityDisplay(VISIBILITY_MAX_M, metricPrimary))} />
 				</Gauge>
 			{/if}
 		{/snippet}
@@ -442,7 +489,7 @@
 		justify-content: center;
 		gap: 2px;
 		min-height: 17px;
-		font-size: 13px;
+		font-size: 0.8125rem;
 		color: #64B5F6;
 		font-feature-settings: var(--font-features);
 	}
@@ -450,7 +497,7 @@
 	.footer-center {
 		display: block;
 		text-align: center;
-		font-size: 13px;
+		font-size: 0.8125rem;
 		color: rgba(255, 255, 255, 0.7);
 	}
 
@@ -504,7 +551,7 @@
 		line-height: 1.15;
 		white-space: pre-line;
 		font-family: var(--font-display);
-		font-size: 13px;
+		font-size: 0.8125rem;
 		font-weight: 700;
 		color: rgba(255, 255, 255, 0.8);
 		font-feature-settings: var(--font-features);
@@ -519,7 +566,17 @@
 
 	/* Polar night or midnight sun: the text alone, larger */
 	.mid-arc.polar {
-		font-size: 16px;
+		font-size: 1rem;
+	}
+
+	/* The time until the sun or moon rises, under the horizon */
+	.rises-in {
+		align-self: stretch;
+		text-align: center;
+		font-size: 0.6875rem;
+		line-height: 0.8125rem;
+		color: rgba(255, 255, 255, 0.7);
+		font-feature-settings: var(--font-features);
 	}
 
 	.moon-phase {
@@ -527,14 +584,14 @@
 		flex-direction: column;
 		align-items: flex-end;
 		gap: 2px;
-		font-size: 12px;
-		line-height: 14px;
+		font-size: 0.75rem;
+		line-height: 0.875rem;
 		text-align: end;
 		color: rgba(255, 255, 255, 0.7);
 	}
 
 	.tile-title {
-		font-size: 13px;
+		font-size: 0.8125rem;
 		color: rgba(255, 255, 255, 0.6);
 	}
 
@@ -543,7 +600,7 @@
 		justify-content: space-between;
 		gap: 8px;
 		font-family: var(--font-display);
-		font-size: 15px;
+		font-size: 0.9375rem;
 		font-weight: 700;
 		color: white;
 		font-feature-settings: var(--font-features);
@@ -560,7 +617,7 @@
 
 	.sky-label {
 		font-family: var(--font-body, inherit);
-		font-size: 11px;
+		font-size: 0.6875rem;
 		font-weight: 400;
 		color: rgba(255, 255, 255, 0.5);
 	}

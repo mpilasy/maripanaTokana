@@ -108,6 +108,43 @@
 		width: 100%;
 	}
 
+	/* Text for screen readers only */
+	:global(.sr-only) {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+	}
+
+	/* A 44×44 px hit area around a smaller control, with no change to its look */
+	:global(.touch-target) {
+		position: relative;
+	}
+
+	:global(.touch-target::after) {
+		content: '';
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: max(100%, 44px);
+		height: max(100%, 44px);
+		transform: translate(-50%, -50%);
+	}
+
+	/* Less motion: no CSS animations, transitions or smooth scrolling */
+	@media (prefers-reduced-motion: reduce) {
+		:global(*, *::before, *::after) {
+			animation: none !important;
+			transition: none !important;
+			scroll-behavior: auto !important;
+		}
+	}
+
 	/* Backdrop: fills the entire viewport, centers the Stage */
 	.stage-backdrop {
 		width: 100vw;
@@ -132,7 +169,8 @@
 		.stage {
 			width: 786px;
 			max-width: 786px;
-			height: 1024px;
+			/* Not taller than the window, so the header shows and the page does not scroll */
+			height: min(1024px, 100dvh);
 			max-height: 1024px;
 			border-radius: 12px;
 			box-shadow:

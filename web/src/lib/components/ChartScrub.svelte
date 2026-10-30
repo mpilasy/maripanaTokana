@@ -2,6 +2,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import { prefersReducedMotion } from '#lib/utils/motion.js';
 
 	/**
 	 * Lets the user slide a finger along the chart in `children`: a line and a label (the hour
@@ -41,7 +42,7 @@
 		index = i;
 		navigator.vibrate?.(5);
 		// The item in the middle of the row
-		scrollEl?.scrollTo({ left: i * step + itemWidth / 2 - scrollEl.clientWidth / 2, behavior: 'smooth' });
+		scrollEl?.scrollTo({ left: i * step + itemWidth / 2 - scrollEl.clientWidth / 2, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
 	}
 
 	function onPointerDown(e: PointerEvent) {
@@ -109,7 +110,7 @@
 		background: rgba(0, 0, 0, 0.75);
 		color: white;
 		font-family: var(--font-display);
-		font-size: 10px;
+		font-size: 0.625rem;
 		font-weight: 700;
 		white-space: nowrap;
 		pointer-events: none;

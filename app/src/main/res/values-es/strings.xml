@@ -53,6 +53,7 @@
     <string name="updated_time">Actualizado: %1$s</string>
     <string name="feels_like">Sensación térmica</string>
     <string name="no_precip">Sin precipitación</string>
+    <string name="precip_chance">Probabilidad %1$s</string>
     <string name="section_current_conditions">Condiciones actuales</string>
     <string name="section_sun_air">Sol y aire</string>
     <string name="section_hourly_forecast">Pronóstico por hora</string>
@@ -70,6 +71,7 @@
     <string name="daylight_hours_other">%1$s horas</string>
     <string name="daylight_minutes_one">%1$s minuto</string>
     <string name="daylight_minutes_other">%1$s minutos</string>
+    <string name="rises_in">Sale en %1$s</string>
     <string name="nowcast_ongoing">Precipitación prevista para las próximas 2 horas</string>
     <string name="activity_running">Carrera a pie</string>
     <string name="activity_laundry">Secado de ropa</string>
@@ -78,6 +80,7 @@
     <string name="activity_tier_good">Bueno</string>
     <string name="activity_tier_fair">Regular</string>
     <string name="activity_tier_poor">Deficiente</string>
+    <string name="activity_tier_not_needed">No necesaria</string>
     <string name="detail_wind">Viento</string>
     <string name="detail_wind_gust">Rafaga de viento</string>
     <string name="detail_pressure">Presión</string>
@@ -148,6 +151,7 @@
     <string name="locations_search_hint">Buscar ciudad o código postal</string>
     <string name="cd_change_font">Cambiar fuente</string>
     <string name="cd_change_language">Cambiar idioma</string>
+    <string name="cd_show_all">Mostrar todo</string>
     <string name="cd_toggle_units">Cambiar unidades</string>
     <string name="cd_share">Compartir</string>
     <string name="cd_refresh">Actualizar</string>

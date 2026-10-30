@@ -26,13 +26,13 @@
 {#if dewPoint && Number.isFinite(dewPoint.celsius)}
 	{@const [dewP, dewS] = dewPoint.displayDual(metricPrimary)}
 	<span class="dew-label">{$_('detail_dewpoint')}</span>
-	<DualUnitText primary={loc(dewP)} secondary={loc(dewS)} primarySize="12px" align="center" onClick={onToggleUnits} />
+	<DualUnitText primary={loc(dewP)} secondary={loc(dewS)} primarySize="0.75rem" align="center" onClick={onToggleUnits} />
 {/if}
 
 <style>
 	.humidity {
 		font-family: var(--font-display);
-		font-size: 15px;
+		font-size: 0.9375rem;
 		font-weight: 700;
 		color: white;
 		font-feature-settings: var(--font-features);
@@ -43,7 +43,7 @@
 	}
 
 	.dew-label {
-		font-size: 9px;
+		font-size: 0.5625rem;
 		line-height: 1.1;
 		color: rgba(255, 255, 255, 0.5);
 		text-align: center;

@@ -38,22 +38,22 @@
 
 	.value {
 		font-family: var(--font-display);
-		font-size: 22px;
-		line-height: 24px;
+		font-size: 1.375rem;
+		line-height: 1.5rem;
 		font-weight: 700;
 		color: white;
 	}
 
 	.unit {
-		font-size: 10px;
-		line-height: 11px;
+		font-size: 0.625rem;
+		line-height: 0.6875rem;
 		color: rgba(255, 255, 255, 0.6);
 	}
 
 	.secondary {
 		font-family: var(--font-display);
-		font-size: 12px;
-		line-height: 14px;
+		font-size: 0.75rem;
+		line-height: 0.875rem;
 		margin-top: 2px;
 		color: rgba(255, 255, 255, 0.7);
 	}

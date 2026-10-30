@@ -53,6 +53,7 @@
     <string name="updated_time">已更新: %1$s</string>
     <string name="feels_like">体感温度</string>
     <string name="no_precip">无降水</string>
+    <string name="precip_chance">概率 %1$s</string>
     <string name="section_current_conditions">当前状况</string>
     <string name="section_sun_air">阳光与空气</string>
     <string name="section_hourly_forecast">逐时预报</string>
@@ -70,6 +71,7 @@
     <string name="daylight_hours_other">%1$s小时</string>
     <string name="daylight_minutes_one">%1$s分钟</string>
     <string name="daylight_minutes_other">%1$s分钟</string>
+    <string name="rises_in">%1$s后升起</string>
     <string name="nowcast_ongoing">预计未来 2 小时持续降水</string>
     <string name="activity_running">跑步</string>
     <string name="activity_laundry">晾晒衣物</string>
@@ -78,6 +80,7 @@
     <string name="activity_tier_good">良好</string>
     <string name="activity_tier_fair">一般</string>
     <string name="activity_tier_poor">较差</string>
+    <string name="activity_tier_not_needed">无需</string>
     <string name="detail_wind">风速</string>
     <string name="detail_wind_gust">阵风</string>
     <string name="detail_pressure">气压</string>
@@ -148,6 +151,7 @@
     <string name="locations_search_hint">搜索城市或邮编</string>
     <string name="cd_change_font">更换字体</string>
     <string name="cd_change_language">更改语言</string>
+    <string name="cd_show_all">显示全部</string>
     <string name="cd_toggle_units">切换单位</string>
     <string name="cd_share">分享</string>
     <string name="cd_refresh">刷新</string>

@@ -45,7 +45,7 @@ class ActivityIndicesTest {
     @Test
     fun idealConditions_returnExcellentTiers() {
         val data = mockWeatherData(tempC = 20.0, humidity = 45, windMs = 3.0, rainMm = 0.0, uvIndex = 2.0)
-        val indices = ActivityIndices.fromWeatherData(data)
+        val indices = ActivityIndices.fromWeatherData(data, isDay = true)
         assertEquals(ActivityTier.EXCELLENT, indices.running)
         assertEquals(ActivityTier.EXCELLENT, indices.laundry)
         assertEquals(ActivityTier.EXCELLENT, indices.uvSafety)
@@ -54,7 +54,7 @@ class ActivityIndicesTest {
     @Test
     fun rainyConditions_returnPoorTiersForOutdoorActivities() {
         val data = mockWeatherData(tempC = 15.0, humidity = 90, windMs = 3.0, rainMm = 5.0, uvIndex = 2.0)
-        val indices = ActivityIndices.fromWeatherData(data)
+        val indices = ActivityIndices.fromWeatherData(data, isDay = true)
         assertEquals(ActivityTier.POOR, indices.running)
         assertEquals(ActivityTier.POOR, indices.laundry)
     }
@@ -62,7 +62,23 @@ class ActivityIndicesTest {
     @Test
     fun highUv_returnsPoorUvSafetyTier() {
         val data = mockWeatherData(uvIndex = 9.0)
-        val indices = ActivityIndices.fromWeatherData(data)
+        val indices = ActivityIndices.fromWeatherData(data, isDay = true)
         assertEquals(ActivityTier.POOR, indices.uvSafety)
+    }
+
+    @Test
+    fun day_givesUvTierFromIndex() {
+        val data = mockWeatherData(uvIndex = 7.0)
+        assertEquals(ActivityTier.FAIR, ActivityIndices.fromWeatherData(data, isDay = true).uvSafety)
+    }
+
+    @Test
+    fun night_givesNotNeededForSunProtection() {
+        val data = mockWeatherData(uvIndex = 9.0)
+        val indices = ActivityIndices.fromWeatherData(data, isDay = false)
+        assertEquals(ActivityTier.NOT_NEEDED, indices.uvSafety)
+        // The other activities do not change at night
+        assertEquals(ActivityIndices.fromWeatherData(data, isDay = true).running, indices.running)
+        assertEquals(ActivityIndices.fromWeatherData(data, isDay = true).laundry, indices.laundry)
     }
 }

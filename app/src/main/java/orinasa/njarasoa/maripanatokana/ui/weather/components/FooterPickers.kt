@@ -6,6 +6,10 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.ui.Alignment
+import orinasa.njarasoa.maripanatokana.ui.weather.ShowAllChevron
+import orinasa.njarasoa.maripanatokana.ui.weather.TouchTarget
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
@@ -67,28 +71,39 @@ internal fun LanguageFlagButton(
     onSelectLanguage: (Int) -> Unit,
     modifier: Modifier = Modifier,
     alpha: Float = 1f,
+    // On the main screen's footer: a 48 dp hit area and a chevron after the flag that opens the list
+    footer: Boolean = false,
 ) {
     val haptic = LocalHapticFeedback.current
     var pickerOpen by remember { mutableStateOf(false) }
     val currentIndex = supportedLocales.indexOfFirst { it.flag == flag }
     Box(modifier) {
-        Text(
-            text = flag,
-            fontSize = fontSize,
-            modifier = Modifier
-                .clip(RoundedCornerShape(50))
-                .alpha(alpha)
-                .combinedClickable(
-                    role = Role.Button,
-                    onClickLabel = stringResource(R.string.cd_change_language),
-                    onClick = onCycleLanguage,
-                    onLongClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        pickerOpen = true
-                    },
-                )
-                .padding(padding),
-        )
+        val click = Modifier
+            .clip(RoundedCornerShape(50))
+            .combinedClickable(
+                role = Role.Button,
+                onClickLabel = stringResource(R.string.cd_change_language),
+                onClick = onCycleLanguage,
+                onLongClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    pickerOpen = true
+                },
+                onLongClickLabel = stringResource(R.string.cd_show_all),
+            )
+        if (footer) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                TouchTarget(click) {
+                    Text(text = flag, fontSize = fontSize, modifier = Modifier.alpha(alpha).padding(padding))
+                }
+                ShowAllChevron(onClick = { pickerOpen = true }, alpha = alpha)
+            }
+        } else {
+            Text(
+                text = flag,
+                fontSize = fontSize,
+                modifier = Modifier.alpha(alpha).then(click).padding(padding),
+            )
+        }
         if (pickerOpen) {
             PickerPopup(
                 count = supportedLocales.size,

@@ -53,6 +53,7 @@
     <string name="updated_time">Nalaina tamin\'ny %1$s</string>
     <string name="feels_like">Ohatry ny</string>
     <string name="no_precip">Tsy misy orana</string>
+    <string name="precip_chance">Mety %1$s</string>
     <string name="section_current_conditions">Izao</string>
     <string name="section_sun_air">Masoandro sy rivotra</string>
     <string name="section_hourly_forecast">Isan\'ora</string>
@@ -70,6 +71,7 @@
     <string name="daylight_hours_other">Adiny %1$s</string>
     <string name="daylight_minutes_one">%1$s minitra</string>
     <string name="daylight_minutes_other">%1$s minitra</string>
+    <string name="rises_in">Hiposaka afaka %1$s</string>
     <string name="nowcast_ongoing">Hisy orana mandritra ny 2 ora manaraka</string>
     <string name="activity_running">Fanatanjahantena</string>
     <string name="activity_laundry">Fanahazan-damba</string>
@@ -78,6 +80,7 @@
     <string name="activity_tier_good">Tsara</string>
     <string name="activity_tier_fair">Antonony</string>
     <string name="activity_tier_poor">Ratsy</string>
+    <string name="activity_tier_not_needed">Tsy ilaina</string>
     <string name="detail_temperature">Maripàna</string>
     <string name="detail_precipitation">Orana</string>
     <string name="detail_wind">Rivotra</string>
@@ -148,6 +151,7 @@
     <string name="locations_search_hint">Anaran-tanàna na kaody</string>
     <string name="cd_change_font">Ovay ny endri-tsoratra</string>
     <string name="cd_change_language">Ovay ny teny</string>
+    <string name="cd_show_all">Asehoy daholo</string>
     <string name="cd_toggle_units">Ovay ny venty</string>
     <string name="cd_share">Zarao</string>
     <string name="cd_refresh">Havaozy</string>

@@ -32,6 +32,8 @@ const PLACEHOLDER_ORDER = {
 	alert_count_title: ['count'],
 	nowcast_starts_in: ['minutes'],
 	daylight_duration: ['hours', 'minutes'],
+	precip_chance: ['value'],
+	rises_in: ['duration'],
 	daylight_hours_one: ['count'],
 	daylight_hours_other: ['count'],
 	daylight_minutes_one: ['count'],

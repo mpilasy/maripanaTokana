@@ -53,6 +53,7 @@
     <string name="updated_time">अपडेट किया %1$s</string>
     <string name="feels_like">अनुभव</string>
     <string name="no_precip">वर्षा नहीं</string>
+    <string name="precip_chance">संभावना %1$s</string>
     <string name="section_current_conditions">वर्तमान स्थिति</string>
     <string name="section_sun_air">सूर्य और हवा</string>
     <string name="section_hourly_forecast">प्रति घंटा पूर्वानुमान</string>
@@ -70,6 +71,7 @@
     <string name="daylight_hours_other">%1$s घंटे</string>
     <string name="daylight_minutes_one">%1$s मिनट</string>
     <string name="daylight_minutes_other">%1$s मिनट</string>
+    <string name="rises_in">%1$s में उदय</string>
     <string name="nowcast_ongoing">अगले २ घंटों तक बारिश जारी रहने की संभावना है</string>
     <string name="activity_running">दौड़ना</string>
     <string name="activity_laundry">कपड़े सुखाना</string>
@@ -78,6 +80,7 @@
     <string name="activity_tier_good">अच्छा</string>
     <string name="activity_tier_fair">सामान्य</string>
     <string name="activity_tier_poor">खराब</string>
+    <string name="activity_tier_not_needed">ज़रूरी नहीं</string>
     <string name="detail_wind">हवा</string>
     <string name="detail_wind_gust">हवा का झोंका</string>
     <string name="detail_pressure">दबाव</string>
@@ -148,6 +151,7 @@
     <string name="locations_search_hint">शहर या ज़िप कोड खोजें</string>
     <string name="cd_change_font">फ़ॉन्ट बदलें</string>
     <string name="cd_change_language">भाषा बदलें</string>
+    <string name="cd_show_all">सभी दिखाएँ</string>
     <string name="cd_toggle_units">इकाइयाँ बदलें</string>
     <string name="cd_share">शेयर करें</string>
     <string name="cd_refresh">रिफ्रेश</string>

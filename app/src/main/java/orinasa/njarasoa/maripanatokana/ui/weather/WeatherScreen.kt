@@ -192,15 +192,17 @@ private fun WeatherMainScreen(
         )
     }
 
-    var showRenameDialog by remember { mutableStateOf(false) }
+    // The favorite whose rename dialog is open: the one on screen (held name) or one in the list (pencil)
+    var renameLocationId by remember { mutableStateOf<String?>(null) }
     val activeSavedLocation = savedLocations.find { it.id == activeLocationId }
-    if (showRenameDialog && activeSavedLocation != null) {
+    val renameLocation = savedLocations.find { it.id == renameLocationId }
+    if (renameLocation != null) {
         RenameLocationDialog(
-            location = activeSavedLocation,
-            onDismissRequest = { showRenameDialog = false },
+            location = renameLocation,
+            onDismissRequest = { renameLocationId = null },
             onRename = { label ->
-                viewModel.renameSavedLocation(activeSavedLocation.id, label)
-                showRenameDialog = false
+                viewModel.renameSavedLocation(renameLocation.id, label)
+                renameLocationId = null
             },
         )
     }
@@ -305,6 +307,29 @@ private fun WeatherMainScreen(
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                             style = MaterialTheme.typography.bodySmall,
                         )
+                        // A way out of a long wait: the same button as on the error screen
+                        if (elapsedSeconds >= 5) {
+                            val systemContext = remember(baseContext, currentConfig, systemLocale) {
+                                val cfg = android.content.res.Configuration(currentConfig)
+                                cfg.setLocale(systemLocale)
+                                baseContext.createConfigurationContext(cfg)
+                            }
+                            Spacer(modifier = Modifier.height(24.dp))
+                            val appChoosePlace = stringResource(R.string.choose_place)
+                            val sysChoosePlace = systemContext.getString(R.string.choose_place)
+                            OutlinedButton(onClick = { viewModel.onManageLocationsClicked() }) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(appChoosePlace, color = MaterialTheme.colorScheme.onSurface)
+                                    if (sysChoosePlace != appChoosePlace) {
+                                        Text(
+                                            text = sysChoosePlace,
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -440,8 +465,10 @@ private fun WeatherMainScreen(
                             onSelectLanguage = { viewModel.selectLanguage(it) },
                             onRefresh = { viewModel.refresh() },
                             onLocationLongClicked = if (activeSavedLocation != null && advancedOverrideLat == null) {
-                                { showRenameDialog = true }
+                                { renameLocationId = activeSavedLocation.id }
                             } else null,
+                            // Index 0 is the current location, which has no name to change
+                            onRenameLocation = { i -> renameLocationId = savedLocations.getOrNull(i - 1)?.id },
                             onManageLocationsClicked = viewModel::onManageLocationsClicked,
                             onOpenSettings = onOpenSettings,
                             onOpenAbout = onOpenAbout,

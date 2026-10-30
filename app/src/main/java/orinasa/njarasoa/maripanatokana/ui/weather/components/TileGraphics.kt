@@ -140,19 +140,23 @@ fun WindCompass(degrees: Int, modifier: Modifier = Modifier, size: Dp = 40.dp) {
     }
 }
 
-/** The day as an arc from sunrise to sunset with the sun at [now] (all epoch seconds). */
+/**
+ * The day as an arc from sunrise to sunset with the sun at [now] (all epoch seconds). Before sunrise and
+ * after sunset, the sun is a faint dot under the horizon where it rises.
+ */
 @Composable
 fun SunArc(sunrise: Long, sunset: Long, now: Long, modifier: Modifier = Modifier) {
     val t = if (sunset > sunrise) (now - sunrise).toFloat() / (sunset - sunrise) else -1f
-    SkyArc(t, Color(0xFFFFB74D), modifier) { drawCircle(Color(0xFFFFD54F), 5.dp.toPx(), it) }
+    SkyArc(t, Color(0xFFFFB74D), modifier, belowHorizon = Color(0xFFFFD54F).copy(alpha = 0.35f)) { drawCircle(Color(0xFFFFD54F), 5.dp.toPx(), it) }
 }
 
 /**
  * A dashed arc from rising (left) to setting (right). While [t] (the part of the way done) is in
  * 0-1, the part done is drawn in [progressColor] and [body] draws the sun or moon at its place.
+ * Else, with [belowHorizon], a dot in that colour just under the horizon at the rising end.
  */
 @Composable
-fun SkyArc(t: Float, progressColor: Color, modifier: Modifier = Modifier, body: DrawScope.(Offset) -> Unit) {
+fun SkyArc(t: Float, progressColor: Color, modifier: Modifier = Modifier, belowHorizon: Color? = null, body: DrawScope.(Offset) -> Unit) {
     Canvas(modifier) {
         // Half-ellipse across the width, peaking near the top
         val base = size.height * 68f / 76f
@@ -167,6 +171,9 @@ fun SkyArc(t: Float, progressColor: Color, modifier: Modifier = Modifier, body: 
             drawArc(progressColor, 180f, 180f * t, false, oval.topLeft, oval.size, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round))
             val a = PI * (1 - t)
             body(Offset(cx + rx * cos(a).toFloat(), base - ry * sin(a).toFloat()))
+        } else if (belowHorizon != null) {
+            val r = 5.dp.toPx()
+            drawCircle(belowHorizon, r, Offset(cx - rx, base + r + 2.dp.toPx()))
         }
     }
 }

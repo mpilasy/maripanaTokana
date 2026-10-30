@@ -88,23 +88,23 @@
 
 	.app-name {
 		font-family: var(--font-display);
-		font-size: 24px;
+		font-size: 1.5rem;
 		font-weight: 700;
 	}
 
 	.version {
-		font-size: 13px;
+		font-size: 0.8125rem;
 		color: rgba(255, 255, 255, 0.55);
 	}
 
 	.copyright {
 		margin-top: 8px;
-		font-size: 14px;
+		font-size: 0.875rem;
 		color: rgba(255, 255, 255, 0.85);
 	}
 
 	.app-license {
-		font-size: 13px;
+		font-size: 0.8125rem;
 		color: rgba(255, 255, 255, 0.6);
 		text-align: center;
 		text-decoration: none;
@@ -113,7 +113,7 @@
 	.source-link {
 		margin-top: 8px;
 		padding: 6px 12px;
-		font-size: 14px;
+		font-size: 0.875rem;
 		font-weight: 600;
 		color: white;
 		text-decoration: none;
@@ -145,14 +145,14 @@
 	.device-label {
 		flex: none;
 		width: 40%;
-		font-size: 13px;
+		font-size: 0.8125rem;
 		color: rgba(255, 255, 255, 0.6);
 	}
 
 	.device-value {
 		flex: 1;
 		min-width: 0;
-		font-size: 13px;
+		font-size: 0.8125rem;
 		color: white;
 		text-align: end;
 		overflow-wrap: anywhere;
@@ -185,13 +185,13 @@
 	}
 
 	.credit-name {
-		font-size: 15px;
+		font-size: 0.9375rem;
 		font-weight: 500;
 	}
 
 	.credit-note {
-		font-size: 12px;
-		line-height: 16px;
+		font-size: 0.75rem;
+		line-height: 1rem;
 		color: rgba(255, 255, 255, 0.55);
 	}
 
@@ -199,7 +199,7 @@
 		width: 110px;
 		flex-shrink: 0;
 		text-align: end;
-		font-size: 12px;
+		font-size: 0.75rem;
 		color: rgba(255, 255, 255, 0.65);
 	}
 </style>

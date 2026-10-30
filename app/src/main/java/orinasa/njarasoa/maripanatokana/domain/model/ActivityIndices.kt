@@ -7,7 +7,9 @@ enum class ActivityTier {
     EXCELLENT,
     GOOD,
     FAIR,
-    POOR
+    POOR,
+    // Sun protection at night: there is no sun, so no tier applies
+    NOT_NEEDED,
 }
 
 data class ActivityIndices(
@@ -16,7 +18,8 @@ data class ActivityIndices(
     val uvSafety: ActivityTier,
 ) {
     companion object {
-        fun fromWeatherData(data: WeatherData): ActivityIndices {
+        // Twin: web/src/lib/domain/activityIndices.ts
+        fun fromWeatherData(data: WeatherData, isDay: Boolean): ActivityIndices {
             val tempC = data.temperature.celsius
             val humidity = data.humidity ?: 70 // neutral when unavailable
             val windMs = data.windSpeed.metersPerSecond
@@ -25,7 +28,7 @@ data class ActivityIndices(
             return ActivityIndices(
                 running = runningTier(tempC, humidity, windMs, precipMm),
                 laundry = laundryTier(tempC, humidity, windMs, precipMm),
-                uvSafety = uvTier(uv),
+                uvSafety = uvTier(uv, isDay),
             )
         }
 
@@ -43,7 +46,8 @@ data class ActivityIndices(
             else -> ActivityTier.FAIR
         }
 
-        private fun uvTier(uv: Double): ActivityTier = when {
+        private fun uvTier(uv: Double, isDay: Boolean): ActivityTier = when {
+            !isDay -> ActivityTier.NOT_NEEDED
             uv < 3.0 -> ActivityTier.EXCELLENT
             uv < 6.0 -> ActivityTier.GOOD
             uv < 8.0 -> ActivityTier.FAIR

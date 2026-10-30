@@ -76,7 +76,7 @@
 
 	.title {
 		font-family: var(--font-display);
-		font-size: 20px;
+		font-size: 1.25rem;
 		font-weight: 700;
 		margin: 0 0 12px 4px;
 	}
@@ -87,7 +87,7 @@
 		border-radius: 14px;
 		background: var(--surface-tile);
 		color: white;
-		font-size: 16px;
+		font-size: 1rem;
 		font-family: inherit;
 	}
 
@@ -113,7 +113,7 @@
 		background: none;
 		color: rgba(255, 255, 255, 0.7);
 		font-family: inherit;
-		font-size: 14px;
+		font-size: 0.875rem;
 		font-weight: 500;
 		cursor: pointer;
 	}

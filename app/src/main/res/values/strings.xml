@@ -53,6 +53,7 @@
     <string name="updated_time">Updated: %1$s</string>
     <string name="feels_like">Feels Like</string>
     <string name="no_precip">No precip</string>
+    <string name="precip_chance">%1$s chance</string>
     <string name="section_current_conditions">Current Conditions</string>
     <string name="section_sun_air">Sun &amp; Air</string>
     <string name="section_hourly_forecast">Hourly Forecast</string>
@@ -70,6 +71,7 @@
     <string name="daylight_hours_other">%1$s hours</string>
     <string name="daylight_minutes_one">%1$s minute</string>
     <string name="daylight_minutes_other">%1$s minutes</string>
+    <string name="rises_in">Rises in %1$s</string>
     <string name="nowcast_ongoing">Precipitation expected for the next 2 hours</string>
     <string name="activity_running">Running</string>
     <string name="activity_laundry">Drying Laundry</string>
@@ -78,6 +80,7 @@
     <string name="activity_tier_good">Good</string>
     <string name="activity_tier_fair">Fair</string>
     <string name="activity_tier_poor">Poor</string>
+    <string name="activity_tier_not_needed">Not needed</string>
     <string name="detail_temperature">Temperature</string>
     <string name="detail_precipitation">Precipitation</string>
     <string name="detail_wind">Wind</string>
@@ -148,6 +151,7 @@
     <string name="locations_search_hint">Search city or zip</string>
     <string name="cd_change_font">Change font</string>
     <string name="cd_change_language">Change language</string>
+    <string name="cd_show_all">Show all</string>
     <string name="cd_toggle_units">Toggle units</string>
     <string name="cd_share">Share</string>
     <string name="cd_refresh">Refresh</string>

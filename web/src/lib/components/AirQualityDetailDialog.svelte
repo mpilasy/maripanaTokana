@@ -147,7 +147,7 @@
 	}
 
 	.title {
-		font-size: 20px;
+		font-size: 1.25rem;
 		font-weight: 600;
 		margin: 0 0 16px 0;
 	}
@@ -165,13 +165,13 @@
 	}
 
 	.aqi-unit {
-		font-size: 12px;
+		font-size: 0.75rem;
 		color: rgba(255, 255, 255, 0.7);
 	}
 
 	.aqi-number {
 		font-family: var(--font-display);
-		font-size: 28px;
+		font-size: 1.75rem;
 		font-weight: 700;
 		font-feature-settings: var(--font-features);
 	}
@@ -183,7 +183,7 @@
 	}
 
 	.section-title {
-		font-size: 14px;
+		font-size: 0.875rem;
 		font-weight: 600;
 		margin: 0 0 4px 0;
 		color: rgba(255, 255, 255, 0.9);
@@ -202,7 +202,7 @@
 	}
 
 	.pollutant-label {
-		font-size: 14px;
+		font-size: 0.875rem;
 		color: rgba(255, 255, 255, 0.8);
 	}
 
@@ -214,7 +214,7 @@
 
 	.pollutant-value {
 		font-family: var(--font-display);
-		font-size: 14px;
+		font-size: 0.875rem;
 		font-feature-settings: var(--font-features);
 	}
 

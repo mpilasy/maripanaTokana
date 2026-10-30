@@ -252,7 +252,7 @@
 	{:else if displayMode === 'AirQuality'}
 		{@const aq = aqByDay[i]}
 		{#if aq}
-			<DualUnitText primary={loc(String(aq[0]))} secondary={loc(String(aq[1]))} primaryUnit={aqiUnits[0]} secondaryUnit={aqiUnits[1]} primarySize="13px" align="center" />
+			<DualUnitText primary={loc(String(aq[0]))} secondary={loc(String(aq[1]))} primaryUnit={aqiUnits[0]} secondaryUnit={aqiUnits[1]} primarySize="0.8125rem" align="center" />
 			<LevelBar color={AQI_TIER_COLORS[aqTier(aq[0])]} label={aqTierLabel(aq[0])} />
 		{:else}
 			<span class="uv-value">--</span>
@@ -262,7 +262,7 @@
 
 <!-- A value in both units on a forecast card; a tap swaps the units -->
 {#snippet cardDualValue(dual: [string, string])}
-	<DualUnitText primary={loc(dual[0])} secondary={loc(dual[1])} primarySize="13px" align="center" onClick={onToggleUnits} />
+	<DualUnitText primary={loc(dual[0])} secondary={loc(dual[1])} primarySize="0.8125rem" align="center" onClick={onToggleUnits} />
 {/snippet}
 
 <style>
@@ -285,6 +285,11 @@
 	.share .cards-row {
 		display: grid;
 		row-gap: 12px;
+	}
+
+	/* scrollbar-width: Chrome ignores ::-webkit-scrollbar when an ancestor sets scrollbar-color */
+	.cards-scroll {
+		scrollbar-width: none;
 	}
 
 	.cards-scroll::-webkit-scrollbar {
@@ -319,7 +324,7 @@
 	}
 
 	.day-name {
-		font-size: 12px;
+		font-size: 0.75rem;
 		font-weight: 500;
 		color: white;
 		width: 100%;
@@ -327,7 +332,7 @@
 	}
 
 	.day-date {
-		font-size: 9px;
+		font-size: 0.5625rem;
 		color: rgba(255,255,255,0.65);
 		width: 100%;
 		text-align: center;
@@ -338,7 +343,7 @@
 		display: flex;
 		align-items: center;
 		gap: 4px;
-		font-size: 11px;
+		font-size: 0.6875rem;
 		color: rgba(255, 255, 255, 0.7);
 	}
 
@@ -367,14 +372,14 @@
 
 	.uv-value {
 		font-family: var(--font-display);
-		font-size: 15px;
+		font-size: 0.9375rem;
 		font-weight: 700;
 		color: white;
 		font-feature-settings: var(--font-features);
 	}
 
 	.daily-precip {
-		font-size: 11px;
+		font-size: 0.6875rem;
 		color: #64B5F6;
 		min-height: 14px;
 		font-feature-settings: var(--font-features);

@@ -27,7 +27,7 @@
 		display: flex;
 		flex-direction: column;
 		font-family: var(--font-display);
-		font-size: 15px;
+		font-size: 0.9375rem;
 		font-weight: 700;
 		color: white;
 		font-feature-settings: var(--font-features);
@@ -49,7 +49,7 @@
 
 	.label {
 		font-family: var(--font-body, inherit);
-		font-size: 11px;
+		font-size: 0.6875rem;
 		font-weight: 400;
 		color: rgba(255, 255, 255, 0.5);
 	}
@@ -74,7 +74,7 @@
 
 	/* The other unit, under the value and smaller */
 	.secondary {
-		font-size: 12px;
+		font-size: 0.75rem;
 		font-weight: 400;
 		color: rgba(255, 255, 255, 0.6);
 	}

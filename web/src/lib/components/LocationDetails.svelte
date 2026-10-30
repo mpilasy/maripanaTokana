@@ -55,7 +55,7 @@
 </script>
 
 <span class="details">
-	<button type="button" class="details-btn" aria-label={$_('cd_location_details')} aria-expanded={open}
+	<button type="button" class="details-btn touch-target" aria-label={$_('cd_location_details')} aria-expanded={open}
 		onclick={(e) => { e.stopPropagation(); open = !open; }}>
 		<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
 			<path d={GRID}/>
@@ -118,7 +118,7 @@
 		background: transparent;
 		color: #1C1B1F;
 		font-family: var(--font-body);
-		font-size: 13px;
+		font-size: 0.8125rem;
 		text-align: start;
 		cursor: pointer;
 	}

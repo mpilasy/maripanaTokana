@@ -12,7 +12,7 @@
 		secondaryScale?: number;
 	}
 
-	let { primary, secondary, primarySize = '16px', align = 'start', onClick, primaryUnit, secondaryUnit, secondaryScale = 0.75 }: Props = $props();
+	let { primary, secondary, primarySize = '1rem', align = 'start', onClick, primaryUnit, secondaryUnit, secondaryScale = 0.75 }: Props = $props();
 </script>
 
 {#snippet content()}

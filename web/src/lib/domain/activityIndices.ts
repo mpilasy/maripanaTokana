@@ -3,7 +3,8 @@
 
 import type { WeatherData } from './weatherData';
 
-export type ActivityTier = 'EXCELLENT' | 'GOOD' | 'FAIR' | 'POOR';
+// NOT_NEEDED: only for sun protection at night
+export type ActivityTier = 'EXCELLENT' | 'GOOD' | 'FAIR' | 'POOR' | 'NOT_NEEDED';
 
 export interface ActivityIndices {
 	running: ActivityTier;
@@ -11,7 +12,8 @@ export interface ActivityIndices {
 	uvSafety: ActivityTier;
 }
 
-export function computeActivityIndices(data: WeatherData): ActivityIndices {
+/** The activity tiers for `data`; `isDay` is false between sunset and sunrise. */
+export function computeActivityIndices(data: WeatherData, isDay: boolean): ActivityIndices {
 	const tempC = data.temperature.celsius;
 	const humidity = data.humidity ?? 70; // neutral when unavailable
 	const windMs = data.windSpeed.metersPerSecond;
@@ -20,7 +22,7 @@ export function computeActivityIndices(data: WeatherData): ActivityIndices {
 	return {
 		running: runningTier(tempC, humidity, windMs, precipMm),
 		laundry: laundryTier(tempC, humidity, windMs, precipMm),
-		uvSafety: uvTier(uv)
+		uvSafety: uvTier(uv, isDay)
 	};
 }
 
@@ -38,7 +40,9 @@ function laundryTier(tempC: number, humidity: number, windMs: number, precipMm: 
 	return 'FAIR';
 }
 
-function uvTier(uv: number): ActivityTier {
+function uvTier(uv: number, isDay: boolean): ActivityTier {
+	// No sun protection is necessary at night
+	if (!isDay) return 'NOT_NEEDED';
 	if (uv < 3) return 'EXCELLENT';
 	if (uv < 6) return 'GOOD';
 	if (uv < 8) return 'FAIR';

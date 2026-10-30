@@ -55,7 +55,7 @@
 
 	.text {
 		margin: 0 0 8px;
-		font-size: 13px;
+		font-size: 0.8125rem;
 		color: rgba(255, 255, 255, 0.6);
 	}
 

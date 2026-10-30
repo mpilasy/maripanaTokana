@@ -35,27 +35,38 @@
 	{/if}
 </svelte:head>
 
+<!-- A small arrow after the font name or the flag: a tap opens the same list as holding it -->
+<!-- Twin: the KeyboardArrowDown icons in app/src/main/java/orinasa/njarasoa/maripanatokana/ui/weather/components/FooterPickers.kt -->
+{#snippet showAll(toggle: () => void, expanded: boolean)}
+	<button type="button" class="show-all touch-target" aria-label={$_('cd_show_all')} aria-expanded={expanded}
+		onclick={(e) => { e.stopPropagation(); toggle(); }}>
+		<svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+	</button>
+{/snippet}
+
 <footer class="footer" dir="ltr">
 	<span class="picker-box">
-		<button type="button" class="pill" onclick={onCycleFont} use:longPress={() => (fontPickerOpen = true)} aria-label={$_('cd_change_font')}>
+		<button type="button" class="pill touch-target" onclick={onCycleFont} use:longPress={() => (fontPickerOpen = true)} aria-label={$_('cd_change_font')}>
 			<span class="icon">Aa</span>
 			<span class="name">{fontName.split(' + ')[0]}</span>
 		</button>
+		{@render showAll(() => (fontPickerOpen = !fontPickerOpen), fontPickerOpen)}
 		<PickerMenu bind:open={fontPickerOpen} items={fontItems} current={$fontIndex} onSelect={selectFont} above alignStart />
 	</span>
 	<!-- Help, and About (which credits the data sources) -->
 	<div class="footer-credits">
 		<span class="links">
-			<button type="button" class="about-link" onclick={onOpenHelp}>{$_('help_title')}</button>
+			<button type="button" class="about-link touch-target" onclick={onOpenHelp}>{$_('help_title')}</button>
 			<span class="dot">·</span>
-			<button type="button" class="about-link" onclick={onOpenAbout}>{$_('about_title')}</button>
+			<button type="button" class="about-link touch-target" onclick={onOpenAbout}>{$_('about_title')}</button>
 		</span>
 		<span class="version">v1.6.20261030023347</span>
 	</div>
 	<span class="picker-box">
-		<button type="button" class="pill" onclick={onCycleLanguage} use:longPress={() => (pickerOpen = true)} aria-label={$_('cd_change_language')}>
+		<button type="button" class="pill touch-target" onclick={onCycleLanguage} use:longPress={() => (pickerOpen = true)} aria-label={$_('cd_change_language')}>
 			<span class="flag">{currentFlag}</span>
 		</button>
+		{@render showAll(() => (pickerOpen = !pickerOpen), pickerOpen)}
 		<PickerMenu bind:open={pickerOpen} items={languageItems} current={$localeIndex} onSelect={selectLanguage} above />
 	</span>
 </footer>
@@ -98,12 +109,12 @@
 	}
 
 	.icon {
-		font-size: 13px;
+		font-size: 0.8125rem;
 		color: rgba(255, 255, 255, 0.7);
 	}
 
 	.name {
-		font-size: 11px;
+		font-size: 0.6875rem;
 		color: rgba(255, 255, 255, 0.7);
 		white-space: nowrap;
 	}
@@ -111,10 +122,27 @@
 	.picker-box {
 		position: relative;
 		flex-shrink: 0;
+		display: flex;
+		align-items: center;
+	}
+
+	.show-all {
+		display: flex;
+		align-items: center;
+		padding: 0;
+		border: none;
+		background: none;
+		color: rgba(255, 255, 255, 0.7);
+		cursor: pointer;
+	}
+
+	.show-all:focus-visible {
+		outline: 2px solid rgba(255, 255, 255, 0.5);
+		outline-offset: 2px;
 	}
 
 	.flag {
-		font-size: 16px;
+		font-size: 1rem;
 		line-height: 1;
 	}
 
@@ -135,7 +163,7 @@
 	}
 
 	.dot {
-		font-size: 10px;
+		font-size: 0.625rem;
 		color: rgba(255,255,255,0.3);
 	}
 
@@ -145,15 +173,15 @@
 		padding: 2px 4px;
 		font-family: inherit;
 		cursor: pointer;
-		font-size: 10px;
-		line-height: 13px;
+		font-size: 0.625rem;
+		line-height: 0.8125rem;
 		color: rgba(255,255,255,0.7);
 		text-decoration: underline;
 	}
 
 	.version {
-		font-size: 9px;
-		line-height: 12px;
+		font-size: 0.5625rem;
+		line-height: 0.75rem;
 		color: rgba(255,255,255,0.6);
 	}
 </style>

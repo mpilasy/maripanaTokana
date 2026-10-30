@@ -28,6 +28,11 @@
 		padding-bottom: 4px;
 	}
 
+	/* scrollbar-width: Chrome ignores ::-webkit-scrollbar when an ancestor sets scrollbar-color */
+	.tabs {
+		scrollbar-width: none;
+	}
+
 	.tabs::-webkit-scrollbar {
 		display: none;
 	}
@@ -40,7 +45,7 @@
 		background: var(--surface-tile);
 		color: rgba(255, 255, 255, 0.7);
 		font-family: inherit;
-		font-size: 13px;
+		font-size: 0.8125rem;
 		font-weight: 500;
 		cursor: pointer;
 		white-space: nowrap;

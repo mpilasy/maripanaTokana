@@ -59,14 +59,14 @@
 
 	.question {
 		font-family: var(--font-body);
-		font-size: 15px;
+		font-size: 0.9375rem;
 		font-weight: 600;
 	}
 
 	.answer {
 		font-family: var(--font-body);
-		font-size: 14px;
-		line-height: 20px;
+		font-size: 0.875rem;
+		line-height: 1.25rem;
 		color: rgba(255, 255, 255, 0.75);
 	}
 </style>
