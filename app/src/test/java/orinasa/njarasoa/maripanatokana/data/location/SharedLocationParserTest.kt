@@ -60,4 +60,38 @@ class SharedLocationParserTest {
         val parsed = SharedLocationParser.parseLocationText("Just some random text with no coordinates")
         assertNull(parsed)
     }
+
+    @Test
+    fun testParseLinksWithAnEncodedComma() {
+        listOf(
+            "geo:0,0?q=-18.97%2C49.14",
+            "https://www.google.com/maps/search/?api=1&query=-18.97%2C49.14",
+            "https://maps.google.com/?q=-18.97%2c49.14",
+        ).forEach { link ->
+            val parsed = SharedLocationParser.parseLocationText(link)
+            assertEquals(link, -18.97, parsed!!.latitude, 0.0001)
+            assertEquals(link, 49.14, parsed.longitude, 0.0001)
+        }
+    }
+
+    @Test
+    fun testTextWithAPercentSignStillParses() {
+        val parsed = SharedLocationParser.parseLocationText("100% here\n-18.8792, 47.5079")
+        assertEquals(-18.8792, parsed!!.latitude, 0.0001)
+    }
+
+    @Test
+    fun testParsePlaceLinkWithOnlyThePin() {
+        // The link that a maps.app.goo.gl short link from Google Photos resolves to
+        val parsed = SharedLocationParser.parseLocationText("https://www.google.com/maps/place/5553%2BMCG+Gare+Train,+Ambila+Lemaitso,+Madagascar/data=!4m6!3m5!1s0x21f38ffc892ea313:0x7acf3fb7e2ee5ef2!7e2!8m2!3d-18.8407999!4d49.1535083!18m1!1e1?entry=gps")
+        assertEquals(-18.8407999, parsed!!.latitude, 0.0001)
+        assertEquals(49.1535083, parsed.longitude, 0.0001)
+    }
+
+    @Test
+    fun testPlaceLinkUsesThePinNotTheMapCentre() {
+        val parsed = SharedLocationParser.parseLocationText("https://www.google.com/maps/place/Ambila/@-18.80,49.10,12z/data=!3m1!4b1!4m6!3m5!1s0x0:0x0!8m2!3d-18.8407999!4d49.1535083")
+        assertEquals(-18.8407999, parsed!!.latitude, 0.0001)
+        assertEquals(49.1535083, parsed.longitude, 0.0001)
+    }
 }

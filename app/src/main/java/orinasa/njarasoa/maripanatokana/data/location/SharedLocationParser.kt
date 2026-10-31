@@ -19,7 +19,8 @@ object SharedLocationParser {
     fun parseLocationText(text: String?): ParsedLocation? {
         var result: ParsedLocation? = null
         if (!text.isNullOrBlank()) {
-            val input = text.trim()
+            // Links can encode the comma between the coordinates as %2C
+            val input = runCatching { URLDecoder.decode(text.trim(), "UTF-8") }.getOrDefault(text.trim())
             val geoMatch = parseGeoUri(input)
             val dmsMatch = parseDmsCoordinates(input)
             val urlCoords = parseUrlCoordinates(input)
@@ -79,6 +80,10 @@ object SharedLocationParser {
 
     private fun parseUrlCoordinates(input: String): Pair<Double, Double>? {
         var result: Pair<Double, Double>? = null
+        // The place pin of a Google Maps place link; "/@" is only the centre of the map view
+        val pinRegex = Regex("""!3d(-?\d{1,2}\.\d+)!4d(-?\d{1,3}\.\d+)""")
+        val pinMatch = pinRegex.find(input)
+
         val atRegex = Regex("""/@(-?\d{1,2}\.\d+),(-?\d{1,3}\.\d+)""")
         val atMatch = atRegex.find(input)
 
@@ -91,7 +96,7 @@ object SharedLocationParser {
         val paramRegex = Regex("""(?:mlat|ll)=(-?\d{1,2}\.\d+)[&,]?(?:mlon=)?(-?\d{1,3}\.\d+)""", RegexOption.IGNORE_CASE)
         val paramMatch = paramRegex.find(input)
 
-        val match = atMatch ?: qMatch ?: osmMatch ?: paramMatch
+        val match = pinMatch ?: atMatch ?: qMatch ?: osmMatch ?: paramMatch
         if (match != null) {
             val lat = match.groupValues[1].toDoubleOrNull()
             val lon = match.groupValues[2].toDoubleOrNull()

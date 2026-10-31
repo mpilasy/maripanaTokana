@@ -10,7 +10,8 @@ export interface ParsedLocation {
 export function parseLocationText(text: string | null | undefined): ParsedLocation | null {
 	let result: ParsedLocation | null = null;
 	if (text && text.trim().length > 0) {
-		const input = text.trim();
+		// Links can encode the comma between the coordinates as %2C
+		const input = decodeText(text.trim());
 		const geoMatch = parseGeoUri(input);
 		const dmsMatch = parseDmsCoordinates(input);
 		const urlCoords = parseUrlCoordinates(input);
@@ -23,6 +24,14 @@ export function parseLocationText(text: string | null | undefined): ParsedLocati
 		}
 	}
 	return result;
+}
+
+function decodeText(text: string): string {
+	try {
+		return decodeURIComponent(text.replace(/\+/g, ' '));
+	} catch {
+		return text;
+	}
 }
 
 function parseGeoUri(input: string): { latitude: number; longitude: number } | null {
@@ -41,12 +50,14 @@ function parseGeoUri(input: string): { latitude: number; longitude: number } | n
 
 function parseUrlCoordinates(input: string): { latitude: number; longitude: number } | null {
 	let result: { latitude: number; longitude: number } | null = null;
+	// The place pin of a Google Maps place link; "@" is only the centre of the map view
+	const pinMatch = input.match(/!3d(-?\d{1,2}\.\d+)!4d(-?\d{1,3}\.\d+)/);
 	const atMatch = input.match(/@(-?\d{1,2}\.\d+),(-?\d{1,3}\.\d+)/);
 	const qMatch = input.match(/(?:query|q|place)[=/](-?\d{1,2}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)/i);
 	const osmMatch = input.match(/#map=\d+\/(-?\d{1,2}\.\d+)\/(-?\d{1,3}\.\d+)/);
 	const paramMatch = input.match(/(?:mlat|ll)=(-?\d{1,2}\.\d+)[&,]?(?:mlon=)?(-?\d{1,3}\.\d+)/i);
 
-	const match = atMatch || qMatch || osmMatch || paramMatch;
+	const match = pinMatch || atMatch || qMatch || osmMatch || paramMatch;
 	if (match) {
 		const lat = parseFloat(match[1]);
 		const lon = parseFloat(match[2]);
