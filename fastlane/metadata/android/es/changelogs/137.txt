@@ -1,0 +1,9 @@
+Desde 1.6.20261029031929:
+- Lugares: toca el nombre o el ▾ para ver la lista, con distancias.
+- Enfriamiento por viento: tiempo hasta la congelación.
+- Noche polar, sol de medianoche; salida del sol y de la luna de noche.
+- Diales con escala; duración del día en palabras.
+- Las alertas muestran su nivel en palabras.
+- El encabezado se reduce al desplazarse; ▾ junto a bandera y fuente.
+- Enlaces de Google Maps de Google Photos: el lugar correcto.
+- Pirate Weather por minuto; mejor accesibilidad.

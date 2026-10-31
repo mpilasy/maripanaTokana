@@ -1,0 +1,9 @@
+Depuis 1.6.20261029031929 :
+- Lieux : touchez le nom ou le ▾ pour la liste, avec les distances.
+- Refroidissement éolien : temps avant gelure.
+- Nuit polaire, soleil de minuit ; lever du soleil et de la lune la nuit.
+- Cadrans gradués ; durée du jour en mots.
+- Les alertes indiquent leur niveau en mots.
+- L'en-tête se réduit au défilement ; ▾ près du drapeau et de la police.
+- Liens Google Maps de Google Photos : le bon lieu.
+- Pirate Weather minute par minute ; accessibilité améliorée.

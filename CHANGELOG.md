@@ -9,6 +9,11 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261031154812] - 2026-10-31
+- Shared places: a Google Maps link from Google Photos ("Open in Maps") opens the place in the link. The maps.app.goo.gl link leads to a place URL that has the place only as `!3d<lat>!4d<lon>`; the app did not read it, searched for the place by name and found a different place. When a link has both, the app now uses this place pin, not the centre of the map view (`/@`). Links with the comma encoded as `%2C` also work. Same change on the web.
+- Release workflow: the VirusTotal check asks again when a new analysis is not visible yet (HTTP 404), or on 429 and server errors.
+- Store notes: they now cover the versions since 1.6.20261029031929, the version on the F-Droid page.
+
 ## [1.6.20261030204811] - 2026-10-30
 - Tiles: the dials in one row line up when one title wraps to two lines (for example Malagasy "Tahan'ny tara-masoandro" next to "Hadion'ny rivotra"). Each title in a row takes as many lines as the longest one.
 - Android: the two lines of a tile title sit close together, as on the web.

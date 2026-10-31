@@ -1,0 +1,9 @@
+Since 1.6.20261029031929:
+- Places: tap the name or ▾ for the list, with distances.
+- Wind chill shows the time to frostbite.
+- Polar night and midnight sun; sun and moon rise times at night.
+- Dials show their scale; day length in words.
+- Alerts show their level in words.
+- The header shrinks when you scroll; ▾ by the flag and font for lists.
+- Google Maps links from Google Photos open the right place.
+- Pirate Weather nowcast; better accessibility and contrast.
