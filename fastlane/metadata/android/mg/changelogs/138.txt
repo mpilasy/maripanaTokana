@@ -1,0 +1,8 @@
+Hatramin'ny 1.6.20261029031929:
+- Toerana: tsindrio ny anarana na ▾ hahitana ny lisitra sy ny halavirana.
+- Hatsiaka tsapa: ny fotoana mitsovaka.
+- Tsy miposaka na tsy mody ny masoandro; amin'ny alina: rahoviana no hiposaka ny masoandro sy volana.
+- Filazana: Mailo, Tandremo na Loza.
+- ▾ eo akaikin'ny saina sy ny endri-tsoratra: misy lisitra.
+- Rohy Google Maps zaraina: ilay toerana marina; ny «miverina» dia mitondra any amin'ilay app nizara.
+- Orana isa-minitra (Pirate Weather).
