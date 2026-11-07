@@ -9,6 +9,10 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261107194118] - 2026-11-07
+- Chart view: one finger scrolls the hours with fling; the selection line stays in the middle of the chart, and the hour under it is selected, with a tick at each new hour. A tap brings that hour to the middle; pinch and double tap zoom around the line. This replaces the slide-to-select rule of the previous version.
+- Chart view: the hint under the title is removed.
+
 ## [1.6.20261107190528] - 2026-11-07
 - Chart view: a one-finger slide selects the hours, with a tick at each hour, as on the main-page charts; near the start or end edge the chart scrolls by itself while the selection follows. Two fingers scroll and zoom; a double tap resets the zoom; a tap selects with a tick. The long-press rule is removed. Web: a mouse drag selects, and Shift + wheel or a horizontal wheel scrolls.
 - Chart view: the days and hours also show at the top, above the icons.
