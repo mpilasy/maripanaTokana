@@ -23,6 +23,7 @@
 	import SettingsScreen from './SettingsScreen.svelte';
 	import AboutScreen from './AboutScreen.svelte';
 	import HelpScreen from './HelpScreen.svelte';
+	import ChartView from './ChartView.svelte';
 	import { metricPrimary, fontIndex, localeIndex, weatherSource, weatherApiKey, weatherModel, toggleUnits, cycleFont, cycleLanguage } from '#lib/stores/preferences.js';
 	import { SUPPORTED_LOCALES, localizeDigits } from '#lib/i18n/index.js';
 	import { fontPairings } from '#lib/fonts.js';
@@ -49,6 +50,8 @@
 	let showSettings = $state(false);
 	let showAbout = $state(false);
 	let showHelp = $state(false);
+	// The chart view, with the place name shown when it opened; null when closed
+	let chartPlace = $state<string | null>(null);
 
 	const weekdayNames = $derived($json('weekday_names') as string[] | undefined);
 	const monthNames = $derived($json('month_names') as string[] | undefined);
@@ -328,6 +331,15 @@
 		     (the Plus Code when the name itself is already the coordinates) -->
 		{@const region = subtext || (name.includes(',') && !isCoordinatesName(name) ? name.split(',').slice(1).join(',').trim() : '')}
 		{@const plusCode = encodePlusCode(data.latitude, data.longitude)}
+		<!-- The chart view button in the hourly and 10-day card headers, when the data has the chart hours -->
+		{#snippet chartAction()}
+			<button type="button" class="chart-btn touch-target" aria-label={$_('chart_view_open')} title={$_('chart_view_open')} onclick={() => (chartPlace = shownName)}>
+				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<path d="M3 3v18h18"/>
+					<polyline points="7 15 11 10 14 13 20 6"/>
+				</svg>
+			</button>
+		{/snippet}
 		{@const decimal = `${data.latitude.toFixed(4)}, ${data.longitude.toFixed(4)}`}
 		{@const refreshFailedText = $_('refresh_failed', { values: { time: loc(formatTime(data.timestamp)) } }) + ($refreshError ? ' · ' + $_($refreshError) : '')}
 		{@const updatedText = $_('updated_time', { values: { time: loc(isToday(data.timestamp)
@@ -510,7 +522,7 @@
 
 				{#if data.hourlyForecast.length > 0}
 					<div>
-						<SectionCard title={$_('section_hourly_forecast')} onShare={handleShare}>
+						<SectionCard title={$_('section_hourly_forecast')} onShare={handleShare} action={data.chartHourly?.length ? chartAction : undefined}>
 							{#snippet shareCopy()}
 								{#if $weatherSource === 'OPEN_METEO' && data.minutelyForecast && nowcastHasRain(data.minutelyForecast)}
 									<h3 class="sub-title">{$_('section_nowcast')}</h3>
@@ -556,7 +568,7 @@
 
 				{#if data.dailyForecast.length > 0}
 					<div>
-						<SectionCard title={$_('section_this_week')} onShare={handleShare}>
+						<SectionCard title={$_('section_this_week')} onShare={handleShare} action={data.chartHourly?.length ? chartAction : undefined}>
 							{#snippet shareCopy()}
 								<DailyForecast
 									forecasts={data.dailyForecast}
@@ -690,6 +702,19 @@
 {#if showAbout}
 	<AboutScreen onBack={() => showAbout = false} onOpenHelp={() => showHelp = true}
 		languageFlag={SUPPORTED_LOCALES[$localeIndex].flag} onCycleLanguage={cycleLanguage} />
+{/if}
+
+{#if chartPlace != null && $weatherState.kind === 'success' && $weatherState.data.chartHourly?.length}
+	<ChartView
+		hours={$weatherState.data.chartHourly}
+		utcOffsetSeconds={$weatherState.data.utcOffsetSeconds}
+		placeName={chartPlace}
+		metricPrimary={$metricPrimary}
+		localeTag={SUPPORTED_LOCALES[$localeIndex].tag}
+		{loc}
+		onToggleUnits={toggleUnits}
+		onBack={() => (chartPlace = null)}
+	/>
 {/if}
 
 {#if showHelp}
@@ -978,6 +1003,25 @@
 		inset-inline-end: 0;
 		display: flex;
 		align-items: center;
+	}
+
+	/* The same look as the card's share button; the gap keeps the two 44 px touch areas apart */
+	.chart-btn {
+		width: 36px;
+		height: 36px;
+		margin-inline-end: 8px;
+		border: none;
+		border-radius: 50%;
+		background: none;
+		color: rgba(255, 255, 255, 0.6);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+	}
+
+	.chart-btn:hover {
+		background: var(--surface-tile);
 	}
 
 	.header-action {

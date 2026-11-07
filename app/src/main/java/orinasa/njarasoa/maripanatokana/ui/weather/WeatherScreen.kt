@@ -66,6 +66,7 @@ import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 import orinasa.njarasoa.maripanatokana.ui.theme.buildTypography
 import orinasa.njarasoa.maripanatokana.ui.theme.fontPairings
 import orinasa.njarasoa.maripanatokana.ui.theme.localName
+import orinasa.njarasoa.maripanatokana.ui.weather.chart.ChartViewScreen
 import orinasa.njarasoa.maripanatokana.ui.weather.components.RenameLocationDialog
 import orinasa.njarasoa.maripanatokana.ui.weather.components.SavedLocationsDialog
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -80,6 +81,10 @@ fun WeatherScreen(
     var showSettings by rememberSaveable { mutableStateOf(false) }
     var showAbout by rememberSaveable { mutableStateOf(false) }
     var showHelp by rememberSaveable { mutableStateOf(false) }
+    var showChartView by rememberSaveable { mutableStateOf(false) }
+    // The chart view shows the weather on screen; without it (loading, error) the main screen shows
+    val uiState by viewModel.uiState.collectAsState()
+    val chartData = (uiState as? WeatherUiState.Success)?.data
     // Hoisted so the main screen's scroll position survives a trip through Settings/About.
     val mainScrollState = rememberSaveable(saver = ScrollState.Saver) { ScrollState(0) }
 
@@ -126,6 +131,15 @@ fun WeatherScreen(
             AboutScreen(onBack = { showAbout = false }, onOpenHelp = { showHelp = true }, languageFlag = supportedLocales[localeIndex].flag, onCycleLanguage = viewModel::cycleLanguage, onSelectLanguage = viewModel::selectLanguage, weatherModelName = modelName)
         } else if (showSettings) {
             SettingsScreen(onBack = { showSettings = false }, onOpenAbout = { showAbout = true }, localizeDigits = supportedLocales[localeIndex]::localizeDigits)
+        } else if (showChartView && chartData != null) {
+            val metricPrimary by viewModel.metricPrimary.collectAsState()
+            ChartViewScreen(
+                data = chartData,
+                metricPrimary = metricPrimary,
+                localizeDigits = supportedLocales[localeIndex]::localizeDigits,
+                onToggleUnits = viewModel::toggleUnits,
+                onBack = { showChartView = false },
+            )
         } else {
             WeatherMainScreen(
                 viewModel = viewModel,
@@ -134,6 +148,7 @@ fun WeatherScreen(
                 onOpenSettings = { showSettings = true },
                 onOpenAbout = { showAbout = true },
                 onOpenHelp = { showHelp = true },
+                onOpenChartView = { showChartView = true },
             )
         }
         }
@@ -149,6 +164,7 @@ private fun WeatherMainScreen(
     onOpenSettings: () -> Unit,
     onOpenAbout: () -> Unit,
     onOpenHelp: () -> Unit,
+    onOpenChartView: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
@@ -480,6 +496,7 @@ private fun WeatherMainScreen(
                             onOpenSettings = onOpenSettings,
                             onOpenAbout = onOpenAbout,
                             onOpenHelp = onOpenHelp,
+                            onOpenChartView = onOpenChartView,
                             scrollState = scrollState,
                             weatherSource = weatherSource,
                             isSavedLocation = activeLocationId != null,

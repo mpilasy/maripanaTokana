@@ -2,12 +2,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { HttpError, netFetch, retryOnce } from './http';
-import type { WeatherData, HourlyForecast, DailyForecast, MinutelyForecast } from '#lib/domain/weatherData.js';
+import type { WeatherData, HourlyForecast, DailyForecast, MinutelyForecast, ChartHour } from '#lib/domain/weatherData.js';
 import { Temperature } from '#lib/domain/temperature.js';
 import { WindSpeed } from '#lib/domain/windSpeed.js';
 import { Pressure } from '#lib/domain/pressure.js';
 import { Precipitation } from '#lib/domain/precipitation.js';
 import { nightWeatherCodes } from './nightWeather';
+import { chartDaylight, chartHours } from '#lib/utils/chartView.js';
 
 // The same on Android (PirateWeatherMapper.kt). Sleet is freezing rain (66), so it gets the sleet icon.
 // A Map, not an object: an icon name such as "constructor" must not find an inherited property
@@ -40,7 +41,7 @@ export async function fetchPirateWeather(lat: number, lon: number, apiKey: strin
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const d: any = await retryOnce(async () => {
 		const res = await netFetch(
-			`https://api.pirateweather.net/forecast/${encodeURIComponent(apiKey)}/${lat},${lon}?units=si&exclude=alerts`,
+			`https://api.pirateweather.net/forecast/${encodeURIComponent(apiKey)}/${lat},${lon}?units=si&exclude=alerts&extend=hourly`,
 			{ signal: AbortSignal.timeout(10_000) }
 		);
 		if (!res.ok) throw new HttpError(res.status, `Pirate Weather ${res.status}`);
@@ -76,6 +77,7 @@ function mapPirateWeather(d: any, lat: number, lon: number, locationName: string
 		dailySunrise: days.map((day) => (day.sunriseTime ?? 0) * 1000),
 		dailySunset: days.map((day) => (day.sunsetTime ?? 0) * 1000),
 		hourlyForecast: hourlyForecast(hourlyRaw),
+		chartHourly: chartHourly(hourlyRaw, days),
 		minutelyForecast: minutelyForecast(d.minutely?.data ?? []),
 		dailyForecast: dailyForecast(days, hourlyRaw),
 		alerts: [],
@@ -120,6 +122,33 @@ function hourlyForecast(data: any[]): HourlyForecast[] {
 		uvIndex: h.uvIndex ?? null,
 		humidity: h.humidity != null ? Math.round(h.humidity * 100) : null,
 		dewPoint: h.dewPoint != null ? Temperature.fromCelsius(h.dewPoint) : null,
+	}));
+}
+
+/** The hours of the chart view, from the current hour (168 at most with extend=hourly). A missing value is null. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function chartHourly(data: any[], days: any[]): ChartHour[] {
+	const range = chartHours(data.map((h) => h.time * 1000), Date.now());
+	const hours = data.slice(range.start, range.end);
+	const night = chartDaylight(
+		hours.map((h) => h.time * 1000),
+		days.map((day) => (day.sunriseTime ?? 0) * 1000),
+		days.map((day) => (day.sunsetTime ?? 0) * 1000),
+	);
+	return hours.map((h, i) => ({
+		time: h.time * 1000,
+		temperature: h.temperature != null ? Temperature.fromCelsius(h.temperature) : null,
+		dewPoint: h.dewPoint != null ? Temperature.fromCelsius(h.dewPoint) : null,
+		weatherCode: iconToWmoCode(h.icon),
+		isNight: night[i],
+		precipitation: h.precipIntensity != null ? Precipitation.fromMm(h.precipIntensity) : null,
+		precipProbability: h.precipProbability != null ? Math.round(h.precipProbability * 100) : null,
+		windSpeed: h.windSpeed != null ? WindSpeed.fromMetersPerSecond(h.windSpeed) : null,
+		windDeg: h.windBearing ?? null,
+		windGust: h.windGust != null ? WindSpeed.fromMetersPerSecond(h.windGust) : null,
+		pressure: h.pressure != null ? Pressure.fromHPa(h.pressure) : null,
+		humidity: h.humidity != null ? Math.round(h.humidity * 100) : null,
+		uvIndex: h.uvIndex ?? null,
 	}));
 }
 

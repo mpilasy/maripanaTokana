@@ -297,6 +297,7 @@ internal fun WeatherContent(
     onOpenSettings: () -> Unit = {},
     onOpenAbout: () -> Unit = {},
     onOpenHelp: () -> Unit = {},
+    onOpenChartView: () -> Unit = {},
     weatherSource: WeatherSource = WeatherSource.OPEN_METEO,
     isSavedLocation: Boolean = false,
     onGoToCurrentLocation: () -> Unit = {},
@@ -945,7 +946,8 @@ internal fun WeatherContent(
             }
             if (data.hourlyForecast.isNotEmpty()) add {
                 val hourlyMode = remember { mutableStateOf(ForecastDisplayMode.Temperature) }
-                SectionCard(stringResource(R.string.section_hourly_forecast), headerGraphicsLayer, shareCopy = true) {
+                SectionCard(stringResource(R.string.section_hourly_forecast), headerGraphicsLayer, shareCopy = true,
+                    action = { ChartViewButton(onOpenChartView) }) {
                     if (showNowcast) {
                         Text(
                             text = stringResource(R.string.section_nowcast),
@@ -969,7 +971,8 @@ internal fun WeatherContent(
             }
             if (data.dailyForecast.isNotEmpty()) add {
                 val dailyMode = remember { mutableStateOf(ForecastDisplayMode.Temperature) }
-                SectionCard(stringResource(R.string.section_this_week), headerGraphicsLayer, shareCopy = true) {
+                SectionCard(stringResource(R.string.section_this_week), headerGraphicsLayer, shareCopy = true,
+                    action = { ChartViewButton(onOpenChartView) }) {
                     ForecastChangesBlock(data.forecastChanges, metricPrimary, localizeDigits)
                     DailyForecastList(data.dailyForecast, metricPrimary, localizeDigits, onToggleUnits, data.utcOffsetSeconds,
                         hourlyAirQuality = data.hourlyAirQuality.takeIf { data.airQuality != null }.orEmpty(),
@@ -1317,6 +1320,8 @@ internal fun SectionCard(
     bare: Boolean = false,
     // The share image shows a copy of the content with every item (rows that scroll sideways wrap)
     shareCopy: Boolean = false,
+    // A button in the header before the share button, for example the chart view button
+    action: (@Composable () -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
     val bodyFont = LocalBodyFont.current
@@ -1354,6 +1359,7 @@ internal fun SectionCard(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f).semantics { heading() },
             )
+            action?.invoke()
             IconButton(
                 onClick = {
                     coroutineScope.launch {
@@ -1413,6 +1419,24 @@ internal fun SectionCard(
                 }
             }
         }
+    }
+}
+
+/** The button that opens the chart view, in the header of the hourly and daily cards. 48 dp, as the share button. */
+@Composable
+private fun ChartViewButton(onClick: () -> Unit) {
+    IconButton(
+        onClick = onClick,
+        modifier = Modifier.size(48.dp),
+        colors = IconButtonDefaults.iconButtonColors(
+            contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+        ),
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.ic_chart),
+            contentDescription = stringResource(R.string.chart_view_open),
+            modifier = Modifier.size(18.dp),
+        )
     }
 }
 

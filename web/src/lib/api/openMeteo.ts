@@ -12,11 +12,11 @@ const CURRENT_PARAMS = [
 	'precipitation', 'rain', 'snowfall', 'visibility', 'weather_code', 'is_day', 'uv_index', 'cloud_cover'
 ].join(',');
 
-const HOURLY_PARAMS = 'temperature_2m,weather_code,precipitation_probability,wind_speed_10m,wind_direction_10m,pressure_msl,precipitation,uv_index,relative_humidity_2m,dew_point_2m';
+const HOURLY_PARAMS = 'temperature_2m,weather_code,precipitation_probability,wind_speed_10m,wind_direction_10m,pressure_msl,precipitation,uv_index,relative_humidity_2m,dew_point_2m,wind_gusts_10m';
 
 // Current values that are not in HOURLY_PARAMS. With a chosen model, the request adds them to the hourly
 // list, so that pickModel can fill a current null with the best_match value of this hour.
-const CURRENT_ONLY_HOURLY_PARAMS = 'apparent_temperature,wind_gusts_10m,rain,snowfall,visibility,is_day,cloud_cover';
+const CURRENT_ONLY_HOURLY_PARAMS = 'apparent_temperature,rain,snowfall,visibility,is_day,cloud_cover';
 
 /** Second model in a two-model request: Open-Meteo's own choice for the place. */
 const BEST_MATCH = 'best_match';
@@ -46,7 +46,8 @@ export function forecastParams(lat: number, lon: number, model: string | null): 
 		hourly: model ? `${HOURLY_PARAMS},${CURRENT_ONLY_HOURLY_PARAMS}` : HOURLY_PARAMS,
 		daily: DAILY_PARAMS,
 		minutely_15: 'precipitation',
-		forecast_days: '10',
+		// 11 days, so that the chart view always has 240 hours from now; the mapper keeps 10 days for the daily list
+		forecast_days: '11',
 		timezone: 'auto',
 		wind_speed_unit: 'ms',
 	});

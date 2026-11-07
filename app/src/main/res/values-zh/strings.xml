@@ -72,6 +72,10 @@
     <string name="daylight_minutes_one">%1$s分钟</string>
     <string name="daylight_minutes_other">%1$s分钟</string>
     <string name="rises_in">%1$s后升起</string>
+    <string name="chart_view_title">图表视图</string>
+    <string name="chart_view_open">打开图表视图</string>
+    <string name="chart_view_hint">滑动浏览各小时。双指缩放；双击恢复。触摸图表查看数值。</string>
+    <string name="chart_view_summary">未来 %1$s 小时的图表</string>
     <string name="high_vs_normal_above">最高气温比常年高 %1$s</string>
     <string name="high_vs_normal_below">最高气温比常年低 %1$s</string>
     <string name="normal_label">常年值</string>

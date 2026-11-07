@@ -72,6 +72,10 @@
     <string name="daylight_minutes_one">%1$s मिनट</string>
     <string name="daylight_minutes_other">%1$s मिनट</string>
     <string name="rises_in">%1$s में उदय</string>
+    <string name="chart_view_title">चार्ट दृश्य</string>
+    <string name="chart_view_open">चार्ट दृश्य खोलें</string>
+    <string name="chart_view_hint">घंटों में जाने के लिए स्वाइप करें। ज़ूम के लिए पिंच करें; वापस आने के लिए दो बार टैप करें। मान पढ़ने के लिए चार्ट छुएँ।</string>
+    <string name="chart_view_summary">अगले %1$s घंटों के चार्ट</string>
     <string name="high_vs_normal_above">अधिकतम सामान्य से %1$s ऊपर</string>
     <string name="high_vs_normal_below">अधिकतम सामान्य से %1$s नीचे</string>
     <string name="normal_label">सामान्य</string>

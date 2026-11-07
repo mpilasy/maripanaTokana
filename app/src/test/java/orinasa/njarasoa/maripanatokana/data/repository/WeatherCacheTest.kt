@@ -8,6 +8,7 @@ import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import orinasa.njarasoa.maripanatokana.domain.model.ChartHour
 import orinasa.njarasoa.maripanatokana.domain.model.HourlyForecast
 import orinasa.njarasoa.maripanatokana.domain.model.Precipitation
 import orinasa.njarasoa.maripanatokana.domain.model.Pressure
@@ -43,6 +44,10 @@ class WeatherCacheTest {
             HourlyForecast(1000L, Temperature.fromCelsius(18.0), 1, 20, WindSpeed.fromMetersPerSecond(2.0), 90,
                 Pressure.fromHPa(1010.0), Precipitation.fromMm(0.0))
         ),
+        chartHourly = listOf(
+            ChartHour(1000L, Temperature.fromCelsius(18.0), null, 1, true, Precipitation.fromMm(0.4), 30,
+                WindSpeed.fromMetersPerSecond(2.0), 90, WindSpeed.fromMetersPerSecond(5.0), Pressure.fromHPa(1010.0), 70, null)
+        ),
         timestamp = 123456789L,
     )
 
@@ -57,6 +62,7 @@ class WeatherCacheTest {
         assertEquals(123456789L, gps.timestamp)
         assertEquals(21.5, gps.temperature.celsius, 0.0)
         assertEquals(1, gps.hourlyForecast.size)
+        assertEquals(data("Here").chartHourly, gps.chartHourly)
         assertEquals(true, gps.tempMax.celsius.isNaN())
         assertEquals("There", cache.load("12.5,-3.0")!!.locationName)
     }

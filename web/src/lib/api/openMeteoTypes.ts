@@ -66,4 +66,5 @@ export interface OpenMeteoHourly {
 	uv_index?: (number | null)[];
 	relative_humidity_2m?: (number | null)[];
 	dew_point_2m?: (number | null)[];
+	wind_gusts_10m?: (number | null)[];
 }

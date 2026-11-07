@@ -86,12 +86,16 @@ describe('forecastParams', () => {
 	it('builds the same request as before for Automatic (no models)', () => {
 		const params = forecastParams(-18.9, 47.5, null);
 		expect(params.has('models')).toBe(false);
-		expect(params.get('hourly')).toBe('temperature_2m,weather_code,precipitation_probability,wind_speed_10m,wind_direction_10m,pressure_msl,precipitation,uv_index,relative_humidity_2m,dew_point_2m');
+		expect(params.get('hourly')).toBe('temperature_2m,weather_code,precipitation_probability,wind_speed_10m,wind_direction_10m,pressure_msl,precipitation,uv_index,relative_humidity_2m,dew_point_2m,wind_gusts_10m');
+		expect(params.get('forecast_days')).toBe('11');
 		expect([...params.keys()]).toEqual(['latitude', 'longitude', 'current', 'hourly', 'daily', 'minutely_15', 'forecast_days', 'timezone', 'wind_speed_unit']);
 	});
 	it('asks for the chosen model first, then best_match, with the current-only variables hourly', () => {
 		const params = forecastParams(-18.9, 47.5, 'ecmwf_ifs025');
 		expect(params.get('models')).toBe('ecmwf_ifs025,best_match');
-		expect(params.get('hourly')!.split(',')).toEqual(expect.arrayContaining(['apparent_temperature', 'wind_gusts_10m', 'rain', 'snowfall', 'visibility', 'is_day', 'cloud_cover']));
+		const hourly = params.get('hourly')!.split(',');
+		expect(hourly).toEqual(expect.arrayContaining(['apparent_temperature', 'wind_gusts_10m', 'rain', 'snowfall', 'visibility', 'is_day', 'cloud_cover']));
+		// The gusts are in the default list, so they are not asked for two times
+		expect(hourly.filter((p) => p === 'wind_gusts_10m')).toHaveLength(1);
 	});
 });

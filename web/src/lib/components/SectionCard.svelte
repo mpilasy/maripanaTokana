@@ -7,7 +7,8 @@
 	/** A card of weather data, always open, with a title and a share button. */
 	/** `bare`: no surface of its own, for sections whose tiles are already cards. */
 	/** `shareCopy`: the content for the share image, with every item (rows that scroll sideways wrap). */
-	let { title, children, onShare, bare = false, shareCopy }: { title: string; children: Snippet; onShare?: (el: HTMLElement) => void | Promise<void>; bare?: boolean; shareCopy?: Snippet } = $props();
+	/** `action`: an optional control in the header, before the share button (Android: the same `action` slot). */
+	let { title, children, onShare, bare = false, shareCopy, action }: { title: string; children: Snippet; onShare?: (el: HTMLElement) => void | Promise<void>; bare?: boolean; shareCopy?: Snippet; action?: Snippet } = $props();
 	let contentEl = $state<HTMLElement | null>(null);
 	let copyEl = $state<HTMLElement | null>(null);
 	let capturing = $state(false);
@@ -34,6 +35,9 @@
 <section class="section-card" class:bare>
 	<div class="card-header">
 		<h2 class="card-title">{title}</h2>
+		{#if action}
+			{@render action()}
+		{/if}
 		{#if onShare}
 			<button type="button" class="share-btn touch-target" aria-label={`${$_('cd_share')}: ${title}`} onclick={share}>
 				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

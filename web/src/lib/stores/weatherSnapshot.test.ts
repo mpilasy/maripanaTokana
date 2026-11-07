@@ -26,6 +26,7 @@ const sample = {
 	alerts: [],
 	timestamp: 1_700_000_000_000,
 	hourlyForecast: [{ time: 1, temperature: Temperature.fromCelsius(5) }],
+	chartHourly: [{ time: 1, temperature: Temperature.fromCelsius(5), windGust: WindSpeed.fromMetersPerSecond(8), dewPoint: null, isNight: true }],
 } as unknown as WeatherData;
 
 describe('weather snapshot', () => {
@@ -41,6 +42,10 @@ describe('weather snapshot', () => {
 		expect(out.rain!.mm).toBe(1.2);
 		expect(out.snow).toBeNull();
 		expect(out.hourlyForecast[0].temperature).toBeInstanceOf(Temperature);
+		expect(out.chartHourly![0].temperature).toBeInstanceOf(Temperature);
+		expect(out.chartHourly![0].windGust!.mph).toBeCloseTo(17.9);
+		expect(out.chartHourly![0].dewPoint).toBeNull();
+		expect(out.chartHourly![0].isNight).toBe(true);
 	});
 
 	it('returns null for a different key or corrupt data', () => {

@@ -16,6 +16,8 @@
 	/** Shared shell for Settings-style pages: gradient + Blue Marble background, back header, scrolling body. */
 	interface Props {
 		title: string;
+		/** Smaller text after the title, for example the place name. */
+		subtitle?: string;
 		onBack: () => void;
 		children: Snippet;
 		/** The language flag at the top, as in the main screen's footer: a tap shows the next language, holding it lists them. */
@@ -23,7 +25,7 @@
 		onCycleLanguage?: () => void;
 	}
 
-	let { title, onBack, children, languageFlag, onCycleLanguage }: Props = $props();
+	let { title, subtitle, onBack, children, languageFlag, onCycleLanguage }: Props = $props();
 
 	let pickerOpen = $state(false);
 	const languageItems = SUPPORTED_LOCALES.map((l) => ({ lead: l.flag, label: l.name, lang: l.tag }));
@@ -52,6 +54,9 @@
 			</svg>
 		</button>
 		<h2>{title}</h2>
+		{#if subtitle}
+			<span class="subtitle">{subtitle}</span>
+		{/if}
 		{#if languageFlag && onCycleLanguage}
 			<span class="flag-box">
 				<button type="button" class="page-flag" onclick={onCycleLanguage} use:longPress={() => (pickerOpen = true)} aria-label={$_('cd_change_language')}>{languageFlag}</button>
@@ -127,6 +132,15 @@
 		font-size: 1.25rem;
 		font-weight: 700;
 		margin: 0;
+	}
+
+	.subtitle {
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		font-size: 0.875rem;
+		color: rgba(255, 255, 255, 0.7);
 	}
 
 	/* Shared building blocks for pages rendered inside this shell */

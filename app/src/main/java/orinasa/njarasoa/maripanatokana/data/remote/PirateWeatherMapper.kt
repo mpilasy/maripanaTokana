@@ -3,6 +3,7 @@
 
 package orinasa.njarasoa.maripanatokana.data.remote
 
+import orinasa.njarasoa.maripanatokana.domain.model.ChartHour
 import orinasa.njarasoa.maripanatokana.domain.model.DailyForecast
 import orinasa.njarasoa.maripanatokana.domain.model.HourlyForecast
 import orinasa.njarasoa.maripanatokana.domain.model.MinutelyForecast
@@ -11,6 +12,8 @@ import orinasa.njarasoa.maripanatokana.domain.model.Pressure
 import orinasa.njarasoa.maripanatokana.domain.model.Temperature
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.model.WindSpeed
+import orinasa.njarasoa.maripanatokana.ui.weather.chart.chartDaylight
+import orinasa.njarasoa.maripanatokana.ui.weather.chart.chartHours
 import kotlin.math.roundToInt
 
 // The same on the web (pirateWeather.ts). Sleet is freezing rain (66), so it gets the sleet icon.
@@ -65,6 +68,7 @@ fun PirateWeatherResponse.toDomain(): WeatherData {
         dailySunrise = days.map { it.sunriseTime * 1000 },
         dailySunset = days.map { it.sunsetTime * 1000 },
         hourlyForecast = hourlyForecast(hourly.data),
+        chartHourly = chartHourly(hourly.data, days),
         minutelyForecast = minutely.data.map { MinutelyForecast(it.time * 1000, Precipitation.fromMm(it.precipIntensity)) },
         dailyForecast = dailyForecast(days, hourly.data),
     )
@@ -87,6 +91,29 @@ private fun hourlyForecast(data: List<PirateWeatherHourly>): List<HourlyForecast
             uvIndex = h.uvIndex,
             humidity = h.humidity?.let(::percent),
             dewPoint = h.dewPoint?.let { Temperature.fromCelsius(it) },
+        )
+    }
+}
+
+/** The hours of the chart view, from the current hour (168 at most with extend=hourly). */
+private fun chartHourly(data: List<PirateWeatherHourly>, days: List<PirateWeatherDaily>): List<ChartHour> {
+    val hours = data.slice(chartHours(data.map { it.time * 1000 }, System.currentTimeMillis()))
+    val night = chartDaylight(hours.map { it.time * 1000 }, days.map { it.sunriseTime * 1000 }, days.map { it.sunsetTime * 1000 })
+    return hours.mapIndexed { i, h ->
+        ChartHour(
+            time = h.time * 1000,
+            temperature = Temperature.fromCelsius(h.temperature),
+            dewPoint = h.dewPoint?.let { Temperature.fromCelsius(it) },
+            weatherCode = pirateIconToWmo(h.icon),
+            isNight = night[i],
+            precipitation = Precipitation.fromMm(h.precipIntensity),
+            precipProbability = percent(h.precipProbability),
+            windSpeed = WindSpeed.fromMetersPerSecond(h.windSpeed),
+            windDirection = h.windBearing,
+            windGust = h.windGust?.let { WindSpeed.fromMetersPerSecond(it) },
+            pressure = Pressure.fromHPa(h.pressure),
+            humidity = h.humidity?.let(::percent),
+            uvIndex = h.uvIndex,
         )
     }
 }

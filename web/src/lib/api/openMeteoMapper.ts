@@ -2,12 +2,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { OpenMeteoResponse } from './openMeteoTypes';
-import type { WeatherData, HourlyForecast, DailyForecast } from '../domain/weatherData';
+import type { WeatherData, HourlyForecast, DailyForecast, ChartHour } from '../domain/weatherData';
 import { Temperature } from '../domain/temperature';
 import { Pressure } from '../domain/pressure';
 import { WindSpeed } from '../domain/windSpeed';
 import { Precipitation } from '../domain/precipitation';
 import { nightWeatherCodes } from './nightWeather';
+import { chartDaylight, chartHours } from '../utils/chartView';
+
+/** Days in the daily list. The request asks for one more, so that the chart view always has 240 hours. */
+const DAILY_DAYS = 10;
 
 export function parseIsoDateTime(iso: string, utcOffsetSeconds: number): number {
 	const year = parseInt(iso.substring(0, 4), 10);
@@ -65,10 +69,38 @@ export function mapToWeatherData(response: OpenMeteoResponse, locationName: stri
 					};
 				});
 
+	const chartRange = chartHours(parsedHourlyTimes, nowMillis);
+	const chartTimes = parsedHourlyTimes.slice(chartRange.start, chartRange.end);
+	const chartNight = chartDaylight(chartTimes, dailySunriseMillis, dailySunsetMillis);
+	const chartHourly: ChartHour[] = chartTimes.map((time, i) => {
+		const j = chartRange.start + i;
+		const temperature = h.temperature_2m[j];
+		const dewPoint = h.dew_point_2m?.[j];
+		const precipitation = h.precipitation?.[j];
+		const windSpeed = h.wind_speed_10m?.[j];
+		const windGust = h.wind_gusts_10m?.[j];
+		const pressure = h.pressure_msl?.[j];
+		return {
+			time,
+			temperature: temperature != null ? Temperature.fromCelsius(temperature) : null,
+			dewPoint: dewPoint != null ? Temperature.fromCelsius(dewPoint) : null,
+			weatherCode: h.weather_code[j],
+			isNight: chartNight[i],
+			precipitation: precipitation != null ? Precipitation.fromMm(precipitation) : null,
+			precipProbability: h.precipitation_probability?.[j] ?? null,
+			windSpeed: windSpeed != null ? WindSpeed.fromMetersPerSecond(windSpeed) : null,
+			windDeg: h.wind_direction_10m?.[j] ?? null,
+			windGust: windGust != null ? WindSpeed.fromMetersPerSecond(windGust) : null,
+			pressure: pressure != null ? Pressure.fromHPa(pressure) : null,
+			humidity: h.relative_humidity_2m?.[j] ?? null,
+			uvIndex: h.uv_index?.[j] ?? null,
+		};
+	});
+
 	const parsedDailyTimes = d.time.map(t => parseIsoDate(t, response.utc_offset_seconds));
 	const nightCodes = nightWeatherCodes(parsedHourlyTimes, h.weather_code ?? [], dailySunsetMillis, dailySunriseMillis);
 
-	const dailyForecast: DailyForecast[] = d.time.map((time, i) => {
+	const dailyForecast: DailyForecast[] = d.time.slice(0, DAILY_DAYS).map((time, i) => {
 		return {
 			date: parsedDailyTimes[i],
 			tempMax: Temperature.fromCelsius(d.temperature_2m_max[i]),
@@ -126,6 +158,7 @@ export function mapToWeatherData(response: OpenMeteoResponse, locationName: stri
 		dailySunrise: dailySunriseMillis,
 		dailySunset: dailySunsetMillis,
 		hourlyForecast,
+		chartHourly,
 		minutelyForecast,
 		dailyForecast,
 		alerts: [],

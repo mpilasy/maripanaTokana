@@ -34,6 +34,8 @@ data class WeatherData(
     val dailySunrise: List<Long> = emptyList(), // epoch millis per day
     val dailySunset: List<Long> = emptyList(), // epoch millis per day
     val hourlyForecast: List<HourlyForecast> = emptyList(),
+    /** Every hour from the current hour, at most 240, for the chart view. */
+    val chartHourly: List<ChartHour> = emptyList(),
     val minutelyForecast: List<MinutelyForecast> = emptyList(),
     val dailyForecast: List<DailyForecast> = emptyList(),
     val alerts: List<WeatherAlert> = emptyList(),

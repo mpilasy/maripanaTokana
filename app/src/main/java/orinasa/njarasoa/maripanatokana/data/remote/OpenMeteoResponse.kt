@@ -72,4 +72,5 @@ data class OpenMeteoHourly(
     @SerialName("uv_index") val uvIndex: List<Double?> = emptyList(),
     @SerialName("relative_humidity_2m") val relativeHumidity: List<Int?> = emptyList(),
     @SerialName("dew_point_2m") val dewPoint: List<Double?> = emptyList(),
+    @SerialName("wind_gusts_10m") val windGusts10m: List<Double?> = emptyList(),
 )

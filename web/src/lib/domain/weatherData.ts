@@ -38,6 +38,23 @@ export interface HourlyForecast {
 	dewPoint?: Temperature | null;
 }
 
+/** One hour of the chart view. A value that the source does not give is null. Android has the same type (ChartHour.kt). */
+export interface ChartHour {
+	time: number; // epoch millis
+	temperature: Temperature | null;
+	dewPoint: Temperature | null;
+	weatherCode: number;
+	isNight: boolean;
+	precipitation: Precipitation | null;
+	precipProbability: number | null; // percentage
+	windSpeed: WindSpeed | null;
+	windDeg: number | null; // degrees
+	windGust: WindSpeed | null;
+	pressure: Pressure | null;
+	humidity: number | null; // percentage
+	uvIndex: number | null;
+}
+
 export interface HourlyAirQuality {
 	time: number; // epoch millis
 	usValue: number;
@@ -97,6 +114,8 @@ export interface WeatherData {
 	dailySunrise: number[]; // epoch millis per day
 	dailySunset: number[]; // epoch millis per day
 	hourlyForecast: HourlyForecast[];
+	/** Every hour from the current hour, at most 240, for the chart view; missing in data saved before it was added. */
+	chartHourly?: ChartHour[];
 	dailyForecast: DailyForecast[];
 	alerts: WeatherAlert[];
 	alertsLoading?: boolean;

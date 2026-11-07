@@ -61,6 +61,7 @@ data class PirateWeatherHourly(
     @SerialName("temperature") val temperature: Double,
     @SerialName("windSpeed") val windSpeed: Double = 0.0,
     @SerialName("windBearing") val windBearing: Int = 0,
+    @SerialName("windGust") val windGust: Double? = null,
     @SerialName("pressure") val pressure: Double = 1013.0,
     @SerialName("uvIndex") val uvIndex: Double? = null,
     @SerialName("humidity") val humidity: Double? = null,
@@ -92,7 +93,8 @@ data class PirateWeatherDaily(
 )
 
 interface PirateWeatherApiService {
-    @GET("forecast/{apiKey}/{lat},{lon}?units=si")
+    // extend=hourly: 168 hours instead of 48, for the chart view
+    @GET("forecast/{apiKey}/{lat},{lon}?units=si&extend=hourly")
     suspend fun getForecast(
         @Path("apiKey") apiKey: String,
         @Path("lat") lat: Double,

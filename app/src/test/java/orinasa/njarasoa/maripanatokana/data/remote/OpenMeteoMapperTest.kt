@@ -5,6 +5,7 @@ package orinasa.njarasoa.maripanatokana.data.remote
 
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -111,5 +112,57 @@ class OpenMeteoMapperTest {
         assertEquals(1, data.dailyForecast.size)
         assertEquals(1, data.hourlyForecast.size)
         assertNull(data.humidity)
+    }
+
+    @Test
+    fun elevenDays_giveTenDaysAnd240ChartHoursFromTheCurrentHour() {
+        // Hours from 3 hours ago, for 11 days
+        val hours = (-3 until 11 * 24 - 3).map { isoHour(it) }
+        fun list(value: String) = hours.joinToString(",") { value }
+        val days = (1..11).map { "2030-01-%02d".format(Locale.US, it) }
+        fun daily(value: String) = days.joinToString(",") { value }
+        val payload = """
+            {
+              "utc_offset_seconds": 0,
+              "current": { "temperature_2m": 10.0, "weather_code": 0, "is_day": 1 },
+              "daily": {
+                "time": [${days.joinToString(",") { "\"$it\"" }}],
+                "temperature_2m_max": [${daily("12.0")}], "temperature_2m_min": [${daily("5.0")}],
+                "weather_code": [${daily("1")}],
+                "sunrise": [${days.joinToString(",") { "\"${it}T06:00\"" }}],
+                "sunset": [${days.joinToString(",") { "\"${it}T18:00\"" }}]
+              },
+              "hourly": {
+                "time": [${hours.joinToString(",") { "\"$it\"" }}],
+                "temperature_2m": [${list("9.0")}],
+                "weather_code": [${list("2")}],
+                "wind_speed_10m": [${list("3.0")}],
+                "wind_gusts_10m": [${list("7.5")}],
+                "dew_point_2m": [${list("4.0")}]
+              }
+            }
+        """.trimIndent()
+
+        val data = json.decodeFromString(OpenMeteoResponse.serializer(), payload).toDomain("Test")
+
+        assertEquals(10, data.dailyForecast.size)
+        assertEquals(24, data.hourlyForecast.size)
+        assertEquals(240, data.chartHourly.size)
+        val currentHour = System.currentTimeMillis() / 3_600_000L * 3_600_000L
+        assertEquals(currentHour, data.chartHourly.first().time)
+        assertEquals(7.5, data.chartHourly.first().windGust!!.metersPerSecond, 0.0)
+        assertEquals(4.0, data.chartHourly.first().dewPoint!!.celsius, 0.0)
+        assertNotNull(data.chartHourly.first().temperature)
+        // A value the response does not give is null
+        assertNull(data.chartHourly.first().pressure)
+        assertNull(data.chartHourly.first().precipProbability)
+    }
+
+    @Test
+    fun theRequestAsksForElevenDaysAndHourlyGusts() {
+        assertEquals(11, OpenMeteoApiService.FORECAST_DAYS)
+        assertTrue(OpenMeteoApiService.HOURLY.split(",").contains("wind_gusts_10m"))
+        // Not two times in the request with a chosen model
+        assertTrue("wind_gusts_10m" !in OpenMeteoApiService.HOURLY_CURRENT_FALLBACK.split(","))
     }
 }

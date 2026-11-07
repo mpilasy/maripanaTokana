@@ -46,7 +46,7 @@
     <string name="error_server">Misy olana any amin\'ny fakàna toetrandro. Andramo indray any aoriana</string>
     <string name="error_invalid_api_key">Diso ny fanalahidin\'ny API Pirate Weather</string>
     <string name="refresh_failed">Tsy nahomby ny fanavaozana · nanadrana tamin\'ny %1$s</string>
-    <string name="chart_temperature_summary">Maripàna, 24 ora ho avy: avo indrindra %1$s, iva indrindra %2$s</string>
+    <string name="chart_temperature_summary">Maripàna, ora 24 ho avy: avo indrindra %1$s, iva indrindra %2$s</string>
     <string name="chart_daily_temperature_summary">Maripàna isan\'andro: avo indrindra %1$s, iva indrindra %2$s</string>
     <string name="alert_sources_unavailable">Tsy takatra ny loharanon\'ny filazana: %1$s</string>
     <string name="last_known_location">Ny toerana azo farany no ampiasaina</string>
@@ -72,8 +72,12 @@
     <string name="daylight_minutes_one">%1$s minitra</string>
     <string name="daylight_minutes_other">%1$s minitra</string>
     <string name="rises_in">Hiposaka afaka %1$s</string>
-    <string name="high_vs_normal_above">Ambony indrindra: %1$s mihoatra ny mahazatra</string>
-    <string name="high_vs_normal_below">Ambony indrindra: %1$s latsaky ny mahazatra</string>
+    <string name="chart_view_title">Sarivina</string>
+    <string name="chart_view_open">Sokafy ny sarivina</string>
+    <string name="chart_view_hint">Asosay ny rantsantananao hifindra amin\'ny ora. Tsongoy amin\'ny rantsan-tanana roa hanalehibe azy, tsindrio indroa hamerina azy. Kitiho ny sary hahitana ny sanda.</string>
+    <string name="chart_view_summary">Sarivina ho an\'ny ora %1$s manaraka</string>
+    <string name="high_vs_normal_above">%1$s mihoatra ny mahazatra</string>
+    <string name="high_vs_normal_below">%1$s latsaky ny mahazatra</string>
     <string name="normal_label">Mahazatra</string>
     <string name="forecast_changes_title">Niova hatramin\'omaly</string>
     <string name="change_high_warmer">%1$s: mafana kokoa %2$s ny ambony indrindra</string>
@@ -95,7 +99,7 @@
     <string name="sea_note">Vinavina ihany. Tsy natao ho an\'ny sambo.</string>
     <string name="temp_trend_rise">Hiakatra %1$s hatramin\'ny %2$s</string>
     <string name="temp_trend_fall">Hidina %1$s hatramin\'ny %2$s</string>
-    <string name="nowcast_ongoing">Hisy orana mandritra ny 2 ora manaraka</string>
+    <string name="nowcast_ongoing">Hisy orana mandritra ny ora 2 manaraka</string>
     <string name="activity_running">Fanatanjahantena</string>
     <string name="activity_laundry">Fanahazan-damba</string>
     <string name="activity_uv_safety">Aro-masoandro</string>
@@ -231,7 +235,7 @@
     <string name="help_title">Anatranatra</string>
     <string name="help_section_places">Toerana sy ny tadidy</string>
     <string name="help_q_search">Ahoana no ahitako ny toetrandro any amin\'ny toerana hafa?</string>
-    <string name="help_a_search">Tsindrio ny solomaso eo ambony. Soraty ny anaran\'ny tanàna, ny kaody paositra, ny GPS na ny Plus Code, dia fidio amin\'ireo izay miseho ny tadiavinao. Hiseho mandritra ny 12 ora ny toetrandro any amin\'io toerana io. Avy eo dia miverina amin\'ny toerana misy anao ny rindranasa.</string>
+    <string name="help_a_search">Tsindrio ny solomaso eo ambony. Soraty ny anaran\'ny tanàna, ny kaody paositra, ny GPS na ny Plus Code, dia fidio amin\'ireo izay miseho ny tadiavinao. Hiseho mandritra ny ora 12 ny toetrandro any amin\'io toerana io. Avy eo dia miverina amin\'ny toerana misy anao ny rindranasa.</string>
     <string name="help_q_favorite_add">Ahoana no hanamarihako toerana ho tadidiana?</string>
     <string name="help_a_favorite_add">Rehefa miseho ny toerana notadiavina, tsindrio ny fo foana eo ambony. Ho tadidian\'ny rindranasa io toerana io avy eo. Raha tsy mahazo ny toerana misy anao ny rindranasa, dia voatahiry avy hatrany ny toerana nofidinao.</string>
     <string name="help_q_favorite_move">Ahoana no hifindrako amin\'ireo toerana tiako?</string>

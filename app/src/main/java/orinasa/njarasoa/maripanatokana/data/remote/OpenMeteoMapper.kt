@@ -3,6 +3,7 @@
 
 package orinasa.njarasoa.maripanatokana.data.remote
 
+import orinasa.njarasoa.maripanatokana.domain.model.ChartHour
 import orinasa.njarasoa.maripanatokana.domain.model.DailyForecast
 import orinasa.njarasoa.maripanatokana.domain.model.HourlyForecast
 import orinasa.njarasoa.maripanatokana.domain.model.Precipitation
@@ -10,6 +11,8 @@ import orinasa.njarasoa.maripanatokana.domain.model.Pressure
 import orinasa.njarasoa.maripanatokana.domain.model.Temperature
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.model.WindSpeed
+import orinasa.njarasoa.maripanatokana.ui.weather.chart.chartDaylight
+import orinasa.njarasoa.maripanatokana.ui.weather.chart.chartHours
 import kotlin.math.roundToInt
 import java.util.Calendar
 import java.util.TimeZone
@@ -46,6 +49,8 @@ private fun parseIsoDate(iso: String, utcOffsetSeconds: Int): Long {
     }
 }
 
+/** Days in the daily list. The request asks for one more, so that the chart view always has 240 hours. */
+private const val DAILY_DAYS = 10
 
 fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = null): WeatherData {
     val c = current
@@ -90,10 +95,30 @@ fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = 
         )
     }.distinctBy { it.time }
 
+    val chartRange = chartHours(parsedHourlyTimes, nowMillis)
+    val chartNight = chartDaylight(parsedHourlyTimes.slice(chartRange), dailySunriseMillis, dailySunsetMillis)
+    val chartHourly = chartRange.mapIndexed { k, i ->
+        ChartHour(
+            time = parsedHourlyTimes[i],
+            temperature = hourly.temperature2m.getOrNull(i)?.let { Temperature.fromCelsius(it) },
+            dewPoint = hourly.dewPoint.getOrNull(i)?.let { Temperature.fromCelsius(it) },
+            weatherCode = hourly.weatherCode.getOrElse(i) { 0 },
+            isNight = chartNight[k],
+            precipitation = hourly.precipitation.getOrNull(i)?.let { Precipitation.fromMm(it) },
+            precipProbability = hourly.precipitationProbability.getOrNull(i),
+            windSpeed = hourly.windSpeed10m.getOrNull(i)?.let { WindSpeed.fromMetersPerSecond(it) },
+            windDirection = hourly.windDirection10m.getOrNull(i),
+            windGust = hourly.windGusts10m.getOrNull(i)?.let { WindSpeed.fromMetersPerSecond(it) },
+            pressure = hourly.pressureMsl.getOrNull(i)?.let { Pressure.fromHPa(it) },
+            humidity = hourly.relativeHumidity.getOrNull(i),
+            uvIndex = hourly.uvIndex.getOrNull(i),
+        )
+    }.distinctBy { it.time }
+
     val parsedDailyTimes = daily.time.map { parseIsoDate(it, utcOffsetSeconds) }
     val nightCodes = nightWeatherCodes(parsedHourlyTimes, hourly.weatherCode, dailySunsetMillis, dailySunriseMillis)
 
-    val dailyForecast = daily.time.indices.map { i ->
+    val dailyForecast = daily.time.indices.take(DAILY_DAYS).map { i ->
         val epoch = parsedDailyTimes[i]
         DailyForecast(
             date = epoch,
@@ -150,6 +175,7 @@ fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = 
         dailySunrise = dailySunriseMillis,
         dailySunset = dailySunsetMillis,
         hourlyForecast = hourlyForecast,
+        chartHourly = chartHourly,
         minutelyForecast = minutelyForecastList,
         dailyForecast = dailyForecast,
         alerts = emptyList(),
