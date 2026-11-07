@@ -16,9 +16,10 @@ import {
 	getPosition, reverseGeocode, lookupLocation
 } from '#lib/stores/location.js';
 import { isLatinScript } from '#lib/domain/script.js';
+import { weatherModelFor } from '#lib/domain/weatherModel.js';
 import {
 	localeIndex,
-	weatherSource, weatherApiKey,
+	weatherSource, weatherApiKey, weatherModel,
 	alertsEnabled, alertsNwsEnabled, alertsGdacsEnabled,
 	alertsMeteoAlarmEnabled, alertsJmaEnabled, alertsEcccEnabled,
 	alertsBomEnabled, alertsNhcEnabled,
@@ -74,7 +75,7 @@ async function fetchAtLocation(lat: number, lon: number, knownName?: string, kno
 	}
 
 	// Open-Meteo path
-	const weatherPromise = fetchWeather(lat, lon);
+	const weatherPromise = fetchWeather(lat, lon, weatherModelFor(get(weatherModel))?.key ?? null);
 	const airQualityResponsePromise = fetchAirQuality(lat, lon).catch(() => null);
 	// Country decides which AQI standard is primary (european_aqi vs us_aqi) — same lookup
 	// used for alert-source gating in fetchAllAlerts. Fetched once here and passed through to

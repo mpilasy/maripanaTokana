@@ -23,7 +23,7 @@
 	import SettingsScreen from './SettingsScreen.svelte';
 	import AboutScreen from './AboutScreen.svelte';
 	import HelpScreen from './HelpScreen.svelte';
-	import { metricPrimary, fontIndex, localeIndex, weatherSource, weatherApiKey, toggleUnits, cycleFont, cycleLanguage } from '#lib/stores/preferences.js';
+	import { metricPrimary, fontIndex, localeIndex, weatherSource, weatherApiKey, weatherModel, toggleUnits, cycleFont, cycleLanguage } from '#lib/stores/preferences.js';
 	import { SUPPORTED_LOCALES, localizeDigits } from '#lib/i18n/index.js';
 	import { fontPairings } from '#lib/fonts.js';
 	import { formatShortDate, formatTime, formatLocationCurrentTime, isRemoteTimezone, isToday } from '#lib/utils/date.js';
@@ -264,15 +264,18 @@
 		updateLocationName(SUPPORTED_LOCALES[idx].tag);
 	});
 
-	// Refetch when the weather source or API key changes (skips the initial value).
+	// Refetch when the weather source, API key or weather model changes (skips the initial value).
 	let prevSource = $weatherSource;
 	let prevApiKey = $weatherApiKey;
+	let prevModel = $weatherModel;
 	$effect(() => {
 		const src = $weatherSource;
 		const key = $weatherApiKey;
-		if (src === prevSource && key === prevApiKey) return;
+		const model = $weatherModel;
+		if (src === prevSource && key === prevApiKey && model === prevModel) return;
 		prevSource = src;
 		prevApiKey = key;
+		prevModel = model;
 		doFetchWeather();
 	});
 

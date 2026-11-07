@@ -21,6 +21,7 @@ const ANDROID_RES = join(__dirname, '..', '..', 'app', 'src', 'main', 'res');
 // Placeholder mappings per key: ordered list of {name} placeholders → %N$s
 // Keys with a single placeholder get %1$s, keys with multiple get %1$s, %2$s, etc.
 const PLACEHOLDER_ORDER = {
+	weather_model_days: ['days'],
 	temp_trend_rise: ['delta', 'time'],
 	temp_trend_fall: ['delta', 'time'],
 	frostbite_minutes: ['minutes'],

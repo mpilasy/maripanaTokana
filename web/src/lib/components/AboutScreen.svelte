@@ -8,12 +8,16 @@
 	import { deviceInfo, type DeviceRow } from '#lib/deviceInfo.js';
 	import { onMount } from 'svelte';
 	import { SUPPORTED_LOCALES } from '#lib/i18n/index.js';
-	import { localeIndex } from '#lib/stores/preferences.js';
+	import { localeIndex, weatherSource, weatherModel } from '#lib/stores/preferences.js';
+	import { weatherModelFor } from '#lib/domain/weatherModel.js';
 	import { isAndroid, isStandalone } from '#lib/installHint.js';
 	import AppBadges from './AppBadges.svelte';
 
 	interface Props { onBack: () => void; onOpenHelp: () => void; languageFlag: string; onCycleLanguage: () => void; }
 	let { onBack, onOpenHelp, languageFlag, onCycleLanguage }: Props = $props();
+
+	// A chosen Open-Meteo model shows after the source name, for example "Open-Meteo · ECMWF IFS"
+	let chosenModel = $derived($weatherSource === 'OPEN_METEO' ? weatherModelFor($weatherModel) : null);
 
 	let deviceRows = $state<DeviceRow[]>([]);
 	let onAndroid = $state(false);
@@ -58,7 +62,8 @@
 			<div class="section-title">{$_(section.titleKey)}</div>
 			<div class="group">
 				{#each section.items as item}
-					{@const name = item.nameKey ? $_(item.nameKey) : item.name}
+					{@const baseName = item.nameKey ? $_(item.nameKey) : item.name}
+					{@const name = item.name === 'Open-Meteo' && chosenModel ? `${baseName} · ${chosenModel.name}` : baseName}
 					{@const note = item.noteKey ? $_(item.noteKey) : item.note}
 					<a class="credit-row" href={item.url} target="_blank" rel="noopener">
 						<span class="credit-text">

@@ -2,7 +2,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
 	import {
-		weatherSource, weatherApiKey,
+		weatherSource, weatherApiKey, weatherModel, localeIndex,
 		alertsEnabled, alertsNwsEnabled, alertsGdacsEnabled,
 		alertsMeteoAlarmEnabled, alertsJmaEnabled, alertsEcccEnabled,
 		alertsBomEnabled, alertsNhcEnabled,
@@ -13,11 +13,23 @@
 	import { HttpError } from '#lib/api/http.js';
 	import type { WeatherSource } from '#lib/domain/weatherData.js';
 	import { advancedModeActive, enableAdvancedMode, disableAdvancedMode } from '#lib/stores/advancedMode.js';
+	import { WEATHER_MODELS, weatherModelFor } from '#lib/domain/weatherModel.js';
+	import { SUPPORTED_LOCALES, localizeDigits } from '#lib/i18n/index.js';
 
 	interface Props { onBack: () => void; onOpenAbout: () => void; }
 	let { onBack, onOpenAbout }: Props = $props();
 
 	let pendingApiKey = $state($weatherApiKey);
+	// An unknown stored key shows as Automatic (empty key)
+	let selectedModel = $derived(weatherModelFor($weatherModel)?.key ?? '');
+	let modelRows = $derived([
+		{ key: '', name: $_('weather_model_auto'), sub: $_('weather_model_auto_desc') },
+		...WEATHER_MODELS.map((m) => ({
+			key: m.key,
+			name: m.name,
+			sub: `${m.centre} · ${$_('weather_model_days', { values: { days: localizeDigits(String(m.days), SUPPORTED_LOCALES[$localeIndex]) } })}`,
+		})),
+	]);
 	let testState: 'idle' | 'loading' | 'success' | { error: string } = $state('idle');
 
 	// Reset pending key when source changes externally
@@ -96,6 +108,25 @@
 				</span>
 			</label>
 		{/each}
+
+		{#if $weatherSource === 'OPEN_METEO'}
+			<div class="sub-title">{$_('settings_weather_model')}</div>
+			{#each modelRows as row (row.key)}
+				<label class="radio-row">
+					<input
+						type="radio"
+						name="model"
+						value={row.key}
+						checked={selectedModel === row.key}
+						onchange={() => weatherModel.set(row.key)}
+					/>
+					<span class="radio-label">
+						<span class="radio-main">{row.name}</span>
+						<small class="radio-sub">{row.sub}</small>
+					</span>
+				</label>
+			{/each}
+		{/if}
 
 		{#if $weatherSource === 'PIRATE_WEATHER'}
 			<input
@@ -199,6 +230,14 @@
 		padding: 6px 0;
 	}
 
+
+	.sub-title {
+		font-size: 0.8125rem;
+		color: rgba(255, 255, 255, 0.6);
+		margin-top: 10px;
+		padding-top: 10px;
+		border-top: 1px solid rgba(255, 255, 255, 0.1);
+	}
 
 	.radio-row {
 		display: flex;

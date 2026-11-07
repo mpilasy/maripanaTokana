@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import orinasa.njarasoa.maripanatokana.DefaultSettings
 import orinasa.njarasoa.maripanatokana.domain.model.AppSettings
 import orinasa.njarasoa.maripanatokana.domain.model.GeocodingSource
+import orinasa.njarasoa.maripanatokana.domain.model.weatherModelFor
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherSource
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -43,6 +44,7 @@ class AppSettingsRepository @Inject constructor(
             ?.let { runCatching { WeatherSource.valueOf(it) }.getOrNull() }
             ?: WeatherSource.OPEN_METEO,
         weatherApiKey = privatePrefs.getString("settings_weather_api_key", "") ?: "",
+        weatherModel = weatherModel(prefs),
         geocodingSource = prefs.getString("settings_geocoding_source", null)
             ?.let { runCatching { GeocodingSource.valueOf(it) }.getOrNull() }
             ?: DefaultSettings.geocodingSource,
@@ -58,6 +60,10 @@ class AppSettingsRepository @Inject constructor(
 
     fun updateWeatherSource(source: WeatherSource) {
         edit(prefs) { putString("settings_weather_source", source.name) }
+    }
+
+    fun updateWeatherModel(key: String?) {
+        edit(prefs) { if (key == null) remove(WEATHER_MODEL_KEY) else putString(WEATHER_MODEL_KEY, key) }
     }
 
     fun updateWeatherApiKey(key: String) {
@@ -102,5 +108,13 @@ class AppSettingsRepository @Inject constructor(
 
     fun updateAdvancedMode(enabled: Boolean) {
         edit(prefs) { putBoolean("settings_advanced_mode", enabled) }
+    }
+
+    companion object {
+        private const val WEATHER_MODEL_KEY = "settings_weather_model"
+
+        /** The chosen model key from the settings [prefs], or null for Automatic. An unknown key gives Automatic. */
+        fun weatherModel(prefs: SharedPreferences): String? =
+            weatherModelFor(prefs.getString(WEATHER_MODEL_KEY, null))?.key
     }
 }

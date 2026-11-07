@@ -59,6 +59,8 @@ private data class Credit(
     val note: String? = null,
     @StringRes val noteRes: Int? = null,
     @RawRes val textRes: Int? = null,
+    /** True for the Open-Meteo forecast: the name shows the chosen weather model after it. */
+    val showsWeatherModel: Boolean = false,
 )
 
 private data class CreditSection(@StringRes val titleRes: Int, val items: List<Credit>)
@@ -76,7 +78,7 @@ private val creditSections = listOf(
     CreditSection(
         R.string.about_section_weather,
         listOf(
-            Credit("Open-Meteo", license = "CC BY 4.0", url = "https://open-meteo.com/en/licence"),
+            Credit("Open-Meteo", license = "CC BY 4.0", url = "https://open-meteo.com/en/licence", showsWeatherModel = true),
             // No published data licence; credit its upstream sources.
             Credit("Pirate Weather", license = "NOAA, ECMWF, FMI, CMC", url = "https://pirateweather.net", noteRes = R.string.settings_requires_api_key),
         ),
@@ -149,7 +151,7 @@ private val creditSections = listOf(
 )
 
 @Composable
-fun AboutScreen(onBack: () -> Unit, onOpenHelp: () -> Unit, languageFlag: String, onCycleLanguage: () -> Unit, onSelectLanguage: (Int) -> Unit) {
+fun AboutScreen(onBack: () -> Unit, onOpenHelp: () -> Unit, languageFlag: String, onCycleLanguage: () -> Unit, onSelectLanguage: (Int) -> Unit, weatherModelName: String? = null) {
     val uriHandler = LocalUriHandler.current
     var openTextRes by rememberSaveable { mutableStateOf<Int?>(null) }
     var openTextTitle by rememberSaveable { mutableStateOf("") }
@@ -268,7 +270,7 @@ fun AboutScreen(onBack: () -> Unit, onOpenHelp: () -> Unit, languageFlag: String
                         item.url != null -> { { uriHandler.openUri(item.url) } }
                         else -> null
                     }
-                    CreditRow(item, onOpen = onOpen)
+                    CreditRow(item, onOpen = onOpen, weatherModelName = weatherModelName)
                 }
             }
         }
@@ -291,7 +293,7 @@ private fun DeviceInfoRow(label: String, value: String) {
 }
 
 @Composable
-private fun CreditRow(item: Credit, onOpen: (() -> Unit)?) {
+private fun CreditRow(item: Credit, onOpen: (() -> Unit)?, weatherModelName: String?) {
     val onSurface = MaterialTheme.colorScheme.onSurface
     Row(
         modifier = Modifier
@@ -302,7 +304,8 @@ private fun CreditRow(item: Credit, onOpen: (() -> Unit)?) {
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = item.nameRes?.let { stringResource(it) } ?: item.name,
+                text = (item.nameRes?.let { stringResource(it) } ?: item.name) +
+                    (weatherModelName?.takeIf { item.showsWeatherModel }?.let { " · $it" } ?: ""),
                 fontSize = 15.sp,
                 lineHeight = 20.sp,
                 fontWeight = FontWeight.Medium,

@@ -9,9 +9,12 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoAirQualityApiService
 import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoApiService
+import orinasa.njarasoa.maripanatokana.data.remote.getForecastFor
 import orinasa.njarasoa.maripanatokana.data.remote.toDomain
 import orinasa.njarasoa.maripanatokana.data.repository.CountryResolver
+import orinasa.njarasoa.maripanatokana.data.settings.AppSettingsRepository
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
+import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -20,12 +23,15 @@ class OpenMeteoWeatherSource @Inject constructor(
     private val apiService: OpenMeteoApiService,
     private val airQualityApiService: OpenMeteoAirQualityApiService,
     private val countryResolver: CountryResolver,
+    private val settingsRepository: AppSettingsRepository,
+    private val json: Json,
 ) : WeatherDataSource {
     override val requiresApiKey = false
     override val displayName = "Open-Meteo (default)"
 
     override suspend fun getForecast(lat: Double, lon: Double): WeatherData = coroutineScope {
-        val forecastDeferred = async { retryOnce { apiService.getForecast(latitude = lat, longitude = lon) } }
+        val model = settingsRepository.current.weatherModel
+        val forecastDeferred = async { retryOnce { apiService.getForecastFor(lat, lon, model, json) } }
         val airQualityDeferred = async {
             try {
                 airQualityApiService.getAirQuality(latitude = lat, longitude = lon)

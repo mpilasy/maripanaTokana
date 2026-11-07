@@ -34,6 +34,8 @@ export const localeIndex = persistedWritable<number>('locale_index', 0);
 
 export const weatherSource = persistedWritable<WeatherSource>('weather_source', 'OPEN_METEO');
 export const weatherApiKey = persistedWritable<string>('weather_api_key', '');
+/** Open-Meteo model key; empty = Automatic. Read it through weatherModelFor (an unknown key is Automatic). */
+export const weatherModel = persistedWritable<string>('weather_model', '');
 
 export const alertsEnabled = persistedWritable<boolean>('alerts_enabled', true);
 export const alertsNwsEnabled = persistedWritable<boolean>('alerts_nws', true);

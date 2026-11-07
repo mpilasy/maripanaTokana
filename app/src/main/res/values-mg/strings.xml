@@ -178,6 +178,10 @@
     <string name="settings_advanced_off_desc">Alefaso mba hahafahana manova ny loharanon-toetrandro, ny filazana ary ny toerana</string>
     <string name="settings_advanced_on_desc">Misy ny fanamboarana rehetra sy ny fanovana toerana</string>
     <string name="settings_section_weather_source">Loharanon-toetrandro</string>
+    <string name="settings_weather_model">Modely toetrandro</string>
+    <string name="weather_model_auto">Tsotra</string>
+    <string name="weather_model_auto_desc">Ny modely tsara indrindra ho an\'ny toerana, nofidin\'i Open-Meteo</string>
+    <string name="weather_model_days">%1$s andro</string>
     <string name="settings_open_meteo_default">Open-Meteo (mahazatra)</string>
     <string name="settings_pirate_weather">Pirate Weather</string>
     <string name="settings_requires_api_key">Ilàna ny fanalahidy API</string>

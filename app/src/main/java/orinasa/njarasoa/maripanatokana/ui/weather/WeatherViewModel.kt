@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withTimeoutOrNull
@@ -123,6 +124,11 @@ class WeatherViewModel @Inject constructor(
         .map { it.weatherSource }
         .stateIn(viewModelScope, SharingStarted.Eagerly, settingsRepository.current.weatherSource)
 
+    /** The chosen model key, or null for Automatic. */
+    val weatherModel: StateFlow<String?> = settingsRepository.settings
+        .map { it.weatherModel }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, settingsRepository.current.weatherModel)
+
     // Advanced Mode State (derived from AppSettings)
     val advancedModeActive: StateFlow<Boolean> = settingsRepository.settings
         .map { it.advancedMode }
@@ -174,6 +180,13 @@ class WeatherViewModel @Inject constructor(
                     fetchWeather()
                 }
                 prev = active
+            }
+        }
+        // When the weather model changes, the cached data of all places is from the old model: delete it and refresh
+        viewModelScope.launch {
+            weatherModel.drop(1).collect {
+                withContext(Dispatchers.IO) { weatherCache.clear() }
+                if (_uiState.value is WeatherUiState.Success) refresh()
             }
         }
     }

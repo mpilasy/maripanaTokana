@@ -75,6 +75,7 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun updateWeatherModel(key: String?) = repository.updateWeatherModel(key)
     fun updateAdvancedMode(enabled: Boolean) = repository.updateAdvancedMode(enabled)
     fun updateGeocodingSource(source: GeocodingSource) = repository.updateGeocodingSource(source)
     fun updateAlertsEnabled(enabled: Boolean) = repository.updateAlertsEnabled(enabled)

@@ -57,6 +57,8 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import orinasa.njarasoa.maripanatokana.R
+import orinasa.njarasoa.maripanatokana.domain.model.WeatherSource
+import orinasa.njarasoa.maripanatokana.domain.model.weatherModelFor
 import orinasa.njarasoa.maripanatokana.ui.permission.PermissionHandler
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFont
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFontFeatures
@@ -117,9 +119,13 @@ fun WeatherScreen(
         if (showHelp) {
             HelpScreen(onBack = { showHelp = false }, languageFlag = supportedLocales[localeIndex].flag, onCycleLanguage = viewModel::cycleLanguage, onSelectLanguage = viewModel::selectLanguage)
         } else if (showAbout) {
-            AboutScreen(onBack = { showAbout = false }, onOpenHelp = { showHelp = true }, languageFlag = supportedLocales[localeIndex].flag, onCycleLanguage = viewModel::cycleLanguage, onSelectLanguage = viewModel::selectLanguage)
+            val weatherSource by viewModel.weatherSource.collectAsState()
+            val weatherModel by viewModel.weatherModel.collectAsState()
+            // The model is used only for Open-Meteo data
+            val modelName = weatherModelFor(weatherModel)?.name?.takeIf { weatherSource == WeatherSource.OPEN_METEO }
+            AboutScreen(onBack = { showAbout = false }, onOpenHelp = { showHelp = true }, languageFlag = supportedLocales[localeIndex].flag, onCycleLanguage = viewModel::cycleLanguage, onSelectLanguage = viewModel::selectLanguage, weatherModelName = modelName)
         } else if (showSettings) {
-            SettingsScreen(onBack = { showSettings = false }, onOpenAbout = { showAbout = true })
+            SettingsScreen(onBack = { showSettings = false }, onOpenAbout = { showAbout = true }, localizeDigits = supportedLocales[localeIndex]::localizeDigits)
         } else {
             WeatherMainScreen(
                 viewModel = viewModel,

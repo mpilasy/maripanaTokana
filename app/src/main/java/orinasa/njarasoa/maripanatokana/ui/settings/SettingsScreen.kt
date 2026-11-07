@@ -68,6 +68,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.domain.model.GeocodingSource
+import orinasa.njarasoa.maripanatokana.domain.model.WEATHER_MODELS
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherSource
 
 
@@ -75,6 +76,7 @@ import orinasa.njarasoa.maripanatokana.domain.model.WeatherSource
 fun SettingsScreen(
     onBack: () -> Unit,
     onOpenAbout: () -> Unit,
+    localizeDigits: (String) -> String,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val settings by viewModel.settings.collectAsState()
@@ -136,6 +138,40 @@ fun SettingsScreen(
                         Text(source.displayName(), color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp)
                         if (source.requiresApiKey()) {
                             Text(stringResource(R.string.settings_requires_api_key), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 12.sp, lineHeight = 16.sp)
+                        }
+                    }
+                }
+            }
+        }
+        if (settings.weatherSource == WeatherSource.OPEN_METEO) {
+            Spacer(Modifier.height(12.dp))
+            Text(stringResource(R.string.settings_weather_model), color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            Column(Modifier.selectableGroup()) {
+                // Null is Automatic
+                (listOf(null) + WEATHER_MODELS).forEach { model ->
+                    val selected = settings.weatherModel == model?.key
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .selectable(selected = selected, onClick = { viewModel.updateWeatherModel(model?.key) }, role = Role.RadioButton)
+                            .padding(vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        RadioButton(
+                            selected = selected,
+                            onClick = null,
+                            colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.onSurface, unselectedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)),
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Column {
+                            Text(model?.name ?: stringResource(R.string.weather_model_auto), color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp)
+                            Text(
+                                if (model == null) stringResource(R.string.weather_model_auto_desc)
+                                else model.centre + " · " + stringResource(R.string.weather_model_days, localizeDigits(model.days.toString())),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                fontSize = 12.sp,
+                                lineHeight = 16.sp,
+                            )
                         }
                     }
                 }

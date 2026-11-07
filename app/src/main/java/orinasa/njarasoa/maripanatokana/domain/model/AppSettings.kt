@@ -10,6 +10,8 @@ data class AppSettings(
     val advancedMode: Boolean = false,
     val weatherSource: WeatherSource = WeatherSource.OPEN_METEO,
     val weatherApiKey: String = "",
+    /** The key of a model in [WEATHER_MODELS], or null for Automatic (Open-Meteo chooses). */
+    val weatherModel: String? = null,
     val geocodingSource: GeocodingSource = GeocodingSource.SYSTEM_GEOCODER,
     val alertsEnabled: Boolean = true,
     val alertsNwsEnabled: Boolean = true,

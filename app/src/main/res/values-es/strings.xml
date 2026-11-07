@@ -178,6 +178,10 @@
     <string name="settings_advanced_off_desc">Actívalo para acceder a los ajustes de fuente meteorológica, alertas y ubicación</string>
     <string name="settings_advanced_on_desc">Todos los ajustes y el cambio de ubicación están disponibles</string>
     <string name="settings_section_weather_source">Fuente meteorológica</string>
+    <string name="settings_weather_model">Modelo meteorológico</string>
+    <string name="weather_model_auto">Automático</string>
+    <string name="weather_model_auto_desc">El mejor modelo para el lugar, elegido por Open-Meteo</string>
+    <string name="weather_model_days">%1$s días</string>
     <string name="settings_open_meteo_default">Open-Meteo (predeterminada)</string>
     <string name="settings_pirate_weather">Pirate Weather</string>
     <string name="settings_requires_api_key">Requiere clave API</string>

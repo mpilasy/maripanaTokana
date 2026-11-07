@@ -17,6 +17,8 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoApiService
+import orinasa.njarasoa.maripanatokana.data.remote.getForecastFor
+import orinasa.njarasoa.maripanatokana.data.settings.AppSettingsRepository
 import orinasa.njarasoa.maripanatokana.data.remote.toDomain
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherAlert
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
@@ -98,9 +100,11 @@ open class BaseWidgetWeatherFetcher(private val baseUrl: String = "https://api.o
         return try {
             val (lat, lon) = getCoordinates() ?: throw IllegalStateException("No coordinates")
 
+            // The same model setting as the app
+            val model = AppSettingsRepository.weatherModel(context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE))
             val (response, alerts) = coroutineScope {
                 val alerts = async { fetchAlerts(context, lat, lon) }
-                api.getForecast(latitude = lat, longitude = lon) to alerts.await()
+                api.getForecastFor(lat, lon, model, json) to alerts.await()
             }
 
             val locationName = savedNameNear(

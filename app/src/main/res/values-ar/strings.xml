@@ -178,6 +178,10 @@
     <string name="settings_advanced_off_desc">فعّله للوصول إلى إعدادات مصدر الطقس والتنبيهات والموقع</string>
     <string name="settings_advanced_on_desc">جميع الإعدادات وتغيير الموقع متاحة</string>
     <string name="settings_section_weather_source">مصدر الطقس</string>
+    <string name="settings_weather_model">نموذج الطقس</string>
+    <string name="weather_model_auto">تلقائي</string>
+    <string name="weather_model_auto_desc">أفضل نموذج للمكان، يختاره Open-Meteo</string>
+    <string name="weather_model_days">%1$s أيام</string>
     <string name="settings_open_meteo_default">Open-Meteo (الافتراضي)</string>
     <string name="settings_pirate_weather">Pirate Weather</string>
     <string name="settings_requires_api_key">يتطلب مفتاح API</string>

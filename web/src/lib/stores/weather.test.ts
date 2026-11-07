@@ -28,7 +28,7 @@ vi.mock('#lib/stores/weatherSnapshot.js', () => ({ saveSnapshot: vi.fn(), loadSn
 vi.mock('#lib/stores/preferences.js', async () => {
 	const { writable } = await import('svelte/store');
 	return {
-		localeIndex: writable(0), weatherSource: writable('OPEN_METEO'), weatherApiKey: writable(''),
+		localeIndex: writable(0), weatherSource: writable('OPEN_METEO'), weatherApiKey: writable(''), weatherModel: writable(''),
 		alertsEnabled: writable(false), alertsNwsEnabled: writable(false), alertsGdacsEnabled: writable(false),
 		alertsMeteoAlarmEnabled: writable(false), alertsJmaEnabled: writable(false), alertsEcccEnabled: writable(false),
 		alertsBomEnabled: writable(false), alertsNhcEnabled: writable(false),

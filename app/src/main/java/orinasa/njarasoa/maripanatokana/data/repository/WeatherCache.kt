@@ -49,4 +49,10 @@ class WeatherCache(private val dir: File) {
         AppLog.w("WeatherCache", "load failed", e)
         null
     }
+
+    /** Deletes the data of all locations, for example after a change of the weather model. */
+    @Synchronized
+    fun clear() {
+        dir.listFiles()?.forEach { it.delete() }
+    }
 }

@@ -178,6 +178,10 @@
     <string name="settings_advanced_off_desc">मौसम स्रोत, अलर्ट और स्थान सेटिंग्स तक पहुँचने के लिए चालू करें</string>
     <string name="settings_advanced_on_desc">सभी सेटिंग्स और स्थान बदलने की सुविधा उपलब्ध है</string>
     <string name="settings_section_weather_source">मौसम स्रोत</string>
+    <string name="settings_weather_model">मौसम मॉडल</string>
+    <string name="weather_model_auto">स्वचालित</string>
+    <string name="weather_model_auto_desc">स्थान के लिए सबसे अच्छा मॉडल, Open-Meteo द्वारा चुना गया</string>
+    <string name="weather_model_days">%1$s दिन</string>
     <string name="settings_open_meteo_default">Open-Meteo (डिफ़ॉल्ट)</string>
     <string name="settings_pirate_weather">Pirate Weather</string>
     <string name="settings_requires_api_key">API कुंजी आवश्यक</string>

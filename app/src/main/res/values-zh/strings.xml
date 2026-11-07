@@ -178,6 +178,10 @@
     <string name="settings_advanced_off_desc">开启后可访问天气来源、预警和位置设置</string>
     <string name="settings_advanced_on_desc">所有设置和位置覆盖均可使用</string>
     <string name="settings_section_weather_source">天气来源</string>
+    <string name="settings_weather_model">天气模型</string>
+    <string name="weather_model_auto">自动</string>
+    <string name="weather_model_auto_desc">Open-Meteo 为该地点选择的最佳模型</string>
+    <string name="weather_model_days">%1$s 天</string>
     <string name="settings_open_meteo_default">Open-Meteo（默认）</string>
     <string name="settings_pirate_weather">Pirate Weather</string>
     <string name="settings_requires_api_key">需要 API 密钥</string>

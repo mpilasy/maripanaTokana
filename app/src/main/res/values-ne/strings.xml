@@ -178,6 +178,10 @@
     <string name="settings_advanced_off_desc">मौसम स्रोत, अलर्ट र स्थान सेटिङ पहुँच गर्न सक्रिय गर्नुहोस्</string>
     <string name="settings_advanced_on_desc">सबै सेटिङ र स्थान परिवर्तन उपलब्ध छ</string>
     <string name="settings_section_weather_source">मौसम स्रोत</string>
+    <string name="settings_weather_model">मौसम मोडेल</string>
+    <string name="weather_model_auto">स्वचालित</string>
+    <string name="weather_model_auto_desc">स्थानका लागि सबैभन्दा राम्रो मोडेल, Open-Meteo ले रोजेको</string>
+    <string name="weather_model_days">%1$s दिन</string>
     <string name="settings_open_meteo_default">Open-Meteo (पूर्वनिर्धारित)</string>
     <string name="settings_pirate_weather">Pirate Weather</string>
     <string name="settings_requires_api_key">API कुञ्जी आवश्यक</string>
