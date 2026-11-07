@@ -9,6 +9,10 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261107183042] - 2026-11-07
+- Header and footer: while the page scrolls, the big header and the footer slide in; after 5 seconds without scrolling, the header slides to its small state and the footer slides out, so the content gets more room. Open dialogs and menus stop the fold. On Android, the header and footer stay as before while TalkBack is on. The footer floats over the content with a fade under it, and the content does not jump. Web: moving the mouse to the bottom of the app or moving keyboard focus into the footer shows it. With reduced motion, the change has no slide. The header no longer folds after a short scroll.
+- Chart view: the button is only on the Hourly card (the 10-Day button opened the same view). The selection line and the midnight lines stop at the edge of each chart, so the charts no longer look joined.
+
 ## [1.6.20261107173942] - 2026-11-07
 - Chart view: a chart button in the header of the Hourly and 10-Day cards opens a full-screen view with up to 240 hours from now in panels that scroll sideways together: icons and UV, temperature and dew point, rain and chance of rain, wind and gusts with arrows, pressure, humidity and the days. A header shows all values of the selected hour in both units. Tap or drag to select an hour, pinch to zoom, double tap to reset; night hours are shaded. Malagasy "Sarivina".
 - Data: Open-Meteo is asked for 11 days and always for hourly gusts; the other views still show 24 hours and 10 days. Pirate Weather gives 168 hours (extend=hourly).
