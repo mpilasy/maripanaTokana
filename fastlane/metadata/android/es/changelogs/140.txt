@@ -1,0 +1,4 @@
+- Junto a la temperatura: cuánto sube o baja en las próximas 6 horas, y cuándo.
+- Las próximas horas muestran su temperatura en color, del violeta (frío) al rojo (calor).
+- El índice UV aparece en la tarjeta principal cuando es moderado o más.
+- Ajustes: elige el modelo meteorológico (ECMWF, GFS, ICON, Météo-France y más).

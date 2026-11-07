@@ -9,6 +9,10 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261107151745] - 2026-11-07
+- Settings: with Open-Meteo, Advanced mode shows a "Weather model" list (Malagasy "Modely toetrandro"): Automatic ("Tsotra", the default) and 8 global models: ECMWF IFS, ECMWF AIFS, GFS, ICON, Météo-France, UK Met Office, GEM and JMA, each with its centre and number of days. The app asks Open-Meteo for the chosen model and best_match in one request (`models=<chosen>,best_match`) and fills each missing value from best_match: the UV, the visibility, the chance of rain and the days after the model stops. About shows the model ("Open-Meteo · ECMWF IFS"). The widgets use the same setting.
+- Android: a model change clears the saved forecasts and loads the shown place again.
+
 ## [1.6.20261107144224] - 2026-11-07
 - Hero card: a chip next to the temperature shows the largest change in the next 6 hours when it is 2 °C (4 °F) or more: ↑ or ↓, the difference in both units (from the exact difference) and the hour. Warm colours for a rise, cool for a fall. On a narrow screen it goes to the end of the second-unit line. Screen readers read "Rising 6 °C (11 °F) by 18:00" (Malagasy "Hiakatra … hatramin'ny …").
 - Hero card: the temperatures in the next-hours row are in pills tinted by the temperature (violet at −20 °C, blue, cyan, green, yellow, orange, red at 40 °C), with dark text and both units.

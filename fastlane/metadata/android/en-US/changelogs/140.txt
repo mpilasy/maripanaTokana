@@ -1,0 +1,4 @@
+- Next to the temperature: how much it rises or falls in the next 6 hours, and when.
+- The next hours show their temperature in colour, from violet (cold) to red (hot).
+- The UV index shows on the main card when it is moderate or higher.
+- Settings: choose the weather model (ECMWF, GFS, ICON, Météo-France and more).
