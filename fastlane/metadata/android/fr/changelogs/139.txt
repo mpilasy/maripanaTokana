@@ -1,0 +1,3 @@
+- À côté de la température : de combien elle monte ou baisse dans les 6 prochaines heures, et quand.
+- Les prochaines heures montrent leur température en couleur, du violet (froid) au rouge (chaud).
+- L'indice UV s'affiche sur la carte principale quand il est modéré ou plus.

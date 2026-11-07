@@ -9,6 +9,11 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261107144224] - 2026-11-07
+- Hero card: a chip next to the temperature shows the largest change in the next 6 hours when it is 2 °C (4 °F) or more: ↑ or ↓, the difference in both units (from the exact difference) and the hour. Warm colours for a rise, cool for a fall. On a narrow screen it goes to the end of the second-unit line. Screen readers read "Rising 6 °C (11 °F) by 18:00" (Malagasy "Hiakatra … hatramin'ny …").
+- Hero card: the temperatures in the next-hours row are in pills tinted by the temperature (violet at −20 °C, blue, cyan, green, yellow, orange, red at 40 °C), with dark text and both units.
+- Hero card: the UV index (one decimal) and its level show under the air quality when the UV is moderate or higher.
+
 ## [1.6.20261101103743] - 2026-11-01
 - Android: a share or a map link opens the app in its own task. Back now returns to the app that shared (before: to the launcher), and the recent apps show the two apps apart (before: our screen showed under the name of the calling app). A share to an app that is already open goes to that app.
 
