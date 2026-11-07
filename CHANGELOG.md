@@ -9,6 +9,12 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261107190528] - 2026-11-07
+- Chart view: a one-finger slide selects the hours, with a tick at each hour, as on the main-page charts; near the start or end edge the chart scrolls by itself while the selection follows. Two fingers scroll and zoom; a double tap resets the zoom; a tap selects with a tick. The long-press rule is removed. Web: a mouse drag selects, and Shift + wheel or a horizontal wheel scrolls.
+- Chart view: the days and hours also show at the top, above the icons.
+- Chart view: each chart's scale comes from all the hours, so it does not change while the hours scroll or zoom.
+- The hint in the chart view describes the new gestures (Malagasy "Asosay ny rantsantananao hahitana ny sanda. …").
+
 ## [1.6.20261107183042] - 2026-11-07
 - Header and footer: while the page scrolls, the big header and the footer slide in; after 5 seconds without scrolling, the header slides to its small state and the footer slides out, so the content gets more room. Open dialogs and menus stop the fold. On Android, the header and footer stay as before while TalkBack is on. The footer floats over the content with a fade under it, and the content does not jump. Web: moving the mouse to the bottom of the app or moving keyboard focus into the footer shows it. With reduced motion, the change has no slide. The header no longer folds after a short scroll.
 - Chart view: the button is only on the Hourly card (the 10-Day button opened the same view). The selection line and the midnight lines stop at the edge of each chart, so the charts no longer look joined.
