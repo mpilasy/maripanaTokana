@@ -97,7 +97,6 @@
 	"rises_in": "Hiposaka afaka {duration}",
 	"chart_view_title": "Sarivina",
 	"chart_view_open": "Sokafy ny sarivina",
-	"chart_view_hint": "Asosay ny rantsantananao hahitana ny sanda. Rantsan-tanana roa no ampiasaina hifindra amin'ny ora sy hanalehibe azy; tsindrio indroa hamerina azy.",
 	"chart_view_summary": "Sarivina ho an'ny ora {hours} manaraka",
 	"high_vs_normal_above": "{delta} mihoatra ny mahazatra",
 	"high_vs_normal_below": "{delta} latsaky ny mahazatra",

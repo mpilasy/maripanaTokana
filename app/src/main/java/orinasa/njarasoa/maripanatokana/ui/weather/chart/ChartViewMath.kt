@@ -163,3 +163,16 @@ fun chartZoom(
     val hourAtAnchor = (scrollPx + anchorX) / slotPx
     return ChartZoom(next, maxOf(0f, hourAtAnchor * next - anchorX))
 }
+
+// The selection line stays in the middle of the plot area. The scroll is the position under that line, in px
+// from the start of the first hour: the hours have half the plot width of space before and after them.
+
+/** The hour under the centre line, at [scrollPx] ([slotPx] an hour), kept inside 0 to [count] - 1; -1 when there is no hour. */
+fun chartCenterIndex(scrollPx: Float, slotPx: Float, count: Int): Int = chartIndexForX(scrollPx, slotPx, count)
+
+/** The scroll that puts the middle of hour [index] under the centre line. */
+fun chartScrollForIndex(index: Int, slotPx: Float): Float = (index + 0.5f) * slotPx
+
+/** The scroll range: from the middle of the first hour to the middle of the last hour under the centre line. */
+fun chartScrollRange(slotPx: Float, count: Int): ClosedFloatingPointRange<Float> =
+    chartScrollForIndex(0, slotPx)..chartScrollForIndex(maxOf(0, count - 1), slotPx)

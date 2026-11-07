@@ -74,7 +74,6 @@
     <string name="rises_in">Rises in %1$s</string>
     <string name="chart_view_title">Chart view</string>
     <string name="chart_view_open">Open the chart view</string>
-    <string name="chart_view_hint">Slide a finger to read the values. Use two fingers to move through the hours and to zoom; double tap to reset.</string>
     <string name="chart_view_summary">Charts of the next %1$s hours</string>
     <string name="high_vs_normal_above">High %1$s above normal</string>
     <string name="high_vs_normal_below">High %1$s below normal</string>

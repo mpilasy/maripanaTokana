@@ -8,17 +8,14 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.animation.core.AnimationState
-import androidx.compose.animation.core.animateDecay
-import androidx.compose.animation.rememberSplineBasedDecay
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.awaitHorizontalTouchSlopOrCancellation
-import androidx.compose.foundation.gestures.calculateCentroid
-import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.horizontalDrag
+import androidx.compose.foundation.gestures.rememberScrollableState
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,10 +45,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.withFrameNanos
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -72,7 +70,6 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
-import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
@@ -112,12 +109,12 @@ import orinasa.njarasoa.maripanatokana.ui.weather.buildLocationTimeZone
 import orinasa.njarasoa.maripanatokana.ui.weather.components.colorsFor
 import orinasa.njarasoa.maripanatokana.ui.weather.components.computeMonotoneCubicControlPoints
 import orinasa.njarasoa.maripanatokana.ui.weather.components.weatherIconRes
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlin.math.abs
+import kotlin.math.floor
 import kotlin.math.roundToInt
 
 private const val HOUR = 3_600_000L
@@ -140,19 +137,6 @@ private val PANEL_GAP = 6.dp
 private val TITLE_HEIGHT = 16.dp
 // The room above the wind line for the direction arrows
 private val ARROW_ROW = 14.dp
-// The speed of the scroll while the finger is near an edge, in hours per second: from the start of the edge zone to the edge
-private const val EDGE_SCROLL_MIN = 3f
-private const val EDGE_SCROLL_MAX = 9f
-
-/**
- * The gestures that go on: where the finger of a one-finger slide is, the scroll that runs while it is near
- * an edge, and the fling after a two-finger move.
- */
-private class ChartGestures {
-    var x = 0f
-    var edgeScroll: Job? = null
-    var fling: Job? = null
-}
 
 /** The values of one hour in the primary unit, as the charts draw them. */
 private class ChartSeries(hours: List<ChartHour>, metricPrimary: Boolean) {
@@ -211,21 +195,13 @@ fun ChartViewScreen(
                     }
                 }
             }
-            Text(
-                stringResource(R.string.chart_view_hint),
-                color = onSurface.copy(alpha = 0.55f),
-                fontSize = 12.sp,
-                lineHeight = 16.sp,
-                fontFamily = bodyFont,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-            )
             hours.getOrNull(selected)?.let { hour ->
                 SelectionHeader(hour, data.utcOffsetSeconds, metricPrimary, localizeDigits, onToggleUnits)
             }
             Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(top = 4.dp, bottom = 16.dp)) {
                 // The hours run left to right in every language, as in the other charts of the app
                 CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-                    ChartPanels(hours, data.utcOffsetSeconds, metricPrimary, localizeDigits, selected) { selected = it }
+                    ChartPanels(hours, data.utcOffsetSeconds, metricPrimary, localizeDigits) { selected = it }
                 }
             }
         }
@@ -317,9 +293,10 @@ private fun SelectionHeader(hour: ChartHour, utcOffsetSeconds: Int, metricPrimar
 
 /**
  * The panels in one canvas: a fixed axis column at the start, and the hours, which scroll sideways.
- * Gestures, as in the charts of the main page: a one-finger slide selects the hour under the finger (a vertical
- * slide goes to the page; the first movement decides), and near the start or end edge the hours scroll by
- * themselves. A tap selects too. Two fingers move the hours and zoom; a double tap resets the zoom.
+ * The selection line stays in the middle of the plot area, and the selected hour is the hour under it.
+ * Gestures: one finger scrolls the hours, with a fling (a vertical drag goes to the page; the first movement
+ * decides). A tap moves the hour under it to the centre line. A pinch zooms around the centre line, and a
+ * double tap resets the zoom.
  */
 @Composable
 private fun ChartPanels(
@@ -327,7 +304,6 @@ private fun ChartPanels(
     utcOffsetSeconds: Int,
     metricPrimary: Boolean,
     localizeDigits: (String) -> String,
-    selected: Int,
     onSelect: (Int) -> Unit,
 ) {
     val density = LocalDensity.current
@@ -342,51 +318,39 @@ private fun ChartPanels(
     val maxSlot = with(density) { CHART_SLOT_MAX.dp.toPx() }
 
     var slotPx by remember { mutableFloatStateOf(defaultSlot) }
-    var scrollPx by remember(hours) { mutableFloatStateOf(0f) }
+    // The position under the centre line; it opens with the current hour (the first hour) there
+    var scrollPx by remember(hours) { mutableFloatStateOf(chartScrollForIndex(0, defaultSlot)) }
     var widthPx by remember { mutableIntStateOf(0) }
-    fun maxScroll() = maxOf(0f, count * slotPx - (widthPx - axisPx))
     val scope = rememberCoroutineScope()
-    val decay = rememberSplineBasedDecay<Float>()
-    val scrub = remember { ChartGestures() }
-    fun zoom(factor: Float, anchorX: Float) {
-        val z = chartZoom(slotPx, factor, anchorX - axisPx, scrollPx, minSlot, maxSlot)
+    // A positive delta moves to later hours (reverseDirection below), so animateScrollBy takes the distance in px
+    val scrollState = rememberScrollableState { delta ->
+        val old = scrollPx
+        scrollPx = (old + delta).coerceIn(chartScrollRange(slotPx, count))
+        scrollPx - old
+    }
+    // A zoom around the centre line: the hour under it stays there, so the selection does not change
+    fun zoom(factor: Float) {
+        val z = chartZoom(slotPx, factor, 0f, scrollPx, minSlot, maxSlot)
         slotPx = z.slotPx
-        scrollPx = z.scrollPx.coerceIn(0f, maxScroll())
+        scrollPx = z.scrollPx.coerceIn(chartScrollRange(slotPx, count))
     }
-    // The gesture handlers stay from the first composition: they read the selection through this state
-    val currentSelected by rememberUpdatedState(selected)
-    fun select(x: Float, feedback: Boolean) {
+    // A tap moves the hour under it to the centre line, with a short animation
+    fun scrollToTap(x: Float) {
         if (x < axisPx) return
-        val i = chartIndexForX(scrollPx + x - axisPx, slotPx, count)
-        if (i < 0 || i == currentSelected) return
-        onSelect(i)
-        if (feedback) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        val centerX = axisPx + (widthPx - axisPx) / 2f
+        val i = chartIndexForX(scrollPx + x - centerX, slotPx, count)
+        if (i < 0) return
+        scope.launch { scrollState.animateScrollBy(chartScrollForIndex(i, slotPx) - scrollPx) }
     }
-
-    // Near the start or end edge of the plot area (one hour slot), the hours scroll by themselves while the finger
-    // stays there: faster nearer the edge. The selection follows the finger.
-    fun startEdgeScroll() {
-        scrub.edgeScroll?.cancel()
-        scrub.edgeScroll = scope.launch {
-            var last = withFrameNanos { it }
-            while (true) {
-                withFrameNanos { now ->
-                    val seconds = (now - last) / 1e9f
-                    last = now
-                    val slot = slotPx
-                    val depth = when {
-                        scrub.x < axisPx + slot -> -((axisPx + slot - scrub.x) / slot).coerceIn(0f, 1f)
-                        scrub.x > widthPx - slot -> ((scrub.x - (widthPx - slot)) / slot).coerceIn(0f, 1f)
-                        else -> 0f
-                    }
-                    if (depth != 0f) {
-                        val hoursPerSecond = EDGE_SCROLL_MIN + (EDGE_SCROLL_MAX - EDGE_SCROLL_MIN) * abs(depth)
-                        val step = Math.signum(depth) * hoursPerSecond * slot * seconds
-                        scrollPx = (scrollPx + step).coerceIn(0f, maxScroll())
-                        select(maxOf(scrub.x, axisPx), feedback = true)
-                    }
-                }
-            }
+    // The selected hour is the hour under the centre line: a tick each time a new hour comes under it
+    val onSelectNow by rememberUpdatedState(onSelect)
+    LaunchedEffect(hours) {
+        var first = true
+        snapshotFlow { chartCenterIndex(scrollPx, slotPx, count) }.collect { i ->
+            if (i < 0) return@collect
+            onSelectNow(i)
+            if (!first) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            first = false
         }
     }
 
@@ -424,83 +388,41 @@ private fun ChartPanels(
         modifier = Modifier
             .fillMaxWidth()
             .height(totalHeight.dp)
-            .onSizeChanged {
-                widthPx = it.width
-                scrollPx = scrollPx.coerceIn(0f, maxScroll())
-            }
+            .onSizeChanged { widthPx = it.width }
             .semantics { contentDescription = summary }
-            // Two fingers: move the hours and zoom around the point between them, then a fling. The moves are
-            // used here, in the first pass, so the page and the one-finger slide do not move with them.
+            // One finger scrolls the hours, with a fling; a vertical drag goes to the page (the first movement decides)
+            .scrollable(scrollState, Orientation.Horizontal, reverseDirection = true)
+            // Two fingers: zoom around the centre line. The moves are used here, in the first pass, so nothing scrolls
             .pointerInput(hours, density) {
                 awaitEachGesture {
                     awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
-                    scrub.fling?.cancel()
-                    val tracker = VelocityTracker()
-                    var twoFingers = false
                     do {
                         val event = awaitPointerEvent(PointerEventPass.Initial)
-                        val pressed = event.changes.count { it.pressed }
-                        if (pressed >= 2) {
-                            val centroid = event.calculateCentroid(useCurrent = true)
-                            if (!twoFingers) tracker.resetTracking()
-                            twoFingers = true
+                        if (event.changes.count { it.pressed } >= 2) {
                             val factor = event.calculateZoom()
-                            if (factor != 1f) zoom(factor, centroid.x)
-                            scrollPx = (scrollPx - event.calculatePan().x).coerceIn(0f, maxScroll())
-                            tracker.addPosition(event.changes.first().uptimeMillis, centroid)
+                            if (factor != 1f) zoom(factor)
                             event.changes.forEach { if (it.positionChanged()) it.consume() }
-                        } else if (twoFingers) {
-                            // A finger is lifted: the hours go on with the speed of the fingers, and slow down
-                            twoFingers = false
-                            val velocity = -tracker.calculateVelocity().x
-                            scrub.fling = scope.launch {
-                                var last = 0f
-                                AnimationState(0f, velocity).animateDecay(decay) {
-                                    val next = (scrollPx + value - last).coerceIn(0f, maxScroll())
-                                    if (next == scrollPx && value != last) cancelAnimation()
-                                    scrollPx = next
-                                    last = value
-                                }
-                            }
-                            // The finger that stays does not select
-                            event.changes.forEach { it.consume() }
                         }
                     } while (event.changes.any { it.pressed })
                 }
             }
-            // One finger: a horizontal slide selects the hour under the finger
-            .pointerInput(hours, density) {
-                awaitEachGesture {
-                    val down = awaitFirstDown(requireUnconsumed = false)
-                    val start = awaitHorizontalTouchSlopOrCancellation(down.id) { change, _ -> change.consume() } ?: return@awaitEachGesture
-                    scrub.x = start.position.x
-                    select(maxOf(scrub.x, axisPx), feedback = true)
-                    startEdgeScroll()
-                    try {
-                        horizontalDrag(start.id) { change ->
-                            change.consume()
-                            scrub.x = change.position.x
-                            select(maxOf(scrub.x, axisPx), feedback = true)
-                        }
-                    } finally {
-                        scrub.edgeScroll?.cancel()
-                        scrub.edgeScroll = null
-                    }
-                }
-            }
             .pointerInput(hours, density) {
                 detectTapGestures(
-                    onDoubleTap = { zoom(defaultSlot / slotPx, it.x) },
-                    onTap = { select(it.x, feedback = true) },
+                    onDoubleTap = { zoom(defaultSlot / slotPx) },
+                    onTap = { scrollToTap(it.x) },
                 )
             },
     ) {
         if (count == 0) return@Canvas
         val viewW = size.width - axisPx
         val slot = slotPx
-        val scroll = scrollPx.coerceIn(0f, maxOf(0f, count * slot - viewW))
-        val drawn = chartVisibleRange(scroll, viewW, slot, count)
-        fun cx(i: Int) = axisPx + i * slot + slot / 2 - scroll
+        val scroll = scrollPx.coerceIn(chartScrollRange(slot, count))
+        val centerX = axisPx + viewW / 2
+        // The hours that show: the start of the view is half the plot width before the centre line
+        val drawn = chartVisibleRange(scroll - viewW / 2, viewW, slot, count)
+        fun cx(i: Int) = centerX + i * slot + slot / 2 - scroll
+        // The hour position under the centre line, for the dots on the lines (0 is the middle of the first hour)
+        val centerPos = scroll / slot - 0.5f
         val chartsTop = panelTop(ChartPanel.ICONS)
         val chartsBottom = panelTop(ChartPanel.HUMIDITY) + ChartPanel.HUMIDITY.heightDp.dp.toPx()
         val labelStep = if (slot >= 20.dp.toPx()) 3 else 6
@@ -514,7 +436,7 @@ private fun ChartPanels(
         clipRect(left = axisPx) {
             // Days: alternate backgrounds, and a stronger line at each midnight in every panel
             days.forEachIndexed { k, span ->
-                val left = if (k == 0) axisPx else cx(span.startIndex)
+                val left = if (k == 0) cx(span.startIndex) - slot / 2 else cx(span.startIndex)
                 val right = days.getOrNull(k + 1)?.let { cx(it.startIndex) } ?: (cx(span.endIndex - 1) + slot / 2)
                 if (right < axisPx || left > size.width) return@forEachIndexed
                 if (k % 2 == 1) drawRect(Color.White.copy(alpha = 0.03f), Offset(left, 0f), Size(right - left, size.height))
@@ -544,8 +466,8 @@ private fun ChartPanels(
                 }
                 drawSeries(series.dewPoint, drawn, ::cx, { tArea.y(it, d) }, ChartStyle.dewPoint, ChartStyle.thinLineWidth.toPx())
                 drawSeries(series.temperature, drawn, ::cx, { tArea.y(it, d) }, ChartStyle.temperature, ChartStyle.lineWidth.toPx())
-                drawSelectedDot(series.dewPoint, selected, ::cx) { tArea.y(it, d) }
-                drawSelectedDot(series.temperature, selected, ::cx) { tArea.y(it, d) }
+                drawSelectedDot(series.dewPoint, centerPos, centerX) { tArea.y(it, d) }
+                drawSelectedDot(series.temperature, centerPos, centerX) { tArea.y(it, d) }
             }
 
             // Precipitation as bars, the chance of rain as a thin line on 0-100 %
@@ -560,15 +482,15 @@ private fun ChartPanels(
                 }
             }
             drawSeries(series.chance, drawn, ::cx, { pArea.y(it, PERCENT_DOMAIN) }, ChartStyle.chance, ChartStyle.chanceWidth.toPx())
-            drawSelectedDot(series.chance, selected, ::cx) { pArea.y(it, PERCENT_DOMAIN) }
+            drawSelectedDot(series.chance, centerPos, centerX) { pArea.y(it, PERCENT_DOMAIN) }
 
             // Wind and gusts on one scale, with the direction every 3 hours
             wDomain?.let { d ->
                 drawGrid(d, wArea)
                 drawSeries(series.gust, drawn, ::cx, { wArea.y(it, d) }, ChartStyle.gust, ChartStyle.thinLineWidth.toPx(), dashed = true)
                 drawSeries(series.wind, drawn, ::cx, { wArea.y(it, d) }, ChartStyle.wind, ChartStyle.lineWidth.toPx())
-                drawSelectedDot(series.gust, selected, ::cx) { wArea.y(it, d) }
-                drawSelectedDot(series.wind, selected, ::cx) { wArea.y(it, d) }
+                drawSelectedDot(series.gust, centerPos, centerX) { wArea.y(it, d) }
+                drawSelectedDot(series.wind, centerPos, centerX) { wArea.y(it, d) }
             }
             val arrowY = wArea.top - ARROW_ROW.toPx() / 2
             for (i in drawn) {
@@ -581,12 +503,12 @@ private fun ChartPanels(
             prDomain?.let { d ->
                 drawGrid(d, prArea)
                 drawSeries(series.pressure, drawn, ::cx, { prArea.y(it, d) }, ChartStyle.pressure, ChartStyle.lineWidth.toPx())
-                drawSelectedDot(series.pressure, selected, ::cx) { prArea.y(it, d) }
+                drawSelectedDot(series.pressure, centerPos, centerX) { prArea.y(it, d) }
             }
 
             drawGrid(PERCENT_DOMAIN, hArea)
             drawSeries(series.humidity, drawn, ::cx, { hArea.y(it, PERCENT_DOMAIN) }, ChartStyle.humidity, ChartStyle.lineWidth.toPx())
-            drawSelectedDot(series.humidity, selected, ::cx) { hArea.y(it, PERCENT_DOMAIN) }
+            drawSelectedDot(series.humidity, centerPos, centerX) { hArea.y(it, PERCENT_DOMAIN) }
 
             // Time axes at the top and the bottom: an hour label every 3 or 6 hours, and the day at each midnight
             // (the day at the start stays in view). The top axis is the bottom one mirrored: the labels are above their ticks.
@@ -606,7 +528,7 @@ private fun ChartPanels(
                     drawText(layout, topLeft = Offset(cx(i) - layout.size.width / 2f, y))
                 }
                 days.forEachIndexed { k, span ->
-                    val start = if (k == 0) axisPx else cx(span.startIndex)
+                    val start = if (k == 0) cx(span.startIndex) - slot / 2 else cx(span.startIndex)
                     val end = days.getOrNull(k + 1)?.let { cx(it.startIndex) } ?: (cx(span.endIndex - 1) + slot / 2)
                     if (end < axisPx || start > size.width) return@forEachIndexed
                     val layout = textMeasurer.measure(localizeDigits(dayFormat.format(Date(span.date))), dayStyle)
@@ -619,8 +541,8 @@ private fun ChartPanels(
             drawTimeAxis(ChartPanel.TOP_TIME, mirrored = true)
             drawTimeAxis(ChartPanel.TIME, mirrored = false)
 
-            // The selected hour, in every panel
-            if (selected in drawn) drawVerticalLine(cx(selected), ChartStyle.selection, ChartStyle.selectionWidth.toPx())
+            // The centre line: the selected hour is under it, in every panel
+            drawVerticalLine(centerX, ChartStyle.selection, ChartStyle.selectionWidth.toPx())
 
             // Titles on top of the lines, at the start of each panel; they do not scroll
             drawTitle(ChartPanel.TEMPERATURE, titles.temperature, titles.dewPoint, ChartStyle.dewPoint, axisPx, textMeasurer, onSurface)
@@ -722,10 +644,17 @@ private fun DrawScope.drawSeries(
     flush()
 }
 
-private fun DrawScope.drawSelectedDot(values: List<Double?>, selected: Int, x: (Int) -> Float, y: (Double) -> Float) {
-    val v = values.getOrNull(selected) ?: return
-    if (!v.isFinite()) return
-    drawCircle(ChartStyle.selectionDot, ChartStyle.selectionDotRadius.toPx(), Offset(x(selected), y(v)))
+/**
+ * A dot on a line at the centre line ([x]); [position] is the hour position under it. Between two hours the value
+ * is on the straight line between them; next to a missing value, the nearest hour gives it.
+ */
+private fun DrawScope.drawSelectedDot(values: List<Double?>, position: Float, x: Float, y: (Double) -> Float) {
+    val i = floor(position).toInt()
+    val t = position - i
+    val a = values.getOrNull(i)?.takeIf { it.isFinite() }
+    val b = values.getOrNull(i + 1)?.takeIf { it.isFinite() }
+    val v = if (a != null && b != null) a + (b - a) * t else (if (t < 0.5f) a else b) ?: return
+    drawCircle(ChartStyle.selectionDot, ChartStyle.selectionDotRadius.toPx(), Offset(x, y(v)))
 }
 
 /** The weather icon every 3 hours (night icons at night), with the UV index under it from 1, in its tier colour. */

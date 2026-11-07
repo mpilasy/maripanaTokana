@@ -74,7 +74,6 @@
     <string name="rises_in">Se lève dans %1$s</string>
     <string name="chart_view_title">Vue graphique</string>
     <string name="chart_view_open">Ouvrir la vue graphique</string>
-    <string name="chart_view_hint">Glissez un doigt pour lire les valeurs. Avec deux doigts, parcourez les heures et zoomez ; touchez deux fois pour revenir.</string>
     <string name="chart_view_summary">Graphiques des %1$s prochaines heures</string>
     <string name="high_vs_normal_above">Max. %1$s au-dessus de la normale</string>
     <string name="high_vs_normal_below">Max. %1$s en dessous de la normale</string>

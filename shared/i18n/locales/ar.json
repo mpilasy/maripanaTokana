@@ -97,7 +97,6 @@
 	"rises_in": "يطلع بعد {duration}",
 	"chart_view_title": "عرض الرسوم البيانية",
 	"chart_view_open": "افتح عرض الرسوم البيانية",
-	"chart_view_hint": "اسحب بإصبع لقراءة القيم. استخدم إصبعين للتنقل بين الساعات وللتكبير، وانقر مرتين للعودة.",
 	"chart_view_summary": "رسوم بيانية للساعات الـ {hours} القادمة",
 	"high_vs_normal_above": "العظمى أعلى من المعتاد بـ {delta}",
 	"high_vs_normal_below": "العظمى أدنى من المعتاد بـ {delta}",

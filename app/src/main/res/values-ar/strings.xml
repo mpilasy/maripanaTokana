@@ -74,7 +74,6 @@
     <string name="rises_in">يطلع بعد %1$s</string>
     <string name="chart_view_title">عرض الرسوم البيانية</string>
     <string name="chart_view_open">افتح عرض الرسوم البيانية</string>
-    <string name="chart_view_hint">اسحب بإصبع لقراءة القيم. استخدم إصبعين للتنقل بين الساعات وللتكبير، وانقر مرتين للعودة.</string>
     <string name="chart_view_summary">رسوم بيانية للساعات الـ %1$s القادمة</string>
     <string name="high_vs_normal_above">العظمى أعلى من المعتاد بـ %1$s</string>
     <string name="high_vs_normal_below">العظمى أدنى من المعتاد بـ %1$s</string>

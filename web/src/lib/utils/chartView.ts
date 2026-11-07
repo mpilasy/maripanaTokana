@@ -107,6 +107,40 @@ export function chartIndexForX(x: number, slotPx: number, count: number): number
 	return Math.min(count - 1, Math.max(0, Math.floor(x / slotPx)));
 }
 
+/**
+ * The hour under the centre line of the chart view. The scroll (`scrollPx`) is the position under the centre line,
+ * in px from the start of the first hour. -1 when there is no hour.
+ */
+export function chartCenterIndex(scrollPx: number, slotPx: number, count: number): number {
+	return chartIndexForX(scrollPx, slotPx, count);
+}
+
+/** The scroll that puts the middle of hour `index` under the centre line. */
+export function chartScrollForIndex(index: number, slotPx: number): number {
+	return (index + 0.5) * slotPx;
+}
+
+/** The scroll range: from the middle of the first hour to the middle of the last hour under the centre line. */
+export function chartScrollRange(slotPx: number, count: number): { min: number; max: number } {
+	if (count <= 0 || slotPx <= 0) return { min: 0, max: 0 };
+	return { min: chartScrollForIndex(0, slotPx), max: chartScrollForIndex(count - 1, slotPx) };
+}
+
+/**
+ * The value at `x` px from the start of the hours (`slotPx` an hour, each value at the middle of its hour), on the
+ * straight line between the two hours around it. With one of the two missing, the value of the nearer hour, or null.
+ */
+export function chartValueAt(values: (number | null)[], x: number, slotPx: number): number | null {
+	if (values.length === 0 || slotPx <= 0) return null;
+	const pos = Math.min(values.length - 1, Math.max(0, x / slotPx - 0.5));
+	const a = Math.floor(pos);
+	const b = Math.min(values.length - 1, a + 1);
+	const va = values[a];
+	const vb = values[b];
+	if (va != null && vb != null) return va + (vb - va) * (pos - a);
+	return values[Math.round(pos)] ?? null;
+}
+
 /** A vertical scale: the bottom and top values and the values that get a label (from bottom to top). */
 export interface ChartDomain {
 	min: number;

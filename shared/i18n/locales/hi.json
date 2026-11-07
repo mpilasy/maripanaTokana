@@ -97,7 +97,6 @@
 	"rises_in": "{duration} में उदय",
 	"chart_view_title": "चार्ट दृश्य",
 	"chart_view_open": "चार्ट दृश्य खोलें",
-	"chart_view_hint": "मान पढ़ने के लिए एक उंगली सरकाएँ। घंटों में जाने और ज़ूम के लिए दो उंगलियों का उपयोग करें; वापस आने के लिए दो बार टैप करें।",
 	"chart_view_summary": "अगले {hours} घंटों के चार्ट",
 	"high_vs_normal_above": "अधिकतम सामान्य से {delta} ऊपर",
 	"high_vs_normal_below": "अधिकतम सामान्य से {delta} नीचे",

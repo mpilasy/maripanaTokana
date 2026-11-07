@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { describe, expect, it } from 'vitest';
-import { chartDaylight, chartDaySpans, chartDomain, chartHours, chartIndexForX, chartMidnights, chartNightRuns, chartVisibleRange, chartZoom } from './chartView';
+import { chartCenterIndex, chartDaylight, chartDaySpans, chartDomain, chartHours, chartIndexForX, chartScrollForIndex, chartScrollRange, chartValueAt, chartMidnights, chartNightRuns, chartVisibleRange, chartZoom } from './chartView';
 
 const HOUR = 3_600_000;
 const T0 = Date.UTC(2026, 10, 7, 0, 0); // 2026-11-07 00:00 UTC
@@ -194,5 +194,52 @@ describe('chartZoom', () => {
 	});
 	it('does not scroll before the start', () => {
 		expect(chartZoom(28, 0.5, 200, 10).scrollPx).toBe(0);
+	});
+});
+
+describe('chartCenterIndex and chartScrollForIndex', () => {
+	it('gives the hour under the centre line', () => {
+		expect(chartCenterIndex(0, 28, 240)).toBe(0);
+		expect(chartCenterIndex(14, 28, 240)).toBe(0);
+		expect(chartCenterIndex(28, 28, 240)).toBe(1);
+		expect(chartCenterIndex(28 * 240, 28, 240)).toBe(239);
+		expect(chartCenterIndex(10, 28, 0)).toBe(-1);
+	});
+	it('puts the middle of an hour under the centre line', () => {
+		expect(chartScrollForIndex(0, 28)).toBe(14);
+		expect(chartScrollForIndex(10, 12)).toBe(126);
+		for (const i of [0, 5, 239]) expect(chartCenterIndex(chartScrollForIndex(i, 28), 28, 240)).toBe(i);
+	});
+});
+
+describe('chartScrollRange', () => {
+	it('runs from the middle of the first hour to the middle of the last hour', () => {
+		expect(chartScrollRange(28, 240)).toEqual({ min: 14, max: 239.5 * 28 });
+		expect(chartScrollRange(12, 1)).toEqual({ min: 6, max: 6 });
+		expect(chartCenterIndex(chartScrollRange(28, 240).max, 28, 240)).toBe(239);
+	});
+	it('is empty with no hour', () => {
+		expect(chartScrollRange(28, 0)).toEqual({ min: 0, max: 0 });
+	});
+});
+
+describe('chartValueAt', () => {
+	it('gives the value of an hour at its middle', () => {
+		expect(chartValueAt([1, 5, 9], 14, 28)).toBe(1);
+		expect(chartValueAt([1, 5, 9], 42, 28)).toBe(5);
+	});
+	it('is on the straight line between two hours', () => {
+		expect(chartValueAt([1, 5, 9], 28, 28)).toBe(3);
+		expect(chartValueAt([1, 5, 9], 63, 28)).toBe(8);
+	});
+	it('stays at the first and last value outside the hours', () => {
+		expect(chartValueAt([1, 5, 9], 0, 28)).toBe(1);
+		expect(chartValueAt([1, 5, 9], 28 * 10, 28)).toBe(9);
+	});
+	it('takes the nearer hour when one is missing, else null', () => {
+		expect(chartValueAt([1, null, 9], 30, 28)).toBeNull();
+		expect(chartValueAt([1, null, 9], 20, 28)).toBe(1);
+		expect(chartValueAt([1, null, 9], 60, 28)).toBe(9);
+		expect(chartValueAt([], 10, 28)).toBeNull();
 	});
 });
