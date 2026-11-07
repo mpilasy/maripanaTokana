@@ -30,9 +30,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.domain.model.DailyForecast
+import orinasa.njarasoa.maripanatokana.domain.model.NormalTemps
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 import java.util.Calendar
 import orinasa.njarasoa.maripanatokana.ui.theme.FreezingLine
+
+// The normal high and low lines: the colours of the high and low lines at 50 % opacity
+private val NormalHighColor = Color(0x80FF7043)
+private val NormalLowColor = Color(0x8064B5F6)
 
 @Composable
 fun DailyTemperatureChart(
@@ -44,6 +49,8 @@ fun DailyTemperatureChart(
     scrollOffset: Float = 0f,
     totalScrollWidth: Float = 0f,
     localizeDigits: (String) -> String = { it },
+    // The normal high and low of each day, for two faint dotted lines; empty or null where there are none
+    normals: List<NormalTemps?> = emptyList(),
 ) {
     if (forecasts.isEmpty()) return
 
@@ -57,7 +64,16 @@ fun DailyTemperatureChart(
         forecasts.map { if (metricPrimary) it.tempMin.celsius else it.tempMin.fahrenheit }
     }
 
-    val allTemps = maxTemps + minTemps
+    val normalHighs = remember(normals, metricPrimary) {
+        normals.map { n -> n?.high?.let { if (metricPrimary) it else it * 9 / 5 + 32 } }
+    }
+    val normalLows = remember(normals, metricPrimary) {
+        normals.map { n -> n?.low?.let { if (metricPrimary) it else it * 9 / 5 + 32 } }
+    }
+    val normalLabel = stringResource(R.string.normal_label)
+
+    // The normals are in the range too, so their lines stay inside the chart
+    val allTemps = maxTemps + minTemps + normalHighs.filterNotNull() + normalLows.filterNotNull()
     val minTemp = remember(allTemps) { allTemps.minOrNull() ?: 0.0 }
     val maxTemp = remember(allTemps) { allTemps.maxOrNull() ?: 0.0 }
     val tempRange = remember(minTemp, maxTemp) {
@@ -122,6 +138,19 @@ fun DailyTemperatureChart(
                 val fy = labelRoom + (height - 2 * labelRoom) * (1 - ((freezing - paddedMin) / paddedRange).toFloat())
                 drawLine(FreezingLine, Offset(0f, fy), Offset(width, fy), 1.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 3.dp.toPx())))
             }
+            // The normals: faint lines with shorter dashes (2 3) than the freezing line (4 3)
+            fun normalPoints(values: List<Double?>) = values.take(pointsCount).mapIndexed { i, temp ->
+                temp?.let { Offset(xFor(i), labelRoom + (height - 2 * labelRoom) * (1 - ((it - paddedMin) / paddedRange).toFloat())) }
+            }
+            val normalHighPoints = normalPoints(normalHighs)
+            val normalLowPoints = normalPoints(normalLows)
+            val normalDots = PathEffect.dashPathEffect(floatArrayOf(2.dp.toPx(), 3.dp.toPx()))
+            listOf(normalHighPoints to NormalHighColor, normalLowPoints to NormalLowColor).forEach { (points, color) ->
+                points.zipWithNext().forEach { (a, b) ->
+                    if (a != null && b != null) drawLine(color, a, b, 1.dp.toPx(), pathEffect = normalDots)
+                }
+            }
+
             val maxPoints = maxTemps.mapIndexed { i, temp ->
                 val x = xFor(i)
                 val y = labelRoom + (height - 2 * labelRoom) * (1 - ((temp - paddedMin) / paddedRange).toFloat())
@@ -212,6 +241,21 @@ fun DailyTemperatureChart(
             val coldest = minTemps.indices.minByOrNull { minTemps[it] }
             if (warmest != null) drawLabel(forecasts[warmest].tempMax.displayDual(metricPrimary).let { (p, s) -> "$p · $s" }, Color(0xFFFF8A65), maxPoints[warmest], above = true)
             if (coldest != null) drawLabel(forecasts[coldest].tempMin.displayDual(metricPrimary).let { (p, s) -> "$p · $s" }, Color(0xFF64B5F6), minPoints[coldest], above = false)
+
+            // "Normal" with a short dashed sample, in the free space above the highs, at the end away from the warmest label
+            if (normalHighPoints.any { it != null } || normalLowPoints.any { it != null }) {
+                val layout = textMeasurer.measure(normalLabel, TextStyle(color = gridColor.copy(alpha = 0.6f), fontSize = 8.sp, fontFamily = displayFont))
+                val pad = 4.dp.toPx()
+                val sample = 10.dp.toPx()
+                val gap = 3.dp.toPx()
+                val labelWidth = sample + gap + layout.size.width
+                val atEnd = (warmest ?: 0) < pointsCount / 2
+                val left = if (atEnd) width - labelWidth - pad else pad
+                val y = ((labelRoom - layout.size.height) / 2).coerceAtLeast(0f)
+                val midY = y + layout.size.height / 2f
+                drawLine(NormalHighColor, Offset(left, midY), Offset(left + sample, midY), 1.dp.toPx(), pathEffect = normalDots)
+                drawText(layout, topLeft = Offset(left + sample + gap, y))
+            }
 
             // The part of the row scrolled into view, as a light band
             if (showBand && totalScrollWidth > width) {

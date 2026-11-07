@@ -45,6 +45,12 @@ data class WeatherData(
     val utcOffsetSeconds: Int = 0, // location's UTC offset in seconds
     val airQuality: AirQualityIndex? = null,
     val hourlyAirQuality: List<HourlyAirQuality> = emptyList(),
+    /** The normal temperatures of the place; null until they load, or when the request failed. */
+    val normals: DailyNormals? = null,
+    /** The large changes of the daily forecast since about 24 hours ago, for this source and model. */
+    val forecastChanges: List<ForecastChange> = emptyList(),
+    /** The sea near the place; null inland, or when the request failed. */
+    val sea: SeaConditions? = null,
 )
 
 /**

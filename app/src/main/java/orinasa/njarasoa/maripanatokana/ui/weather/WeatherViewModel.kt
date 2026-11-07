@@ -161,6 +161,7 @@ class WeatherViewModel @Inject constructor(
     private var fetchJob: Job? = null
     private var searchJob: Job? = null
     private var alertJob: Job? = null
+    private var normalsJob: Job? = null
     private var sharedTextJob: Job? = null
     private var gpsCacheJob: Job? = null
     // Coordinates of the weather currently displayed; alert results for other coordinates are dropped
@@ -719,13 +720,33 @@ class WeatherViewModel @Inject constructor(
     private fun publish(cacheKey: String, data: WeatherData) {
         // A refresh of the same place keeps the Latin-letter name already found for it
         val previous = (_uiState.value as? WeatherUiState.Success)?.data
-        val shown = if (data.romanName == null && previous?.romanName != null &&
+        val named = if (data.romanName == null && previous?.romanName != null &&
             previous.locationName == data.locationName && previous.latitude == data.latitude
         ) data.copy(romanName = previous.romanName, romanSubtext = previous.romanSubtext) else data
+        // A refresh of the same place also keeps its normal temperatures
+        val shown = if (named.normals == null && previous?.normals != null &&
+            previous.latitude == named.latitude && previous.longitude == named.longitude
+        ) named.copy(normals = previous.normals) else named
         _uiState.value = WeatherUiState.Success(shown)
         _refreshFailed.value = false; _refreshError.value = null
         viewModelScope.launch(Dispatchers.IO) { weatherCache.save(cacheKey, shown) }
         lookUpRomanName(cacheKey, shown)
+        if (shown.normals == null) fetchNormalsForData(cacheKey, shown)
+    }
+
+    /** Loads the normal temperatures of the shown place in the background; a failure shows nothing. */
+    private fun fetchNormalsForData(cacheKey: String, data: WeatherData) {
+        val lat = data.latitude ?: return
+        val lon = data.longitude ?: return
+        normalsJob?.cancel()
+        normalsJob = viewModelScope.launch {
+            val normals = weatherRepository.fetchNormals(lat, lon) ?: return@launch
+            val current = (_uiState.value as? WeatherUiState.Success)?.data
+            if (current?.latitude != lat || current.longitude != lon) return@launch
+            val updated = current.copy(normals = normals)
+            _uiState.value = WeatherUiState.Success(updated)
+            withContext(Dispatchers.IO) { weatherCache.save(cacheKey, updated) }
+        }
     }
 
     /** For a name in a non-Latin script, finds its Latin-letter version in the background. */

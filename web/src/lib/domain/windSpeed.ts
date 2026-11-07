@@ -38,3 +38,11 @@ export function getCardinalDirection(deg: number, directions: any = DIRECTIONS):
 	const idx = Math.round(((deg % 360 + 360) % 360) / (360 / directions.length)) % directions.length;
 	return directions[idx] ?? '';
 }
+
+/** Below this speed (km/h) the forecast rows show no wind direction arrow: the direction of a calm wind means little. */
+export const WIND_ARROW_MIN_KMH = 5;
+
+/** Whether a forecast row shows the wind direction arrow (5 km/h or more). */
+export function showWindArrow(speed: WindSpeed): boolean {
+	return speed.metersPerSecond * 3.6 >= WIND_ARROW_MIN_KMH;
+}

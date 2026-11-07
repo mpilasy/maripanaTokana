@@ -25,6 +25,8 @@ export default defineConfig({
 						'self',
 						'https://api.open-meteo.com',
 						'https://air-quality-api.open-meteo.com',
+						'https://archive-api.open-meteo.com',
+						'https://marine-api.open-meteo.com',
 						'https://geocoding-api.open-meteo.com',
 						'https://api.pirateweather.net',
 						'https://api.weather.gov',

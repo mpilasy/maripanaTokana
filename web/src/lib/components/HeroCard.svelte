@@ -15,6 +15,7 @@
 	import FeltIcon from './FeltIcon.svelte';
 	import { frostbiteMinutes, heatIndex, windChill } from '#lib/domain/thermalIndices.js';
 	import { HEAT_COLOR, CHILL_COLOR } from '#lib/utils/feltColors.js';
+	import { NORMAL_DELTA_MIN_C } from '#lib/domain/normals.js';
 	import { _, json } from 'svelte-i18n';
 
 	interface Props {
@@ -38,6 +39,8 @@
 	let minDual = $derived(data.tempMin.displayDual(metricPrimary));
 	// Half a day at a glance: the first forecast hour and every 4 hours after it, up to 12 hours later
 	let nextHours = $derived([0, 4, 8, 12].map((i) => data.hourlyForecast[i]).filter((h) => h != null));
+	/** The chance of precipitation (%) from which an hour of that row shows a drop. */
+	const RAIN_MARK_MIN_PERCENT = 30;
 
 	// One line on rain or snow coming in the next 24 hours; nothing when they stay dry
 	let outlook = $derived.by(() => {
@@ -74,6 +77,33 @@
 		};
 	});
 
+	// Today's high against the normal high, when they differ by 2 °C or more
+	let normalLine = $derived.by(() => {
+		const normal = data.normals?.[0];
+		const high = data.dailyForecast[0]?.tempMax.celsius ?? data.tempMax.celsius;
+		if (!normal || !Number.isFinite(high)) return null;
+		const delta = high - normal.max;
+		if (Math.abs(delta) < NORMAL_DELTA_MIN_C) return null;
+		// Both units come from the exact difference, so that they agree
+		const c = `${Math.round(Math.abs(delta))} °C`;
+		const f = `${Math.round(Math.abs(delta) * 9 / 5)} °F`;
+		const [primary, secondary] = metricPrimary ? [c, f] : [f, c];
+		// No-break spaces: the line can wrap, but never inside "2 °C (4 °F)"
+		const nbsp = (t: string) => t.replace(/ /g, '\u00A0');
+		const key = delta > 0 ? 'high_vs_normal_above' : 'high_vs_normal_below';
+		// The sentence around the difference, which shows in two sizes
+		const marker = '\u0001';
+		const [before, after = ''] = $_(key, { values: { delta: marker } }).split(marker);
+		return {
+			before,
+			after,
+			primary: loc(nbsp(primary)),
+			secondary: loc(nbsp(` (${secondary})`)),
+			color: delta > 0 ? HEAT_COLOR : CHILL_COLOR,
+			label: $_(key, { values: { delta: loc(`${primary} (${secondary})`) } }),
+		};
+	});
+
 	// The chip goes beside the big digits when it fits there, else at the end of the °F line
 	let tempRowWidth = $state(0);
 	let tempValueWidth = $state(0);
@@ -96,6 +126,13 @@
 	// The UV index only when it is moderate or higher; at night it is low or missing
 	let uv = $derived(data.uvIndex != null && uvTier(data.uvIndex) !== 'low' ? data.uvIndex : null);
 	let uvLabel = $derived(uv == null ? '' : (($json('uv_labels') as string[])?.[UV_TIERS.indexOf(uvTier(uv))] ?? ''));
+
+	// The normal line uses the width up to the air quality and UV column, or the full width without that column
+	let hasSide = $derived(aqi != null || uv != null);
+	let midWidth = $state(0);
+	let sideWidth = $state(0);
+	const MID_COLUMN_GAP = 16;
+	let normalWidth = $derived(hasSide && midWidth > 0 && sideWidth > 0 ? midWidth - sideWidth - MID_COLUMN_GAP : null);
 
 	// How the temperature feels, next to it: the heat index or the wind chill when one applies, else feels like
 	let heat = $derived(heatIndex(data.temperature, data.humidity));
@@ -137,7 +174,7 @@
 			<p class="hero-outlook">{outlook}</p>
 		{/if}
 
-		<div class="hero-mid">
+		<div class="hero-mid" bind:clientWidth={midWidth}>
 		<div class="hero-temp" bind:clientWidth={tempRowWidth}>
 			<div bind:clientWidth={tempValueWidth}>
 				<DualUnitText
@@ -165,12 +202,18 @@
 			{/if}
 		</div>
 
-		<div class="hero-range">
+		<div class="hero-range" class:hero-range-full={!hasSide}>
 			<DualUnitText
 				primary={loc(`↓${minDual[0]} ↑${maxDual[0]}`)}
 				secondary={loc(`↓${minDual[1]} ↑${maxDual[1]}`)}
 				onClick={onToggleUnits}
 			/>
+			{#if normalLine}
+				<!-- Read as one sentence; a tap changes the units, as the values above it -->
+				<button type="button" class="hero-normal" style:--normal={normalLine.color} style:width={normalWidth ? `${normalWidth}px` : undefined} onclick={onToggleUnits} aria-label={normalLine.label}>
+					<span aria-hidden="true">{normalLine.before}<span class="hero-normal-delta"><bdi dir="ltr" class="hero-normal-main">{normalLine.primary}</bdi><bdi dir="ltr" class="hero-normal-sub">{normalLine.secondary}</bdi></span>{normalLine.after}</span>
+				</button>
+			{/if}
 			<div class="hero-felt">
 				<span class="hero-felt-label" style:color={feltColor}>{feltLabel}</span>
 				<!-- A thermometer with a plus for the heat index, with a minus for the wind chill, as tall as the two numbers -->
@@ -185,7 +228,7 @@
 
 		<!-- Air quality and UV fill the space beside the °F and high/low lines; air quality first -->
 		{#if aqi || uv != null}
-			<div class="hero-side" class:hero-side-low={trendChip && !trendBeside}>
+			<div class="hero-side" class:hero-side-low={trendChip && !trendBeside} bind:clientWidth={sideWidth}>
 				{#if aqi}
 					{#if aqiDual}
 						<DualUnitText primary={loc(String(aqiDual[0]))} secondary={loc(String(aqiDual[1]))} primaryUnit={aqiUnits[0]} secondaryUnit={aqiUnits[1]} primarySize="0.875rem" align="end" />
@@ -215,6 +258,13 @@
 							<span class="next-device-time">{loc(formatHourInDeviceTime(hour.time))}<svg class="next-device-icon" viewBox="0 0 24 24" width="10" height="10" fill="currentColor" aria-hidden="true"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg></span>
 						{/if}
 						<WeatherIcon code={hour.weatherCode} night={isNightAt(hour.time)} size={40} />
+						<!-- A likely chance of precipitation under the icon; the space stays when there is none, so the slots line up -->
+						<span class="next-precip">
+							{#if hour.precipProbability >= RAIN_MARK_MIN_PERCENT}
+								<span aria-hidden="true"><svg class="next-drop" viewBox="0 0 24 24" width="9" height="9" fill="currentColor"><path d="M12 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.8 8.2 8 8.2s8-3.22 8-8.2c0-3.32-2.67-7.25-8-11.8z"/></svg>{loc(`${hour.precipProbability}%`)}</span>
+								<span class="sr-only">{$_('precip_chance', { values: { value: loc(`${hour.precipProbability}%`) } })}</span>
+							{/if}
+						</span>
 						<!-- The temperature on a pill in its colour on the temperature scale -->
 						<div class="temp-pill" style:background={temperatureColor(hour.temperature.celsius)}>
 							<DualUnitText primary={loc(hour.temperature.displayDual(metricPrimary)[0])} secondary={loc(hour.temperature.displayDual(metricPrimary)[1])} primarySize="0.9375rem" align="center" onClick={onToggleUnits} />
@@ -378,6 +428,11 @@
 		margin-top: 8px;
 	}
 
+	/* No air quality or UV column: the start column has the full width */
+	.hero-range.hero-range-full {
+		grid-column: 1 / -1;
+	}
+
 	.hero-side {
 		grid-column: 2;
 		grid-row: 2;
@@ -388,6 +443,8 @@
 		align-items: flex-end;
 		gap: 4px;
 		text-align: end;
+		/* As wide as its content, so that the normal line can measure the space beside it */
+		justify-self: end;
 	}
 
 	/* The chip is at the end of the °F line, so the side column does not rise beside that line */
@@ -421,6 +478,46 @@
 		text-align: start;
 		font-size: 0.875rem;
 		color: rgba(255,255,255,0.85);
+	}
+
+	/* At least as wide as the high/low line; a measured width (see normalWidth) takes it up to the side
+	   column. The text is a lighter shade of the colour, for a contrast of 4.5:1 or more, as on the trend chip */
+	.hero-normal {
+		width: 0;
+		min-width: 100%;
+		margin-top: 4px;
+		padding: 0;
+		border: none;
+		background: none;
+		text-align: start;
+		font-family: var(--font-body);
+		font-size: 0.75rem;
+		line-height: 1.3;
+		color: color-mix(in srgb, var(--normal) 50%, white);
+		cursor: pointer;
+	}
+
+	.hero-normal:focus-visible {
+		outline: 2px solid rgba(255, 255, 255, 0.5);
+		outline-offset: 2px;
+		border-radius: 4px;
+	}
+
+	.hero-normal-delta {
+		white-space: nowrap;
+	}
+
+	.hero-normal-main {
+		font-family: var(--font-display);
+		font-size: 0.8125rem;
+		font-weight: 700;
+		font-feature-settings: var(--font-features);
+	}
+
+	.hero-normal-sub {
+		font-family: var(--font-display);
+		font-size: 0.625rem;
+		font-feature-settings: var(--font-features);
 	}
 
 	.hero-felt {
@@ -472,6 +569,19 @@
 	.next-hour .temp-pill :global(.primary),
 	.next-hour .temp-pill :global(.secondary) {
 		color: #1A1A1A;
+	}
+
+	/* As tall as one line of its text whether or not it shows */
+	.next-precip {
+		min-height: 14px;
+		font-size: 0.6875rem;
+		line-height: 14px;
+		color: #64B5F6;
+		font-feature-settings: var(--font-features);
+	}
+
+	.next-drop {
+		margin-inline-end: 2px;
 	}
 
 	.next-device-time {

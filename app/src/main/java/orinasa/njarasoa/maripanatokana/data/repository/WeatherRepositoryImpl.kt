@@ -25,10 +25,17 @@ import orinasa.njarasoa.maripanatokana.data.remote.MeteoAlarmApiService
 import orinasa.njarasoa.maripanatokana.data.remote.NhcApiService
 import orinasa.njarasoa.maripanatokana.data.remote.NhcStorm
 import orinasa.njarasoa.maripanatokana.data.remote.NwsApiService
+import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoArchiveApiService
+import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoMarineApiService
+import orinasa.njarasoa.maripanatokana.data.remote.mapToSea
 import orinasa.njarasoa.maripanatokana.data.settings.AppSettingsRepository
 import orinasa.njarasoa.maripanatokana.data.source.GeocodingSourceSelector
 import orinasa.njarasoa.maripanatokana.data.source.WeatherSourceSelector
 import orinasa.njarasoa.maripanatokana.domain.model.AlertLevel
+import orinasa.njarasoa.maripanatokana.domain.model.DailyNormals
+import orinasa.njarasoa.maripanatokana.domain.model.SeaConditions
+import orinasa.njarasoa.maripanatokana.domain.model.dailyNormals
+import orinasa.njarasoa.maripanatokana.domain.model.toSnapshot
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherAlert
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.repository.AlertsResult
@@ -40,6 +47,7 @@ import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import java.io.StringReader
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
@@ -57,6 +65,10 @@ class WeatherRepositoryImpl @Inject constructor(
     private val weatherSourceSelector: WeatherSourceSelector,
     private val geocodingSelector: GeocodingSourceSelector,
     private val countryResolver: CountryResolver,
+    private val marineApiService: OpenMeteoMarineApiService,
+    private val archiveApiService: OpenMeteoArchiveApiService,
+    private val normalsCache: NormalsCache,
+    private val forecastSnapshots: ForecastSnapshotStore,
 ) : WeatherRepository {
 
     // The GDACS feed lists events for the whole world: one download serves all places for a few minutes
@@ -114,8 +126,8 @@ class WeatherRepositoryImpl @Inject constructor(
 
     override suspend fun getWeather(lat: Double, lon: Double): Result<WeatherData> = withContext(Dispatchers.IO) {
         try {
-            // The place name does not depend on the forecast: look it up while the forecast loads
-            val (sourceData, place) = coroutineScope {
+            // The place name and the sea do not depend on the forecast: look them up while the forecast loads
+            val (sourceData, place, sea) = coroutineScope {
                 val placeDeferred = async {
                     try {
                         geocodingSelector.current().reverseGeocode(lat, lon, currentLocale())
@@ -126,9 +138,19 @@ class WeatherRepositoryImpl @Inject constructor(
                         "%.2f, %.2f".format(Locale.US, lat, lon) to null
                     }
                 }
-                weatherSourceSelector.current().getForecast(lat, lon) to placeDeferred.await()
+                val seaDeferred = async { seaConditions(lat, lon) }
+                Triple(weatherSourceSelector.current().getForecast(lat, lon), placeDeferred.await(), seaDeferred.await())
             }
             val (locationName, locationSubtext) = place
+            // A fresh fetch: compare it with the forecast of about 24 hours ago, then save it
+            val changes = try {
+                val key = forecastHistoryKey(lat, lon)
+                val snapshot = toSnapshot(sourceData, System.currentTimeMillis())
+                forecastSnapshots.changesSinceYesterday(key, snapshot).also { forecastSnapshots.recordForecast(key, snapshot) }
+            } catch (e: Exception) {
+                AppLog.w(TAG, "forecast snapshot failed", e)
+                emptyList()
+            }
 
             Result.success(sourceData.copy(
                 locationName = locationName,
@@ -137,12 +159,52 @@ class WeatherRepositoryImpl @Inject constructor(
                 longitude = lon,
                 alertsLoading = true,
                 // derived alerts from the source are preserved and passed to fetchAlerts later
+                forecastChanges = changes,
+                sea = sea,
             ))
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             AppLog.w(TAG, "getWeather failed", e)
             Result.failure(e)
+        }
+    }
+
+    /** The sea near the place, or null inland or when the request fails. */
+    private suspend fun seaConditions(lat: Double, lon: Double): SeaConditions? = try {
+        mapToSea(marineApiService.getMarine(latitude = lat, longitude = lon))
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        AppLog.w(TAG, "marine failed", e)
+        null
+    }
+
+    /** The forecast history key: the place (2 decimals), the source and the model ("auto" when none is chosen). */
+    private fun forecastHistoryKey(lat: Double, lon: Double): String {
+        val settings = settingsRepository.current
+        return "%.2f,%.2f,%s,%s".format(Locale.US, lat, lon, settings.weatherSource.name, settings.weatherModel ?: "auto")
+    }
+
+    override suspend fun fetchNormals(lat: Double, lon: Double): DailyNormals? = withContext(Dispatchers.IO) {
+        normalsCache.load(lat, lon)?.let { return@withContext it }
+        try {
+            // The last 10 full years
+            val year = Calendar.getInstance().get(Calendar.YEAR)
+            val daily = archiveApiService.getDailyTemperatures(
+                latitude = lat,
+                longitude = lon,
+                startDate = "${year - 10}-01-01",
+                endDate = "${year - 1}-12-31",
+            ).daily ?: return@withContext null
+            dailyNormals(daily.time, daily.temperatureMax, daily.temperatureMin)
+                .takeIf { normals -> normals.max.any { it != null } }
+                ?.also { normalsCache.save(lat, lon, it) }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            AppLog.w(TAG, "normals failed", e)
+            null
         }
     }
 

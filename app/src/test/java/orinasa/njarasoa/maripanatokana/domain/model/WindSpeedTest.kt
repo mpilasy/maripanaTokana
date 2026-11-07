@@ -93,4 +93,12 @@ class WindSpeedTest {
         assertEquals("0.0 m/s", windSpeed.displayMetric())
         assertEquals("0.0 mph", windSpeed.displayImperial())
     }
+
+    @Test
+    fun `forecast rows show the wind arrow from 5 km per h`() {
+        assertEquals(false, showWindArrow(WindSpeed.fromMetersPerSecond(4.9 / 3.6)))
+        assertEquals(true, showWindArrow(WindSpeed.fromMetersPerSecond(5.0 / 3.6)))
+        assertEquals(true, showWindArrow(WindSpeed.fromMetersPerSecond(10.0)))
+        assertEquals(false, showWindArrow(WindSpeed.fromMetersPerSecond(Double.NaN)))
+    }
 }

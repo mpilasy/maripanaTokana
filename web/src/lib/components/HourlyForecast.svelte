@@ -6,7 +6,7 @@
 	import { dragScroll } from '#lib/actions/dragScroll.js';
 	import { _, json } from 'svelte-i18n';
 	import type { HourlyForecast as HourlyForecastType } from '#lib/domain/weatherData.js';
-	import { getCardinalDirection } from '#lib/domain/windSpeed.js';
+	import { getCardinalDirection, showWindArrow } from '#lib/domain/windSpeed.js';
 	import { wmoEmoji } from '#lib/api/wmoWeatherCode.js';
 	import { formatHourInDeviceTime, formatHourAtLocation, isRemoteTimezone } from '#lib/utils/date.js';
 	import type { HourlyAirQuality } from '#lib/domain/weatherData.js';
@@ -229,7 +229,8 @@
 	{:else if displayMode === 'Wind'}
 		{@render cardDualValue(item.windSpeed.displayDual(metricPrimary))}
 		<span class="wind-dir">
-			<WindCompass degrees={item.windDeg} size={18} />
+			<!-- No arrow for a calm wind; its space stays, so the cards line up -->
+			<span class="wind-arrow" class:calm={!showWindArrow(item.windSpeed)}><WindCompass degrees={item.windDeg} size={18} /></span>
 			{getCardinalDirection(item.windDeg, $json('cardinal_directions'))}
 		</span>
 	{:else if displayMode === 'Precipitation'}
@@ -353,6 +354,14 @@
 		gap: 4px;
 		font-size: 0.6875rem;
 		color: rgba(255, 255, 255, 0.7);
+	}
+
+	.wind-arrow {
+		display: flex;
+	}
+
+	.wind-arrow.calm {
+		visibility: hidden;
 	}
 
 	.uv-value {

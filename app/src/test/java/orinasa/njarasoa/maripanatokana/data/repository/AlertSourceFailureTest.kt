@@ -44,6 +44,10 @@ class AlertSourceFailureTest {
             weatherSourceSelector = mockk(),
             geocodingSelector = mockk(),
             countryResolver = CountryResolver(mockk<android.content.Context>(relaxed = true), nominatim),
+            marineApiService = mockk(),
+            archiveApiService = mockk(),
+            normalsCache = mockk(relaxed = true),
+            forecastSnapshots = mockk(relaxed = true),
         )
     }
 

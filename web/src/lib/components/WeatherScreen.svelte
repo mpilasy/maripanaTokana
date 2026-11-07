@@ -37,6 +37,7 @@
 	import AirQualityDetailDialog from './AirQualityDetailDialog.svelte';
 	import SectionCard from './SectionCard.svelte';
 	import ActivitiesCard from './ActivitiesCard.svelte';
+	import SeaCard from './SeaCard.svelte';
 	import { computeActivityIndices } from '#lib/domain/activityIndices.js';
 	import Footer from './Footer.svelte';
 	import { captureAndShare } from '#lib/share.js';
@@ -566,6 +567,8 @@
 									utcOffsetSeconds={data.utcOffsetSeconds}
 									shareCopy
 									bind:displayMode={dailyMode}
+									normals={data.normals}
+									changes={data.forecastChanges}
 									airQuality={data.hourlyAirQuality && data.hourlyAirQuality.length > 0 && data.airQuality
 										? { forecasts: data.hourlyAirQuality, primaryStandard: data.airQuality.primaryStandard }
 										: null}
@@ -579,6 +582,8 @@
 								onToggleUnits={toggleUnits}
 								utcOffsetSeconds={data.utcOffsetSeconds}
 								bind:displayMode={dailyMode}
+								normals={data.normals}
+								changes={data.forecastChanges}
 								airQuality={data.hourlyAirQuality && data.hourlyAirQuality.length > 0 && data.airQuality
 									? { forecasts: data.hourlyAirQuality, primaryStandard: data.airQuality.primaryStandard }
 									: null}
@@ -598,6 +603,15 @@
 						<CurrentConditions part="sky" {data} metricPrimary={$metricPrimary} {loc} onToggleUnits={toggleUnits} onOpenAirQuality={() => showAirQualityDetail = true} />
 					</SectionCard>
 				</div>
+
+				<!-- Only at a coastal place: inland the marine data is all missing -->
+				{#if data.sea}
+					<div>
+						<SectionCard bare title={$_('section_sea')} onShare={handleShare}>
+							<SeaCard sea={data.sea} utcOffsetSeconds={data.utcOffsetSeconds} metricPrimary={$metricPrimary} {loc} onToggleUnits={toggleUnits} />
+						</SectionCard>
+					</div>
+				{/if}
 
 				<div>
 					<SectionCard bare title={$_('section_activities')} onShare={handleShare}>

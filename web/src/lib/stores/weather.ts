@@ -9,6 +9,10 @@ import { fetchWeather } from '#lib/api/openMeteo.js';
 import { fetchPirateWeather } from '#lib/api/pirateWeather.js';
 import { fetchAllAlerts, type AlertSettings } from '#lib/api/externalAlerts.js';
 import { mapToWeatherData } from '#lib/api/openMeteoMapper.js';
+import { fetchMarine, mapToSea } from '#lib/api/openMeteoMarine.js';
+import { cachedNormals, fetchNormals } from '#lib/api/openMeteoArchive.js';
+import { normalFor, placeIsoDate, type DayNormal } from '#lib/domain/normals.js';
+import { changesSinceYesterday, forecastHistoryKey, recordForecast, toSnapshot } from '#lib/stores/forecastHistory.js';
 import { fetchAirQuality, mapToAirQuality, mapToHourlyAirQuality } from '#lib/api/openMeteoAirQuality.js';
 import { getLocationInfo, type LocationInfo } from '#lib/api/alerts/shared.js';
 import {
@@ -67,11 +71,14 @@ async function fetchAtLocation(lat: number, lon: number, knownName?: string, kno
 		? Promise.resolve({ name: knownName, subtext: knownSubtext })
 		: reverseGeocode(lat, lon, localeTag);
 
+	// The sea comes from Open-Meteo for both sources; a failure only leaves the sea section out
+	const seaPromise = fetchMarine(lat, lon).then(mapToSea).catch(() => null);
+
 	if (src === 'PIRATE_WEATHER' && apiKey) {
 		const location = await namePromise;
 		const data = await fetchPirateWeather(lat, lon, apiKey, location.name, knownSubtext ?? location.subtext);
 		if (alertsGeneration !== null) fetchAlertsForData(lat, lon, alertsGeneration);
-		return { ...data, latitude: lat, longitude: lon };
+		return { ...data, latitude: lat, longitude: lon, sea: await seaPromise };
 	}
 
 	// Open-Meteo path
@@ -81,11 +88,11 @@ async function fetchAtLocation(lat: number, lon: number, knownName?: string, kno
 	// used for alert-source gating in fetchAllAlerts. Fetched once here and passed through to
 	// avoid firing a second, redundant reverse-geocode request from fetchAllAlerts.
 	const locationInfoPromise = getLocationInfo(lat, lon, localeTag);
-	const [response, location, airQualityResponse, locationInfo] = await Promise.all([weatherPromise, namePromise, airQualityResponsePromise, locationInfoPromise]);
+	const [response, location, airQualityResponse, locationInfo, sea] = await Promise.all([weatherPromise, namePromise, airQualityResponsePromise, locationInfoPromise, seaPromise]);
 	const airQuality = airQualityResponse ? mapToAirQuality(airQualityResponse, locationInfo.countryCode) : null;
 	const hourlyAirQuality = airQualityResponse ? mapToHourlyAirQuality(airQualityResponse) : [];
 	// The requested point, not the forecast grid cell Open-Meteo snaps it to (as on Android)
-	const data: WeatherData = { ...mapToWeatherData(response, location.name, knownSubtext || location.subtext), latitude: lat, longitude: lon, airQuality, hourlyAirQuality };
+	const data: WeatherData = { ...mapToWeatherData(response, location.name, knownSubtext || location.subtext), latitude: lat, longitude: lon, airQuality, hourlyAirQuality, sea };
 	// The service worker replayed an old cached response (network failed): show its real age, not "now".
 	if (response.cachedAt) {
 		data.timestamp = response.cachedAt;
@@ -118,8 +125,43 @@ export function keepShownWeather() {
 	if (s.kind === 'success') saveSnapshot(currentSnapshotKey(), { ...s.data, alerts: [], alertsLoading: true });
 }
 
+/** The source and model that made the forecast: Pirate Weather needs a key, else Open-Meteo answers. */
+function forecastOrigin(): [string, string] {
+	if (get(weatherSource) === 'PIRATE_WEATHER' && get(weatherApiKey)) return ['PIRATE_WEATHER', ''];
+	return ['OPEN_METEO', weatherModelFor(get(weatherModel))?.key ?? 'auto'];
+}
+
+/** The forecast with what changed since about 24 hours ago. A fresh forecast is also saved for later comparisons. */
+function withForecastChanges(data: WeatherData, fresh: boolean): WeatherData {
+	if (data.dailyForecast.length === 0) return data;
+	const key = forecastHistoryKey(data.latitude, data.longitude, ...forecastOrigin());
+	const snapshot = toSnapshot(data.dailyForecast, data.utcOffsetSeconds, data.timestamp);
+	const forecastChanges = changesSinceYesterday(key, snapshot);
+	if (fresh) recordForecast(key, snapshot);
+	return { ...data, forecastChanges };
+}
+
+/** The normal of each day of the forecast. */
+function alignNormals(normals: (DayNormal | null)[], data: WeatherData): (DayNormal | null)[] {
+	return data.dailyForecast.map((d) => normalFor(normals, placeIsoDate(d.date, data.utcOffsetSeconds)));
+}
+
+/** Loads the normals of the place in the background; a failure shows nothing. */
+async function loadNormals(lat: number, lon: number) {
+	const normals = await fetchNormals(lat, lon);
+	if (!normals) return;
+	weatherState.update((s) =>
+		s.kind === 'success' && s.data.latitude === lat && s.data.longitude === lon
+			? { kind: 'success', data: { ...s.data, normals: alignNormals(normals, s.data) } }
+			: s
+	);
+}
+
 function setWeatherData(fetched: WeatherData) {
-	const { staleFromCache, ...data } = fetched;
+	const { staleFromCache, ...rest } = fetched;
+	const data = withForecastChanges(rest, !staleFromCache);
+	const normals = cachedNormals(data.latitude, data.longitude);
+	data.normals = normals ? alignNormals(normals, data) : undefined;
 	refreshFailed.set(!!staleFromCache);
 	refreshError.set(staleFromCache ? 'error_offline' : null);
 	saveSnapshot(currentSnapshotKey(), { ...data, alerts: [], alertsLoading: true });
@@ -137,6 +179,7 @@ function setWeatherData(fetched: WeatherData) {
 		return { kind: 'success', data: { ...data, ...roman, alerts: existingAlerts } };
 	});
 	lookUpRomanName();
+	if (!normals) loadNormals(data.latitude, data.longitude);
 }
 
 /** For a name in a non-Latin script, finds its Latin-letter version in the background. */

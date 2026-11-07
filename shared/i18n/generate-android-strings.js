@@ -21,6 +21,19 @@ const ANDROID_RES = join(__dirname, '..', '..', 'app', 'src', 'main', 'res');
 // Placeholder mappings per key: ordered list of {name} placeholders → %N$s
 // Keys with a single placeholder get %1$s, keys with multiple get %1$s, %2$s, etc.
 const PLACEHOLDER_ORDER = {
+	high_vs_normal_above: ['delta'],
+	high_vs_normal_below: ['delta'],
+	change_high_warmer: ['day', 'delta'],
+	change_high_cooler: ['day', 'delta'],
+	change_rain_now: ['day', 'amount'],
+	change_dry_now: ['day'],
+	change_rain_more: ['day', 'amount'],
+	change_rain_less: ['day', 'amount'],
+	change_wind_stronger: ['day', 'speed'],
+	change_wind_weaker: ['day', 'speed'],
+	tide_high: ['time'],
+	tide_low: ['time'],
+	sea_period: ['seconds'],
 	weather_model_days: ['days'],
 	temp_trend_rise: ['delta', 'time'],
 	temp_trend_fall: ['delta', 'time'],

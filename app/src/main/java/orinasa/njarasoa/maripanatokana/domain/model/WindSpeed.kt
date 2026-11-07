@@ -35,3 +35,6 @@ value class WindSpeed private constructor(val metersPerSecond: Double) {
         fun fromMph(mph: Double): WindSpeed = WindSpeed(mph / 2.23694)
     }
 }
+
+/** Forecast rows show the wind direction arrow from 5 km/h (3 mph); under that, the direction means little. */
+fun showWindArrow(speed: WindSpeed): Boolean = speed.metersPerSecond * 3.6 >= 5.0

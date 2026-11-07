@@ -4,6 +4,7 @@
 package orinasa.njarasoa.maripanatokana.domain.repository
 
 import orinasa.njarasoa.maripanatokana.data.remote.GeocodingResult
+import orinasa.njarasoa.maripanatokana.domain.model.DailyNormals
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherAlert
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 
@@ -13,6 +14,8 @@ data class AlertsResult(val alerts: List<WeatherAlert>, val failedSources: List<
 interface WeatherRepository {
     suspend fun getWeather(lat: Double, lon: Double): Result<WeatherData>
     suspend fun fetchAlerts(lat: Double, lon: Double): Result<AlertsResult>
+    /** The place's normal temperatures over the last 10 full years, or null when the request fails. */
+    suspend fun fetchNormals(lat: Double, lon: Double): DailyNormals?
     suspend fun searchLocation(query: String): Result<List<GeocodingResult>>
     /** Place name and region in Latin letters, or null when the geocoder has none. */
     suspend fun romanPlaceName(lat: Double, lon: Double): Pair<String, String?>?

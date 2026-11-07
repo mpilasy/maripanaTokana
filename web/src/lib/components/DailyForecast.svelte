@@ -6,7 +6,10 @@
 	import { dragScroll } from '#lib/actions/dragScroll.js';
 	import { _, json } from 'svelte-i18n';
 	import type { DailyForecast as DailyForecastType } from '#lib/domain/weatherData.js';
-	import { getCardinalDirection } from '#lib/domain/windSpeed.js';
+	import { getCardinalDirection, showWindArrow, WindSpeed } from '#lib/domain/windSpeed.js';
+	import { Precipitation } from '#lib/domain/precipitation.js';
+	import { isUpChange, type ForecastChange } from '#lib/domain/forecastChanges.js';
+	import { placeIsoDate, type DayNormal } from '#lib/domain/normals.js';
 	import { wmoEmoji } from '#lib/api/wmoWeatherCode.js';
 	import { formatDayName, formatDayMonth } from '#lib/utils/date.js';
 	import DualUnitText from './DualUnitText.svelte';
@@ -38,9 +41,13 @@
 		shareCopy?: boolean;
 		/** The selected tab; the caller keeps it, so the share image shows the same tab. */
 		displayMode?: string;
+		/** The normal high and low (°C) of each day, for the temperature chart. */
+		normals?: (DayNormal | null)[];
+		/** What changed since about 24 hours ago, above the tabs; nothing shows when empty. */
+		changes?: ForecastChange[];
 	}
 
-	let { forecasts, metricPrimary, localeTag, loc, onToggleUnits, utcOffsetSeconds, airQuality = null, shareCopy = false, displayMode = $bindable('Temperature') }: Props = $props();
+	let { forecasts, metricPrimary, localeTag, loc, onToggleUnits, utcOffsetSeconds, airQuality = null, shareCopy = false, displayMode = $bindable('Temperature'), normals = [], changes = [] }: Props = $props();
 
 	const weekdayNames = $derived($json('weekday_names') as string[] | undefined);
 	const monthNames = $derived($json('month_names') as string[] | undefined);
@@ -164,6 +171,28 @@
 		return labels[uv < 3 ? 0 : uv < 6 ? 1 : uv < 8 ? 2 : uv < 11 ? 3 : 4];
 	}
 
+	/** "4 °C (7 °F)": a value in both units, primary first, in a sentence. */
+	function inSentence([primary, secondary]: [string, string]): string {
+		return loc(`${primary} (${secondary})`);
+	}
+
+	/** One line of the changes: the day as the cards name it, and what changed, in both units. */
+	function changeText(change: ForecastChange): string {
+		const day = forecasts.find((f) => placeIsoDate(f.date, utcOffsetSeconds) === change.date);
+		const values: Record<string, string> = { day: day ? formatDayName(day.date, localeTag, utcOffsetSeconds, true, weekdayNames) : change.date };
+		if (change.kind === 'high_warmer' || change.kind === 'high_cooler') {
+			// Both units come from the exact difference, so that they agree
+			const c = `${Math.round(change.value)} °C`;
+			const f = `${Math.round(change.value * 9 / 5)} °F`;
+			values.delta = inSentence(metricPrimary ? [c, f] : [f, c]);
+		} else if (change.kind === 'wind_stronger' || change.kind === 'wind_weaker') {
+			values.speed = inSentence(WindSpeed.fromMetersPerSecond(change.value / 3.6).displayDual(metricPrimary));
+		} else if (change.kind !== 'dry_now') {
+			values.amount = inSentence(Precipitation.fromMm(change.value).displayDual(metricPrimary));
+		}
+		return $_(`change_${change.kind}`, { values });
+	}
+
 	function barPercent(celsius: number): number {
 		const span = weekHigh - weekLow;
 		return span > 0 && Number.isFinite(celsius) ? ((celsius - weekLow) / span) * 100 : 50;
@@ -171,6 +200,18 @@
 </script>
 
 <div class="daily-wrapper" class:share={shareCopy} style:width={shareCopy ? `${gridWidth}px` : undefined} bind:clientWidth={containerWidth}>
+	{#if changes.length > 0}
+		<!-- Only the arrow has the colour of the change; the text stays in the normal colour -->
+		<div class="changes">
+			<h3 class="changes-title">{$_('forecast_changes_title')}</h3>
+			<ul>
+				{#each changes as change (`${change.date}-${change.kind}`)}
+					{@const up = isUpChange(change.kind)}
+					<li><span class="change-arrow" style:color={up ? HEAT_COLOR : CHILL_COLOR} aria-hidden="true">{up ? '↑' : '↓'}</span>{changeText(change)}</li>
+				{/each}
+			</ul>
+		</div>
+	{/if}
 	<ForecastTabs tabs={shareCopy ? tabs.filter((t) => t.id === displayMode) : tabs} selected={displayMode} onSelect={(id) => (displayMode = id)} />
 	<div class="cards-scroll" bind:this={scrollEl} use:dragScroll onscroll={(e) => { scrollLeft = e.currentTarget.scrollLeft; }}>
 	<div class="cards-row" style:grid-template-columns={shareCopy ? `repeat(${perLine}, 96px)` : undefined}>
@@ -205,6 +246,7 @@
 					height={64}
 					{scrollLeft}
 					{containerWidth} showBand={!shareCopy}
+					{normals}
 				/>
 			</div>
 		{:else if chart}
@@ -227,7 +269,8 @@
 	{:else if displayMode === 'Wind'}
 		{@render cardDualValue(item.windSpeed.displayDual(metricPrimary))}
 		<span class="wind-dir">
-			<WindCompass degrees={item.windDeg} size={18} />
+			<!-- No arrow for a calm wind; its space stays, so the cards line up -->
+			<span class="wind-arrow" class:calm={!showWindArrow(item.windSpeed)}><WindCompass degrees={item.windDeg} size={18} /></span>
 			{getCardinalDirection(item.windDeg, $json('cardinal_directions'))}
 		</span>
 	{:else if displayMode === 'Precipitation'}
@@ -345,6 +388,42 @@
 		gap: 4px;
 		font-size: 0.6875rem;
 		color: rgba(255, 255, 255, 0.7);
+	}
+
+	.wind-arrow {
+		display: flex;
+	}
+
+	.wind-arrow.calm {
+		visibility: hidden;
+	}
+
+	.changes {
+		margin: 0 4px 8px;
+	}
+
+	.changes-title {
+		margin: 0 0 4px;
+		font-family: var(--font-body);
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: rgba(255, 255, 255, 0.7);
+	}
+
+	.changes ul {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		font-size: 0.8125rem;
+		line-height: 1.4;
+		color: white;
+		font-feature-settings: var(--font-features);
+	}
+
+	.change-arrow {
+		display: inline-block;
+		width: 1em;
+		font-weight: 700;
 	}
 
 	/* Keeps the cards the same height when a night has no icon */

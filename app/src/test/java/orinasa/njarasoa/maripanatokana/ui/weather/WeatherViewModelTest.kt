@@ -110,6 +110,7 @@ class WeatherViewModelTest {
         }
 
         coEvery { weatherRepository.fetchAlerts(any(), any()) } returns Result.success(AlertsResult(emptyList(), emptyList()))
+        coEvery { weatherRepository.fetchNormals(any(), any()) } returns null
 
         viewModel = WeatherViewModel(weatherRepository, locationRepository, settingsRepository, weatherCache, context)
     }
@@ -306,6 +307,7 @@ class WeatherViewModelTest {
                 Result.success(realData("${firstArg<Double>()},${secondArg<Double>()}", firstArg(), secondArg()))
             }
             coEvery { weatherRepository.fetchAlerts(any(), any()) } returns Result.success(AlertsResult(emptyList(), emptyList()))
+            coEvery { weatherRepository.fetchNormals(any(), any()) } returns null
             coEvery { weatherRepository.romanPlaceName(any(), any()) } returns null
             coEvery { locationRepository.getLastLocation() } returns Result.success(1.0 to 2.0)
             coEvery { locationRepository.getFreshLocation() } returns Result.success(1.0 to 2.0)

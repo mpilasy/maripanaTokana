@@ -7,6 +7,7 @@
 	import { _ } from 'svelte-i18n';
 	import type { DailyForecast as DailyForecastType } from '#lib/domain/weatherData.js';
 	import { FREEZING_LINE } from '#lib/utils/feltColors.js';
+	import type { DayNormal } from '#lib/domain/normals.js';
 
 	interface Props {
 		forecasts: DailyForecastType[];
@@ -18,9 +19,11 @@
 		containerWidth?: number;
 		/** The band that marks the part of the row in view; off in a share image. */
 		showBand?: boolean;
+		/** The normal high and low (°C) of each day, as faint dashed lines; none when missing. */
+		normals?: (DayNormal | null)[];
 	}
 
-	let { forecasts, metricPrimary, itemWidth, itemSpacing, height = 48, scrollLeft = 0, containerWidth = 0, showBand = true }: Props = $props();
+	let { forecasts, metricPrimary, itemWidth, itemSpacing, height = 48, scrollLeft = 0, containerWidth = 0, showBand = true, normals = [] }: Props = $props();
 
 	const loc = (s: string) => localizeDigits(s, SUPPORTED_LOCALES[$localeIndex]);
 	let ariaLabel = $derived.by(() => {
@@ -35,7 +38,12 @@
 	let maxTemps = $derived(forecasts.map(f => metricPrimary ? f.tempMax.celsius : f.tempMax.fahrenheit));
 	let minTemps = $derived(forecasts.map(f => metricPrimary ? f.tempMin.celsius : f.tempMin.fahrenheit));
 
-	let allTemps = $derived([...maxTemps, ...minTemps]);
+	// The normals in the chart's unit, for the days that have one
+	const toUnit = (c: number) => (metricPrimary ? c : c * 9 / 5 + 32);
+	let normalDays = $derived(forecasts.map((_, i) => normals[i]).map((n, i) => (n ? { i, max: toUnit(n.max), min: toUnit(n.min) } : null)).filter((n) => n != null));
+
+	// The normals are on the same scale, so that their lines stay inside the chart
+	let allTemps = $derived([...maxTemps, ...minTemps, ...normalDays.flatMap((n) => [n.max, n.min])]);
 	let globalMin = $derived(Math.min(...allTemps));
 	let globalMax = $derived(Math.max(...allTemps));
 	let tempRange = $derived(globalMax - globalMin === 0 ? 1 : globalMax - globalMin);
@@ -139,6 +147,11 @@
 		return a === 'start' ? Math.max(0, x - 4) : a === 'end' ? Math.min(svgWidth, x + 4) : x;
 	}
 
+	let normalMaxPath = $derived(normalDays.length >= 2 ? generateMonotonePath(normalDays.map((n) => ({ x: getX(n.i), y: getY(n.max) }))) : '');
+	let normalMinPath = $derived(normalDays.length >= 2 ? generateMonotonePath(normalDays.map((n) => ({ x: getX(n.i), y: getY(n.min) }))) : '');
+	// The label goes in the room above the highs, at the other end from the warmest's label
+	let normalLabelAtStart = $derived(maxPoints[warmest] ? anchor(maxPoints[warmest].x) !== 'start' : false);
+
 	let maxPath = $derived(generateMonotonePath(maxPoints));
 	let minPath = $derived(generateMonotonePath(minPoints));
 
@@ -164,6 +177,15 @@
 	<!-- A faint line at freezing (0 °C, 32 °F) when it is inside the chart -->
 	{#if freezing >= paddedMin && freezing <= paddedMax}
 		<line x1="0" x2={svgWidth} y1={getY(freezing)} y2={getY(freezing)} stroke={FREEZING_LINE} stroke-width="1" stroke-dasharray="4 3" />
+	{/if}
+	<!-- The normal high and low: faint, with shorter dashes than the freezing line -->
+	{#if normalMaxPath}
+		<path d={normalMaxPath} fill="none" stroke="#FF7043" stroke-opacity="0.5" stroke-width="1" stroke-dasharray="2 3" />
+		<path d={normalMinPath} fill="none" stroke="#64B5F6" stroke-opacity="0.5" stroke-width="1" stroke-dasharray="2 3" />
+		<!-- A short dashed sample and the word, in the room above the highs, where no data is -->
+		{@const sampleX = normalLabelAtStart ? 2 : svgWidth - 14}
+		<line x1={sampleX} x2={sampleX + 12} y1="5" y2="5" stroke="white" stroke-opacity="0.5" stroke-width="1" stroke-dasharray="2 3" />
+		<text x={normalLabelAtStart ? 18 : svgWidth - 18} y="8" text-anchor={normalLabelAtStart ? 'start' : 'end'} font-size="8" fill="white" fill-opacity="0.6">{$_('normal_label')}</text>
 	{/if}
 	<path d={maxPath} fill="none" stroke="#FF7043" stroke-width="2.5" stroke-linecap="round" />
 	<path d={minPath} fill="none" stroke="#64B5F6" stroke-width="2.5" stroke-linecap="round" />

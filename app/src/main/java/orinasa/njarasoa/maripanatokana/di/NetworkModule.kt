@@ -26,6 +26,8 @@ import orinasa.njarasoa.maripanatokana.data.remote.NhcApiService
 import orinasa.njarasoa.maripanatokana.data.remote.NwsApiService
 import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoAirQualityApiService
 import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoApiService
+import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoArchiveApiService
+import orinasa.njarasoa.maripanatokana.data.remote.OpenMeteoMarineApiService
 import orinasa.njarasoa.maripanatokana.data.remote.PirateWeatherApiService
 import orinasa.njarasoa.maripanatokana.data.remote.RateLimitedNominatimApiService
 import retrofit2.Retrofit
@@ -102,6 +104,30 @@ object NetworkModule {
             .addConverterFactory(json.asConverterFactory(contentType))
             .build()
             .create(OpenMeteoAirQualityApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideOpenMeteoMarineApiService(okHttpClient: OkHttpClient, json: Json): OpenMeteoMarineApiService {
+        val contentType = "application/json".toMediaType()
+        return Retrofit.Builder()
+            .baseUrl("https://marine-api.open-meteo.com/")
+            .client(okHttpClient)
+            .addConverterFactory(json.asConverterFactory(contentType))
+            .build()
+            .create(OpenMeteoMarineApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideOpenMeteoArchiveApiService(okHttpClient: OkHttpClient, json: Json): OpenMeteoArchiveApiService {
+        val contentType = "application/json".toMediaType()
+        return Retrofit.Builder()
+            .baseUrl("https://archive-api.open-meteo.com/")
+            .client(okHttpClient)
+            .addConverterFactory(json.asConverterFactory(contentType))
+            .build()
+            .create(OpenMeteoArchiveApiService::class.java)
     }
 
     @Provides

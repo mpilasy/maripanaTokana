@@ -6,6 +6,9 @@ import type { Pressure } from './pressure';
 import type { WindSpeed } from './windSpeed';
 import type { Precipitation } from './precipitation';
 import type { AirQualityIndex } from './airQuality';
+import type { DayNormal } from './normals';
+import type { ForecastChange } from './forecastChanges';
+import type { SeaConditions } from './sea';
 
 export type WeatherSource = 'OPEN_METEO' | 'PIRATE_WEATHER';
 
@@ -105,6 +108,12 @@ export interface WeatherData {
 	airQuality?: AirQualityIndex | null;
 	hourlyAirQuality?: HourlyAirQuality[];
 	minutelyForecast?: MinutelyForecast[];
+	/** The normal high and low (°C) of each day of dailyForecast; missing until loaded or when the request failed. */
+	normals?: (DayNormal | null)[];
+	/** What changed in the forecast since about 24 hours ago; missing or empty when nothing did. */
+	forecastChanges?: ForecastChange[];
+	/** The sea at a coastal place; null inland or when the request failed. */
+	sea?: SeaConditions | null;
 }
 
 /**

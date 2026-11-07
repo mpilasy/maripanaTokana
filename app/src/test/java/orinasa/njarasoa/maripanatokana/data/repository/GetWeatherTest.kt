@@ -73,6 +73,10 @@ class GetWeatherTest {
             weatherSourceSelector = weatherSelector,
             geocodingSelector = geocodingSelector,
             countryResolver = mockk(),
+            marineApiService = mockk(),
+            archiveApiService = mockk(),
+            normalsCache = mockk(relaxed = true),
+            forecastSnapshots = mockk(relaxed = true),
         )
     }
 

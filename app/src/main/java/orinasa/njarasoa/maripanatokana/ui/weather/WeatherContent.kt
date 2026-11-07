@@ -120,6 +120,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.rotate
@@ -137,6 +138,12 @@ import androidx.compose.ui.layout.AlignmentLine
 import androidx.compose.ui.layout.FirstBaseline
 import androidx.compose.ui.layout.LastBaseline
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.IntrinsicMeasurable
+import androidx.compose.ui.layout.IntrinsicMeasureScope
+import androidx.compose.ui.layout.Measurable
+import androidx.compose.ui.layout.MeasurePolicy
+import androidx.compose.ui.layout.MeasureResult
+import androidx.compose.ui.layout.MeasureScope
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.unit.Constraints
@@ -183,6 +190,18 @@ import orinasa.njarasoa.maripanatokana.domain.model.Temperature
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherSource
 import orinasa.njarasoa.maripanatokana.domain.model.WindSpeed
+import orinasa.njarasoa.maripanatokana.domain.model.showWindArrow
+import orinasa.njarasoa.maripanatokana.domain.model.localDate
+import orinasa.njarasoa.maripanatokana.domain.model.SeaConditions
+import orinasa.njarasoa.maripanatokana.domain.model.Tides
+import orinasa.njarasoa.maripanatokana.domain.model.metersToFeet
+import orinasa.njarasoa.maripanatokana.domain.model.nextTides
+import orinasa.njarasoa.maripanatokana.domain.model.DailyNormals
+import orinasa.njarasoa.maripanatokana.domain.model.ForecastChange
+import orinasa.njarasoa.maripanatokana.domain.model.Precipitation
+import orinasa.njarasoa.maripanatokana.domain.model.normalFor
+import orinasa.njarasoa.maripanatokana.domain.model.NORMAL_DELTA_MIN_C
+import orinasa.njarasoa.maripanatokana.domain.model.isUpChange
 import orinasa.njarasoa.maripanatokana.domain.model.Pressure
 import orinasa.njarasoa.maripanatokana.ui.theme.DarkNavyColorInt
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFont
@@ -803,6 +822,8 @@ internal fun WeatherContent(
                                             secondary = localizeDigits("\u2193$minS \u2191$maxS"),
                                             onClick = onToggleUnits,
                                         )
+                                        // Today's high against the normal, across the space up to the side column
+                                        HighVsNormal(data, metricPrimary, localizeDigits, onToggleUnits)
                                         // How the temperature feels, next to it: the heat index or the wind chill when one applies, else feels like
                                         val (feltP, feltS) = (heroFelt ?: data.feelsLike).displayDual(metricPrimary)
                                         Column {
@@ -949,9 +970,11 @@ internal fun WeatherContent(
             if (data.dailyForecast.isNotEmpty()) add {
                 val dailyMode = remember { mutableStateOf(ForecastDisplayMode.Temperature) }
                 SectionCard(stringResource(R.string.section_this_week), headerGraphicsLayer, shareCopy = true) {
+                    ForecastChangesBlock(data.forecastChanges, metricPrimary, localizeDigits)
                     DailyForecastList(data.dailyForecast, metricPrimary, localizeDigits, onToggleUnits, data.utcOffsetSeconds,
                         hourlyAirQuality = data.hourlyAirQuality.takeIf { data.airQuality != null }.orEmpty(),
-                        aqiStandard = data.airQuality?.primaryStandard ?: AqiStandard.US, modeState = dailyMode)
+                        aqiStandard = data.airQuality?.primaryStandard ?: AqiStandard.US, modeState = dailyMode,
+                        normals = data.normals)
                 }
             }
             add {
@@ -962,6 +985,11 @@ internal fun WeatherContent(
             add {
                 SectionCard(stringResource(R.string.section_sun_air), headerGraphicsLayer, bare = true) {
                     DetailsContent(data, metricPrimary, timeFormat, localizeDigits, onToggleUnits, DetailsPart.SKY)
+                }
+            }
+            if (data.sea != null) add {
+                SectionCard(stringResource(R.string.section_sea), headerGraphicsLayer, bare = true) {
+                    DetailsContent(data, metricPrimary, timeFormat, localizeDigits, onToggleUnits, DetailsPart.SEA)
                 }
             }
             add {
@@ -1449,11 +1477,15 @@ private fun HeroTemperatureLayout(
     ) { measurables, constraints ->
         val loose = constraints.copy(minWidth = 0, minHeight = 0)
         val temp = measurables[0].measure(loose)
-        val rangePlaceable = measurables[1].measure(loose)
         val gap = 16.dp.roundToPx()
+        // The range's own width, without lines that wrap to the space they get (the normal line has no intrinsic width)
+        val rangeOwnWidth = measurables[1].maxIntrinsicWidth(Constraints.Infinity).coerceAtMost(constraints.maxWidth)
         val sidePlaceable = measurables.getOrNull(2)?.measure(
-            loose.copy(maxWidth = (constraints.maxWidth - rangePlaceable.width - gap).coerceAtLeast(0))
+            loose.copy(maxWidth = (constraints.maxWidth - rangeOwnWidth - gap).coerceAtLeast(0))
         )
+        // The range then gets all the width up to the side column (the full width without one)
+        val rangeMaxWidth = sidePlaceable?.let { (constraints.maxWidth - it.width - gap).coerceAtLeast(rangeOwnWidth) } ?: constraints.maxWidth
+        val rangePlaceable = measurables[1].measure(loose.copy(maxWidth = rangeMaxWidth))
         val rangeBottom = temp.height + rangePlaceable.height
         // The side column may start just under the baseline of the big digits
         val digitsBaseline = temp[FirstBaseline]
@@ -1586,6 +1618,78 @@ private fun TemperatureTrendChip(data: WeatherData, metricPrimary: Boolean, loca
     }
 }
 
+/**
+ * Today's forecast high against the normal high, when they differ by 2 °C or more: "High 4 °C (7 °F) above normal",
+ * in a light shade of the heat colour above and of the chill colour below. A tap swaps the units.
+ */
+@Composable
+private fun HighVsNormal(data: WeatherData, metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
+    val normals = data.normals ?: return
+    val today = data.dailyForecast.firstOrNull() ?: return
+    val normal = normalFor(normals, localDate(today.date, data.utcOffsetSeconds)) ?: return
+    val exactC = today.tempMax.celsius - normal.high
+    if (!exactC.isFinite() || abs(exactC) < NORMAL_DELTA_MIN_C) return
+    val above = exactC > 0
+    // Each unit's difference comes from the exact difference, so the two units agree
+    val deltaC = abs(exactC).roundToInt()
+    val deltaF = (abs(exactC) * 9 / 5).roundToInt()
+    // No-break spaces, so the line never breaks inside "4 °C (7 °F)"
+    val (deltaP, deltaS) = if (metricPrimary) "$deltaC\u00A0°C" to "$deltaF\u00A0°F" else "$deltaF\u00A0°F" to "$deltaC\u00A0°C"
+    val res = if (above) R.string.high_vs_normal_above else R.string.high_vs_normal_below
+    val description = stringResource(res, localizeDigits("$deltaP ($deltaS)"))
+    // The sentence around the difference, so the difference can have its own style
+    val marker = "\uE000"
+    val parts = stringResource(res, marker).split(marker)
+    val toggleLabel = stringResource(R.string.cd_toggle_units)
+    // A light shade of the colour, for a contrast of 4.5:1 or more (as in the trend chip)
+    val color = lerp(if (above) HeatOrange else ChillBlue, Color.White, 0.5f)
+    val scale = LocalScale.current
+    val size = 12f.s(scale)
+    val displayFont = LocalDisplayFont.current
+    // No intrinsic width: the line wraps to the width the hero gives the range column, and does not widen it
+    Layout(content = {
+    Text(
+        text = buildAnnotatedString {
+            append(parts[0])
+            // LTR isolate so RTL locales keep "4 °C (7 °F)" in this order
+            append('\u2066')
+            withStyle(SpanStyle(fontWeight = FontWeight.Bold, fontFamily = displayFont)) { append(localizeDigits(deltaP)) }
+            withStyle(SpanStyle(fontSize = size * 0.8f, fontFamily = displayFont)) { append(localizeDigits("\u00A0($deltaS)")) }
+            append('\u2069')
+            append(parts.getOrElse(1) { "" })
+        },
+        fontSize = size,
+        lineHeight = 15f.s(scale),
+        fontFamily = LocalBodyFont.current,
+        color = color,
+        style = TextStyle(fontFeatureSettings = LocalBodyFontFeatures.current),
+        modifier = Modifier
+            .padding(top = 2.dp)
+            .clickable(role = Role.Button, onClickLabel = toggleLabel, onClick = onToggleUnits)
+            .clearAndSetSemantics {
+                contentDescription = description
+                role = Role.Button
+                onClick(label = toggleLabel) { onToggleUnits(); true }
+            },
+    )
+    }, measurePolicy = NoIntrinsicWidthPolicy)
+}
+
+/** Measures its one child as it is, but reports no intrinsic width, so a parent sized by intrinsics does not grow for it. */
+private object NoIntrinsicWidthPolicy : MeasurePolicy {
+    override fun MeasureScope.measure(measurables: List<Measurable>, constraints: Constraints): MeasureResult {
+        val placeable = measurables.first().measure(constraints)
+        return layout(placeable.width, placeable.height) { placeable.placeRelative(0, 0) }
+    }
+
+    override fun IntrinsicMeasureScope.minIntrinsicWidth(measurables: List<IntrinsicMeasurable>, height: Int) = 0
+    override fun IntrinsicMeasureScope.maxIntrinsicWidth(measurables: List<IntrinsicMeasurable>, height: Int) = 0
+    override fun IntrinsicMeasureScope.minIntrinsicHeight(measurables: List<IntrinsicMeasurable>, width: Int) =
+        measurables.first().minIntrinsicHeight(width)
+    override fun IntrinsicMeasureScope.maxIntrinsicHeight(measurables: List<IntrinsicMeasurable>, width: Int) =
+        measurables.first().maxIntrinsicHeight(width)
+}
+
 /** Half a day at a glance: the first forecast hour and every 4 hours after it, up to 12 hours later. */
 @Composable
 private fun NextHoursStrip(data: WeatherData, metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
@@ -1620,6 +1724,13 @@ private fun NextHoursStrip(data: WeatherData, metricPrimary: Boolean, localizeDi
                 val dayIdx = data.dailySunrise.indexOfLast { it <= hour.time }.coerceAtLeast(0)
                 val isNight = !isDaytime(hour.time, data.dailySunrise.getOrElse(dayIdx) { 0L }, data.dailySunset.getOrElse(dayIdx) { 0L })
                 WeatherIcon(hour.weatherCode, night = isNight, size = 40.sd(scale))
+                // A drop and the chance of rain from 30 %; every hour keeps the space, so the 4 slots stay the same height
+                val rainLikely = hour.precipProbability >= 30
+                val chanceText = stringResource(R.string.precip_chance, localizeDigits("%d%%".format(Locale.US, hour.precipProbability)))
+                Box(modifier = Modifier.clearAndSetSemantics { if (rainLikely) contentDescription = chanceText }) {
+                    PrecipChance(hour.precipProbability, show = rainLikely, fontSize = 11f.s(scale), fontFamily = bodyFont,
+                        fontFeatures = LocalBodyFontFeatures.current, localizeDigits = localizeDigits)
+                }
                 val (tP, tS) = hour.temperature.displayDual(metricPrimary)
                 // The temperature in a pill of its colour on the temperature scale; a tap on the pill changes the units
                 Box(
@@ -1869,6 +1980,8 @@ internal fun DailyForecastList(
     hourlyAirQuality: List<HourlyAirQuality> = emptyList(),
     aqiStandard: AqiStandard = AqiStandard.US,
     modeState: MutableState<ForecastDisplayMode> = remember { mutableStateOf(ForecastDisplayMode.Temperature) },
+    // The place's normal temperatures, for the normal lines on the temperature chart
+    normals: DailyNormals? = null,
 ) {
     val appLocale = LocalConfiguration.current.locales[0]
     // Bolt: Memoize SimpleDateFormat
@@ -1894,6 +2007,9 @@ internal fun DailyForecastList(
         (itemWidth * forecasts.size + itemSpacing * (forecasts.size - 1)).toPx()
     }
 
+    val normalByDay = remember(forecasts, normals, utcOffsetSeconds) {
+        normals?.let { n -> forecasts.map { normalFor(n, localDate(it.date, utcOffsetSeconds)) } }.orEmpty()
+    }
     val aqByDay = remember(forecasts, hourlyAirQuality, aqiStandard) {
         dailyAirQuality(forecasts.map { it.date }, hourlyAirQuality, aqiStandard)
     }
@@ -2016,7 +2132,8 @@ internal fun DailyForecastList(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(64.sd(scale))
-                    .padding(bottom = 8.dp)
+                    .padding(bottom = 8.dp),
+                normals = normalByDay,
             )
         } else {
             // The same kind of chart under the cards for every other tab
@@ -2089,6 +2206,72 @@ internal fun DailyForecastList(
     }
 }
 
+/**
+ * What changed in the next days' forecast since yesterday: a title and up to 4 lines, each with a small marker in
+ * the warm accent (warmer, more rain, stronger wind) or the cool accent. Nothing when there is no change.
+ */
+@Composable
+private fun ForecastChangesBlock(changes: List<ForecastChange>, metricPrimary: Boolean, localizeDigits: (String) -> String) {
+    if (changes.isEmpty()) return
+    val appLocale = LocalConfiguration.current.locales[0]
+    // The ISO dates are read and written in UTC, so the day does not move: the short day name as on the daily cards
+    val isoFormat = remember { SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = TimeZone.getTimeZone("UTC") } }
+    val dayFormat = remember(appLocale) { SimpleDateFormat("EEE", appLocale).apply { timeZone = TimeZone.getTimeZone("UTC") } }
+    val scale = LocalScale.current
+    val bodyFont = LocalBodyFont.current
+    fun dual(pair: Pair<String, String>) = localizeDigits("${pair.first} (${pair.second})")
+    Column(
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 4.dp, end = 4.dp, bottom = 12.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.forecast_changes_title),
+            fontSize = 14f.s(scale),
+            fontWeight = FontWeight.SemiBold,
+            fontFamily = bodyFont,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+            modifier = Modifier.padding(bottom = 2.dp).semantics { heading() },
+        )
+        changes.forEach { change ->
+            val day = try { isoFormat.parse(change.date)?.let { dayFormat.format(it) } } catch (_: Exception) { null } ?: change.date
+            val text = when (change.kind) {
+                ForecastChange.Kind.HIGH_WARMER, ForecastChange.Kind.HIGH_COOLER -> {
+                    // Each unit's difference comes from the exact difference, so the two units agree
+                    val deltaC = abs(change.value).roundToInt()
+                    val deltaF = (abs(change.value) * 9 / 5).roundToInt()
+                    val delta = dual(if (metricPrimary) "$deltaC °C" to "$deltaF °F" else "$deltaF °F" to "$deltaC °C")
+                    stringResource(if (change.kind == ForecastChange.Kind.HIGH_WARMER) R.string.change_high_warmer else R.string.change_high_cooler, day, delta)
+                }
+                ForecastChange.Kind.RAIN_NOW -> stringResource(R.string.change_rain_now, day, dual(Precipitation.fromMm(change.value).displayDual(metricPrimary)))
+                ForecastChange.Kind.DRY_NOW -> stringResource(R.string.change_dry_now, day)
+                ForecastChange.Kind.RAIN_MORE -> stringResource(R.string.change_rain_more, day, dual(Precipitation.fromMm(change.value).displayDual(metricPrimary)))
+                ForecastChange.Kind.RAIN_LESS -> stringResource(R.string.change_rain_less, day, dual(Precipitation.fromMm(change.value).displayDual(metricPrimary)))
+                ForecastChange.Kind.WIND_STRONGER, ForecastChange.Kind.WIND_WEAKER -> stringResource(
+                    if (change.kind == ForecastChange.Kind.WIND_STRONGER) R.string.change_wind_stronger else R.string.change_wind_weaker,
+                    day, dual(WindSpeed.fromMetersPerSecond(change.value / 3.6).displayDual(metricPrimary)),
+                )
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = if (isUpChange(change)) "\u25B2" else "\u25BC",
+                    fontSize = 9f.s(scale),
+                    color = if (isUpChange(change)) HeatOrange else ChillBlue,
+                    modifier = Modifier.padding(end = 6.dp).clearAndSetSemantics {},
+                )
+                Text(
+                    text = text,
+                    fontSize = 13f.s(scale),
+                    fontFamily = bodyFont,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    style = TextStyle(fontFeatureSettings = LocalBodyFontFeatures.current),
+                )
+            }
+        }
+    }
+}
+
 /** A forecast card's heat index or wind chill in both units; "--" for an item where it does not apply. */
 /** A value in both units on a forecast card, the primary one [size] big; a tap swaps the units. */
 @Composable
@@ -2150,7 +2333,7 @@ private fun HourlyCardValue(
         ForecastDisplayMode.Temperature -> CardDualValue(item.temperature.displayDual(metricPrimary), size, localizeDigits, onToggleUnits)
         ForecastDisplayMode.Wind -> {
             CardDualValue(item.windSpeed.displayDual(metricPrimary), size, localizeDigits, onToggleUnits)
-            WindDirectionLabel(item.windDirection)
+            WindDirectionLabel(item.windDirection, visible = showWindArrow(item.windSpeed))
         }
         ForecastDisplayMode.Precipitation -> CardDualValue(item.precipitation.displayDual(metricPrimary), size, localizeDigits, onToggleUnits)
         ForecastDisplayMode.Pressure -> CardDualValue(item.pressure.displayDual(metricPrimary), size, localizeDigits, onToggleUnits)
@@ -2184,7 +2367,7 @@ private fun DailyCardValue(
         }
         ForecastDisplayMode.Wind -> {
             CardDualValue(item.windSpeed.displayDual(metricPrimary), size, localizeDigits, onToggleUnits)
-            WindDirectionLabel(item.windDirection)
+            WindDirectionLabel(item.windDirection, visible = showWindArrow(item.windSpeed))
         }
         ForecastDisplayMode.Precipitation -> CardDualValue(item.precipitation.displayDual(metricPrimary), size, localizeDigits, onToggleUnits)
         ForecastDisplayMode.Pressure -> item.pressure?.takeIf { it.hPa.isFinite() }
@@ -2256,13 +2439,16 @@ private fun uvTierIndex(uv: Double) = when {
     else -> 4
 }
 
-/** A small compass pointing to where the wind comes from, with the direction's short name. */
+/**
+ * A small compass pointing to where the wind (or the sea) comes from, with the direction's short name.
+ * When not [visible], the compass is hidden but keeps its space, so the cards stay the same height.
+ */
 @Composable
-private fun WindDirectionLabel(degrees: Int) {
+private fun WindDirectionLabel(degrees: Int, visible: Boolean = true) {
     val directions = stringArrayResource(R.array.cardinal_directions)
     val scale = LocalScale.current
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
-        WindCompass(degrees, size = 18.dp)
+        WindCompass(degrees, size = 18.dp, modifier = if (visible) Modifier else Modifier.alpha(0f))
         Spacer(modifier = Modifier.width(4.dp))
         Text(
             text = directions[((degrees % 360 + 360) / 22.5 + 0.5).toInt() % 16],
@@ -2299,15 +2485,99 @@ private fun DeviceTime(time: String, modifier: Modifier = Modifier) {
     }
 }
 
-internal enum class DetailsPart { NOW, SKY }
+internal enum class DetailsPart { NOW, SKY, SEA }
 
-/** NOW: temperature, rain, wind, pressure, humidity; SKY: sun, air quality, UV, visibility. */
+/** NOW: temperature, rain, wind, pressure, humidity; SKY: sun, air quality, UV, visibility; SEA: waves, swell, sea temperature, tide. */
 @Composable
 internal fun DetailsContent(data: WeatherData, metricPrimary: Boolean, timeFormat: SimpleDateFormat, localizeDigits: (String) -> String, onToggleUnits: () -> Unit, part: DetailsPart) {
     Column(verticalArrangement = Arrangement.spacedBy(10.sd(LocalScale.current))) {
-        if (part == DetailsPart.NOW) NowTiles(data, metricPrimary, localizeDigits, onToggleUnits)
-        else SkyTiles(data, metricPrimary, timeFormat, localizeDigits, onToggleUnits)
+        when (part) {
+            DetailsPart.NOW -> NowTiles(data, metricPrimary, localizeDigits, onToggleUnits)
+            DetailsPart.SKY -> SkyTiles(data, metricPrimary, timeFormat, localizeDigits, onToggleUnits)
+            DetailsPart.SEA -> data.sea?.let { SeaTiles(it, metricPrimary, timeFormat, localizeDigits, onToggleUnits) }
+        }
     }
+}
+
+/** Waves / swell, sea temperature / tide (each tile only with its data), then a short note on the estimate. */
+@Composable
+private fun SeaTiles(sea: SeaConditions, metricPrimary: Boolean, timeFormat: SimpleDateFormat, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
+    val tile = Modifier.fillMaxHeight()
+    val tides = nextTides(sea.tideTimes, sea.tideLevels, System.currentTimeMillis())
+    val tiles = mutableListOf<@Composable (Modifier) -> Unit>()
+    sea.waveHeight?.let { h ->
+        tiles += { m -> WaveTile(stringResource(R.string.sea_waves), h, sea.wavePeriod, sea.waveDirection, metricPrimary, localizeDigits, onToggleUnits, m) }
+    }
+    sea.swellHeight?.let { h ->
+        tiles += { m -> WaveTile(stringResource(R.string.sea_swell), h, sea.swellPeriod, sea.swellDirection, metricPrimary, localizeDigits, onToggleUnits, m) }
+    }
+    sea.seaTemperature?.let { t ->
+        val (tP, tS) = t.displayDual(metricPrimary)
+        tiles += { m -> DetailCard(localizeDigits(tP), m, title = stringResource(R.string.sea_temperature), secondaryValue = localizeDigits(tS), onToggleUnits = onToggleUnits) }
+    }
+    if (sea.seaLevel != null || tides.high != null || tides.low != null) {
+        tiles += { m -> TideTile(sea.seaLevel, tides, metricPrimary, timeFormat, localizeDigits, onToggleUnits, m) }
+    }
+    tiles.chunked(2).forEach { row ->
+        TileRow { row.forEach { it(tile.weight(1f)) } }
+    }
+    Text(
+        text = stringResource(R.string.sea_note),
+        fontSize = 11f.s(LocalScale.current),
+        fontFamily = LocalBodyFont.current,
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+        modifier = Modifier.padding(horizontal = 4.dp),
+    )
+}
+
+/** A length in metres in both units ("1.2 m", "3.9 ft"), primary first. */
+private fun seaHeightDual(meters: Double, metricPrimary: Boolean): Pair<String, String> {
+    val m = "%.1f m".format(Locale.US, meters)
+    val ft = "%.1f ft".format(Locale.US, metersToFeet(meters))
+    return if (metricPrimary) m to ft else ft to m
+}
+
+/** Waves or swell: the height in both units, the period, and where they come from (as for the wind). */
+@Composable
+private fun WaveTile(title: String, height: Double, period: Double?, direction: Int?, metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit, modifier: Modifier) {
+    val (hP, hS) = seaHeightDual(height, metricPrimary)
+    DetailCard(localizeDigits(hP), modifier, title = title, secondaryValue = localizeDigits(hS), onToggleUnits = onToggleUnits,
+        subtitleContent = if (period == null && direction == null) null else { {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                period?.let {
+                    Text(
+                        text = stringResource(R.string.sea_period, localizeDigits("%d".format(Locale.US, it.roundToInt()))),
+                        fontSize = 12f.s(LocalScale.current),
+                        fontFamily = LocalBodyFont.current,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                    )
+                }
+                direction?.let { WindDirectionLabel(it) }
+            }
+        } })
+}
+
+/** The sea level now in both units, and the times of the next high and low tide, the first one on top. */
+@Composable
+private fun TideTile(level: Double?, tides: Tides, metricPrimary: Boolean, timeFormat: SimpleDateFormat, localizeDigits: (String) -> String, onToggleUnits: () -> Unit, modifier: Modifier) {
+    val levelDual = level?.let { seaHeightDual(it, metricPrimary) }
+    DetailCard(levelDual?.let { localizeDigits(it.first) } ?: "--", modifier, title = stringResource(R.string.sea_tide),
+        secondaryValue = levelDual?.let { localizeDigits(it.second) },
+        onToggleUnits = if (levelDual != null) onToggleUnits else null,
+        subtitleContent = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                listOfNotNull(tides.high?.let { it to R.string.tide_high }, tides.low?.let { it to R.string.tide_low })
+                    .sortedBy { it.first.time }
+                    .forEach { (tide, res) ->
+                        Text(
+                            text = stringResource(res, localizeDigits(timeFormat.format(Date(tide.time)))),
+                            fontSize = 12f.s(LocalScale.current),
+                            fontFamily = LocalBodyFont.current,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        )
+                    }
+            }
+        })
 }
 
 /** Two tiles side by side, as tall as the taller one. */

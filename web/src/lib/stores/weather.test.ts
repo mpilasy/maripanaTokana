@@ -4,7 +4,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { get } from 'svelte/store';
 
-const data = { latitude: 1, longitude: 2, timestamp: 1, alerts: [], locationName: 'X' };
+const data = { latitude: 1, longitude: 2, timestamp: 1, alerts: [], locationName: 'X', dailyForecast: [] };
 const getPosition = vi.fn();
 const fetchWeatherMock = vi.hoisted(() => vi.fn());
 const cachedLocation = vi.hoisted(() => ({ value: { lat: 1, lon: 2, name: 'X', lang: 'mg' } as Record<string, unknown> }));
@@ -22,6 +22,8 @@ vi.mock('#lib/api/openMeteoMapper.js', () => ({ mapToWeatherData: () => ({ ...da
 vi.mock('#lib/api/openMeteoAirQuality.js', () => ({
 	fetchAirQuality: vi.fn(async () => null), mapToAirQuality: vi.fn(), mapToHourlyAirQuality: vi.fn(),
 }));
+vi.mock('#lib/api/openMeteoMarine.js', () => ({ fetchMarine: vi.fn(async () => ({})), mapToSea: () => null }));
+vi.mock('#lib/api/openMeteoArchive.js', () => ({ cachedNormals: () => null, fetchNormals: vi.fn(async () => null) }));
 vi.mock('#lib/api/alerts/shared', () => ({ getLocationInfo: vi.fn(async () => ({ countryCode: 'FR' })) }));
 vi.mock('#lib/api/externalAlerts.js', () => ({ fetchAllAlerts: vi.fn(async () => ({ alerts: [], failedSources: [] })) }));
 vi.mock('#lib/stores/weatherSnapshot.js', () => ({ saveSnapshot: vi.fn(), loadSnapshot: () => null }));
