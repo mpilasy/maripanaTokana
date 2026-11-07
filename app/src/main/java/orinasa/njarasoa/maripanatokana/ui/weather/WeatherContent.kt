@@ -15,12 +15,13 @@ import android.graphics.Bitmap
 import androidx.core.graphics.createBitmap
 import android.net.Uri
 import android.os.Build
+import android.os.SystemClock
+import android.view.accessibility.AccessibilityManager
 import androidx.core.net.toUri
 import android.graphics.Canvas
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -133,6 +134,7 @@ import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.layout.AlignmentLine
 import androidx.compose.ui.layout.FirstBaseline
@@ -384,16 +386,19 @@ internal fun WeatherContent(
         // The list of places opens from the name or the arrow before it, when there is a favorite
         val hasLocationList = locationNames.size > 1
         var pickerOpen by remember { mutableStateOf(false) }
-        // The header folds to one line when the page scrolls more than 48 dp, and opens again at the top.
-        // It is outside the scrolling column, so the scroll position does not change
-        var headerCollapsed by remember { mutableStateOf(false) }
-        val collapseAfter = with(density) { 48.dp.toPx() }
-        LaunchedEffect(scrollState) {
-            snapshotFlow { scrollState.value }.collect { y ->
-                if (y > collapseAfter) headerCollapsed = true else if (y == 0) headerCollapsed = false
-            }
-        }
-        val nameSize by animateFloatAsState(if (headerCollapsed) 20f else 30f, tween(200), label = "nameSize")
+        // A scroll opens the header and shows the footer; 5 s without a scroll folds the header to one line
+        // and hides the footer (rules in IdleChrome)
+        val chrome = rememberIdleChrome(scrollState)
+        val headerCollapsed = !chrome.headerBig
+        val chromeMs = if (rememberReduceMotion()) 0 else 250
+        // 0 = footer in view, 1 = below the screen edge
+        val footerShift by animateFloatAsState(if (chrome.footerVisible) 0f else 1f, tween(chromeMs), label = "footerShift")
+        var footerHeight by remember { mutableIntStateOf(0) }
+        // The header is outside the scrolling column: when its height changes, the page scrolls by the same
+        // amount (below the top of the page), so the content on screen does not move
+        var headerHeight by remember { mutableIntStateOf(0) }
+        var headerGrowth by remember { mutableIntStateOf(0) }
+        val nameSize by animateFloatAsState(if (headerCollapsed) 20f else 30f, tween(chromeMs), label = "nameSize")
         val isRemote = isRemoteTimezone(data.utcOffsetSeconds)
         val updatedText = stringResource(R.string.updated_time, localizeDigits(
             if (android.text.format.DateUtils.isToday(data.timestamp)) screenTimeFormat.format(Date(data.timestamp))
@@ -404,6 +409,10 @@ internal fun WeatherContent(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .onSizeChanged {
+                    if (headerHeight != 0) headerGrowth += it.height - headerHeight
+                    headerHeight = it.height
+                }
                 .padding(top = 16.sd(scale)),
         ) {
         Column(
@@ -473,7 +482,7 @@ internal fun WeatherContent(
                 // (the Plus Code when the name itself is already the coordinates)
                 val secondLine = locationSubtext
                     ?: if (isCoordinatesName(locationName)) plusCode else decimalCoordinates
-                AnimatedVisibility(!headerCollapsed, enter = expandVertically(tween(200)), exit = shrinkVertically(tween(200))) {
+                AnimatedVisibility(!headerCollapsed, enter = expandVertically(tween(chromeMs)), exit = shrinkVertically(tween(chromeMs))) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     LocationDetails(
                         place = listOfNotNull(locationName.takeUnless { isCoordinatesName(it) }, locationSubtext).joinToString(", ").ifBlank { null },
@@ -500,7 +509,7 @@ internal fun WeatherContent(
                 }
             }
             // Folded: no "Updated" line; the refresh button in the actions has the data age as its label
-            AnimatedVisibility(!headerCollapsed, enter = expandVertically(tween(200)), exit = shrinkVertically(tween(200))) {
+            AnimatedVisibility(!headerCollapsed, enter = expandVertically(tween(chromeMs)), exit = shrinkVertically(tween(chromeMs))) {
             Column {
             Spacer(modifier = Modifier.height(6.sd(scale)))
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -975,8 +984,7 @@ internal fun WeatherContent(
             }
             if (data.dailyForecast.isNotEmpty()) add {
                 val dailyMode = remember { mutableStateOf(ForecastDisplayMode.Temperature) }
-                SectionCard(stringResource(R.string.section_this_week), headerGraphicsLayer, shareCopy = true,
-                    action = { ChartViewButton(onOpenChartView) }) {
+                SectionCard(stringResource(R.string.section_this_week), headerGraphicsLayer, shareCopy = true) {
                     ForecastChangesBlock(data.forecastChanges, metricPrimary, localizeDigits)
                     DailyForecastList(data.dailyForecast, metricPrimary, localizeDigits, onToggleUnits, data.utcOffsetSeconds,
                         hourlyAirQuality = data.hourlyAirQuality.takeIf { data.airQuality != null }.orEmpty(),
@@ -1008,10 +1016,17 @@ internal fun WeatherContent(
                 }
             }
         }
+        // The footer floats over the bottom of the content, down to the screen edge
+        Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
         Column(
             modifier = Modifier
-                .weight(1f)
-                // Soft fade where content scrolls under the fixed header
+                .fillMaxSize()
+                // Applied here because the scroll range is known after the column is measured
+                .onSizeChanged {
+                    if (headerGrowth != 0 && scrollState.value > 0) scrollState.dispatchRawDelta(headerGrowth.toFloat())
+                    headerGrowth = 0
+                }
+                // Soft fade where content scrolls under the fixed header, and under the footer while it is in view
                 .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
                 .drawWithContent {
                     drawContent()
@@ -1023,21 +1038,39 @@ internal fun WeatherContent(
                         ),
                         blendMode = BlendMode.DstIn,
                     )
+                    if (footerShift < 1f) {
+                        val footerTop = size.height - footerHeight
+                        drawRect(
+                            brush = Brush.verticalGradient(
+                                0f to Color.Black,
+                                1f to Color.Black.copy(alpha = footerShift),
+                                startY = footerTop - 16.dp.toPx(),
+                                endY = footerTop,
+                            ),
+                            blendMode = BlendMode.DstIn,
+                        )
+                    }
                 }
                 .verticalScroll(scrollState)
-                .padding(vertical = 16.sd(scale)),
+                // The footer's space stays at the bottom at all times, so the content does not move when it slides
+                .padding(top = 16.sd(scale), bottom = 16.sd(scale) + with(density) { footerHeight.toDp() }),
             verticalArrangement = Arrangement.spacedBy(12.sd(scale)),
         ) {
             cards.forEach { it() }
         }
 
-        // Fixed footer
+        // Fixed footer. It slides down below the screen edge when hidden
         CompositionLocalProvider(
             androidx.compose.ui.platform.LocalLayoutDirection provides androidx.compose.ui.unit.LayoutDirection.Ltr,
         ) {
             Row(
                 modifier = Modifier
+                    .align(Alignment.BottomCenter)
                     .fillMaxWidth()
+                    .onSizeChanged { footerHeight = it.height }
+                    .graphicsLayer { translationY = size.height * footerShift }
+                    // Hidden: not for screen readers
+                    .then(if (chrome.footerVisible) Modifier else Modifier.clearAndSetSemantics {})
                     .navigationBarsPadding()
                     .padding(top = 4.dp, bottom = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -1127,9 +1160,57 @@ internal fun WeatherContent(
                 )
             }
         }
+        } // end Box(content, footer)
     }
     } // end CompositionLocalProvider(LocalScale)
     } // end Box
+}
+
+/**
+ * The header and footer state of the main page, from its scrolls (finger, fling, mouse wheel, keyboard).
+ * Only a scroll opens them. Dialogs, menus and sheets take the window focus, so they stop the fold.
+ * With TalkBack, the header stays big and the footer stays in view.
+ */
+@Composable
+private fun rememberIdleChrome(scrollState: ScrollState): IdleChrome {
+    var chrome by remember { mutableStateOf(IdleChrome.start(SystemClock.uptimeMillis())) }
+    // The time starts again at the end of a scroll, which is the last moment of the scroll
+    val scrolling = scrollState.isScrollInProgress
+    LaunchedEffect(scrolling) { chrome = chrome.scrollStarted(SystemClock.uptimeMillis()) }
+    val windowFocused = LocalWindowInfo.current.isWindowFocused
+    LaunchedEffect(windowFocused) { chrome = chrome.dialogOpen(!windowFocused, SystemClock.uptimeMillis()) }
+    val touchExploration = rememberTouchExploration()
+    LaunchedEffect(touchExploration) { chrome = chrome.a11yLock(touchExploration, SystemClock.uptimeMillis()) }
+    LaunchedEffect(chrome, scrolling) {
+        if (scrolling) return@LaunchedEffect
+        val wait = chrome.msUntilFold(SystemClock.uptimeMillis()) ?: return@LaunchedEffect
+        delay(wait)
+        chrome = chrome.tick(SystemClock.uptimeMillis())
+    }
+    return chrome
+}
+
+/** True while TalkBack (touch exploration) is on. */
+@Composable
+private fun rememberTouchExploration(): Boolean {
+    val context = LocalContext.current
+    val manager = remember(context) { context.getSystemService(AccessibilityManager::class.java) }
+    var enabled by remember(manager) { mutableStateOf(manager?.isTouchExplorationEnabled == true) }
+    DisposableEffect(manager) {
+        val listener = AccessibilityManager.TouchExplorationStateChangeListener { enabled = it }
+        manager?.addTouchExplorationStateChangeListener(listener)
+        onDispose { manager?.removeTouchExplorationStateChangeListener(listener) }
+    }
+    return enabled
+}
+
+/** True when the system setting "remove animations" is on (animator duration scale 0). */
+@Composable
+private fun rememberReduceMotion(): Boolean {
+    val context = LocalContext.current
+    return remember(context) {
+        android.provider.Settings.Global.getFloat(context.contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
+    }
 }
 
 /**
@@ -1426,7 +1507,7 @@ internal fun SectionCard(
     }
 }
 
-/** The button that opens the chart view, in the header of the hourly and daily cards. 48 dp, as the share button. */
+/** The button that opens the chart view, in the header of the hourly card. 48 dp, as the share button. */
 @Composable
 private fun ChartViewButton(onClick: () -> Unit) {
     IconButton(

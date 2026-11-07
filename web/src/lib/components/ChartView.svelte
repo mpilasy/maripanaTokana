@@ -59,6 +59,9 @@
 		return { panels: result, totalHeight: top - PANEL_GAP };
 	})();
 	const chartsBottom = panels.humidity.top + panels.humidity.height;
+	// The vertical lines (midnight, selected hour) go only through the plot area of each panel, with a break at the
+	// gaps and title lines, so that each chart shows where it starts and ends. The time axis has its own short ticks.
+	const LINE_SEGMENTS = (['icons', 'temp', 'precip', 'wind', 'pressure', 'humidity'] as PanelId[]).map((id) => panels[id]);
 
 	// The data can be some hours old: start again at the current hour
 	const openedAt = Date.now();
@@ -468,13 +471,20 @@
 							<clipPath id="chart-clip-{id}"><rect x="0" y={panels[id].top} width={count * slot} height={panels[id].height} /></clipPath>
 						{/each}
 					</defs>
-					<!-- Days: every other one a little lighter, and a stronger line at each midnight across all panels -->
+					<!-- A vertical line at `x` through the plot area of each panel, with a break between panels.
+					     Declared in the svg, so that its lines are svg elements -->
+					{#snippet verticalLine(x: number, stroke: string, width: number)}
+						{#each LINE_SEGMENTS as p (p.top)}
+							<line x1={x} x2={x} y1={p.plotTop} y2={p.plotBottom} {stroke} stroke-width={width} />
+						{/each}
+					{/snippet}
+					<!-- Days: every other one a little lighter, and a stronger line at each midnight in every panel -->
 					{#each shownDays as d (d.startIndex)}
 						{#if d.k % 2 === 1}
 							<rect x={d.left} y="0" width={d.right - d.left} height={totalHeight} fill="white" fill-opacity="0.03" />
 						{/if}
 						{#if d.k > 0}
-							<line x1={d.left} x2={d.left} y1="0" y2={totalHeight} stroke={ChartStyle.midnight} stroke-width={ChartStyle.midnightWidth} />
+							{@render verticalLine(d.left, ChartStyle.midnight, ChartStyle.midnightWidth)}
 						{/if}
 					{/each}
 					<!-- Night hours, faintly darker -->
@@ -560,9 +570,9 @@
 						{/if}
 					{/each}
 
-					<!-- The selected hour across all panels, with a dot on each line -->
+					<!-- The selected hour in every panel, with a dot on each line -->
 					{#if count > 0 && selected >= drawn.start && selected < drawn.end}
-						<line x1={cx(selected)} x2={cx(selected)} y1="0" y2={chartsBottom} stroke={ChartStyle.selection} stroke-width={ChartStyle.selectionWidth} />
+						{@render verticalLine(cx(selected), ChartStyle.selection, ChartStyle.selectionWidth)}
 						{#each selectedDots as dot, k (k)}
 							<circle cx={cx(selected)} cy={dot.y} r={ChartStyle.selectionDotRadius} fill={ChartStyle.selectionDot} />
 						{/each}

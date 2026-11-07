@@ -44,8 +44,9 @@
 	import { captureAndShare } from '#lib/share.js';
 	import { isDaytime } from '#lib/domain/weatherData.js';
 	import { motionDuration } from '#lib/utils/motion.js';
+	import { IdleChrome } from '#lib/utils/idleChrome.js';
 	import { slide } from 'svelte/transition';
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 
 	let showSettings = $state(false);
 	let showAbout = $state(false);
@@ -238,14 +239,89 @@
 		isPulling = false;
 	}
 
-	// Past about 48 px of scroll the header shrinks to one row; it comes back in full at the top.
-	// It expands again only near the top, so a scroll position near 48 px does not make it flicker.
-	let headerCollapsed = $state(false);
+	// A scroll opens the header and shows the footer; 5 s without a scroll folds the header to one line
+	// and hides the footer (rules in IdleChrome)
+	const CHROME_SLIDE_MS = 250;
+	// Fine pointer: the mouse in this band at the bottom of the screen shows the footer
+	const FOOTER_ZONE_PX = 80;
+	let chrome = $state.raw(IdleChrome.start(performance.now()));
+	let headerCollapsed = $derived(!chrome.headerBig);
+	let footerVisible = $derived(chrome.footerVisible);
+	// Dialogs, menus and full screens stop the fold
+	let footerMenuOpen = $state(false);
+	let dialogShown = $derived(pickerOpen || footerMenuOpen || renamingLocation != null || $showSavedLocationsDialog
+		|| showSettings || showAbout || showHelp || chartPlace != null || showAirQualityDetail);
+	// The footer hold: the mouse near the bottom edge, or the keyboard focus in the footer
+	let pointerNearBottom = $state(false);
+	let focusInFooter = $state(false);
+	let footerHeld = $derived(pointerNearBottom || focusInFooter);
+	// The screen opens big each time the weather shows
+	let weatherShown = $derived($weatherState.kind === 'success');
+	$effect(() => {
+		if (!weatherShown) return;
+		const now = performance.now();
+		chrome = IdleChrome.start(now).dialogOpen(untrack(() => dialogShown), now).footerHold(untrack(() => footerHeld), now);
+	});
+	$effect(() => {
+		const open = dialogShown;
+		chrome = untrack(() => chrome).dialogOpen(open, performance.now());
+	});
+	$effect(() => {
+		const held = footerHeld;
+		chrome = untrack(() => chrome).footerHold(held, performance.now());
+	});
+	$effect(() => {
+		const wait = chrome.msUntilFold(performance.now());
+		if (wait == null) return;
+		const id = setTimeout(() => (chrome = chrome.tick(performance.now())), wait);
+		return () => clearTimeout(id);
+	});
+	let contentWrapper = $state<HTMLElement | null>(null);
+	onMount(() => {
+		if (!matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+		const move = (e: PointerEvent) => {
+			if (e.pointerType !== 'mouse') return;
+			const r = contentWrapper?.getBoundingClientRect();
+			pointerNearBottom = !!r && e.clientX >= r.left && e.clientX <= r.right && e.clientY <= r.bottom && e.clientY >= r.bottom - FOOTER_ZONE_PX;
+		};
+		const leave = () => { pointerNearBottom = false; };
+		window.addEventListener('pointermove', move);
+		document.documentElement.addEventListener('mouseleave', leave);
+		return () => {
+			window.removeEventListener('pointermove', move);
+			document.documentElement.removeEventListener('mouseleave', leave);
+		};
+	});
+
+	// The page position this code set to keep the content in place: that scroll is not the user's
+	let anchoredScrollTop: number | null = null;
 	function handleScroll() {
 		const top = scrollContainer?.scrollTop ?? 0;
-		if (!headerCollapsed && top > 48) headerCollapsed = true;
-		else if (headerCollapsed && top < 8) headerCollapsed = false;
+		const anchored = anchoredScrollTop != null && Math.abs(top - anchoredScrollTop) < 1;
+		anchoredScrollTop = null;
+		if (!anchored) chrome = chrome.scrollStarted(performance.now());
 	}
+
+	// The header is outside the scrolling area: when its height changes, the page scrolls by the same
+	// amount (below the top of the page), so the content on screen does not move
+	let headerBox = $state<HTMLElement | null>(null);
+	$effect(() => {
+		const el = headerBox;
+		if (!el) return;
+		let height = el.offsetHeight;
+		const observer = new ResizeObserver(() => {
+			const growth = el.offsetHeight - height;
+			height = el.offsetHeight;
+			const sc = scrollContainer;
+			if (growth === 0 || !sc || sc.scrollTop <= 0) return;
+			sc.scrollTop += growth;
+			anchoredScrollTop = sc.scrollTop;
+		});
+		observer.observe(el);
+		return () => observer.disconnect();
+	});
+	// The footer floats over the bottom of the content; the content keeps room for it at all times
+	let footerHeight = $state(0);
 
 	function handleShare(el: HTMLElement) {
 		if (!headerEl) return;
@@ -331,7 +407,7 @@
 		     (the Plus Code when the name itself is already the coordinates) -->
 		{@const region = subtext || (name.includes(',') && !isCoordinatesName(name) ? name.split(',').slice(1).join(',').trim() : '')}
 		{@const plusCode = encodePlusCode(data.latitude, data.longitude)}
-		<!-- The chart view button in the hourly and 10-day card headers, when the data has the chart hours -->
+		<!-- The chart view button in the hourly card header, when the data has the chart hours -->
 		{#snippet chartAction()}
 			<button type="button" class="chart-btn touch-target" aria-label={$_('chart_view_open')} title={$_('chart_view_open')} onclick={() => (chartPlace = shownName)}>
 				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -359,11 +435,11 @@
 			</div>
 		{/if}
 
-		<div class="content-wrapper">
+		<div class="content-wrapper" bind:this={contentWrapper}>
 			<!-- Fixed header: full-width location block (captured for share screenshots) with the actions
 			     overlaid on the name line (not captured); only the name shrinks to make room.
-			     Collapsed (scrolled down): only the name line, with the local time and a refresh button -->
-			<div class="header" class:collapsed={headerCollapsed}>
+			     Collapsed (no scroll for 5 s): only the name line, with the local time and a refresh button -->
+			<div class="header" class:collapsed={headerCollapsed} bind:this={headerBox}>
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<div class="header-main" bind:this={headerEl}
@@ -388,7 +464,7 @@
 						{/if}
 					</div>
 					{#if !headerCollapsed}
-					<div transition:slide={{ duration: motionDuration(200) }}>
+					<div transition:slide={{ duration: motionDuration(CHROME_SLIDE_MS) }}>
 					<div class="subtext-row">
 						<LocationDetails
 							place={isCoordinatesName(name) ? (region || undefined) : [name.includes(',') && !subtext ? name.split(',')[0].trim() : name, region].filter(Boolean).join(', ')}
@@ -505,7 +581,9 @@
 			<!-- Scrollable content -->
 			<div
 				class="scroll-area"
+				class:footer-hidden={!footerVisible}
 				role="region"
+				style:--footer-height="{footerHeight}px"
 				bind:this={scrollContainer}
 				onscroll={handleScroll}
 				ontouchstart={handleTouchStart}
@@ -568,7 +646,7 @@
 
 				{#if data.dailyForecast.length > 0}
 					<div>
-						<SectionCard title={$_('section_this_week')} onShare={handleShare} action={data.chartHourly?.length ? chartAction : undefined}>
+						<SectionCard title={$_('section_this_week')} onShare={handleShare}>
 							{#snippet shareCopy()}
 								<DailyForecast
 									forecasts={data.dailyForecast}
@@ -634,15 +712,22 @@
 
 
 
-			<!-- Fixed footer -->
-			<Footer
-				fontName={fontPairings[$fontIndex].name}
-				currentFlag={SUPPORTED_LOCALES[$localeIndex].flag}
-				onCycleFont={cycleFont}
-				onCycleLanguage={cycleLanguage}
-				onOpenAbout={() => showAbout = true}
-				onOpenHelp={() => showHelp = true}
-			/>
+			<!-- Fixed footer over the bottom of the content. Hidden: below the screen edge, no clicks, not for screen
+			     readers. It stays in the tab order: the keyboard focus in it shows it -->
+			<div class="footer-dock" class:hidden={!footerVisible} aria-hidden={footerVisible ? undefined : 'true'}
+				bind:offsetHeight={footerHeight}
+				onfocusin={() => (focusInFooter = true)}
+				onfocusout={(e) => (focusInFooter = e.currentTarget.contains(e.relatedTarget as Node | null))}>
+				<Footer
+					fontName={fontPairings[$fontIndex].name}
+					currentFlag={SUPPORTED_LOCALES[$localeIndex].flag}
+					onCycleFont={cycleFont}
+					onCycleLanguage={cycleLanguage}
+					onOpenAbout={() => showAbout = true}
+					onOpenHelp={() => showHelp = true}
+					onMenuOpen={(open) => (footerMenuOpen = open)}
+				/>
+			</div>
 
 			<!-- Outside .scroll-area: its mask-image would clip the dialog's backdrop -->
 			{#if showAirQualityDetail && data.airQuality}
@@ -813,6 +898,8 @@
 		z-index: 1;
 		padding: 0 24px;
 		padding-top: env(safe-area-inset-top);
+		/* The hidden footer is below the edge: no scroll of the screen when the keyboard focus goes into it */
+		overflow: clip;
 	}
 
 
@@ -905,7 +992,7 @@
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
-		transition: font-size 0.2s, line-height 0.2s;
+		transition: font-size 0.25s, line-height 0.25s;
 	}
 
 	.header.collapsed .location-name {
@@ -1150,19 +1237,58 @@
 		color: white;
 	}
 
+	/* The footer part of the fade: they follow the footer slide */
+	@property --footer-cover {
+		syntax: '<length>';
+		inherits: false;
+		initial-value: 0px;
+	}
+
+	@property --footer-fade {
+		syntax: '<length>';
+		inherits: false;
+		initial-value: 0px;
+	}
+
 	.scroll-area {
 		flex: 1;
 		min-width: 0;
 		overflow-y: auto;
 		overflow-x: hidden;
-		padding: 16px 0;
+		/* Room for the footer at all times, so the content does not move when it slides */
+		padding: 16px 0 calc(16px + var(--footer-height));
 		-webkit-overflow-scrolling: touch;
 		/* A dark scrollbar on desktop, to match the dark screen */
 		color-scheme: dark;
 		scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
-		/* Soft fade where content scrolls under the fixed header */
-		-webkit-mask-image: linear-gradient(to bottom, transparent 0, black 16px);
-		mask-image: linear-gradient(to bottom, transparent 0, black 16px);
+		/* Soft fade where content scrolls under the fixed header, and under the footer while it shows */
+		--footer-cover: var(--footer-height);
+		--footer-fade: 16px;
+		-webkit-mask-image: linear-gradient(to bottom, transparent 0, black 16px,
+			black calc(100% - var(--footer-cover) - var(--footer-fade)), transparent calc(100% - var(--footer-cover)));
+		mask-image: linear-gradient(to bottom, transparent 0, black 16px,
+			black calc(100% - var(--footer-cover) - var(--footer-fade)), transparent calc(100% - var(--footer-cover)));
+		transition: --footer-cover 250ms ease, --footer-fade 250ms ease;
+	}
+
+	/* Footer hidden: the content shows to the screen edge */
+	.scroll-area.footer-hidden {
+		--footer-cover: 0px;
+		--footer-fade: 0px;
+	}
+
+	.footer-dock {
+		position: absolute;
+		left: 24px;
+		right: 24px;
+		bottom: 0;
+		z-index: 2;
+		transition: transform 250ms ease;
+	}
+
+	.footer-dock.hidden {
+		transform: translateY(100%);
+		pointer-events: none;
 	}
 
 	/* Cards stacked in one free-scrolling column */

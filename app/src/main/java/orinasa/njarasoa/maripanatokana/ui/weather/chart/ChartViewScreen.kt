@@ -431,13 +431,13 @@ private fun ChartPanels(
         val hArea = plotArea(ChartPanel.HUMIDITY)
 
         clipRect(left = axisPx) {
-            // Days: alternate backgrounds, and a stronger line at each midnight across all panels
+            // Days: alternate backgrounds, and a stronger line at each midnight in every panel
             days.forEachIndexed { k, span ->
                 val left = if (k == 0) axisPx else cx(span.startIndex)
                 val right = days.getOrNull(k + 1)?.let { cx(it.startIndex) } ?: (cx(span.endIndex - 1) + slot / 2)
                 if (right < axisPx || left > size.width) return@forEachIndexed
                 if (k % 2 == 1) drawRect(Color.White.copy(alpha = 0.03f), Offset(left, 0f), Size(right - left, size.height))
-                if (k > 0) drawLine(ChartStyle.midnight, Offset(left, 0f), Offset(left, size.height), ChartStyle.midnightWidth.toPx())
+                if (k > 0) drawVerticalLine(left, ChartStyle.midnight, ChartStyle.midnightWidth.toPx())
             }
             // Night hours, faintly darker
             var runStart = -1
@@ -527,10 +527,8 @@ private fun ChartPanels(
                 if (left + layout.size.width + pad <= end) drawText(layout, topLeft = Offset(left, timeTop + 18.dp.toPx()))
             }
 
-            // The selected hour, across all panels
-            if (selected in drawn) {
-                drawLine(ChartStyle.selection, Offset(cx(selected), 0f), Offset(cx(selected), chartsBottom), ChartStyle.selectionWidth.toPx())
-            }
+            // The selected hour, in every panel
+            if (selected in drawn) drawVerticalLine(cx(selected), ChartStyle.selection, ChartStyle.selectionWidth.toPx())
 
             // Titles on top of the lines, at the start of each panel; they do not scroll
             drawTitle(ChartPanel.TEMPERATURE, titles.temperature, titles.dewPoint, ChartStyle.dewPoint, axisPx, textMeasurer, onSurface)
@@ -586,6 +584,17 @@ private fun DrawScope.plotArea(panel: ChartPanel, extraTop: Float = 0f): PlotAre
     val top = panelTop(panel)
     val title = if (panel.titled) TITLE_HEIGHT.toPx() else 0f
     return PlotArea(top + title + extraTop + 4.dp.toPx(), top + panel.heightDp.dp.toPx() - 4.dp.toPx())
+}
+
+/**
+ * A vertical line at [x] in the plot area of each panel, with a break in the gaps and title lines between
+ * the panels, so that each chart shows where it ends. The time axis has its own short ticks.
+ */
+private fun DrawScope.drawVerticalLine(x: Float, color: Color, width: Float) {
+    ChartPanel.entries.filter { it != ChartPanel.TIME }.forEach { panel ->
+        val area = plotArea(panel)
+        drawLine(color, Offset(x, area.top), Offset(x, area.bottom), width)
+    }
 }
 
 private fun DrawScope.drawGrid(d: ChartDomain, area: PlotArea) {

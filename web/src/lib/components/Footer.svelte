@@ -15,12 +15,15 @@
 		onCycleLanguage: () => void;
 		onOpenAbout: () => void;
 		onOpenHelp: () => void;
+		/** Gets true while the font or language list is open, and false when it closes */
+		onMenuOpen?: (open: boolean) => void;
 	}
 
-	let { fontName, currentFlag, onCycleFont, onCycleLanguage, onOpenAbout, onOpenHelp }: Props = $props();
+	let { fontName, currentFlag, onCycleFont, onCycleLanguage, onOpenAbout, onOpenHelp, onMenuOpen }: Props = $props();
 	// Holding the flag or the font lists every language or font to pick one
 	let pickerOpen = $state(false);
 	let fontPickerOpen = $state(false);
+	$effect(() => onMenuOpen?.(pickerOpen || fontPickerOpen));
 	const languageItems = SUPPORTED_LOCALES.map((l) => ({ lead: l.flag, label: l.name, lang: l.tag }));
 	// Twin: fontLabel in app/src/main/java/orinasa/njarasoa/maripanatokana/ui/weather/components/FooterPickers.kt
 	/** The pairing's name; the default pairing's name is translated, the others are proper names. */
