@@ -97,7 +97,7 @@
 	"rises_in": "{duration}后升起",
 	"chart_view_title": "图表视图",
 	"chart_view_open": "打开图表视图",
-	"chart_view_hint": "滑动浏览各小时。双指缩放；双击恢复。触摸图表查看数值。",
+	"chart_view_hint": "单指滑动查看数值。双指浏览各小时并缩放；双击恢复。",
 	"chart_view_summary": "未来 {hours} 小时的图表",
 	"high_vs_normal_above": "最高气温比常年高 {delta}",
 	"high_vs_normal_below": "最高气温比常年低 {delta}",

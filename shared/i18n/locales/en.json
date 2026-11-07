@@ -97,7 +97,7 @@
 	"rises_in": "Rises in {duration}",
 	"chart_view_title": "Chart view",
 	"chart_view_open": "Open the chart view",
-	"chart_view_hint": "Swipe to move through the hours. Pinch to zoom; double tap to reset. Touch a chart to read the values.",
+	"chart_view_hint": "Slide a finger to read the values. Use two fingers to move through the hours and to zoom; double tap to reset.",
 	"chart_view_summary": "Charts of the next {hours} hours",
 	"high_vs_normal_above": "High {delta} above normal",
 	"high_vs_normal_below": "High {delta} below normal",

@@ -74,7 +74,7 @@
     <string name="rises_in">Sale en %1$s</string>
     <string name="chart_view_title">Vista de gráficos</string>
     <string name="chart_view_open">Abrir la vista de gráficos</string>
-    <string name="chart_view_hint">Desliza para recorrer las horas. Pellizca para ampliar; toca dos veces para volver. Toca un gráfico para leer los valores.</string>
+    <string name="chart_view_hint">Desliza un dedo para leer los valores. Con dos dedos, recorre las horas y amplía; toca dos veces para volver.</string>
     <string name="chart_view_summary">Gráficos de las próximas %1$s horas</string>
     <string name="high_vs_normal_above">Máx. %1$s por encima de lo normal</string>
     <string name="high_vs_normal_below">Máx. %1$s por debajo de lo normal</string>

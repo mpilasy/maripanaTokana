@@ -42,23 +42,27 @@
 	const ARROW_ROW = 14;
 	const ICON_SIZE = 26;
 
-	// The panels from top to bottom, with their height; the value panels have a title line at the top
-	type PanelId = 'icons' | 'temp' | 'precip' | 'wind' | 'pressure' | 'humidity' | 'time';
-	const PANEL_HEIGHTS: [PanelId, number][] = [['icons', 46], ['temp', 132], ['precip', 88], ['wind', 104], ['pressure', 80], ['humidity', 80], ['time', 36]];
+	// The panels from top to bottom, with their height; the value panels have a title line at the top.
+	// A time axis is at the top (`timeTop`, mirrored) and at the bottom (`time`).
+	type PanelId = 'timeTop' | 'icons' | 'temp' | 'precip' | 'wind' | 'pressure' | 'humidity' | 'time';
+	const PANEL_HEIGHTS: [PanelId, number][] = [['timeTop', 36], ['icons', 46], ['temp', 132], ['precip', 88], ['wind', 104], ['pressure', 80], ['humidity', 80], ['time', 36]];
 	/** A panel: its top and height, and the part where the values go (`plotTop` to `plotBottom`). */
 	interface Panel { top: number; height: number; plotTop: number; plotBottom: number }
 	const { panels, totalHeight } = (() => {
 		const result = {} as Record<PanelId, Panel>;
 		let top = 0;
 		for (const [id, height] of PANEL_HEIGHTS) {
-			const titled = id !== 'icons' && id !== 'time';
+			const titled = id !== 'timeTop' && id !== 'icons' && id !== 'time';
 			const plotTop = top + (titled ? TITLE_HEIGHT : 0) + (id === 'wind' ? ARROW_ROW : 0) + 4;
 			result[id] = { top, height, plotTop, plotBottom: top + height - 4 };
 			top += height + PANEL_GAP;
 		}
 		return { panels: result, totalHeight: top - PANEL_GAP };
 	})();
+	// Night shading runs from the top of the icons to the bottom of the humidity panel
+	const chartsTop = panels.icons.top;
 	const chartsBottom = panels.humidity.top + panels.humidity.height;
+	const topAxisBottom = panels.timeTop.top + panels.timeTop.height;
 	// The vertical lines (midnight, selected hour) go only through the plot area of each panel, with a break at the
 	// gaps and title lines, so that each chart shows where it starts and ends. The time axis has its own short ticks.
 	const LINE_SEGMENTS = (['icons', 'temp', 'precip', 'wind', 'pressure', 'humidity'] as PanelId[]).map((id) => panels[id]);
@@ -77,9 +81,8 @@
 	let selected = $state(0);
 	let scroller = $state<HTMLElement | null>(null);
 
-	// Lines are drawn for the hours in view and 2 more on each side; the scales fit the hours in view only
+	// Lines are drawn for the hours in view and 2 more on each side
 	let drawn = $derived(chartVisibleRange(scrollLeft, viewport, slot, count));
-	let inView = $derived(chartVisibleRange(scrollLeft, viewport, slot, count, 0));
 	let drawIndexes = $derived(Array.from({ length: Math.max(0, drawn.end - drawn.start) }, (_, k) => drawn.start + k));
 	let selectedHour = $derived(shown[Math.min(selected, count - 1)]);
 
@@ -97,11 +100,11 @@
 	let pressures = $derived(shown.map((h) => (h.pressure ? finite(metricPrimary ? h.pressure.hPa : h.pressure.inHg) : null)));
 	let humidities = $derived(shown.map((h) => finite(h.humidity)));
 
-	const part = (vs: (number | null)[]) => vs.slice(inView.start, inView.end);
-	let tempDomain = $derived(chartDomain([...part(temps), ...part(dews)], false, metricPrimary ? 5 : 9));
-	let precipDomain = $derived(chartDomain(part(precips), true, metricPrimary ? 1 : 0.04));
-	let windDomain = $derived(chartDomain([...part(winds), ...part(gusts)], true, metricPrimary ? 5 : 10));
-	let pressureDomain = $derived(chartDomain(part(pressures), false, metricPrimary ? 4 : 0.12));
+	// Each scale fits all the chart hours, so that it stays the same while the hours scroll or zoom
+	let tempDomain = $derived(chartDomain([...temps, ...dews], false, metricPrimary ? 5 : 9));
+	let precipDomain = $derived(chartDomain(precips, true, metricPrimary ? 1 : 0.04));
+	let windDomain = $derived(chartDomain([...winds, ...gusts], true, metricPrimary ? 5 : 10));
+	let pressureDomain = $derived(chartDomain(pressures, false, metricPrimary ? 4 : 0.12));
 	/** The fixed 0-100 % scale of the chance of rain and the humidity. */
 	const PERCENT_DOMAIN: ChartDomain = { min: 0, max: 100, ticks: [0, 50, 100] };
 
@@ -238,18 +241,21 @@
 		return { text: loc(String(shownValue)), background: uvColorFor(shownValue), color: uvTier(shownValue) === 'moderate' ? '#1A1A1A' : 'white' };
 	}
 
-	// Gestures, as on Android. A one-finger drag that starts sideways scrolls the hours, else the page
-	// (the browser does this). A tap selects the hour under it after the double-tap wait; a double tap resets
-	// the zoom to 28 around the tapped hour. A long press, then a drag, moves the selection without scrolling.
-	// Two fingers zoom, keeping the hour between them in place; Ctrl and the mouse wheel zoom too.
+	// Gestures, as on Android and the main-page charts. One finger (touch) that slides sideways, or a mouse drag,
+	// selects the hour under it, with a 5 ms vibrate at each new hour; an up-and-down slide scrolls the page (the
+	// browser keeps it, touch-action: pan-y). A tap or click selects after the double-tap wait; a double tap resets
+	// the zoom to 28 around the tapped hour. Within one hour of the start or end edge, the hours scroll by themselves
+	// (about 6 hours a second, faster nearer the edge) and the selection follows. Two fingers scroll the hours and
+	// pinch to zoom. The wheel with Shift, or a sideways wheel or trackpad, scrolls the hours; Ctrl and the wheel zoom.
 	const SLOP = 8;
-	const LONG_PRESS_MS = 500;
 	const DOUBLE_TAP_MS = 300;
-	let press: { id: number; x: number; y: number; scroll: number; mouse: boolean; moved: boolean } | null = null;
+	const EDGE_HOURS_PER_SECOND = 6;
+	let press: { id: number; x: number; y: number; mouse: boolean } | null = null;
 	let scrubbing = false;
-	let longPressTimer: ReturnType<typeof setTimeout> | undefined;
+	let pointerX = 0;
+	let edgeFrame = 0;
 	let pendingTap: { timer: ReturnType<typeof setTimeout>; x: number } | null = null;
-	let pinch: { distance: number } | null = null;
+	let twoFingers: { distance: number; mid: number } | null = null;
 	// The scroll that a zoom asked for, until the browser has it
 	let zoomScroll: number | null = null;
 
@@ -277,41 +283,54 @@
 
 	const currentScroll = () => zoomScroll ?? scroller?.scrollLeft ?? 0;
 
+	/** While the selection is dragged within one hour of an edge, scrolls the hours that way and keeps the selection under the pointer. */
+	function edgeScroll(last: number) {
+		edgeFrame = 0;
+		if (!scrubbing || !scroller) return;
+		const now = performance.now();
+		const x = viewX(pointerX);
+		// 0 at one hour from the edge, 1 at the edge (or past it)
+		const depth = x < slot ? Math.min(1, (slot - x) / slot) : x > viewport - slot ? -Math.min(1, (x - (viewport - slot)) / slot) : 0;
+		if (depth !== 0) {
+			const speed = EDGE_HOURS_PER_SECOND * slot * (0.5 + Math.abs(depth));
+			scroller.scrollLeft -= Math.sign(depth) * speed * Math.min(0.05, (now - last) / 1000);
+			selectAt(pointerX, true);
+		}
+		edgeFrame = requestAnimationFrame(() => edgeScroll(now));
+	}
+
 	function endPress() {
-		clearTimeout(longPressTimer);
 		press = null;
 		scrubbing = false;
+		cancelAnimationFrame(edgeFrame);
+		edgeFrame = 0;
 	}
 
 	function onPointerDown(e: PointerEvent) {
-		// A second finger is a pinch, not a tap
+		// A second finger is a two-finger scroll or pinch, not a selection
 		if (press) return endPress();
-		if (pinch || (e.pointerType === 'mouse' && e.button !== 0)) return;
-		press = { id: e.pointerId, x: e.clientX, y: e.clientY, scroll: scroller?.scrollLeft ?? 0, mouse: e.pointerType === 'mouse', moved: false };
-		longPressTimer = setTimeout(() => {
-			if (!press || press.moved) return;
-			scrubbing = true;
-			scroller?.setPointerCapture(press.id);
-			navigator.vibrate?.(10);
-			selectAt(press.x, false);
-		}, LONG_PRESS_MS);
+		if (twoFingers || (e.pointerType === 'mouse' && e.button !== 0)) return;
+		press = { id: e.pointerId, x: e.clientX, y: e.clientY, mouse: e.pointerType === 'mouse' };
 	}
 
 	function onPointerMove(e: PointerEvent) {
 		if (!press || e.pointerId !== press.id) return;
-		if (scrubbing) return selectAt(e.clientX, true);
-		const dx = e.clientX - press.x;
-		if (!press.moved && Math.hypot(dx, e.clientY - press.y) > SLOP) {
-			press.moved = true;
-			clearTimeout(longPressTimer);
-			if (press.mouse) scroller?.setPointerCapture(e.pointerId);
+		pointerX = e.clientX;
+		if (!scrubbing) {
+			const dx = Math.abs(e.clientX - press.x);
+			const dy = Math.abs(e.clientY - press.y);
+			// A finger must slide sideways (up and down is the page scroll); a mouse may drag any way
+			if (press.mouse ? Math.hypot(dx, dy) < SLOP : dx < SLOP || dx < dy) return;
+			scrubbing = true;
+			scroller?.setPointerCapture(e.pointerId);
+			edgeFrame = requestAnimationFrame(() => edgeScroll(performance.now()));
 		}
-		if (press.moved && press.mouse && scroller) scroller.scrollLeft = press.scroll - dx;
+		selectAt(e.clientX, true);
 	}
 
 	function onPointerUp(e: PointerEvent) {
 		if (!press || e.pointerId !== press.id) return;
-		const tap = !scrubbing && !press.moved;
+		const tap = !scrubbing;
 		endPress();
 		if (!tap) return;
 		if (pendingTap && Math.abs(e.clientX - pendingTap.x) < 24) {
@@ -322,10 +341,11 @@
 		}
 		if (pendingTap) clearTimeout(pendingTap.timer);
 		const x = e.clientX;
-		pendingTap = { x, timer: setTimeout(() => { pendingTap = null; selectAt(x, false); }, DOUBLE_TAP_MS) };
+		pendingTap = { x, timer: setTimeout(() => { pendingTap = null; selectAt(x, true); }, DOUBLE_TAP_MS) };
 	}
 
 	const distance = (t: TouchList) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+	const middle = (t: TouchList) => (t[0].clientX + t[1].clientX) / 2;
 
 	// Touch and wheel listeners that can stop the browser's own scroll and zoom (not passive)
 	$effect(() => {
@@ -334,26 +354,33 @@
 		const touchStart = (e: TouchEvent) => {
 			if (e.touches.length !== 2) return;
 			endPress();
-			pinch = { distance: distance(e.touches) };
+			twoFingers = { distance: distance(e.touches), mid: middle(e.touches) };
 		};
 		const touchMove = (e: TouchEvent) => {
-			if (pinch && e.touches.length >= 2) {
-				e.preventDefault();
+			if (twoFingers && e.touches.length >= 2) {
+				// Two fingers: the hours follow the fingers sideways, and zoom around the point between them
+				if (e.cancelable) e.preventDefault();
 				const d = distance(e.touches);
-				const anchor = viewX((e.touches[0].clientX + e.touches[1].clientX) / 2);
-				applyZoom(chartZoom(slot, d / pinch.distance, anchor, currentScroll()));
-				pinch.distance = d;
+				const mid = middle(e.touches);
+				applyZoom(chartZoom(slot, d / twoFingers.distance, viewX(mid), currentScroll() - (mid - twoFingers.mid)));
+				twoFingers = { distance: d, mid };
 			} else if (scrubbing && e.cancelable) {
+				// The selection is moving: the page does not scroll
 				e.preventDefault();
 			}
 		};
 		const touchEnd = (e: TouchEvent) => {
-			if (e.touches.length < 2) pinch = null;
+			if (e.touches.length < 2) twoFingers = null;
 		};
 		const wheel = (e: WheelEvent) => {
-			if (!e.ctrlKey) return;
-			e.preventDefault();
-			applyZoom(chartZoom(slot, Math.exp(-e.deltaY * 0.01), viewX(e.clientX), currentScroll()));
+			if (e.ctrlKey) {
+				e.preventDefault();
+				applyZoom(chartZoom(slot, Math.exp(-e.deltaY * 0.01), viewX(e.clientX), currentScroll()));
+			} else if (e.shiftKey && Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+				// Shift and the wheel: the hours scroll (a sideways wheel or trackpad scrolls them without help)
+				e.preventDefault();
+				el.scrollLeft += e.deltaY;
+			}
 		};
 		el.addEventListener('touchstart', touchStart, { passive: true });
 		el.addEventListener('touchmove', touchMove, { passive: false });
@@ -367,7 +394,7 @@
 			el.removeEventListener('touchcancel', touchEnd);
 			el.removeEventListener('wheel', wheel);
 			if (pendingTap) clearTimeout(pendingTap.timer);
-			clearTimeout(longPressTimer);
+			cancelAnimationFrame(edgeFrame);
 		};
 	});
 
@@ -489,7 +516,7 @@
 					{/each}
 					<!-- Night hours, faintly darker -->
 					{#each nights as run (run.start)}
-						<rect x={run.start * slot} y="0" width={(run.end - run.start) * slot} height={chartsBottom} fill={ChartStyle.night} />
+						<rect x={run.start * slot} y={chartsTop} width={(run.end - run.start) * slot} height={chartsBottom - chartsTop} fill={ChartStyle.night} />
 					{/each}
 					{#each grid as gy, k (k)}
 						<line x1="0" x2={count * slot} y1={gy} y2={gy} stroke="white" stroke-opacity="0.07" stroke-width="1" />
@@ -554,11 +581,15 @@
 
 					<path clip-path="url(#chart-clip-humidity)" d={curve(humidities, PERCENT_DOMAIN, panels.humidity)} fill="none" stroke={ChartStyle.humidity} stroke-width={ChartStyle.lineWidth} />
 
-					<!-- Time axis: an hour label every 3 or 6 hours, and the day at each midnight (the day at the start stays in view) -->
+					<!-- Time axes: an hour label every 3 or 6 hours, and the day at each midnight (the day at the start stays in view).
+					     The bottom axis has its ticks, then the hours, then the days; the top axis is the same, mirrored. -->
 					{#each drawIndexes as i (i)}
 						{#if localHour(shown[i].time) % labelStep === 0}
+							{@const hourText = loc(formatHourAtLocation(shown[i].time, utcOffsetSeconds))}
 							<line x1={cx(i)} x2={cx(i)} y1={panels.time.top} y2={panels.time.top + 3} stroke="white" stroke-opacity="0.3" stroke-width="1" />
-							<text x={cx(i)} y={panels.time.top + 13} text-anchor="middle" font-size="10" fill="white" fill-opacity="0.6">{loc(formatHourAtLocation(shown[i].time, utcOffsetSeconds))}</text>
+							<text x={cx(i)} y={panels.time.top + 13} text-anchor="middle" font-size="10" fill="white" fill-opacity="0.6">{hourText}</text>
+							<line x1={cx(i)} x2={cx(i)} y1={topAxisBottom - 3} y2={topAxisBottom} stroke="white" stroke-opacity="0.3" stroke-width="1" />
+							<text x={cx(i)} y={topAxisBottom - 6} text-anchor="middle" font-size="10" fill="white" fill-opacity="0.6">{hourText}</text>
 						{/if}
 					{/each}
 					{#each shownDays as d (d.startIndex)}
@@ -567,6 +598,7 @@
 						<!-- The width is an estimate (about 6.5 px a letter at 11 px bold) -->
 						{#if left + label.length * 6.5 + 4 <= d.right}
 							<text x={left} y={panels.time.top + 30} font-size="11" font-weight="bold" fill="white">{label}</text>
+							<text x={left} y={panels.timeTop.top + 12} font-size="11" font-weight="bold" fill="white">{label}</text>
 						{/if}
 					{/each}
 
@@ -730,8 +762,8 @@
 		min-width: 0;
 		overflow-x: auto;
 		overflow-y: hidden;
-		/* The browser keeps one-finger scrolling both ways; pinch and double tap come to the chart */
-		touch-action: pan-x pan-y;
+		/* The browser keeps the up-and-down page scroll; sideways moves, two fingers and double taps come to the chart */
+		touch-action: pan-y;
 		user-select: none;
 		-webkit-user-select: none;
 		scrollbar-width: none;
