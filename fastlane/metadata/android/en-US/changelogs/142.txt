@@ -1,0 +1,8 @@
+- Next to the temperature: the change in the next 6 hours.
+- Next hours: temperature in colour and chance of rain.
+- UV on the main card when it is moderate or higher.
+- Today's high compared with the 10-year normal.
+- What changed since yesterday's forecast.
+- Sea: waves, sea temperature and tides on the coast.
+- Settings: choose the weather model (ECMWF, GFS, ICON and more).
+- Chart view: 10 days hour by hour; clearer charts on the main page.
