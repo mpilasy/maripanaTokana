@@ -9,6 +9,13 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261107163242] - 2026-11-07
+- Normal temperatures: 10 years of daily highs and lows from Open-Meteo's archive (ERA5), one request per place, saved for 30 days; the normal of a day is the mean over ±7 days. The hero shows "High 4 °C (7 °F) above normal" (Malagasy "Ambony indrindra: … mihoatra ny mahazatra") when today's high is 2 °C or more from the normal. The 10-day chart shows the normal high and low as faint dashed lines with a "Normal" label.
+- Forecast changes: the device saves a summary of each forecast (high, low, rain, strongest wind; at most every 3 hours, 5 days, 10 places, per source and model). At the top of the 10-day card, "Changed since yesterday" lists up to 4 changes from the forecast of 18–36 hours ago: high ±3 °C, rain now expected or now dry, rain ±5 mm, wind ±15 km/h.
+- Sea (coastal places only, from Open-Meteo's marine data): waves and swell (height, period, direction), sea temperature, and the tide level with the next high and low tide (Malagasy "Famonta", "Samonta", "Aka"), with "Estimated. Not for navigation."
+- Forecast rows show no wind arrow below 5 km/h (3 mph); the current wind tile keeps it.
+- The hero's next hours show a drop and the chance of rain when it is 30 % or more.
+
 ## [1.6.20261107151745] - 2026-11-07
 - Settings: with Open-Meteo, Advanced mode shows a "Weather model" list (Malagasy "Modely toetrandro"): Automatic ("Tsotra", the default) and 8 global models: ECMWF IFS, ECMWF AIFS, GFS, ICON, Météo-France, UK Met Office, GEM and JMA, each with its centre and number of days. The app asks Open-Meteo for the chosen model and best_match in one request (`models=<chosen>,best_match`) and fills each missing value from best_match: the UV, the visibility, the chance of rain and the days after the model stops. About shows the model ("Open-Meteo · ECMWF IFS"). The widgets use the same setting.
 - Android: a model change clears the saved forecasts and loads the shown place again.

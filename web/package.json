@@ -1,7 +1,7 @@
 {
 	"name": "maripanatokana-web",
 	"private": true,
-	"version": "1.6.20261107151745",
+	"version": "1.6.20261107163242",
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",
