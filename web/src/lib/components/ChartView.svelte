@@ -1,7 +1,6 @@
 <!-- SPDX-FileCopyrightText: Orinasa Njarasoa -->
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
-	import { tick } from 'svelte';
 	import { _, json } from 'svelte-i18n';
 	import SettingsPage from './SettingsPage.svelte';
 	import WeatherIcon from './WeatherIcon.svelte';
@@ -14,9 +13,9 @@
 	import { formatDayName, formatHourAtLocation } from '#lib/utils/date.js';
 	import { prefersReducedMotion } from '#lib/utils/motion.js';
 	import {
-		CHART_SLOT_DEFAULT, chartCenterIndex, chartDaySpans, chartDomain, chartHours, chartIndexForX, chartNightRuns, chartScrollForIndex, chartScrollRange,
-		chartValueAt, chartVisibleRange, chartZoom,
-		type ChartDomain, type ChartZoom,
+		CHART_SLOT, chartDaySpans, chartDomain, chartHours, chartIndexForX, chartLineIndex, chartLineOffset, chartNightRuns, chartScrollForIndex,
+		chartValueAt, chartVisibleRange,
+		type ChartDomain,
 	} from '#lib/utils/chartView.js';
 
 	/**
@@ -77,19 +76,17 @@
 	});
 	let count = $derived(shown.length);
 
-	let slot = $state(CHART_SLOT_DEFAULT);
+	const slot = CHART_SLOT;
 	let scrollLeft = $state(0);
 	let viewport = $state(0);
 	let selected = $state(0);
 	let scroller = $state<HTMLElement | null>(null);
 
-	// The hours have half the view of space before and after them (less half an hour), so that the browser's scroll
-	// range runs from the middle of the first hour to the middle of the last hour under the centre line (chartScrollRange):
-	// a fling ends with the end hour exactly under it. `centerX` is the position under the centre line, in px from the
-	// start of the first hour (the scroll of chartCenterIndex), and the view starts at `hoursLeft`.
-	let edgeSpace = $derived((viewport - slot) / 2);
-	let centerX = $derived(scrollLeft + slot / 2);
-	let hoursLeft = $derived(scrollLeft - edgeSpace);
+	// The browser's scroll is the start of the view, in px from the start of the first hour. `lineX` is the position
+	// under the selection line, which moves from the start of the view to the middle and, at the end, to the end of the
+	// view (chartLineOffset).
+	let lineX = $derived(scrollLeft + chartLineOffset(scrollLeft, slot, count, viewport));
+	let hoursLeft = $derived(scrollLeft);
 	// Lines are drawn for the hours in view and 2 more on each side
 	let drawn = $derived(chartVisibleRange(hoursLeft, viewport, slot, count));
 	let drawIndexes = $derived(Array.from({ length: Math.max(0, drawn.end - drawn.start) }, (_, k) => drawn.start + k));
@@ -109,7 +106,7 @@
 	let pressures = $derived(shown.map((h) => (h.pressure ? finite(metricPrimary ? h.pressure.hPa : h.pressure.inHg) : null)));
 	let humidities = $derived(shown.map((h) => finite(h.humidity)));
 
-	// Each scale fits all the chart hours, so that it stays the same while the hours scroll or zoom
+	// Each scale fits all the chart hours, so that it stays the same while the hours scroll
 	let tempDomain = $derived(chartDomain([...temps, ...dews], false, metricPrimary ? 5 : 9));
 	let precipDomain = $derived(chartDomain(precips, true, metricPrimary ? 1 : 0.04));
 	let windDomain = $derived(chartDomain([...winds, ...gusts], true, metricPrimary ? 5 : 10));
@@ -130,11 +127,11 @@
 		return runsOf(pts).filter((r) => r.length > 1).map((r) => monotonePath(r)).join(' ');
 	}
 
-	// A dot on each line at the centre line
+	// A dot on each line at the selection line
 	let selectedDots = $derived.by(() => {
 		const dots: { y: number }[] = [];
 		const add = (values: (number | null)[], d: ChartDomain | null, p: Panel) => {
-			const v = chartValueAt(values, centerX, slot);
+			const v = chartValueAt(values, lineX, slot);
 			if (d && v != null) dots.push({ y: y(v, d, p) });
 		};
 		add(dews, tempDomain, panels.temp);
@@ -148,9 +145,8 @@
 	});
 
 	const localHour = (t: number) => new Date(t + utcOffsetSeconds * 1000).getUTCHours();
-	// Icons and wind arrows every 3 local hours (00, 03, 06…); hour labels every 3 h at 20 px an hour or more, else every 6 h
+	// Icons, wind arrows and hour labels every 3 local hours (00, 03, 06…)
 	let everyThird = $derived(drawIndexes.filter((i) => localHour(shown[i].time) % 3 === 0));
-	let labelStep = $derived(slot >= 20 ? 3 : 6);
 
 	// Each local day, from the middle of its first hour to the middle of the next day's first hour
 	let days = $derived.by(() => {
@@ -250,67 +246,32 @@
 		return { text: loc(String(shownValue)), background: uvColorFor(shownValue), color: uvTier(shownValue) === 'moderate' ? '#1A1A1A' : 'white' };
 	}
 
-	// Gestures, as on Android. The selected hour is the hour under the fixed centre line. One finger scrolls the hours
+	// Gestures, as on Android. The selected hour is the hour under the selection line. One finger scrolls the hours
 	// (the browser's own scrolling, with momentum), and the page up and down; a mouse drags the hours. The wheel with
-	// Shift, or a sideways wheel or trackpad, scrolls the hours. A tap or click scrolls the hour under it to the centre,
-	// after the double-tap wait. Pinch, Ctrl and the wheel, and a double tap (back to 28) zoom around the centre line,
-	// so the selected hour stays selected.
+	// Shift, or a sideways wheel or trackpad, scrolls the hours. A tap or click scrolls the hour under it to the line.
 	const SLOP = 8;
-	const DOUBLE_TAP_MS = 300;
 	let press: { id: number; x: number; y: number; scroll: number; mouse: boolean; moved: boolean } | null = null;
-	let pendingTap: { timer: ReturnType<typeof setTimeout>; x: number } | null = null;
-	let pinchDistance: number | null = null;
-	// The centre position that a zoom asked for, until the browser has it
-	let zoomCenter: number | null = null;
 
-	function viewX(clientX: number): number {
-		return scroller ? clientX - scroller.getBoundingClientRect().left : 0;
-	}
-
-	/** On each scroll: a new hour under the centre line becomes the selection, with a short vibrate. */
+	/** On each scroll: a new hour under the selection line becomes the selection, with a short vibrate. */
 	function onScroll() {
 		scrollLeft = scroller?.scrollLeft ?? 0;
-		const i = chartCenterIndex(scrollLeft + slot / 2, slot, count);
+		const i = chartLineIndex(scrollLeft, slot, count, viewport);
 		if (i < 0 || i === selected) return;
 		selected = i;
 		navigator.vibrate?.(5);
 	}
 
-	/** Scrolls the middle of hour `i` to the centre line. The browser's scroll is the centre position less half an hour. */
+	/** Scrolls the middle of hour `i` to the selection line. */
 	function centre(i: number, smooth: boolean) {
-		scroller?.scrollTo({ left: chartScrollForIndex(i, slot) - slot / 2, behavior: smooth && !prefersReducedMotion() ? 'smooth' : 'auto' });
+		scroller?.scrollTo({ left: chartScrollForIndex(i, slot, count, viewport), behavior: smooth && !prefersReducedMotion() ? 'smooth' : 'auto' });
 	}
 	// When the view opens, the browser's scroll is 0: the middle of the current hour (the first) is under the line,
 	// and the selection is already that hour, so there is no vibrate
 
-	/** Applies a zoom; `z.scrollPx` is the new centre position, kept inside the scroll range. */
-	async function applyZoom(z: ChartZoom) {
-		const range = chartScrollRange(z.slotPx, count);
-		const center = Math.min(range.max, Math.max(range.min, z.scrollPx));
-		slot = z.slotPx;
-		zoomCenter = center;
-		await tick();
-		if (!scroller || zoomCenter !== center) return;
-		scroller.scrollLeft = center - z.slotPx / 2;
-		scrollLeft = scroller.scrollLeft;
-		zoomCenter = null;
-	}
-
-	const currentCenter = () => zoomCenter ?? (scroller?.scrollLeft ?? 0) + slot / 2;
-
-	/** Zooms by `factor` around the centre line: the position under it stays there. */
-	function zoomAtCentre(factor: number) {
-		applyZoom(chartZoom(slot, factor, 0, currentCenter()));
-	}
-
-	function endPress() {
-		press = null;
-	}
-
 	function onPointerDown(e: PointerEvent) {
-		// A second finger is a pinch, not a tap
-		if (press) return endPress();
-		if (pinchDistance != null || (e.pointerType === 'mouse' && e.button !== 0)) return;
+		// A second finger is not a tap
+		if (press) return (press = null);
+		if (e.pointerType === 'mouse' && e.button !== 0) return;
 		press = { id: e.pointerId, x: e.clientX, y: e.clientY, scroll: scroller?.scrollLeft ?? 0, mouse: e.pointerType === 'mouse', moved: false };
 	}
 
@@ -328,88 +289,39 @@
 	function onPointerUp(e: PointerEvent) {
 		if (!press || e.pointerId !== press.id) return;
 		const tap = !press.moved;
-		endPress();
-		if (!tap) return;
-		if (pendingTap && Math.abs(e.clientX - pendingTap.x) < 24) {
-			clearTimeout(pendingTap.timer);
-			pendingTap = null;
-			zoomAtCentre(CHART_SLOT_DEFAULT / slot);
-			return;
-		}
-		if (pendingTap) clearTimeout(pendingTap.timer);
-		const x = e.clientX;
-		pendingTap = {
-			x,
-			timer: setTimeout(() => {
-				pendingTap = null;
-				const i = chartIndexForX(viewX(x) + (scroller?.scrollLeft ?? 0) - edgeSpace, slot, count);
-				if (i >= 0) centre(i, true);
-			}, DOUBLE_TAP_MS),
-		};
+		press = null;
+		if (!tap || !scroller) return;
+		const i = chartIndexForX(e.clientX - scroller.getBoundingClientRect().left + scroller.scrollLeft, slot, count);
+		if (i >= 0) centre(i, true);
 	}
 
-	const distance = (t: TouchList) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
-
-	// Touch and wheel listeners that can stop the browser's own scroll and zoom (not passive)
+	// Shift and the wheel: the hours scroll (a sideways wheel or trackpad scrolls them without help). Not passive, so
+	// that it can stop the page scroll
 	$effect(() => {
 		const el = scroller;
 		if (!el) return;
-		const touchStart = (e: TouchEvent) => {
-			if (e.touches.length !== 2) return;
-			endPress();
-			pinchDistance = distance(e.touches);
-		};
-		const touchMove = (e: TouchEvent) => {
-			if (pinchDistance == null || e.touches.length < 2) return;
-			if (e.cancelable) e.preventDefault();
-			const d = distance(e.touches);
-			zoomAtCentre(d / pinchDistance);
-			pinchDistance = d;
-		};
-		const touchEnd = (e: TouchEvent) => {
-			if (e.touches.length < 2) pinchDistance = null;
-		};
 		const wheel = (e: WheelEvent) => {
-			if (e.ctrlKey) {
-				e.preventDefault();
-				zoomAtCentre(Math.exp(-e.deltaY * 0.01));
-			} else if (e.shiftKey && Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-				// Shift and the wheel: the hours scroll (a sideways wheel or trackpad scrolls them without help)
-				e.preventDefault();
-				el.scrollLeft += e.deltaY;
-			}
+			if (!e.shiftKey || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+			e.preventDefault();
+			el.scrollLeft += e.deltaY;
 		};
-		el.addEventListener('touchstart', touchStart, { passive: true });
-		el.addEventListener('touchmove', touchMove, { passive: false });
-		el.addEventListener('touchend', touchEnd);
-		el.addEventListener('touchcancel', touchEnd);
 		el.addEventListener('wheel', wheel, { passive: false });
-		return () => {
-			el.removeEventListener('touchstart', touchStart);
-			el.removeEventListener('touchmove', touchMove);
-			el.removeEventListener('touchend', touchEnd);
-			el.removeEventListener('touchcancel', touchEnd);
-			el.removeEventListener('wheel', wheel);
-			if (pendingTap) clearTimeout(pendingTap.timer);
-		};
+		return () => el.removeEventListener('wheel', wheel);
 	});
 
 	// Keys (web only): Left and Right scroll one hour (so the selection moves by one), Home and End go to the first
-	// and last hour, + and − zoom around the centre line
+	// and last hour
 	function onKeyDown(e: KeyboardEvent) {
 		if (count === 0) return;
 		// From the hour under the line now: the scroll event that updates the selection may not have come yet
-		const current = chartCenterIndex(currentCenter(), slot, count);
+		const s = scroller?.scrollLeft ?? 0;
+		const current = chartLineIndex(s, slot, count, viewport);
 		let next: number;
 		if (e.key === 'ArrowLeft') next = Math.max(0, current - 1);
 		else if (e.key === 'ArrowRight') next = Math.min(count - 1, current + 1);
 		else if (e.key === 'Home') next = 0;
 		else if (e.key === 'End') next = count - 1;
-		else if (e.key === '+' || e.key === '=' || e.key === '-' || e.key === '_') {
-			e.preventDefault();
-			zoomAtCentre(e.key === '+' || e.key === '=' ? 1.25 : 0.8);
-			return;
-		} else return;
+		else return;
 		e.preventDefault();
 		centre(next, false);
 	}
@@ -476,11 +388,11 @@
 			onpointerdown={onPointerDown}
 			onpointermove={onPointerMove}
 			onpointerup={onPointerUp}
-			onpointercancel={endPress}
+			onpointercancel={() => (press = null)}
 			role="presentation"
 		>
-			<div class="content" style:width="{count * slot + 2 * edgeSpace}px" style:height="{totalHeight}px">
-			<div class="hours" style:left="{edgeSpace}px" style:width="{count * slot}px" style:height="{totalHeight}px">
+			<div class="content" style:width="{count * slot}px" style:height="{totalHeight}px">
+			<div class="hours" style:width="{count * slot}px" style:height="{totalHeight}px">
 				<svg width={count * slot} height={totalHeight} aria-hidden="true">
 					<defs>
 						{#each PANEL_HEIGHTS as [id] (id)}
@@ -573,7 +485,7 @@
 					<!-- Time axes: an hour label every 3 or 6 hours, and the day at each midnight (the day at the start stays in view).
 					     The bottom axis has its ticks, then the hours, then the days; the top axis is the same, mirrored. -->
 					{#each drawIndexes as i (i)}
-						{#if localHour(shown[i].time) % labelStep === 0}
+						{#if localHour(shown[i].time) % 3 === 0}
 							{@const hourText = loc(formatHourAtLocation(shown[i].time, utcOffsetSeconds))}
 							<line x1={cx(i)} x2={cx(i)} y1={panels.time.top} y2={panels.time.top + 3} stroke="white" stroke-opacity="0.3" stroke-width="1" />
 							<text x={cx(i)} y={panels.time.top + 13} text-anchor="middle" font-size="10" fill="white" fill-opacity="0.6">{hourText}</text>
@@ -591,11 +503,11 @@
 						{/if}
 					{/each}
 
-					<!-- The fixed centre line in every panel, with a dot on each line; the selected hour is the one under it -->
+					<!-- The selection line in every panel, with a dot on each line; the selected hour is the one under it -->
 					{#if count > 0}
-						{@render verticalLine(centerX, ChartStyle.selection, ChartStyle.selectionWidth)}
+						{@render verticalLine(lineX, ChartStyle.selection, ChartStyle.selectionWidth)}
 						{#each selectedDots as dot, k (k)}
-							<circle cx={centerX} cy={dot.y} r={ChartStyle.selectionDotRadius} fill={ChartStyle.selectionDot} />
+							<circle cx={lineX} cy={dot.y} r={ChartStyle.selectionDotRadius} fill={ChartStyle.selectionDot} />
 						{/each}
 					{/if}
 				</svg>
@@ -747,7 +659,7 @@
 		min-width: 0;
 		overflow-x: auto;
 		overflow-y: hidden;
-		/* The browser scrolls the hours and the page (with momentum); pinch and double tap come to the chart */
+		/* The browser scrolls the hours and the page (with momentum) */
 		touch-action: pan-x pan-y;
 		user-select: none;
 		-webkit-user-select: none;
@@ -766,6 +678,7 @@
 	.hours {
 		position: absolute;
 		top: 0;
+		left: 0;
 	}
 
 	.content svg {

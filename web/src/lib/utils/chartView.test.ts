@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { describe, expect, it } from 'vitest';
-import { chartCenterIndex, chartDaylight, chartDaySpans, chartDomain, chartHours, chartIndexForX, chartScrollForIndex, chartScrollRange, chartValueAt, chartMidnights, chartNightRuns, chartVisibleRange, chartZoom } from './chartView';
+import { chartDaylight, chartDaySpans, chartDomain, chartHours, chartIndexForX, chartLineIndex, chartLineOffset, chartMaxScroll, chartScrollForIndex, chartValueAt, chartMidnights, chartNightRuns, chartVisibleRange } from './chartView';
 
 const HOUR = 3_600_000;
 const T0 = Date.UTC(2026, 10, 7, 0, 0); // 2026-11-07 00:00 UTC
@@ -176,50 +176,44 @@ describe('chartDomain', () => {
 	});
 });
 
-describe('chartZoom', () => {
-	it('keeps the hour at the anchor in place', () => {
-		// Hour 15 is at x = 100 in view (scroll 320 + 100 = 420 = 15 * 28)
-		const z = chartZoom(28, 2, 100, 320);
-		expect(z.slotPx).toBe(56);
-		expect((z.scrollPx + 100) / z.slotPx).toBeCloseTo(15);
+// The selection line (28 px an hour, 240 hours, a plot of 308 px: the line moves 140 px to the middle)
+describe('chartLineOffset', () => {
+	it('moves from the start to the middle to the end', () => {
+		const max = chartMaxScroll(28, 240, 308);
+		expect(max).toBe(240 * 28 - 308);
+		expect(chartLineOffset(0, 28, 240, 308)).toBe(14);
+		expect(chartLineOffset(70, 28, 240, 308)).toBe(84);
+		expect(chartLineOffset(140, 28, 240, 308)).toBe(154);
+		expect(chartLineOffset(3000, 28, 240, 308)).toBe(154);
+		expect(chartLineOffset(max - 140, 28, 240, 308)).toBe(154);
+		expect(chartLineOffset(max, 28, 240, 308)).toBe(294);
 	});
-	it('stays inside 12 and 64', () => {
-		expect(chartZoom(28, 10, 0, 0).slotPx).toBe(64);
-		expect(chartZoom(28, 0.1, 0, 0).slotPx).toBe(12);
-		expect(chartZoom(30, 1, 0, 0, 40, 50).slotPx).toBe(40);
-	});
-	it('keeps the anchor at the limit too', () => {
-		const z = chartZoom(28, 10, 50, 1000);
-		expect((z.scrollPx + 50) / 64).toBeCloseTo((1000 + 50) / 28);
-	});
-	it('does not scroll before the start', () => {
-		expect(chartZoom(28, 0.5, 200, 10).scrollPx).toBe(0);
-	});
-});
-
-describe('chartCenterIndex and chartScrollForIndex', () => {
-	it('gives the hour under the centre line', () => {
-		expect(chartCenterIndex(0, 28, 240)).toBe(0);
-		expect(chartCenterIndex(14, 28, 240)).toBe(0);
-		expect(chartCenterIndex(28, 28, 240)).toBe(1);
-		expect(chartCenterIndex(28 * 240, 28, 240)).toBe(239);
-		expect(chartCenterIndex(10, 28, 0)).toBe(-1);
-	});
-	it('puts the middle of an hour under the centre line', () => {
-		expect(chartScrollForIndex(0, 28)).toBe(14);
-		expect(chartScrollForIndex(10, 12)).toBe(126);
-		for (const i of [0, 5, 239]) expect(chartCenterIndex(chartScrollForIndex(i, 28), 28, 240)).toBe(i);
+	it('works with a short scroll, and stays on the first hour when all the hours fit', () => {
+		expect(chartLineOffset(0, 28, 20, 308)).toBe(14);
+		expect(chartLineOffset(126, 28, 20, 308)).toBe(154);
+		expect(chartLineOffset(252, 28, 20, 308)).toBe(294);
+		expect(chartMaxScroll(28, 10, 308)).toBe(0);
+		expect(chartLineOffset(0, 28, 10, 308)).toBe(14);
+		expect(chartScrollForIndex(5, 28, 10, 308)).toBe(0);
 	});
 });
 
-describe('chartScrollRange', () => {
-	it('runs from the middle of the first hour to the middle of the last hour', () => {
-		expect(chartScrollRange(28, 240)).toEqual({ min: 14, max: 239.5 * 28 });
-		expect(chartScrollRange(12, 1)).toEqual({ min: 6, max: 6 });
-		expect(chartCenterIndex(chartScrollRange(28, 240).max, 28, 240)).toBe(239);
+describe('chartLineIndex and chartScrollForIndex', () => {
+	it('gives the first and last hour at the ends', () => {
+		expect(chartLineIndex(0, 28, 240, 308)).toBe(0);
+		expect(chartLineIndex(chartMaxScroll(28, 240, 308), 28, 240, 308)).toBe(239);
+		expect(chartLineIndex(0, 28, 0, 308)).toBe(-1);
 	});
-	it('is empty with no hour', () => {
-		expect(chartScrollRange(28, 0)).toEqual({ min: 0, max: 0 });
+	it('puts the middle of an hour under the line', () => {
+		for (const count of [20, 240]) {
+			for (const i of [0, 1, 3, 6, 10, count / 2, count - 7, count - 2, count - 1]) {
+				const scroll = chartScrollForIndex(i, 28, count, 308);
+				expect(scroll + chartLineOffset(scroll, 28, count, 308)).toBeCloseTo((i + 0.5) * 28, 2);
+				expect(chartLineIndex(scroll, 28, count, 308)).toBe(i);
+			}
+		}
+		expect(chartScrollForIndex(0, 28, 240, 308)).toBe(0);
+		expect(chartScrollForIndex(239, 28, 240, 308)).toBeCloseTo(chartMaxScroll(28, 240, 308), 2);
 	});
 });
 

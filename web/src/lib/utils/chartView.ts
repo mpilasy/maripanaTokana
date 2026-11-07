@@ -11,10 +11,8 @@ const DAY = 24 * HOUR;
 
 /** The most hours that the chart view shows (10 days). */
 export const CHART_MAX_HOURS = 240;
-/** The default, smallest and largest width of one hour, in px. */
-export const CHART_SLOT_DEFAULT = 28;
-export const CHART_SLOT_MIN = 12;
-export const CHART_SLOT_MAX = 64;
+/** The width of one hour, in px. */
+export const CHART_SLOT = 28;
 
 /** A range of indexes: `start` is in it, `end` is not. */
 export interface IndexRange {
@@ -107,23 +105,45 @@ export function chartIndexForX(x: number, slotPx: number, count: number): number
 	return Math.min(count - 1, Math.max(0, Math.floor(x / slotPx)));
 }
 
-/**
- * The hour under the centre line of the chart view. The scroll (`scrollPx`) is the position under the centre line,
- * in px from the start of the first hour. -1 when there is no hour.
- */
-export function chartCenterIndex(scrollPx: number, slotPx: number, count: number): number {
-	return chartIndexForX(scrollPx, slotPx, count);
+// The selection line starts on the first hour at the start of the plot. While the hours scroll the first half plot
+// width, it moves to the middle of the plot and stays there; at the end it moves on to the last hour at the end of the
+// plot. So the plot never has empty space. The scroll is the start of the plot, in px from the start of the first hour.
+
+/** The largest scroll, with `viewPx` the plot width: 0 when all the hours fit in the plot. */
+export function chartMaxScroll(slotPx: number, count: number, viewPx: number): number {
+	return Math.max(0, count * slotPx - viewPx);
 }
 
-/** The scroll that puts the middle of hour `index` under the centre line. */
-export function chartScrollForIndex(index: number, slotPx: number): number {
-	return (index + 0.5) * slotPx;
+/** The position of the selection line, in px from the start of the plot, at `scrollPx`. */
+export function chartLineOffset(scrollPx: number, slotPx: number, count: number, viewPx: number): number {
+	const max = chartMaxScroll(slotPx, count, viewPx);
+	// The distance from the middle of the first hour to the middle of the plot, and the scroll that moves the line on it
+	const travel = Math.max(0, (viewPx - slotPx) / 2);
+	const ramp = Math.min(travel, max / 2);
+	if (ramp <= 0) return slotPx / 2;
+	const s = Math.min(max, Math.max(0, scrollPx));
+	return slotPx / 2 + travel * (Math.min(1, s / ramp) + 1 - Math.min(1, (max - s) / ramp));
 }
 
-/** The scroll range: from the middle of the first hour to the middle of the last hour under the centre line. */
-export function chartScrollRange(slotPx: number, count: number): { min: number; max: number } {
-	if (count <= 0 || slotPx <= 0) return { min: 0, max: 0 };
-	return { min: chartScrollForIndex(0, slotPx), max: chartScrollForIndex(count - 1, slotPx) };
+/** The hour under the selection line, at `scrollPx`; -1 when there is no hour. */
+export function chartLineIndex(scrollPx: number, slotPx: number, count: number, viewPx: number): number {
+	return chartIndexForX(scrollPx + chartLineOffset(scrollPx, slotPx, count, viewPx), slotPx, count);
+}
+
+/** The scroll that puts the middle of hour `index` under the selection line, kept inside the scroll range. */
+export function chartScrollForIndex(index: number, slotPx: number, count: number, viewPx: number): number {
+	const max = chartMaxScroll(slotPx, count, viewPx);
+	const travel = Math.max(0, (viewPx - slotPx) / 2);
+	const ramp = Math.min(travel, max / 2);
+	if (ramp <= 0) return 0;
+	// Three straight parts: the line moves to the middle, stays there, and moves to the end
+	const x = index * slotPx;
+	const speed = 1 + travel / ramp;
+	let s: number;
+	if (x <= ramp * speed) s = x / speed;
+	else if (x <= max - ramp + travel) s = x - travel;
+	else s = (x - 2 * travel + (travel * max) / ramp) / speed;
+	return Math.min(max, Math.max(0, s));
 }
 
 /**
@@ -193,20 +213,4 @@ export function chartDomain(values: (number | null | undefined)[], fromZero: boo
 	const ticks: number[] = [];
 	for (let k = 0; min + k * step <= max + step * 1e-9; k++) ticks.push(clean(min + k * step));
 	return { min, max, ticks };
-}
-
-/** A new hour width and scroll after a zoom. */
-export interface ChartZoom {
-	slotPx: number;
-	scrollPx: number;
-}
-
-/**
- * Zooms the hour width by `factor`, kept inside `min` to `max`, and gives the scroll that keeps the hour at `anchorX`
- * (px from the start of the view) in the same place. The scroll is not less than 0.
- */
-export function chartZoom(slotPx: number, factor: number, anchorX: number, scrollPx: number, min = CHART_SLOT_MIN, max = CHART_SLOT_MAX): ChartZoom {
-	const next = Math.min(max, Math.max(min, slotPx * factor));
-	const hourAtAnchor = (scrollPx + anchorX) / slotPx;
-	return { slotPx: next, scrollPx: Math.max(0, hourAtAnchor * next - anchorX) };
 }

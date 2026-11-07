@@ -215,68 +215,50 @@ class ChartViewMathTest {
         assertTrue(d.max > d.min)
     }
 
-    // chartZoom
+    // The selection line (28 px an hour, 240 hours, a plot of 308 px: the line moves 140 px to the middle)
 
     @Test
-    fun chartZoomKeepsTheHourAtTheAnchor() {
-        // Hour 10.5 is at x = 100 (scroll 194 + 100 = 294 = 10.5 * 28)
-        val z = chartZoom(28f, 2f, 100f, 194f)
-        assertEquals(56f, z.slotPx, 0f)
-        assertEquals(10.5f, (z.scrollPx + 100f) / z.slotPx, 1e-4f)
+    fun chartLineOffsetMovesFromTheStartToTheMiddleToTheEnd() {
+        val max = chartMaxScroll(28f, 240, 308f)
+        assertEquals(240 * 28f - 308f, max, 0f)
+        // On the first hour at the start, in the middle after 140 px of scroll, on the last hour at the end
+        assertEquals(14f, chartLineOffset(0f, 28f, 240, 308f), 0f)
+        assertEquals(84f, chartLineOffset(70f, 28f, 240, 308f), 0f)
+        assertEquals(154f, chartLineOffset(140f, 28f, 240, 308f), 0f)
+        assertEquals(154f, chartLineOffset(3000f, 28f, 240, 308f), 0f)
+        assertEquals(154f, chartLineOffset(max - 140f, 28f, 240, 308f), 0f)
+        assertEquals(294f, chartLineOffset(max, 28f, 240, 308f), 0f)
     }
 
     @Test
-    fun chartZoomStaysInsideTheLimits() {
-        assertEquals(64f, chartZoom(28f, 10f, 0f, 0f).slotPx, 0f)
-        assertEquals(12f, chartZoom(28f, 0.1f, 0f, 0f).slotPx, 0f)
-        assertEquals(30f, chartZoom(28f, 2f, 0f, 0f, min = 10f, max = 30f).slotPx, 0f)
-        // Back to the default
-        assertEquals(28f, chartZoom(50f, 28f / 50f, 0f, 0f).slotPx, 1e-4f)
+    fun chartLineIndexIsTheFirstAndLastHourAtTheEnds() {
+        assertEquals(0, chartLineIndex(0f, 28f, 240, 308f))
+        assertEquals(239, chartLineIndex(chartMaxScroll(28f, 240, 308f), 28f, 240, 308f))
+        assertEquals(-1, chartLineIndex(0f, 28f, 0, 308f))
     }
 
     @Test
-    fun chartZoomScrollIsNotLessThanZero() {
-        assertEquals(0f, chartZoom(28f, 0.5f, 10f, 0f).scrollPx, 0f)
-    }
-
-    // The centre line
-
-    @Test
-    fun chartCenterIndexIsTheHourUnderTheCentreLine() {
-        // The view opens with the middle of the first hour under the line
-        assertEquals(0, chartCenterIndex(chartScrollForIndex(0, 28f), 28f, 240))
-        assertEquals(0, chartCenterIndex(27.9f, 28f, 240))
-        assertEquals(1, chartCenterIndex(28f, 28f, 240))
-        assertEquals(10, chartCenterIndex(chartScrollForIndex(10, 28f), 28f, 240))
-        // At the ends of the range: the first and the last hour
-        assertEquals(0, chartCenterIndex(chartScrollRange(28f, 240).start, 28f, 240))
-        assertEquals(239, chartCenterIndex(chartScrollRange(28f, 240).endInclusive, 28f, 240))
-        assertEquals(-1, chartCenterIndex(0f, 28f, 0))
+    fun chartLineOffsetWithAShortScroll() {
+        // 20 hours of 28 px in a plot of 308 px: 252 px of scroll, so the line gets to the middle at 126 px
+        assertEquals(14f, chartLineOffset(0f, 28f, 20, 308f), 0f)
+        assertEquals(154f, chartLineOffset(126f, 28f, 20, 308f), 0f)
+        assertEquals(294f, chartLineOffset(252f, 28f, 20, 308f), 0f)
+        // All the hours fit: no scroll, and the line stays on the first hour
+        assertEquals(0f, chartMaxScroll(28f, 10, 308f), 0f)
+        assertEquals(14f, chartLineOffset(0f, 28f, 10, 308f), 0f)
+        assertEquals(0f, chartScrollForIndex(5, 28f, 10, 308f), 0f)
     }
 
     @Test
     fun chartScrollForIndexPutsTheMiddleOfTheHourUnderTheLine() {
-        assertEquals(14f, chartScrollForIndex(0, 28f), 0f)
-        assertEquals(98f, chartScrollForIndex(3, 28f), 0f)
-        assertEquals(6.0f, chartScrollForIndex(0, 12f), 0f)
-    }
-
-    @Test
-    fun chartScrollRangeLetsTheFirstAndLastHourReachTheLine() {
-        val range = chartScrollRange(28f, 240)
-        assertEquals(14f, range.start, 0f)
-        assertEquals(239.5f * 28f, range.endInclusive, 0f)
-        // One hour, or none: the range is one point
-        assertEquals(14f, chartScrollRange(28f, 1).endInclusive, 0f)
-        assertEquals(14f, chartScrollRange(28f, 0).endInclusive, 0f)
-    }
-
-    @Test
-    fun chartZoomAroundTheCentreLineKeepsTheSelectedHour() {
-        val scroll = chartScrollForIndex(37, 28f) + 5f
-        for (factor in listOf(0.3f, 0.8f, 1.5f, 3f)) {
-            val z = chartZoom(28f, factor, 0f, scroll)
-            assertEquals(37, chartCenterIndex(z.scrollPx, z.slotPx, 240))
+        for (count in listOf(20, 240)) {
+            for (i in listOf(0, 1, 3, 6, 10, count / 2, count - 7, count - 2, count - 1)) {
+                val scroll = chartScrollForIndex(i, 28f, count, 308f)
+                assertEquals((i + 0.5f) * 28f, scroll + chartLineOffset(scroll, 28f, count, 308f), 0.01f)
+                assertEquals(i, chartLineIndex(scroll, 28f, count, 308f))
+            }
         }
+        assertEquals(0f, chartScrollForIndex(0, 28f, 240, 308f), 0f)
+        assertEquals(chartMaxScroll(28f, 240, 308f), chartScrollForIndex(239, 28f, 240, 308f), 0.01f)
     }
 }

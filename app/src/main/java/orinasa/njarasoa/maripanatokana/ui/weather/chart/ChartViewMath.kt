@@ -22,10 +22,8 @@ private const val DAY = 24 * HOUR
 /** The most hours that the chart view shows (10 days). */
 const val CHART_MAX_HOURS = 240
 
-/** The default, smallest and largest width of one hour, in dp. */
-const val CHART_SLOT_DEFAULT = 28f
-const val CHART_SLOT_MIN = 12f
-const val CHART_SLOT_MAX = 64f
+/** The width of one hour, in dp. */
+const val CHART_SLOT = 28f
 
 /**
  * The hours to show: from the hour that contains [nowMs] (the first hour that has not ended), at most [max].
@@ -148,31 +146,41 @@ fun chartDomain(values: List<Double?>, fromZero: Boolean, minSpan: Double): Char
     return ChartDomain(bottom, top, ticks)
 }
 
-/** A new hour width and scroll after a zoom. */
-data class ChartZoom(val slotPx: Float, val scrollPx: Float)
+// The selection line starts on the first hour at the start of the plot. While the hours scroll the first half plot
+// width, it moves to the middle of the plot and stays there; at the end it moves on to the last hour at the end of the
+// plot. So the plot never has empty space. The scroll is the start of the plot, in px from the start of the first hour.
 
-/**
- * Zooms the hour width by [factor], kept inside [min] to [max], and gives the scroll that keeps the hour at [anchorX]
- * (px from the start of the view) in the same place. The scroll is not less than 0.
- */
-fun chartZoom(
-    slotPx: Float, factor: Float, anchorX: Float, scrollPx: Float,
-    min: Float = CHART_SLOT_MIN, max: Float = CHART_SLOT_MAX,
-): ChartZoom {
-    val next = (slotPx * factor).coerceIn(min, max)
-    val hourAtAnchor = (scrollPx + anchorX) / slotPx
-    return ChartZoom(next, maxOf(0f, hourAtAnchor * next - anchorX))
+/** The largest scroll, with [viewPx] the plot width: 0 when all the hours fit in the plot. */
+fun chartMaxScroll(slotPx: Float, count: Int, viewPx: Float): Float = maxOf(0f, count * slotPx - viewPx)
+
+/** The position of the selection line, in px from the start of the plot, at [scrollPx]. */
+fun chartLineOffset(scrollPx: Float, slotPx: Float, count: Int, viewPx: Float): Float {
+    val max = chartMaxScroll(slotPx, count, viewPx)
+    // The distance from the middle of the first hour to the middle of the plot, and the scroll that moves the line on it
+    val travel = maxOf(0f, (viewPx - slotPx) / 2)
+    val ramp = minOf(travel, max / 2)
+    if (ramp <= 0f) return slotPx / 2
+    val s = scrollPx.coerceIn(0f, max)
+    return slotPx / 2 + travel * (minOf(1f, s / ramp) + 1f - minOf(1f, (max - s) / ramp))
 }
 
-// The selection line stays in the middle of the plot area. The scroll is the position under that line, in px
-// from the start of the first hour: the hours have half the plot width of space before and after them.
+/** The hour under the selection line, at [scrollPx]; -1 when there is no hour. */
+fun chartLineIndex(scrollPx: Float, slotPx: Float, count: Int, viewPx: Float): Int =
+    chartIndexForX(scrollPx + chartLineOffset(scrollPx, slotPx, count, viewPx), slotPx, count)
 
-/** The hour under the centre line, at [scrollPx] ([slotPx] an hour), kept inside 0 to [count] - 1; -1 when there is no hour. */
-fun chartCenterIndex(scrollPx: Float, slotPx: Float, count: Int): Int = chartIndexForX(scrollPx, slotPx, count)
-
-/** The scroll that puts the middle of hour [index] under the centre line. */
-fun chartScrollForIndex(index: Int, slotPx: Float): Float = (index + 0.5f) * slotPx
-
-/** The scroll range: from the middle of the first hour to the middle of the last hour under the centre line. */
-fun chartScrollRange(slotPx: Float, count: Int): ClosedFloatingPointRange<Float> =
-    chartScrollForIndex(0, slotPx)..chartScrollForIndex(maxOf(0, count - 1), slotPx)
+/** The scroll that puts the middle of hour [index] under the selection line, kept inside the scroll range. */
+fun chartScrollForIndex(index: Int, slotPx: Float, count: Int, viewPx: Float): Float {
+    val max = chartMaxScroll(slotPx, count, viewPx)
+    val travel = maxOf(0f, (viewPx - slotPx) / 2)
+    val ramp = minOf(travel, max / 2)
+    if (ramp <= 0f) return 0f
+    // Three straight parts: the line moves to the middle, stays there, and moves to the end
+    val x = index * slotPx
+    val speed = 1f + travel / ramp
+    val s = when {
+        x <= ramp * speed -> x / speed
+        x <= max - ramp + travel -> x - travel
+        else -> (x - 2 * travel + travel * max / ramp) / speed
+    }
+    return s.coerceIn(0f, max)
+}

@@ -10,9 +10,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.animateScrollBy
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.rememberScrollableState
 import androidx.compose.foundation.gestures.scrollable
@@ -67,9 +64,7 @@ import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
@@ -293,10 +288,9 @@ private fun SelectionHeader(hour: ChartHour, utcOffsetSeconds: Int, metricPrimar
 
 /**
  * The panels in one canvas: a fixed axis column at the start, and the hours, which scroll sideways.
- * The selection line stays in the middle of the plot area, and the selected hour is the hour under it.
- * Gestures: one finger scrolls the hours, with a fling (a vertical drag goes to the page; the first movement
- * decides). A tap moves the hour under it to the centre line. A pinch zooms around the centre line, and a
- * double tap resets the zoom.
+ * The selected hour is the hour under the selection line, which moves from the start of the plot to the middle and,
+ * at the end, to the end of the plot (chartLineOffset). Gestures: one finger scrolls the hours, with a fling (a
+ * vertical drag goes to the page; the first movement decides). A tap moves the hour under it to the selection line.
  */
 @Composable
 private fun ChartPanels(
@@ -313,40 +307,32 @@ private fun ChartPanels(
     val appLocale = LocalConfiguration.current.locales[0]
     val count = hours.size
     val axisPx = with(density) { AXIS_WIDTH.toPx() }
-    val defaultSlot = with(density) { CHART_SLOT_DEFAULT.dp.toPx() }
-    val minSlot = with(density) { CHART_SLOT_MIN.dp.toPx() }
-    val maxSlot = with(density) { CHART_SLOT_MAX.dp.toPx() }
+    val slotPx = with(density) { CHART_SLOT.dp.toPx() }
 
-    var slotPx by remember { mutableFloatStateOf(defaultSlot) }
-    // The position under the centre line; it opens with the current hour (the first hour) there
-    var scrollPx by remember(hours) { mutableFloatStateOf(chartScrollForIndex(0, defaultSlot)) }
+    // The start of the plot; it opens at 0, with the current hour (the first hour) under the selection line
+    var scrollPx by remember(hours) { mutableFloatStateOf(0f) }
     var widthPx by remember { mutableIntStateOf(0) }
+    // The plot width, read when it is used: the gesture and selection code is made once
+    fun viewPx() = maxOf(0f, widthPx - axisPx)
     val scope = rememberCoroutineScope()
     // A positive delta moves to later hours (reverseDirection below), so animateScrollBy takes the distance in px
     val scrollState = rememberScrollableState { delta ->
         val old = scrollPx
-        scrollPx = (old + delta).coerceIn(chartScrollRange(slotPx, count))
+        scrollPx = (old + delta).coerceIn(0f, chartMaxScroll(slotPx, count, viewPx()))
         scrollPx - old
     }
-    // A zoom around the centre line: the hour under it stays there, so the selection does not change
-    fun zoom(factor: Float) {
-        val z = chartZoom(slotPx, factor, 0f, scrollPx, minSlot, maxSlot)
-        slotPx = z.slotPx
-        scrollPx = z.scrollPx.coerceIn(chartScrollRange(slotPx, count))
-    }
-    // A tap moves the hour under it to the centre line, with a short animation
+    // A tap moves the hour under it to the selection line, with a short animation
     fun scrollToTap(x: Float) {
         if (x < axisPx) return
-        val centerX = axisPx + (widthPx - axisPx) / 2f
-        val i = chartIndexForX(scrollPx + x - centerX, slotPx, count)
+        val i = chartIndexForX(scrollPx + x - axisPx, slotPx, count)
         if (i < 0) return
-        scope.launch { scrollState.animateScrollBy(chartScrollForIndex(i, slotPx) - scrollPx) }
+        scope.launch { scrollState.animateScrollBy(chartScrollForIndex(i, slotPx, count, viewPx()) - scrollPx) }
     }
-    // The selected hour is the hour under the centre line: a tick each time a new hour comes under it
+    // The selected hour is the hour under the selection line: a tick each time a new hour comes under it
     val onSelectNow by rememberUpdatedState(onSelect)
     LaunchedEffect(hours) {
         var first = true
-        snapshotFlow { chartCenterIndex(scrollPx, slotPx, count) }.collect { i ->
+        snapshotFlow { chartLineIndex(scrollPx, slotPx, count, viewPx()) }.collect { i ->
             if (i < 0) return@collect
             onSelectNow(i)
             if (!first) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
@@ -355,7 +341,7 @@ private fun ChartPanels(
     }
 
     val series = remember(hours, metricPrimary) { ChartSeries(hours, metricPrimary) }
-    // Each scale is computed once from all the hours, so it stays the same while the hours scroll or zoom
+    // Each scale is computed once from all the hours, so it stays the same while the hours scroll
     val tDomain = remember(series) { chartDomain(series.temperature + series.dewPoint, fromZero = false, minSpan = if (metricPrimary) 5.0 else 9.0) }
     val pDomain = remember(series) { chartDomain(series.precipitation, fromZero = true, minSpan = if (metricPrimary) 1.0 else 0.04) }
     val wDomain = remember(series) { chartDomain(series.wind + series.gust, fromZero = true, minSpan = if (metricPrimary) 5.0 else 10.0) }
@@ -392,40 +378,20 @@ private fun ChartPanels(
             .semantics { contentDescription = summary }
             // One finger scrolls the hours, with a fling; a vertical drag goes to the page (the first movement decides)
             .scrollable(scrollState, Orientation.Horizontal, reverseDirection = true)
-            // Two fingers: zoom around the centre line. The moves are used here, in the first pass, so nothing scrolls
-            .pointerInput(hours, density) {
-                awaitEachGesture {
-                    awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
-                    do {
-                        val event = awaitPointerEvent(PointerEventPass.Initial)
-                        if (event.changes.count { it.pressed } >= 2) {
-                            val factor = event.calculateZoom()
-                            if (factor != 1f) zoom(factor)
-                            event.changes.forEach { if (it.positionChanged()) it.consume() }
-                        }
-                    } while (event.changes.any { it.pressed })
-                }
-            }
-            .pointerInput(hours, density) {
-                detectTapGestures(
-                    onDoubleTap = { zoom(defaultSlot / slotPx) },
-                    onTap = { scrollToTap(it.x) },
-                )
-            },
+            .pointerInput(hours, density) { detectTapGestures(onTap = { scrollToTap(it.x) }) },
     ) {
         if (count == 0) return@Canvas
         val viewW = size.width - axisPx
         val slot = slotPx
-        val scroll = scrollPx.coerceIn(chartScrollRange(slot, count))
-        val centerX = axisPx + viewW / 2
-        // The hours that show: the start of the view is half the plot width before the centre line
-        val drawn = chartVisibleRange(scroll - viewW / 2, viewW, slot, count)
-        fun cx(i: Int) = centerX + i * slot + slot / 2 - scroll
-        // The hour position under the centre line, for the dots on the lines (0 is the middle of the first hour)
-        val centerPos = scroll / slot - 0.5f
+        val scroll = scrollPx.coerceIn(0f, chartMaxScroll(slot, count, viewW))
+        val lineOffset = chartLineOffset(scroll, slot, count, viewW)
+        val lineX = axisPx + lineOffset
+        val drawn = chartVisibleRange(scroll, viewW, slot, count)
+        fun cx(i: Int) = axisPx + i * slot + slot / 2 - scroll
+        // The hour position under the selection line, for the dots on the lines (0 is the middle of the first hour)
+        val linePos = (scroll + lineOffset) / slot - 0.5f
         val chartsTop = panelTop(ChartPanel.ICONS)
         val chartsBottom = panelTop(ChartPanel.HUMIDITY) + ChartPanel.HUMIDITY.heightDp.dp.toPx()
-        val labelStep = if (slot >= 20.dp.toPx()) 3 else 6
 
         val tArea = plotArea(ChartPanel.TEMPERATURE)
         val pArea = plotArea(ChartPanel.PRECIPITATION)
@@ -466,8 +432,8 @@ private fun ChartPanels(
                 }
                 drawSeries(series.dewPoint, drawn, ::cx, { tArea.y(it, d) }, ChartStyle.dewPoint, ChartStyle.thinLineWidth.toPx())
                 drawSeries(series.temperature, drawn, ::cx, { tArea.y(it, d) }, ChartStyle.temperature, ChartStyle.lineWidth.toPx())
-                drawSelectedDot(series.dewPoint, centerPos, centerX) { tArea.y(it, d) }
-                drawSelectedDot(series.temperature, centerPos, centerX) { tArea.y(it, d) }
+                drawSelectedDot(series.dewPoint, linePos, lineX) { tArea.y(it, d) }
+                drawSelectedDot(series.temperature, linePos, lineX) { tArea.y(it, d) }
             }
 
             // Precipitation as bars, the chance of rain as a thin line on 0-100 %
@@ -482,15 +448,15 @@ private fun ChartPanels(
                 }
             }
             drawSeries(series.chance, drawn, ::cx, { pArea.y(it, PERCENT_DOMAIN) }, ChartStyle.chance, ChartStyle.chanceWidth.toPx())
-            drawSelectedDot(series.chance, centerPos, centerX) { pArea.y(it, PERCENT_DOMAIN) }
+            drawSelectedDot(series.chance, linePos, lineX) { pArea.y(it, PERCENT_DOMAIN) }
 
             // Wind and gusts on one scale, with the direction every 3 hours
             wDomain?.let { d ->
                 drawGrid(d, wArea)
                 drawSeries(series.gust, drawn, ::cx, { wArea.y(it, d) }, ChartStyle.gust, ChartStyle.thinLineWidth.toPx(), dashed = true)
                 drawSeries(series.wind, drawn, ::cx, { wArea.y(it, d) }, ChartStyle.wind, ChartStyle.lineWidth.toPx())
-                drawSelectedDot(series.gust, centerPos, centerX) { wArea.y(it, d) }
-                drawSelectedDot(series.wind, centerPos, centerX) { wArea.y(it, d) }
+                drawSelectedDot(series.gust, linePos, lineX) { wArea.y(it, d) }
+                drawSelectedDot(series.wind, linePos, lineX) { wArea.y(it, d) }
             }
             val arrowY = wArea.top - ARROW_ROW.toPx() / 2
             for (i in drawn) {
@@ -503,12 +469,12 @@ private fun ChartPanels(
             prDomain?.let { d ->
                 drawGrid(d, prArea)
                 drawSeries(series.pressure, drawn, ::cx, { prArea.y(it, d) }, ChartStyle.pressure, ChartStyle.lineWidth.toPx())
-                drawSelectedDot(series.pressure, centerPos, centerX) { prArea.y(it, d) }
+                drawSelectedDot(series.pressure, linePos, lineX) { prArea.y(it, d) }
             }
 
             drawGrid(PERCENT_DOMAIN, hArea)
             drawSeries(series.humidity, drawn, ::cx, { hArea.y(it, PERCENT_DOMAIN) }, ChartStyle.humidity, ChartStyle.lineWidth.toPx())
-            drawSelectedDot(series.humidity, centerPos, centerX) { hArea.y(it, PERCENT_DOMAIN) }
+            drawSelectedDot(series.humidity, linePos, lineX) { hArea.y(it, PERCENT_DOMAIN) }
 
             // Time axes at the top and the bottom: an hour label every 3 or 6 hours, and the day at each midnight
             // (the day at the start stays in view). The top axis is the bottom one mirrored: the labels are above their ticks.
@@ -520,7 +486,7 @@ private fun ChartPanels(
                 val top = panelTop(panel)
                 val bottom = top + panel.heightDp.dp.toPx()
                 for (i in drawn) {
-                    if (localHours[i] % labelStep != 0) continue
+                    if (localHours[i] % 3 != 0) continue
                     val tickTop = if (mirrored) bottom - tick else top
                     drawLine(Color.White.copy(alpha = 0.3f), Offset(cx(i), tickTop), Offset(cx(i), tickTop + tick), 1.dp.toPx())
                     val layout = textMeasurer.measure(localizeDigits(hourFormat.format(Date(times[i]))), hourStyle)
@@ -541,8 +507,8 @@ private fun ChartPanels(
             drawTimeAxis(ChartPanel.TOP_TIME, mirrored = true)
             drawTimeAxis(ChartPanel.TIME, mirrored = false)
 
-            // The centre line: the selected hour is under it, in every panel
-            drawVerticalLine(centerX, ChartStyle.selection, ChartStyle.selectionWidth.toPx())
+            // The selection line: the selected hour is under it, in every panel
+            drawVerticalLine(lineX, ChartStyle.selection, ChartStyle.selectionWidth.toPx())
 
             // Titles on top of the lines, at the start of each panel; they do not scroll
             drawTitle(ChartPanel.TEMPERATURE, titles.temperature, titles.dewPoint, ChartStyle.dewPoint, axisPx, textMeasurer, onSurface)
@@ -645,7 +611,7 @@ private fun DrawScope.drawSeries(
 }
 
 /**
- * A dot on a line at the centre line ([x]); [position] is the hour position under it. Between two hours the value
+ * A dot on a line at the selection line ([x]); [position] is the hour position under it. Between two hours the value
  * is on the straight line between them; next to a missing value, the nearest hour gives it.
  */
 private fun DrawScope.drawSelectedDot(values: List<Double?>, position: Float, x: Float, y: (Double) -> Float) {

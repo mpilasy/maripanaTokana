@@ -9,6 +9,8 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+- Chart view: the selection line starts on the current hour at the start of the chart, moves to the middle as the hours scroll, and moves to the end for the last hour, so the chart has no empty half. Zoom (pinch, double tap, Ctrl + wheel, + and −) is removed; a tap now selects at once.
+
 ## [1.6.20261107194118] - 2026-11-07
 - Chart view: one finger scrolls the hours with fling; the selection line stays in the middle of the chart, and the hour under it is selected, with a tick at each new hour. A tap brings that hour to the middle; pinch and double tap zoom around the line. This replaces the slide-to-select rule of the previous version.
 - Chart view: the hint under the title is removed.
