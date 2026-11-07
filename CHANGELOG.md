@@ -9,6 +9,8 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261107213135] - 2026-11-07
+
 - Chart view: the selection line starts on the current hour at the start of the chart, moves to the middle as the hours scroll, and moves to the end for the last hour, so the chart has no empty half. Zoom (pinch, double tap, Ctrl + wheel, + and −) is removed; a tap now selects at once.
 
 ## [1.6.20261107194118] - 2026-11-07
