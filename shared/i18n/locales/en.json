@@ -95,6 +95,8 @@
 	"daylight_minutes_one": "{count}\u00a0minute",
 	"daylight_minutes_other": "{count}\u00a0minutes",
 	"rises_in": "Rises in {duration}",
+	"temp_trend_rise": "Rising {delta} by {time}",
+	"temp_trend_fall": "Falling {delta} by {time}",
 	"nowcast_ongoing": "Precipitation expected for the next 2 hours",
 	"activity_running": "Running",
 	"activity_laundry": "Drying Laundry",

@@ -27,6 +27,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.text
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.IntSize
@@ -132,6 +135,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.layout.AlignmentLine
 import androidx.compose.ui.layout.FirstBaseline
+import androidx.compose.ui.layout.LastBaseline
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.layout
@@ -186,6 +190,11 @@ import orinasa.njarasoa.maripanatokana.ui.theme.SkyBlue
 import orinasa.njarasoa.maripanatokana.ui.theme.DewAmber
 import orinasa.njarasoa.maripanatokana.ui.theme.HeatOrange
 import orinasa.njarasoa.maripanatokana.ui.theme.ChillBlue
+import orinasa.njarasoa.maripanatokana.ui.theme.temperatureColor
+import orinasa.njarasoa.maripanatokana.domain.model.TemperatureTrend
+import orinasa.njarasoa.maripanatokana.domain.model.temperatureTrend
+import androidx.compose.ui.graphics.lerp
+import orinasa.njarasoa.maripanatokana.domain.model.uvLevel
 import orinasa.njarasoa.maripanatokana.ui.theme.Hairline
 import orinasa.njarasoa.maripanatokana.ui.theme.HeroGradientBottom
 import orinasa.njarasoa.maripanatokana.ui.theme.HeroGradientTop
@@ -218,6 +227,7 @@ import orinasa.njarasoa.maripanatokana.ui.weather.components.SkyArc
 import orinasa.njarasoa.maripanatokana.ui.weather.components.CompassDial
 import orinasa.njarasoa.maripanatokana.ui.weather.components.drawMoon
 import orinasa.njarasoa.maripanatokana.domain.model.Moon
+import kotlin.math.abs
 import kotlin.math.roundToInt
 import orinasa.njarasoa.maripanatokana.ui.weather.components.TemperatureRangeBar
 import orinasa.njarasoa.maripanatokana.ui.weather.components.WindCompass
@@ -741,6 +751,8 @@ internal fun WeatherContent(
                             val (minP, minS) = data.tempMin.displayDual(metricPrimary)
                             // Air quality only when it is not good, with both indices as on the air quality card
                             val aqi = data.airQuality?.takeIf { it.primaryTier != AqiTier.GOOD }
+                            // The UV index only when it is moderate or higher; it is null or low at night
+                            val heroUv = data.uvIndex?.takeIf { uvLevel(it) > 0 }
                             // The heat index or the wind chill, only when one applies
                             val heroHeat = ThermalIndices.heatIndex(data.temperature, data.humidity)
                             val heroFelt = heroHeat ?: ThermalIndices.windChill(data.temperature, data.windSpeed)
@@ -748,13 +760,20 @@ internal fun WeatherContent(
                             HeroTemperatureLayout(
                                 temperature = {
                                     Box(modifier = Modifier.padding(top = 8.sd(scale))) {
-                                        DualUnitText(
-                                            primary = localizeDigits(tempPrimary),
+                                        TemperatureWithChip(
+                                            digitsSize = 80f.s(scale),
                                             secondary = localizeDigits(tempSecondary),
-                                            primarySize = 80f.s(scale),
                                             secondaryScale = 0.32f,
-                                            onClick = onToggleUnits,
-                                        )
+                                            chip = { TemperatureTrendChip(data, metricPrimary, localizeDigits, onToggleUnits) },
+                                        ) {
+                                            DualUnitText(
+                                                primary = localizeDigits(tempPrimary),
+                                                secondary = localizeDigits(tempSecondary),
+                                                primarySize = 80f.s(scale),
+                                                secondaryScale = 0.32f,
+                                                onClick = onToggleUnits,
+                                            )
+                                        }
                                     }
                                 },
                                 range = {
@@ -809,9 +828,11 @@ internal fun WeatherContent(
                                     }
                                     }
                                 },
-                                side = if (aqi == null) null else {
+                                side = if (aqi == null && heroUv == null) null else {
                                     {
-                                        Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        // Air quality first, the UV index under it
+                                        Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        if (aqi != null) Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                             aqi.let {
                                                 val (aqiP, aqiS) = it.displayDual()
                                                 val usLabel = stringResource(R.string.air_quality_us_aqi)
@@ -832,6 +853,37 @@ internal fun WeatherContent(
                                                     singleLine = true,
                                                 )
                                             }
+                                        }
+                                        if (heroUv != null) Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                            // A short "UV" on screen, because the full name does not fit on one line in all languages.
+                                            // Screen readers read the full name. Same style as the air quality value and its unit.
+                                            val uvColor = MaterialTheme.colorScheme.onSurface
+                                            val uvValue = localizeDigits("%.1f".format(Locale.US, heroUv))
+                                            val uvName = stringResource(R.string.detail_uv_index)
+                                            Text(
+                                                text = buildAnnotatedString {
+                                                    // LTR isolate so RTL locales keep "UV 6.2" in this order
+                                                    append('\u2066')
+                                                    withStyle(SpanStyle(fontSize = 14f.s(scale) * 0.55f, color = uvColor.copy(alpha = 0.7f))) {
+                                                        append("UV")
+                                                    }
+                                                    withStyle(SpanStyle(fontSize = 14f.s(scale), fontWeight = FontWeight.Bold, color = uvColor)) {
+                                                        append(" $uvValue")
+                                                    }
+                                                    append('\u2069')
+                                                },
+                                                fontFamily = LocalDisplayFont.current,
+                                                style = TextStyle(fontFeatureSettings = LocalBodyFontFeatures.current),
+                                                maxLines = 1,
+                                                modifier = Modifier.clearAndSetSemantics { contentDescription = "$uvName $uvValue" },
+                                            )
+                                            UvTierBadge(
+                                                uvIndex = heroUv,
+                                                label = stringArrayResource(R.array.uv_labels)[uvLevel(heroUv)],
+                                                fontSize = 11.sp,
+                                                singleLine = true,
+                                            )
+                                        }
                                         }
                                     }
                                 },
@@ -1170,6 +1222,7 @@ internal fun DualUnitText(
     primaryUnit: String? = null,
     secondaryUnit: String? = null,
     secondaryScale: Float = 0.75f,
+    secondaryAlpha: Float = 0.55f,
 ) {
     val displayFont = LocalDisplayFont.current
     val fontFeatures = LocalBodyFontFeatures.current
@@ -1201,7 +1254,7 @@ internal fun DualUnitText(
         Text(
             text = buildAnnotatedString {
                 append('\u2066')
-                withStyle(SpanStyle(fontSize = primarySize * secondaryScale, fontWeight = FontWeight.Normal, fontFamily = displayFont, color = resolvedColor.copy(alpha = 0.55f))) {
+                withStyle(SpanStyle(fontSize = primarySize * secondaryScale, fontWeight = FontWeight.Normal, fontFamily = displayFont, color = resolvedColor.copy(alpha = secondaryAlpha))) {
                     append(secondary)
                 }
                 if (secondaryUnit != null) {
@@ -1415,6 +1468,124 @@ private fun HeroTemperatureLayout(
     }
 }
 
+/**
+ * [temperature] (a [DualUnitText] with [secondary] under the digits) with [chip] at its end side,
+ * centred on the big digits of size [digitsSize]. When the line has no space for the chip, the chip goes
+ * at the end of the [secondary] line, so it never overflows and does not add a line.
+ * The layout keeps the first baseline of [temperature], so the side column of the hero does not move.
+ */
+@Composable
+private fun TemperatureWithChip(
+    digitsSize: TextUnit,
+    secondary: String,
+    secondaryScale: Float,
+    chip: @Composable () -> Unit,
+    temperature: @Composable () -> Unit,
+) {
+    // The width of the secondary line, with the same style as in DualUnitText
+    val textMeasurer = rememberTextMeasurer()
+    val secondaryStyle = TextStyle(fontSize = digitsSize * secondaryScale, fontFamily = LocalDisplayFont.current,
+        fontFeatureSettings = LocalBodyFontFeatures.current)
+    Layout(contents = listOf(temperature, chip)) { (temps, chips), constraints ->
+        val loose = constraints.copy(minWidth = 0, minHeight = 0)
+        val temp = temps.first().measure(loose)
+        val gap = 8.dp.roundToPx()
+        val chipPlaceable = chips.firstOrNull()?.measure(loose)
+        val beside = chipPlaceable == null || temp.width + gap + chipPlaceable.width <= loose.maxWidth
+        val baseline = temp[FirstBaseline]
+        val lastBaseline = temp[LastBaseline]
+        val known = baseline != AlignmentLine.Unspecified && lastBaseline != AlignmentLine.Unspecified
+        // The middle of a line of digits: its baseline less half the digit height (about 0.7 em)
+        val chipX: Int
+        val chipY: Int
+        if (chipPlaceable == null || !known) {
+            chipX = temp.width + gap
+            chipY = if (chipPlaceable == null) 0 else (temp.height - chipPlaceable.height) / 2
+        } else if (beside) {
+            chipX = temp.width + gap
+            chipY = baseline - (digitsSize.toPx() * 0.35f).roundToInt() - chipPlaceable.height / 2
+        } else {
+            chipX = textMeasurer.measure(secondary, secondaryStyle).size.width + gap
+            val middle = lastBaseline - (digitsSize.toPx() * secondaryScale * 0.35f).roundToInt()
+            // Not higher than just under the big digits
+            chipY = maxOf(middle - chipPlaceable.height / 2, baseline + 4.dp.roundToPx())
+        }
+        // Moves the content down when the chip goes above the digits
+        val shift = (-chipY).coerceAtLeast(0)
+        val width = maxOf(temp.width, chipPlaceable?.let { chipX + it.width } ?: 0).coerceAtMost(loose.maxWidth)
+        val height = maxOf(temp.height, chipPlaceable?.let { chipY + it.height } ?: 0) + shift
+        val lines: Map<AlignmentLine, Int> = if (baseline == AlignmentLine.Unspecified) emptyMap() else mapOf(FirstBaseline to baseline + shift)
+        layout(width, height, lines) {
+            temp.placeRelative(0, shift)
+            chipPlaceable?.placeRelative(chipX, chipY + shift)
+        }
+    }
+}
+
+/**
+ * A chip with the largest change of temperature in the next 6 hours: the arrow and the difference in the
+ * primary unit, the difference in the other unit, then the hour. Nothing when the change is small.
+ */
+@Composable
+private fun TemperatureTrendChip(data: WeatherData, metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
+    // Compared with the current clock time, so cached data shows only the hours still to come
+    val trend = temperatureTrend(data.temperature, data.hourlyForecast, metricPrimary) ?: return
+    val up = trend.direction == TemperatureTrend.Direction.UP
+    val hourFormat = remember(data.utcOffsetSeconds) {
+        SimpleDateFormat("HH:mm", Locale.US).apply { timeZone = buildLocationTimeZone(data.utcOffsetSeconds) }
+    }
+    val scale = LocalScale.current
+    val time = localizeDigits(hourFormat.format(Date(trend.time)))
+    // Each unit's difference comes from the exact difference, so the two units agree
+    val exactC = abs(trend.temperature.celsius - data.temperature.celsius)
+    val deltaC = exactC.roundToInt()
+    val deltaF = (exactC * 9 / 5).roundToInt()
+    val (deltaP, deltaS) = if (metricPrimary) (deltaC to "°C") to (deltaF to "°F") else (deltaF to "°F") to (deltaC to "°C")
+    val description = stringResource(
+        if (up) R.string.temp_trend_rise else R.string.temp_trend_fall,
+        localizeDigits("${deltaP.first} ${deltaP.second} (${deltaS.first} ${deltaS.second})"),
+        time,
+    )
+    val toggleLabel = stringResource(R.string.cd_toggle_units)
+    // A tint of the colour, with the text in a lighter shade of it for a contrast of 4.5:1 or more (as in TierPill)
+    val accent = if (up) HeatOrange else ChillBlue
+    val textColor = lerp(accent, Color.White, 0.5f)
+    val displayFont = LocalDisplayFont.current
+    val fontFeatures = LocalBodyFontFeatures.current
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier
+            // As tall as the web chip (3.2rem)
+            .heightIn(min = 51.sd(scale))
+            .clip(RoundedCornerShape(12.dp))
+            .background(accent.copy(alpha = 0.2f))
+            .clickable(role = Role.Button, onClickLabel = toggleLabel, onClick = onToggleUnits)
+            // One element for screen readers, read as one sentence
+            .clearAndSetSemantics {
+                contentDescription = description
+                role = Role.Button
+                onClick(label = toggleLabel) { onToggleUnits(); true }
+            }
+            .padding(horizontal = 8.sd(scale)),
+    ) {
+        val style = TextStyle(fontFamily = displayFont, fontFeatureSettings = fontFeatures, color = textColor)
+        // LTR isolate so RTL locales keep the arrow before the number
+        Text(
+            text = localizeDigits("\u2066${if (up) "\u2191" else "\u2193"}${deltaP.first}${deltaP.second}\u2069"),
+            style = style.copy(fontSize = 14f.s(scale), lineHeight = 17f.s(scale), fontWeight = FontWeight.Bold),
+        )
+        Text(
+            text = localizeDigits("\u2066${deltaS.first}${deltaS.second}\u2069"),
+            style = style.copy(fontSize = 11f.s(scale), lineHeight = 13f.s(scale)),
+        )
+        Text(
+            text = time,
+            style = style.copy(fontSize = 11f.s(scale), lineHeight = 13f.s(scale)),
+        )
+    }
+}
+
 /** Half a day at a glance: the first forecast hour and every 4 hours after it, up to 12 hours later. */
 @Composable
 private fun NextHoursStrip(data: WeatherData, metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
@@ -1450,13 +1621,24 @@ private fun NextHoursStrip(data: WeatherData, metricPrimary: Boolean, localizeDi
                 val isNight = !isDaytime(hour.time, data.dailySunrise.getOrElse(dayIdx) { 0L }, data.dailySunset.getOrElse(dayIdx) { 0L })
                 WeatherIcon(hour.weatherCode, night = isNight, size = 40.sd(scale))
                 val (tP, tS) = hour.temperature.displayDual(metricPrimary)
-                DualUnitText(
-                    primary = localizeDigits(tP),
-                    secondary = localizeDigits(tS),
-                    primarySize = 15f.s(scale),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    onClick = onToggleUnits,
-                )
+                // The temperature in a pill of its colour on the temperature scale; a tap on the pill changes the units
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(temperatureColor(hour.temperature.celsius))
+                        .clickable(role = Role.Button, onClickLabel = stringResource(R.string.cd_toggle_units), onClick = onToggleUnits)
+                        .padding(horizontal = 10.sd(scale), vertical = 2.sd(scale)),
+                ) {
+                    DualUnitText(
+                        primary = localizeDigits(tP),
+                        secondary = localizeDigits(tS),
+                        primarySize = 15f.s(scale),
+                        // Dark text on the light colours of the scale, both units at full opacity
+                        color = Color(0xFF1A1A1A),
+                        secondaryAlpha = 1f,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    )
+                }
             }
         }
     }

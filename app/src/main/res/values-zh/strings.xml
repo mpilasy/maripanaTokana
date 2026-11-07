@@ -72,6 +72,8 @@
     <string name="daylight_minutes_one">%1$s分钟</string>
     <string name="daylight_minutes_other">%1$s分钟</string>
     <string name="rises_in">%1$s后升起</string>
+    <string name="temp_trend_rise">到 %2$s 升高 %1$s</string>
+    <string name="temp_trend_fall">到 %2$s 降低 %1$s</string>
     <string name="nowcast_ongoing">预计未来 2 小时持续降水</string>
     <string name="activity_running">跑步</string>
     <string name="activity_laundry">晾晒衣物</string>

@@ -8,6 +8,10 @@
 	import { formatHourAtLocation, formatHourInDeviceTime, isRemoteTimezone } from '#lib/utils/date.js';
 	import DualUnitText from './DualUnitText.svelte';
 	import AqiTierBadge from './AqiTierBadge.svelte';
+	import UvTierBadge from './UvTierBadge.svelte';
+	import { uvTier } from '#lib/domain/uv.js';
+	import { temperatureTrend } from '#lib/domain/temperatureTrend.js';
+	import { temperatureColor } from '#lib/utils/tempColors.js';
 	import FeltIcon from './FeltIcon.svelte';
 	import { frostbiteMinutes, heatIndex, windChill } from '#lib/domain/thermalIndices.js';
 	import { HEAT_COLOR, CHILL_COLOR } from '#lib/utils/feltColors.js';
@@ -47,6 +51,35 @@
 		return $_(`outlook_${kind}_all_day`);
 	});
 
+	// The largest change of temperature in the next 6 hours, in the chip next to the current temperature
+	let trend = $derived(temperatureTrend(data.temperature, data.hourlyForecast, metricPrimary));
+	let trendChip = $derived.by(() => {
+		if (!trend) return null;
+		// Both units come from the exact change, so that they agree
+		const change = Math.abs(trend.temperature.celsius - data.temperature.celsius);
+		const c = `${Math.round(change)}°C`;
+		const f = `${Math.round(change * 9 / 5)}°F`;
+		const [primary, secondary] = metricPrimary ? [c, f] : [f, c];
+		const time = loc(formatHourAtLocation(trend.time, data.utcOffsetSeconds));
+		const up = trend.direction === 'up';
+		return {
+			arrow: up ? '↑' : '↓',
+			primary: loc(primary),
+			secondary: loc(secondary),
+			time,
+			color: up ? HEAT_COLOR : CHILL_COLOR,
+			label: $_(up ? 'temp_trend_rise' : 'temp_trend_fall', {
+				values: { delta: loc(`${primary.replace('°', ' °')} (${secondary.replace('°', ' °')})`), time },
+			}),
+		};
+	});
+
+	// The chip goes beside the big digits when it fits there, else at the end of the °F line
+	let tempRowWidth = $state(0);
+	let tempValueWidth = $state(0);
+	let trendBesideWidth = $state(0);
+	let trendBeside = $derived(tempRowWidth === 0 || tempValueWidth + 8 + trendBesideWidth <= tempRowWidth);
+
 	const AQI_TIERS = ['good', 'moderate', 'unhealthy', 'very_unhealthy', 'hazardous'];
 
 	// Air quality only when it is not good, with both indices as on the air quality card
@@ -57,6 +90,12 @@
 		const eu = $_('air_quality_eu_aqi');
 		return aqi?.primaryStandard === 'EUROPEAN' ? [eu, us] : [us, eu];
 	});
+
+	const UV_TIERS = ['low', 'moderate', 'high', 'veryHigh', 'extreme'];
+
+	// The UV index only when it is moderate or higher; at night it is low or missing
+	let uv = $derived(data.uvIndex != null && uvTier(data.uvIndex) !== 'low' ? data.uvIndex : null);
+	let uvLabel = $derived(uv == null ? '' : (($json('uv_labels') as string[])?.[UV_TIERS.indexOf(uvTier(uv))] ?? ''));
 
 	// How the temperature feels, next to it: the heat index or the wind chill when one applies, else feels like
 	let heat = $derived(heatIndex(data.temperature, data.humidity));
@@ -99,14 +138,31 @@
 		{/if}
 
 		<div class="hero-mid">
-		<div class="hero-temp">
-			<DualUnitText
-				primary={loc(tempDual[0])}
-				secondary={loc(tempDual[1])}
-				primarySize="5rem"
-				secondaryScale={0.32}
-				onClick={onToggleUnits}
-			/>
+		<div class="hero-temp" bind:clientWidth={tempRowWidth}>
+			<div bind:clientWidth={tempValueWidth}>
+				<DualUnitText
+					primary={loc(tempDual[0])}
+					secondary={loc(tempDual[1])}
+					primarySize="5rem"
+					secondaryScale={0.32}
+					onClick={onToggleUnits}
+				/>
+			</div>
+			{#if trendChip}
+				{#snippet trendContent()}
+					<bdi dir="ltr" class="hero-trend-main">{trendChip.arrow}{trendChip.primary}</bdi>
+					<bdi dir="ltr" class="hero-trend-sub">{trendChip.secondary}</bdi>
+					<span class="hero-trend-sub">{trendChip.time}</span>
+				{/snippet}
+				<!-- Read as one sentence; a tap changes the units, as the values next to it -->
+				<button type="button" class="hero-trend" class:hero-trend-low={!trendBeside} style:--trend={trendChip.color} onclick={onToggleUnits} aria-label={trendChip.label}>
+					{@render trendContent()}
+				</button>
+				<!-- Not shown: it gives the width of the chip beside the big digits -->
+				<div class="hero-trend hero-trend-probe" aria-hidden="true" bind:clientWidth={trendBesideWidth}>
+					{@render trendContent()}
+				</div>
+			{/if}
 		</div>
 
 		<div class="hero-range">
@@ -127,13 +183,23 @@
 			</div>
 		</div>
 
-		<!-- Air quality fills the space beside the °F and high/low lines -->
-		{#if aqi}
-			<div class="hero-side">
-				{#if aqiDual}
-					<DualUnitText primary={loc(String(aqiDual[0]))} secondary={loc(String(aqiDual[1]))} primaryUnit={aqiUnits[0]} secondaryUnit={aqiUnits[1]} primarySize="0.875rem" align="end" />
+		<!-- Air quality and UV fill the space beside the °F and high/low lines; air quality first -->
+		{#if aqi || uv != null}
+			<div class="hero-side" class:hero-side-low={trendChip && !trendBeside}>
+				{#if aqi}
+					{#if aqiDual}
+						<DualUnitText primary={loc(String(aqiDual[0]))} secondary={loc(String(aqiDual[1]))} primaryUnit={aqiUnits[0]} secondaryUnit={aqiUnits[1]} primarySize="0.875rem" align="end" />
+					{/if}
+					<AqiTierBadge tier={aqi.primaryTier} label={($json('aqi_tier_labels') as string[])?.[AQI_TIERS.indexOf(aqi.primaryTier)] ?? ''} compact />
 				{/if}
-				<AqiTierBadge tier={aqi.primaryTier} label={($json('aqi_tier_labels') as string[])?.[AQI_TIERS.indexOf(aqi.primaryTier)] ?? ''} compact />
+				{#if uv != null}
+					<!-- A short "UV" on screen, because the full name does not fit on one line in all languages -->
+					<div class="hero-uv" class:hero-uv-stacked={aqi}>
+						<span class="sr-only">{$_('detail_uv_index')} {loc(uv.toFixed(1))}</span>
+						<bdi dir="ltr" aria-hidden="true"><span class="hero-uv-unit">UV</span> {loc(uv.toFixed(1))}</bdi>
+					</div>
+					<UvTierBadge uvIndex={uv} label={uvLabel} compact />
+				{/if}
 			</div>
 		{/if}
 		</div>
@@ -149,7 +215,10 @@
 							<span class="next-device-time">{loc(formatHourInDeviceTime(hour.time))}<svg class="next-device-icon" viewBox="0 0 24 24" width="10" height="10" fill="currentColor" aria-hidden="true"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg></span>
 						{/if}
 						<WeatherIcon code={hour.weatherCode} night={isNightAt(hour.time)} size={40} />
-						<DualUnitText primary={loc(hour.temperature.displayDual(metricPrimary)[0])} secondary={loc(hour.temperature.displayDual(metricPrimary)[1])} primarySize="0.9375rem" align="center" onClick={onToggleUnits} />
+						<!-- The temperature on a pill in its colour on the temperature scale -->
+						<div class="temp-pill" style:background={temperatureColor(hour.temperature.celsius)}>
+							<DualUnitText primary={loc(hour.temperature.displayDual(metricPrimary)[0])} secondary={loc(hour.temperature.displayDual(metricPrimary)[1])} primarySize="0.9375rem" align="center" onClick={onToggleUnits} />
+						</div>
 					</div>
 				{/each}
 			</div>
@@ -240,6 +309,67 @@
 	.hero-temp {
 		grid-column: 1 / -1;
 		margin-top: 8px;
+		position: relative;
+		display: flex;
+		align-items: flex-start;
+		column-gap: 8px;
+	}
+
+	/* 3.2rem tall, centred on the 5rem line of the big digits (line height 1.15) */
+	.hero-trend {
+		height: 3.2rem;
+		margin-top: calc((5rem * 1.15 - 3.2rem) / 2);
+		padding: 0 8px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		border: none;
+		border-radius: 12px;
+		/* A tint of the colour, with the text in a lighter shade of it for a contrast of 4.5:1 or more */
+		background: color-mix(in srgb, var(--trend) 20%, transparent);
+		color: color-mix(in srgb, var(--trend) 50%, white);
+		font-family: var(--font-display);
+		font-feature-settings: var(--font-features);
+		line-height: 1.2;
+		cursor: pointer;
+	}
+
+	/* When the big digits leave no space: on one line at the end of the °F line, centred on it
+	   (that line is 5rem × 0.32 with a line height of about 1.2) */
+	.hero-trend.hero-trend-low {
+		position: absolute;
+		inset-inline-end: 0;
+		bottom: calc(5rem * 0.32 * 0.6);
+		transform: translateY(50%);
+		height: auto;
+		margin-top: 0;
+		padding: 2px 8px;
+		flex-direction: row;
+		align-items: baseline;
+		gap: 6px;
+	}
+
+	.hero-trend-probe {
+		position: absolute;
+		top: 0;
+		inset-inline-start: 0;
+		visibility: hidden;
+		pointer-events: none;
+	}
+
+	.hero-trend:focus-visible {
+		outline: 2px solid rgba(255, 255, 255, 0.5);
+		outline-offset: 2px;
+	}
+
+	.hero-trend-main {
+		font-size: 0.875rem;
+		font-weight: 700;
+	}
+
+	.hero-trend-sub {
+		font-size: 0.6875rem;
 	}
 
 	.hero-range {
@@ -258,6 +388,32 @@
 		align-items: flex-end;
 		gap: 4px;
 		text-align: end;
+	}
+
+	/* The chip is at the end of the °F line, so the side column does not rise beside that line */
+	.hero-side.hero-side-low {
+		margin-top: 0;
+	}
+
+	.hero-uv {
+		font-family: var(--font-display);
+		font-size: 0.875rem;
+		font-weight: 700;
+		line-height: 1.15;
+		color: white;
+		font-feature-settings: var(--font-features);
+	}
+
+	/* More space between the air quality block and the UV block */
+	.hero-uv-stacked {
+		margin-top: 4px;
+	}
+
+	/* As the unit labels of the air quality values */
+	.hero-uv-unit {
+		font-size: calc(0.875rem * 0.55);
+		font-weight: 400;
+		opacity: 0.75;
 	}
 
 	.hero-outlook {
@@ -305,6 +461,17 @@
 
 	.next-hour + .next-hour {
 		border-inline-start: 1px solid var(--hairline);
+	}
+
+	.temp-pill {
+		padding: 2px 10px;
+		border-radius: 12px;
+	}
+
+	/* Dark text on the light colours of the scale */
+	.next-hour .temp-pill :global(.primary),
+	.next-hour .temp-pill :global(.secondary) {
+		color: #1A1A1A;
 	}
 
 	.next-device-time {

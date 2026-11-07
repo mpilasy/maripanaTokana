@@ -72,6 +72,8 @@
     <string name="daylight_minutes_one">%1$s دقيقة</string>
     <string name="daylight_minutes_other">%1$s دقيقة</string>
     <string name="rises_in">يطلع بعد %1$s</string>
+    <string name="temp_trend_rise">ترتفع %1$s حتى %2$s</string>
+    <string name="temp_trend_fall">تنخفض %1$s حتى %2$s</string>
     <string name="nowcast_ongoing">هطول أمطار متوقع خلال الساعتين القادمتين</string>
     <string name="activity_running">الركض</string>
     <string name="activity_laundry">تجفيف الغسيل</string>

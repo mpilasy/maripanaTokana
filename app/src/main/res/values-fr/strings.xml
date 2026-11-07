@@ -72,6 +72,8 @@
     <string name="daylight_minutes_one">%1$s minute</string>
     <string name="daylight_minutes_other">%1$s minutes</string>
     <string name="rises_in">Se lève dans %1$s</string>
+    <string name="temp_trend_rise">En hausse de %1$s d\'ici %2$s</string>
+    <string name="temp_trend_fall">En baisse de %1$s d\'ici %2$s</string>
     <string name="nowcast_ongoing">Précipitations prévues pour les 2 prochaines heures</string>
     <string name="activity_running">Course à pied</string>
     <string name="activity_laundry">Séchage du linge</string>

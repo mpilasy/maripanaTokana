@@ -72,6 +72,8 @@
     <string name="daylight_minutes_one">%1$s मिनेट</string>
     <string name="daylight_minutes_other">%1$s मिनेट</string>
     <string name="rises_in">%1$s मा उदाउँछ</string>
+    <string name="temp_trend_rise">%2$s सम्म %1$s बढ्छ</string>
+    <string name="temp_trend_fall">%2$s सम्म %1$s घट्छ</string>
     <string name="nowcast_ongoing">आगामी २ घण्टासम्म वर्षा भइरहने सम्भावना छ</string>
     <string name="activity_running">दौडनु</string>
     <string name="activity_laundry">लुगा सुकाउनु</string>

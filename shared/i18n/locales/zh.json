@@ -95,6 +95,8 @@
 	"daylight_minutes_one": "{count}分钟",
 	"daylight_minutes_other": "{count}分钟",
 	"rises_in": "{duration}后升起",
+	"temp_trend_rise": "到 {time} 升高 {delta}",
+	"temp_trend_fall": "到 {time} 降低 {delta}",
 	"nowcast_ongoing": "预计未来 2 小时持续降水",
 	"activity_running": "跑步",
 	"activity_laundry": "晾晒衣物",

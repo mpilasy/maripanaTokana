@@ -95,6 +95,8 @@
 	"daylight_minutes_one": "{count}\u00a0minitra",
 	"daylight_minutes_other": "{count}\u00a0minitra",
 	"rises_in": "Hiposaka afaka {duration}",
+	"temp_trend_rise": "Hiakatra {delta} hatramin'ny {time}",
+	"temp_trend_fall": "Hidina {delta} hatramin'ny {time}",
 	"nowcast_ongoing": "Hisy orana mandritra ny 2 ora manaraka",
 	"activity_running": "Fanatanjahantena",
 	"activity_laundry": "Fanahazan-damba",

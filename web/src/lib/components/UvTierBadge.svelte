@@ -6,12 +6,13 @@
 	interface Props {
 		uvIndex: number;
 		label: string;
+		compact?: boolean;
 	}
 
-	let { uvIndex, label }: Props = $props();
+	let { uvIndex, label, compact = false }: Props = $props();
 </script>
 
-<span class="uv-badge uv-{uvTier(uvIndex)}">{label}</span>
+<span class="uv-badge uv-{uvTier(uvIndex)}" class:compact>{label}</span>
 
 <style>
 	/* EPA UV Index color scale (epa.gov/sunsafety/uv-index-scale-0): Green/Yellow/Orange/Red/Violet.
@@ -32,6 +33,12 @@
 		font-size: 0.75rem;
 		font-weight: 600;
 		line-height: 1.4;
+	}
+
+	/* Small, as the air quality badge in the hero */
+	.uv-badge.compact {
+		font-size: 0.625rem;
+		padding: 1px 6px;
 	}
 
 	.uv-low { --tier: #299501; }

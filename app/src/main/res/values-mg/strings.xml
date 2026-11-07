@@ -72,6 +72,8 @@
     <string name="daylight_minutes_one">%1$s minitra</string>
     <string name="daylight_minutes_other">%1$s minitra</string>
     <string name="rises_in">Hiposaka afaka %1$s</string>
+    <string name="temp_trend_rise">Hiakatra %1$s hatramin\'ny %2$s</string>
+    <string name="temp_trend_fall">Hidina %1$s hatramin\'ny %2$s</string>
     <string name="nowcast_ongoing">Hisy orana mandritra ny 2 ora manaraka</string>
     <string name="activity_running">Fanatanjahantena</string>
     <string name="activity_laundry">Fanahazan-damba</string>

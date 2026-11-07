@@ -95,6 +95,8 @@
 	"daylight_minutes_one": "{count}\u00a0मिनट",
 	"daylight_minutes_other": "{count}\u00a0मिनट",
 	"rises_in": "{duration} में उदय",
+	"temp_trend_rise": "{time} तक {delta} बढ़ेगा",
+	"temp_trend_fall": "{time} तक {delta} घटेगा",
 	"nowcast_ongoing": "अगले २ घंटों तक बारिश जारी रहने की संभावना है",
 	"activity_running": "दौड़ना",
 	"activity_laundry": "कपड़े सुखाना",
