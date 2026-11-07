@@ -58,7 +58,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
@@ -101,13 +100,9 @@ import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.domain.model.ChartHour
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.model.showWindArrow
-import orinasa.njarasoa.maripanatokana.ui.theme.AppDarkPrimary
-import orinasa.njarasoa.maripanatokana.ui.theme.ChillBlue
-import orinasa.njarasoa.maripanatokana.ui.theme.FreezingLine
 import orinasa.njarasoa.maripanatokana.ui.theme.Hairline
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFont
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
-import orinasa.njarasoa.maripanatokana.ui.theme.SkyBlue
 import orinasa.njarasoa.maripanatokana.ui.weather.buildLocationTimeZone
 import orinasa.njarasoa.maripanatokana.ui.weather.components.colorsFor
 import orinasa.njarasoa.maripanatokana.ui.weather.components.computeMonotoneCubicControlPoints
@@ -136,9 +131,6 @@ private val PANEL_GAP = 6.dp
 private val TITLE_HEIGHT = 16.dp
 // The room above the wind line for the direction arrows
 private val ARROW_ROW = 14.dp
-
-private val ChanceColor = Color.White.copy(alpha = 0.6f)
-private val GustColor = AppDarkPrimary.copy(alpha = 0.6f)
 
 /** The values of one hour in the primary unit, as the charts draw them. */
 private class ChartSeries(hours: List<ChartHour>, metricPrimary: Boolean) {
@@ -445,7 +437,7 @@ private fun ChartPanels(
                 val right = days.getOrNull(k + 1)?.let { cx(it.startIndex) } ?: (cx(span.endIndex - 1) + slot / 2)
                 if (right < axisPx || left > size.width) return@forEachIndexed
                 if (k % 2 == 1) drawRect(Color.White.copy(alpha = 0.03f), Offset(left, 0f), Size(right - left, size.height))
-                if (k > 0) drawLine(Color.White.copy(alpha = 0.25f), Offset(left, 0f), Offset(left, size.height), 1.dp.toPx())
+                if (k > 0) drawLine(ChartStyle.midnight, Offset(left, 0f), Offset(left, size.height), ChartStyle.midnightWidth.toPx())
             }
             // Night hours, faintly darker
             var runStart = -1
@@ -454,7 +446,7 @@ private fun ChartPanels(
                 if (night && runStart < 0) runStart = i
                 if (!night && runStart >= 0) {
                     val left = cx(runStart) - slot / 2
-                    drawRect(Color.Black.copy(alpha = 0.18f), Offset(left, 0f), Size(cx(i - 1) + slot / 2 - left, chartsBottom))
+                    drawRect(ChartStyle.night, Offset(left, 0f), Size(cx(i - 1) + slot / 2 - left, chartsBottom))
                     runStart = -1
                 }
             }
@@ -467,10 +459,10 @@ private fun ChartPanels(
                 val freezing = if (metricPrimary) 0.0 else 32.0
                 if (freezing > d.min && freezing < d.max) {
                     val fy = tArea.y(freezing, d)
-                    drawLine(FreezingLine, Offset(axisPx, fy), Offset(size.width, fy), 1.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 3.dp.toPx())))
+                    drawLine(ChartStyle.freezing, Offset(axisPx, fy), Offset(size.width, fy), ChartStyle.freezingWidth.toPx(), pathEffect = chartDash(ChartStyle.freezingDash))
                 }
-                drawSeries(series.dewPoint, drawn, ::cx, { tArea.y(it, d) }, ChillBlue, 1.5.dp.toPx())
-                drawSeries(series.temperature, drawn, ::cx, { tArea.y(it, d) }, Color.White, 2.dp.toPx())
+                drawSeries(series.dewPoint, drawn, ::cx, { tArea.y(it, d) }, ChartStyle.dewPoint, ChartStyle.thinLineWidth.toPx())
+                drawSeries(series.temperature, drawn, ::cx, { tArea.y(it, d) }, ChartStyle.temperature, ChartStyle.lineWidth.toPx())
                 drawSelectedDot(series.dewPoint, selected, ::cx) { tArea.y(it, d) }
                 drawSelectedDot(series.temperature, selected, ::cx) { tArea.y(it, d) }
             }
@@ -483,17 +475,17 @@ private fun ChartPanels(
                     val v = series.precipitation[i] ?: continue
                     if (v <= 0) continue
                     val top = pArea.y(v, d)
-                    drawRoundRect(SkyBlue, Offset(cx(i) - barWidth / 2, top), Size(barWidth, pArea.bottom - top), CornerRadius(1.5.dp.toPx()))
+                    drawRoundRect(ChartStyle.precipitation, Offset(cx(i) - barWidth / 2, top), Size(barWidth, pArea.bottom - top), CornerRadius(1.5.dp.toPx()))
                 }
             }
-            drawSeries(series.chance, drawn, ::cx, { pArea.y(it, PERCENT_DOMAIN) }, ChanceColor, 1.2.dp.toPx())
+            drawSeries(series.chance, drawn, ::cx, { pArea.y(it, PERCENT_DOMAIN) }, ChartStyle.chance, ChartStyle.chanceWidth.toPx())
             drawSelectedDot(series.chance, selected, ::cx) { pArea.y(it, PERCENT_DOMAIN) }
 
             // Wind and gusts on one scale, with the direction every 3 hours
             wDomain?.let { d ->
                 drawGrid(d, wArea)
-                drawSeries(series.gust, drawn, ::cx, { wArea.y(it, d) }, GustColor, 1.5.dp.toPx(), dashed = true)
-                drawSeries(series.wind, drawn, ::cx, { wArea.y(it, d) }, AppDarkPrimary, 2.dp.toPx())
+                drawSeries(series.gust, drawn, ::cx, { wArea.y(it, d) }, ChartStyle.gust, ChartStyle.thinLineWidth.toPx(), dashed = true)
+                drawSeries(series.wind, drawn, ::cx, { wArea.y(it, d) }, ChartStyle.wind, ChartStyle.lineWidth.toPx())
                 drawSelectedDot(series.gust, selected, ::cx) { wArea.y(it, d) }
                 drawSelectedDot(series.wind, selected, ::cx) { wArea.y(it, d) }
             }
@@ -507,12 +499,12 @@ private fun ChartPanels(
 
             prDomain?.let { d ->
                 drawGrid(d, prArea)
-                drawSeries(series.pressure, drawn, ::cx, { prArea.y(it, d) }, AppDarkPrimary, 2.dp.toPx())
+                drawSeries(series.pressure, drawn, ::cx, { prArea.y(it, d) }, ChartStyle.pressure, ChartStyle.lineWidth.toPx())
                 drawSelectedDot(series.pressure, selected, ::cx) { prArea.y(it, d) }
             }
 
             drawGrid(PERCENT_DOMAIN, hArea)
-            drawSeries(series.humidity, drawn, ::cx, { hArea.y(it, PERCENT_DOMAIN) }, SkyBlue, 2.dp.toPx())
+            drawSeries(series.humidity, drawn, ::cx, { hArea.y(it, PERCENT_DOMAIN) }, ChartStyle.humidity, ChartStyle.lineWidth.toPx())
             drawSelectedDot(series.humidity, selected, ::cx) { hArea.y(it, PERCENT_DOMAIN) }
 
             // Time axis: an hour label every 3 or 6 hours, and the day at each midnight (the day at the start stays in view)
@@ -537,17 +529,17 @@ private fun ChartPanels(
 
             // The selected hour, across all panels
             if (selected in drawn) {
-                drawLine(Color.White.copy(alpha = 0.7f), Offset(cx(selected), 0f), Offset(cx(selected), chartsBottom), 1.dp.toPx())
+                drawLine(ChartStyle.selection, Offset(cx(selected), 0f), Offset(cx(selected), chartsBottom), ChartStyle.selectionWidth.toPx())
             }
 
             // Titles on top of the lines, at the start of each panel; they do not scroll
-            drawTitle(ChartPanel.TEMPERATURE, titles.temperature, titles.dewPoint, ChillBlue, axisPx, textMeasurer, onSurface)
-            drawTitle(ChartPanel.PRECIPITATION, titles.precipitation, titles.chance, ChanceColor, axisPx, textMeasurer, onSurface)
-            drawTitle(ChartPanel.WIND, titles.wind, titles.gust, GustColor, axisPx, textMeasurer, onSurface)
+            drawTitle(ChartPanel.TEMPERATURE, titles.temperature, titles.dewPoint, ChartStyle.dewPoint, axisPx, textMeasurer, onSurface)
+            drawTitle(ChartPanel.PRECIPITATION, titles.precipitation, titles.chance, ChartStyle.chance, axisPx, textMeasurer, onSurface)
+            drawTitle(ChartPanel.WIND, titles.wind, titles.gust, ChartStyle.gust, axisPx, textMeasurer, onSurface)
             drawTitle(ChartPanel.PRESSURE, titles.pressure, null, Color.Unspecified, axisPx, textMeasurer, onSurface)
             drawTitle(ChartPanel.HUMIDITY, titles.humidity, null, Color.Unspecified, axisPx, textMeasurer, onSurface)
             // The chance of rain scale at the end of the panel
-            val chanceStyle = TextStyle(color = ChanceColor, fontSize = 8.sp, fontFamily = displayFont)
+            val chanceStyle = TextStyle(color = ChartStyle.chance, fontSize = 8.sp, fontFamily = displayFont)
             listOf(50.0, 100.0).forEach { v ->
                 val layout = textMeasurer.measure(localizeDigits("${v.toInt()}%"), chanceStyle)
                 drawText(layout, topLeft = Offset(size.width - layout.size.width - 2.dp.toPx(), pArea.y(v, PERCENT_DOMAIN) - layout.size.height / 2f))
@@ -608,7 +600,7 @@ private fun DrawScope.drawSeries(
     values: List<Double?>, range: IntRange, x: (Int) -> Float, y: (Double) -> Float,
     color: Color, width: Float, dashed: Boolean = false,
 ) {
-    val effect = if (dashed) PathEffect.dashPathEffect(floatArrayOf(5.dp.toPx(), 3.dp.toPx())) else null
+    val effect = if (dashed) chartDash(ChartStyle.gustDash) else null
     var run = mutableListOf<Offset>()
     fun flush() {
         if (run.size == 1) drawCircle(color, width, run[0])
@@ -632,7 +624,7 @@ private fun DrawScope.drawSeries(
 private fun DrawScope.drawSelectedDot(values: List<Double?>, selected: Int, x: (Int) -> Float, y: (Double) -> Float) {
     val v = values.getOrNull(selected) ?: return
     if (!v.isFinite()) return
-    drawCircle(Color.White, 3.5.dp.toPx(), Offset(x(selected), y(v)))
+    drawCircle(ChartStyle.selectionDot, ChartStyle.selectionDotRadius.toPx(), Offset(x(selected), y(v)))
 }
 
 /** The weather icon every 3 hours (night icons at night), with the UV index under it from 1, in its tier colour. */

@@ -122,6 +122,7 @@ function hourlyForecast(data: any[]): HourlyForecast[] {
 		uvIndex: h.uvIndex ?? null,
 		humidity: h.humidity != null ? Math.round(h.humidity * 100) : null,
 		dewPoint: h.dewPoint != null ? Temperature.fromCelsius(h.dewPoint) : null,
+		windGust: h.windGust != null ? WindSpeed.fromMetersPerSecond(h.windGust) : null,
 	}));
 }
 

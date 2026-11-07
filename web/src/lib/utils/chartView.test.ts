@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { describe, expect, it } from 'vitest';
-import { chartDaylight, chartDaySpans, chartDomain, chartHours, chartIndexForX, chartVisibleRange, chartZoom } from './chartView';
+import { chartDaylight, chartDaySpans, chartDomain, chartHours, chartIndexForX, chartMidnights, chartNightRuns, chartVisibleRange, chartZoom } from './chartView';
 
 const HOUR = 3_600_000;
 const T0 = Date.UTC(2026, 10, 7, 0, 0); // 2026-11-07 00:00 UTC
@@ -76,6 +76,32 @@ describe('chartDaylight', () => {
 	});
 	it('makes every hour night with no sun times', () => {
 		expect(chartDaylight(hours(3), [], [])).toEqual([true, true, true]);
+	});
+});
+
+describe('chartMidnights', () => {
+	it('gives the first hour of each local day after the first one', () => {
+		// 30 hours from 22:00 UTC; at UTC+3 local midnight is hour 23
+		expect(chartMidnights(hours(30, T0 - 2 * HOUR), 3 * 3600)).toEqual([23]);
+	});
+	it('does not count the first hour, even at midnight', () => {
+		expect(chartMidnights(hours(50), 0)).toEqual([24, 48]);
+	});
+	it('is empty within one day or with no hour', () => {
+		expect(chartMidnights(hours(10), 0)).toEqual([]);
+		expect(chartMidnights([], 0)).toEqual([]);
+	});
+});
+
+describe('chartNightRuns', () => {
+	it('gives each run of night hours, in order', () => {
+		expect(chartNightRuns([true, true, false, false, true, false, true, true])).toEqual([
+			{ start: 0, end: 2 }, { start: 4, end: 5 }, { start: 6, end: 8 },
+		]);
+	});
+	it('is empty with no night hour', () => {
+		expect(chartNightRuns([false, false])).toEqual([]);
+		expect(chartNightRuns([])).toEqual([]);
 	});
 });
 

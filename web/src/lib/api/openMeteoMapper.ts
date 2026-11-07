@@ -66,6 +66,7 @@ export function mapToWeatherData(response: OpenMeteoResponse, locationName: stri
 						uvIndex: h.uv_index?.[actualIndex] ?? null,
 						humidity: h.relative_humidity_2m?.[actualIndex] ?? null,
 						dewPoint: h.dew_point_2m?.[actualIndex] != null ? Temperature.fromCelsius(h.dew_point_2m[actualIndex]!) : null,
+						windGust: h.wind_gusts_10m?.[actualIndex] != null ? WindSpeed.fromMetersPerSecond(h.wind_gusts_10m[actualIndex]!) : null,
 					};
 				});
 

@@ -91,6 +91,7 @@ private fun hourlyForecast(data: List<PirateWeatherHourly>): List<HourlyForecast
             uvIndex = h.uvIndex,
             humidity = h.humidity?.let(::percent),
             dewPoint = h.dewPoint?.let { Temperature.fromCelsius(it) },
+            windGust = h.windGust?.let { WindSpeed.fromMetersPerSecond(it) },
         )
     }
 }

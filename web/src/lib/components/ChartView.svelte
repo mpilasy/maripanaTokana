@@ -10,10 +10,10 @@
 	import { uvColorFor, uvTier } from '#lib/domain/uv.js';
 	import { monotonePath } from '#lib/utils/monotonePath.js';
 	import { runsOf } from '#lib/utils/dualLabel.js';
-	import { CHILL_COLOR, FREEZING_LINE } from '#lib/utils/feltColors.js';
+	import { ChartStyle } from '#lib/utils/chartStyle.js';
 	import { formatDayName, formatHourAtLocation } from '#lib/utils/date.js';
 	import {
-		CHART_SLOT_DEFAULT, chartDaySpans, chartDomain, chartHours, chartIndexForX, chartVisibleRange, chartZoom,
+		CHART_SLOT_DEFAULT, chartDaySpans, chartDomain, chartHours, chartIndexForX, chartNightRuns, chartVisibleRange, chartZoom,
 		type ChartDomain, type ChartZoom,
 	} from '#lib/utils/chartView.js';
 
@@ -33,12 +33,6 @@
 	}
 
 	let { hours, utcOffsetSeconds, placeName, metricPrimary, localeTag, loc, onToggleUnits, onBack }: Props = $props();
-
-	// Colours, the same as on Android
-	const PRIMARY = '#9B8FFF';
-	const SKY_BLUE = '#64B5F6';
-	const CHANCE_COLOR = 'rgba(255, 255, 255, 0.6)';
-	const GUST_COLOR = 'rgba(155, 143, 255, 0.6)';
 
 	// Sizes in px, the same as on Android: the axis column, the gap between panels, the title line,
 	// the room above the wind line for the direction arrows, and the weather icons
@@ -155,17 +149,8 @@
 	});
 	let shownDays = $derived(days.filter((d) => d.right >= scrollLeft && d.left <= scrollLeft + viewport));
 
-	// Night hours as runs [from, to) inside the drawn hours
-	let nights = $derived.by(() => {
-		const runs: [number, number][] = [];
-		for (const i of drawIndexes) {
-			if (!shown[i].isNight) continue;
-			const last = runs[runs.length - 1];
-			if (last && last[1] === i) last[1] = i + 1;
-			else runs.push([i, i + 1]);
-		}
-		return runs;
-	});
+	// The runs of night hours that reach the drawn hours
+	let nights = $derived(chartNightRuns(shown.map((h) => h.isNight)).filter((r) => r.end > drawn.start && r.start < drawn.end));
 
 	const shortMonths = new Map<string, Intl.DateTimeFormat>();
 	/** "EEE d MMM" at the place, for example "Sat 7 Nov". */
@@ -235,9 +220,9 @@
 	// Panel titles: the name and both units (primary first), and the name of the second line in its colour
 	const units = (metric: string, imperial: string) => (metricPrimary ? `${metric} · ${imperial}` : `${imperial} · ${metric}`);
 	let titles = $derived<{ id: PanelId; title: string; second?: { text: string; color: string } }[]>([
-		{ id: 'temp', title: `${$_('detail_temperature')}  ${units('°C', '°F')}`, second: { text: $_('detail_dewpoint'), color: CHILL_COLOR } },
-		{ id: 'precip', title: `${$_('detail_precipitation')}  ${units('mm', 'in')}`, second: { text: $_('precip_chance', { values: { value: '%' } }), color: CHANCE_COLOR } },
-		{ id: 'wind', title: `${$_('detail_wind')}  ${units('m/s', 'mph')}`, second: { text: $_('detail_wind_gust'), color: GUST_COLOR } },
+		{ id: 'temp', title: `${$_('detail_temperature')}  ${units('°C', '°F')}`, second: { text: $_('detail_dewpoint'), color: ChartStyle.dewPoint } },
+		{ id: 'precip', title: `${$_('detail_precipitation')}  ${units('mm', 'in')}`, second: { text: $_('precip_chance', { values: { value: '%' } }), color: ChartStyle.chance } },
+		{ id: 'wind', title: `${$_('detail_wind')}  ${units('m/s', 'mph')}`, second: { text: $_('detail_wind_gust'), color: ChartStyle.gust } },
 		{ id: 'pressure', title: `${$_('detail_pressure')}  ${units('hPa', 'inHg')}` },
 		{ id: 'humidity', title: `${$_('detail_humidity')}  %` },
 	]);
@@ -489,12 +474,12 @@
 							<rect x={d.left} y="0" width={d.right - d.left} height={totalHeight} fill="white" fill-opacity="0.03" />
 						{/if}
 						{#if d.k > 0}
-							<line x1={d.left} x2={d.left} y1="0" y2={totalHeight} stroke="white" stroke-opacity="0.25" stroke-width="1" />
+							<line x1={d.left} x2={d.left} y1="0" y2={totalHeight} stroke={ChartStyle.midnight} stroke-width={ChartStyle.midnightWidth} />
 						{/if}
 					{/each}
 					<!-- Night hours, faintly darker -->
-					{#each nights as [from, to] (from)}
-						<rect x={from * slot} y="0" width={(to - from) * slot} height={chartsBottom} fill="black" fill-opacity="0.18" />
+					{#each nights as run (run.start)}
+						<rect x={run.start * slot} y="0" width={(run.end - run.start) * slot} height={chartsBottom} fill={ChartStyle.night} />
 					{/each}
 					{#each grid as gy, k (k)}
 						<line x1="0" x2={count * slot} y1={gy} y2={gy} stroke="white" stroke-opacity="0.07" stroke-width="1" />
@@ -516,10 +501,10 @@
 						{@const freezing = metricPrimary ? 0 : 32}
 						<g clip-path="url(#chart-clip-temp)">
 							{#if freezing > tempDomain.min && freezing < tempDomain.max}
-								<line x1="0" x2={count * slot} y1={y(freezing, tempDomain, panels.temp)} y2={y(freezing, tempDomain, panels.temp)} stroke={FREEZING_LINE} stroke-width="1" stroke-dasharray="4 3" />
+								<line x1="0" x2={count * slot} y1={y(freezing, tempDomain, panels.temp)} y2={y(freezing, tempDomain, panels.temp)} stroke={ChartStyle.freezing} stroke-width={ChartStyle.freezingWidth} stroke-dasharray={ChartStyle.freezingDash} />
 							{/if}
-							<path d={curve(dews, tempDomain, panels.temp)} fill="none" stroke={CHILL_COLOR} stroke-width="1.5" />
-							<path d={curve(temps, tempDomain, panels.temp)} fill="none" stroke="white" stroke-width="2" />
+							<path d={curve(dews, tempDomain, panels.temp)} fill="none" stroke={ChartStyle.dewPoint} stroke-width={ChartStyle.thinLineWidth} />
+							<path d={curve(temps, tempDomain, panels.temp)} fill="none" stroke={ChartStyle.temperature} stroke-width={ChartStyle.lineWidth} />
 						</g>
 					{/if}
 
@@ -530,18 +515,18 @@
 								{#if precips[i] != null && precips[i]! > 0}
 									{@const top = y(precips[i]!, precipDomain, panels.precip)}
 									{@const barWidth = Math.max(2, slot * 0.6)}
-									<rect x={cx(i) - barWidth / 2} y={top} width={barWidth} height={panels.precip.plotBottom - top} rx="1.5" fill={SKY_BLUE} />
+									<rect x={cx(i) - barWidth / 2} y={top} width={barWidth} height={panels.precip.plotBottom - top} rx="1.5" fill={ChartStyle.precipitation} />
 								{/if}
 							{/each}
 						{/if}
-						<path d={curve(chances, PERCENT_DOMAIN, panels.precip)} fill="none" stroke={CHANCE_COLOR} stroke-width="1.2" />
+						<path d={curve(chances, PERCENT_DOMAIN, panels.precip)} fill="none" stroke={ChartStyle.chance} stroke-width={ChartStyle.chanceWidth} />
 					</g>
 
 					<!-- Wind and gusts on one scale, with the direction every 3 hours -->
 					<g clip-path="url(#chart-clip-wind)">
 						{#if windDomain}
-							<path d={curve(gusts, windDomain, panels.wind)} fill="none" stroke={GUST_COLOR} stroke-width="1.5" stroke-dasharray="5 3" />
-							<path d={curve(winds, windDomain, panels.wind)} fill="none" stroke={PRIMARY} stroke-width="2" />
+							<path d={curve(gusts, windDomain, panels.wind)} fill="none" stroke={ChartStyle.gust} stroke-width={ChartStyle.thinLineWidth} stroke-dasharray={ChartStyle.gustDash} />
+							<path d={curve(winds, windDomain, panels.wind)} fill="none" stroke={ChartStyle.wind} stroke-width={ChartStyle.lineWidth} />
 						{/if}
 					</g>
 					{#each everyThird as i (i)}
@@ -554,10 +539,10 @@
 					{/each}
 
 					{#if pressureDomain}
-						<path clip-path="url(#chart-clip-pressure)" d={curve(pressures, pressureDomain, panels.pressure)} fill="none" stroke={PRIMARY} stroke-width="2" />
+						<path clip-path="url(#chart-clip-pressure)" d={curve(pressures, pressureDomain, panels.pressure)} fill="none" stroke={ChartStyle.pressure} stroke-width={ChartStyle.lineWidth} />
 					{/if}
 
-					<path clip-path="url(#chart-clip-humidity)" d={curve(humidities, PERCENT_DOMAIN, panels.humidity)} fill="none" stroke={SKY_BLUE} stroke-width="2" />
+					<path clip-path="url(#chart-clip-humidity)" d={curve(humidities, PERCENT_DOMAIN, panels.humidity)} fill="none" stroke={ChartStyle.humidity} stroke-width={ChartStyle.lineWidth} />
 
 					<!-- Time axis: an hour label every 3 or 6 hours, and the day at each midnight (the day at the start stays in view) -->
 					{#each drawIndexes as i (i)}
@@ -577,9 +562,9 @@
 
 					<!-- The selected hour across all panels, with a dot on each line -->
 					{#if count > 0 && selected >= drawn.start && selected < drawn.end}
-						<line x1={cx(selected)} x2={cx(selected)} y1="0" y2={chartsBottom} stroke="white" stroke-opacity="0.7" stroke-width="1" />
+						<line x1={cx(selected)} x2={cx(selected)} y1="0" y2={chartsBottom} stroke={ChartStyle.selection} stroke-width={ChartStyle.selectionWidth} />
 						{#each selectedDots as dot, k (k)}
-							<circle cx={cx(selected)} cy={dot.y} r="3.5" fill="white" />
+							<circle cx={cx(selected)} cy={dot.y} r={ChartStyle.selectionDotRadius} fill={ChartStyle.selectionDot} />
 						{/each}
 					{/if}
 				</svg>

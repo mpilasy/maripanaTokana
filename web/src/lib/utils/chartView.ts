@@ -1,7 +1,8 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-// Pure functions of the chart view. Android has the same functions with the same rules in ChartViewMath.kt.
+// Pure functions of the chart view and the charts on the main page. Android has the same functions with the same
+// rules in ChartViewMath.kt.
 
 import { isDaytime } from '#lib/domain/weatherData.js';
 
@@ -52,6 +53,23 @@ export function chartDaySpans(times: number[], utcOffsetSec: number): ChartDaySp
 		else spans.push({ startIndex: i, endIndex: i + 1, date });
 	});
 	return spans;
+}
+
+/** The first hour of each local day after the first one: where a chart draws a midnight line. */
+export function chartMidnights(times: number[], utcOffsetSec: number): number[] {
+	return chartDaySpans(times, utcOffsetSec).slice(1).map((s) => s.startIndex);
+}
+
+/** The runs of night hours in `night` (true at night), in order. */
+export function chartNightRuns(night: boolean[]): IndexRange[] {
+	const runs: IndexRange[] = [];
+	night.forEach((isNight, i) => {
+		if (!isNight) return;
+		const last = runs[runs.length - 1];
+		if (last && last.end === i) last.end = i + 1;
+		else runs.push({ start: i, end: i + 1 });
+	});
+	return runs;
 }
 
 /**

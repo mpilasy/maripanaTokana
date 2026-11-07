@@ -34,5 +34,7 @@ class PirateWeatherMapperTest {
         assertEquals(8.0, data.chartHourly[1].windGust!!.metersPerSecond, 0.0)
         assertEquals(3.0, data.chartHourly[1].dewPoint!!.celsius, 0.0)
         assertEquals(24, data.hourlyForecast.size)
+        // The 24 hours take the gust from the same hours
+        assertEquals(8.0, data.hourlyForecast[1].windGust!!.metersPerSecond, 0.0)
     }
 }

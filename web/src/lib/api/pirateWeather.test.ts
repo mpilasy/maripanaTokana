@@ -54,6 +54,8 @@ describe('pirate weather chart hours', () => {
 
 		expect(String((fetchMock.mock.calls[0] as unknown[])[0])).toContain('extend=hourly');
 		expect(d.hourlyForecast).toHaveLength(24);
+		// The 24 hours take the gust from the same hours
+		expect(d.hourlyForecast[0].windGust?.metersPerSecond).toBe(7);
 		const hours = d.chartHourly!;
 		expect(hours).toHaveLength(168);
 		expect(hours[0].time).toBe(Date.UTC(2026, 10, 7, 10));

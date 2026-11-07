@@ -1,13 +1,20 @@
 <!-- SPDX-FileCopyrightText: Orinasa Njarasoa -->
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
-	import { splitDual } from '#lib/utils/dualLabel.js';
+	import { runsOf, splitDual } from '#lib/utils/dualLabel.js';
+	import { monotonePath } from '#lib/utils/monotonePath.js';
 	import { SUPPORTED_LOCALES, localizeDigits } from '#lib/i18n/index.js';
 	import { localeIndex } from '#lib/stores/preferences.js';
 	import { _ } from 'svelte-i18n';
 	import type { HourlyForecast } from '#lib/domain/weatherData.js';
-	import { FREEZING_LINE } from '#lib/utils/feltColors.js';
+	import { ChartStyle } from '#lib/utils/chartStyle.js';
+	import { chartDomain, chartMidnights, chartNightRuns } from '#lib/utils/chartView.js';
+	import { chartKeyLeft, chartKeySize, type ChartBox } from './OverviewChart.svelte';
 
+	/**
+	 * The 24 hours' temperature under the hourly cards, with the dew point as a thin line on the same scale,
+	 * the night hours darker, and a line at each local midnight.
+	 */
 	interface Props {
 		forecasts: HourlyForecast[];
 		metricPrimary: boolean;
@@ -18,11 +25,18 @@
 		containerWidth?: number;
 		/** The band that marks the part of the row in view; off in a share image. */
 		showBand?: boolean;
+		/** The place's UTC offset, for the midnight and noon lines. */
+		utcOffsetSeconds?: number;
+		/** The night flag of each hour, for a dark band. */
+		night?: boolean[];
+		/** The hour under the finger: a line, and a dot on each line. */
+		selected?: number | null;
 	}
 
-	let { forecasts, metricPrimary, itemWidth, itemSpacing, height = 40, scrollLeft = 0, containerWidth = 0, showBand = true }: Props = $props();
+	let { forecasts, metricPrimary, itemWidth, itemSpacing, height = 40, scrollLeft = 0, containerWidth = 0, showBand = true, utcOffsetSeconds = 0, night = [], selected = null }: Props = $props();
 
 	let temps = $derived(forecasts.map(f => metricPrimary ? f.temperature.celsius : f.temperature.fahrenheit));
+	let dews = $derived(forecasts.map(f => (f.dewPoint && Number.isFinite(f.dewPoint.celsius) ? (metricPrimary ? f.dewPoint.celsius : f.dewPoint.fahrenheit) : null)));
 	const loc = (s: string) => localizeDigits(s, SUPPORTED_LOCALES[$localeIndex]);
 	let ariaLabel = $derived.by(() => {
 		const valid = forecasts.map(f => f.temperature).filter(t => Number.isFinite(t.celsius));
@@ -32,13 +46,9 @@
 		const show = (t: typeof hi) => metricPrimary ? t.displayCelsius() : t.displayFahrenheit();
 		return $_('chart_temperature_summary', { values: { high: loc(show(hi)), low: loc(show(lo)) } });
 	});
-	let minTemp = $derived(Math.min(...temps));
-	let maxTemp = $derived(Math.max(...temps));
-	let tempRange = $derived(maxTemp - minTemp === 0 ? 1 : maxTemp - minTemp);
-
-	let paddedMin = $derived(minTemp - (tempRange * 0.15));
-	let paddedMax = $derived(maxTemp + (tempRange * 0.15));
-	let paddedRange = $derived(paddedMax - paddedMin);
+	// One scale for both lines, with round ends as in the chart view. When the dew point is far below the
+	// temperature, the scale grows to keep it, and the temperature line uses less of the height.
+	let domain = $derived(chartDomain([...temps, ...dews], false, metricPrimary ? 5 : 9) ?? { min: 0, max: 1, ticks: [] });
 	let freezing = $derived(metricPrimary ? 0 : 32);
 
 	let totalWidth = $derived(forecasts.length * itemWidth + (forecasts.length - 1) * itemSpacing);
@@ -53,20 +63,26 @@
 	const LABEL_ROOM = 13;
 
 	function getY(temp: number) {
-		return LABEL_ROOM + (height - 2 * LABEL_ROOM) * (1 - (temp - paddedMin) / paddedRange);
+		return LABEL_ROOM + (height - 2 * LABEL_ROOM) * (1 - (temp - domain.min) / (domain.max - domain.min));
 	}
 
 	let points = $derived(temps.map((temp, i) => ({ x: getX(i), y: getY(temp) })));
+	// The dew point; a missing value leaves a gap
+	let dewPoints = $derived(dews.flatMap((v, i) => (v != null ? [{ x: getX(i), y: getY(v), i }] : [])));
+	let dewPath = $derived(runsOf(dewPoints).filter((r) => r.length > 1).map((r) => monotonePath(r)).join(' '));
 
-	let { midnightIndices, noonIndices } = $derived.by(() => {
-		const midnight: number[] = [];
-		const noon: number[] = [];
-		for (let i = 0; i < forecasts.length; i++) {
-			const h = new Date(forecasts[i].time).getHours();
-			if (h === 0) midnight.push(i);
-			else if (h === 12) noon.push(i);
-		}
-		return { midnightIndices: midnight, noonIndices: noon };
+	let times = $derived(forecasts.map((f) => f.time));
+	let midnightIndices = $derived(chartMidnights(times, utcOffsetSeconds));
+	// Noon at the place, as the midnights
+	let noonIndices = $derived(times.flatMap((t, i) => (new Date(t + utcOffsetSeconds * 1000).getUTCHours() === 12 ? [i] : [])));
+
+	// Night hours, over the whole place of each hour in the row
+	let nightRects = $derived.by(() => {
+		const half = ((itemWidth + itemSpacing) * xScale) / 2;
+		return chartNightRuns(night).map((r) => {
+			const left = Math.max(0, getX(r.start) - half);
+			return { left, width: Math.min(svgWidth, getX(r.end - 1) + half) - left };
+		});
 	});
 
 	function generateMonotonePath(pts: { x: number; y: number }[]): string {
@@ -171,6 +187,24 @@
 		return a === 'start' ? Math.max(0, x - 4) : a === 'end' ? Math.min(svgWidth, x + 4) : x;
 	}
 
+	// The dew point key in the row of the time labels, where nothing is in the way
+	let dewKey = $derived.by(() => {
+		if (dewPoints.length === 0) return null;
+		const text = `● ${$_('detail_dewpoint')}`;
+		const boxes: ChartBox[] = [...midnightIndices, ...noonIndices].map((i) => ({ left: getX(i) - 12, top: 1, right: getX(i) + 12, bottom: 11 }));
+		if (maxPointInfo) {
+			// The width is an estimate (about 5.5 px a letter at 9 px bold), as for the labels of the overview charts
+			const width = maxPointInfo.label.length * 5.5;
+			const a = anchor(maxPointInfo.x);
+			const x = labelX(maxPointInfo.x);
+			const left = a === 'start' ? x : a === 'end' ? x - width : x - width / 2;
+			boxes.push({ left, top: maxPointInfo.y - 9, right: left + width, bottom: maxPointInfo.y + 2 });
+		}
+		const size = chartKeySize(text);
+		const left = chartKeyLeft(size.width, size.height, svgWidth, boxes);
+		return left == null ? null : { text, left };
+	});
+
 	let showViewport = $derived(showBand && containerWidth > 0 && totalWidth > containerWidth);
 	let vpLeft = $derived(showViewport ? Math.max(0, scrollLeft / totalWidth * svgWidth) : 0);
 	let vpRight = $derived(showViewport ? Math.min(svgWidth, (scrollLeft + containerWidth) / totalWidth * svgWidth) : svgWidth);
@@ -184,10 +218,13 @@
 		</linearGradient>
 	</defs>
 
-	<!-- Midnight Vertical Lines + Labels -->
+	<!-- The night hours darker, and a line at each local midnight, with its label -->
+	{#each nightRects as r (r.left)}
+		<rect x={r.left} y="0" width={r.width} {height} fill={ChartStyle.night} />
+	{/each}
 	{#each midnightIndices as idx}
 		{@const x = getX(idx)}
-		<line x1={x} y1="0" x2={x} y2={height} stroke="white" stroke-width="1" stroke-opacity="0.15" />
+		<line x1={x} y1="0" x2={x} y2={height} stroke={ChartStyle.midnight} stroke-width={ChartStyle.midnightWidth} />
 		<text x={x} y="9" text-anchor="middle" font-size="8" fill="white" fill-opacity="0.7">00:00</text>
 	{/each}
 
@@ -199,19 +236,20 @@
 	{/each}
 
 	<!-- A faint line at freezing (0 °C, 32 °F) when it is inside the chart -->
-	{#if freezing >= paddedMin && freezing <= paddedMax}
-		<line x1="0" x2={svgWidth} y1={getY(freezing)} y2={getY(freezing)} stroke={FREEZING_LINE} stroke-width="1" stroke-dasharray="4 3" />
+	{#if freezing > domain.min && freezing < domain.max}
+		<line x1="0" x2={svgWidth} y1={getY(freezing)} y2={getY(freezing)} stroke={ChartStyle.freezing} stroke-width={ChartStyle.freezingWidth} stroke-dasharray={ChartStyle.freezingDash} />
 	{/if}
 	{#if fillPathStr}
 		<path d={fillPathStr} fill="url(#fillGradient)" />
 	{/if}
-	{#if linePathStr}
-		<path d={linePathStr} fill="none" stroke="white" stroke-width="2" stroke-opacity="1.0" />
+	<!-- The dew point under the temperature line -->
+	{#if dewPath}
+		<path d={dewPath} fill="none" stroke={ChartStyle.dewPoint} stroke-width={ChartStyle.thinLineWidth} />
 	{/if}
-
-	{#each points as point}
-		<circle cx={point.x} cy={point.y} r="3" fill="white" />
-	{/each}
+	<!-- The temperature line, with no dot at each hour, as in the chart view -->
+	{#if linePathStr}
+		<path d={linePathStr} fill="none" stroke={ChartStyle.temperature} stroke-width={ChartStyle.lineWidth} />
+	{/if}
 
 	{#if maxPointInfo}
 		<text x={labelX(maxPointInfo.x)} y={maxPointInfo.y} text-anchor={anchor(maxPointInfo.x)} direction="ltr" font-size="9" font-weight="bold" fill="#FF8A65">{splitDual(maxPointInfo.label)[0]}{#if splitDual(maxPointInfo.label)[1]}<tspan font-size="0.8em" font-weight="500" fill-opacity="0.7">{" " + splitDual(maxPointInfo.label)[1]}</tspan>{/if}</text>
@@ -220,9 +258,24 @@
 		<text x={labelX(minPointInfo.x)} y={minPointInfo.y} text-anchor={anchor(minPointInfo.x)} direction="ltr" font-size="9" font-weight="bold" fill="#64B5F6">{splitDual(minPointInfo.label)[0]}{#if splitDual(minPointInfo.label)[1]}<tspan font-size="0.8em" font-weight="500" fill-opacity="0.7">{" " + splitDual(minPointInfo.label)[1]}</tspan>{/if}</text>
 	{/if}
 
+	{#if dewKey}
+		<text x={dewKey.left} y="8" direction="ltr" font-size="8" fill={ChartStyle.dewPoint}>{dewKey.text}</text>
+	{/if}
+
 		{#if showViewport}
 		<!-- The part of the row scrolled into view, as a light band -->
 		<rect x={vpLeft} y="0" width={vpRight - vpLeft} {height} rx="6" fill="white" fill-opacity="0.06" />
+	{/if}
+
+	<!-- The selected hour: a line from top to bottom, and a dot on each line -->
+	{#if selected != null && points[selected]}
+		{@const x = getX(selected)}
+		<line x1={x} x2={x} y1="0" y2={height} stroke={ChartStyle.selection} stroke-width={ChartStyle.selectionWidth} />
+		{#each [dews[selected] != null ? getY(dews[selected]!) : null, Number.isFinite(points[selected].y) ? points[selected].y : null] as y, k (k)}
+			{#if y != null}
+				<circle cx={x} cy={y} r={ChartStyle.selectionDotRadius} fill={ChartStyle.selectionDot} />
+			{/if}
+		{/each}
 	{/if}
 </svg>
 

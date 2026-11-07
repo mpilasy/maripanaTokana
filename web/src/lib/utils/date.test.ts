@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { formatDate, formatShortDate, formatDayName, formatDayMonth } from './date';
 
 describe('date formatting', () => {
@@ -133,6 +133,19 @@ describe('date formatting', () => {
 		it('Nepali formatDayMonth should handle Devanagari script properly', () => {
 			const result = formatDayMonth(testTimestamp, 'ne', utcOffsetSeconds, neMonths);
 			expect(result).toBeTruthy();
+		});
+	});
+
+	describe('Malagasy without Intl support', () => {
+		afterEach(() => vi.restoreAllMocks());
+
+		it('gives Sunday and Monday different short names, as on Android', () => {
+			vi.spyOn(Intl.DateTimeFormat, 'supportedLocalesOf').mockReturnValue([]);
+			const sunday = new Date('2026-11-08T12:00:00Z').getTime();
+			const monday = new Date('2026-11-09T12:00:00Z').getTime();
+			expect(formatDayName(sunday, 'mg', 0, true, mgWeekdays)).toBe('Alah');
+			expect(formatDayName(monday, 'mg', 0, true, mgWeekdays)).toBe('Alats');
+			expect(formatShortDate(monday, 'mg', mgWeekdays, mgMonths)).toMatch(/^Alats \d+ Nov$/);
 		});
 	});
 });

@@ -18,4 +18,6 @@ data class HourlyForecast(
     val uvIndex: Double? = null,
     val humidity: Int? = null, // percentage
     val dewPoint: Temperature? = null,
+    // Null when the source does not give it, and in data saved before it was kept
+    val windGust: WindSpeed? = null,
 )

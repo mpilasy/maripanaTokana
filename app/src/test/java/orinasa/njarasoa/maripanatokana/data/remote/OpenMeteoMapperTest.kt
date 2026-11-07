@@ -151,6 +151,7 @@ class OpenMeteoMapperTest {
         val currentHour = System.currentTimeMillis() / 3_600_000L * 3_600_000L
         assertEquals(currentHour, data.chartHourly.first().time)
         assertEquals(7.5, data.chartHourly.first().windGust!!.metersPerSecond, 0.0)
+        assertEquals(7.5, data.hourlyForecast.first().windGust!!.metersPerSecond, 0.0)
         assertEquals(4.0, data.chartHourly.first().dewPoint!!.celsius, 0.0)
         assertNotNull(data.chartHourly.first().temperature)
         // A value the response does not give is null

@@ -5,9 +5,10 @@
 	import { prefersReducedMotion } from '#lib/utils/motion.js';
 
 	/**
-	 * Lets the user slide a finger along the chart in `children`: a line and a label (the hour
-	 * or the day of `label`) follow the finger, and the row of cards (`scrollEl`) scrolls to the
-	 * item under it. Only a horizontal slide starts it, so the page still scrolls up and down.
+	 * Lets the user slide a finger along the chart in `children`: a label (the hour or the day of
+	 * `label`) follows the finger, and the row of cards (`scrollEl`) scrolls to the item under it.
+	 * `children` gets the item under the finger (null when there is none) and draws the line and
+	 * the dots of it. Only a horizontal slide starts it, so the page still scrolls up and down.
 	 */
 	interface Props {
 		count: number;
@@ -15,7 +16,7 @@
 		itemSpacing: number;
 		scrollEl: HTMLElement | null;
 		label: (i: number) => string;
-		children: Snippet;
+		children: Snippet<[number | null]>;
 	}
 
 	let { count, itemWidth, itemSpacing, scrollEl, label, children }: Props = $props();
@@ -77,9 +78,8 @@
 	ontouchmove={(e) => { if (index != null) e.stopPropagation(); }}
 	role="presentation"
 >
-	{@render children()}
+	{@render children(index)}
 	{#if index != null}
-		<div class="line" style:left="{lineX}px"></div>
 		<div class="pill" style:left="{pillLeft}px" bind:offsetWidth={pillWidth}>{label(index)}</div>
 	{/if}
 </div>
@@ -91,15 +91,6 @@
 		touch-action: pan-y;
 		user-select: none;
 		-webkit-user-select: none;
-	}
-
-	.line {
-		position: absolute;
-		top: 0;
-		bottom: 0;
-		width: 1px;
-		background: rgba(255, 255, 255, 0.6);
-		pointer-events: none;
 	}
 
 	.pill {

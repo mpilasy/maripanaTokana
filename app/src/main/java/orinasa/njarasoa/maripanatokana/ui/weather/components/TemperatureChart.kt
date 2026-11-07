@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -33,9 +34,15 @@ import androidx.compose.ui.unit.sp
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.domain.model.HourlyForecast
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
-import java.util.Calendar
-import orinasa.njarasoa.maripanatokana.ui.theme.FreezingLine
+import orinasa.njarasoa.maripanatokana.ui.weather.chart.ChartStyle
+import orinasa.njarasoa.maripanatokana.ui.weather.chart.chartDash
+import orinasa.njarasoa.maripanatokana.ui.weather.chart.chartDomain
+import orinasa.njarasoa.maripanatokana.ui.weather.chart.chartMidnights
 
+/**
+ * The 24 hours' temperature under the hourly cards, with the dew point as a thin line on the same scale,
+ * the night hours darker, and a line at each local midnight.
+ */
 @Composable
 fun TemperatureChart(
     forecasts: List<HourlyForecast>,
@@ -43,10 +50,16 @@ fun TemperatureChart(
     itemWidth: Dp,
     spacing: Dp,
     modifier: Modifier = Modifier,
-    lineColor: Color = Color.White,
+    lineColor: Color = ChartStyle.temperature,
     scrollOffset: Float = 0f,
     totalScrollWidth: Float = 0f,
     localizeDigits: (String) -> String = { it },
+    // The place's UTC offset, for the midnight and noon lines
+    utcOffsetSeconds: Int = 0,
+    // The night flag of each hour, for a dark band
+    night: List<Boolean> = emptyList(),
+    // The hour under the finger: a line, and a dot on each line
+    selected: Int? = null,
 ) {
     if (forecasts.isEmpty()) return
 
@@ -56,36 +69,23 @@ fun TemperatureChart(
     val temps = remember(forecasts, metricPrimary) {
         forecasts.map { if (metricPrimary) it.temperature.celsius else it.temperature.fahrenheit }
     }
-
-    val minTemp = remember(temps) { temps.minOrNull() ?: 0.0 }
-    val maxTemp = remember(temps) { temps.maxOrNull() ?: 0.0 }
-    val tempRange = remember(minTemp, maxTemp) { 
-        val range = maxTemp - minTemp
-        if (range == 0.0) 1.0 else range
+    val dews = remember(forecasts, metricPrimary) {
+        forecasts.map { f -> f.dewPoint?.takeIf { it.celsius.isFinite() }?.let { if (metricPrimary) it.celsius else it.fahrenheit } }
     }
 
-    // Add padding to range
-    val paddedMin = minTemp - (tempRange * 0.15)
-    val paddedMax = maxTemp + (tempRange * 0.15)
-    val paddedRange = paddedMax - paddedMin
+    // One scale for both lines, with round ends as in the chart view. When the dew point is far below the
+    // temperature, the scale grows to keep it, and the temperature line uses less of the height.
+    val domain = remember(temps, dews, metricPrimary) { chartDomain(temps + dews, fromZero = false, minSpan = if (metricPrimary) 5.0 else 9.0) }
 
-    val midnightIndices = remember(forecasts) {
-        val calendar = Calendar.getInstance()
-        forecasts.mapIndexed { index, forecast ->
-            calendar.timeInMillis = forecast.time
-            if (calendar.get(Calendar.HOUR_OF_DAY) == 0) index else -1
-        }.filter { it != -1 }
-    }
-
-    val noonIndices = remember(forecasts) {
-        val calendar = Calendar.getInstance()
-        forecasts.mapIndexed { index, forecast ->
-            calendar.timeInMillis = forecast.time
-            if (calendar.get(Calendar.HOUR_OF_DAY) == 12) index else -1
-        }.filter { it != -1 }
+    val times = remember(forecasts) { forecasts.map { it.time } }
+    val midnightIndices = remember(times, utcOffsetSeconds) { chartMidnights(times, utcOffsetSeconds) }
+    // Noon at the place, as the midnights
+    val noonIndices = remember(times, utcOffsetSeconds) {
+        times.indices.filter { Math.floorMod((times[it] + utcOffsetSeconds * 1000L) / 3_600_000L, 24L) == 12L }
     }
 
     val gridColor = MaterialTheme.colorScheme.onSurface
+    val dewKey = stringResource(R.string.detail_dewpoint)
 
     val highTemp = forecasts.map { it.temperature }.filter { it.celsius.isFinite() }.maxByOrNull { it.celsius }
     val lowTemp = forecasts.map { it.temperature }.filter { it.celsius.isFinite() }.minByOrNull { it.celsius }
@@ -103,31 +103,29 @@ fun TemperatureChart(
             val height = size.height
             val width = size.width
             val pointsCount = temps.size
-            if (pointsCount < 2) return@Canvas
+            if (pointsCount < 2 || domain == null) return@Canvas
 
             val itemWidthPx = itemWidth.toPx()
             val spacingPx = spacing.toPx()
             val xScale = if (totalScrollWidth > 0f) width / totalScrollWidth else 1f
+            fun xFor(i: Int) = (i * (itemWidthPx + spacingPx) + itemWidthPx / 2) * xScale
+            // Room above the line for the high's label and below it for the low's
+            val labelRoom = 13.dp.toPx()
+            fun yFor(v: Double) = labelRoom + (height - 2 * labelRoom) * (1 - ((v - domain.min) / (domain.max - domain.min)).toFloat())
 
             val midnightLabelStyle = TextStyle(color = gridColor.copy(alpha = 0.7f), fontSize = 8.sp)
             val noonLabelStyle = TextStyle(color = gridColor.copy(alpha = 0.45f), fontSize = 8.sp)
 
-            // Draw Midnight vertical lines + label
+            // The night hours and a line at each midnight, with its label
+            drawNightAndMidnights(night, midnightIndices, ::xFor, (itemWidthPx + spacingPx) * xScale)
             midnightIndices.forEach { idx ->
-                val x = (idx * (itemWidthPx + spacingPx) + itemWidthPx / 2) * xScale
-                drawLine(
-                    color = gridColor.copy(alpha = 0.15f),
-                    start = Offset(x, 0f),
-                    end = Offset(x, height),
-                    strokeWidth = 1.dp.toPx()
-                )
                 val layout = textMeasurer.measure("00:00", midnightLabelStyle)
-                drawText(layout, topLeft = Offset(x - layout.size.width / 2f, 2.dp.toPx()))
+                drawText(layout, topLeft = Offset(xFor(idx) - layout.size.width / 2f, 2.dp.toPx()))
             }
 
             // Draw Noon vertical lines + label
             noonIndices.forEach { idx ->
-                val x = (idx * (itemWidthPx + spacingPx) + itemWidthPx / 2) * xScale
+                val x = xFor(idx)
                 drawLine(
                     color = gridColor.copy(alpha = 0.1f),
                     start = Offset(x, 0f),
@@ -139,19 +137,14 @@ fun TemperatureChart(
                 drawText(layout, topLeft = Offset(x - layout.size.width / 2f, 2.dp.toPx()))
             }
 
-            // Room above the line for the high's label and below it for the low's
-            val labelRoom = 13.dp.toPx()
             // A faint line at freezing (0 °C, 32 °F) when it is inside the chart
             val freezing = if (metricPrimary) 0.0 else 32.0
-            if (freezing in paddedMin..paddedMax) {
-                val fy = labelRoom + (height - 2 * labelRoom) * (1 - ((freezing - paddedMin) / paddedRange).toFloat())
-                drawLine(FreezingLine, Offset(0f, fy), Offset(width, fy), 1.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 3.dp.toPx())))
+            if (freezing > domain.min && freezing < domain.max) {
+                val fy = yFor(freezing)
+                drawLine(ChartStyle.freezing, Offset(0f, fy), Offset(width, fy), ChartStyle.freezingWidth.toPx(), pathEffect = chartDash(ChartStyle.freezingDash))
             }
-            val points = temps.mapIndexed { i, temp ->
-                val x = (i * (itemWidthPx + spacingPx) + itemWidthPx / 2) * xScale
-                val y = labelRoom + (height - 2 * labelRoom) * (1 - ((temp - paddedMin) / paddedRange).toFloat())
-                Offset(x, y)
-            }
+            val points = temps.mapIndexed { i, temp -> Offset(xFor(i), yFor(temp)) }
+            val dewPoints = dews.map { dew -> dew?.let { yFor(it) } }
 
             val controlPoints = computeMonotoneCubicControlPoints(points)
 
@@ -186,21 +179,15 @@ fun TemperatureChart(
                 )
             )
 
-            // Draw line - bright solid white
+            // The dew point under the temperature line; a missing value leaves a gap
+            drawThinLine(dewPoints, ::xFor, ChartStyle.dewPoint)
+
+            // The temperature line, with no dot at each hour, as in the chart view
             drawPath(
                 path = path,
                 color = lineColor,
-                style = Stroke(width = 2.dp.toPx())
+                style = Stroke(width = ChartStyle.lineWidth.toPx())
             )
-
-            // Draw dots at each hour
-            points.forEach { point ->
-                drawCircle(
-                    color = lineColor,
-                    radius = 3.dp.toPx(),
-                    center = point
-                )
-            }
 
             // The high's label above its peak
             val minY = points.minOf { it.y }
@@ -216,7 +203,7 @@ fun TemperatureChart(
             val maxTextX = chartLabelLeft(maxPoint.x, maxLayout.size.width.toFloat(), width, 4.dp.toPx())
             // Above the peak, or under the line where it would cover a 00:00 or 12:00 label
             val timeLabelBoxes = (midnightIndices.map { it to "00:00" } + noonIndices.map { it to "12:00" }).map { (idx, text) ->
-                val x = (idx * (itemWidthPx + spacingPx) + itemWidthPx / 2) * xScale
+                val x = xFor(idx)
                 val layout = textMeasurer.measure(text, midnightLabelStyle)
                 Rect(Offset(x - layout.size.width / 2f, 2.dp.toPx()), Size(layout.size.width.toFloat(), layout.size.height.toFloat()))
             }
@@ -240,12 +227,40 @@ fun TemperatureChart(
                 drawText(minLayout, topLeft = Offset(minTextX, minTextY))
             }
 
+            // The dew point key in the row of the time labels, where nothing is in the way
+            if (dewPoints.any { it != null }) {
+                val highBox = Rect(Offset(maxTextX, maxTextY), Size(maxLayout.size.width.toFloat(), maxLayout.size.height.toFloat()))
+                drawChartKey(textMeasurer, displayFont, dewKey, ChartStyle.dewPoint, timeLabelBoxes + highBox)
+            }
+
             // The part of the row scrolled into view, as a light band
             if (showBand && totalScrollWidth > width) {
                 val vpLeft = (scrollOffset / totalScrollWidth * width).coerceIn(0f, width)
                 val vpRight = ((scrollOffset + width) / totalScrollWidth * width).coerceIn(0f, width)
                 drawRoundRect(Color.White.copy(alpha = 0.06f), Offset(vpLeft, 0f), Size(vpRight - vpLeft, height), androidx.compose.ui.geometry.CornerRadius(6.dp.toPx()))
             }
+
+            if (selected != null && selected in points.indices) {
+                drawChartSelection(xFor(selected), listOf(dewPoints[selected], points[selected].y))
+            }
         }
     }
+}
+
+/** A thin line through the heights [ys] (one for each item at [x]); a missing value leaves a gap, and each run is a monotone curve. */
+private fun DrawScope.drawThinLine(ys: List<Float?>, x: (Int) -> Float, color: Color) {
+    var run = mutableListOf<Offset>()
+    fun flush() {
+        if (run.size >= 2) {
+            val cps = computeMonotoneCubicControlPoints(run)
+            val path = Path().apply {
+                moveTo(run[0].x, run[0].y)
+                cps.forEachIndexed { k, cp -> cubicTo(cp.cp1.x, cp.cp1.y, cp.cp2.x, cp.cp2.y, run[k + 1].x, run[k + 1].y) }
+            }
+            drawPath(path, color, style = Stroke(ChartStyle.thinLineWidth.toPx()))
+        }
+        run = mutableListOf()
+    }
+    ys.forEachIndexed { i, y -> if (y == null) flush() else run += Offset(x(i), y) }
+    flush()
 }

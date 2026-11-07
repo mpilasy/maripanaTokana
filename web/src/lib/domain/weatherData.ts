@@ -36,6 +36,8 @@ export interface HourlyForecast {
 	uvIndex?: number | null;
 	humidity?: number | null; // percentage
 	dewPoint?: Temperature | null;
+	/** The strongest gust of the hour; missing when the source does not give it or in data saved before it was kept. */
+	windGust?: WindSpeed | null;
 }
 
 /** One hour of the chart view. A value that the source does not give is null. Android has the same type (ChartHour.kt). */

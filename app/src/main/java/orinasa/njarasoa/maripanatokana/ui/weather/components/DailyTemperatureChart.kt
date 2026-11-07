@@ -33,11 +33,9 @@ import orinasa.njarasoa.maripanatokana.domain.model.DailyForecast
 import orinasa.njarasoa.maripanatokana.domain.model.NormalTemps
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 import java.util.Calendar
-import orinasa.njarasoa.maripanatokana.ui.theme.FreezingLine
-
-// The normal high and low lines: the colours of the high and low lines at 50 % opacity
-private val NormalHighColor = Color(0x80FF7043)
-private val NormalLowColor = Color(0x8064B5F6)
+import orinasa.njarasoa.maripanatokana.ui.weather.chart.ChartStyle
+import orinasa.njarasoa.maripanatokana.ui.weather.chart.chartDash
+import orinasa.njarasoa.maripanatokana.ui.weather.chart.chartDomain
 
 @Composable
 fun DailyTemperatureChart(
@@ -51,6 +49,8 @@ fun DailyTemperatureChart(
     localizeDigits: (String) -> String = { it },
     // The normal high and low of each day, for two faint dotted lines; empty or null where there are none
     normals: List<NormalTemps?> = emptyList(),
+    // The day under the finger: a line, and a dot on the high and the low
+    selected: Int? = null,
 ) {
     if (forecasts.isEmpty()) return
 
@@ -72,19 +72,9 @@ fun DailyTemperatureChart(
     }
     val normalLabel = stringResource(R.string.normal_label)
 
-    // The normals are in the range too, so their lines stay inside the chart
-    val allTemps = maxTemps + minTemps + normalHighs.filterNotNull() + normalLows.filterNotNull()
-    val minTemp = remember(allTemps) { allTemps.minOrNull() ?: 0.0 }
-    val maxTemp = remember(allTemps) { allTemps.maxOrNull() ?: 0.0 }
-    val tempRange = remember(minTemp, maxTemp) {
-        val range = maxTemp - minTemp
-        if (range == 0.0) 1.0 else range
-    }
-
-    // Add padding to range
-    val paddedMin = minTemp - (tempRange * 0.2)
-    val paddedMax = maxTemp + (tempRange * 0.2)
-    val paddedRange = paddedMax - paddedMin
+    // The normals are in the range too, so their lines stay inside the chart. Round ends, as in the chart view
+    val allTemps = maxTemps + minTemps + normalHighs + normalLows
+    val domain = remember(allTemps, metricPrimary) { chartDomain(allTemps, fromZero = false, minSpan = if (metricPrimary) 5.0 else 9.0) }
 
     val mondayIndices = remember(forecasts) {
         val calendar = Calendar.getInstance()
@@ -111,7 +101,9 @@ fun DailyTemperatureChart(
             val height = size.height
             val width = size.width
             val pointsCount = forecasts.size
-            if (pointsCount < 2) return@Canvas
+            if (pointsCount < 2 || domain == null) return@Canvas
+            val paddedMin = domain.min
+            val paddedRange = domain.max - domain.min
 
             val itemWidthPx = itemWidth.toPx()
             val spacingPx = spacing.toPx()
@@ -134,9 +126,9 @@ fun DailyTemperatureChart(
             val labelRoom = 13.dp.toPx()
             // A faint line at freezing (0 °C, 32 °F) when it is inside the chart
             val freezing = if (metricPrimary) 0.0 else 32.0
-            if (freezing in paddedMin..paddedMax) {
+            if (freezing > domain.min && freezing < domain.max) {
                 val fy = labelRoom + (height - 2 * labelRoom) * (1 - ((freezing - paddedMin) / paddedRange).toFloat())
-                drawLine(FreezingLine, Offset(0f, fy), Offset(width, fy), 1.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 3.dp.toPx())))
+                drawLine(ChartStyle.freezing, Offset(0f, fy), Offset(width, fy), ChartStyle.freezingWidth.toPx(), pathEffect = chartDash(ChartStyle.freezingDash))
             }
             // The normals: faint lines with shorter dashes (2 3) than the freezing line (4 3)
             fun normalPoints(values: List<Double?>) = values.take(pointsCount).mapIndexed { i, temp ->
@@ -144,10 +136,10 @@ fun DailyTemperatureChart(
             }
             val normalHighPoints = normalPoints(normalHighs)
             val normalLowPoints = normalPoints(normalLows)
-            val normalDots = PathEffect.dashPathEffect(floatArrayOf(2.dp.toPx(), 3.dp.toPx()))
-            listOf(normalHighPoints to NormalHighColor, normalLowPoints to NormalLowColor).forEach { (points, color) ->
+            val normalDots = chartDash(ChartStyle.normalDash)
+            listOf(normalHighPoints to ChartStyle.normalHigh, normalLowPoints to ChartStyle.normalLow).forEach { (points, color) ->
                 points.zipWithNext().forEach { (a, b) ->
-                    if (a != null && b != null) drawLine(color, a, b, 1.dp.toPx(), pathEffect = normalDots)
+                    if (a != null && b != null) drawLine(color, a, b, ChartStyle.normalWidth.toPx(), pathEffect = normalDots)
                 }
             }
 
@@ -210,23 +202,16 @@ fun DailyTemperatureChart(
             drawPath(
                 path = maxPath,
                 color = Color(0xFFFF7043),
-                style = Stroke(width = 2.dp.toPx())
+                style = Stroke(width = ChartStyle.lineWidth.toPx())
             )
 
             // Draw low line
             drawPath(
                 path = minPath,
                 color = Color(0xFF64B5F6),
-                style = Stroke(width = 2.dp.toPx())
+                style = Stroke(width = ChartStyle.lineWidth.toPx())
             )
-
-            // Draw dots
-            maxPoints.forEach { point ->
-                drawCircle(color = Color(0xFFFF7043), radius = 3.dp.toPx(), center = point)
-            }
-            minPoints.forEach { point ->
-                drawCircle(color = Color(0xFF64B5F6), radius = 3.dp.toPx(), center = point)
-            }
+            // No dot at each day, as in the chart view
 
             // The warmest high above its point, the coldest low below its point
             fun drawLabel(text: String, color: Color, point: Offset, above: Boolean) {
@@ -253,7 +238,7 @@ fun DailyTemperatureChart(
                 val left = if (atEnd) width - labelWidth - pad else pad
                 val y = ((labelRoom - layout.size.height) / 2).coerceAtLeast(0f)
                 val midY = y + layout.size.height / 2f
-                drawLine(NormalHighColor, Offset(left, midY), Offset(left + sample, midY), 1.dp.toPx(), pathEffect = normalDots)
+                drawLine(ChartStyle.normalHigh, Offset(left, midY), Offset(left + sample, midY), ChartStyle.normalWidth.toPx(), pathEffect = normalDots)
                 drawText(layout, topLeft = Offset(left + sample + gap, y))
             }
 
@@ -262,6 +247,10 @@ fun DailyTemperatureChart(
                 val vpLeft = (scrollOffset / totalScrollWidth * width).coerceIn(0f, width)
                 val vpRight = ((scrollOffset + width) / totalScrollWidth * width).coerceIn(0f, width)
                 drawRoundRect(Color.White.copy(alpha = 0.06f), Offset(vpLeft, 0f), Size(vpRight - vpLeft, height), androidx.compose.ui.geometry.CornerRadius(6.dp.toPx()))
+            }
+
+            if (selected != null && selected in maxPoints.indices) {
+                drawChartSelection(xFor(selected), listOf(maxPoints[selected].y, minPoints[selected].y))
             }
         }
     }

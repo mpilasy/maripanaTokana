@@ -6,7 +6,8 @@
 	import { localeIndex } from '#lib/stores/preferences.js';
 	import { _ } from 'svelte-i18n';
 	import type { DailyForecast as DailyForecastType } from '#lib/domain/weatherData.js';
-	import { FREEZING_LINE } from '#lib/utils/feltColors.js';
+	import { ChartStyle } from '#lib/utils/chartStyle.js';
+	import { chartDomain } from '#lib/utils/chartView.js';
 	import type { DayNormal } from '#lib/domain/normals.js';
 
 	interface Props {
@@ -21,9 +22,11 @@
 		showBand?: boolean;
 		/** The normal high and low (°C) of each day, as faint dashed lines; none when missing. */
 		normals?: (DayNormal | null)[];
+		/** The day under the finger: a line, and a dot on the high and the low. */
+		selected?: number | null;
 	}
 
-	let { forecasts, metricPrimary, itemWidth, itemSpacing, height = 48, scrollLeft = 0, containerWidth = 0, showBand = true, normals = [] }: Props = $props();
+	let { forecasts, metricPrimary, itemWidth, itemSpacing, height = 48, scrollLeft = 0, containerWidth = 0, showBand = true, normals = [], selected = null }: Props = $props();
 
 	const loc = (s: string) => localizeDigits(s, SUPPORTED_LOCALES[$localeIndex]);
 	let ariaLabel = $derived.by(() => {
@@ -44,13 +47,8 @@
 
 	// The normals are on the same scale, so that their lines stay inside the chart
 	let allTemps = $derived([...maxTemps, ...minTemps, ...normalDays.flatMap((n) => [n.max, n.min])]);
-	let globalMin = $derived(Math.min(...allTemps));
-	let globalMax = $derived(Math.max(...allTemps));
-	let tempRange = $derived(globalMax - globalMin === 0 ? 1 : globalMax - globalMin);
-
-	let paddedMin = $derived(globalMin - (tempRange * 0.2));
-	let paddedMax = $derived(globalMax + (tempRange * 0.2));
-	let paddedRange = $derived(paddedMax - paddedMin);
+	// Round ends, as in the chart view
+	let domain = $derived(chartDomain(allTemps, false, metricPrimary ? 5 : 9) ?? { min: 0, max: 1, ticks: [] });
 	let freezing = $derived(metricPrimary ? 0 : 32);
 
 	let totalWidth = $derived(forecasts.length * itemWidth + (forecasts.length - 1) * itemSpacing);
@@ -65,7 +63,7 @@
 	const LABEL_ROOM = 13;
 
 	function getY(temp: number) {
-		return LABEL_ROOM + (height - 2 * LABEL_ROOM) * (1 - (temp - paddedMin) / paddedRange);
+		return LABEL_ROOM + (height - 2 * LABEL_ROOM) * (1 - (temp - domain.min) / (domain.max - domain.min));
 	}
 
 	let maxPoints = $derived(maxTemps.map((temp, i) => ({ x: getX(i), y: getY(temp) })));
@@ -175,27 +173,21 @@
 	{/if}
 
 	<!-- A faint line at freezing (0 °C, 32 °F) when it is inside the chart -->
-	{#if freezing >= paddedMin && freezing <= paddedMax}
-		<line x1="0" x2={svgWidth} y1={getY(freezing)} y2={getY(freezing)} stroke={FREEZING_LINE} stroke-width="1" stroke-dasharray="4 3" />
+	{#if freezing > domain.min && freezing < domain.max}
+		<line x1="0" x2={svgWidth} y1={getY(freezing)} y2={getY(freezing)} stroke={ChartStyle.freezing} stroke-width={ChartStyle.freezingWidth} stroke-dasharray={ChartStyle.freezingDash} />
 	{/if}
 	<!-- The normal high and low: faint, with shorter dashes than the freezing line -->
 	{#if normalMaxPath}
-		<path d={normalMaxPath} fill="none" stroke="#FF7043" stroke-opacity="0.5" stroke-width="1" stroke-dasharray="2 3" />
-		<path d={normalMinPath} fill="none" stroke="#64B5F6" stroke-opacity="0.5" stroke-width="1" stroke-dasharray="2 3" />
+		<path d={normalMaxPath} fill="none" stroke={ChartStyle.normalHigh} stroke-width={ChartStyle.normalWidth} stroke-dasharray={ChartStyle.normalDash} />
+		<path d={normalMinPath} fill="none" stroke={ChartStyle.normalLow} stroke-width={ChartStyle.normalWidth} stroke-dasharray={ChartStyle.normalDash} />
 		<!-- A short dashed sample and the word, in the room above the highs, where no data is -->
 		{@const sampleX = normalLabelAtStart ? 2 : svgWidth - 14}
-		<line x1={sampleX} x2={sampleX + 12} y1="5" y2="5" stroke="white" stroke-opacity="0.5" stroke-width="1" stroke-dasharray="2 3" />
+		<line x1={sampleX} x2={sampleX + 12} y1="5" y2="5" stroke="white" stroke-opacity="0.5" stroke-width={ChartStyle.normalWidth} stroke-dasharray={ChartStyle.normalDash} />
 		<text x={normalLabelAtStart ? 18 : svgWidth - 18} y="8" text-anchor={normalLabelAtStart ? 'start' : 'end'} font-size="8" fill="white" fill-opacity="0.6">{$_('normal_label')}</text>
 	{/if}
 	<path d={maxPath} fill="none" stroke="#FF7043" stroke-width="2.5" stroke-linecap="round" />
 	<path d={minPath} fill="none" stroke="#64B5F6" stroke-width="2.5" stroke-linecap="round" />
 
-	{#each maxPoints as point}
-		<circle cx={point.x} cy={point.y} r="3" fill="#FF7043" />
-	{/each}
-	{#each minPoints as point}
-		<circle cx={point.x} cy={point.y} r="3" fill="#64B5F6" />
-	{/each}
 
 	{#if maxPoints[warmest]}
 		{@const p = maxPoints[warmest]}
@@ -209,6 +201,17 @@
 	{#if showViewport}
 		<!-- The part of the row scrolled into view, as a light band -->
 		<rect x={vpLeft} y="0" width={vpRight - vpLeft} {height} rx="6" fill="white" fill-opacity="0.06" />
+	{/if}
+
+	<!-- The selected day: a line from top to bottom, and a dot on the high and the low -->
+	{#if selected != null && maxPoints[selected]}
+		{@const x = getX(selected)}
+		<line x1={x} x2={x} y1="0" y2={height} stroke={ChartStyle.selection} stroke-width={ChartStyle.selectionWidth} />
+		{#each [maxPoints[selected].y, minPoints[selected]?.y] as y, k (k)}
+			{#if y != null && Number.isFinite(y)}
+				<circle cx={x} cy={y} r={ChartStyle.selectionDotRadius} fill={ChartStyle.selectionDot} />
+			{/if}
+		{/each}
 	{/if}
 </svg>
 

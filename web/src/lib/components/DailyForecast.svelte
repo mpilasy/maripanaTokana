@@ -27,6 +27,7 @@
 	import type { HourlyAirQuality } from '#lib/domain/weatherData.js';
 	import { dailyAirQuality } from '#lib/domain/dailyAirQuality.js';
 	import ForecastTabs from './ForecastTabs.svelte';
+	import { ChartStyle } from '#lib/utils/chartStyle.js';
 
 	interface Props {
 		forecasts: DailyForecastType[];
@@ -103,17 +104,22 @@
 		const indexOfMin = (vs: (number | null)[]) => vs.reduce<number>((best, v, i) => (v != null && (best < 0 || v < vs[best]!) ? i : best), -1);
 		const dual = (pair: [string, string] | undefined) => (pair ? loc(pair.join(' · ')) : undefined);
 		if (displayMode === 'Wind') {
+			// No gust line: the daily data has no gusts
 			const values = forecasts.map((f) => (metricPrimary ? f.windSpeed.metersPerSecond : f.windSpeed.mph));
-			return { values, fromZero: true, color: '#9B8FFF', highLabel: dual(forecasts[indexOfMax(values)]?.windSpeed.displayDual(metricPrimary)), lowLabel: dual(forecasts[indexOfMin(values)]?.windSpeed.displayDual(metricPrimary)) };
+			return { values, fromZero: true, minSpan: metricPrimary ? 5 : 10, color: ChartStyle.wind, highLabel: dual(forecasts[indexOfMax(values)]?.windSpeed.displayDual(metricPrimary)), lowLabel: dual(forecasts[indexOfMin(values)]?.windSpeed.displayDual(metricPrimary)) };
 		}
 		if (displayMode === 'Pressure') {
 			// The day's mean, a reading whose trend from day to day matters, so a line
 			const values = forecasts.map((f) => (f.pressure && Number.isFinite(f.pressure.hPa) ? (metricPrimary ? f.pressure.hPa : f.pressure.inHg) : null));
-			return { values, color: '#9B8FFF', highLabel: dual(forecasts[indexOfMax(values)]?.pressure?.displayDual(metricPrimary)), lowLabel: dual(forecasts[indexOfMin(values)]?.pressure?.displayDual(metricPrimary)) };
+			return { values, minSpan: metricPrimary ? 4 : 0.12, color: ChartStyle.pressure, highLabel: dual(forecasts[indexOfMax(values)]?.pressure?.displayDual(metricPrimary)), lowLabel: dual(forecasts[indexOfMin(values)]?.pressure?.displayDual(metricPrimary)) };
 		}
 		if (displayMode === 'Precipitation') {
 			const values = forecasts.map((f) => f.precipitation.mm);
-			return { values, style: 'bars' as const, color: '#64B5F6', highLabel: dual(forecasts[indexOfMax(values)]?.precipitation.displayDual(metricPrimary)), emptyLabel: $_('no_precip') };
+			return {
+				values, style: 'bars' as const, minSpan: 1, color: ChartStyle.precipitation, highLabel: dual(forecasts[indexOfMax(values)]?.precipitation.displayDual(metricPrimary)), emptyLabel: $_('no_precip'),
+				// The day's highest chance of rain as a thin line on 0-100 %
+				second: { values: forecasts.map((f) => f.precipProbability), color: ChartStyle.chance, scale: 'percent' as const, width: ChartStyle.chanceWidth, key: $_('precip_chance', { values: { value: '%' } }) },
+			};
 		}
 		if (displayMode === 'AirQuality') {
 			const values = aqByDay.map((v) => v?.[0] ?? null);
@@ -134,7 +140,7 @@
 		if (displayMode === 'HeatIndex' || displayMode === 'WindChill') {
 			const felt = displayMode === 'HeatIndex' ? heatByItem : chillByItem;
 			const values = felt.map((t) => (t ? (metricPrimary ? t.celsius : t.fahrenheit) : null));
-			return { values, freezingAt: metricPrimary ? 0 : 32, color: displayMode === 'HeatIndex' ? HEAT_COLOR : CHILL_COLOR, highLabel: dual(felt[indexOfMax(values)]?.displayDual(metricPrimary)), lowLabel: dual(felt[indexOfMin(values)]?.displayDual(metricPrimary)) };
+			return { values, minSpan: metricPrimary ? 5 : 9, freezingAt: metricPrimary ? 0 : 32, color: displayMode === 'HeatIndex' ? HEAT_COLOR : CHILL_COLOR, highLabel: dual(felt[indexOfMax(values)]?.displayDual(metricPrimary)), lowLabel: dual(felt[indexOfMin(values)]?.displayDual(metricPrimary)) };
 		}
 		if (displayMode === 'Humidity') {
 			const values = forecasts.map((f) => f.humidity ?? null);
@@ -142,10 +148,11 @@
 			const dews = forecasts.map((f) => (f.dewPoint && Number.isFinite(f.dewPoint.celsius) ? (metricPrimary ? f.dewPoint.celsius : f.dewPoint.fahrenheit) : null));
 			return {
 				values,
-				color: '#64B5F6',
+				minSpan: 10,
+				color: ChartStyle.humidity,
 				highLabel: label(indexOfMax(values)),
 				lowLabel: label(indexOfMin(values)),
-				legend: [{ color: '#64B5F6', label: $_('detail_humidity') }, { color: DEW_COLOR, label: $_('detail_dewpoint') }],
+				legend: [{ color: ChartStyle.humidity, label: $_('detail_humidity') }, { color: DEW_COLOR, label: $_('detail_dewpoint') }],
 				second: { values: dews, color: DEW_COLOR, highLabel: dual(forecasts[indexOfMax(dews)]?.dewPoint?.displayDual(metricPrimary)), lowLabel: dual(forecasts[indexOfMin(dews)]?.dewPoint?.displayDual(metricPrimary)) },
 			};
 		}
@@ -236,24 +243,27 @@
 	</div>
 
 	<ChartScrub count={forecasts.length} itemWidth={96} itemSpacing={12} {scrollEl} label={(i) => `${formatDayName(forecasts[i].date, localeTag, utcOffsetSeconds, true, weekdayNames)} ${loc(formatDayMonth(forecasts[i].date, localeTag, utcOffsetSeconds, monthNames))}`}>
-		{#if displayMode === 'Temperature'}
-			<div class="chart-container">
-				<DailyTemperatureChart
-					{forecasts}
-					{metricPrimary}
-					itemWidth={96}
-					itemSpacing={12}
-					height={64}
-					{scrollLeft}
-					{containerWidth} showBand={!shareCopy}
-					{normals}
-				/>
-			</div>
-		{:else if chart}
-			<div class="chart-container">
-				<OverviewChart {...chart} itemWidth={96} itemSpacing={12} {scrollLeft} {containerWidth} showBand={!shareCopy} />
-			</div>
-		{/if}
+		{#snippet children(selected)}
+			{#if displayMode === 'Temperature'}
+				<div class="chart-container">
+					<DailyTemperatureChart
+						{forecasts}
+						{metricPrimary}
+						itemWidth={96}
+						itemSpacing={12}
+						height={64}
+						{scrollLeft}
+						{containerWidth} showBand={!shareCopy}
+						{normals}
+						{selected}
+					/>
+				</div>
+			{:else if chart}
+				<div class="chart-container">
+					<OverviewChart {...chart} itemWidth={96} itemSpacing={12} {scrollLeft} {containerWidth} showBand={!shareCopy} {selected} />
+				</div>
+			{/if}
+		{/snippet}
 	</ChartScrub>
 </div>
 

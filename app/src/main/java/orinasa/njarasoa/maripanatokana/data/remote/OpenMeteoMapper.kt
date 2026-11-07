@@ -92,6 +92,7 @@ fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = 
             uvIndex = hourly.uvIndex.getOrNull(i),
             humidity = hourly.relativeHumidity.getOrNull(i),
             dewPoint = hourly.dewPoint.getOrNull(i)?.let { Temperature.fromCelsius(it) },
+            windGust = hourly.windGusts10m.getOrNull(i)?.let { WindSpeed.fromMetersPerSecond(it) },
         )
     }.distinctBy { it.time }
 

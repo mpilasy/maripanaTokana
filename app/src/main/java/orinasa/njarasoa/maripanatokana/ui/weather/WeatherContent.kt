@@ -235,6 +235,10 @@ import orinasa.njarasoa.maripanatokana.ui.weather.components.OverviewStyle
 import orinasa.njarasoa.maripanatokana.ui.weather.components.colorsFor
 import orinasa.njarasoa.maripanatokana.domain.model.AqiTier
 import orinasa.njarasoa.maripanatokana.ui.theme.AppDarkPrimary
+import orinasa.njarasoa.maripanatokana.ui.weather.chart.ChartStyle
+import orinasa.njarasoa.maripanatokana.ui.weather.chart.chartDaylight
+import orinasa.njarasoa.maripanatokana.ui.weather.chart.chartMidnights
+import orinasa.njarasoa.maripanatokana.ui.weather.components.SecondScale
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -1817,6 +1821,9 @@ internal fun HourlyForecastRow(
     // Each hour's heat index and wind chill; each tab shows only when one hour has it
     val heatByItem = remember(forecasts) { forecasts.map { ThermalIndices.heatIndex(it.temperature, it.humidity) } }
     val chillByItem = remember(forecasts) { forecasts.map { ThermalIndices.windChill(it.temperature, it.windSpeed) } }
+    // For the charts: the night hours, with the rule of the chart view, and the first hour of each new day at the place
+    val nightByItem = remember(forecasts, dailySunrise, dailySunset) { chartDaylight(forecasts.map { it.time }, dailySunrise, dailySunset) }
+    val midnights = remember(forecasts, utcOffsetSeconds) { chartMidnights(forecasts.map { it.time }, utcOffsetSeconds) }
 
     Column(modifier = Modifier.fillMaxWidth()) {
         ForecastTabs(
@@ -1910,7 +1917,7 @@ internal fun HourlyForecastRow(
         }
 
         ChartScrub(forecasts.size, itemWidth, itemSpacing, totalScrollWidthPx, scrollState,
-            label = { localizeDigits(locationHourFormat.format(Date(forecasts[it].time))) }) {
+            label = { localizeDigits(locationHourFormat.format(Date(forecasts[it].time))) }) { selected ->
         if (displayMode == ForecastDisplayMode.Temperature) {
             TemperatureChart(
                 forecasts = forecasts,
@@ -1920,10 +1927,14 @@ internal fun HourlyForecastRow(
                 spacing = itemSpacing,
                 scrollOffset = scrollState.value.toFloat(),
                 totalScrollWidth = totalScrollWidthPx,
+                // 8 dp more than the other charts, for the dew point line on the same scale
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(64.sd(scale))
-                    .padding(bottom = 8.dp)
+                    .height(72.sd(scale))
+                    .padding(bottom = 8.dp),
+                utcOffsetSeconds = utcOffsetSeconds,
+                night = nightByItem,
+                selected = selected,
             )
         } else {
             // The same kind of chart under the cards for every other tab
@@ -1936,20 +1947,30 @@ internal fun HourlyForecastRow(
                     ForecastDisplayMode.Wind -> {
                         val values = forecasts.map { if (metricPrimary) it.windSpeed.metersPerSecond else it.windSpeed.mph }
                         val (hi, lo) = extremes(values) { forecasts[it].windSpeed.displayDual(metricPrimary) }
+                        // The gusts as a dashed line on the same scale, when the source gives them
+                        val gusts = forecasts.map { f -> f.windGust?.let { if (metricPrimary) it.metersPerSecond else it.mph } }.takeIf { g -> g.any { it != null } }
                         OverviewChart(values, itemWidth, itemSpacing, scrollState.value.toFloat(), totalScrollWidthPx, chartModifier,
-                            height = 48.sd(scale), fromZero = true, color = AppDarkPrimary, highLabel = dual(hi), lowLabel = dual(lo))
+                            height = 48.sd(scale), fromZero = true, color = ChartStyle.wind, highLabel = dual(hi), lowLabel = dual(lo),
+                            secondValues = gusts, secondColor = ChartStyle.gust, secondScale = SecondScale.SHARED,
+                            secondWidth = ChartStyle.thinLineWidth, secondDashed = true, secondKey = stringResource(R.string.detail_wind_gust),
+                            minSpan = if (metricPrimary) 5.0 else 10.0, night = nightByItem, midnights = midnights, selected = selected)
                     }
                     ForecastDisplayMode.Precipitation -> {
                         val values = forecasts.map { it.precipitation.mm }
                         val (hi, _) = extremes(values) { forecasts[it].precipitation.displayDual(metricPrimary) }
+                        // The chance of rain as a thin line on 0-100 % over the bars
                         OverviewChart(values, itemWidth, itemSpacing, scrollState.value.toFloat(), totalScrollWidthPx, chartModifier,
-                            height = 48.sd(scale), style = OverviewStyle.BARS, color = SkyBlue, highLabel = dual(hi), emptyLabel = stringResource(R.string.no_precip))
+                            height = 48.sd(scale), style = OverviewStyle.BARS, color = ChartStyle.precipitation, highLabel = dual(hi), emptyLabel = stringResource(R.string.no_precip),
+                            secondValues = forecasts.map { it.precipProbability.toDouble() }, secondColor = ChartStyle.chance, secondScale = SecondScale.PERCENT,
+                            secondWidth = ChartStyle.chanceWidth, secondKey = stringResource(R.string.precip_chance, "%"),
+                            minSpan = 1.0, night = nightByItem, midnights = midnights, selected = selected)
                     }
                     ForecastDisplayMode.Pressure -> {
                         val values = forecasts.map { if (metricPrimary) it.pressure.hPa else it.pressure.inHg }
                         val (hi, lo) = extremes(values) { forecasts[it].pressure.displayDual(metricPrimary) }
                         OverviewChart(values, itemWidth, itemSpacing, scrollState.value.toFloat(), totalScrollWidthPx, chartModifier,
-                            height = 48.sd(scale), color = AppDarkPrimary, highLabel = dual(hi), lowLabel = dual(lo))
+                            height = 48.sd(scale), color = ChartStyle.pressure, highLabel = dual(hi), lowLabel = dual(lo),
+                            minSpan = if (metricPrimary) 4.0 else 0.12, night = nightByItem, midnights = midnights, selected = selected)
                     }
                     ForecastDisplayMode.Humidity -> {
                         val values = forecasts.map { it.humidity?.toDouble() }
@@ -1957,9 +1978,10 @@ internal fun HourlyForecastRow(
                         val dews = forecasts.map { f -> f.dewPoint?.takeIf { it.celsius.isFinite() }?.let { if (metricPrimary) it.celsius else it.fahrenheit } }
                         val (dewHi, dewLo) = extremes(dews) { forecasts[it].dewPoint?.displayDual(metricPrimary) }
                         OverviewChart(values, itemWidth, itemSpacing, scrollState.value.toFloat(), totalScrollWidthPx, chartModifier,
-                            height = 48.sd(scale), color = SkyBlue, highLabel = hi, lowLabel = lo,
-                            legend = listOf(SkyBlue to stringResource(R.string.detail_humidity), DewAmber to stringResource(R.string.detail_dewpoint)),
-                            secondValues = dews, secondColor = DewAmber, secondHighLabel = dual(dewHi), secondLowLabel = dual(dewLo))
+                            height = 48.sd(scale), color = ChartStyle.humidity, highLabel = hi, lowLabel = lo,
+                            legend = listOf(ChartStyle.humidity to stringResource(R.string.detail_humidity), DewAmber to stringResource(R.string.detail_dewpoint)),
+                            secondValues = dews, secondColor = DewAmber, secondHighLabel = dual(dewHi), secondLowLabel = dual(dewLo),
+                            minSpan = 10.0, night = nightByItem, midnights = midnights, selected = selected)
                     }
                     ForecastDisplayMode.Uv -> {
                         val values = forecasts.map { it.uvIndex }
@@ -1968,7 +1990,8 @@ internal fun HourlyForecastRow(
                             height = 48.sd(scale), fromZero = true,
                             pointColors = values.map { uv -> uv?.let { colorsFor(it).background } ?: Color.Transparent },
                             highLabel = hi, lowLabel = lo,
-                            legend = listOf(1.0, 4.0, 7.0, 9.0, 11.0).mapIndexed { k, sample -> colorsFor(sample).background to uvLabels[k] })
+                            legend = listOf(1.0, 4.0, 7.0, 9.0, 11.0).mapIndexed { k, sample -> colorsFor(sample).background to uvLabels[k] },
+                            night = nightByItem, midnights = midnights, selected = selected)
                     }
                     ForecastDisplayMode.AirQuality -> {
                         val values = aqByHour.map { aq -> aq?.let { aqDual(it).first.toDouble() } }
@@ -1979,7 +2002,8 @@ internal fun HourlyForecastRow(
                             height = 48.sd(scale), fromZero = true,
                             pointColors = aqByHour.map { aq -> aq?.let { colorsFor(it.tier(aqiStandard)).background } ?: Color.Transparent },
                             highLabel = hi?.let(localizeDigits), lowLabel = lo?.let(localizeDigits),
-                            legend = AqiTier.entries.map { colorsFor(it).background to aqiTierLabels[it.ordinal] })
+                            legend = AqiTier.entries.map { colorsFor(it).background to aqiTierLabels[it.ordinal] },
+                            night = nightByItem, midnights = midnights, selected = selected)
                     }
                     ForecastDisplayMode.HeatIndex, ForecastDisplayMode.WindChill -> {
                         val felt = if (displayMode == ForecastDisplayMode.HeatIndex) heatByItem else chillByItem
@@ -1987,7 +2011,8 @@ internal fun HourlyForecastRow(
                         val (hi, lo) = extremes(values) { felt[it]?.displayDual(metricPrimary) }
                         OverviewChart(values, itemWidth, itemSpacing, scrollState.value.toFloat(), totalScrollWidthPx, chartModifier,
                             height = 48.sd(scale), color = if (displayMode == ForecastDisplayMode.HeatIndex) HeatOrange else ChillBlue,
-                            highLabel = dual(hi), lowLabel = dual(lo), freezingAt = if (metricPrimary) 0.0 else 32.0)
+                            highLabel = dual(hi), lowLabel = dual(lo), freezingAt = if (metricPrimary) 0.0 else 32.0,
+                            minSpan = if (metricPrimary) 5.0 else 9.0, night = nightByItem, midnights = midnights, selected = selected)
                     }
                     else -> {}
                 }
@@ -2143,7 +2168,7 @@ internal fun DailyForecastList(
         }
 
         ChartScrub(forecasts.size, itemWidth, itemSpacing, totalScrollWidthPx, scrollState,
-            label = { localizeDigits("${dayFormat.format(Date(forecasts[it].date))} ${dayMonthFormat.format(Date(forecasts[it].date))}") }) {
+            label = { localizeDigits("${dayFormat.format(Date(forecasts[it].date))} ${dayMonthFormat.format(Date(forecasts[it].date))}") }) { selected ->
         if (displayMode == ForecastDisplayMode.Temperature) {
             DailyTemperatureChart(
                 forecasts = forecasts,
@@ -2158,6 +2183,7 @@ internal fun DailyForecastList(
                     .height(64.sd(scale))
                     .padding(bottom = 8.dp),
                 normals = normalByDay,
+                selected = selected,
             )
         } else {
             // The same kind of chart under the cards for every other tab
@@ -2169,21 +2195,28 @@ internal fun DailyForecastList(
                 ForecastDisplayMode.Wind -> {
                     val values = forecasts.map { if (metricPrimary) it.windSpeed.metersPerSecond else it.windSpeed.mph }
                     val (hi, lo) = extremes(values) { forecasts[it].windSpeed.displayDual(metricPrimary) }
+                    // No gust line: the daily forecast has no gusts
                     OverviewChart(values, itemWidth, itemSpacing, scrollState.value.toFloat(), totalScrollWidthPx, chartModifier,
-                        height = 48.sd(scale), fromZero = true, color = AppDarkPrimary, highLabel = dual(hi), lowLabel = dual(lo))
+                        height = 48.sd(scale), fromZero = true, color = ChartStyle.wind, highLabel = dual(hi), lowLabel = dual(lo),
+                        minSpan = if (metricPrimary) 5.0 else 10.0, selected = selected)
                 }
                 ForecastDisplayMode.Pressure -> {
                     // The day's mean, a reading whose trend from day to day matters, so a line
                     val values = forecasts.map { f -> f.pressure?.takeIf { it.hPa.isFinite() }?.let { if (metricPrimary) it.hPa else it.inHg } }
                     val (hi, lo) = extremes(values) { forecasts[it].pressure?.displayDual(metricPrimary) }
                     OverviewChart(values, itemWidth, itemSpacing, scrollState.value.toFloat(), totalScrollWidthPx, chartModifier,
-                        height = 48.sd(scale), color = AppDarkPrimary, highLabel = dual(hi), lowLabel = dual(lo))
+                        height = 48.sd(scale), color = ChartStyle.pressure, highLabel = dual(hi), lowLabel = dual(lo),
+                        minSpan = if (metricPrimary) 4.0 else 0.12, selected = selected)
                 }
                 ForecastDisplayMode.Precipitation -> {
                     val values = forecasts.map { it.precipitation.mm }
                     val (hi, _) = extremes(values) { forecasts[it].precipitation.displayDual(metricPrimary) }
+                    // The chance of rain as a thin line on 0-100 % over the bars
                     OverviewChart(values, itemWidth, itemSpacing, scrollState.value.toFloat(), totalScrollWidthPx, chartModifier,
-                        height = 48.sd(scale), style = OverviewStyle.BARS, color = SkyBlue, highLabel = dual(hi), emptyLabel = stringResource(R.string.no_precip))
+                        height = 48.sd(scale), style = OverviewStyle.BARS, color = ChartStyle.precipitation, highLabel = dual(hi), emptyLabel = stringResource(R.string.no_precip),
+                        secondValues = forecasts.map { it.precipProbability.toDouble() }, secondColor = ChartStyle.chance, secondScale = SecondScale.PERCENT,
+                        secondWidth = ChartStyle.chanceWidth, secondKey = stringResource(R.string.precip_chance, "%"),
+                        minSpan = 1.0, selected = selected)
                 }
                 ForecastDisplayMode.AirQuality -> {
                     val values = aqByDay.map { it?.first?.toDouble() }
@@ -2194,7 +2227,7 @@ internal fun DailyForecastList(
                         height = 48.sd(scale), fromZero = true,
                         pointColors = aqByDay.map { aq -> aq?.let { colorsFor(AirQualityIndex.tierFor(it.first, aqiStandard)).background } ?: Color.Transparent },
                         highLabel = hi, lowLabel = lo,
-                        legend = AqiTier.entries.map { colorsFor(it).background to aqiTierLabels[it.ordinal] })
+                        legend = AqiTier.entries.map { colorsFor(it).background to aqiTierLabels[it.ordinal] }, selected = selected)
                 }
                 ForecastDisplayMode.Humidity -> {
                     val values = forecasts.map { it.humidity?.toDouble() }
@@ -2202,9 +2235,10 @@ internal fun DailyForecastList(
                     val dews = forecasts.map { f -> f.dewPoint?.takeIf { it.celsius.isFinite() }?.let { if (metricPrimary) it.celsius else it.fahrenheit } }
                     val (dewHi, dewLo) = extremes(dews) { forecasts[it].dewPoint?.displayDual(metricPrimary) }
                     OverviewChart(values, itemWidth, itemSpacing, scrollState.value.toFloat(), totalScrollWidthPx, chartModifier,
-                        height = 48.sd(scale), color = SkyBlue, highLabel = hi, lowLabel = lo,
-                        legend = listOf(SkyBlue to stringResource(R.string.detail_humidity), DewAmber to stringResource(R.string.detail_dewpoint)),
-                        secondValues = dews, secondColor = DewAmber, secondHighLabel = dual(dewHi), secondLowLabel = dual(dewLo))
+                        height = 48.sd(scale), color = ChartStyle.humidity, highLabel = hi, lowLabel = lo,
+                        legend = listOf(ChartStyle.humidity to stringResource(R.string.detail_humidity), DewAmber to stringResource(R.string.detail_dewpoint)),
+                        secondValues = dews, secondColor = DewAmber, secondHighLabel = dual(dewHi), secondLowLabel = dual(dewLo),
+                        minSpan = 10.0, selected = selected)
                 }
                 ForecastDisplayMode.Uv -> {
                     val values = forecasts.map { it.uvIndexMax }
@@ -2213,7 +2247,7 @@ internal fun DailyForecastList(
                         height = 48.sd(scale), fromZero = true,
                         pointColors = values.map { colorsFor(it).background },
                         highLabel = hi, lowLabel = lo,
-                        legend = listOf(1.0, 4.0, 7.0, 9.0, 11.0).mapIndexed { k, sample -> colorsFor(sample).background to uvLabels[k] })
+                        legend = listOf(1.0, 4.0, 7.0, 9.0, 11.0).mapIndexed { k, sample -> colorsFor(sample).background to uvLabels[k] }, selected = selected)
                 }
                 ForecastDisplayMode.HeatIndex, ForecastDisplayMode.WindChill -> {
                     val felt = if (displayMode == ForecastDisplayMode.HeatIndex) heatByItem else chillByItem
@@ -2221,7 +2255,8 @@ internal fun DailyForecastList(
                     val (hi, lo) = extremes(values) { felt[it]?.displayDual(metricPrimary) }
                     OverviewChart(values, itemWidth, itemSpacing, scrollState.value.toFloat(), totalScrollWidthPx, chartModifier,
                         height = 48.sd(scale), color = if (displayMode == ForecastDisplayMode.HeatIndex) HeatOrange else ChillBlue,
-                        highLabel = dual(hi), lowLabel = dual(lo), freezingAt = if (metricPrimary) 0.0 else 32.0)
+                        highLabel = dual(hi), lowLabel = dual(lo), freezingAt = if (metricPrimary) 0.0 else 32.0,
+                        minSpan = if (metricPrimary) 5.0 else 9.0, selected = selected)
                 }
                 else -> {}
             }

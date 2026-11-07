@@ -50,6 +50,9 @@ export function formatDate(timestamp: number, localeTag: string, weekdayNames?: 
 
 const shortDateFormatters = new Map<string, Intl.DateTimeFormat>();
 
+/** Malagasy short weekday names from Sunday, as in CLDR (Android's "EEE"). */
+const MG_SHORT_WEEKDAYS = ['Alah', 'Alats', 'Tal', 'Alar', 'Alak', 'Zom', 'Asab'];
+
 /** Short date like "Mon 12 Oct" (matches Android's "EEE d MMM"), in the device's timezone. */
 export function formatShortDate(timestamp: number, localeTag: string, weekdayNames?: string[], monthNames?: string[]): string {
 	const d = new Date(timestamp);
@@ -65,10 +68,11 @@ export function formatShortDate(timestamp: number, localeTag: string, weekdayNam
 	}
 
 	// Build from arrays for unsupported locales (mg, ne); Devanagari names stay in full
-	const weekday = weekdayNames[d.getDay()];
 	const month = monthNames[d.getMonth()];
 	const short = (name: string) => (localeTag === 'ne' ? name : name.substring(0, 3));
-	return `${short(weekday)} ${d.getDate()} ${short(month)}`;
+	// Three letters would make Alahady and Alatsinainy both "Ala": use the short names that Android shows
+	const weekday = localeTag === 'mg' ? MG_SHORT_WEEKDAYS[d.getDay()] : short(weekdayNames[d.getDay()]);
+	return `${weekday} ${d.getDate()} ${short(month)}`;
 }
 
 /**
@@ -163,7 +167,8 @@ export function formatDayName(timestamp: number, localeTag: string, utcOffsetSec
 	// Build from array for unsupported locales (mg, ne)
 	const dayIndex = adjustedDate.getUTCDay();
 	if (short) {
-		// For Latin-script locales (mg), use first 3 letters; for Devanagari (ne), use full name
+		// Malagasy uses its own short names (three letters would give "Ala" twice); Devanagari (ne) uses the full name
+		if (localeTag === 'mg') return MG_SHORT_WEEKDAYS[dayIndex];
 		const name = weekdayNames[dayIndex];
 		return localeTag === 'ne' ? name : name.substring(0, 3);
 	}

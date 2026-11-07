@@ -13,7 +13,8 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 
-// Pure functions of the chart view. The web has the same functions with the same rules in utils/chartView.ts.
+// Pure functions of the chart view and the charts on the main page. The web has the same functions with the same
+// rules in utils/chartView.ts.
 
 private const val HOUR = 3_600_000L
 private const val DAY = 24 * HOUR
@@ -53,6 +54,25 @@ fun chartDaySpans(times: List<Long>, utcOffsetSec: Int): List<ChartDaySpan> {
         else spans += ChartDaySpan(i, i + 1, date)
     }
     return spans
+}
+
+/** The first hour of each local day after the first one: where a chart draws a midnight line. */
+fun chartMidnights(times: List<Long>, utcOffsetSec: Int): List<Int> =
+    chartDaySpans(times, utcOffsetSec).drop(1).map { it.startIndex }
+
+/** The runs of night hours in [night] (true at night), each from its first to its last hour, in order. */
+fun chartNightRuns(night: List<Boolean>): List<IntRange> {
+    val runs = mutableListOf<IntRange>()
+    var start = -1
+    for (i in 0..night.size) {
+        val isNight = i < night.size && night[i]
+        if (isNight && start < 0) start = i
+        if (!isNight && start >= 0) {
+            runs += start until i
+            start = -1
+        }
+    }
+    return runs
 }
 
 /**

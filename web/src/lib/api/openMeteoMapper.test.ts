@@ -90,6 +90,14 @@ describe('open-meteo mapper chart hours', () => {
 		expect(hours[9].isNight).toBe(true); // 19:00
 	});
 
+	it('gives the 24 hours the gusts of the same hours', () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(Date.UTC(2026, 10, 7, 7, 30));
+		const hours = mapToWeatherData(eleven, 'X').hourlyForecast;
+		expect(hours[0].windGust?.metersPerSecond).toBe(9); // 11:00 at the place
+		expect(hours[1].windGust).toBeNull(); // 12:00 at the place
+	});
+
 	it('has fewer hours near the end of the data', () => {
 		vi.useFakeTimers();
 		vi.setSystemTime(Date.UTC(2026, 10, 15, 21));

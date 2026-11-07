@@ -78,6 +78,36 @@ class ChartViewMathTest {
         assertTrue(chartDaySpans(emptyList(), 0).isEmpty())
     }
 
+    // chartMidnights
+
+    @Test
+    fun chartMidnightsGivesTheFirstHourOfEachLocalDayAfterTheFirst() {
+        // 30 hours from 22:00 UTC; at UTC+3 local midnight is hour 23
+        assertEquals(listOf(23), chartMidnights(hourly(t0 - 2 * hour, 30), 3 * 3600))
+        // 50 hours from 00:00 UTC: the first hour is a midnight, but it is not a change of day
+        assertEquals(listOf(24, 48), chartMidnights(hourly(t0, 50), 0))
+    }
+
+    @Test
+    fun chartMidnightsIsEmptyInOneDay() {
+        assertTrue(chartMidnights(hourly(t0 + hour, 10), 0).isEmpty())
+        assertTrue(chartMidnights(emptyList(), 0).isEmpty())
+    }
+
+    // chartNightRuns
+
+    @Test
+    fun chartNightRunsGroupsTheNightHours() {
+        val night = listOf(true, true, false, false, true, true, true, false, true)
+        assertEquals(listOf(0..1, 4..6, 8..8), chartNightRuns(night))
+    }
+
+    @Test
+    fun chartNightRunsIsEmptyWithoutNight() {
+        assertTrue(chartNightRuns(listOf(false, false)).isEmpty())
+        assertTrue(chartNightRuns(emptyList()).isEmpty())
+    }
+
     // chartDaylight
 
     @Test
