@@ -96,6 +96,7 @@
 	"daylight_minutes_other": "{count}\u00a0minutos",
 	"rises_in": "Sale en {duration}",
 	"chart_view_title": "Vista de gráficos",
+	"chart_view_no_data": "Sin datos",
 	"chart_view_open": "Abrir la vista de gráficos",
 	"chart_view_summary": "Gráficos de las próximas {hours} horas",
 	"high_vs_normal_above": "Máx. {delta} por encima de lo normal",

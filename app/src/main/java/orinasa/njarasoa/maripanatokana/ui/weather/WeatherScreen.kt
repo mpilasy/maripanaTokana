@@ -57,6 +57,7 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import orinasa.njarasoa.maripanatokana.R
+import orinasa.njarasoa.maripanatokana.domain.model.AqiStandard
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherSource
 import orinasa.njarasoa.maripanatokana.domain.model.weatherModelFor
 import orinasa.njarasoa.maripanatokana.ui.permission.PermissionHandler
@@ -136,6 +137,9 @@ fun WeatherScreen(
             ChartViewScreen(
                 data = chartData,
                 metricPrimary = metricPrimary,
+                // The air quality only when the place has it, as the main screen
+                hourlyAirQuality = chartData.hourlyAirQuality.takeIf { chartData.airQuality != null }.orEmpty(),
+                aqiStandard = chartData.airQuality?.primaryStandard ?: AqiStandard.US,
                 localizeDigits = supportedLocales[localeIndex]::localizeDigits,
                 onToggleUnits = viewModel::toggleUnits,
                 onBack = { showChartView = false },

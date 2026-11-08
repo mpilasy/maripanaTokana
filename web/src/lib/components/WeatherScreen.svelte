@@ -796,6 +796,8 @@
 		placeName={chartPlace}
 		metricPrimary={$metricPrimary}
 		localeTag={SUPPORTED_LOCALES[$localeIndex].tag}
+		hourlyAirQuality={$weatherState.data.airQuality ? ($weatherState.data.hourlyAirQuality ?? []) : []}
+		aqiStandard={$weatherState.data.airQuality?.primaryStandard ?? 'US'}
 		{loc}
 		onToggleUnits={toggleUnits}
 		onBack={() => (chartPlace = null)}

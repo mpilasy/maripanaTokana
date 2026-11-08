@@ -258,3 +258,25 @@ export function chartDomain(values: (number | null | undefined)[], fromZero: boo
 	for (let k = 0; min + k * step <= max + step * 1e-9; k++) ticks.push(clean(min + k * step));
 	return { min, max, ticks };
 }
+
+/**
+ * For each hour of `hourTimes`, the index in `aqTimes` of the first air quality entry less than 30 minutes away, as the
+ * hourly forecast matches them; null when no entry is near.
+ */
+export function chartAirQuality(hourTimes: number[], aqTimes: number[]): (number | null)[] {
+	return hourTimes.map((t) => {
+		const i = aqTimes.findIndex((a) => Math.abs(a - t) < HOUR / 2);
+		return i >= 0 ? i : null;
+	});
+}
+
+/**
+ * The number of tiles in each row of the selection card, for `n` tiles: as few rows of at most 4 as possible, with the
+ * tiles spread evenly and filled in order (9 gives 3, 3, 3; 7 gives 4, 3).
+ */
+export function chartTileRows(n: number): number[] {
+	if (n <= 0) return [];
+	const rows = Math.ceil(n / 4);
+	const perRow = Math.ceil(n / rows);
+	return Array.from({ length: rows }, (_, r) => Math.min(perRow, n - r * perRow)).filter((s) => s > 0);
+}

@@ -96,6 +96,7 @@
 	"daylight_minutes_other": "{count}\u00a0دقيقة",
 	"rises_in": "يطلع بعد {duration}",
 	"chart_view_title": "عرض الرسوم البيانية",
+	"chart_view_no_data": "لا توجد بيانات",
 	"chart_view_open": "افتح عرض الرسوم البيانية",
 	"chart_view_summary": "رسوم بيانية للساعات الـ {hours} القادمة",
 	"high_vs_normal_above": "العظمى أعلى من المعتاد بـ {delta}",

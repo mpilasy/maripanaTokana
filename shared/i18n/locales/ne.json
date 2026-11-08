@@ -96,6 +96,7 @@
 	"daylight_minutes_other": "{count}\u00a0मिनेट",
 	"rises_in": "{duration} मा उदाउँछ",
 	"chart_view_title": "चार्ट दृश्य",
+	"chart_view_no_data": "डाटा छैन",
 	"chart_view_open": "चार्ट दृश्य खोल्नुहोस्",
 	"chart_view_summary": "अर्को {hours} घण्टाका चार्ट",
 	"high_vs_normal_above": "अधिकतम सामान्यभन्दा {delta} माथि",

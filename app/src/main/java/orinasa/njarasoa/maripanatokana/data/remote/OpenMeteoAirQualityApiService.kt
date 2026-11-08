@@ -114,7 +114,8 @@ fun OpenMeteoAirQualityResponse.toDomain(countryCode: String?): AirQualityResult
     val hourlyList = if (h == null) emptyList() else {
         val nowMillis = System.currentTimeMillis()
         val parsedTimes = h.time.map { parseIsoDateTime(it, 0) }
-        val startIndex = parsedTimes.indexOfFirst { it >= nowMillis }.takeIf { it != -1 } ?: 0
+        // Start at the hour in progress, as the forecast hours do (the chart view opens on it)
+        val startIndex = parsedTimes.indexOfFirst { it + 3_600_000L > nowMillis }.takeIf { it != -1 } ?: 0
         (startIndex until h.time.size).mapNotNull { i ->
             val us = h.usAqi.getOrNull(i)
             val eu = h.europeanAqi.getOrNull(i)

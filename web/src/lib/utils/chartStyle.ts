@@ -30,6 +30,8 @@ export const ChartStyle = {
 	selectionDot: 'white',
 	// The soft column of one hour behind the lines in the chart view
 	selectionColumn: 'rgba(255, 255, 255, 0.1)',
+	// The rounded band behind each titled panel of the chart view, with its scale labels
+	panelBand: 'rgba(255, 255, 255, 0.04)',
 
 	lineWidth: 2,
 	thinLineWidth: 1.5,
@@ -40,6 +42,7 @@ export const ChartStyle = {
 	selectionWidth: 1,
 	selectionDotRadius: 3.5,
 	selectionColumnRadius: 8,
+	panelBandRadius: 12,
 
 	freezingDash: '4 3',
 	gustDash: '5 3',

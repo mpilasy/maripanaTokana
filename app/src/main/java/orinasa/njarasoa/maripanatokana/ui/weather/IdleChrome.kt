@@ -6,7 +6,7 @@ package orinasa.njarasoa.maripanatokana.ui.weather
 // The state of the header and the footer of the main page. The web has the same helper with the same rules (idleChrome).
 
 /** The time without a scroll after which the header folds and the footer goes out of view. */
-const val CHROME_IDLE_MS = 5000L
+const val CHROME_IDLE_MS = 3000L
 
 /**
  * Pure state of the header and the footer: a scroll makes the header big and shows the footer at once;

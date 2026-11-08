@@ -204,3 +204,21 @@ fun chartScrollForIndex(index: Int, slotPx: Float, count: Int, viewPx: Float): F
     }
     return s.coerceIn(0f, max)
 }
+
+/**
+ * For each hour of [hourTimes], the index in [aqTimes] of the first air quality entry less than 30 minutes away, as the
+ * hourly forecast matches them; null when no entry is near.
+ */
+fun chartAirQuality(hourTimes: List<Long>, aqTimes: List<Long>): List<Int?> =
+    hourTimes.map { t -> aqTimes.indexOfFirst { kotlin.math.abs(it - t) < HOUR / 2 }.takeIf { it >= 0 } }
+
+/**
+ * The number of tiles in each row of the selection card, for [n] tiles: as few rows of at most 4 as possible, with the
+ * tiles spread evenly and filled in order (9 gives 3, 3, 3; 7 gives 4, 3).
+ */
+fun chartTileRows(n: Int): List<Int> {
+    if (n <= 0) return emptyList()
+    val rows = (n + 3) / 4
+    val perRow = (n + rows - 1) / rows
+    return List(rows) { r -> minOf(perRow, n - r * perRow) }.filter { it > 0 }
+}

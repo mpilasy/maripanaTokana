@@ -37,6 +37,8 @@ object ChartStyle {
     val selectionDot = Color.White
     // The soft column of the chart view: the selected hour, one hour wide
     val selectionColumn = Color.White.copy(alpha = 0.10f)
+    // The band of each titled panel of the chart view, under the axis labels and the hours
+    val panelBand = Color.White.copy(alpha = 0.04f)
 
     val lineWidth = 2.dp
     val thinLineWidth = 1.5.dp
@@ -47,6 +49,7 @@ object ChartStyle {
     val selectionWidth = 1.dp
     val selectionDotRadius = 3.5.dp
     val selectionColumnRadius = 8.dp
+    val panelBandRadius = 12.dp
 
     val freezingDash = listOf(4.dp, 3.dp)
     val gustDash = listOf(5.dp, 3.dp)

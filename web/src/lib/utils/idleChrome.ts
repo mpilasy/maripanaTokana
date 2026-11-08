@@ -5,7 +5,7 @@
 // Twin: IdleChrome in app/src/main/java/orinasa/njarasoa/maripanatokana/ui/weather/IdleChrome.kt
 
 /** The time without a scroll after which the header folds and the footer goes out of view. */
-export const CHROME_IDLE_MS = 5000;
+export const CHROME_IDLE_MS = 3000;
 
 /**
  * Pure state of the header and the footer: a scroll makes the header big and shows the footer at once;

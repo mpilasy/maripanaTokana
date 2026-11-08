@@ -296,4 +296,37 @@ class ChartViewMathTest {
         assertEquals(listOf(ChartDayExtremes(10, 0)), chartDayExtremes(values.take(11), listOf(ChartDaySpan(0, 11, 0L)), minHours = 11))
         assertTrue(chartDayExtremes(emptyList(), emptyList()).isEmpty())
     }
+
+    // chartAirQuality
+
+    @Test
+    fun chartAirQualityMatchesEntriesLessThan30MinutesAway() {
+        val hours = hourly(t0, 4)
+        // An entry 29 minutes after the second hour, one exactly 30 minutes before the fourth hour, one on the first hour
+        val aq = listOf(t0 + hour + 29 * 60_000L, t0 + 3 * hour - 30 * 60_000L, t0)
+        assertEquals(listOf(2, 0, null, null), chartAirQuality(hours, aq))
+    }
+
+    @Test
+    fun chartAirQualityTakesTheFirstEntryAndGivesNullsWithoutData() {
+        val hours = hourly(t0, 2)
+        assertEquals(listOf(0, null), chartAirQuality(hours, listOf(t0 - 10 * 60_000L, t0 + 10 * 60_000L)))
+        assertEquals(listOf(null, null), chartAirQuality(hours, emptyList()))
+        assertTrue(chartAirQuality(emptyList(), listOf(t0)).isEmpty())
+    }
+
+    // chartTileRows
+
+    @Test
+    fun chartTileRowsSpreadsTheTilesEvenly() {
+        assertEquals(listOf(3, 3, 3), chartTileRows(9))
+        assertEquals(listOf(4, 4), chartTileRows(8))
+        assertEquals(listOf(4, 3), chartTileRows(7))
+        assertEquals(listOf(3, 3), chartTileRows(6))
+        assertEquals(listOf(3, 2), chartTileRows(5))
+        assertEquals(listOf(4), chartTileRows(4))
+        assertEquals(listOf(1), chartTileRows(1))
+        assertEquals(listOf(4, 4, 2), chartTileRows(10))
+        assertTrue(chartTileRows(0).isEmpty())
+    }
 }

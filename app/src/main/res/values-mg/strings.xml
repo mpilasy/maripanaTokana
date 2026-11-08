@@ -73,6 +73,7 @@
     <string name="daylight_minutes_other">%1$s minitra</string>
     <string name="rises_in">Hiposaka afaka %1$s</string>
     <string name="chart_view_title">Sarivina</string>
+    <string name="chart_view_no_data">Tsy misy</string>
     <string name="chart_view_open">Sokafy ny sarivina</string>
     <string name="chart_view_summary">Sarivina ho an\'ny ora %1$s manaraka</string>
     <string name="high_vs_normal_above">%1$s mihoatra ny mahazatra</string>

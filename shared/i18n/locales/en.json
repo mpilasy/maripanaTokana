@@ -96,6 +96,7 @@
 	"daylight_minutes_other": "{count}\u00a0minutes",
 	"rises_in": "Rises in {duration}",
 	"chart_view_title": "Chart view",
+	"chart_view_no_data": "No data",
 	"chart_view_open": "Open the chart view",
 	"chart_view_summary": "Charts of the next {hours} hours",
 	"high_vs_normal_above": "High {delta} above normal",

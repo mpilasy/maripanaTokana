@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { describe, expect, it } from 'vitest';
-import { chartDayExtremes, chartDaylight, chartDaySpans, chartDomain, chartHours, chartIndexForX, chartLineIndex, chartLineOffset, chartMaxScroll, chartScrollForIndex, chartValueAt, chartMidnights, chartNightRuns, chartVisibleRange } from './chartView';
+import { chartAirQuality, chartTileRows, chartDayExtremes, chartDaylight, chartDaySpans, chartDomain, chartHours, chartIndexForX, chartLineIndex, chartLineOffset, chartMaxScroll, chartScrollForIndex, chartValueAt, chartMidnights, chartNightRuns, chartVisibleRange } from './chartView';
 
 const HOUR = 3_600_000;
 const T0 = Date.UTC(2026, 10, 7, 0, 0); // 2026-11-07 00:00 UTC
@@ -260,5 +260,39 @@ describe('chartDayExtremes', () => {
 	});
 	it('gives nothing without days', () => {
 		expect(chartDayExtremes([1, 2, 3], [])).toEqual([]);
+	});
+});
+
+describe('chartAirQuality', () => {
+	it('matches each hour to the entry less than 30 minutes away', () => {
+		const aq = [T0 + 10 * 60_000, T0 + HOUR - 5 * 60_000, T0 + 3 * HOUR];
+		expect(chartAirQuality(hours(4), aq)).toEqual([0, 1, null, 2]);
+	});
+	it('gives null at exactly 30 minutes away', () => {
+		expect(chartAirQuality([T0], [T0 + 30 * 60_000, T0 - 30 * 60_000])).toEqual([null]);
+	});
+	it('takes the first entry that is near', () => {
+		expect(chartAirQuality([T0], [T0 + 20 * 60_000, T0])).toEqual([0]);
+	});
+	it('gives null for each hour without air quality', () => {
+		expect(chartAirQuality(hours(3), [])).toEqual([null, null, null]);
+		expect(chartAirQuality([], hours(3))).toEqual([]);
+	});
+});
+
+describe('chartTileRows', () => {
+	it('spreads the tiles over as few rows of at most 4 as possible', () => {
+		expect(chartTileRows(9)).toEqual([3, 3, 3]);
+		expect(chartTileRows(8)).toEqual([4, 4]);
+		expect(chartTileRows(7)).toEqual([4, 3]);
+		expect(chartTileRows(6)).toEqual([3, 3]);
+		expect(chartTileRows(5)).toEqual([3, 2]);
+	});
+	it('keeps up to 4 tiles in one row', () => {
+		expect(chartTileRows(1)).toEqual([1]);
+		expect(chartTileRows(4)).toEqual([4]);
+	});
+	it('gives no row without tiles', () => {
+		expect(chartTileRows(0)).toEqual([]);
 	});
 });

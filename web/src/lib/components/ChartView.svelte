@@ -5,7 +5,8 @@
 	import SettingsPage from './SettingsPage.svelte';
 	import WeatherIcon from './WeatherIcon.svelte';
 	import DualUnitText from './DualUnitText.svelte';
-	import type { ChartHour } from '#lib/domain/weatherData.js';
+	import type { ChartHour, HourlyAirQuality } from '#lib/domain/weatherData.js';
+	import { AirQualityIndex, AQI_TIER_COLORS, type AqiStandard, type AqiTier } from '#lib/domain/airQuality.js';
 	import { getCardinalDirection, showWindArrow } from '#lib/domain/windSpeed.js';
 	import { uvColorFor, uvTier } from '#lib/domain/uv.js';
 	import { monotonePath } from '#lib/utils/monotonePath.js';
@@ -15,8 +16,8 @@
 	import { formatDayName, formatHourAtLocation } from '#lib/utils/date.js';
 	import { prefersReducedMotion } from '#lib/utils/motion.js';
 	import {
-		CHART_SLOT, chartDayExtremes, chartDaySpans, chartDomain, chartHours, chartIndexForX, chartLineIndex, chartLineOffset, chartNightRuns, chartScrollForIndex,
-		chartValueAt, chartVisibleRange,
+		CHART_SLOT, chartAirQuality, chartDayExtremes, chartDaySpans, chartDomain, chartHours, chartIndexForX, chartLineIndex, chartLineOffset, chartNightRuns, chartScrollForIndex,
+		chartTileRows, chartValueAt, chartVisibleRange,
 		type ChartDomain,
 	} from '#lib/utils/chartView.js';
 
@@ -30,48 +31,67 @@
 		placeName: string;
 		metricPrimary: boolean;
 		localeTag: string;
+		/** The hourly air quality; empty when the place has no air quality. */
+		hourlyAirQuality: HourlyAirQuality[];
+		/** The standard of the air quality values that the panel and the tile show first. */
+		aqiStandard: AqiStandard;
 		loc: (s: string) => string;
 		onToggleUnits: () => void;
 		onBack: () => void;
 	}
 
-	let { hours, utcOffsetSeconds, placeName, metricPrimary, localeTag, loc, onToggleUnits, onBack }: Props = $props();
+	let { hours, utcOffsetSeconds, placeName, metricPrimary, localeTag, hourlyAirQuality, aqiStandard, loc, onToggleUnits, onBack }: Props = $props();
 
 	// Sizes in px, the same as on Android: the axis column, the gap between panels, the title line,
 	// the room above the wind line for the direction arrows, the room above and under the temperature
-	// line for the labels of the day's high and low, and the weather icons
+	// line for the labels of the day's high and low (and above the rain bars), the weather icons, and the side margin of the panel bands
 	const AXIS_WIDTH = 52;
-	const PANEL_GAP = 6;
-	const TITLE_HEIGHT = 16;
+	const PANEL_GAP = 10;
+	const TITLE_HEIGHT = 22;
 	const ARROW_ROW = 14;
 	const LABEL_ROW = 12;
 	const ICON_SIZE = 26;
+	const BAND_INSET = 6;
 
 	// The panels from top to bottom, with their height; the value panels have a title line at the top.
-	// A time axis is at the top (`timeTop`, mirrored) and at the bottom (`time`).
-	type PanelId = 'timeTop' | 'icons' | 'temp' | 'precip' | 'wind' | 'pressure' | 'humidity' | 'time';
-	const PANEL_HEIGHTS: [PanelId, number][] = [['timeTop', 36], ['icons', 46], ['temp', 156], ['precip', 88], ['wind', 104], ['pressure', 80], ['humidity', 80], ['time', 36]];
+	// A time axis is at the top (`timeTop`, mirrored) and at the bottom (`time`). The air quality panel is there
+	// only when an hour has air quality.
+	type PanelId = 'timeTop' | 'icons' | 'temp' | 'precip' | 'wind' | 'pressure' | 'humidity' | 'airQuality' | 'time';
 	/** A panel: its top and height, and the part where the values go (`plotTop` to `plotBottom`). */
 	interface Panel { top: number; height: number; plotTop: number; plotBottom: number }
-	const { panels, totalHeight } = (() => {
-		const result = {} as Record<PanelId, Panel>;
+	const isTitled = (id: PanelId) => id !== 'timeTop' && id !== 'icons' && id !== 'time';
+	function layout(withAirQuality: boolean) {
+		const heights: [PanelId, number][] = [['timeTop', 36], ['icons', 46], ['temp', 156], ['precip', 100], ['wind', 104], ['pressure', 80], ['humidity', 80]];
+		if (withAirQuality) heights.push(['airQuality', 80]);
+		heights.push(['time', 36]);
+		const panels = {} as Record<PanelId, Panel>;
 		let top = 0;
-		for (const [id, height] of PANEL_HEIGHTS) {
-			const titled = id !== 'timeTop' && id !== 'icons' && id !== 'time';
+		for (const [id, height] of heights) {
+			// The temperature has a label row above and under its line; the precipitation one above its bars
 			const labelRow = id === 'temp' ? LABEL_ROW : 0;
-			const plotTop = top + (titled ? TITLE_HEIGHT : 0) + (id === 'wind' ? ARROW_ROW : 0) + labelRow + 4;
-			result[id] = { top, height, plotTop, plotBottom: top + height - 4 - labelRow };
+			const labelTop = id === 'temp' || id === 'precip' ? LABEL_ROW : 0;
+			const plotTop = top + (isTitled(id) ? TITLE_HEIGHT : 0) + (id === 'wind' ? ARROW_ROW : 0) + labelTop + 4;
+			panels[id] = { top, height, plotTop, plotBottom: top + height - 4 - labelRow };
 			top += height + PANEL_GAP;
 		}
-		return { panels: result, totalHeight: top - PANEL_GAP };
-	})();
-	// Night shading runs from the top of the icons to the bottom of the humidity panel
-	const chartsTop = panels.icons.top;
-	const chartsBottom = panels.humidity.top + panels.humidity.height;
-	const topAxisBottom = panels.timeTop.top + panels.timeTop.height;
-	// The vertical lines (midnight) go only through the plot area of each panel, with a break at the
-	// gaps and title lines, so that each chart shows where it starts and ends. The time axis has its own short ticks.
-	const LINE_SEGMENTS = (['icons', 'temp', 'precip', 'wind', 'pressure', 'humidity'] as PanelId[]).map((id) => panels[id]);
+		const ids = heights.map(([id]) => id);
+		const last = panels[withAirQuality ? 'airQuality' : 'humidity'];
+		return {
+			ids,
+			panels,
+			totalHeight: top - PANEL_GAP,
+			// Night shading, the selection column and the vertical lines run from the top of the icons to the bottom of
+			// the last value panel
+			chartsTop: panels.icons.top,
+			chartsBottom: last.top + last.height,
+			topAxisBottom: panels.timeTop.top + panels.timeTop.height,
+			// The vertical lines (midnight) go only through the plot area of each panel, with a break at the
+			// gaps and title lines, so that each chart shows where it starts and ends. The time axis has its own short ticks.
+			lineSegments: ids.filter((id) => id !== 'timeTop' && id !== 'time').map((id) => panels[id]),
+			// The rounded band behind each titled panel
+			bands: ids.filter(isTitled).map((id) => panels[id]),
+		};
+	}
 
 	// The data can be some hours old: start again at the current hour
 	const openedAt = Date.now();
@@ -80,6 +100,18 @@
 		return hours.slice(range.start, range.end);
 	});
 	let count = $derived(shown.length);
+
+	// The air quality of each hour: the entry less than 30 minutes away, or null
+	let aqEntries = $derived.by(() => {
+		const indexes = chartAirQuality(shown.map((h) => h.time), hourlyAirQuality.map((a) => a.time));
+		return indexes.map((i) => (i == null ? null : hourlyAirQuality[i]));
+	});
+	const aqPrimary = (a: HourlyAirQuality) => (aqiStandard === 'EUROPEAN' ? a.europeanValue : a.usValue);
+	let aqValues = $derived(aqEntries.map((a) => (a ? (Number.isFinite(aqPrimary(a)) ? aqPrimary(a) : null) : null)));
+	let hasAirQuality = $derived(aqValues.some((v) => v != null));
+	const aqTier = (v: number): AqiTier => AirQualityIndex.tierFor(v, aqiStandard);
+
+	let { ids: panelIds, panels, totalHeight, chartsTop, chartsBottom, topAxisBottom, lineSegments, bands } = $derived(layout(hasAirQuality));
 
 	const slot = CHART_SLOT;
 	let scrollLeft = $state(0);
@@ -116,6 +148,7 @@
 	let precipDomain = $derived(chartDomain(precips, true, metricPrimary ? 1 : 0.04));
 	let windDomain = $derived(chartDomain([...winds, ...gusts], true, metricPrimary ? 5 : 10));
 	let pressureDomain = $derived(chartDomain(pressures, false, metricPrimary ? 4 : 0.12));
+	let aqDomain = $derived(hasAirQuality ? chartDomain(aqValues, true, 50) : null);
 	/** The fixed 0-100 % scale of the chance of rain and the humidity. */
 	const PERCENT_DOMAIN: ChartDomain = { min: 0, max: 100, ticks: [0, 50, 100] };
 
@@ -146,6 +179,7 @@
 		add(winds, windDomain, panels.wind);
 		add(pressures, pressureDomain, panels.pressure);
 		add(humidities, PERCENT_DOMAIN, panels.humidity);
+		if (hasAirQuality) add(aqValues, aqDomain, panels.airQuality);
 		return dots;
 	});
 
@@ -224,6 +258,7 @@
 		...axisLabels(windDomain, panels.wind, metricPrimary ? (v) => v * 2.23694 : (v) => v / 2.23694, metricPrimary ? 0 : 1),
 		...axisLabels(pressureDomain, panels.pressure, metricPrimary ? (v) => v * 0.02953 : (v) => v / 0.02953, metricPrimary ? 2 : 0),
 		...axisLabels(PERCENT_DOMAIN, panels.humidity, null, 0, '%'),
+		...(hasAirQuality ? axisLabels(aqDomain, panels.airQuality, null, 0) : []),
 	]);
 	let grid = $derived([
 		...(tempDomain?.ticks.map((v) => y(v, tempDomain!, panels.temp)) ?? []),
@@ -231,7 +266,10 @@
 		...(windDomain?.ticks.map((v) => y(v, windDomain!, panels.wind)) ?? []),
 		...(pressureDomain?.ticks.map((v) => y(v, pressureDomain!, panels.pressure)) ?? []),
 		...PERCENT_DOMAIN.ticks.map((v) => y(v, PERCENT_DOMAIN, panels.humidity)),
+		...(hasAirQuality ? (aqDomain?.ticks.map((v) => y(v, aqDomain!, panels.airQuality)) ?? []) : []),
 	]);
+
+	const aqiLabel = (standard: AqiStandard) => $_(standard === 'EUROPEAN' ? 'air_quality_eu_aqi' : 'air_quality_us_aqi');
 
 	// Panel titles: the name and both units (primary first), and the name of the second line in its colour
 	const units = (metric: string, imperial: string) => (metricPrimary ? `${metric} · ${imperial}` : `${imperial} · ${metric}`);
@@ -241,7 +279,33 @@
 		{ id: 'wind', title: `${$_('detail_wind')}  ${units('m/s', 'mph')}`, second: { text: $_('detail_wind_gust'), color: ChartStyle.gust } },
 		{ id: 'pressure', title: `${$_('detail_pressure')}  ${units('hPa', 'inHg')}` },
 		{ id: 'humidity', title: `${$_('detail_humidity')}  %` },
+		...(hasAirQuality ? [{ id: 'airQuality' as PanelId, title: `${$_('detail_air_quality')}  ${aqiLabel(aqiStandard)}` }] : []),
 	]);
+
+	// The air quality line has the colour of the level of the hour at the start of each segment: a gradient along the
+	// hours with a hard change at the middle of each hour where the level changes
+	let aqStops = $derived.by(() => {
+		const width = Math.max(1, count * slot);
+		const stops: { offset: number; color: string }[] = [];
+		let last: string | null = null;
+		aqValues.forEach((v, i) => {
+			if (v == null) return;
+			const color = AQI_TIER_COLORS[aqTier(v)];
+			if (color === last) return;
+			const offset = last == null ? 0 : cx(i) / width;
+			if (last != null) stops.push({ offset, color: last });
+			stops.push({ offset, color });
+			last = color;
+		});
+		return stops;
+	});
+	// Where the air quality stops (about 5 days): the hour before the first missing hour after the data
+	let aqEnd = $derived.by(() => {
+		const first = aqValues.findIndex((v) => v != null);
+		if (first < 0) return -1;
+		const gap = aqValues.findIndex((v, i) => i > first && v == null);
+		return gap < 0 ? -1 : gap - 1;
+	});
 
 	// The day's high and low of the temperature, labelled at their points; the low is left out when it is the same hour as
 	// the high, because it would sit on the same point
@@ -274,6 +338,19 @@
 		return out;
 	});
 
+	// The value of the highest bar of each day (any number of hours), above the bar
+	let precipLabels = $derived.by(() => {
+		if (!precipDomain) return [];
+		const out: { key: string; i: number; y: number; primary: string; secondary: string | null }[] = [];
+		for (const e of chartDayExtremes(precips, days, 1)) {
+			const i = e.high;
+			if (i < drawn.start || i >= drawn.end || precips[i] == null || precips[i]! <= 0) continue;
+			const [primary, secondary] = splitDual(shown[i].precipitation!.displayDual(metricPrimary).join(' · '));
+			out.push({ key: `p${i}`, i, y: y(precips[i]!, precipDomain, panels.precip) - LABEL_GAP, primary: loc(primary), secondary: secondary ? loc(secondary) : null });
+		}
+		return out;
+	});
+
 	let summary = $derived($_('chart_view_summary', { values: { hours: loc(String(count)) } }));
 
 	/** One value tile of the selection card: its label, and the value as a pair of units, as text, or on a pill. */
@@ -284,11 +361,11 @@
 		pill?: { background: string; color: string };
 		/** The chance of rain, localised, under the precipitation. */
 		chance?: string;
+		/** Small lines under the value (the air quality standards). */
+		notes?: string[];
 		direction?: string;
 	}
-	const CELLS_PER_ROW = 4;
-
-	// The values of the selected hour, each only when the hour has it, in rows of up to 4
+	// The values of the selected hour, each only when the hour has it, in rows of up to 4 that are as even as possible
 	let rows = $derived.by(() => {
 		const h = selectedHour;
 		if (!h) return [];
@@ -311,8 +388,26 @@
 			const badge = uvBadge(h.uvIndex);
 			cells.push({ label: $_('detail_uv_index'), text: badge.text, pill: { background: badge.background, color: badge.color } });
 		}
-		return Array.from({ length: Math.ceil(cells.length / CELLS_PER_ROW) }, (_v, k) => cells.slice(k * CELLS_PER_ROW, (k + 1) * CELLS_PER_ROW));
+		const aq = aqEntries[Math.min(selected, count - 1)];
+		if (aq) {
+			const primary = aqPrimary(aq);
+			const secondary = aqiStandard === 'EUROPEAN' ? aq.usValue : aq.europeanValue;
+			const other: AqiStandard = aqiStandard === 'EUROPEAN' ? 'US' : 'EUROPEAN';
+			cells.push({
+				label: $_('detail_air_quality'),
+				text: loc(String(primary)),
+				pill: aqiPill(aqTier(primary)),
+				notes: [aqiLabel(aqiStandard), loc(`${secondary} ${aqiLabel(other)}`)],
+			});
+		}
+		let start = 0;
+		return chartTileRows(cells.length).map((size) => cells.slice(start, (start += size)));
 	});
+
+	/** The colours of an air quality level on a pill: dark text on the light colours, as on Android. */
+	function aqiPill(tier: AqiTier) {
+		return { background: AQI_TIER_COLORS[tier], color: tier === 'good' || tier === 'moderate' ? '#1A1A1A' : 'white' };
+	}
 
 	/** The UV index as shown (rounded), and the colours of its level, from the shown value. */
 	function uvBadge(uv: number) {
@@ -435,6 +530,11 @@
 										</span>
 									{/if}
 									{#if c.direction}<span class="sel-sub sel-direction">{c.direction}</span>{/if}
+									{#if c.notes}
+										<span class="sel-notes">
+											{#each c.notes as note, n (n)}<span class="sel-sub sel-note">{note}</span>{/each}
+										</span>
+									{/if}
 								</span>
 							{/each}
 						</span>
@@ -460,6 +560,13 @@
 		onkeydown={onKeyDown}
 		style:height="{totalHeight}px"
 	>
+		<!-- A rounded band behind each titled panel and its scale labels, under everything else; it does not scroll -->
+		<div class="bands" aria-hidden="true">
+			{#each bands as b (b.top)}
+				<div class="band" style:top="{b.top}px" style:height="{b.height}px" style:inset-inline="{BAND_INSET}px" style:background={ChartStyle.panelBand} style:border-radius="{ChartStyle.panelBandRadius}px"></div>
+			{/each}
+		</div>
+
 		<!-- The axis column: the values of each scale in the primary unit, with the other unit small under them -->
 		<div class="axis" style:width="{AXIS_WIDTH}px">
 			{#each axes as l, k (k)}
@@ -485,14 +592,14 @@
 			<div class="hours" style:width="{count * slot}px" style:height="{totalHeight}px">
 				<svg width={count * slot} height={totalHeight} aria-hidden="true">
 					<defs>
-						{#each PANEL_HEIGHTS as [id] (id)}
+						{#each panelIds as id (id)}
 							<clipPath id="chart-clip-{id}"><rect x="0" y={panels[id].top} width={count * slot} height={panels[id].height} /></clipPath>
 						{/each}
 					</defs>
 					<!-- A vertical line at `x` through the plot area of each panel, with a break between panels.
 					     Declared in the svg, so that its lines are svg elements -->
 					{#snippet verticalLine(x: number, stroke: string, width: number)}
-						{#each LINE_SEGMENTS as p (p.top)}
+						{#each lineSegments as p (p.top)}
 							<line x1={x} x2={x} y1={p.plotTop} y2={p.plotBottom} {stroke} stroke-width={width} />
 						{/each}
 					{/snippet}
@@ -558,6 +665,9 @@
 						{/if}
 						<path d={curve(chances, PERCENT_DOMAIN, panels.precip)} fill="none" stroke={ChartStyle.chance} stroke-width={ChartStyle.chanceWidth} />
 					</g>
+					{#each precipLabels as l (l.key)}
+						<text x={cx(l.i)} y={l.y} text-anchor="middle" direction="ltr" font-size="9" font-weight="bold" fill={ChartStyle.precipitation} style:font-family="var(--font-display)" style:font-feature-settings="var(--font-features)">{l.primary}{#if l.secondary}<tspan font-size="0.8em" font-weight="500" fill-opacity="0.7">{" " + l.secondary}</tspan>{/if}</text>
+					{/each}
 
 					<!-- Wind and gusts on one scale, with the direction every 3 hours -->
 					<g clip-path="url(#chart-clip-wind)">
@@ -580,6 +690,23 @@
 					{/if}
 
 					<path clip-path="url(#chart-clip-humidity)" d={curve(humidities, PERCENT_DOMAIN, panels.humidity)} fill="none" stroke={ChartStyle.humidity} stroke-width={ChartStyle.lineWidth} />
+
+					<!-- The air quality in the primary standard, each segment in the colour of the level of the hour at its start;
+					     no line where the hours have no air quality, and a note where the data stops -->
+					{#if hasAirQuality && aqDomain}
+						<defs>
+							<linearGradient id="chart-aq-gradient" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2={Math.max(1, count * slot)} y2="0">
+								{#each aqStops as stop, k (k)}
+									<stop offset={stop.offset} stop-color={stop.color} />
+								{/each}
+							</linearGradient>
+						</defs>
+						<path clip-path="url(#chart-clip-airQuality)" d={curve(aqValues, aqDomain, panels.airQuality)} fill="none" stroke="url(#chart-aq-gradient)" stroke-width={ChartStyle.lineWidth} />
+						{#if aqEnd >= 0}
+							<!-- It stays at the start of the plot when the last hour with air quality is out of view -->
+							<text x={Math.max(cx(aqEnd), hoursLeft) + 8} y={(panels.airQuality.plotTop + panels.airQuality.plotBottom) / 2} dominant-baseline="central" font-size="11" fill="white" fill-opacity="0.5">{$_('chart_view_no_data')}</text>
+						{/if}
+					{/if}
 
 					<!-- Time axes: an hour label every 3 or 6 hours, and the day at each midnight (the day at the start stays in view).
 					     The bottom axis has its ticks, then the hours, then the days; the top axis is the same, mirrored. -->
@@ -622,10 +749,10 @@
 		</div>
 
 		<!-- Titles at the start of each panel, and the chance of rain scale at the end of its panel; they do not scroll -->
-		<div class="overlay" aria-hidden="true" style:left="{AXIS_WIDTH}px">
+		<div class="overlay" aria-hidden="true">
 			{#each titles as t (t.id)}
-				<div class="panel-title" style:top="{panels[t.id].top + 1}px" dir="auto">
-					<span class="title-main">{t.title}</span>{#if t.second}<span style:color={t.second.color}>{'   ● ' + t.second.text}</span>{/if}
+				<div class="panel-title" style:top="{panels[t.id].top}px" style:height="{TITLE_HEIGHT}px" style:left="{BAND_INSET + 10}px" dir="auto">
+					<span class="title-main">{t.title}</span>{#if t.second}<span class="title-second" style:color={t.second.color}>{'   ● ' + t.second.text}</span>{/if}
 				</div>
 			{/each}
 			{#each [50, 100] as v (v)}
@@ -773,6 +900,16 @@
 		color: rgba(255, 255, 255, 0.7);
 	}
 
+	.sel-notes {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.sel-note {
+		color: rgba(255, 255, 255, 0.6);
+	}
+
 	.chart-card {
 		padding: 8px 0;
 		overflow: hidden;
@@ -787,6 +924,16 @@
 	.chart:focus-visible {
 		outline: 2px solid rgba(255, 255, 255, 0.8);
 		outline-offset: -2px;
+	}
+
+	.bands {
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+	}
+
+	.band {
+		position: absolute;
 	}
 
 	.axis {
@@ -864,17 +1011,23 @@
 		pointer-events: none;
 	}
 
+	/* Centred in the title line; the units stay in the title text */
 	.panel-title {
 		position: absolute;
-		left: 6px;
+		display: flex;
+		align-items: center;
 		white-space: pre;
-		font-size: 10px;
-		line-height: 14px;
+		font-family: var(--font-body);
 	}
 
 	.title-main {
-		font-weight: 600;
-		color: rgba(255, 255, 255, 0.75);
+		font-size: 13px;
+		font-weight: 700;
+		color: rgba(255, 255, 255, 0.9);
+	}
+
+	.title-second {
+		font-size: 11px;
 	}
 
 	.chance-label {

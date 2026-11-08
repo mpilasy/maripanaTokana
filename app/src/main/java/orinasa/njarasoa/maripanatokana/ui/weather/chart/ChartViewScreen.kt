@@ -63,6 +63,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
@@ -102,7 +103,9 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import orinasa.njarasoa.maripanatokana.R
+import orinasa.njarasoa.maripanatokana.domain.model.AqiStandard
 import orinasa.njarasoa.maripanatokana.domain.model.ChartHour
+import orinasa.njarasoa.maripanatokana.domain.model.HourlyAirQuality
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.model.showWindArrow
 import orinasa.njarasoa.maripanatokana.ui.theme.Hairline
@@ -133,25 +136,32 @@ import kotlin.math.roundToInt
 
 private const val HOUR = 3_600_000L
 
-/** The panels from top to bottom, with their height in dp. The value panels have a title line at the top. */
+/**
+ * The panels from top to bottom, with their height in dp. The value panels have a title line at the top and a band
+ * behind them. The air quality panel is shown only when an hour has air quality.
+ */
 private enum class ChartPanel(val heightDp: Int, val titled: Boolean) {
     // The time axis at the top: the bottom one mirrored
     TOP_TIME(36, false),
     ICONS(46, false),
     TEMPERATURE(156, true),
-    PRECIPITATION(88, true),
+    PRECIPITATION(100, true),
     WIND(104, true),
     PRESSURE(80, true),
     HUMIDITY(80, true),
+    AIR_QUALITY(80, true),
     TIME(36, false),
 }
 
 private val AXIS_WIDTH = 52.dp
-private val PANEL_GAP = 6.dp
-private val TITLE_HEIGHT = 16.dp
+private val PANEL_GAP = 10.dp
+private val TITLE_HEIGHT = 22.dp
+// The panel bands start this far from the sides of the card, and the titles this far from the start of the band
+private val BAND_INSET = 6.dp
+private val TITLE_INSET = 10.dp
 // The room above the wind line for the direction arrows
 private val ARROW_ROW = 14.dp
-// The room above and under the temperature line for the labels of the day high and low
+// The room above and under the temperature line for the labels of the day high and low, and above the rain bars
 private val EXTREME_ROW = 12.dp
 // The cards, as the section cards of the main screen
 private val CARD_SHAPE = RoundedCornerShape(20.dp)
@@ -177,6 +187,8 @@ private class ChartSeries(hours: List<ChartHour>, metricPrimary: Boolean) {
 fun ChartViewScreen(
     data: WeatherData,
     metricPrimary: Boolean,
+    hourlyAirQuality: List<HourlyAirQuality>,
+    aqiStandard: AqiStandard,
     localizeDigits: (String) -> String,
     onToggleUnits: () -> Unit,
     onBack: () -> Unit,
@@ -185,6 +197,10 @@ fun ChartViewScreen(
     // The data can be some hours old: start again at the current hour
     val hours = remember(data.chartHourly) {
         data.chartHourly.slice(chartHours(data.chartHourly.map { it.time }, System.currentTimeMillis()))
+    }
+    // The air quality of each hour; null when no entry is near
+    val airQuality = remember(hours, hourlyAirQuality) {
+        chartAirQuality(hours.map { it.time }, hourlyAirQuality.map { it.time }).map { it?.let(hourlyAirQuality::get) }
     }
     var selected by remember(hours) { mutableIntStateOf(0) }
     val bodyFont = LocalBodyFont.current
@@ -222,7 +238,7 @@ fun ChartViewScreen(
                 }
             }
             hours.getOrNull(selected)?.let { hour ->
-                SelectionHeader(hour, data.utcOffsetSeconds, metricPrimary, localizeDigits, onToggleUnits)
+                SelectionHeader(hour, airQuality.getOrNull(selected), aqiStandard, data.utcOffsetSeconds, metricPrimary, localizeDigits, onToggleUnits)
             }
             Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(top = 8.dp, bottom = 16.dp)) {
                 // The chart card: the axis column and the panels, with no title row
@@ -236,7 +252,7 @@ fun ChartViewScreen(
                 ) {
                     // The hours run left to right in every language, as in the other charts of the app
                     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-                        ChartPanels(hours, data.utcOffsetSeconds, metricPrimary, localizeDigits) { selected = it }
+                        ChartPanels(hours, airQuality, aqiStandard, data.utcOffsetSeconds, metricPrimary, localizeDigits) { selected = it }
                     }
                 }
             }
@@ -245,12 +261,15 @@ fun ChartViewScreen(
 }
 
 /**
- * The card of the selected hour: its time and weather icon in the title row, then the values as tiles in strips of up
- * to 4, each in both units. Screen readers read it again when the selection moves; a tap changes the units, as
- * everywhere in the app.
+ * The card of the selected hour: its time and weather icon in the title row, then the values as tiles in rows of up
+ * to 4 (chartTileRows), each in both units. Screen readers read it again when the selection moves; a tap changes the
+ * units, as everywhere in the app.
  */
 @Composable
-private fun SelectionHeader(hour: ChartHour, utcOffsetSeconds: Int, metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
+private fun SelectionHeader(
+    hour: ChartHour, airQuality: HourlyAirQuality?, aqiStandard: AqiStandard, utcOffsetSeconds: Int, metricPrimary: Boolean,
+    localizeDigits: (String) -> String, onToggleUnits: () -> Unit,
+) {
     val appLocale = LocalConfiguration.current.locales[0]
     val timeFormat = remember(appLocale, utcOffsetSeconds) {
         SimpleDateFormat("EEE d MMM, HH:mm", appLocale).apply { timeZone = buildLocationTimeZone(utcOffsetSeconds) }
@@ -319,7 +338,7 @@ private fun SelectionHeader(hour: ChartHour, utcOffsetSeconds: Int, metricPrimar
             val direction = hour.windDirection?.takeIf { showWindArrow(w) }?.let { directions[((it % 360 + 360) / 22.5 + 0.5).toInt() % 16] }
             add {
                 Tile(it, stringResource(R.string.detail_wind), extra = direction?.let { d ->
-                    { Text(d, color = onSurface.copy(alpha = 0.7f), fontSize = 11.sp, fontFamily = bodyFont, modifier = Modifier.padding(top = 2.dp)) }
+                    { Text(d, color = onSurface.copy(alpha = 0.7f), fontSize = 11.sp, lineHeight = 13.sp, fontFamily = bodyFont, style = TextStyle(), modifier = Modifier.padding(top = 2.dp)) }
                 }) { dual(w.displayDual(metricPrimary)) }
             }
         }
@@ -344,7 +363,28 @@ private fun SelectionHeader(hour: ChartHour, utcOffsetSeconds: Int, metricPrimar
                 }
             }
         }
+        airQuality?.let { aq ->
+            // The primary standard in a pill of its tier colour, then its name, then the other standard
+            val european = aqiStandard == AqiStandard.EUROPEAN
+            val colors = colorsFor(aq.tier(aqiStandard))
+            add {
+                val usLabel = stringResource(R.string.air_quality_us_aqi)
+                val euLabel = stringResource(R.string.air_quality_eu_aqi)
+                val (primary, secondary) = if (european) aq.europeanValue to aq.usValue else aq.usValue to aq.europeanValue
+                val (primaryLabel, secondaryLabel) = if (european) euLabel to usLabel else usLabel to euLabel
+                Tile(it, stringResource(R.string.detail_air_quality), extra = {
+                    Text(primaryLabel, color = onSurface.copy(alpha = 0.6f), fontSize = 11.sp, lineHeight = 13.sp, fontFamily = bodyFont, style = TextStyle(), modifier = Modifier.padding(top = 2.dp))
+                    Text(localizeDigits("$secondary $secondaryLabel"), color = onSurface.copy(alpha = 0.6f), fontSize = 11.sp, lineHeight = 13.sp, fontFamily = bodyFont, style = TextStyle())
+                }) {
+                    pill(colors.background) {
+                        Text(localizeDigits(primary.toString()), color = colors.text, fontSize = 15.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont, style = TextStyle())
+                    }
+                }
+            }
+        }
     }
+    // The tiles spread evenly on the rows
+    val rows = chartTileRows(tiles.size).runningFold(0) { start, n -> start + n }.zipWithNext { a, b -> tiles.subList(a, b) }
 
     Column(
         modifier = Modifier
@@ -366,7 +406,7 @@ private fun SelectionHeader(hour: ChartHour, utcOffsetSeconds: Int, metricPrimar
             Image(painterResource(weatherIconRes(hour.weatherCode, hour.isNight)), contentDescription = null, modifier = Modifier.size(32.dp))
         }
         Column(modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            tiles.chunked(4).forEachIndexed { r, row ->
+            rows.forEachIndexed { r, row ->
                 // Each row keeps its own label line count
                 key(r) {
                     CompositionLocalProvider(LocalRowTitles provides remember { RowTitles() }) {
@@ -398,6 +438,8 @@ private fun SelectionHeader(hour: ChartHour, utcOffsetSeconds: Int, metricPrimar
 @Composable
 private fun ChartPanels(
     hours: List<ChartHour>,
+    airQuality: List<HourlyAirQuality?>,
+    aqiStandard: AqiStandard,
     utcOffsetSeconds: Int,
     metricPrimary: Boolean,
     localizeDigits: (String) -> String,
@@ -407,6 +449,7 @@ private fun ChartPanels(
     val haptic = LocalHapticFeedback.current
     val textMeasurer = rememberTextMeasurer(cacheSize = 128)
     val displayFont = LocalDisplayFont.current
+    val bodyFont = LocalBodyFont.current
     val appLocale = LocalConfiguration.current.locales[0]
     val count = hours.size
     val axisPx = with(density) { AXIS_WIDTH.toPx() }
@@ -449,9 +492,19 @@ private fun ChartPanels(
     val pDomain = remember(series) { chartDomain(series.precipitation, fromZero = true, minSpan = if (metricPrimary) 1.0 else 0.04) }
     val wDomain = remember(series) { chartDomain(series.wind + series.gust, fromZero = true, minSpan = if (metricPrimary) 5.0 else 10.0) }
     val prDomain = remember(series) { chartDomain(series.pressure, fromZero = false, minSpan = if (metricPrimary) 4.0 else 0.12) }
+    // The air quality in the primary standard; no value in any hour: no air quality panel
+    val aqValues = remember(airQuality, aqiStandard) {
+        airQuality.map { it?.let { aq -> (if (aqiStandard == AqiStandard.EUROPEAN) aq.europeanValue else aq.usValue).toDouble() } }
+    }
+    val aqDomain = remember(aqValues) { chartDomain(aqValues, fromZero = true, minSpan = 50.0) }
+    val panels = remember(aqDomain) { ChartPanel.entries.filter { it != ChartPanel.AIR_QUALITY || aqDomain != null } }
+    // The last hour with air quality before the first hours without it, where the "no data" label starts
+    val aqEnd = remember(aqValues) { (0 until aqValues.size - 1).firstOrNull { aqValues[it] != null && aqValues[it + 1] == null } }
     val times = remember(hours) { hours.map { it.time } }
     val days = remember(hours, utcOffsetSeconds) { chartDaySpans(times, utcOffsetSeconds) }
     val extremes = remember(series, days) { chartDayExtremes(series.temperature, days) }
+    // The highest bar of each day, with any number of hours
+    val rainPeaks = remember(series, days) { chartDayExtremes(series.precipitation, days, minHours = 1) }
     val localHours = remember(hours, utcOffsetSeconds) { times.map { Math.floorMod((it + utcOffsetSeconds * 1000L) / HOUR, 24L).toInt() } }
     val locationZone = remember(utcOffsetSeconds) { buildLocationTimeZone(utcOffsetSeconds) }
     val hourFormat = remember(locationZone) { SimpleDateFormat("HH:mm", Locale.US).apply { timeZone = locationZone } }
@@ -469,9 +522,12 @@ private fun ChartPanels(
         gust = stringResource(R.string.detail_wind_gust),
         pressure = stringResource(R.string.detail_pressure) + "  " + units(metricPrimary, "hPa", "inHg"),
         humidity = stringResource(R.string.detail_humidity) + "  %",
+        airQuality = stringResource(R.string.detail_air_quality) + "  " +
+            stringResource(if (aqiStandard == AqiStandard.EUROPEAN) R.string.air_quality_eu_aqi else R.string.air_quality_us_aqi),
     )
+    val noData = stringResource(R.string.chart_view_no_data)
     val summary = stringResource(R.string.chart_view_summary, localizeDigits(count.toString()))
-    val totalHeight = ChartPanel.entries.sumOf { it.heightDp } + PANEL_GAP.value * (ChartPanel.entries.size - 1)
+    val totalHeight = panels.sumOf { it.heightDp } + PANEL_GAP.value * (panels.size - 1)
     val onSurface = MaterialTheme.colorScheme.onSurface
 
     Canvas(
@@ -494,14 +550,26 @@ private fun ChartPanels(
         fun cx(i: Int) = axisPx + i * slot + slot / 2 - scroll
         // The hour position under the selection line, for the dots on the lines (0 is the middle of the first hour)
         val linePos = (scroll + lineOffset) / slot - 0.5f
-        val chartsTop = panelTop(ChartPanel.ICONS)
-        val chartsBottom = panelTop(ChartPanel.HUMIDITY) + ChartPanel.HUMIDITY.heightDp.dp.toPx()
+        val chartsTop = panelTop(panels, ChartPanel.ICONS)
+        // The bottom of the last value panel: the air quality when it shows, else the humidity
+        val lastPanel = if (aqDomain != null) ChartPanel.AIR_QUALITY else ChartPanel.HUMIDITY
+        val chartsBottom = panelTop(panels, lastPanel) + lastPanel.heightDp.dp.toPx()
 
-        val tArea = plotArea(ChartPanel.TEMPERATURE, extraTop = EXTREME_ROW.toPx(), extraBottom = EXTREME_ROW.toPx())
-        val pArea = plotArea(ChartPanel.PRECIPITATION)
-        val wArea = plotArea(ChartPanel.WIND, extraTop = ARROW_ROW.toPx())
-        val prArea = plotArea(ChartPanel.PRESSURE)
-        val hArea = plotArea(ChartPanel.HUMIDITY)
+        val tArea = plotArea(panels, ChartPanel.TEMPERATURE, extraTop = EXTREME_ROW.toPx(), extraBottom = EXTREME_ROW.toPx())
+        val pArea = plotArea(panels, ChartPanel.PRECIPITATION, extraTop = EXTREME_ROW.toPx())
+        val wArea = plotArea(panels, ChartPanel.WIND, extraTop = ARROW_ROW.toPx())
+        val prArea = plotArea(panels, ChartPanel.PRESSURE)
+        val hArea = plotArea(panels, ChartPanel.HUMIDITY)
+        val aqArea = plotArea(panels, ChartPanel.AIR_QUALITY)
+
+        // The band of each titled panel first, under all the rest; it covers the axis column too
+        val bandInset = BAND_INSET.toPx()
+        panels.filter { it.titled }.forEach { panel ->
+            drawRoundRect(
+                ChartStyle.panelBand, Offset(bandInset, panelTop(panels, panel)), Size(size.width - 2 * bandInset, panel.heightDp.dp.toPx()),
+                CornerRadius(ChartStyle.panelBandRadius.toPx()),
+            )
+        }
 
         clipRect(left = axisPx) {
             // Days: alternate backgrounds, and a stronger line at each midnight in every panel
@@ -510,7 +578,7 @@ private fun ChartPanels(
                 val right = days.getOrNull(k + 1)?.let { cx(it.startIndex) } ?: (cx(span.endIndex - 1) + slot / 2)
                 if (right < axisPx || left > size.width) return@forEachIndexed
                 if (k % 2 == 1) drawRect(Color.White.copy(alpha = 0.03f), Offset(left, 0f), Size(right - left, size.height))
-                if (k > 0) drawVerticalLine(left, ChartStyle.midnight, ChartStyle.midnightWidth.toPx())
+                if (k > 0) drawVerticalLine(panels, left, ChartStyle.midnight, ChartStyle.midnightWidth.toPx())
             }
             // Night hours, faintly darker
             var runStart = -1
@@ -530,6 +598,7 @@ private fun ChartPanels(
             wDomain?.let { drawGrid(it, wArea) }
             prDomain?.let { drawGrid(it, prArea) }
             drawGrid(PERCENT_DOMAIN, hArea)
+            aqDomain?.let { drawGrid(it, aqArea) }
 
             // The selection column: the selected hour is under it, in every panel; the lines are on top of it
             drawRoundRect(
@@ -537,7 +606,7 @@ private fun ChartPanels(
                 CornerRadius(ChartStyle.selectionColumnRadius.toPx()),
             )
 
-            drawIcons(hours, drawn, localHours, ::cx, panelTop(ChartPanel.ICONS), painters, textMeasurer, displayFont, localizeDigits)
+            drawIcons(hours, drawn, localHours, ::cx, panelTop(panels, ChartPanel.ICONS), painters, textMeasurer, displayFont, localizeDigits)
 
             // Temperature with the dew point on the same scale, and a dashed line at freezing
             tDomain?.let { d ->
@@ -590,6 +659,17 @@ private fun ChartPanels(
             }
             drawSeries(series.chance, drawn, ::cx, { pArea.y(it, PERCENT_DOMAIN) }, ChartStyle.chance, ChartStyle.chanceWidth.toPx())
             drawSelectedDot(series.chance, linePos, lineX) { pArea.y(it, PERCENT_DOMAIN) }
+            // The value of the highest bar of each day, above the bar, as the day high of the temperature
+            pDomain?.let { d ->
+                val style = TextStyle(color = ChartStyle.precipitation, fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont, textDirection = TextDirection.Ltr)
+                for (e in rainPeaks) {
+                    val i = e.highIndex.takeIf { it in drawn } ?: continue
+                    val v = series.precipitation[i]?.takeIf { it > 0 } ?: continue
+                    val (p, s) = hours[i].precipitation?.displayDual(metricPrimary) ?: continue
+                    val layout = textMeasurer.measure(dualLabel(localizeDigits("$p · $s"), style.color), style)
+                    drawText(layout, topLeft = Offset(cx(i) - layout.size.width / 2f, pArea.y(v, d) - 2.dp.toPx() - layout.size.height))
+                }
+            }
 
             // Wind and gusts on one scale, with the direction every 3 hours
             wDomain?.let { d ->
@@ -614,6 +694,21 @@ private fun ChartPanels(
             drawSeries(series.humidity, drawn, ::cx, { hArea.y(it, PERCENT_DOMAIN) }, ChartStyle.humidity, ChartStyle.lineWidth.toPx())
             drawSelectedDot(series.humidity, linePos, lineX) { hArea.y(it, PERCENT_DOMAIN) }
 
+            // The air quality: each part of the line in the tier colour of the hour at its start, and a "no data"
+            // label after the last hour with air quality
+            aqDomain?.let { d ->
+                drawTierSeries(aqValues, drawn, ::cx, { aqArea.y(it, d) }, { i -> colorsFor(airQuality[i]!!.tier(aqiStandard)).background }, ChartStyle.lineWidth.toPx())
+                drawSelectedDot(aqValues, linePos, lineX) { aqArea.y(it, d) }
+                aqEnd?.let { i ->
+                    val layout = textMeasurer.measure(noData, TextStyle(color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp, fontFamily = bodyFont))
+                    // It stays at the start of the plot when the last hour with air quality is out of view
+                    val left = maxOf(cx(i), axisPx) + 8.dp.toPx()
+                    if (left < size.width) {
+                        drawText(layout, topLeft = Offset(left, (aqArea.top + aqArea.bottom - layout.size.height) / 2))
+                    }
+                }
+            }
+
             // Time axes at the top and the bottom: an hour label every 3 or 6 hours, and the day at each midnight
             // (the day at the start stays in view). The top axis is the bottom one mirrored: the labels are above their ticks.
             val hourStyle = TextStyle(color = onSurface.copy(alpha = 0.6f), fontSize = 10.sp, fontFamily = displayFont)
@@ -621,7 +716,7 @@ private fun ChartPanels(
             val tick = 3.dp.toPx()
             val dayOffset = 18.dp.toPx()
             fun drawTimeAxis(panel: ChartPanel, mirrored: Boolean) {
-                val top = panelTop(panel)
+                val top = panelTop(panels, panel)
                 val bottom = top + panel.heightDp.dp.toPx()
                 for (i in drawn) {
                     if (localHours[i] % 3 != 0) continue
@@ -645,12 +740,6 @@ private fun ChartPanels(
             drawTimeAxis(ChartPanel.TOP_TIME, mirrored = true)
             drawTimeAxis(ChartPanel.TIME, mirrored = false)
 
-            // Titles on top of the lines, at the start of each panel; they do not scroll
-            drawTitle(ChartPanel.TEMPERATURE, titles.temperature, titles.dewPoint, ChartStyle.dewPoint, axisPx, textMeasurer, onSurface)
-            drawTitle(ChartPanel.PRECIPITATION, titles.precipitation, titles.chance, ChartStyle.chance, axisPx, textMeasurer, onSurface)
-            drawTitle(ChartPanel.WIND, titles.wind, titles.gust, ChartStyle.gust, axisPx, textMeasurer, onSurface)
-            drawTitle(ChartPanel.PRESSURE, titles.pressure, null, Color.Unspecified, axisPx, textMeasurer, onSurface)
-            drawTitle(ChartPanel.HUMIDITY, titles.humidity, null, Color.Unspecified, axisPx, textMeasurer, onSurface)
             // The chance of rain scale at the end of the panel
             val chanceStyle = TextStyle(color = ChartStyle.chance, fontSize = 8.sp, fontFamily = displayFont)
             listOf(50.0, 100.0).forEach { v ->
@@ -666,6 +755,15 @@ private fun ChartPanels(
         wDomain?.let { axis.draw(this, it, wArea, if (metricPrimary) { v -> v * 2.23694 } else { v -> v / 2.23694 }, if (metricPrimary) 0 else 1) }
         prDomain?.let { axis.draw(this, it, prArea, if (metricPrimary) { v -> v * 0.02953 } else { v -> v / 0.02953 }, if (metricPrimary) 2 else 0) }
         axis.draw(this, PERCENT_DOMAIN, hArea, null, 0, suffix = "%")
+        aqDomain?.let { axis.draw(this, it, aqArea, null, 0) }
+
+        // Titles on top of everything, at the start of each band; they do not scroll
+        drawTitle(panels, ChartPanel.TEMPERATURE, titles.temperature, titles.dewPoint, ChartStyle.dewPoint, textMeasurer, bodyFont)
+        drawTitle(panels, ChartPanel.PRECIPITATION, titles.precipitation, titles.chance, ChartStyle.chance, textMeasurer, bodyFont)
+        drawTitle(panels, ChartPanel.WIND, titles.wind, titles.gust, ChartStyle.gust, textMeasurer, bodyFont)
+        drawTitle(panels, ChartPanel.PRESSURE, titles.pressure, null, Color.Unspecified, textMeasurer, bodyFont)
+        drawTitle(panels, ChartPanel.HUMIDITY, titles.humidity, null, Color.Unspecified, textMeasurer, bodyFont)
+        if (aqDomain != null) drawTitle(panels, ChartPanel.AIR_QUALITY, titles.airQuality, null, Color.Unspecified, textMeasurer, bodyFont)
     }
 }
 
@@ -683,6 +781,7 @@ private class ChartTitles(
     val precipitation: String, val chance: String,
     val wind: String, val gust: String,
     val pressure: String, val humidity: String,
+    val airQuality: String,
 )
 
 /** The part of a panel where the values go, from [top] to [bottom] px. */
@@ -691,12 +790,12 @@ private class PlotArea(val top: Float, val bottom: Float) {
         if (d.max > d.min) (bottom - (v - d.min) / (d.max - d.min) * (bottom - top)).toFloat() else bottom
 }
 
-/** The top of [panel] in px. */
-private fun DrawScope.panelTop(panel: ChartPanel): Float =
-    ChartPanel.entries.takeWhile { it != panel }.sumOf { (it.heightDp.dp + PANEL_GAP).toPx().toDouble() }.toFloat()
+/** The top of [panel] in px, with [panels] the panels that show. */
+private fun DrawScope.panelTop(panels: List<ChartPanel>, panel: ChartPanel): Float =
+    panels.takeWhile { it != panel }.sumOf { (it.heightDp.dp + PANEL_GAP).toPx().toDouble() }.toFloat()
 
-private fun DrawScope.plotArea(panel: ChartPanel, extraTop: Float = 0f, extraBottom: Float = 0f): PlotArea {
-    val top = panelTop(panel)
+private fun DrawScope.plotArea(panels: List<ChartPanel>, panel: ChartPanel, extraTop: Float = 0f, extraBottom: Float = 0f): PlotArea {
+    val top = panelTop(panels, panel)
     val title = if (panel.titled) TITLE_HEIGHT.toPx() else 0f
     return PlotArea(top + title + extraTop + 4.dp.toPx(), top + panel.heightDp.dp.toPx() - extraBottom - 4.dp.toPx())
 }
@@ -705,9 +804,9 @@ private fun DrawScope.plotArea(panel: ChartPanel, extraTop: Float = 0f, extraBot
  * A vertical line at [x] in the plot area of each panel, with a break in the gaps and title lines between
  * the panels, so that each chart shows where it ends. The time axes have their own short ticks.
  */
-private fun DrawScope.drawVerticalLine(x: Float, color: Color, width: Float) {
-    ChartPanel.entries.filter { it != ChartPanel.TIME && it != ChartPanel.TOP_TIME }.forEach { panel ->
-        val area = plotArea(panel)
+private fun DrawScope.drawVerticalLine(panels: List<ChartPanel>, x: Float, color: Color, width: Float) {
+    panels.filter { it != ChartPanel.TIME && it != ChartPanel.TOP_TIME }.forEach { panel ->
+        val area = plotArea(panels, panel)
         drawLine(color, Offset(x, area.top), Offset(x, area.bottom), width)
     }
 }
@@ -741,6 +840,36 @@ private fun DrawScope.drawSeries(
     for (i in range) {
         val v = values[i]
         if (v == null || !v.isFinite()) flush() else run += Offset(x(i), y(v))
+    }
+    flush()
+}
+
+/**
+ * A line through the hours of [range] as [drawSeries] draws it, but each part between two hours is in the colour of the
+ * hour at its start ([color]).
+ */
+private fun DrawScope.drawTierSeries(
+    values: List<Double?>, range: IntRange, x: (Int) -> Float, y: (Double) -> Float, color: (Int) -> Color, width: Float,
+) {
+    var run = mutableListOf<Int>()
+    fun flush() {
+        val points = run.map { Offset(x(it), y(values[it]!!)) }
+        if (points.size == 1) drawCircle(color(run[0]), width, points[0])
+        if (points.size >= 2) {
+            computeMonotoneCubicControlPoints(points).forEachIndexed { k, cp ->
+                val path = Path().apply {
+                    moveTo(points[k].x, points[k].y)
+                    cubicTo(cp.cp1.x, cp.cp1.y, cp.cp2.x, cp.cp2.y, points[k + 1].x, points[k + 1].y)
+                }
+                // Round ends, so the parts join with no gap
+                drawPath(path, color(run[k]), style = Stroke(width, cap = StrokeCap.Round))
+            }
+        }
+        run = mutableListOf()
+    }
+    for (i in range) {
+        val v = values[i]
+        if (v == null || !v.isFinite()) flush() else run += i
     }
     flush()
 }
@@ -798,17 +927,17 @@ private fun DrawScope.drawWindArrow(center: Offset, degrees: Int) {
     }
 }
 
-/** The panel name and units, and the name of the second line in its colour. */
+/** The panel name and units, and the name of the second line in its colour, centred in the title row of [panel]. */
 private fun DrawScope.drawTitle(
-    panel: ChartPanel, title: String, second: String?, secondColor: Color, left: Float, textMeasurer: TextMeasurer, color: Color,
+    panels: List<ChartPanel>, panel: ChartPanel, title: String, second: String?, secondColor: Color, textMeasurer: TextMeasurer, font: FontFamily,
 ) {
-    val top = panelTop(panel)
+    val top = panelTop(panels, panel)
     val text: AnnotatedString = buildAnnotatedString {
-        withStyle(SpanStyle(color = color.copy(alpha = 0.75f), fontWeight = FontWeight.SemiBold)) { append(title) }
-        if (second != null) withStyle(SpanStyle(color = secondColor)) { append("   ● $second") }
+        withStyle(SpanStyle(color = Color.White.copy(alpha = 0.9f), fontSize = 13.sp, fontWeight = FontWeight.Bold)) { append(title) }
+        if (second != null) withStyle(SpanStyle(color = secondColor, fontSize = 11.sp)) { append("   ● $second") }
     }
-    val layout = textMeasurer.measure(text, TextStyle(fontSize = 10.sp, textDirection = TextDirection.Content))
-    drawText(layout, topLeft = Offset(left + 6.dp.toPx(), top + 1.dp.toPx()))
+    val layout = textMeasurer.measure(text, TextStyle(fontFamily = font, textDirection = TextDirection.Content))
+    drawText(layout, topLeft = Offset((BAND_INSET + TITLE_INSET).toPx(), top + (TITLE_HEIGHT.toPx() - layout.size.height) / 2))
 }
 
 /** Draws the labels of a scale in the axis column. */

@@ -73,6 +73,7 @@
     <string name="daylight_minutes_other">%1$s minutos</string>
     <string name="rises_in">Sale en %1$s</string>
     <string name="chart_view_title">Vista de gráficos</string>
+    <string name="chart_view_no_data">Sin datos</string>
     <string name="chart_view_open">Abrir la vista de gráficos</string>
     <string name="chart_view_summary">Gráficos de las próximas %1$s horas</string>
     <string name="high_vs_normal_above">Máx. %1$s por encima de lo normal</string>

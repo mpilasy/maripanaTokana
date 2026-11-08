@@ -106,7 +106,8 @@ export function mapToHourlyAirQuality(response: OpenMeteoAirQualityResponse, now
 	if (!h) return [];
 
 	const parsedTimes = h.time.map(t => parseIsoDateTime(t, 0));
-	const startIndex = parsedTimes.findIndex(t => t >= nowMillis);
+	// Start at the hour in progress, as the forecast hours do (the chart view opens on it)
+	const startIndex = parsedTimes.findIndex(t => t + 3_600_000 > nowMillis);
 	if (startIndex === -1) return [];
 
 	const result: HourlyAirQuality[] = [];
