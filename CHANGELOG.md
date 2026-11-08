@@ -9,6 +9,10 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261108041252] - 2026-11-08
+
+- Chart view: the same look as the main screen. The place name is the big line at the top, with "Chart view" under it. The selected hour shows in a glass card, with its values in tiles as in the main card: the temperature on its colour pill, each value in both units, the values lined up when a label wraps. The charts are in a second glass card. A soft column one hour wide marks the selected hour in place of the thin line. The temperature chart shows the high and the low of each day in orange and blue, as the chart on the main page.
+
 ## [1.6.20261107213135] - 2026-11-07
 
 - Chart view: the selection line starts on the current hour at the start of the chart, moves to the middle as the hours scroll, and moves to the end for the last hour, so the chart has no empty half. Zoom (pinch, double tap, Ctrl + wheel, + and −) is removed; a tap now selects at once.
