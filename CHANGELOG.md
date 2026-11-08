@@ -9,6 +9,15 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261108174717] - 2026-11-08
+
+- Chart view: each chart is easier to see. The titles are bigger, on their own row, and each chart has a faint band.
+- Chart view: a new air quality chart shows the hourly AQI in the colours of its level, for about 5 days. Where the data stops, it shows "No data". The selected hour shows its air quality in a tile, in both standards (US and EU).
+- Chart view: the highest rain bar of each day shows its value in both units.
+- Chart view: the value tiles fill their rows evenly (9 tiles make 3 rows of 3).
+- The hourly air quality starts at the current hour, as the forecast hours do.
+- The header folds and the footer hides after 3 seconds without a scroll (was 5 seconds).
+
 ## [1.6.20261108041252] - 2026-11-08
 
 - Chart view: the same look as the main screen. The place name is the big line at the top, with "Chart view" under it. The selected hour shows in a glass card, with its values in tiles as in the main card: the temperature on its colour pill, each value in both units, the values lined up when a label wraps. The charts are in a second glass card. A soft column one hour wide marks the selected hour in place of the thin line. The temperature chart shows the high and the low of each day in orange and blue, as the chart on the main page.
