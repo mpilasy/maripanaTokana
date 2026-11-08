@@ -9,6 +9,12 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261108202449] - 2026-11-08
+
+- Chart view: the card of the selected hour is compact, so the charts get about half of a phone screen. The tiles fill 2 rows (5 and 4), and the air quality tile shows only the value of the primary standard.
+- Chart view: the card keeps the same tiles and the same size for every hour, so the charts do not move when you scroll. An hour without a value shows a dash.
+- Chart view: the tile labels fit in every language. They all get the largest size at which each label takes at most 2 lines and no word breaks.
+
 ## [1.6.20261108174717] - 2026-11-08
 
 - Chart view: each chart is easier to see. The titles are bigger, on their own row, and each chart has a faint band.
