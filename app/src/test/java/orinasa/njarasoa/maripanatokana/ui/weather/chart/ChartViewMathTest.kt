@@ -3,6 +3,9 @@
 
 package orinasa.njarasoa.maripanatokana.ui.weather.chart
 
+import orinasa.njarasoa.maripanatokana.domain.model.ChartHour
+import orinasa.njarasoa.maripanatokana.domain.model.Temperature
+import orinasa.njarasoa.maripanatokana.domain.model.WindSpeed
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -315,18 +318,60 @@ class ChartViewMathTest {
         assertTrue(chartAirQuality(emptyList(), listOf(t0)).isEmpty())
     }
 
+    // chartTiles
+
+    private fun chartHour(time: Long) = ChartHour(
+        time = time, temperature = Temperature.fromCelsius(10.0), dewPoint = null, weatherCode = 0, isNight = false,
+        precipitation = null, precipProbability = null, windSpeed = null, windDirection = null, windGust = null,
+        pressure = null, humidity = 50, uvIndex = null,
+    )
+
+    @Test
+    fun chartTilesKeepsEachValueThatOneHourHas() {
+        val hours = listOf(chartHour(0), chartHour(hour).copy(windGust = WindSpeed.fromMetersPerSecond(5.0), uvIndex = Double.NaN))
+        assertEquals(listOf(ChartTile.TEMPERATURE, ChartTile.WIND_GUST, ChartTile.HUMIDITY), chartTiles(hours, hasAirQuality = false))
+        assertEquals(
+            listOf(ChartTile.TEMPERATURE, ChartTile.WIND_GUST, ChartTile.HUMIDITY, ChartTile.AIR_QUALITY),
+            chartTiles(hours, hasAirQuality = true),
+        )
+        assertTrue(chartTiles(emptyList(), hasAirQuality = false).isEmpty())
+    }
+
+    // chartLabelFit
+
+    // Each character is half the size wide
+    private val measure = { text: String, size: Float -> text.length * size / 2 }
+
+    @Test
+    fun chartLabelFitKeepsTheLargestSizeThatFits() {
+        assertEquals(ChartLabelFit(11f, listOf(1, 2)), chartLabelFit(listOf("Wind", "Tahan'ny tara-masoandro"), listOf(60f, 78f), measure))
+    }
+
+    @Test
+    fun chartLabelFitMakesAllLabelsSmallerWhenAWordIsTooWide() {
+        // "Precipitation" is 71.5 wide at 11 and 58.5 at 9
+        assertEquals(ChartLabelFit(9f, listOf(1, 1)), chartLabelFit(listOf("Wind", "Precipitation"), listOf(60f, 60f), measure))
+    }
+
+    @Test
+    fun chartLabelFitGivesTheSmallestSizeWhenNoSizeFits() {
+        // 3 lines at every size
+        assertEquals(ChartLabelFit(8f, listOf(2)), chartLabelFit(listOf("Air quality index"), listOf(40f), measure))
+        assertEquals(ChartLabelFit(11f, emptyList()), chartLabelFit(emptyList(), emptyList(), measure))
+    }
+
     // chartTileRows
 
     @Test
     fun chartTileRowsSpreadsTheTilesEvenly() {
-        assertEquals(listOf(3, 3, 3), chartTileRows(9))
+        assertEquals(listOf(5, 4), chartTileRows(9))
         assertEquals(listOf(4, 4), chartTileRows(8))
         assertEquals(listOf(4, 3), chartTileRows(7))
         assertEquals(listOf(3, 3), chartTileRows(6))
-        assertEquals(listOf(3, 2), chartTileRows(5))
-        assertEquals(listOf(4), chartTileRows(4))
+        assertEquals(listOf(5), chartTileRows(5))
         assertEquals(listOf(1), chartTileRows(1))
-        assertEquals(listOf(4, 4, 2), chartTileRows(10))
+        assertEquals(listOf(5, 5), chartTileRows(10))
+        assertEquals(listOf(4, 4, 3), chartTileRows(11))
         assertTrue(chartTileRows(0).isEmpty())
     }
 }

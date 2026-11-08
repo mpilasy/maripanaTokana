@@ -15,6 +15,7 @@ import androidx.compose.foundation.gestures.rememberScrollableState
 import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -41,7 +42,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
@@ -117,9 +117,7 @@ import orinasa.njarasoa.maripanatokana.ui.theme.TileSurface
 import orinasa.njarasoa.maripanatokana.ui.theme.temperatureColor
 import orinasa.njarasoa.maripanatokana.ui.weather.DualUnitText
 import orinasa.njarasoa.maripanatokana.ui.weather.HeroStatDivider
-import orinasa.njarasoa.maripanatokana.ui.weather.LocalRowTitles
 import orinasa.njarasoa.maripanatokana.ui.weather.PrecipChance
-import orinasa.njarasoa.maripanatokana.ui.weather.RowTitles
 import orinasa.njarasoa.maripanatokana.ui.weather.buildLocationTimeZone
 import orinasa.njarasoa.maripanatokana.ui.weather.glass
 import orinasa.njarasoa.maripanatokana.ui.weather.components.colorsFor
@@ -166,6 +164,26 @@ private val EXTREME_ROW = 12.dp
 // The cards, as the section cards of the main screen
 private val CARD_SHAPE = RoundedCornerShape(20.dp)
 private val CARD_MARGIN = 12.dp
+// The size of the values in the selection card, the height of the line under a value, and the padding of a label
+private val VALUE_SIZE = 13.sp
+private val EXTRA_LINE = 16.dp
+private val LABEL_PADDING = 2.dp
+
+/** The label of a tile: its text, its size in sp and the number of lines of its row. */
+private class TileLabel(val text: String, val size: Float, val lines: Int)
+
+private val ChartTile.labelRes: Int
+    get() = when (this) {
+        ChartTile.TEMPERATURE -> R.string.detail_temperature
+        ChartTile.DEW_POINT -> R.string.detail_dewpoint
+        ChartTile.PRECIPITATION -> R.string.detail_precipitation
+        ChartTile.WIND -> R.string.detail_wind
+        ChartTile.WIND_GUST -> R.string.detail_wind_gust
+        ChartTile.PRESSURE -> R.string.detail_pressure
+        ChartTile.HUMIDITY -> R.string.detail_humidity
+        ChartTile.UV_INDEX -> R.string.detail_uv_index
+        ChartTile.AIR_QUALITY -> R.string.detail_air_quality
+    }
 
 /** The values of one hour in the primary unit, as the charts draw them. */
 private class ChartSeries(hours: List<ChartHour>, metricPrimary: Boolean) {
@@ -202,6 +220,7 @@ fun ChartViewScreen(
     val airQuality = remember(hours, hourlyAirQuality) {
         chartAirQuality(hours.map { it.time }, hourlyAirQuality.map { it.time }).map { it?.let(hourlyAirQuality::get) }
     }
+    val tiles = remember(hours, airQuality) { chartTiles(hours, airQuality.any { it != null }) }
     var selected by remember(hours) { mutableIntStateOf(0) }
     val bodyFont = LocalBodyFont.current
     val displayFont = LocalDisplayFont.current
@@ -238,7 +257,7 @@ fun ChartViewScreen(
                 }
             }
             hours.getOrNull(selected)?.let { hour ->
-                SelectionHeader(hour, airQuality.getOrNull(selected), aqiStandard, data.utcOffsetSeconds, metricPrimary, localizeDigits, onToggleUnits)
+                SelectionHeader(hour, tiles, airQuality.getOrNull(selected), aqiStandard, data.utcOffsetSeconds, metricPrimary, localizeDigits, onToggleUnits)
             }
             Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(top = 8.dp, bottom = 16.dp)) {
                 // The chart card: the axis column and the panels, with no title row
@@ -262,12 +281,13 @@ fun ChartViewScreen(
 
 /**
  * The card of the selected hour: its time and weather icon in the title row, then the values as tiles in rows of up
- * to 4 (chartTileRows), each in both units. Screen readers read it again when the selection moves; a tap changes the
- * units, as everywhere in the app.
+ * to 5 (chartTileRows), each in both units. The card is compact, so the charts get most of the screen, and it has the
+ * same tiles (chartTiles) and size for every hour. Screen readers read it again when the selection moves; a tap
+ * changes the units, as everywhere in the app.
  */
 @Composable
 private fun SelectionHeader(
-    hour: ChartHour, airQuality: HourlyAirQuality?, aqiStandard: AqiStandard, utcOffsetSeconds: Int, metricPrimary: Boolean,
+    hour: ChartHour, tiles: List<ChartTile>, airQuality: HourlyAirQuality?, aqiStandard: AqiStandard, utcOffsetSeconds: Int, metricPrimary: Boolean,
     localizeDigits: (String) -> String, onToggleUnits: () -> Unit,
 ) {
     val appLocale = LocalConfiguration.current.locales[0]
@@ -280,30 +300,28 @@ private fun SelectionHeader(
     val displayFont = LocalDisplayFont.current
     val percent = { v: Int -> localizeDigits("$v%") }
 
-    // One tile: the label, then the value; [extra] is the line under the value. The labels in one row take as many
-    // lines as the longest one, so the values line up when a label wraps (RowTitles, as the tiles of the main screen)
+    // The style of the labels at a size; the labels are measured with the same style
+    fun labelStyle(size: Float) = TextStyle(fontSize = size.sp, lineHeight = (size * 1.2f).sp, fontFamily = bodyFont, textAlign = TextAlign.Center)
+    // One tile: the label at the size of the card (chartLabelFit), then the value; [extra] is the line under the value,
+    // which keeps its height when it is empty, so the card does not change size when the selection moves
     @Composable
-    fun Tile(modifier: Modifier, label: String, extra: (@Composable () -> Unit)? = null, value: @Composable () -> Unit) {
-        val rowTitles = LocalRowTitles.current
-        val titleKey = remember { Any() }
-        DisposableEffect(rowTitles) { onDispose { rowTitles?.lines?.remove(titleKey) } }
+    fun Tile(modifier: Modifier, label: TileLabel, extra: (@Composable () -> Unit)? = null, value: @Composable () -> Unit) {
         Column(modifier = modifier.fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                label, color = onSurface.copy(alpha = 0.6f), fontSize = 11.sp, lineHeight = 13.sp, fontFamily = bodyFont,
-                textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis,
-                minLines = (rowTitles?.maxLines ?: 1).coerceIn(1, 2),
-                onTextLayout = { rowTitles?.lines?.set(titleKey, it.lineCount) },
+                label.text, color = onSurface.copy(alpha = 0.6f), style = labelStyle(label.size),
+                minLines = label.lines, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(horizontal = LABEL_PADDING),
             )
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(2.dp))
             value()
-            extra?.invoke()
+            extra?.let { Box(Modifier.height(EXTRA_LINE), contentAlignment = Alignment.TopCenter) { it() } }
         }
     }
-    // The value as two lines, the primary unit over the other, as the main screen shows it
+    // The value as two lines, the primary unit over the other, as the main screen shows it; no value: a dash and an
+    // empty line
     @Composable
-    fun dual(v: Pair<String, String>) = DualUnitText(
-        primary = localizeDigits(v.first), secondary = localizeDigits(v.second),
-        primarySize = 15.sp, horizontalAlignment = Alignment.CenterHorizontally,
+    fun dual(v: Pair<String, String>?) = DualUnitText(
+        primary = v?.let { localizeDigits(it.first) } ?: "–", secondary = v?.let { localizeDigits(it.second) } ?: "\u00A0",
+        primarySize = VALUE_SIZE, horizontalAlignment = Alignment.CenterHorizontally,
     )
     // A value in a pill of its colour; it moves up by its padding, so its text lines up with the values next to it
     @Composable
@@ -311,80 +329,84 @@ private fun SelectionHeader(
         modifier = Modifier.offset(y = (-2).dp).clip(RoundedCornerShape(12.dp)).background(color).padding(horizontal = 10.dp, vertical = 2.dp),
     ) { content() }
 
-    val tiles = buildList<@Composable (Modifier) -> Unit> {
-        hour.temperature?.let { t ->
-            val (p, s) = t.displayDual(metricPrimary)
-            add { Tile(it, stringResource(R.string.detail_temperature)) {
-                // Dark text on the light colours of the scale, both units at full opacity
-                pill(temperatureColor(t.celsius)) {
-                    DualUnitText(
-                        primary = localizeDigits(p), secondary = localizeDigits(s), primarySize = 15.sp,
-                        color = Color(0xFF1A1A1A), secondaryAlpha = 1f, horizontalAlignment = Alignment.CenterHorizontally,
-                    )
+    // A value that the hour does not have
+    @Composable
+    fun missing() = Text("–", color = onSurface, fontSize = VALUE_SIZE, fontWeight = FontWeight.Bold, fontFamily = displayFont, style = TextStyle())
+
+    val cells = tiles.map<ChartTile, @Composable (Modifier, TileLabel) -> Unit> { tile ->
+        when (tile) {
+            ChartTile.TEMPERATURE -> { m, l ->
+                Tile(m, l) {
+                    hour.temperature?.let { t ->
+                        val (p, s) = t.displayDual(metricPrimary)
+                        // Dark text on the light colours of the scale, both units at full opacity
+                        pill(temperatureColor(t.celsius)) {
+                            DualUnitText(
+                                primary = localizeDigits(p), secondary = localizeDigits(s), primarySize = VALUE_SIZE,
+                                color = Color(0xFF1A1A1A), secondaryAlpha = 1f, horizontalAlignment = Alignment.CenterHorizontally,
+                            )
+                        }
+                    } ?: dual(null)
                 }
-            } }
-        }
-        hour.dewPoint?.let { t -> add { Tile(it, stringResource(R.string.detail_dewpoint)) { dual(t.displayDual(metricPrimary)) } } }
-        hour.precipitation?.let { p ->
-            add {
-                Tile(it, stringResource(R.string.detail_precipitation), extra = hour.precipProbability?.takeIf { c -> c > 0 }?.let { c ->
-                    {
+            }
+            ChartTile.DEW_POINT -> { m, l -> Tile(m, l) { dual(hour.dewPoint?.displayDual(metricPrimary)) } }
+            ChartTile.PRECIPITATION -> { m, l ->
+                Tile(m, l, extra = {
+                    hour.precipProbability?.takeIf { c -> c > 0 }?.let { c ->
                         PrecipChance(c, show = true, fontSize = 11.sp, fontFamily = bodyFont, fontFeatures = LocalBodyFontFeatures.current, localizeDigits = localizeDigits)
                     }
-                }) { dual(p.displayDual(metricPrimary)) }
+                }) { dual(hour.precipitation?.displayDual(metricPrimary)) }
             }
-        }
-        hour.windSpeed?.let { w ->
-            val direction = hour.windDirection?.takeIf { showWindArrow(w) }?.let { directions[((it % 360 + 360) / 22.5 + 0.5).toInt() % 16] }
-            add {
-                Tile(it, stringResource(R.string.detail_wind), extra = direction?.let { d ->
-                    { Text(d, color = onSurface.copy(alpha = 0.7f), fontSize = 11.sp, lineHeight = 13.sp, fontFamily = bodyFont, style = TextStyle(), modifier = Modifier.padding(top = 2.dp)) }
-                }) { dual(w.displayDual(metricPrimary)) }
+            ChartTile.WIND -> { m, l ->
+                val direction = hour.windSpeed?.takeIf { showWindArrow(it) }?.let { hour.windDirection }
+                    ?.let { directions[((it % 360 + 360) / 22.5 + 0.5).toInt() % 16] }
+                Tile(m, l, extra = {
+                    direction?.let { d ->
+                        Text(d, color = onSurface.copy(alpha = 0.7f), fontSize = 11.sp, lineHeight = 13.sp, fontFamily = bodyFont, style = TextStyle(), modifier = Modifier.padding(top = 2.dp))
+                    }
+                }) { dual(hour.windSpeed?.displayDual(metricPrimary)) }
             }
-        }
-        hour.windGust?.let { w -> add { Tile(it, stringResource(R.string.detail_wind_gust)) { dual(w.displayDual(metricPrimary)) } } }
-        hour.pressure?.let { p -> add { Tile(it, stringResource(R.string.detail_pressure)) { dual(p.displayDual(metricPrimary)) } } }
-        hour.humidity?.let { h ->
-            add {
-                Tile(it, stringResource(R.string.detail_humidity)) {
-                    Text(percent(h), color = onSurface, fontSize = 15.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont, style = TextStyle())
+            ChartTile.WIND_GUST -> { m, l -> Tile(m, l) { dual(hour.windGust?.displayDual(metricPrimary)) } }
+            ChartTile.PRESSURE -> { m, l -> Tile(m, l) { dual(hour.pressure?.displayDual(metricPrimary)) } }
+            ChartTile.HUMIDITY -> { m, l ->
+                Tile(m, l) {
+                    hour.humidity?.let { h ->
+                        Text(percent(h), color = onSurface, fontSize = VALUE_SIZE, fontWeight = FontWeight.Bold, fontFamily = displayFont, style = TextStyle())
+                    } ?: missing()
                 }
             }
-        }
-        hour.uvIndex?.let { uv ->
-            // The tier of the value as it shows: 2.6 shows as 3, which is moderate
-            val shown = uv.roundToInt()
-            val colors = colorsFor(shown.toDouble())
-            add {
-                Tile(it, stringResource(R.string.detail_uv_index)) {
-                    pill(colors.background) {
-                        Text(localizeDigits(shown.toString()), color = colors.text, fontSize = 15.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont, style = TextStyle())
-                    }
+            ChartTile.UV_INDEX -> { m, l ->
+                Tile(m, l) {
+                    hour.uvIndex?.takeIf { it.isFinite() }?.let { uv ->
+                        // The tier of the value as it shows: 2.6 shows as 3, which is moderate
+                        val shown = uv.roundToInt()
+                        val colors = colorsFor(shown.toDouble())
+                        pill(colors.background) {
+                            Text(localizeDigits(shown.toString()), color = colors.text, fontSize = VALUE_SIZE, fontWeight = FontWeight.Bold, fontFamily = displayFont, style = TextStyle())
+                        }
+                    } ?: missing()
                 }
             }
-        }
-        airQuality?.let { aq ->
-            // The primary standard in a pill of its tier colour, then its name, then the other standard
-            val european = aqiStandard == AqiStandard.EUROPEAN
-            val colors = colorsFor(aq.tier(aqiStandard))
-            add {
-                val usLabel = stringResource(R.string.air_quality_us_aqi)
-                val euLabel = stringResource(R.string.air_quality_eu_aqi)
-                val (primary, secondary) = if (european) aq.europeanValue to aq.usValue else aq.usValue to aq.europeanValue
-                val (primaryLabel, secondaryLabel) = if (european) euLabel to usLabel else usLabel to euLabel
-                Tile(it, stringResource(R.string.detail_air_quality), extra = {
-                    Text(primaryLabel, color = onSurface.copy(alpha = 0.6f), fontSize = 11.sp, lineHeight = 13.sp, fontFamily = bodyFont, style = TextStyle(), modifier = Modifier.padding(top = 2.dp))
-                    Text(localizeDigits("$secondary $secondaryLabel"), color = onSurface.copy(alpha = 0.6f), fontSize = 11.sp, lineHeight = 13.sp, fontFamily = bodyFont, style = TextStyle())
-                }) {
-                    pill(colors.background) {
-                        Text(localizeDigits(primary.toString()), color = colors.text, fontSize = 15.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont, style = TextStyle())
-                    }
+            ChartTile.AIR_QUALITY -> { m, l ->
+                Tile(m, l) {
+                    airQuality?.let { aq ->
+                        // The primary standard in a pill of its tier colour; the panel title names the standard
+                        val primary = if (aqiStandard == AqiStandard.EUROPEAN) aq.europeanValue else aq.usValue
+                        val colors = colorsFor(aq.tier(aqiStandard))
+                        pill(colors.background) {
+                            Text(localizeDigits(primary.toString()), color = colors.text, fontSize = VALUE_SIZE, fontWeight = FontWeight.Bold, fontFamily = displayFont, style = TextStyle())
+                        }
+                    } ?: missing()
                 }
             }
         }
     }
     // The tiles spread evenly on the rows
-    val rows = chartTileRows(tiles.size).runningFold(0) { start, n -> start + n }.zipWithNext { a, b -> tiles.subList(a, b) }
+    val rowSizes = chartTileRows(cells.size)
+    val rowStarts = rowSizes.runningFold(0) { start, n -> start + n }
+    val labels = tiles.map { stringResource(it.labelRes) }
+    val measurer = rememberTextMeasurer()
+    val density = LocalDensity.current
 
     Column(
         modifier = Modifier
@@ -405,22 +427,32 @@ private fun SelectionHeader(
             )
             Image(painterResource(weatherIconRes(hour.weatherCode, hour.isNight)), contentDescription = null, modifier = Modifier.size(32.dp))
         }
-        Column(modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            rows.forEachIndexed { r, row ->
-                // Each row keeps its own label line count
-                key(r) {
-                    CompositionLocalProvider(LocalRowTitles provides remember { RowTitles() }) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(IntrinsicSize.Min)
-                                .background(TileSurface, RoundedCornerShape(16.dp))
-                                .padding(vertical = 10.dp),
-                        ) {
-                            row.forEachIndexed { i, tile ->
-                                if (i > 0) HeroStatDivider()
-                                tile(Modifier.weight(1f))
-                            }
+        BoxWithConstraints(modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 12.dp)) {
+            // The width of a label in each tile: the row less its dividers, shared by its tiles, less the label padding
+            val rowWidth = constraints.maxWidth.toFloat()
+            val fit = remember(labels, rowWidth, bodyFont, density) {
+                val widths = rowSizes.flatMap { n ->
+                    with(density) { List(n) { (rowWidth - (n - 1) * 1.dp.toPx()) / n - 2 * LABEL_PADDING.toPx() } }
+                }
+                chartLabelFit(labels, widths) { text, size ->
+                    measurer.measure(text, labelStyle(size), softWrap = false, maxLines = 1, density = density).size.width.toFloat()
+                }
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                rowSizes.forEachIndexed { r, n ->
+                    // The labels of a row take as many lines as the longest one, so the values line up
+                    val start = rowStarts[r]
+                    val lines = fit.lines.subList(start, start + n).maxOrNull() ?: 1
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(IntrinsicSize.Min)
+                            .background(TileSurface, RoundedCornerShape(16.dp))
+                            .padding(vertical = 8.dp),
+                    ) {
+                        for (i in start until start + n) {
+                            if (i > start) HeroStatDivider()
+                            cells[i](Modifier.weight(1f), TileLabel(labels[i], fit.size, lines))
                         }
                     }
                 }

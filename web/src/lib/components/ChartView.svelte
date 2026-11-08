@@ -17,8 +17,8 @@
 	import { prefersReducedMotion } from '#lib/utils/motion.js';
 	import {
 		CHART_SLOT, chartAirQuality, chartDayExtremes, chartDaySpans, chartDomain, chartHours, chartIndexForX, chartLineIndex, chartLineOffset, chartNightRuns, chartScrollForIndex,
-		chartTileRows, chartValueAt, chartVisibleRange,
-		type ChartDomain,
+		CHART_LABEL_SIZES, chartLabelFit, chartTileRows, chartTiles, chartValueAt, chartVisibleRange,
+		type ChartDomain, type ChartTile,
 	} from '#lib/utils/chartView.js';
 
 	/**
@@ -361,45 +361,82 @@
 		pill?: { background: string; color: string };
 		/** The chance of rain, localised, under the precipitation. */
 		chance?: string;
-		/** Small lines under the value (the air quality standards). */
-		notes?: string[];
 		direction?: string;
+		/** The tile has a line under the value, which keeps its height when it is empty. */
+		extraLine?: boolean;
 	}
-	// The values of the selected hour, each only when the hour has it, in rows of up to 4 that are as even as possible
+	// The tiles of the chart, the same for every hour, so the card keeps its size when the selection moves
+	let tiles = $derived(chartTiles(shown, hasAirQuality));
+	const TILE_LABEL_KEYS: Record<ChartTile, string> = {
+		temperature: 'detail_temperature', dewPoint: 'detail_dewpoint', precipitation: 'detail_precipitation', wind: 'detail_wind',
+		windGust: 'detail_wind_gust', pressure: 'detail_pressure', humidity: 'detail_humidity', uvIndex: 'detail_uv_index',
+		airQuality: 'detail_air_quality',
+	};
+	let labels = $derived(tiles.map((tile) => $_(TILE_LABEL_KEYS[tile])));
+	// The label size of the card (chartLabelFit), measured with the font of the labels. The strips share their rows
+	// with their cells (subgrid), so the values line up when a label takes 2 lines
+	let rowsEl = $state<HTMLElement | null>(null);
+	let rowsWidth = $state(0);
+	let fontsReady = $state(false);
+	$effect(() => {
+		document.fonts?.ready.then(() => (fontsReady = true));
+	});
+	let labelFit = $derived.by(() => {
+		void fontsReady;
+		const context = rowsEl ? document.createElement('canvas').getContext('2d') : null;
+		if (!rowsEl || !context || rowsWidth <= 0) return { size: CHART_LABEL_SIZES[0], lines: labels.map(() => 1) };
+		const style = getComputedStyle(rowsEl);
+		const family = style.getPropertyValue('--font-body').trim() || style.fontFamily;
+		// The width of a label in each cell: the strips less their padding, shared by the cells, less the cell padding
+		const content = rowsWidth - 2 * 12;
+		const widths = chartTileRows(labels.length).flatMap((n) => Array<number>(n).fill(content / n - 2 * 2));
+		return chartLabelFit(labels, widths, (text, size) => {
+			context.font = `${size}px ${family}`;
+			return context.measureText(text).width;
+		});
+	});
+	// The values of the selected hour in rows of up to 5 that are as even as possible; a value that the hour does not
+	// have shows a dash
 	let rows = $derived.by(() => {
 		const h = selectedHour;
 		if (!h) return [];
-		const dual = (pair: [string, string]): [string, string] => [loc(pair[0]), loc(pair[1])];
-		const cells: Cell[] = [];
-		if (h.temperature) cells.push({ label: $_('detail_temperature'), dual: dual(h.temperature.displayDual(metricPrimary)), pill: { background: temperatureColor(h.temperature.celsius), color: '#1A1A1A' } });
-		if (h.dewPoint) cells.push({ label: $_('detail_dewpoint'), dual: dual(h.dewPoint.displayDual(metricPrimary)) });
-		if (h.precipitation) {
-			const chance = h.precipProbability != null && h.precipProbability > 0 ? loc(`${h.precipProbability}%`) : undefined;
-			cells.push({ label: $_('detail_precipitation'), dual: dual(h.precipitation.displayDual(metricPrimary)), chance });
-		}
-		if (h.windSpeed) {
-			const direction = h.windDeg != null && showWindArrow(h.windSpeed) ? getCardinalDirection(h.windDeg, $json('cardinal_directions')) : undefined;
-			cells.push({ label: $_('detail_wind'), dual: dual(h.windSpeed.displayDual(metricPrimary)), direction });
-		}
-		if (h.windGust) cells.push({ label: $_('detail_wind_gust'), dual: dual(h.windGust.displayDual(metricPrimary)) });
-		if (h.pressure) cells.push({ label: $_('detail_pressure'), dual: dual(h.pressure.displayDual(metricPrimary)) });
-		if (h.humidity != null) cells.push({ label: $_('detail_humidity'), text: loc(`${h.humidity}%`) });
-		if (h.uvIndex != null && Number.isFinite(h.uvIndex)) {
-			const badge = uvBadge(h.uvIndex);
-			cells.push({ label: $_('detail_uv_index'), text: badge.text, pill: { background: badge.background, color: badge.color } });
-		}
+		const missing: [string, string] = ['–', '\u00a0'];
+		const dual = (pair: [string, string] | undefined): [string, string] => (pair ? [loc(pair[0]), loc(pair[1])] : missing);
 		const aq = aqEntries[Math.min(selected, count - 1)];
-		if (aq) {
-			const primary = aqPrimary(aq);
-			const secondary = aqiStandard === 'EUROPEAN' ? aq.usValue : aq.europeanValue;
-			const other: AqiStandard = aqiStandard === 'EUROPEAN' ? 'US' : 'EUROPEAN';
-			cells.push({
-				label: $_('detail_air_quality'),
-				text: loc(String(primary)),
-				pill: aqiPill(aqTier(primary)),
-				notes: [aqiLabel(aqiStandard), loc(`${secondary} ${aqiLabel(other)}`)],
-			});
-		}
+		const values = tiles.map((tile): Omit<Cell, 'label'> => {
+			switch (tile) {
+				case 'temperature':
+					return { dual: dual(h.temperature?.displayDual(metricPrimary)), pill: h.temperature ? { background: temperatureColor(h.temperature.celsius), color: '#1A1A1A' } : undefined };
+				case 'dewPoint':
+					return { dual: dual(h.dewPoint?.displayDual(metricPrimary)) };
+				case 'precipitation': {
+					const chance = h.precipProbability != null && h.precipProbability > 0 ? loc(`${h.precipProbability}%`) : undefined;
+					return { dual: dual(h.precipitation?.displayDual(metricPrimary)), chance, extraLine: true };
+				}
+				case 'wind': {
+					const direction = h.windSpeed && h.windDeg != null && showWindArrow(h.windSpeed) ? getCardinalDirection(h.windDeg, $json('cardinal_directions')) : undefined;
+					return { dual: dual(h.windSpeed?.displayDual(metricPrimary)), direction, extraLine: true };
+				}
+				case 'windGust':
+					return { dual: dual(h.windGust?.displayDual(metricPrimary)) };
+				case 'pressure':
+					return { dual: dual(h.pressure?.displayDual(metricPrimary)) };
+				case 'humidity':
+					return { text: h.humidity != null ? loc(`${h.humidity}%`) : missing[0] };
+				case 'uvIndex': {
+					if (h.uvIndex == null || !Number.isFinite(h.uvIndex)) return { text: missing[0] };
+					const badge = uvBadge(h.uvIndex);
+					return { text: badge.text, pill: { background: badge.background, color: badge.color } };
+				}
+				case 'airQuality': {
+					// The primary standard in a pill of its tier colour; the panel title names the standard
+					if (!aq) return { text: missing[0] };
+					const primary = aqPrimary(aq);
+					return { text: loc(String(primary)), pill: aqiPill(aqTier(primary)) };
+				}
+			}
+		});
+		const cells = values.map((v, i): Cell => ({ ...v, label: labels[i] }));
 		let start = 0;
 		return chartTileRows(cells.length).map((size) => cells.slice(start, (start += size)));
 	});
@@ -506,19 +543,19 @@
 					<span class="sel-time">{hourLabel(selectedHour)}</span>
 					<WeatherIcon code={selectedHour.weatherCode} night={selectedHour.isNight} size={32} />
 				</span>
-				<span class="sel-rows">
+				<span class="sel-rows" bind:this={rowsEl} bind:clientWidth={rowsWidth}>
 					{#each rows as row, r (r)}
 						<span class="sel-strip">
 							{#each row as c, k (k)}
 								<span class="sel-cell">
-									<span class="sel-label">{c.label}</span>
+									<span class="sel-label" style:font-size="{labelFit.size}px">{c.label}</span>
 									{#if c.dual}
 										{#if c.pill}
 											<span class="pill sel-temp" style:background={c.pill.background}>
-												<DualUnitText primary={c.dual[0]} secondary={c.dual[1]} primarySize="0.9375rem" align="center" />
+												<DualUnitText primary={c.dual[0]} secondary={c.dual[1]} primarySize="0.8125rem" align="center" />
 											</span>
 										{:else}
-											<DualUnitText primary={c.dual[0]} secondary={c.dual[1]} primarySize="0.9375rem" align="center" />
+											<DualUnitText primary={c.dual[0]} secondary={c.dual[1]} primarySize="0.8125rem" align="center" />
 										{/if}
 									{:else if c.text}
 										<bdi dir="ltr" class="sel-text" class:pill={c.pill} style:background={c.pill?.background} style:color={c.pill?.color}>{c.text}</bdi>
@@ -530,11 +567,7 @@
 										</span>
 									{/if}
 									{#if c.direction}<span class="sel-sub sel-direction">{c.direction}</span>{/if}
-									{#if c.notes}
-										<span class="sel-notes">
-											{#each c.notes as note, n (n)}<span class="sel-sub sel-note">{note}</span>{/each}
-										</span>
-									{/if}
+									{#if c.extraLine && !c.chance && !c.direction}<span class="sel-sub" aria-hidden="true">&nbsp;</span>{/if}
 								</span>
 							{/each}
 						</span>
@@ -810,18 +843,18 @@
 	.sel-rows {
 		display: flex;
 		flex-direction: column;
-		gap: 8px;
+		gap: 6px;
 		padding: 0 12px 12px;
 	}
 
 	/* A strip as the next hours of the hero card. The cells share its rows (subgrid): the labels in one strip get the
-	   height of the tallest one, so the values line up when a label wraps (as equalRowTitles on the main screen) */
+	   height of the tallest one, so the values line up when a label takes 2 lines */
 	.sel-strip {
 		display: grid;
 		grid-auto-flow: column;
 		grid-auto-columns: 1fr;
 		grid-template-rows: auto auto auto;
-		padding: 10px 0;
+		padding: 8px 0;
 		background: var(--surface-tile);
 		border-radius: 16px;
 	}
@@ -847,16 +880,16 @@
 		background: var(--hairline);
 	}
 
+	/* The label at the size of the card (labelFit), on up to 2 lines */
 	.sel-label {
 		display: -webkit-box;
 		-webkit-box-orient: vertical;
 		-webkit-line-clamp: 2;
 		line-clamp: 2;
 		overflow: hidden;
-		margin-bottom: 4px;
+		margin-bottom: 2px;
 		font-family: var(--font-body);
-		font-size: 0.6875rem;
-		line-height: 13px;
+		line-height: 1.2;
 		color: rgba(255, 255, 255, 0.6);
 	}
 
@@ -875,7 +908,7 @@
 
 	.sel-text {
 		font-family: var(--font-display);
-		font-size: 0.9375rem;
+		font-size: 0.8125rem;
 		font-weight: 700;
 		line-height: 1.15;
 		color: white;
@@ -898,16 +931,6 @@
 
 	.sel-direction {
 		color: rgba(255, 255, 255, 0.7);
-	}
-
-	.sel-notes {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-	}
-
-	.sel-note {
-		color: rgba(255, 255, 255, 0.6);
 	}
 
 	.chart-card {

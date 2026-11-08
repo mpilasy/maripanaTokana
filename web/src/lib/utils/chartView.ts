@@ -4,7 +4,7 @@
 // Pure functions of the chart view and the charts on the main page. Android has the same functions with the same
 // rules in ChartViewMath.kt.
 
-import { isDaytime } from '#lib/domain/weatherData.js';
+import { isDaytime, type ChartHour } from '#lib/domain/weatherData.js';
 
 const HOUR = 3_600_000;
 const DAY = 24 * HOUR;
@@ -270,13 +270,74 @@ export function chartAirQuality(hourTimes: number[], aqTimes: number[]): (number
 	});
 }
 
+/** The value tiles of the selection card, in their order. */
+export const CHART_TILES = ['temperature', 'dewPoint', 'precipitation', 'wind', 'windGust', 'pressure', 'humidity', 'uvIndex', 'airQuality'] as const;
+export type ChartTile = (typeof CHART_TILES)[number];
+
 /**
- * The number of tiles in each row of the selection card, for `n` tiles: as few rows of at most 4 as possible, with the
- * tiles spread evenly and filled in order (9 gives 3, 3, 3; 7 gives 4, 3).
+ * The tiles of the selection card: each value that at least one of `hours` has. The card keeps these tiles for every
+ * hour (an hour without the value shows a dash), so it keeps the same size when the selection moves.
+ */
+export function chartTiles(hours: ChartHour[], hasAirQuality: boolean): ChartTile[] {
+	const has: Record<ChartTile, () => boolean> = {
+		temperature: () => hours.some((h) => h.temperature != null),
+		dewPoint: () => hours.some((h) => h.dewPoint != null),
+		precipitation: () => hours.some((h) => h.precipitation != null),
+		wind: () => hours.some((h) => h.windSpeed != null),
+		windGust: () => hours.some((h) => h.windGust != null),
+		pressure: () => hours.some((h) => h.pressure != null),
+		humidity: () => hours.some((h) => h.humidity != null),
+		uvIndex: () => hours.some((h) => h.uvIndex != null && Number.isFinite(h.uvIndex)),
+		airQuality: () => hasAirQuality,
+	};
+	return CHART_TILES.filter((tile) => has[tile]());
+}
+
+/** The label size of the selection card in px, and the number of lines of each label at that size. */
+export interface ChartLabelFit {
+	size: number;
+	lines: number[];
+}
+
+/** The label sizes that the selection card tries, from the largest. */
+export const CHART_LABEL_SIZES = [11, 10.5, 10, 9.5, 9, 8.5, 8];
+
+/**
+ * The largest label size at which each label fits its width: no word is wider than the width (so no word breaks) and
+ * the label takes at most 2 lines. All labels get the same size, so the card looks even. `measure` gives the width of a
+ * text at a size, in the unit of `widths`. When no size fits, the smallest size, and the labels end with an ellipsis.
+ */
+export function chartLabelFit(labels: string[], widths: number[], measure: (text: string, size: number) => number): ChartLabelFit {
+	// The lines of a label when the words fill each line in turn; null when a word is wider than the width
+	const lines = (label: string, width: number, size: number): number | null => {
+		let count = 1;
+		let line = '';
+		for (const word of label.split(' ').filter((w) => w.length > 0)) {
+			if (measure(word, size) > width) return null;
+			const next = line === '' ? word : `${line} ${word}`;
+			if (line === '' || measure(next, size) <= width) line = next;
+			else {
+				count++;
+				line = word;
+			}
+		}
+		return count;
+	};
+	for (const size of CHART_LABEL_SIZES) {
+		const counts = labels.map((label, i) => lines(label, widths[i], size));
+		if (counts.every((c) => c != null && c <= 2)) return { size, lines: counts as number[] };
+	}
+	const size = CHART_LABEL_SIZES[CHART_LABEL_SIZES.length - 1];
+	return { size, lines: labels.map((label, i) => Math.min(2, lines(label, widths[i], size) ?? 2)) };
+}
+
+/**
+ * The number of tiles in each row of the selection card, for `n` tiles: as few rows of at most 5 as possible, with the
+ * tiles spread evenly and filled in order (9 gives 5, 4; 7 gives 4, 3).
  */
 export function chartTileRows(n: number): number[] {
 	if (n <= 0) return [];
-	const rows = Math.ceil(n / 4);
+	const rows = Math.ceil(n / 5);
 	const perRow = Math.ceil(n / rows);
 	return Array.from({ length: rows }, (_, r) => Math.min(perRow, n - r * perRow)).filter((s) => s > 0);
 }

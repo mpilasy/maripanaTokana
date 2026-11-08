@@ -2,7 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { describe, expect, it } from 'vitest';
-import { chartAirQuality, chartTileRows, chartDayExtremes, chartDaylight, chartDaySpans, chartDomain, chartHours, chartIndexForX, chartLineIndex, chartLineOffset, chartMaxScroll, chartScrollForIndex, chartValueAt, chartMidnights, chartNightRuns, chartVisibleRange } from './chartView';
+import { Temperature } from '#lib/domain/temperature.js';
+import { WindSpeed } from '#lib/domain/windSpeed.js';
+import type { ChartHour } from '#lib/domain/weatherData.js';
+import { chartAirQuality, chartLabelFit, chartTileRows, chartTiles, chartDayExtremes, chartDaylight, chartDaySpans, chartDomain, chartHours, chartIndexForX, chartLineIndex, chartLineOffset, chartMaxScroll, chartScrollForIndex, chartValueAt, chartMidnights, chartNightRuns, chartVisibleRange } from './chartView';
 
 const HOUR = 3_600_000;
 const T0 = Date.UTC(2026, 10, 7, 0, 0); // 2026-11-07 00:00 UTC
@@ -280,17 +283,48 @@ describe('chartAirQuality', () => {
 	});
 });
 
+describe('chartTiles', () => {
+	const hour = (time: number): ChartHour => ({
+		time, temperature: Temperature.fromCelsius(10), dewPoint: null, weatherCode: 0, isNight: false, precipitation: null,
+		precipProbability: null, windSpeed: null, windDeg: null, windGust: null, pressure: null, humidity: 50, uvIndex: null,
+	});
+	it('keeps each value that one hour has', () => {
+		const list = [hour(T0), { ...hour(T0 + HOUR), windGust: WindSpeed.fromMetersPerSecond(5), uvIndex: NaN }];
+		expect(chartTiles(list, false)).toEqual(['temperature', 'windGust', 'humidity']);
+		expect(chartTiles(list, true)).toEqual(['temperature', 'windGust', 'humidity', 'airQuality']);
+		expect(chartTiles([], false)).toEqual([]);
+	});
+});
+
+describe('chartLabelFit', () => {
+	// Each character is half the size wide
+	const measure = (text: string, size: number) => (text.length * size) / 2;
+	it('keeps the largest size that fits', () => {
+		expect(chartLabelFit(['Wind', "Tahan'ny tara-masoandro"], [60, 78], measure)).toEqual({ size: 11, lines: [1, 2] });
+	});
+	it('makes all labels smaller when a word is too wide', () => {
+		// "Precipitation" is 71.5 wide at 11 and 58.5 at 9
+		expect(chartLabelFit(['Wind', 'Precipitation'], [60, 60], measure)).toEqual({ size: 9, lines: [1, 1] });
+	});
+	it('gives the smallest size when no size fits', () => {
+		// 3 lines at every size
+		expect(chartLabelFit(['Air quality index'], [40], measure)).toEqual({ size: 8, lines: [2] });
+		expect(chartLabelFit([], [], measure)).toEqual({ size: 11, lines: [] });
+	});
+});
+
 describe('chartTileRows', () => {
-	it('spreads the tiles over as few rows of at most 4 as possible', () => {
-		expect(chartTileRows(9)).toEqual([3, 3, 3]);
+	it('spreads the tiles over as few rows of at most 5 as possible', () => {
+		expect(chartTileRows(9)).toEqual([5, 4]);
 		expect(chartTileRows(8)).toEqual([4, 4]);
 		expect(chartTileRows(7)).toEqual([4, 3]);
 		expect(chartTileRows(6)).toEqual([3, 3]);
-		expect(chartTileRows(5)).toEqual([3, 2]);
+		expect(chartTileRows(10)).toEqual([5, 5]);
+		expect(chartTileRows(11)).toEqual([4, 4, 3]);
 	});
-	it('keeps up to 4 tiles in one row', () => {
+	it('keeps up to 5 tiles in one row', () => {
 		expect(chartTileRows(1)).toEqual([1]);
-		expect(chartTileRows(4)).toEqual([4]);
+		expect(chartTileRows(5)).toEqual([5]);
 	});
 	it('gives no row without tiles', () => {
 		expect(chartTileRows(0)).toEqual([]);

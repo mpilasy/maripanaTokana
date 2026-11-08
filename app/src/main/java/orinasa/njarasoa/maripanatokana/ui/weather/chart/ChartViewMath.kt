@@ -3,6 +3,7 @@
 
 package orinasa.njarasoa.maripanatokana.ui.weather.chart
 
+import orinasa.njarasoa.maripanatokana.domain.model.ChartHour
 import orinasa.njarasoa.maripanatokana.domain.model.isDaytime
 import java.math.BigDecimal
 import java.math.MathContext
@@ -212,13 +213,65 @@ fun chartScrollForIndex(index: Int, slotPx: Float, count: Int, viewPx: Float): F
 fun chartAirQuality(hourTimes: List<Long>, aqTimes: List<Long>): List<Int?> =
     hourTimes.map { t -> aqTimes.indexOfFirst { kotlin.math.abs(it - t) < HOUR / 2 }.takeIf { it >= 0 } }
 
+/** The value tiles of the selection card, in their order. */
+enum class ChartTile { TEMPERATURE, DEW_POINT, PRECIPITATION, WIND, WIND_GUST, PRESSURE, HUMIDITY, UV_INDEX, AIR_QUALITY }
+
 /**
- * The number of tiles in each row of the selection card, for [n] tiles: as few rows of at most 4 as possible, with the
- * tiles spread evenly and filled in order (9 gives 3, 3, 3; 7 gives 4, 3).
+ * The tiles of the selection card: each value that at least one of [hours] has. The card keeps these tiles for every
+ * hour (an hour without the value shows a dash), so it keeps the same size when the selection moves.
+ */
+fun chartTiles(hours: List<ChartHour>, hasAirQuality: Boolean): List<ChartTile> = ChartTile.entries.filter { tile ->
+    when (tile) {
+        ChartTile.TEMPERATURE -> hours.any { it.temperature != null }
+        ChartTile.DEW_POINT -> hours.any { it.dewPoint != null }
+        ChartTile.PRECIPITATION -> hours.any { it.precipitation != null }
+        ChartTile.WIND -> hours.any { it.windSpeed != null }
+        ChartTile.WIND_GUST -> hours.any { it.windGust != null }
+        ChartTile.PRESSURE -> hours.any { it.pressure != null }
+        ChartTile.HUMIDITY -> hours.any { it.humidity != null }
+        ChartTile.UV_INDEX -> hours.any { it.uvIndex?.isFinite() == true }
+        ChartTile.AIR_QUALITY -> hasAirQuality
+    }
+}
+
+/** The label size of the selection card in sp, and the number of lines of each label at that size. */
+data class ChartLabelFit(val size: Float, val lines: List<Int>)
+
+/** The label sizes that the selection card tries, from the largest. */
+val CHART_LABEL_SIZES = listOf(11f, 10.5f, 10f, 9.5f, 9f, 8.5f, 8f)
+
+/**
+ * The largest label size at which each label fits its width: no word is wider than the width (so no word breaks) and
+ * the label takes at most 2 lines. All labels get the same size, so the card looks even. [measure] gives the width of a
+ * text at a size, in the unit of [widths]. When no size fits, the smallest size, and the labels end with an ellipsis.
+ */
+fun chartLabelFit(labels: List<String>, widths: List<Float>, measure: (String, Float) -> Float): ChartLabelFit {
+    // The lines of a label when the words fill each line in turn; null when a word is wider than the width
+    fun lines(label: String, width: Float, size: Float): Int? {
+        var count = 1
+        var line = ""
+        for (word in label.split(' ').filter { it.isNotEmpty() }) {
+            if (measure(word, size) > width) return null
+            val next = if (line.isEmpty()) word else "$line $word"
+            if (line.isEmpty() || measure(next, size) <= width) line = next else { count++; line = word }
+        }
+        return count
+    }
+    for (size in CHART_LABEL_SIZES) {
+        val counts = labels.indices.map { lines(labels[it], widths[it], size) }
+        if (counts.all { it != null && it <= 2 }) return ChartLabelFit(size, counts.map { it!! })
+    }
+    val size = CHART_LABEL_SIZES.last()
+    return ChartLabelFit(size, labels.indices.map { minOf(2, lines(labels[it], widths[it], size) ?: 2) })
+}
+
+/**
+ * The number of tiles in each row of the selection card, for [n] tiles: as few rows of at most 5 as possible, with the
+ * tiles spread evenly and filled in order (9 gives 5, 4; 7 gives 4, 3).
  */
 fun chartTileRows(n: Int): List<Int> {
     if (n <= 0) return emptyList()
-    val rows = (n + 3) / 4
+    val rows = (n + 4) / 5
     val perRow = (n + rows - 1) / rows
     return List(rows) { r -> minOf(perRow, n - r * perRow) }.filter { it > 0 }
 }
