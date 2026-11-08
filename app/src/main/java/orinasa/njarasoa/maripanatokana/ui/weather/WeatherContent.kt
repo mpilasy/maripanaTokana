@@ -1386,7 +1386,7 @@ internal fun DualUnitText(
 }
 
 @Composable
-private fun HeroStatDivider() {
+internal fun HeroStatDivider() {
     Box(
         modifier = Modifier
             .fillMaxHeight()
@@ -2736,12 +2736,12 @@ private fun TileRow(content: @Composable androidx.compose.foundation.layout.RowS
  * The line counts of the tile titles in one row. Each title takes as many lines as the longest one,
  * so the dials under them line up when one title wraps. Twin: web/src/lib/utils/equalRowTitles.ts.
  */
-private class RowTitles {
+internal class RowTitles {
     val lines = mutableStateMapOf<Any, Int>()
     val maxLines: Int get() = lines.values.maxOrNull() ?: 1
 }
 
-private val LocalRowTitles = staticCompositionLocalOf<RowTitles?> { null }
+internal val LocalRowTitles = staticCompositionLocalOf<RowTitles?> { null }
 
 /** Every tile: the title, one graphic in the middle with the values in it, labels in the bottom row. */
 @Composable
@@ -3760,7 +3760,7 @@ private val RainDrop: ImageVector = ImageVector.Builder("RainDrop", 24.dp, 24.dp
 
 /** A forecast card's chance of precipitation, behind a raindrop; blank space when [show] is off or the chance is zero. */
 @Composable
-private fun PrecipChance(
+internal fun PrecipChance(
     percent: Int, show: Boolean, fontSize: TextUnit, fontFamily: FontFamily?, fontFeatures: String?, localizeDigits: (String) -> String,
     // "60% chance" in place of the bare "60%", where no column header tells what the percent is
     withLabel: Boolean = false,

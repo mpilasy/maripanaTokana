@@ -58,6 +58,26 @@ fun chartDaySpans(times: List<Long>, utcOffsetSec: Int): List<ChartDaySpan> {
 fun chartMidnights(times: List<Long>, utcOffsetSec: Int): List<Int> =
     chartDaySpans(times, utcOffsetSec).drop(1).map { it.startIndex }
 
+/** The hour of the highest ([highIndex]) and of the lowest ([lowIndex]) value of one day. */
+data class ChartDayExtremes(val highIndex: Int, val lowIndex: Int)
+
+/**
+ * The highest and lowest value of each day in [daySpans] that has at least [minHours] hours, in order. Nulls and values
+ * that are not numbers are ignored. With ties, the middle one of the tied hours, as in the temperature chart of the
+ * main page. A day with fewer hours, or with no value, gives nothing.
+ */
+fun chartDayExtremes(values: List<Double?>, daySpans: List<ChartDaySpan>, minHours: Int = 12): List<ChartDayExtremes> =
+    daySpans.mapNotNull { span ->
+        if (span.endIndex - span.startIndex < minHours) return@mapNotNull null
+        val valid = (span.startIndex until span.endIndex).filter { values.getOrNull(it)?.isFinite() == true }
+        if (valid.isEmpty()) return@mapNotNull null
+        val hi = valid.maxOf { values[it]!! }
+        val lo = valid.minOf { values[it]!! }
+        val highs = valid.filter { values[it] == hi }
+        val lows = valid.filter { values[it] == lo }
+        ChartDayExtremes(highs[highs.size / 2], lows[lows.size / 2])
+    }
+
 /** The runs of night hours in [night] (true at night), each from its first to its last hour, in order. */
 fun chartNightRuns(night: List<Boolean>): List<IntRange> {
     val runs = mutableListOf<IntRange>()

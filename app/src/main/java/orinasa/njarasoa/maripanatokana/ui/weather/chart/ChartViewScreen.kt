@@ -16,15 +16,18 @@ import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -38,6 +41,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
@@ -51,8 +55,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -88,7 +94,9 @@ import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -99,10 +107,21 @@ import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.model.showWindArrow
 import orinasa.njarasoa.maripanatokana.ui.theme.Hairline
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFont
+import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFontFeatures
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
+import orinasa.njarasoa.maripanatokana.ui.theme.SectionSurface
+import orinasa.njarasoa.maripanatokana.ui.theme.TileSurface
+import orinasa.njarasoa.maripanatokana.ui.theme.temperatureColor
+import orinasa.njarasoa.maripanatokana.ui.weather.DualUnitText
+import orinasa.njarasoa.maripanatokana.ui.weather.HeroStatDivider
+import orinasa.njarasoa.maripanatokana.ui.weather.LocalRowTitles
+import orinasa.njarasoa.maripanatokana.ui.weather.PrecipChance
+import orinasa.njarasoa.maripanatokana.ui.weather.RowTitles
 import orinasa.njarasoa.maripanatokana.ui.weather.buildLocationTimeZone
+import orinasa.njarasoa.maripanatokana.ui.weather.glass
 import orinasa.njarasoa.maripanatokana.ui.weather.components.colorsFor
 import orinasa.njarasoa.maripanatokana.ui.weather.components.computeMonotoneCubicControlPoints
+import orinasa.njarasoa.maripanatokana.ui.weather.components.dualLabel
 import orinasa.njarasoa.maripanatokana.ui.weather.components.weatherIconRes
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -119,7 +138,7 @@ private enum class ChartPanel(val heightDp: Int, val titled: Boolean) {
     // The time axis at the top: the bottom one mirrored
     TOP_TIME(36, false),
     ICONS(46, false),
-    TEMPERATURE(132, true),
+    TEMPERATURE(156, true),
     PRECIPITATION(88, true),
     WIND(104, true),
     PRESSURE(80, true),
@@ -132,6 +151,11 @@ private val PANEL_GAP = 6.dp
 private val TITLE_HEIGHT = 16.dp
 // The room above the wind line for the direction arrows
 private val ARROW_ROW = 14.dp
+// The room above and under the temperature line for the labels of the day high and low
+private val EXTREME_ROW = 12.dp
+// The cards, as the section cards of the main screen
+private val CARD_SHAPE = RoundedCornerShape(20.dp)
+private val CARD_MARGIN = 12.dp
 
 /** The values of one hour in the primary unit, as the charts draw them. */
 private class ChartSeries(hours: List<ChartHour>, metricPrimary: Boolean) {
@@ -164,6 +188,7 @@ fun ChartViewScreen(
     }
     var selected by remember(hours) { mutableIntStateOf(0) }
     val bodyFont = LocalBodyFont.current
+    val displayFont = LocalDisplayFont.current
     val onSurface = MaterialTheme.colorScheme.onSurface
 
     Box(
@@ -183,20 +208,36 @@ fun ChartViewScreen(
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.settings_back), tint = onSurface)
                 }
                 Spacer(Modifier.width(4.dp))
+                // The place name as on the main screen, with the title under it; no name: the title is the big line
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(stringResource(R.string.chart_view_title), color = onSurface, fontSize = 20.sp, fontWeight = FontWeight.Bold, fontFamily = bodyFont)
+                    val title = stringResource(R.string.chart_view_title)
+                    val name = data.locationName.ifBlank { title }
+                    Text(
+                        name, color = onSurface, fontSize = 30.sp, lineHeight = 36.sp, fontWeight = FontWeight.Bold,
+                        fontFamily = displayFont, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    )
                     if (data.locationName.isNotBlank()) {
-                        Text(data.locationName, color = onSurface.copy(alpha = 0.7f), fontSize = 13.sp, fontFamily = bodyFont, maxLines = 1)
+                        Text(title, color = onSurface.copy(alpha = 0.6f), fontSize = 14.sp, fontFamily = bodyFont, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
             }
             hours.getOrNull(selected)?.let { hour ->
                 SelectionHeader(hour, data.utcOffsetSeconds, metricPrimary, localizeDigits, onToggleUnits)
             }
-            Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(top = 4.dp, bottom = 16.dp)) {
-                // The hours run left to right in every language, as in the other charts of the app
-                CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-                    ChartPanels(hours, data.utcOffsetSeconds, metricPrimary, localizeDigits) { selected = it }
+            Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(top = 8.dp, bottom = 16.dp)) {
+                // The chart card: the axis column and the panels, with no title row
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = CARD_MARGIN)
+                        .fillMaxWidth()
+                        .glass(SectionSurface, CARD_SHAPE)
+                        .clip(CARD_SHAPE)
+                        .padding(vertical = 8.dp),
+                ) {
+                    // The hours run left to right in every language, as in the other charts of the app
+                    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                        ChartPanels(hours, data.utcOffsetSeconds, metricPrimary, localizeDigits) { selected = it }
+                    }
                 }
             }
         }
@@ -204,8 +245,9 @@ fun ChartViewScreen(
 }
 
 /**
- * The values of the selected hour, each in both units, on one or more lines. Screen readers read it
- * again when the selection moves; a tap changes the units, as everywhere in the app.
+ * The card of the selected hour: its time and weather icon in the title row, then the values as tiles in strips of up
+ * to 4, each in both units. Screen readers read it again when the selection moves; a tap changes the units, as
+ * everywhere in the app.
  */
 @Composable
 private fun SelectionHeader(hour: ChartHour, utcOffsetSeconds: Int, metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
@@ -219,68 +261,129 @@ private fun SelectionHeader(hour: ChartHour, utcOffsetSeconds: Int, metricPrimar
     val displayFont = LocalDisplayFont.current
     val percent = { v: Int -> localizeDigits("$v%") }
 
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalArrangement = Arrangement.spacedBy(2.dp),
-        itemVerticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 52.dp)
-            .padding(horizontal = 12.dp, vertical = 4.dp)
-            .background(Color.White.copy(alpha = 0.06f), RoundedCornerShape(12.dp))
-            .clickable(role = Role.Button, onClickLabel = stringResource(R.string.cd_toggle_units), onClick = onToggleUnits)
-            .semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite }
-            .padding(horizontal = 10.dp, vertical = 6.dp),
-    ) {
-        Text(localizeDigits(timeFormat.format(Date(hour.time))), color = onSurface, fontSize = 13.sp, fontWeight = FontWeight.Bold, fontFamily = bodyFont)
-        Image(painterResource(weatherIconRes(hour.weatherCode, hour.isNight)), contentDescription = null, modifier = Modifier.height(28.dp).width(28.dp))
-        @Composable
-        fun value(label: String?, dual: Pair<String, String>?, extra: String? = null) {
+    // One tile: the label, then the value; [extra] is the line under the value. The labels in one row take as many
+    // lines as the longest one, so the values line up when a label wraps (RowTitles, as the tiles of the main screen)
+    @Composable
+    fun Tile(modifier: Modifier, label: String, extra: (@Composable () -> Unit)? = null, value: @Composable () -> Unit) {
+        val rowTitles = LocalRowTitles.current
+        val titleKey = remember { Any() }
+        DisposableEffect(rowTitles) { onDispose { rowTitles?.lines?.remove(titleKey) } }
+        Column(modifier = modifier.fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                buildAnnotatedString {
-                    if (label != null) {
-                        withStyle(SpanStyle(color = onSurface.copy(alpha = 0.55f), fontSize = 11.sp, fontFamily = bodyFont)) { append("$label ") }
-                    }
-                    // Ltr isolate: keep "12°C" in number-then-unit order in Arabic
-                    append('⁦')
-                    if (dual != null) {
-                        withStyle(SpanStyle(color = onSurface, fontSize = 13.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont)) { append(localizeDigits(dual.first)) }
-                        withStyle(SpanStyle(color = onSurface.copy(alpha = 0.6f), fontSize = 10.sp, fontFamily = displayFont)) { append(" " + localizeDigits(dual.second)) }
-                    }
-                    append('⁩')
-                    if (extra != null) {
-                        withStyle(SpanStyle(color = onSurface.copy(alpha = 0.8f), fontSize = 12.sp, fontFamily = bodyFont)) { append(" $extra") }
-                    }
-                },
+                label, color = onSurface.copy(alpha = 0.6f), fontSize = 11.sp, lineHeight = 13.sp, fontFamily = bodyFont,
+                textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis,
+                minLines = (rowTitles?.maxLines ?: 1).coerceIn(1, 2),
+                onTextLayout = { rowTitles?.lines?.set(titleKey, it.lineCount) },
             )
+            Spacer(Modifier.height(4.dp))
+            value()
+            extra?.invoke()
         }
-        hour.temperature?.let { value(null, it.displayDual(metricPrimary)) }
-        hour.dewPoint?.let { value(stringResource(R.string.detail_dewpoint), it.displayDual(metricPrimary)) }
+    }
+    // The value as two lines, the primary unit over the other, as the main screen shows it
+    @Composable
+    fun dual(v: Pair<String, String>) = DualUnitText(
+        primary = localizeDigits(v.first), secondary = localizeDigits(v.second),
+        primarySize = 15.sp, horizontalAlignment = Alignment.CenterHorizontally,
+    )
+    // A value in a pill of its colour; it moves up by its padding, so its text lines up with the values next to it
+    @Composable
+    fun pill(color: Color, content: @Composable () -> Unit) = Box(
+        modifier = Modifier.offset(y = (-2).dp).clip(RoundedCornerShape(12.dp)).background(color).padding(horizontal = 10.dp, vertical = 2.dp),
+    ) { content() }
+
+    val tiles = buildList<@Composable (Modifier) -> Unit> {
+        hour.temperature?.let { t ->
+            val (p, s) = t.displayDual(metricPrimary)
+            add { Tile(it, stringResource(R.string.detail_temperature)) {
+                // Dark text on the light colours of the scale, both units at full opacity
+                pill(temperatureColor(t.celsius)) {
+                    DualUnitText(
+                        primary = localizeDigits(p), secondary = localizeDigits(s), primarySize = 15.sp,
+                        color = Color(0xFF1A1A1A), secondaryAlpha = 1f, horizontalAlignment = Alignment.CenterHorizontally,
+                    )
+                }
+            } }
+        }
+        hour.dewPoint?.let { t -> add { Tile(it, stringResource(R.string.detail_dewpoint)) { dual(t.displayDual(metricPrimary)) } } }
         hour.precipitation?.let { p ->
-            value(stringResource(R.string.detail_precipitation), p.displayDual(metricPrimary),
-                hour.precipProbability?.let { stringResource(R.string.precip_chance, percent(it)) })
+            add {
+                Tile(it, stringResource(R.string.detail_precipitation), extra = hour.precipProbability?.takeIf { c -> c > 0 }?.let { c ->
+                    {
+                        PrecipChance(c, show = true, fontSize = 11.sp, fontFamily = bodyFont, fontFeatures = LocalBodyFontFeatures.current, localizeDigits = localizeDigits)
+                    }
+                }) { dual(p.displayDual(metricPrimary)) }
+            }
         }
         hour.windSpeed?.let { w ->
             val direction = hour.windDirection?.takeIf { showWindArrow(w) }?.let { directions[((it % 360 + 360) / 22.5 + 0.5).toInt() % 16] }
-            value(stringResource(R.string.detail_wind), w.displayDual(metricPrimary), direction)
+            add {
+                Tile(it, stringResource(R.string.detail_wind), extra = direction?.let { d ->
+                    { Text(d, color = onSurface.copy(alpha = 0.7f), fontSize = 11.sp, fontFamily = bodyFont, modifier = Modifier.padding(top = 2.dp)) }
+                }) { dual(w.displayDual(metricPrimary)) }
+            }
         }
-        hour.windGust?.let { value(stringResource(R.string.detail_wind_gust), it.displayDual(metricPrimary)) }
-        hour.pressure?.let { value(stringResource(R.string.detail_pressure), it.displayDual(metricPrimary)) }
-        hour.humidity?.let { value(stringResource(R.string.detail_humidity), null, percent(it)) }
+        hour.windGust?.let { w -> add { Tile(it, stringResource(R.string.detail_wind_gust)) { dual(w.displayDual(metricPrimary)) } } }
+        hour.pressure?.let { p -> add { Tile(it, stringResource(R.string.detail_pressure)) { dual(p.displayDual(metricPrimary)) } } }
+        hour.humidity?.let { h ->
+            add {
+                Tile(it, stringResource(R.string.detail_humidity)) {
+                    Text(percent(h), color = onSurface, fontSize = 15.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont, style = TextStyle())
+                }
+            }
+        }
         hour.uvIndex?.let { uv ->
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.detail_uv_index) + " ", color = onSurface.copy(alpha = 0.55f), fontSize = 11.sp, fontFamily = bodyFont)
-                // The tier of the value as it shows: 2.6 shows as 3, which is moderate
-                val shown = uv.roundToInt()
-                val colors = colorsFor(shown.toDouble())
-                Text(
-                    localizeDigits(shown.toString()),
-                    color = colors.text,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = displayFont,
-                    modifier = Modifier.background(colors.background, RoundedCornerShape(6.dp)).padding(horizontal = 6.dp),
-                )
+            // The tier of the value as it shows: 2.6 shows as 3, which is moderate
+            val shown = uv.roundToInt()
+            val colors = colorsFor(shown.toDouble())
+            add {
+                Tile(it, stringResource(R.string.detail_uv_index)) {
+                    pill(colors.background) {
+                        Text(localizeDigits(shown.toString()), color = colors.text, fontSize = 15.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont, style = TextStyle())
+                    }
+                }
+            }
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .padding(start = CARD_MARGIN, end = CARD_MARGIN, top = 8.dp)
+            .fillMaxWidth()
+            .glass(SectionSurface, CARD_SHAPE)
+            .clip(CARD_SHAPE)
+            .clickable(role = Role.Button, onClickLabel = stringResource(R.string.cd_toggle_units), onClick = onToggleUnits)
+            .semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 12.dp).heightIn(min = 48.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                localizeDigits(timeFormat.format(Date(hour.time))), color = onSurface, fontSize = 17.sp, fontWeight = FontWeight.Bold,
+                fontFamily = bodyFont, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f),
+            )
+            Image(painterResource(weatherIconRes(hour.weatherCode, hour.isNight)), contentDescription = null, modifier = Modifier.size(32.dp))
+        }
+        Column(modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            tiles.chunked(4).forEachIndexed { r, row ->
+                // Each row keeps its own label line count
+                key(r) {
+                    CompositionLocalProvider(LocalRowTitles provides remember { RowTitles() }) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(IntrinsicSize.Min)
+                                .background(TileSurface, RoundedCornerShape(16.dp))
+                                .padding(vertical = 10.dp),
+                        ) {
+                            row.forEachIndexed { i, tile ->
+                                if (i > 0) HeroStatDivider()
+                                tile(Modifier.weight(1f))
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -348,6 +451,7 @@ private fun ChartPanels(
     val prDomain = remember(series) { chartDomain(series.pressure, fromZero = false, minSpan = if (metricPrimary) 4.0 else 0.12) }
     val times = remember(hours) { hours.map { it.time } }
     val days = remember(hours, utcOffsetSeconds) { chartDaySpans(times, utcOffsetSeconds) }
+    val extremes = remember(series, days) { chartDayExtremes(series.temperature, days) }
     val localHours = remember(hours, utcOffsetSeconds) { times.map { Math.floorMod((it + utcOffsetSeconds * 1000L) / HOUR, 24L).toInt() } }
     val locationZone = remember(utcOffsetSeconds) { buildLocationTimeZone(utcOffsetSeconds) }
     val hourFormat = remember(locationZone) { SimpleDateFormat("HH:mm", Locale.US).apply { timeZone = locationZone } }
@@ -393,7 +497,7 @@ private fun ChartPanels(
         val chartsTop = panelTop(ChartPanel.ICONS)
         val chartsBottom = panelTop(ChartPanel.HUMIDITY) + ChartPanel.HUMIDITY.heightDp.dp.toPx()
 
-        val tArea = plotArea(ChartPanel.TEMPERATURE)
+        val tArea = plotArea(ChartPanel.TEMPERATURE, extraTop = EXTREME_ROW.toPx(), extraBottom = EXTREME_ROW.toPx())
         val pArea = plotArea(ChartPanel.PRECIPITATION)
         val wArea = plotArea(ChartPanel.WIND, extraTop = ARROW_ROW.toPx())
         val prArea = plotArea(ChartPanel.PRESSURE)
@@ -420,11 +524,23 @@ private fun ChartPanels(
                 }
             }
 
+            // The grids first, so the selection column and then the lines are on top of them
+            tDomain?.let { drawGrid(it, tArea) }
+            pDomain?.let { drawGrid(it, pArea) }
+            wDomain?.let { drawGrid(it, wArea) }
+            prDomain?.let { drawGrid(it, prArea) }
+            drawGrid(PERCENT_DOMAIN, hArea)
+
+            // The selection column: the selected hour is under it, in every panel; the lines are on top of it
+            drawRoundRect(
+                ChartStyle.selectionColumn, Offset(lineX - slot / 2, chartsTop), Size(slot, chartsBottom - chartsTop),
+                CornerRadius(ChartStyle.selectionColumnRadius.toPx()),
+            )
+
             drawIcons(hours, drawn, localHours, ::cx, panelTop(ChartPanel.ICONS), painters, textMeasurer, displayFont, localizeDigits)
 
             // Temperature with the dew point on the same scale, and a dashed line at freezing
             tDomain?.let { d ->
-                drawGrid(d, tArea)
                 val freezing = if (metricPrimary) 0.0 else 32.0
                 if (freezing > d.min && freezing < d.max) {
                     val fy = tArea.y(freezing, d)
@@ -434,11 +550,36 @@ private fun ChartPanels(
                 drawSeries(series.temperature, drawn, ::cx, { tArea.y(it, d) }, ChartStyle.temperature, ChartStyle.lineWidth.toPx())
                 drawSelectedDot(series.dewPoint, linePos, lineX) { tArea.y(it, d) }
                 drawSelectedDot(series.temperature, linePos, lineX) { tArea.y(it, d) }
+
+                // The high and low of each day, as in the temperature chart of the main page: the high above its
+                // point, the low under it; a low that would cover the high of its day is left out
+                val highStyle = TextStyle(color = Color(0xFFFF8A65), fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont, textDirection = TextDirection.Ltr)
+                val lowStyle = highStyle.copy(color = Color(0xFF64B5F6))
+                fun extremeLabel(i: Int, style: TextStyle): androidx.compose.ui.text.TextLayoutResult? {
+                    val (p, s) = hours[i].temperature?.displayDual(metricPrimary) ?: return null
+                    return textMeasurer.measure(dualLabel(localizeDigits("$p · $s"), style.color), style)
+                }
+                for (e in extremes) {
+                    val high = e.highIndex.takeIf { it in drawn }?.let { i -> extremeLabel(i, highStyle)?.let { i to it } }
+                    val low = e.lowIndex.takeIf { it in drawn }?.let { i -> extremeLabel(i, lowStyle)?.let { i to it } }
+                    var highBox: Rect? = null
+                    if (high != null) {
+                        val (i, layout) = high
+                        val topLeft = Offset(cx(i) - layout.size.width / 2f, tArea.y(series.temperature[i]!!, d) - 2.dp.toPx() - layout.size.height)
+                        highBox = Rect(topLeft, Size(layout.size.width.toFloat(), layout.size.height.toFloat()))
+                        drawText(layout, topLeft = topLeft)
+                    }
+                    if (low != null) {
+                        val (i, layout) = low
+                        val topLeft = Offset(cx(i) - layout.size.width / 2f, tArea.y(series.temperature[i]!!, d) + 2.dp.toPx())
+                        val box = Rect(topLeft, Size(layout.size.width.toFloat(), layout.size.height.toFloat()))
+                        if (highBox == null || !box.overlaps(highBox)) drawText(layout, topLeft = topLeft)
+                    }
+                }
             }
 
             // Precipitation as bars, the chance of rain as a thin line on 0-100 %
             pDomain?.let { d ->
-                drawGrid(d, pArea)
                 val barWidth = maxOf(2.dp.toPx(), slot * 0.6f)
                 for (i in drawn) {
                     val v = series.precipitation[i] ?: continue
@@ -452,7 +593,6 @@ private fun ChartPanels(
 
             // Wind and gusts on one scale, with the direction every 3 hours
             wDomain?.let { d ->
-                drawGrid(d, wArea)
                 drawSeries(series.gust, drawn, ::cx, { wArea.y(it, d) }, ChartStyle.gust, ChartStyle.thinLineWidth.toPx(), dashed = true)
                 drawSeries(series.wind, drawn, ::cx, { wArea.y(it, d) }, ChartStyle.wind, ChartStyle.lineWidth.toPx())
                 drawSelectedDot(series.gust, linePos, lineX) { wArea.y(it, d) }
@@ -467,12 +607,10 @@ private fun ChartPanels(
             }
 
             prDomain?.let { d ->
-                drawGrid(d, prArea)
                 drawSeries(series.pressure, drawn, ::cx, { prArea.y(it, d) }, ChartStyle.pressure, ChartStyle.lineWidth.toPx())
                 drawSelectedDot(series.pressure, linePos, lineX) { prArea.y(it, d) }
             }
 
-            drawGrid(PERCENT_DOMAIN, hArea)
             drawSeries(series.humidity, drawn, ::cx, { hArea.y(it, PERCENT_DOMAIN) }, ChartStyle.humidity, ChartStyle.lineWidth.toPx())
             drawSelectedDot(series.humidity, linePos, lineX) { hArea.y(it, PERCENT_DOMAIN) }
 
@@ -506,9 +644,6 @@ private fun ChartPanels(
             }
             drawTimeAxis(ChartPanel.TOP_TIME, mirrored = true)
             drawTimeAxis(ChartPanel.TIME, mirrored = false)
-
-            // The selection line: the selected hour is under it, in every panel
-            drawVerticalLine(lineX, ChartStyle.selection, ChartStyle.selectionWidth.toPx())
 
             // Titles on top of the lines, at the start of each panel; they do not scroll
             drawTitle(ChartPanel.TEMPERATURE, titles.temperature, titles.dewPoint, ChartStyle.dewPoint, axisPx, textMeasurer, onSurface)
@@ -560,10 +695,10 @@ private class PlotArea(val top: Float, val bottom: Float) {
 private fun DrawScope.panelTop(panel: ChartPanel): Float =
     ChartPanel.entries.takeWhile { it != panel }.sumOf { (it.heightDp.dp + PANEL_GAP).toPx().toDouble() }.toFloat()
 
-private fun DrawScope.plotArea(panel: ChartPanel, extraTop: Float = 0f): PlotArea {
+private fun DrawScope.plotArea(panel: ChartPanel, extraTop: Float = 0f, extraBottom: Float = 0f): PlotArea {
     val top = panelTop(panel)
     val title = if (panel.titled) TITLE_HEIGHT.toPx() else 0f
-    return PlotArea(top + title + extraTop + 4.dp.toPx(), top + panel.heightDp.dp.toPx() - 4.dp.toPx())
+    return PlotArea(top + title + extraTop + 4.dp.toPx(), top + panel.heightDp.dp.toPx() - extraBottom - 4.dp.toPx())
 }
 
 /**

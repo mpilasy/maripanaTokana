@@ -4,16 +4,18 @@
 	import { _, json } from 'svelte-i18n';
 	import SettingsPage from './SettingsPage.svelte';
 	import WeatherIcon from './WeatherIcon.svelte';
+	import DualUnitText from './DualUnitText.svelte';
 	import type { ChartHour } from '#lib/domain/weatherData.js';
 	import { getCardinalDirection, showWindArrow } from '#lib/domain/windSpeed.js';
 	import { uvColorFor, uvTier } from '#lib/domain/uv.js';
 	import { monotonePath } from '#lib/utils/monotonePath.js';
-	import { runsOf } from '#lib/utils/dualLabel.js';
+	import { runsOf, splitDual } from '#lib/utils/dualLabel.js';
+	import { temperatureColor } from '#lib/utils/tempColors.js';
 	import { ChartStyle } from '#lib/utils/chartStyle.js';
 	import { formatDayName, formatHourAtLocation } from '#lib/utils/date.js';
 	import { prefersReducedMotion } from '#lib/utils/motion.js';
 	import {
-		CHART_SLOT, chartDaySpans, chartDomain, chartHours, chartIndexForX, chartLineIndex, chartLineOffset, chartNightRuns, chartScrollForIndex,
+		CHART_SLOT, chartDayExtremes, chartDaySpans, chartDomain, chartHours, chartIndexForX, chartLineIndex, chartLineOffset, chartNightRuns, chartScrollForIndex,
 		chartValueAt, chartVisibleRange,
 		type ChartDomain,
 	} from '#lib/utils/chartView.js';
@@ -36,17 +38,19 @@
 	let { hours, utcOffsetSeconds, placeName, metricPrimary, localeTag, loc, onToggleUnits, onBack }: Props = $props();
 
 	// Sizes in px, the same as on Android: the axis column, the gap between panels, the title line,
-	// the room above the wind line for the direction arrows, and the weather icons
+	// the room above the wind line for the direction arrows, the room above and under the temperature
+	// line for the labels of the day's high and low, and the weather icons
 	const AXIS_WIDTH = 52;
 	const PANEL_GAP = 6;
 	const TITLE_HEIGHT = 16;
 	const ARROW_ROW = 14;
+	const LABEL_ROW = 12;
 	const ICON_SIZE = 26;
 
 	// The panels from top to bottom, with their height; the value panels have a title line at the top.
 	// A time axis is at the top (`timeTop`, mirrored) and at the bottom (`time`).
 	type PanelId = 'timeTop' | 'icons' | 'temp' | 'precip' | 'wind' | 'pressure' | 'humidity' | 'time';
-	const PANEL_HEIGHTS: [PanelId, number][] = [['timeTop', 36], ['icons', 46], ['temp', 132], ['precip', 88], ['wind', 104], ['pressure', 80], ['humidity', 80], ['time', 36]];
+	const PANEL_HEIGHTS: [PanelId, number][] = [['timeTop', 36], ['icons', 46], ['temp', 156], ['precip', 88], ['wind', 104], ['pressure', 80], ['humidity', 80], ['time', 36]];
 	/** A panel: its top and height, and the part where the values go (`plotTop` to `plotBottom`). */
 	interface Panel { top: number; height: number; plotTop: number; plotBottom: number }
 	const { panels, totalHeight } = (() => {
@@ -54,8 +58,9 @@
 		let top = 0;
 		for (const [id, height] of PANEL_HEIGHTS) {
 			const titled = id !== 'timeTop' && id !== 'icons' && id !== 'time';
-			const plotTop = top + (titled ? TITLE_HEIGHT : 0) + (id === 'wind' ? ARROW_ROW : 0) + 4;
-			result[id] = { top, height, plotTop, plotBottom: top + height - 4 };
+			const labelRow = id === 'temp' ? LABEL_ROW : 0;
+			const plotTop = top + (titled ? TITLE_HEIGHT : 0) + (id === 'wind' ? ARROW_ROW : 0) + labelRow + 4;
+			result[id] = { top, height, plotTop, plotBottom: top + height - 4 - labelRow };
 			top += height + PANEL_GAP;
 		}
 		return { panels: result, totalHeight: top - PANEL_GAP };
@@ -64,7 +69,7 @@
 	const chartsTop = panels.icons.top;
 	const chartsBottom = panels.humidity.top + panels.humidity.height;
 	const topAxisBottom = panels.timeTop.top + panels.timeTop.height;
-	// The vertical lines (midnight, selected hour) go only through the plot area of each panel, with a break at the
+	// The vertical lines (midnight) go only through the plot area of each panel, with a break at the
 	// gaps and title lines, so that each chart shows where it starts and ends. The time axis has its own short ticks.
 	const LINE_SEGMENTS = (['icons', 'temp', 'precip', 'wind', 'pressure', 'humidity'] as PanelId[]).map((id) => panels[id]);
 
@@ -238,7 +243,76 @@
 		{ id: 'humidity', title: `${$_('detail_humidity')}  %` },
 	]);
 
+	// The day's high and low of the temperature, labelled at their points; the low is left out when it is the same hour as
+	// the high, because it would sit on the same point
+	const LABEL_GAP = 2;
+	// The colours of the high and low labels, as on the temperature chart of the main page
+	const HIGH_COLOR = '#FF8A65';
+	const LOW_COLOR = '#64B5F6';
+	// The baseline of a 9 px label under a point: the label's top is `LABEL_GAP` under the point
+	const LABEL_UNDER = LABEL_GAP + 7;
+	let extremeLabels = $derived.by(() => {
+		if (!tempDomain) return [];
+		const out: { key: string; i: number; y: number; color: string; primary: string; secondary: string | null }[] = [];
+		const add = (kind: 'high' | 'low', i: number) => {
+			if (i < drawn.start || i >= drawn.end || temps[i] == null) return;
+			const [primary, secondary] = splitDual(shown[i].temperature!.displayDual(metricPrimary).join(' · '));
+			const py = y(temps[i]!, tempDomain!, panels.temp);
+			out.push({
+				key: `${kind}${i}`,
+				i,
+				y: kind === 'high' ? py - LABEL_GAP : py + LABEL_UNDER,
+				color: kind === 'high' ? HIGH_COLOR : LOW_COLOR,
+				primary: loc(primary),
+				secondary: secondary ? loc(secondary) : null,
+			});
+		};
+		for (const e of chartDayExtremes(temps, days)) {
+			add('high', e.high);
+			if (e.low !== e.high) add('low', e.low);
+		}
+		return out;
+	});
+
 	let summary = $derived($_('chart_view_summary', { values: { hours: loc(String(count)) } }));
+
+	/** One value tile of the selection card: its label, and the value as a pair of units, as text, or on a pill. */
+	interface Cell {
+		label: string;
+		dual?: [string, string];
+		text?: string;
+		pill?: { background: string; color: string };
+		/** The chance of rain, localised, under the precipitation. */
+		chance?: string;
+		direction?: string;
+	}
+	const CELLS_PER_ROW = 4;
+
+	// The values of the selected hour, each only when the hour has it, in rows of up to 4
+	let rows = $derived.by(() => {
+		const h = selectedHour;
+		if (!h) return [];
+		const dual = (pair: [string, string]): [string, string] => [loc(pair[0]), loc(pair[1])];
+		const cells: Cell[] = [];
+		if (h.temperature) cells.push({ label: $_('detail_temperature'), dual: dual(h.temperature.displayDual(metricPrimary)), pill: { background: temperatureColor(h.temperature.celsius), color: '#1A1A1A' } });
+		if (h.dewPoint) cells.push({ label: $_('detail_dewpoint'), dual: dual(h.dewPoint.displayDual(metricPrimary)) });
+		if (h.precipitation) {
+			const chance = h.precipProbability != null && h.precipProbability > 0 ? loc(`${h.precipProbability}%`) : undefined;
+			cells.push({ label: $_('detail_precipitation'), dual: dual(h.precipitation.displayDual(metricPrimary)), chance });
+		}
+		if (h.windSpeed) {
+			const direction = h.windDeg != null && showWindArrow(h.windSpeed) ? getCardinalDirection(h.windDeg, $json('cardinal_directions')) : undefined;
+			cells.push({ label: $_('detail_wind'), dual: dual(h.windSpeed.displayDual(metricPrimary)), direction });
+		}
+		if (h.windGust) cells.push({ label: $_('detail_wind_gust'), dual: dual(h.windGust.displayDual(metricPrimary)) });
+		if (h.pressure) cells.push({ label: $_('detail_pressure'), dual: dual(h.pressure.displayDual(metricPrimary)) });
+		if (h.humidity != null) cells.push({ label: $_('detail_humidity'), text: loc(`${h.humidity}%`) });
+		if (h.uvIndex != null && Number.isFinite(h.uvIndex)) {
+			const badge = uvBadge(h.uvIndex);
+			cells.push({ label: $_('detail_uv_index'), text: badge.text, pill: { background: badge.background, color: badge.color } });
+		}
+		return Array.from({ length: Math.ceil(cells.length / CELLS_PER_ROW) }, (_v, k) => cells.slice(k * CELLS_PER_ROW, (k + 1) * CELLS_PER_ROW));
+	});
 
 	/** The UV index as shown (rounded), and the colours of its level, from the shown value. */
 	function uvBadge(uv: number) {
@@ -327,36 +401,52 @@
 	}
 </script>
 
-<SettingsPage title={$_('chart_view_title')} subtitle={placeName} {onBack}>
+<SettingsPage title={placeName.trim() || $_('chart_view_title')} subtitle={placeName.trim() ? $_('chart_view_title') : undefined} stacked {onBack}>
 
 	<!-- The selected hour's values; a screen reader reads them again when the selection moves, a tap swaps the units -->
-	<button type="button" class="selection" onclick={onToggleUnits} aria-describedby="chart-units-hint">
-		<span class="selection-row" aria-live="polite">
+	<button type="button" class="card selection" onclick={onToggleUnits} aria-describedby="chart-units-hint">
+		<span class="sel-live" aria-live="polite">
 			{#if selectedHour}
-				{@const h = selectedHour}
-				<span class="sel-time">{hourLabel(h)}</span>
-				<WeatherIcon code={h.weatherCode} night={h.isNight} size={28} />
-				{#if h.temperature}{@render value(null, h.temperature.displayDual(metricPrimary))}{/if}
-				{#if h.dewPoint}{@render value($_('detail_dewpoint'), h.dewPoint.displayDual(metricPrimary))}{/if}
-				{#if h.precipitation}
-					{@render value($_('detail_precipitation'), h.precipitation.displayDual(metricPrimary), h.precipProbability != null ? $_('precip_chance', { values: { value: loc(`${h.precipProbability}%`) } }) : undefined)}
-				{/if}
-				{#if h.windSpeed}
-					{@render value($_('detail_wind'), h.windSpeed.displayDual(metricPrimary), h.windDeg != null && showWindArrow(h.windSpeed) ? getCardinalDirection(h.windDeg, $json('cardinal_directions')) : undefined)}
-				{/if}
-				{#if h.windGust}{@render value($_('detail_wind_gust'), h.windGust.displayDual(metricPrimary))}{/if}
-				{#if h.pressure}{@render value($_('detail_pressure'), h.pressure.displayDual(metricPrimary))}{/if}
-				{#if h.humidity != null}{@render value($_('detail_humidity'), null, loc(`${h.humidity}%`))}{/if}
-				{#if h.uvIndex != null && Number.isFinite(h.uvIndex)}
-					{@const badge = uvBadge(h.uvIndex)}
-					<span class="sel-value"><span class="sel-label">{$_('detail_uv_index')}</span> <span class="uv-pill" style:background={badge.background} style:color={badge.color}>{badge.text}</span></span>
-				{/if}
+				<span class="sel-title">
+					<span class="sel-time">{hourLabel(selectedHour)}</span>
+					<WeatherIcon code={selectedHour.weatherCode} night={selectedHour.isNight} size={32} />
+				</span>
+				<span class="sel-rows">
+					{#each rows as row, r (r)}
+						<span class="sel-strip">
+							{#each row as c, k (k)}
+								<span class="sel-cell">
+									<span class="sel-label">{c.label}</span>
+									{#if c.dual}
+										{#if c.pill}
+											<span class="pill sel-temp" style:background={c.pill.background}>
+												<DualUnitText primary={c.dual[0]} secondary={c.dual[1]} primarySize="0.9375rem" align="center" />
+											</span>
+										{:else}
+											<DualUnitText primary={c.dual[0]} secondary={c.dual[1]} primarySize="0.9375rem" align="center" />
+										{/if}
+									{:else if c.text}
+										<bdi dir="ltr" class="sel-text" class:pill={c.pill} style:background={c.pill?.background} style:color={c.pill?.color}>{c.text}</bdi>
+									{/if}
+									{#if c.chance}
+										<span class="sel-sub sel-chance">
+											<span aria-hidden="true"><svg class="sel-drop" viewBox="0 0 24 24" width="9" height="9" fill="currentColor"><path d="M12 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.8 8.2 8 8.2s8-3.22 8-8.2c0-3.32-2.67-7.25-8-11.8z"/></svg>{c.chance}</span>
+											<span class="sr-only">{$_('precip_chance', { values: { value: c.chance } })}</span>
+										</span>
+									{/if}
+									{#if c.direction}<span class="sel-sub sel-direction">{c.direction}</span>{/if}
+								</span>
+							{/each}
+						</span>
+					{/each}
+				</span>
 			{/if}
 		</span>
 	</button>
 	<span id="chart-units-hint" hidden>{$_('cd_toggle_units')}</span>
 
 	<!-- Time runs left to right in every language, with the axis column on the left -->
+	<div class="card chart-card">
 	<div
 		class="chart"
 		dir="ltr"
@@ -423,6 +513,11 @@
 						<line x1="0" x2={count * slot} y1={gy} y2={gy} stroke="white" stroke-opacity="0.07" stroke-width="1" />
 					{/each}
 
+					<!-- The selected hour: a soft column over the panels, under the lines -->
+					{#if count > 0}
+						<rect x={lineX - slot / 2} y={chartsTop} width={slot} height={chartsBottom - chartsTop} rx={ChartStyle.selectionColumnRadius} fill={ChartStyle.selectionColumn} />
+					{/if}
+
 					<!-- The UV index under the icons, in the colours of its level -->
 					{#each everyThird as i (i)}
 						{@const uv = shown[i].uvIndex}
@@ -445,6 +540,10 @@
 							<path d={curve(temps, tempDomain, panels.temp)} fill="none" stroke={ChartStyle.temperature} stroke-width={ChartStyle.lineWidth} />
 						</g>
 					{/if}
+					<!-- The high and low of each day (12 hours or more), as the labels of the temperature chart on the main page -->
+					{#each extremeLabels as l (l.key)}
+						<text x={cx(l.i)} y={l.y} text-anchor="middle" direction="ltr" font-size="9" font-weight="bold" fill={l.color} style:font-family="var(--font-display)" style:font-feature-settings="var(--font-features)">{l.primary}{#if l.secondary}<tspan font-size="0.8em" font-weight="500" fill-opacity="0.7">{" " + l.secondary}</tspan>{/if}</text>
+					{/each}
 
 					<!-- Precipitation as bars, the chance of rain as a thin line on 0-100 % -->
 					<g clip-path="url(#chart-clip-precip)">
@@ -503,9 +602,8 @@
 						{/if}
 					{/each}
 
-					<!-- The selection line in every panel, with a dot on each line; the selected hour is the one under it -->
+					<!-- A dot on each line at the selected hour -->
 					{#if count > 0}
-						{@render verticalLine(lineX, ChartStyle.selection, ChartStyle.selectionWidth)}
 						{#each selectedDots as dot, k (k)}
 							<circle cx={lineX} cy={dot.y} r={ChartStyle.selectionDotRadius} fill={ChartStyle.selectionDot} />
 						{/each}
@@ -535,96 +633,160 @@
 			{/each}
 		</div>
 	</div>
+	</div>
 </SettingsPage>
-
-<!-- One value of the selection strip: its name, then the value in both units (and more, such as the chance of rain) -->
-{#snippet value(label: string | null, pair: [string, string] | null, extra?: string)}
-	<span class="sel-value">
-		{#if label}<span class="sel-label">{label}</span>{' '}{/if}
-		{#if pair}<bdi dir="ltr"><span class="sel-primary">{loc(pair[0])}</span> <span class="sel-secondary">{loc(pair[1])}</span></bdi>{/if}
-		{#if extra}<span class="sel-extra">{' ' + extra}</span>{/if}
-	</span>
-{/snippet}
 
 <style>
 
-	.selection {
+	/* Glass cards as the section cards of the main screen; the page has 16 px at the sides, the cards 12 */
+	.card {
 		display: block;
-		width: 100%;
-		min-height: 52px;
+		box-sizing: border-box;
+		margin-inline: -4px;
+		background: var(--surface-section);
+		border: 1px solid var(--hairline);
+		border-radius: 20px;
+	}
+
+	.selection {
+		width: calc(100% + 8px);
 		margin-bottom: 8px;
-		padding: 6px 10px;
-		border: none;
-		border-radius: 12px;
-		background: rgba(255, 255, 255, 0.06);
+		padding: 0;
 		color: white;
 		font: inherit;
 		text-align: start;
 		cursor: pointer;
 	}
 
-	.selection-row {
+	.sel-live {
+		display: block;
+	}
+
+	.sel-title {
 		display: flex;
-		flex-wrap: wrap;
 		align-items: center;
-		gap: 2px 12px;
+		gap: 8px;
+		min-height: 48px;
+		padding-inline: 16px 12px;
 	}
 
 	.sel-time {
-		font-size: 0.8125rem;
+		flex: 1;
+		min-width: 0;
+		font-family: var(--font-body);
+		font-size: 1.0625rem;
 		font-weight: 700;
+		color: white;
 		font-feature-settings: var(--font-features);
 	}
 
-	.sel-value {
-		white-space: nowrap;
+	.sel-rows {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		padding: 0 12px 12px;
+	}
+
+	/* A strip as the next hours of the hero card. The cells share its rows (subgrid): the labels in one strip get the
+	   height of the tallest one, so the values line up when a label wraps (as equalRowTitles on the main screen) */
+	.sel-strip {
+		display: grid;
+		grid-auto-flow: column;
+		grid-auto-columns: 1fr;
+		grid-template-rows: auto auto auto;
+		padding: 10px 0;
+		background: var(--surface-tile);
+		border-radius: 16px;
+	}
+
+	.sel-cell {
+		position: relative;
+		grid-row: span 3;
+		min-width: 0;
+		display: grid;
+		grid-template-rows: subgrid;
+		justify-items: center;
+		align-items: start;
+		padding: 0 2px;
+		text-align: center;
+	}
+
+	.sel-cell + .sel-cell::before {
+		content: '';
+		position: absolute;
+		inset-block: 4px;
+		inset-inline-start: 0;
+		width: 1px;
+		background: var(--hairline);
 	}
 
 	.sel-label {
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
+		overflow: hidden;
+		margin-bottom: 4px;
+		font-family: var(--font-body);
 		font-size: 0.6875rem;
-		color: rgba(255, 255, 255, 0.55);
-	}
-
-	.sel-primary {
-		font-family: var(--font-display);
-		font-size: 0.8125rem;
-		font-weight: 700;
-		font-feature-settings: var(--font-features);
-	}
-
-	.sel-secondary {
-		font-family: var(--font-display);
-		font-size: 0.625rem;
+		line-height: 13px;
 		color: rgba(255, 255, 255, 0.6);
-		font-feature-settings: var(--font-features);
 	}
 
-	.sel-extra {
-		font-size: 0.75rem;
-		color: rgba(255, 255, 255, 0.8);
-		font-feature-settings: var(--font-features);
+	/* The temperature and the UV index on a pill, moved up by its padding so its text lines up with the values next to it;
+	   dark text on the light colours of the scale */
+	.pill {
+		margin-top: -2px;
+		padding: 2px 10px;
+		border-radius: 12px;
 	}
 
-	.uv-pill {
-		padding: 0 6px;
-		border-radius: 6px;
+	.sel-temp :global(.primary),
+	.sel-temp :global(.secondary) {
+		color: #1A1A1A;
+	}
+
+	.sel-text {
 		font-family: var(--font-display);
-		font-size: 0.75rem;
+		font-size: 0.9375rem;
 		font-weight: 700;
+		line-height: 1.15;
+		color: white;
 		font-feature-settings: var(--font-features);
+	}
+
+	.sel-sub {
+		font-size: 0.6875rem;
+		line-height: 14px;
+		font-feature-settings: var(--font-features);
+	}
+
+	.sel-chance {
+		color: #64B5F6;
+	}
+
+	.sel-drop {
+		margin-inline-end: 2px;
+	}
+
+	.sel-direction {
+		color: rgba(255, 255, 255, 0.7);
+	}
+
+	.chart-card {
+		padding: 8px 0;
+		overflow: hidden;
 	}
 
 	.chart {
 		position: relative;
 		display: flex;
-		margin: 0 -8px;
-		border-radius: 12px;
 		outline: none;
 	}
 
 	.chart:focus-visible {
 		outline: 2px solid rgba(255, 255, 255, 0.8);
-		outline-offset: 2px;
+		outline-offset: -2px;
 	}
 
 	.axis {

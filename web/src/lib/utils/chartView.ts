@@ -161,6 +161,50 @@ export function chartValueAt(values: (number | null)[], x: number, slotPx: numbe
 	return values[Math.round(pos)] ?? null;
 }
 
+/** The highest and the lowest value of one day: their indexes in the values. */
+export interface ChartDayExtreme {
+	high: number;
+	low: number;
+}
+
+/** The middle one of the tied indexes, as the temperature chart of the main page. */
+function middleOf(indexes: number[]): number {
+	return indexes[Math.floor(indexes.length / 2)];
+}
+
+/**
+ * For each day in `daySpans` with at least `minHours` hours: the index of its highest and of its lowest value
+ * (nulls and values that are not numbers are ignored). With ties, the middle one of the tied indexes.
+ * A day with fewer hours, or with no value, gives nothing.
+ */
+export function chartDayExtremes(
+	values: (number | null | undefined)[],
+	daySpans: { startIndex: number; endIndex: number }[],
+	minHours = 12,
+): ChartDayExtreme[] {
+	const result: ChartDayExtreme[] = [];
+	for (const span of daySpans) {
+		if (span.endIndex - span.startIndex < minHours) continue;
+		let hi = -Infinity;
+		let lo = Infinity;
+		for (let i = span.startIndex; i < span.endIndex; i++) {
+			const v = values[i];
+			if (v == null || !Number.isFinite(v)) continue;
+			if (v > hi) hi = v;
+			if (v < lo) lo = v;
+		}
+		if (lo > hi) continue;
+		const highs: number[] = [];
+		const lows: number[] = [];
+		for (let i = span.startIndex; i < span.endIndex; i++) {
+			if (values[i] === hi) highs.push(i);
+			if (values[i] === lo) lows.push(i);
+		}
+		result.push({ high: middleOf(highs), low: middleOf(lows) });
+	}
+	return result;
+}
+
 /** A vertical scale: the bottom and top values and the values that get a label (from bottom to top). */
 export interface ChartDomain {
 	min: number;

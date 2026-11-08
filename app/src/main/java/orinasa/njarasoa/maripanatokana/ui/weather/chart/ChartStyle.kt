@@ -35,6 +35,8 @@ object ChartStyle {
     val midnight = Color.White.copy(alpha = 0.25f)
     val selection = Color.White.copy(alpha = 0.7f)
     val selectionDot = Color.White
+    // The soft column of the chart view: the selected hour, one hour wide
+    val selectionColumn = Color.White.copy(alpha = 0.10f)
 
     val lineWidth = 2.dp
     val thinLineWidth = 1.5.dp
@@ -44,6 +46,7 @@ object ChartStyle {
     val midnightWidth = 1.dp
     val selectionWidth = 1.dp
     val selectionDotRadius = 3.5.dp
+    val selectionColumnRadius = 8.dp
 
     val freezingDash = listOf(4.dp, 3.dp)
     val gustDash = listOf(5.dp, 3.dp)

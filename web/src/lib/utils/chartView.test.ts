@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { describe, expect, it } from 'vitest';
-import { chartDaylight, chartDaySpans, chartDomain, chartHours, chartIndexForX, chartLineIndex, chartLineOffset, chartMaxScroll, chartScrollForIndex, chartValueAt, chartMidnights, chartNightRuns, chartVisibleRange } from './chartView';
+import { chartDayExtremes, chartDaylight, chartDaySpans, chartDomain, chartHours, chartIndexForX, chartLineIndex, chartLineOffset, chartMaxScroll, chartScrollForIndex, chartValueAt, chartMidnights, chartNightRuns, chartVisibleRange } from './chartView';
 
 const HOUR = 3_600_000;
 const T0 = Date.UTC(2026, 10, 7, 0, 0); // 2026-11-07 00:00 UTC
@@ -235,5 +235,30 @@ describe('chartValueAt', () => {
 		expect(chartValueAt([1, null, 9], 20, 28)).toBe(1);
 		expect(chartValueAt([1, null, 9], 60, 28)).toBe(9);
 		expect(chartValueAt([], 10, 28)).toBeNull();
+	});
+});
+
+describe('chartDayExtremes', () => {
+	const span = (startIndex: number, endIndex: number) => ({ startIndex, endIndex });
+	it('gives the highest and the lowest index of each day', () => {
+		const values = Array.from({ length: 24 }, (_, i) => 10 + Math.sin((i / 24) * 2 * Math.PI) * 5);
+		expect(chartDayExtremes(values, [span(0, 24)])).toEqual([{ high: 6, low: 18 }]);
+	});
+	it('takes the middle one of the tied indexes', () => {
+		const values = [1, 5, 5, 5, 5, 3, 0, 0, 0, 2, 4, 4];
+		expect(chartDayExtremes(values, [span(0, 12)])).toEqual([{ high: 3, low: 7 }]);
+		expect(chartDayExtremes([1, 9, 9, 0, 0, 5, 5, 5, 5, 5, 5, 5], [span(0, 12)])).toEqual([{ high: 2, low: 4 }]);
+	});
+	it('leaves out a day with fewer hours than the minimum', () => {
+		const values = Array.from({ length: 36 }, (_, i) => i);
+		expect(chartDayExtremes(values, [span(0, 11), span(11, 36)])).toEqual([{ high: 35, low: 11 }]);
+		expect(chartDayExtremes(values, [span(0, 11)], 11)).toEqual([{ high: 10, low: 0 }]);
+	});
+	it('ignores missing values and leaves out a day with none', () => {
+		const values: (number | null)[] = [null, 4, NaN, 7, ...Array(8).fill(null), ...Array(12).fill(null)];
+		expect(chartDayExtremes(values, [span(0, 12), span(12, 24)])).toEqual([{ high: 3, low: 1 }]);
+	});
+	it('gives nothing without days', () => {
+		expect(chartDayExtremes([1, 2, 3], [])).toEqual([]);
 	});
 });

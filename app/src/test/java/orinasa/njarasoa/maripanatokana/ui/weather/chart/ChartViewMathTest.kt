@@ -261,4 +261,39 @@ class ChartViewMathTest {
         assertEquals(0f, chartScrollForIndex(0, 28f, 240, 308f), 0f)
         assertEquals(chartMaxScroll(28f, 240, 308f), chartScrollForIndex(239, 28f, 240, 308f), 0.01f)
     }
+
+    // chartDayExtremes
+
+    @Test
+    fun chartDayExtremesFindsTheHighAndLowOfEachLongDay() {
+        val spans = listOf(ChartDaySpan(0, 24, 0L), ChartDaySpan(24, 48, day))
+        val values = List(48) { 10.0 }.toMutableList<Double?>()
+        values[5] = 20.0
+        values[3] = 2.0
+        values[30] = 25.0
+        values[40] = -1.0
+        assertEquals(listOf(ChartDayExtremes(5, 3), ChartDayExtremes(30, 40)), chartDayExtremes(values, spans))
+    }
+
+    @Test
+    fun chartDayExtremesTakesTheMiddleOfTiedHours() {
+        val spans = listOf(ChartDaySpan(0, 24, 0L))
+        val values = MutableList<Double?>(24) { 10.0 }
+        for (i in listOf(4, 5, 6, 7)) values[i] = 20.0
+        for (i in listOf(10, 11, 12)) values[i] = 1.0
+        // Tied 4..7: the index at size / 2 is 6; tied 10..12: 11
+        assertEquals(listOf(ChartDayExtremes(6, 11)), chartDayExtremes(values, spans))
+    }
+
+    @Test
+    fun chartDayExtremesSkipsShortDaysAndDaysWithoutValues() {
+        val spans = listOf(ChartDaySpan(0, 11, 0L), ChartDaySpan(11, 12, day), ChartDaySpan(12, 36, 2 * day), ChartDaySpan(36, 60, 3 * day))
+        val values = MutableList<Double?>(60) { it.toDouble() }
+        // The day with 24 hours at 12..35 keeps only nulls and NaN; the next day has a value
+        for (i in 12 until 36) values[i] = if (i % 2 == 0) null else Double.NaN
+        assertEquals(listOf(ChartDayExtremes(59, 36)), chartDayExtremes(values, spans))
+        // A day of exactly minHours counts; a lower minHours lets a short day in
+        assertEquals(listOf(ChartDayExtremes(10, 0)), chartDayExtremes(values.take(11), listOf(ChartDaySpan(0, 11, 0L)), minHours = 11))
+        assertTrue(chartDayExtremes(emptyList(), emptyList()).isEmpty())
+    }
 }

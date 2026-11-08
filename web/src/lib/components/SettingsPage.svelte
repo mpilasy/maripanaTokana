@@ -23,9 +23,11 @@
 		/** The language flag at the top, as in the main screen's footer: a tap shows the next language, holding it lists them. */
 		languageFlag?: string;
 		onCycleLanguage?: () => void;
+		/** The title as a large line (as the place name on the main screen) with the subtitle under it, instead of side by side. */
+		stacked?: boolean;
 	}
 
-	let { title, subtitle, onBack, children, languageFlag, onCycleLanguage }: Props = $props();
+	let { title, subtitle, onBack, children, languageFlag, onCycleLanguage, stacked = false }: Props = $props();
 
 	let pickerOpen = $state(false);
 	const languageItems = SUPPORTED_LOCALES.map((l) => ({ lead: l.flag, label: l.name, lang: l.tag }));
@@ -53,9 +55,18 @@
 				<path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
 			</svg>
 		</button>
-		<h2>{title}</h2>
-		{#if subtitle}
-			<span class="subtitle">{subtitle}</span>
+		{#if stacked}
+			<div class="titles">
+				<h2>{title}</h2>
+				{#if subtitle}
+					<span class="subtitle">{subtitle}</span>
+				{/if}
+			</div>
+		{:else}
+			<h2>{title}</h2>
+			{#if subtitle}
+				<span class="subtitle">{subtitle}</span>
+			{/if}
 		{/if}
 		{#if languageFlag && onCycleLanguage}
 			<span class="flag-box">
@@ -141,6 +152,27 @@
 		white-space: nowrap;
 		font-size: 0.875rem;
 		color: rgba(255, 255, 255, 0.7);
+	}
+
+	/* Stacked: the title as large as the place name on the main screen, the subtitle under it */
+	.titles {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+	}
+
+	.titles h2 {
+		font-family: var(--font-display);
+		font-size: 1.875rem;
+		line-height: 2.25rem;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.titles .subtitle {
+		font-family: var(--font-body);
+		color: rgba(255, 255, 255, 0.6);
 	}
 
 	/* Shared building blocks for pages rendered inside this shell */
