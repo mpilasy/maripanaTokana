@@ -44,7 +44,7 @@
 
 	// Sizes in px, the same as on Android: the axis column, the gap between panels, the title line,
 	// the room above the wind line for the direction arrows, the room above and under the temperature
-	// line for the labels of the day's high and low (and above the rain bars), the weather icons, and the side margin of the panel bands
+	// line of each panel for the labels of the day's high and low (and above the rain bars), the weather icons, and the side margin of the panel bands
 	const AXIS_WIDTH = 52;
 	const PANEL_GAP = 10;
 	const TITLE_HEIGHT = 22;
@@ -61,15 +61,15 @@
 	interface Panel { top: number; height: number; plotTop: number; plotBottom: number }
 	const isTitled = (id: PanelId) => id !== 'timeTop' && id !== 'icons' && id !== 'time';
 	function layout(withAirQuality: boolean) {
-		const heights: [PanelId, number][] = [['timeTop', 36], ['icons', 46], ['temp', 156], ['precip', 100], ['wind', 104], ['pressure', 80], ['humidity', 80]];
-		if (withAirQuality) heights.push(['airQuality', 80]);
+		const heights: [PanelId, number][] = [['timeTop', 36], ['icons', 46], ['temp', 156], ['precip', 100], ['wind', 128], ['pressure', 104], ['humidity', 104]];
+		if (withAirQuality) heights.push(['airQuality', 104]);
 		heights.push(['time', 36]);
 		const panels = {} as Record<PanelId, Panel>;
 		let top = 0;
 		for (const [id, height] of heights) {
-			// The temperature has a label row above and under its line; the precipitation one above its bars
-			const labelRow = id === 'temp' ? LABEL_ROW : 0;
-			const labelTop = id === 'temp' || id === 'precip' ? LABEL_ROW : 0;
+			// Each value panel has a label row above and under its primary line; the precipitation only above its bars
+			const labelRow = isTitled(id) && id !== 'precip' ? LABEL_ROW : 0;
+			const labelTop = isTitled(id) ? LABEL_ROW : 0;
 			const plotTop = top + (isTitled(id) ? TITLE_HEIGHT : 0) + (id === 'wind' ? ARROW_ROW : 0) + labelTop + 4;
 			panels[id] = { top, height, plotTop, plotBottom: top + height - 4 - labelRow };
 			top += height + PANEL_GAP;
@@ -184,8 +184,9 @@
 	});
 
 	const localHour = (t: number) => new Date(t + utcOffsetSeconds * 1000).getUTCHours();
-	// Icons, wind arrows and hour labels every 3 local hours (00, 03, 06…)
-	let everyThird = $derived(drawIndexes.filter((i) => localHour(shown[i].time) % 3 === 0));
+	// Icons, wind arrows and hour labels every 4 local hours (00, 04, 08…)
+	const LABEL_HOURS = 4;
+	let labelled = $derived(drawIndexes.filter((i) => localHour(shown[i].time) % LABEL_HOURS === 0));
 
 	// Each local day, from the middle of its first hour to the middle of the next day's first hour
 	let days = $derived.by(() => {
@@ -307,35 +308,74 @@
 		return gap < 0 ? -1 : gap - 1;
 	});
 
-	// The day's high and low of the temperature, labelled at their points; the low is left out when it is the same hour as
-	// the high, because it would sit on the same point
+	// The day's high and low of the primary line of each panel, labelled at their points; the low is left out when it is
+	// the same hour as the high, because it would sit on the same point
 	const LABEL_GAP = 2;
 	// The colours of the high and low labels, as on the temperature chart of the main page
 	const HIGH_COLOR = '#FF8A65';
 	const LOW_COLOR = '#64B5F6';
 	// The baseline of a 9 px label under a point: the label's top is `LABEL_GAP` under the point
 	const LABEL_UNDER = LABEL_GAP + 7;
-	let extremeLabels = $derived.by(() => {
-		if (!tempDomain) return [];
-		const out: { key: string; i: number; y: number; color: string; primary: string; secondary: string | null }[] = [];
-		const add = (kind: 'high' | 'low', i: number) => {
-			if (i < drawn.start || i >= drawn.end || temps[i] == null) return;
-			const [primary, secondary] = splitDual(shown[i].temperature!.displayDual(metricPrimary).join(' · '));
-			const py = y(temps[i]!, tempDomain!, panels.temp);
+	let labelCanvas: CanvasRenderingContext2D | null = null;
+	/** The width of a high or low label: the primary unit at 9 px bold, the other unit at 0.8em and weight 500. */
+	function extremeLabelWidth(primary: string, secondary: string | null): number {
+		if (typeof document === 'undefined') return 0;
+		labelCanvas ??= document.createElement('canvas').getContext('2d');
+		if (!labelCanvas) return 0;
+		const family = getComputedStyle(document.documentElement).getPropertyValue('--font-display').trim() || 'sans-serif';
+		labelCanvas.font = `bold 9px ${family}`;
+		let width = labelCanvas.measureText(primary).width;
+		if (secondary) {
+			labelCanvas.font = `500 7.2px ${family}`;
+			width += labelCanvas.measureText(' ' + secondary).width;
+		}
+		return width;
+	}
+	/**
+	 * The labels of the day's high and low of one line (`id` keeps the keys apart); `text` gives the label of an hour.
+	 * A label stays inside the part of the plot in view.
+	 */
+	function dayExtremeLabels(id: PanelId, values: (number | null)[], d: ChartDomain | null, color: (i: number, high: boolean) => string, text: (i: number) => string | null) {
+		if (!d) return [];
+		const out: { key: string; x: number; y: number; color: string; primary: string; secondary: string | null }[] = [];
+		const add = (high: boolean, i: number) => {
+			if (i < drawn.start || i >= drawn.end || values[i] == null) return;
+			const label = text(i);
+			if (label == null) return;
+			const [p, s] = splitDual(label);
+			const primary = loc(p);
+			const secondary = s ? loc(s) : null;
+			const py = y(values[i]!, d, panels[id]);
+			let x = cx(i);
+			if (viewport > 0) {
+				const half = extremeLabelWidth(primary, secondary) / 2 + 2;
+				x = Math.max(hoursLeft + half, Math.min(x, hoursLeft + viewport - half));
+			}
 			out.push({
-				key: `${kind}${i}`,
-				i,
-				y: kind === 'high' ? py - LABEL_GAP : py + LABEL_UNDER,
-				color: kind === 'high' ? HIGH_COLOR : LOW_COLOR,
-				primary: loc(primary),
-				secondary: secondary ? loc(secondary) : null,
+				key: `${id}${high ? 'high' : 'low'}${i}`,
+				x,
+				y: high ? py - LABEL_GAP : py + LABEL_UNDER,
+				color: color(i, high),
+				primary,
+				secondary,
 			});
 		};
-		for (const e of chartDayExtremes(temps, days)) {
-			add('high', e.high);
-			if (e.low !== e.high) add('low', e.low);
+		for (const e of chartDayExtremes(values, days)) {
+			add(true, e.high);
+			if (e.low !== e.high) add(false, e.low);
 		}
 		return out;
+	}
+	let extremeLabels = $derived.by(() => {
+		// Measured again when the fonts are in
+		void fontsReady;
+		return [
+			...dayExtremeLabels('temp', temps, tempDomain, (_, high) => (high ? HIGH_COLOR : LOW_COLOR), (i) => shown[i].temperature?.displayDual(metricPrimary).join(' · ') ?? null),
+			...dayExtremeLabels('wind', winds, windDomain, () => ChartStyle.wind, (i) => shown[i].windSpeed?.displayDual(metricPrimary).join(' · ') ?? null),
+			...dayExtremeLabels('pressure', pressures, pressureDomain, () => ChartStyle.pressure, (i) => shown[i].pressure?.displayDual(metricPrimary).join(' · ') ?? null),
+			...dayExtremeLabels('humidity', humidities, PERCENT_DOMAIN, () => ChartStyle.humidity, (i) => (shown[i].humidity != null ? `${shown[i].humidity}%` : null)),
+			...(hasAirQuality ? dayExtremeLabels('airQuality', aqValues, aqDomain, (i) => AQI_TIER_COLORS[aqTier(aqValues[i]!)], (i) => String(aqValues[i])) : []),
+		];
 	});
 
 	// The value of the highest bar of each day (any number of hours), above the bar
@@ -659,7 +699,7 @@
 					{/if}
 
 					<!-- The UV index under the icons, in the colours of its level -->
-					{#each everyThird as i (i)}
+					{#each labelled as i (i)}
 						{@const uv = shown[i].uvIndex}
 						<!-- From 1 as shown (rounded): 0.6 shows 1 -->
 						{#if uv != null && Number.isFinite(uv) && Math.round(uv) >= 1}
@@ -680,10 +720,6 @@
 							<path d={curve(temps, tempDomain, panels.temp)} fill="none" stroke={ChartStyle.temperature} stroke-width={ChartStyle.lineWidth} />
 						</g>
 					{/if}
-					<!-- The high and low of each day (12 hours or more), as the labels of the temperature chart on the main page -->
-					{#each extremeLabels as l (l.key)}
-						<text x={cx(l.i)} y={l.y} text-anchor="middle" direction="ltr" font-size="9" font-weight="bold" fill={l.color} style:font-family="var(--font-display)" style:font-feature-settings="var(--font-features)">{l.primary}{#if l.secondary}<tspan font-size="0.8em" font-weight="500" fill-opacity="0.7">{" " + l.secondary}</tspan>{/if}</text>
-					{/each}
 
 					<!-- Precipitation as bars, the chance of rain as a thin line on 0-100 % -->
 					<g clip-path="url(#chart-clip-precip)">
@@ -702,14 +738,14 @@
 						<text x={cx(l.i)} y={l.y} text-anchor="middle" direction="ltr" font-size="9" font-weight="bold" fill={ChartStyle.precipitation} style:font-family="var(--font-display)" style:font-feature-settings="var(--font-features)">{l.primary}{#if l.secondary}<tspan font-size="0.8em" font-weight="500" fill-opacity="0.7">{" " + l.secondary}</tspan>{/if}</text>
 					{/each}
 
-					<!-- Wind and gusts on one scale, with the direction every 3 hours -->
+					<!-- Wind and gusts on one scale, with the direction every 4 hours -->
 					<g clip-path="url(#chart-clip-wind)">
 						{#if windDomain}
 							<path d={curve(gusts, windDomain, panels.wind)} fill="none" stroke={ChartStyle.gust} stroke-width={ChartStyle.thinLineWidth} stroke-dasharray={ChartStyle.gustDash} />
 							<path d={curve(winds, windDomain, panels.wind)} fill="none" stroke={ChartStyle.wind} stroke-width={ChartStyle.lineWidth} />
 						{/if}
 					</g>
-					{#each everyThird as i (i)}
+					{#each labelled as i (i)}
 						{@const h = shown[i]}
 						{#if h.windSpeed && h.windDeg != null && showWindArrow(h.windSpeed)}
 							<!-- Points to where the wind comes from, as the compass of the wind cards -->
@@ -741,16 +777,14 @@
 						{/if}
 					{/if}
 
-					<!-- Time axes: an hour label every 3 or 6 hours, and the day at each midnight (the day at the start stays in view).
+					<!-- Time axes: an hour label every 4 hours, and the day at each midnight (the day at the start stays in view).
 					     The bottom axis has its ticks, then the hours, then the days; the top axis is the same, mirrored. -->
-					{#each drawIndexes as i (i)}
-						{#if localHour(shown[i].time) % 3 === 0}
-							{@const hourText = loc(formatHourAtLocation(shown[i].time, utcOffsetSeconds))}
-							<line x1={cx(i)} x2={cx(i)} y1={panels.time.top} y2={panels.time.top + 3} stroke="white" stroke-opacity="0.3" stroke-width="1" />
-							<text x={cx(i)} y={panels.time.top + 13} text-anchor="middle" font-size="10" fill="white" fill-opacity="0.6">{hourText}</text>
-							<line x1={cx(i)} x2={cx(i)} y1={topAxisBottom - 3} y2={topAxisBottom} stroke="white" stroke-opacity="0.3" stroke-width="1" />
-							<text x={cx(i)} y={topAxisBottom - 6} text-anchor="middle" font-size="10" fill="white" fill-opacity="0.6">{hourText}</text>
-						{/if}
+					{#each labelled as i (i)}
+						{@const hourText = loc(formatHourAtLocation(shown[i].time, utcOffsetSeconds))}
+						<line x1={cx(i)} x2={cx(i)} y1={panels.time.top} y2={panels.time.top + 3} stroke="white" stroke-opacity="0.3" stroke-width="1" />
+						<text x={cx(i)} y={panels.time.top + 13} text-anchor="middle" font-size="10" fill="white" fill-opacity="0.6">{hourText}</text>
+						<line x1={cx(i)} x2={cx(i)} y1={topAxisBottom - 3} y2={topAxisBottom} stroke="white" stroke-opacity="0.3" stroke-width="1" />
+						<text x={cx(i)} y={topAxisBottom - 6} text-anchor="middle" font-size="10" fill="white" fill-opacity="0.6">{hourText}</text>
 					{/each}
 					{#each shownDays as d (d.startIndex)}
 						{@const label = dayLabel(d.date)}
@@ -768,10 +802,15 @@
 							<circle cx={lineX} cy={dot.y} r={ChartStyle.selectionDotRadius} fill={ChartStyle.selectionDot} />
 						{/each}
 					{/if}
+
+					<!-- The high and low of each day (12 hours or more) on the primary line of each panel, on top of every line and dot -->
+					{#each extremeLabels as l (l.key)}
+						<text x={l.x} y={l.y} text-anchor="middle" direction="ltr" font-size="9" font-weight="bold" fill={l.color} style:font-family="var(--font-display)" style:font-feature-settings="var(--font-features)">{l.primary}{#if l.secondary}<tspan font-size="0.8em" font-weight="500" fill-opacity="0.7">{" " + l.secondary}</tspan>{/if}</text>
+					{/each}
 				</svg>
 
-				<!-- Weather icons every 3 local hours (night icons at night) -->
-				{#each everyThird as i (i)}
+				<!-- Weather icons every 4 local hours (night icons at night) -->
+				{#each labelled as i (i)}
 					{@const h = shown[i]}
 					<div class="icon" style:left="{cx(i) - ICON_SIZE / 2}px" style:top="{panels.icons.top}px" style:width="{ICON_SIZE}px" style:height="{ICON_SIZE}px">
 						<WeatherIcon code={h.weatherCode} night={h.isNight} size={ICON_SIZE} decorative />

@@ -24,7 +24,7 @@ private const val DAY = 24 * HOUR
 const val CHART_MAX_HOURS = 240
 
 /** The width of one hour, in dp. */
-const val CHART_SLOT = 28f
+const val CHART_SLOT = 14f
 
 /**
  * The hours to show: from the hour that contains [nowMs] (the first hour that has not ended), at most [max].

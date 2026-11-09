@@ -12,7 +12,7 @@ const DAY = 24 * HOUR;
 /** The most hours that the chart view shows (10 days). */
 export const CHART_MAX_HOURS = 240;
 /** The width of one hour, in px. */
-export const CHART_SLOT = 28;
+export const CHART_SLOT = 14;
 
 /** A range of indexes: `start` is in it, `end` is not. */
 export interface IndexRange {

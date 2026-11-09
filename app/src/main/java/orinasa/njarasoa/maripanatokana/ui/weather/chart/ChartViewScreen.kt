@@ -133,6 +133,8 @@ import kotlin.math.floor
 import kotlin.math.roundToInt
 
 private const val HOUR = 3_600_000L
+// The weather icons, wind arrows and hour labels show every this many local hours (00, 04, 08…)
+private const val LABEL_HOURS = 4
 
 /**
  * The panels from top to bottom, with their height in dp. The value panels have a title line at the top and a band
@@ -144,10 +146,10 @@ private enum class ChartPanel(val heightDp: Int, val titled: Boolean) {
     ICONS(46, false),
     TEMPERATURE(156, true),
     PRECIPITATION(100, true),
-    WIND(104, true),
-    PRESSURE(80, true),
-    HUMIDITY(80, true),
-    AIR_QUALITY(80, true),
+    WIND(128, true),
+    PRESSURE(104, true),
+    HUMIDITY(104, true),
+    AIR_QUALITY(104, true),
     TIME(36, false),
 }
 
@@ -159,7 +161,7 @@ private val BAND_INSET = 6.dp
 private val TITLE_INSET = 10.dp
 // The room above the wind line for the direction arrows
 private val ARROW_ROW = 14.dp
-// The room above and under the temperature line for the labels of the day high and low, and above the rain bars
+// The room above and under each primary line for the labels of the day high and low, and above the rain bars
 private val EXTREME_ROW = 12.dp
 // The cards, as the section cards of the main screen
 private val CARD_SHAPE = RoundedCornerShape(20.dp)
@@ -534,7 +536,12 @@ private fun ChartPanels(
     val aqEnd = remember(aqValues) { (0 until aqValues.size - 1).firstOrNull { aqValues[it] != null && aqValues[it + 1] == null } }
     val times = remember(hours) { hours.map { it.time } }
     val days = remember(hours, utcOffsetSeconds) { chartDaySpans(times, utcOffsetSeconds) }
-    val extremes = remember(series, days) { chartDayExtremes(series.temperature, days) }
+    // The high and low of each day on the primary line of each panel
+    val tempExtremes = remember(series, days) { chartDayExtremes(series.temperature, days) }
+    val windExtremes = remember(series, days) { chartDayExtremes(series.wind, days) }
+    val pressureExtremes = remember(series, days) { chartDayExtremes(series.pressure, days) }
+    val humidityExtremes = remember(series, days) { chartDayExtremes(series.humidity, days) }
+    val aqExtremes = remember(aqValues, days) { chartDayExtremes(aqValues, days) }
     // The highest bar of each day, with any number of hours
     val rainPeaks = remember(series, days) { chartDayExtremes(series.precipitation, days, minHours = 1) }
     val localHours = remember(hours, utcOffsetSeconds) { times.map { Math.floorMod((it + utcOffsetSeconds * 1000L) / HOUR, 24L).toInt() } }
@@ -589,10 +596,39 @@ private fun ChartPanels(
 
         val tArea = plotArea(panels, ChartPanel.TEMPERATURE, extraTop = EXTREME_ROW.toPx(), extraBottom = EXTREME_ROW.toPx())
         val pArea = plotArea(panels, ChartPanel.PRECIPITATION, extraTop = EXTREME_ROW.toPx())
-        val wArea = plotArea(panels, ChartPanel.WIND, extraTop = ARROW_ROW.toPx())
-        val prArea = plotArea(panels, ChartPanel.PRESSURE)
-        val hArea = plotArea(panels, ChartPanel.HUMIDITY)
-        val aqArea = plotArea(panels, ChartPanel.AIR_QUALITY)
+        val wArea = plotArea(panels, ChartPanel.WIND, extraTop = (ARROW_ROW + EXTREME_ROW).toPx(), extraBottom = EXTREME_ROW.toPx())
+        val prArea = plotArea(panels, ChartPanel.PRESSURE, extraTop = EXTREME_ROW.toPx(), extraBottom = EXTREME_ROW.toPx())
+        val hArea = plotArea(panels, ChartPanel.HUMIDITY, extraTop = EXTREME_ROW.toPx(), extraBottom = EXTREME_ROW.toPx())
+        val aqArea = plotArea(panels, ChartPanel.AIR_QUALITY, extraTop = EXTREME_ROW.toPx(), extraBottom = EXTREME_ROW.toPx())
+
+        // The high of each day above its point and the low under it, on a primary line ([y] gives the point of a
+        // value); a label stays inside the plot, and a low that would cover the high of its day is left out
+        val extremeStyle = TextStyle(fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont, textDirection = TextDirection.Ltr)
+        fun drawDayExtremes(values: List<Double?>, extremes: List<ChartDayExtremes>, y: (Double) -> Float, color: (Int, Boolean) -> Color, label: (Int) -> String?) {
+            fun measure(i: Int, high: Boolean): androidx.compose.ui.text.TextLayoutResult? {
+                if (i !in drawn || values[i] == null) return null
+                val text = label(i) ?: return null
+                val c = color(i, high)
+                return textMeasurer.measure(dualLabel(localizeDigits(text), c), extremeStyle.copy(color = c))
+            }
+            val edge = 2.dp.toPx()
+            fun left(i: Int, width: Int) = (cx(i) - width / 2f).coerceIn(axisPx + edge, maxOf(axisPx + edge, size.width - width - edge))
+            for (e in extremes) {
+                var highBox: Rect? = null
+                measure(e.highIndex, true)?.let { layout ->
+                    val i = e.highIndex
+                    val topLeft = Offset(left(i, layout.size.width), y(values[i]!!) - 2.dp.toPx() - layout.size.height)
+                    highBox = Rect(topLeft, Size(layout.size.width.toFloat(), layout.size.height.toFloat()))
+                    drawText(layout, topLeft = topLeft)
+                }
+                measure(e.lowIndex, false)?.let { layout ->
+                    val i = e.lowIndex
+                    val topLeft = Offset(left(i, layout.size.width), y(values[i]!!) + 2.dp.toPx())
+                    val box = Rect(topLeft, Size(layout.size.width.toFloat(), layout.size.height.toFloat()))
+                    if (highBox?.overlaps(box) != true) drawText(layout, topLeft = topLeft)
+                }
+            }
+        }
 
         // The band of each titled panel first, under all the rest; it covers the axis column too
         val bandInset = BAND_INSET.toPx()
@@ -652,30 +688,9 @@ private fun ChartPanels(
                 drawSelectedDot(series.dewPoint, linePos, lineX) { tArea.y(it, d) }
                 drawSelectedDot(series.temperature, linePos, lineX) { tArea.y(it, d) }
 
-                // The high and low of each day, as in the temperature chart of the main page: the high above its
-                // point, the low under it; a low that would cover the high of its day is left out
-                val highStyle = TextStyle(color = Color(0xFFFF8A65), fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont, textDirection = TextDirection.Ltr)
-                val lowStyle = highStyle.copy(color = Color(0xFF64B5F6))
-                fun extremeLabel(i: Int, style: TextStyle): androidx.compose.ui.text.TextLayoutResult? {
-                    val (p, s) = hours[i].temperature?.displayDual(metricPrimary) ?: return null
-                    return textMeasurer.measure(dualLabel(localizeDigits("$p · $s"), style.color), style)
-                }
-                for (e in extremes) {
-                    val high = e.highIndex.takeIf { it in drawn }?.let { i -> extremeLabel(i, highStyle)?.let { i to it } }
-                    val low = e.lowIndex.takeIf { it in drawn }?.let { i -> extremeLabel(i, lowStyle)?.let { i to it } }
-                    var highBox: Rect? = null
-                    if (high != null) {
-                        val (i, layout) = high
-                        val topLeft = Offset(cx(i) - layout.size.width / 2f, tArea.y(series.temperature[i]!!, d) - 2.dp.toPx() - layout.size.height)
-                        highBox = Rect(topLeft, Size(layout.size.width.toFloat(), layout.size.height.toFloat()))
-                        drawText(layout, topLeft = topLeft)
-                    }
-                    if (low != null) {
-                        val (i, layout) = low
-                        val topLeft = Offset(cx(i) - layout.size.width / 2f, tArea.y(series.temperature[i]!!, d) + 2.dp.toPx())
-                        val box = Rect(topLeft, Size(layout.size.width.toFloat(), layout.size.height.toFloat()))
-                        if (highBox == null || !box.overlaps(highBox)) drawText(layout, topLeft = topLeft)
-                    }
+                // The high and low of each day, in the colours of the temperature chart of the main page
+                drawDayExtremes(series.temperature, tempExtremes, { tArea.y(it, d) }, { _, high -> if (high) Color(0xFFFF8A65) else Color(0xFF64B5F6) }) { i ->
+                    hours[i].temperature?.displayDual(metricPrimary)?.let { (p, s) -> "$p · $s" }
                 }
             }
 
@@ -703,16 +718,19 @@ private fun ChartPanels(
                 }
             }
 
-            // Wind and gusts on one scale, with the direction every 3 hours
+            // Wind and gusts on one scale, with the direction every 4 hours
             wDomain?.let { d ->
                 drawSeries(series.gust, drawn, ::cx, { wArea.y(it, d) }, ChartStyle.gust, ChartStyle.thinLineWidth.toPx(), dashed = true)
                 drawSeries(series.wind, drawn, ::cx, { wArea.y(it, d) }, ChartStyle.wind, ChartStyle.lineWidth.toPx())
                 drawSelectedDot(series.gust, linePos, lineX) { wArea.y(it, d) }
                 drawSelectedDot(series.wind, linePos, lineX) { wArea.y(it, d) }
+                drawDayExtremes(series.wind, windExtremes, { wArea.y(it, d) }, { _, _ -> ChartStyle.wind }) { i ->
+                    hours[i].windSpeed?.displayDual(metricPrimary)?.let { (p, s) -> "$p · $s" }
+                }
             }
             val arrowY = wArea.top - ARROW_ROW.toPx() / 2
             for (i in drawn) {
-                if (localHours[i] % 3 != 0) continue
+                if (localHours[i] % LABEL_HOURS != 0) continue
                 val speed = hours[i].windSpeed ?: continue
                 val direction = hours[i].windDirection ?: continue
                 if (showWindArrow(speed)) drawWindArrow(Offset(cx(i), arrowY), direction)
@@ -721,16 +739,25 @@ private fun ChartPanels(
             prDomain?.let { d ->
                 drawSeries(series.pressure, drawn, ::cx, { prArea.y(it, d) }, ChartStyle.pressure, ChartStyle.lineWidth.toPx())
                 drawSelectedDot(series.pressure, linePos, lineX) { prArea.y(it, d) }
+                drawDayExtremes(series.pressure, pressureExtremes, { prArea.y(it, d) }, { _, _ -> ChartStyle.pressure }) { i ->
+                    hours[i].pressure?.displayDual(metricPrimary)?.let { (p, s) -> "$p · $s" }
+                }
             }
 
             drawSeries(series.humidity, drawn, ::cx, { hArea.y(it, PERCENT_DOMAIN) }, ChartStyle.humidity, ChartStyle.lineWidth.toPx())
             drawSelectedDot(series.humidity, linePos, lineX) { hArea.y(it, PERCENT_DOMAIN) }
+            drawDayExtremes(series.humidity, humidityExtremes, { hArea.y(it, PERCENT_DOMAIN) }, { _, _ -> ChartStyle.humidity }) { i ->
+                hours[i].humidity?.let { "$it%" }
+            }
 
             // The air quality: each part of the line in the tier colour of the hour at its start, and a "no data"
             // label after the last hour with air quality
             aqDomain?.let { d ->
                 drawTierSeries(aqValues, drawn, ::cx, { aqArea.y(it, d) }, { i -> colorsFor(airQuality[i]!!.tier(aqiStandard)).background }, ChartStyle.lineWidth.toPx())
                 drawSelectedDot(aqValues, linePos, lineX) { aqArea.y(it, d) }
+                drawDayExtremes(aqValues, aqExtremes, { aqArea.y(it, d) }, { i, _ -> colorsFor(airQuality[i]!!.tier(aqiStandard)).background }) { i ->
+                    aqValues[i]?.toInt()?.toString()
+                }
                 aqEnd?.let { i ->
                     val layout = textMeasurer.measure(noData, TextStyle(color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp, fontFamily = bodyFont))
                     // It stays at the start of the plot when the last hour with air quality is out of view
@@ -741,7 +768,7 @@ private fun ChartPanels(
                 }
             }
 
-            // Time axes at the top and the bottom: an hour label every 3 or 6 hours, and the day at each midnight
+            // Time axes at the top and the bottom: an hour label every 4 hours, and the day at each midnight
             // (the day at the start stays in view). The top axis is the bottom one mirrored: the labels are above their ticks.
             val hourStyle = TextStyle(color = onSurface.copy(alpha = 0.6f), fontSize = 10.sp, fontFamily = displayFont)
             val dayStyle = TextStyle(color = onSurface, fontSize = 11.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont)
@@ -751,7 +778,7 @@ private fun ChartPanels(
                 val top = panelTop(panels, panel)
                 val bottom = top + panel.heightDp.dp.toPx()
                 for (i in drawn) {
-                    if (localHours[i] % 3 != 0) continue
+                    if (localHours[i] % LABEL_HOURS != 0) continue
                     val tickTop = if (mirrored) bottom - tick else top
                     drawLine(Color.White.copy(alpha = 0.3f), Offset(cx(i), tickTop), Offset(cx(i), tickTop + tick), 1.dp.toPx())
                     val layout = textMeasurer.measure(localizeDigits(hourFormat.format(Date(times[i]))), hourStyle)
@@ -919,14 +946,14 @@ private fun DrawScope.drawSelectedDot(values: List<Double?>, position: Float, x:
     drawCircle(ChartStyle.selectionDot, ChartStyle.selectionDotRadius.toPx(), Offset(x, y(v)))
 }
 
-/** The weather icon every 3 hours (night icons at night), with the UV index under it from 1, in its tier colour. */
+/** The weather icon every 4 hours (night icons at night), with the UV index under it from 1, in its tier colour. */
 private fun DrawScope.drawIcons(
     hours: List<ChartHour>, range: IntRange, localHours: List<Int>, x: (Int) -> Float, top: Float,
     painters: Map<Int, Painter>, textMeasurer: TextMeasurer, font: FontFamily, localizeDigits: (String) -> String,
 ) {
     val iconSize = 26.dp.toPx()
     for (i in range) {
-        if (localHours[i] % 3 != 0) continue
+        if (localHours[i] % LABEL_HOURS != 0) continue
         val hour = hours[i]
         painters[weatherIconRes(hour.weatherCode, hour.isNight)]?.let { painter ->
             translate(x(i) - iconSize / 2, top) { with(painter) { draw(Size(iconSize, iconSize)) } }
