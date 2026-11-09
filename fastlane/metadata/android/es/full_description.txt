@@ -34,6 +34,10 @@ maripànaTokana («un solo termómetro» en malagasy) es una aplicación del tie
 <b>Widgets:</b>
 • Dos widgets para la pantalla de inicio: compacto (4x1) y detallado (4x2)
 
+<b>Android TV:</b>
+• La misma app en tu televisor, hecha para el mando
+• Tiempo actual, pronósticos por horas y de 10 días, gráfico de 9 valores, alertas y calidad del aire
+
 <b>Privacidad:</b>
 • Tu ubicación se usa solo para obtener el tiempo
 • Sin cuenta, sin anuncios, sin seguimiento

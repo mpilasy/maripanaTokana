@@ -34,6 +34,10 @@ maripànaTokana (« un seul thermomètre » en malagasy) est une application mé
 <b>Widgets :</b>
 • Deux widgets pour l'écran d'accueil : compact (4x1) et détaillé (4x2)
 
+<b>Android TV:</b>
+• La même application sur votre téléviseur, faite pour la télécommande
+• Météo actuelle, prévisions horaires et sur 10 jours, graphique de 9 valeurs, alertes et qualité de l'air
+
 <b>Confidentialité :</b>
 • Votre position sert uniquement à obtenir la météo
 • Pas de compte, pas de publicité, pas de pistage

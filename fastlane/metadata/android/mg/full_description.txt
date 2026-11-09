@@ -34,6 +34,10 @@ maripànaTokana dia fampiharana toetrandro ho an'ny Android. Aseho miaraka amin'
 <b>Widgets:</b>
 • Widgets roa eo amin'ny efijery fandraisana: kely (4x1) sy lehibe (4x2)
 
+<b>Android TV:</b>
+• Io rindranasa io ihany eo amin'ny fahitalavitra, natao ho an'ny milina fahitalavitra
+• Toetrandro izao, vinavina isan'ora sy 10 andro, Sarivina, filazana ary hadion'ny rivotra
+
 <b>Fitsinjovana ny fiainana manokan'ny tsirairay:</b>
 • Ny hangalana ny toetrandro fotsiny no hampiasana ny toerana misy anao
 • Tsy misy kaonty, tsy misy dokam-barotra, tsy misy fanaraha-maso

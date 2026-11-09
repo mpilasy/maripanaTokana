@@ -1,6 +1,6 @@
 # maripànaTokana
 
-**maripànaTokana** (Malagasy for "a single thermometer") is a weather app for Android, and a [web app](./web) with the same features. A hosted copy of the web app is at **[maripana.njarasoa.org](https://maripana.njarasoa.org)**, with no install needed. Every value shows in metric and imperial units side by side. The app has 8 languages and 22 font choices.
+**maripànaTokana** (Malagasy for "a single thermometer") is a weather app for Android and Android TV, and a [web app](./web) with the same features as the phone app. A hosted copy of the web app is at **[maripana.njarasoa.org](https://maripana.njarasoa.org)**, with no install needed. Every value shows in metric and imperial units side by side. The app has 8 languages and 22 font choices.
 
 <p align="center">
   <img src="fastlane/metadata/android/mg/images/phoneScreenshots/1.png" width="24%" alt="Main card, in Malagasy">
@@ -12,6 +12,8 @@
 ## Features
 
 Android and the web app have the same features. Only the widgets and the geocoder choice are Android only.
+
+The same APK also runs on Android TV, with screens made for the remote: current weather, hourly and 10-day forecasts, a chart of 9 values, alerts, air quality, details, places, units, language, Help and About. The TV does not yet have the weather source choice.
 
 **Weather**
 - **Main card**: the condition, the temperature (°C with 1 decimal, °F as a whole number), today's low and high, and 4 hour tiles (now, +4, +8 and +12 hours). A line tells when rain or snow starts or stops in the next 24 hours. Air quality (US and EU index) shows when it is not good. For a place in another time zone, the hour tiles also show the phone's time.

@@ -34,6 +34,10 @@ maripànaTokana (Malagasy for "a single thermometer") is a weather app for Andro
 <b>Widgets:</b>
 • Two home-screen widgets: compact (4x1) and detailed (4x2)
 
+<b>Android TV:</b>
+• The same app on your TV, made for the remote
+• Current weather, hourly and 10-day forecasts, a chart of 9 values, alerts and air quality
+
 <b>Privacy:</b>
 • Your location is used only to get the weather
 • No account, no ads, no tracking
