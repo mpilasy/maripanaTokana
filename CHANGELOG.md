@@ -9,6 +9,10 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.7.20261109223736] - 2026-11-09
+
+- About: on Android and the web, each QR code is the link to its address, and the text links that repeated them are gone. On Android TV, About opens from the home screen, beside Settings.
+
 ## [1.7.20261109222628] - 2026-11-09
 
 - About: QR codes for the source code, the web app, F-Droid and Obtainium, on Android, Android TV and the web. On the web, the F-Droid and Obtainium codes are under their badges, which now also show on a computer.
