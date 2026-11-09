@@ -9,6 +9,10 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.7.20261109205306] - 2026-11-09
+
+- Android TV: the same APK now also runs on Android TV, with screens made for the remote. They show the current weather, hourly and 10-day forecasts, a chart of 9 values, alerts, air quality, details, places and search. Settings has units, language, Help and About.
+
 ## [1.6.20261109165738] - 2026-11-09
 
 - Hourly and 10-day forecasts: the temperatures use the colours of the temperature scale.
