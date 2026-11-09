@@ -36,6 +36,7 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -79,12 +80,13 @@ private fun Tile(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(label, color = Dim, fontSize = 16.sp, maxLines = 1)
+        // Long labels (Malagasy) take a second, smaller line rather than being cut
+        Text(label, color = Dim, fontSize = 15.sp, lineHeight = 18.sp, maxLines = 2, textAlign = TextAlign.Center)
         Spacer(Modifier.height(4.dp))
         icon?.invoke()
         Text(primary, color = color, fontSize = 28.sp, fontWeight = FontWeight.Bold, maxLines = 1)
         if (secondary != null) Text(secondary, color = Dim, fontSize = 18.sp, maxLines = 1)
-        if (extra != null) Text(extra, color = Dim, fontSize = 15.sp, maxLines = 1)
+        if (extra != null) Text(extra, color = Dim, fontSize = 13.sp, lineHeight = 16.sp, maxLines = 2, textAlign = TextAlign.Center)
     }
 }
 
