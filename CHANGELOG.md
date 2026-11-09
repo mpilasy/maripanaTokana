@@ -9,6 +9,12 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261109035136] - 2026-11-09
+
+- Moon tile: shows the dates of the next new moon and full moon, the first one first.
+- Chart view: each day label shows the moon of the day. On the day of a new or full moon, the label also shows its name. The day labels are smaller (10 sp).
+- Malagasy: the moon phases use the new names "Volana tsinana" (new moon), "Volan-tandrony" (waxing crescent) and "Fenomanana" (full moon).
+
 ## [1.6.20261109032458] - 2026-11-08
 
 - Chart view: each hour is half as wide, so the screen shows twice as many hours. The weather icons, UV badges, wind arrows and hour labels show every 4 hours (was every 3 hours).

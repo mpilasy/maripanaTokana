@@ -1,0 +1,10 @@
+- Junto a la temperatura: su cambio en 6 horas.
+- Próximas horas: temperatura en color y lluvia.
+- UV en la tarjeta principal si es moderado o más.
+- Máx. de hoy frente a la normal de 10 años.
+- Cambios desde el pronóstico de ayer.
+- Mar: olas, temperatura y mareas.
+- Ajustes: elige el modelo meteorológico.
+- Gráficos: 10 días hora por hora, calidad del aire, máx./mín.
+- Luna: próxima luna nueva y llena, también en los gráficos.
+- Mientras lees, el encabezado se reduce y el pie se oculta.
