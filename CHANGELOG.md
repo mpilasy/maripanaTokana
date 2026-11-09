@@ -9,6 +9,10 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.7.20261109231555] - 2026-11-09
+
+- Android TV: on the current conditions screen, the card titles and the line under the value are smaller and can take two lines, so long Malagasy texts are not cut.
+
 ## [1.7.20261109230325] - 2026-11-09
 
 - Moon tile: the middle of the arc shows the phase icon and name instead of the part lit, on Android, Android TV and the web. The phase no longer shows a second time at the bottom of the tile.
