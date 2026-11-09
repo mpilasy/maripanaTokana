@@ -271,8 +271,11 @@ describe('chartAirQuality', () => {
 		const aq = [T0 + 10 * 60_000, T0 + HOUR - 5 * 60_000, T0 + 3 * HOUR];
 		expect(chartAirQuality(hours(4), aq)).toEqual([0, 1, null, 2]);
 	});
-	it('gives null at exactly 30 minutes away', () => {
-		expect(chartAirQuality([T0], [T0 + 30 * 60_000, T0 - 30 * 60_000])).toEqual([null]);
+	it('matches at exactly 30 minutes away, as in a UTC+5:30 zone', () => {
+		expect(chartAirQuality([T0], [T0 + 30 * 60_000, T0 - 30 * 60_000])).toEqual([0]);
+	});
+	it('gives null at more than 30 minutes away', () => {
+		expect(chartAirQuality([T0], [T0 + 31 * 60_000, T0 - 31 * 60_000])).toEqual([null]);
 	});
 	it('takes the first entry that is near', () => {
 		expect(chartAirQuality([T0], [T0 + 20 * 60_000, T0])).toEqual([0]);

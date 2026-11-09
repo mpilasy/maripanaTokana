@@ -207,11 +207,12 @@ fun chartScrollForIndex(index: Int, slotPx: Float, count: Int, viewPx: Float): F
 }
 
 /**
- * For each hour of [hourTimes], the index in [aqTimes] of the first air quality entry less than 30 minutes away, as the
- * hourly forecast matches them; null when no entry is near.
+ * For each hour of [hourTimes], the index in [aqTimes] of the first air quality entry at most 30 minutes away, as the
+ * hourly forecast matches them; null when no entry is near. Exactly 30 minutes must match: local hours in a UTC+5:30
+ * zone are that far from the UTC hours of the air quality data.
  */
 fun chartAirQuality(hourTimes: List<Long>, aqTimes: List<Long>): List<Int?> =
-    hourTimes.map { t -> aqTimes.indexOfFirst { kotlin.math.abs(it - t) < HOUR / 2 }.takeIf { it >= 0 } }
+    hourTimes.map { t -> aqTimes.indexOfFirst { kotlin.math.abs(it - t) <= HOUR / 2 }.takeIf { it >= 0 } }
 
 /** The value tiles of the selection card, in their order. */
 enum class ChartTile { TEMPERATURE, DEW_POINT, PRECIPITATION, WIND, WIND_GUST, PRESSURE, HUMIDITY, UV_INDEX, AIR_QUALITY }

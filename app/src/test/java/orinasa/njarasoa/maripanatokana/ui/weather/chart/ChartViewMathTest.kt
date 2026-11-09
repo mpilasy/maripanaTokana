@@ -303,11 +303,16 @@ class ChartViewMathTest {
     // chartAirQuality
 
     @Test
-    fun chartAirQualityMatchesEntriesLessThan30MinutesAway() {
+    fun chartAirQualityMatchesEntriesAtMost30MinutesAway() {
         val hours = hourly(t0, 4)
         // An entry 29 minutes after the second hour, one exactly 30 minutes before the fourth hour, one on the first hour
         val aq = listOf(t0 + hour + 29 * 60_000L, t0 + 3 * hour - 30 * 60_000L, t0)
-        assertEquals(listOf(2, 0, null, null), chartAirQuality(hours, aq))
+        assertEquals(listOf(2, 0, 1, 1), chartAirQuality(hours, aq))
+    }
+
+    @Test
+    fun chartAirQualityGivesNullAtMoreThan30MinutesAway() {
+        assertEquals(listOf<Int?>(null), chartAirQuality(listOf(t0), listOf(t0 + 31 * 60_000L, t0 - 31 * 60_000L)))
     }
 
     @Test

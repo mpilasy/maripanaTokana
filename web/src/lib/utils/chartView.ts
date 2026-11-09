@@ -260,12 +260,13 @@ export function chartDomain(values: (number | null | undefined)[], fromZero: boo
 }
 
 /**
- * For each hour of `hourTimes`, the index in `aqTimes` of the first air quality entry less than 30 minutes away, as the
- * hourly forecast matches them; null when no entry is near.
+ * For each hour of `hourTimes`, the index in `aqTimes` of the first air quality entry at most 30 minutes away, as the
+ * hourly forecast matches them; null when no entry is near. Exactly 30 minutes must match: local hours in a UTC+5:30
+ * zone are that far from the UTC hours of the air quality data.
  */
 export function chartAirQuality(hourTimes: number[], aqTimes: number[]): (number | null)[] {
 	return hourTimes.map((t) => {
-		const i = aqTimes.findIndex((a) => Math.abs(a - t) < HOUR / 2);
+		const i = aqTimes.findIndex((a) => Math.abs(a - t) <= HOUR / 2);
 		return i >= 0 ? i : null;
 	});
 }
