@@ -9,6 +9,10 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.7.20261109215736] - 2026-11-09
+
+- Android TV: About shows QR codes for the source code and the web app. The place name shows only on screens with weather.
+
 ## [1.7.20261109214759] - 2026-11-09
 
 - Android TV: each chart shows its highest and lowest value. The home screen shows the time and when the weather loaded, and the weather loads again when it is 30 minutes old. The app is also a screensaver with the time, the current weather, the worst alert and the next hours.
