@@ -9,6 +9,10 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.7.20261109230325] - 2026-11-09
+
+- Moon tile: the middle of the arc shows the phase icon and name instead of the part lit, on Android, Android TV and the web. The phase no longer shows a second time at the bottom of the tile.
+
 ## [1.7.20261109225355] - 2026-11-09
 
 - Web About: the four QR codes are in one even grid, four across on a computer and two on a phone. F-Droid and Obtainium have their badge under their code. The GitHub and Add to Home screen badges are in a row below.
