@@ -386,5 +386,15 @@
 		"Volana mihena",
 		"Ampahefany farany",
 		"Volana efa ho maty"
-	]
+	],
+  "tv_help_q_move": "Ahoana no hifindrana eo amin'ny efijery?",
+  "tv_help_a_move": "Ampiasao ny zana-tsipìka eo amin'ny fanaraha-davitra mba hifindra. Tsindrio OK hanokatra. Tsindrio Back hiverina.",
+  "tv_help_q_chart": "Ahoana no fampiasana ny Sarivina?",
+  "tv_help_a_chart": "Tsindrio OK amin'ny ora na andro iray hanokatra ny Sarivina. Ankavia sy ankavanana: ora iray. Ambony sy ambany: andro iray. OK: ny sanda manaraka.",
+  "tv_help_q_place": "Ahoana no hanovana ny toerana?",
+  "tv_help_a_place": "Tsindrio OK amin'ny anaran'ny toerana. Mitadiava amin'ny fitendry, na fidio ny toerana tadidy. Ny ✕ no mamafa toerana tadidy.",
+  "tv_help_q_settings": "Ahoana no hanovana ny venty na ny teny?",
+  "tv_help_a_settings": "Sokafy ny Fandrindrana ary tsindrio OK amin'ny andalana iray. Isaky ny tsindrio dia miseho ny safidy manaraka.",
+  "tv_help_q_alerts": "Aiza ny filazana sy ny hadion'ny rivotra?",
+  "tv_help_a_alerts": "Miseho eo amin'ny bokotra miloko eo ambanin'ny anaran'ny toerana ny filazana. Tsindrio OK hamaky azy. Samy manana ny bokony ny hadion'ny rivotra sy ny toetrandro izao."
 }

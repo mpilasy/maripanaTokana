@@ -283,6 +283,16 @@
     <string name="device_memory">मेमोरी</string>
     <string name="device_installer">यहाँ से इंस्टॉल</string>
     <string name="device_touch">टच पॉइंट</string>
+    <string name="tv_help_q_move">स्क्रीन पर कैसे घूमें?</string>
+    <string name="tv_help_a_move">कार्डों के बीच जाने के लिए रिमोट के तीर इस्तेमाल करें। खोलने के लिए OK दबाएँ। वापस जाने के लिए Back दबाएँ।</string>
+    <string name="tv_help_q_chart">चार्ट कैसे इस्तेमाल करें?</string>
+    <string name="tv_help_a_chart">चार्ट खोलने के लिए किसी घंटे या दिन पर OK दबाएँ। बायाँ और दायाँ: एक घंटा। ऊपर और नीचे: एक दिन। OK: अगला मान।</string>
+    <string name="tv_help_q_place">स्थान कैसे बदलें?</string>
+    <string name="tv_help_a_place">स्थान के नाम पर OK दबाएँ। कीबोर्ड से खोजें या कोई सहेजा गया स्थान चुनें। ✕ सहेजे गए स्थान को हटाता है।</string>
+    <string name="tv_help_q_settings">इकाइयाँ या भाषा कैसे बदलें?</string>
+    <string name="tv_help_a_settings">सेटिंग्स खोलें और किसी पंक्ति पर OK दबाएँ। हर बार अगला विकल्प दिखता है।</string>
+    <string name="tv_help_q_alerts">चेतावनियाँ और वायु गुणवत्ता कहाँ हैं?</string>
+    <string name="tv_help_a_alerts">चेतावनी स्थान के नाम के नीचे रंगीन बटन पर दिखती है। पढ़ने के लिए OK दबाएँ। वायु गुणवत्ता और वर्तमान स्थिति के अपने बटन हैं।</string>
     <string name="widget_description">दोहरी इकाई तापमान के साथ वर्तमान मौसम</string>
     <string name="widget_description_large">अनुभव तापमान, आर्द्रता, हवा और न्यूनतम/अधिकतम के साथ मौसम विवरण</string>
     <string name="detail_no_precip">कोई नहीं</string>

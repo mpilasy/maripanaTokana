@@ -51,7 +51,7 @@ import kotlinx.coroutines.withContext
  * [textRes] opens a bundled licence text in-app instead of [url].
  * Keep in sync with web/src/lib/credits.ts.
  */
-private data class Credit(
+internal data class Credit(
     val name: String = "",
     @StringRes val nameRes: Int? = null,
     val license: String,
@@ -63,7 +63,7 @@ private data class Credit(
     val showsWeatherModel: Boolean = false,
 )
 
-private data class CreditSection(@StringRes val titleRes: Int, val items: List<Credit>)
+internal data class CreditSection(@StringRes val titleRes: Int, val items: List<Credit>)
 
 private const val FONT_FAMILIES =
     "Orbitron, Outfit, Rajdhani, Inter, Oxanium, Nunito, Space Grotesk, DM Sans, Sora, Source Sans 3, " +
@@ -74,7 +74,7 @@ private const val FONT_FAMILIES =
 
 private val isStandardFlavor = BuildConfig.FLAVOR == "standard"
 
-private val creditSections = listOf(
+internal val creditSections = listOf(
     CreditSection(
         R.string.about_section_weather,
         listOf(

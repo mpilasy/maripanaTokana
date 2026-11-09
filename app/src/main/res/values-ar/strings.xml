@@ -283,6 +283,16 @@
     <string name="device_memory">الذاكرة</string>
     <string name="device_installer">مُثبّت من</string>
     <string name="device_touch">نقاط اللمس</string>
+    <string name="tv_help_q_move">كيف أتنقل؟</string>
+    <string name="tv_help_a_move">استخدم أسهم جهاز التحكم للتنقل بين البطاقات. اضغط OK للفتح. اضغط رجوع للعودة.</string>
+    <string name="tv_help_q_chart">كيف أستخدم الرسم البياني؟</string>
+    <string name="tv_help_a_chart">اضغط OK على ساعة أو يوم لفتح الرسم البياني. اليسار واليمين: ساعة واحدة. الأعلى والأسفل: يوم واحد. OK: القيمة التالية.</string>
+    <string name="tv_help_q_place">كيف أغير المكان؟</string>
+    <string name="tv_help_a_place">اضغط OK على اسم المكان. ابحث بلوحة المفاتيح أو اختر مكانًا محفوظًا. تحذف ✕ المكان المحفوظ.</string>
+    <string name="tv_help_q_settings">كيف أغير الوحدات أو اللغة؟</string>
+    <string name="tv_help_a_settings">افتح الإعدادات واضغط OK على أحد الصفوف. تعرض كل ضغطة الخيار التالي.</string>
+    <string name="tv_help_q_alerts">أين التنبيهات وجودة الهواء؟</string>
+    <string name="tv_help_a_alerts">يظهر التنبيه على زر ملون تحت اسم المكان. اضغط OK لقراءته. لجودة الهواء والأحوال الحالية زران خاصان.</string>
     <string name="widget_description">الطقس الحالي مع درجة الحرارة بوحدتين</string>
     <string name="widget_description_large">تفاصيل الطقس مع الإحساس بالحرارة والرطوبة والرياح والحد الأدنى/الأقصى</string>
     <string name="detail_no_precip">لا يوجد</string>

@@ -283,6 +283,16 @@
     <string name="device_memory">Memoria</string>
     <string name="device_installer">Instalada desde</string>
     <string name="device_touch">Puntos táctiles</string>
+    <string name="tv_help_q_move">¿Cómo me muevo?</string>
+    <string name="tv_help_a_move">Usa las flechas del mando para pasar de una tarjeta a otra. Pulsa OK para abrir. Pulsa Atrás para volver.</string>
+    <string name="tv_help_q_chart">¿Cómo uso el gráfico?</string>
+    <string name="tv_help_a_chart">Pulsa OK en una hora o un día para abrir el gráfico. Izquierda y derecha: una hora. Arriba y abajo: un día. OK: el valor siguiente.</string>
+    <string name="tv_help_q_place">¿Cómo cambio el lugar?</string>
+    <string name="tv_help_a_place">Pulsa OK en el nombre del lugar. Busca con el teclado o elige un lugar guardado. La ✕ elimina un lugar guardado.</string>
+    <string name="tv_help_q_settings">¿Cómo cambio las unidades o el idioma?</string>
+    <string name="tv_help_a_settings">Abre Ajustes y pulsa OK en una fila. Cada pulsación muestra la opción siguiente.</string>
+    <string name="tv_help_q_alerts">¿Dónde están las alertas y la calidad del aire?</string>
+    <string name="tv_help_a_alerts">Una alerta aparece en un botón de color bajo el nombre del lugar. Pulsa OK para leerla. La calidad del aire y las condiciones actuales tienen sus propios botones.</string>
     <string name="widget_description">Clima actual con temperatura en doble unidad</string>
     <string name="widget_description_large">Detalles del clima con sensación térmica, humedad, viento y mín./máx.</string>
     <string name="detail_no_precip">Ninguna</string>

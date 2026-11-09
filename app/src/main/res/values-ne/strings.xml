@@ -283,6 +283,16 @@
     <string name="device_memory">मेमोरी</string>
     <string name="device_installer">यहाँबाट स्थापना</string>
     <string name="device_touch">टच बिन्दु</string>
+    <string name="tv_help_q_move">स्क्रिनमा कसरी घुम्ने?</string>
+    <string name="tv_help_a_move">कार्डहरू बीच जान रिमोटका तीरहरू प्रयोग गर्नुहोस्। खोल्न OK थिच्नुहोस्। फर्कन Back थिच्नुहोस्।</string>
+    <string name="tv_help_q_chart">चार्ट कसरी प्रयोग गर्ने?</string>
+    <string name="tv_help_a_chart">चार्ट खोल्न कुनै घण्टा वा दिनमा OK थिच्नुहोस्। बायाँ र दायाँ: एक घण्टा। माथि र तल: एक दिन। OK: अर्को मान।</string>
+    <string name="tv_help_q_place">स्थान कसरी बदल्ने?</string>
+    <string name="tv_help_a_place">स्थानको नाममा OK थिच्नुहोस्। किबोर्डले खोज्नुहोस् वा सुरक्षित स्थान छान्नुहोस्। ✕ ले सुरक्षित स्थान हटाउँछ।</string>
+    <string name="tv_help_q_settings">एकाइ वा भाषा कसरी बदल्ने?</string>
+    <string name="tv_help_a_settings">सेटिङहरू खोल्नुहोस् र कुनै पङ्क्तिमा OK थिच्नुहोस्। हरेक पटक अर्को विकल्प देखिन्छ।</string>
+    <string name="tv_help_q_alerts">चेतावनी र वायु गुणस्तर कहाँ छन्?</string>
+    <string name="tv_help_a_alerts">चेतावनी स्थानको नाम मुनि रङ्गीन बटनमा देखिन्छ। पढ्न OK थिच्नुहोस्। वायु गुणस्तर र हालको अवस्थाका आफ्नै बटन छन्।</string>
     <string name="widget_description">दुई एकाइमा हालको मौसम तापक्रम</string>
     <string name="widget_description_large">मौसम विवरण: अनुभूत तापक्रम, आर्द्रता, हावा र न्यूनतम/अधिकतम</string>
     <string name="detail_no_precip">छैन</string>

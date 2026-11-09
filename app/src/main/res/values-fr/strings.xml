@@ -283,6 +283,16 @@
     <string name="device_memory">Mémoire</string>
     <string name="device_installer">Installée depuis</string>
     <string name="device_touch">Points tactiles</string>
+    <string name="tv_help_q_move">Comment se déplacer ?</string>
+    <string name="tv_help_a_move">Utilisez les flèches de la télécommande pour passer d\'une carte à l\'autre. Appuyez sur OK pour ouvrir. Appuyez sur Retour pour revenir.</string>
+    <string name="tv_help_q_chart">Comment utiliser le graphique ?</string>
+    <string name="tv_help_a_chart">Appuyez sur OK sur une heure ou un jour pour ouvrir le graphique. Gauche et droite : une heure. Haut et bas : un jour. OK : la valeur suivante.</string>
+    <string name="tv_help_q_place">Comment changer de lieu ?</string>
+    <string name="tv_help_a_place">Appuyez sur OK sur le nom du lieu. Cherchez avec le clavier ou choisissez un lieu enregistré. Le ✕ supprime un lieu enregistré.</string>
+    <string name="tv_help_q_settings">Comment changer les unités ou la langue ?</string>
+    <string name="tv_help_a_settings">Ouvrez les Paramètres et appuyez sur OK sur une ligne. Chaque appui affiche le choix suivant.</string>
+    <string name="tv_help_q_alerts">Où sont les alertes et la qualité de l\'air ?</string>
+    <string name="tv_help_a_alerts">Une alerte s\'affiche sur un bouton coloré sous le nom du lieu. Appuyez sur OK pour la lire. La qualité de l\'air et les conditions actuelles ont leurs propres boutons.</string>
     <string name="widget_description">Temps actuel avec temperature en double unite</string>
     <string name="widget_description_large">Details meteo avec ressenti, humidite, vent et min/max</string>
     <string name="detail_no_precip">Aucune</string>

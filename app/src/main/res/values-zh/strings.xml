@@ -283,6 +283,16 @@
     <string name="device_memory">内存</string>
     <string name="device_installer">安装来源</string>
     <string name="device_touch">触控点</string>
+    <string name="tv_help_q_move">如何移动？</string>
+    <string name="tv_help_a_move">使用遥控器的方向键在卡片之间移动。按 OK 打开。按返回键返回。</string>
+    <string name="tv_help_q_chart">如何使用图表？</string>
+    <string name="tv_help_a_chart">在某一小时或某一天上按 OK 打开图表。左右：一小时。上下：一天。OK：下一个数值。</string>
+    <string name="tv_help_q_place">如何更改地点？</string>
+    <string name="tv_help_a_place">在地点名称上按 OK。用键盘搜索，或选择已保存的地点。✕ 可删除已保存的地点。</string>
+    <string name="tv_help_q_settings">如何更改单位或语言？</string>
+    <string name="tv_help_a_settings">打开设置，在一行上按 OK。每按一次显示下一个选项。</string>
+    <string name="tv_help_q_alerts">预警和空气质量在哪里？</string>
+    <string name="tv_help_a_alerts">预警显示在地点名称下方的彩色按钮上。按 OK 阅读。空气质量和当前天气有各自的按钮。</string>
     <string name="widget_description">当前天气与双单位温度</string>
     <string name="widget_description_large">天气详情，包含体感温度、湿度、风速和最低/最高温</string>
     <string name="detail_no_precip">无</string>

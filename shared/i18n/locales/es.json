@@ -386,5 +386,15 @@
 		"Gibosa menguante",
 		"Cuarto menguante",
 		"Menguante"
-	]
+	],
+  "tv_help_q_move": "¿Cómo me muevo?",
+  "tv_help_a_move": "Usa las flechas del mando para pasar de una tarjeta a otra. Pulsa OK para abrir. Pulsa Atrás para volver.",
+  "tv_help_q_chart": "¿Cómo uso el gráfico?",
+  "tv_help_a_chart": "Pulsa OK en una hora o un día para abrir el gráfico. Izquierda y derecha: una hora. Arriba y abajo: un día. OK: el valor siguiente.",
+  "tv_help_q_place": "¿Cómo cambio el lugar?",
+  "tv_help_a_place": "Pulsa OK en el nombre del lugar. Busca con el teclado o elige un lugar guardado. La ✕ elimina un lugar guardado.",
+  "tv_help_q_settings": "¿Cómo cambio las unidades o el idioma?",
+  "tv_help_a_settings": "Abre Ajustes y pulsa OK en una fila. Cada pulsación muestra la opción siguiente.",
+  "tv_help_q_alerts": "¿Dónde están las alertas y la calidad del aire?",
+  "tv_help_a_alerts": "Una alerta aparece en un botón de color bajo el nombre del lugar. Pulsa OK para leerla. La calidad del aire y las condiciones actuales tienen sus propios botones."
 }

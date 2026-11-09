@@ -283,6 +283,16 @@
     <string name="device_memory">Memory</string>
     <string name="device_installer">Installed from</string>
     <string name="device_touch">Touch points</string>
+    <string name="tv_help_q_move">How do I move around?</string>
+    <string name="tv_help_a_move">Use the arrows on the remote to move between cards. Press OK to open a card. Press Back to return.</string>
+    <string name="tv_help_q_chart">How do I use the chart?</string>
+    <string name="tv_help_a_chart">Press OK on an hour or a day to open the chart. Left and right move one hour. Up and down move one day. OK shows the next value.</string>
+    <string name="tv_help_q_place">How do I change the place?</string>
+    <string name="tv_help_a_place">Press OK on the place name. Search with the keyboard, or choose a saved place. The ✕ removes a saved place.</string>
+    <string name="tv_help_q_settings">How do I change the units or the language?</string>
+    <string name="tv_help_a_settings">Open Settings and press OK on a row. Each press shows the next choice.</string>
+    <string name="tv_help_q_alerts">Where are the alerts and the air quality?</string>
+    <string name="tv_help_a_alerts">An alert shows on a coloured button under the place name. Press OK to read it. Air quality and current conditions have their own buttons.</string>
     <string name="widget_description">Current weather with dual-unit temperature</string>
     <string name="widget_description_large">Weather details with feels-like, humidity, wind and min/max</string>
     <string name="detail_no_precip">None</string>
