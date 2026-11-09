@@ -157,9 +157,10 @@
 		const position = moonPosition(now, data.latitude, data.longitude);
 		// The next moonrise in the three days, for the moon below the horizon
 		const nextRise = days.map((d) => d.rise).find((t): t is number => t != null && t > now) ?? null;
-		// The next new and full moon (their index in moon_phases), the first one first
-		const nextMoons = [{ time: nextMoonPhase(now, 0), index: 0 }, { time: nextMoonPhase(now, 0.5), index: 4 }].sort((a, b) => a.time - b.time);
-		return { illumination, position, today: days[1], arcT: moonArcProgress(now, days), southern: data.latitude < 0, nextRise, nextMoons };
+		// The next new or full moon, whichever comes first, and its index in moon_phases
+		const [newMoon, fullMoon] = [nextMoonPhase(now, 0), nextMoonPhase(now, 0.5)];
+		const nextMoon = newMoon < fullMoon ? { time: newMoon, index: 0 } : { time: fullMoon, index: 4 };
+		return { illumination, position, today: days[1], arcT: moonArcProgress(now, days), southern: data.latitude < 0, nextRise, nextMoon };
 	});
 	let moonAzimuth = $derived(Math.round(moon.position.azimuth) % 360);
 	let moonDown = $derived(moon.position.altitude < 0);
@@ -337,7 +338,7 @@
 	</div>
 {/snippet}
 
-<!-- The moon, laid out like the sun: its arc, the part lit, rise and set today, the dates of the next new and full moon,
+<!-- The moon, laid out like the sun: its arc, the part lit, rise and set today, the date of the next new or full moon,
      phase and direction -->
 {#snippet moonTile()}
 	<div class="sky-tile">
@@ -357,10 +358,9 @@
 			<span><span class="sky-label">{$_('detail_moonrise')}</span> {moon.today.rise != null ? loc(formatHourAtLocation(moon.today.rise, data.utcOffsetSeconds)) : '--'}</span>
 			<span><span class="sky-label">{$_('detail_moonset')}</span> {moon.today.set != null ? loc(formatHourAtLocation(moon.today.set, data.utcOffsetSeconds)) : '--'}</span>
 		</div>
-		<div class="sky-times">
-			{#each moon.nextMoons as m (m.index)}
-				<span><span class="sky-label">{($json('moon_phases') as string[])?.[m.index] ?? ''}</span> {dayMonth(m.time)}</span>
-			{/each}
+		<!-- The next new or full moon: the name at the start, the date at the end -->
+		<div class="moon-next">
+			<span class="sky-label">{($json('moon_phases') as string[])?.[moon.nextMoon.index] ?? ''}</span>{dayMonth(moon.nextMoon.time)}
 		</div>
 		<!-- The direction as a labelled value, like the times; the phase at the end -->
 		<div class="moon-bottom">
@@ -628,6 +628,19 @@
 
 	.sky-times > span:last-child {
 		text-align: end;
+	}
+
+	.moon-next {
+		align-self: stretch;
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 6px;
+		font-family: var(--font-display);
+		font-size: 0.8125rem;
+		font-weight: 700;
+		color: white;
+		font-feature-settings: var(--font-features);
 	}
 
 	.sky-label {

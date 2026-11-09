@@ -3534,8 +3534,8 @@ private fun SunAzimuth(latitude: Double, longitude: Double, localizeDigits: (Str
 }
 
 /**
- * The moon, laid out like the sun tile: its arc across the sky, the part lit, rise and set today, the dates of the next
- * new and full moon, phase and direction.
+ * The moon, laid out like the sun tile: its arc across the sky, the part lit, rise and set today, the date of the next
+ * new or full moon, phase and direction.
  */
 @Composable
 private fun MoonTile(lat: Double, lon: Double, utcOffsetSeconds: Int, timeFormat: SimpleDateFormat, localizeDigits: (String) -> String, modifier: Modifier) {
@@ -3563,33 +3563,8 @@ private fun MoonTile(lat: Double, lon: Double, utcOffsetSeconds: Int, timeFormat
     val southern = lat < 0
     val appLocale = LocalConfiguration.current.locales[0]
     val dayMonthFormat = remember(appLocale, timeFormat) { SimpleDateFormat("d MMM", appLocale).apply { timeZone = timeFormat.timeZone } }
-    // The next new and full moon (their index in moon_phases), the first one first
-    val nextMoons = remember(now / 3_600_000) { listOf(Moon.nextPhase(now, 0.0) to 0, Moon.nextPhase(now, 0.5) to 4).sortedBy { it.first } }
-
-    // Two labelled values, one at each side of the tile
-    @Composable
-    fun SideValues(items: List<Pair<String, String>>) {
-        Row(modifier = Modifier.fillMaxWidth()) {
-            items.forEachIndexed { i, (label, value) ->
-                if (i == 1) Spacer(modifier = Modifier.weight(1f))
-                Column(horizontalAlignment = if (i == 0) Alignment.Start else Alignment.End) {
-                    Text(
-                        text = label,
-                        fontSize = 11f.s(scale),
-                        fontFamily = bodyFont,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                    )
-                    Text(
-                        text = value,
-                        fontSize = 15f.s(scale),
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = LocalDisplayFont.current,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                }
-            }
-        }
-    }
+    // The next new or full moon, whichever comes first, and its index in moon_phases
+    val nextMoon = remember(now / 3_600_000) { listOf(Moon.nextPhase(now, 0.0) to 0, Moon.nextPhase(now, 0.5) to 4).minBy { it.first } }
 
     Column(
         modifier = modifier.background(TileSurface, RoundedCornerShape(16.dp)).padding(16.sd(scale)),
@@ -3622,10 +3597,43 @@ private fun MoonTile(lat: Double, lon: Double, utcOffsetSeconds: Int, timeFormat
                 )
             }
             nextRise?.let { RisesIn((it - now) / 1000, localizeDigits) }
-            SideValues(listOf(R.string.detail_moonrise to today.rise, R.string.detail_moonset to today.set).map { (label, time) ->
-                stringResource(label) to (time?.let { localizeDigits(timeFormat.format(Date(it))) } ?: "--")
-            })
-            SideValues(nextMoons.map { (time, index) -> phaseNames[index] to localizeDigits(dayMonthFormat.format(Date(time))) })
+            Row(modifier = Modifier.fillMaxWidth()) {
+                listOf(R.string.detail_moonrise to today.rise, R.string.detail_moonset to today.set).forEachIndexed { i, (label, time) ->
+                    if (i == 1) Spacer(modifier = Modifier.weight(1f))
+                    Column(horizontalAlignment = if (i == 0) Alignment.Start else Alignment.End) {
+                        Text(
+                            text = stringResource(label),
+                            fontSize = 11f.s(scale),
+                            fontFamily = bodyFont,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        )
+                        Text(
+                            text = time?.let { localizeDigits(timeFormat.format(Date(it))) } ?: "--",
+                            fontSize = 15f.s(scale),
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = LocalDisplayFont.current,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                }
+            }
+            // The next new or full moon: the name at the start, the date at the end
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = phaseNames[nextMoon.second],
+                    fontSize = 11f.s(scale),
+                    fontFamily = bodyFont,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                    modifier = Modifier.weight(1f).padding(end = 6.dp),
+                )
+                Text(
+                    text = localizeDigits(dayMonthFormat.format(Date(nextMoon.first))),
+                    fontSize = 13f.s(scale),
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = LocalDisplayFont.current,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
             Spacer(modifier = Modifier.weight(1f))
             // The direction as a labelled value, like the times; the phase at the end
             val az = position.azimuth.roundToInt() % 360
