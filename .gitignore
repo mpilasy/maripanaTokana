@@ -51,3 +51,6 @@ web/**/tsconfig.tsbuildinfo
 /.github/copilot-instructions.md
 web/agents.md
 /docs/plans/
+
+# Household device addresses for the deploy scripts
+scripts/*.local

@@ -63,6 +63,7 @@
         <activity
             android:name=".ui.tv.TvActivity"
             android:exported="true"
+            android:taskAffinity="${applicationId}.tv"
             android:banner="@drawable/tv_banner"
             android:theme="@style/Theme.MaripanaTokana">
             <intent-filter>

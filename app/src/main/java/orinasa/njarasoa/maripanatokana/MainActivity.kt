@@ -5,6 +5,7 @@ package orinasa.njarasoa.maripanatokana
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -15,6 +16,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import orinasa.njarasoa.maripanatokana.ui.theme.MaripanaTokanaTheme
+import orinasa.njarasoa.maripanatokana.ui.tv.TvActivity
 import orinasa.njarasoa.maripanatokana.ui.weather.WeatherScreen
 import orinasa.njarasoa.maripanatokana.ui.weather.WeatherViewModel
 import orinasa.njarasoa.maripanatokana.ui.weather.supportedLocales
@@ -46,6 +48,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // A TV always gets the TV screens, also when another app opens the phone screen
+        if (packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)) {
+            startActivity(Intent(this, TvActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            finish()
+            return
+        }
         // The app is always dark, so the status bar and navigation bar icons are always light
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),

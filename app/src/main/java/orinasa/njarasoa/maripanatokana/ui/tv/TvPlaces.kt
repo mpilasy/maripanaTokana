@@ -87,6 +87,8 @@ internal fun GeocodingResult.toSavedLocation() = SavedLocation(
 internal fun PlacesScreen(
     saved: List<SavedLocation>,
     activeId: String?,
+    showDevice: Boolean,
+    locationFailed: Boolean,
     currentName: String?,
     search: suspend (String) -> Result<List<GeocodingResult>>,
     onDevice: () -> Unit,
@@ -156,6 +158,7 @@ internal fun PlacesScreen(
             }
         }
         Spacer(Modifier.height(12.dp))
+        if (locationFailed) Text(stringResource(R.string.error_get_location), color = Dim, fontSize = 20.sp)
         if (noResults) Text(stringResource(R.string.chart_view_no_data), color = Dim, fontSize = 20.sp)
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             itemsIndexed(results) { i, result ->
@@ -167,7 +170,7 @@ internal fun PlacesScreen(
                     onClick = { onAdd(result) },
                 )
             }
-            item {
+            if (showDevice) item {
                 PlaceRow(stringResource(R.string.current_location), null, activeId == null, Modifier, onDevice)
             }
             items(saved, key = { it.id }) { place ->

@@ -6,6 +6,7 @@ package orinasa.njarasoa.maripanatokana.ui.tv
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.location.LocationManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -120,6 +121,12 @@ class TvActivity : ComponentActivity() {
 private fun hasLocationPermission(context: Context) =
     LOCATION_PERMISSIONS.any { context.checkSelfPermission(it) == PackageManager.PERMISSION_GRANTED }
 
+/** False on a device with no enabled location provider. "fused" is a literal: its constant needs API 31. */
+private fun canLocate(context: Context): Boolean {
+    val manager = context.getSystemService(LocationManager::class.java)
+    return listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER, "fused").any { manager.isProviderEnabled(it) }
+}
+
 private suspend fun deviceLocation(locations: LocationRepository): Pair<Double, Double>? =
     withTimeoutOrNull(LOCATION_TIMEOUT_MS) {
         locations.getLastLocation().getOrNull() ?: locations.getFreshLocation().getOrNull()
@@ -140,20 +147,21 @@ private fun TvRoot(
     var metric by remember { mutableStateOf(display.metricPrimary) }
     var localeIndex by remember { mutableIntStateOf(display.localeIndex) }
     var askedPermission by remember { mutableStateOf(false) }
+    val locatable = remember { canLocate(context) }
     val permissions = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { attempt++ }
 
     // The language is a key: the place names and the alert text come in the language of the app
     LaunchedEffect(activeId, attempt, localeIndex) {
         state = TvState.Loading
         val place = saved.find { it.id == activeId }
-        if (place == null && !hasLocationPermission(context) && !askedPermission) {
+        if (place == null && locatable && !hasLocationPermission(context) && !askedPermission) {
             askedPermission = true
             permissions.launch(LOCATION_PERMISSIONS)
             return@LaunchedEffect
         }
         val coordinates = when {
             place != null -> place.latitude to place.longitude
-            hasLocationPermission(context) -> deviceLocation(locations)
+            locatable && hasLocationPermission(context) -> deviceLocation(locations)
             else -> null
         }
         if (coordinates == null) {
@@ -198,6 +206,8 @@ private fun TvRoot(
                 PlacesScreen(
                     saved = saved,
                     activeId = activeId,
+                    showDevice = locatable,
+                    locationFailed = locatable && s == TvState.NoLocation,
                     currentName = (s as? TvState.Ready)?.data?.locationName ?: savedName,
                     search = repository::searchLocation,
                     onDevice = { activate(null) },
