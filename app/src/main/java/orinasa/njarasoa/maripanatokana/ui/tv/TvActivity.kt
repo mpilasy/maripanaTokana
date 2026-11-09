@@ -36,6 +36,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -53,7 +54,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeoutOrNull
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
+import orinasa.njarasoa.maripanatokana.domain.model.SavedLocation
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.data.remote.wmoDescriptionRes
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
@@ -73,6 +79,8 @@ private const val HOUR_COUNT = 8
 private const val DAY_COUNT = 10
 private const val HOUR_MS = 3_600_000L
 private const val LOCATION_TIMEOUT_MS = 10_000L
+internal const val REFRESH_MS = 30 * 60_000L
+private const val RETRY_MS = 5 * 60_000L
 
 internal val Background = Color(0xFF12123A)
 internal val Card = Color(0xFF26265A)
@@ -151,6 +159,19 @@ private fun TvRoot(
     val permissions = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { attempt++ }
 
     // The language is a key: the place names and the alert text come in the language of the app
+    /** Loads the weather of ([lat], [lon]) and then its alerts; false when the weather fails. */
+    suspend fun load(lat: Double, lon: Double, place: SavedLocation?): Boolean = repository.getWeather(lat, lon).fold(
+        onSuccess = { loaded ->
+            val data = if (place != null) loaded.copy(locationName = place.displayName, locationSubtext = place.subtext) else loaded
+            state = TvState.Ready(data)
+            repository.fetchAlerts(lat, lon).onSuccess { result ->
+                state = TvState.Ready(data.copy(alerts = result.alerts, failedAlertSources = result.failedSources))
+            }
+            true
+        },
+        onFailure = { false },
+    )
+
     LaunchedEffect(activeId, attempt, localeIndex) {
         state = TvState.Loading
         val place = saved.find { it.id == activeId }
@@ -169,16 +190,25 @@ private fun TvRoot(
             return@LaunchedEffect
         }
         val (lat, lon) = coordinates
-        repository.getWeather(lat, lon).fold(
-            onSuccess = { loaded ->
-                val data = if (place != null) loaded.copy(locationName = place.displayName, locationSubtext = place.subtext) else loaded
-                state = TvState.Ready(data)
-                repository.fetchAlerts(lat, lon).onSuccess { result ->
-                    state = TvState.Ready(data.copy(alerts = result.alerts, failedAlertSources = result.failedSources))
+        if (!load(lat, lon, place)) state = TvState.Failed
+    }
+
+    // A TV can stay on this screen for hours: while the app is on screen, the weather loads again when it is 30 minutes old
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(lifecycleOwner, activeId, localeIndex) {
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            while (true) {
+                val data = (state as? TvState.Ready)?.data
+                val wait = if (data == null) REFRESH_MS else REFRESH_MS - (System.currentTimeMillis() - data.timestamp)
+                if (data == null || wait > 0) {
+                    delay(wait.coerceAtLeast(RETRY_MS / 5))
+                    continue
                 }
-            },
-            onFailure = { state = TvState.Failed },
-        )
+                val lat = data.latitude
+                val lon = data.longitude
+                if (lat == null || lon == null || !load(lat, lon, saved.find { it.id == activeId })) delay(RETRY_MS)
+            }
+        }
     }
 
     fun activate(id: String?) {
@@ -363,6 +393,15 @@ private fun CurrentPanel(
         }
         Text(stringResource(wmoDescriptionRes(data.weatherCode)), color = Color.White, fontSize = 20.sp)
         Text("${stringResource(R.string.feels_like)}: ${ltr("$feels · $feelsSecond")}", color = Dim, fontSize = 16.sp)
+        // The place's time, and when the weather loaded
+        val now by produceState(System.currentTimeMillis()) {
+            while (true) {
+                delay(15_000)
+                value = System.currentTimeMillis()
+            }
+        }
+        val timeFormat = rememberPlaceFormat("HH:mm", data.utcOffsetSeconds)
+        Text("${timeFormat(now)} · ${stringResource(R.string.updated_time, timeFormat(data.timestamp))}", color = Dim, fontSize = 16.sp)
         data.airQuality?.let { aqi ->
             PanelButton(cardModifier("airQuality"), onClick = { onOpen("airQuality", TvScreen.AirQuality) }) {
                 Text(stringResource(R.string.detail_air_quality), color = Color.White, fontSize = 16.sp, modifier = Modifier.weight(1f), maxLines = 1)

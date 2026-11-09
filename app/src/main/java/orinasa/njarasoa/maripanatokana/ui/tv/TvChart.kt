@@ -268,6 +268,26 @@ private fun SeriesPlot(
             }
         }
 
+        // The highest and lowest values in the window; the lowest rain is nearly always 0, so bars show only the highest
+        val extreme = Paint().apply { color = Color.White.toArgb(); textSize = 16.sp.toPx(); isAntiAlias = true; isFakeBoldText = true }
+        val known = values.withIndex().filter { it.value != null }
+        val highest = known.maxByOrNull { it.value!! }
+        val lowest = known.minByOrNull { it.value!! }
+        fun label(i: Int, v: Double, above: Boolean) {
+            val text = shape(series.text(v).first)
+            val width = extreme.measureText(text)
+            val textX = (x(i) - width / 2).coerceIn(left, size.width - width)
+            val pointY = y(v)
+            var textY = if (above) pointY - 12.dp.toPx() else pointY + 26.dp.toPx()
+            // Keep the label inside the plot
+            if (textY < top + 4.dp.toPx()) textY = pointY + 26.dp.toPx()
+            if (textY > bottom - 4.dp.toPx()) textY = pointY - 12.dp.toPx()
+            drawCircle(Color.White, 4.dp.toPx(), Offset(x(i), pointY))
+            canvas.drawText(text, textX, textY, extreme)
+        }
+        highest?.let { (i, v) -> if (!series.bars || v!! > 0) label(i, v!!, above = true) }
+        lowest?.let { (i, v) -> if (!series.bars && i != highest?.index) label(i, v!!, above = false) }
+
         val mark = selected - first
         drawLine(Color.White.copy(alpha = 0.6f), Offset(x(mark), top), Offset(x(mark), bottom), 2.dp.toPx())
         values[mark]?.let { v -> drawCircle(series.color(v), 8.dp.toPx(), Offset(x(mark), y(v))) }
