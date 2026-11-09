@@ -12,6 +12,7 @@
 	import type { HourlyAirQuality } from '#lib/domain/weatherData.js';
 	import { isDaytime } from '#lib/domain/weatherData.js';
 	import { AirQualityIndex, AQI_TIER_COLORS, type AqiStandard, type AqiTier } from '#lib/domain/airQuality.js';
+	import { temperatureColor } from '#lib/utils/tempColors.js';
 	import DualUnitText from './DualUnitText.svelte';
 	import HumidityDewPoint, { DEW_COLOR } from './HumidityDewPoint.svelte';
 	import WindCompass from './WindCompass.svelte';
@@ -86,7 +87,7 @@
 
 	// Each hour's air quality as [primary, secondary] index, matched by time; null when missing
 	let aqByHour = $derived(forecasts.map((f) => {
-		const aq = airQuality?.forecasts.find((a) => Math.abs(a.time - f.time) < 30 * 60 * 1000);
+		const aq = airQuality?.forecasts.find((a) => Math.abs(a.time - f.time) <= 30 * 60 * 1000);
 		if (!aq) return null;
 		return airQuality!.primaryStandard === 'EUROPEAN' ? [aq.europeanValue, aq.usValue] : [aq.usValue, aq.europeanValue];
 	}));
@@ -249,7 +250,7 @@
 <!-- The value under an hourly card's icon for the tab displayMode. Android has the same in HourlyCardValue (WeatherContent.kt). -->
 {#snippet hourlyCardValue(item: HourlyForecastType, i: number)}
 	{#if displayMode === 'Temperature'}
-		{@render cardDualValue(item.temperature.displayDual(metricPrimary))}
+		{@render cardDualValue(item.temperature.displayDual(metricPrimary), temperatureColor(item.temperature.celsius))}
 	{:else if displayMode === 'Wind'}
 		{@render cardDualValue(item.windSpeed.displayDual(metricPrimary))}
 		<span class="wind-dir">
@@ -284,8 +285,8 @@
 {/snippet}
 
 <!-- A value in both units on a forecast card; a tap swaps the units -->
-{#snippet cardDualValue(dual: [string, string])}
-	<DualUnitText primary={loc(dual[0])} secondary={loc(dual[1])} primarySize="0.875rem" align="center" onClick={onToggleUnits} />
+{#snippet cardDualValue(dual: [string, string], color?: string)}
+	<DualUnitText primary={loc(dual[0])} secondary={loc(dual[1])} primarySize="0.875rem" align="center" {color} onClick={onToggleUnits} />
 {/snippet}
 
 <style>

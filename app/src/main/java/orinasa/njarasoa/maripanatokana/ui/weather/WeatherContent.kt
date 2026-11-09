@@ -1925,7 +1925,7 @@ internal fun HourlyForecastRow(
         val uvLabels = stringArrayResource(R.array.uv_labels)
         // Each hour's air quality, matched by time; null when missing
         val aqByHour = remember(forecasts, hourlyAirQuality) {
-            forecasts.map { f -> hourlyAirQuality.firstOrNull { kotlin.math.abs(it.time - f.time) < 30 * 60 * 1000L } }
+            forecasts.map { f -> hourlyAirQuality.firstOrNull { kotlin.math.abs(it.time - f.time) <= 30 * 60 * 1000L } }
         }
         val usAqiLabel = stringResource(R.string.air_quality_us_aqi)
         val euAqiLabel = stringResource(R.string.air_quality_eu_aqi)
@@ -2415,11 +2415,15 @@ private fun ForecastChangesBlock(changes: List<ForecastChange>, metricPrimary: B
 /** A forecast card's heat index or wind chill in both units; "--" for an item where it does not apply. */
 /** A value in both units on a forecast card, the primary one [size] big; a tap swaps the units. */
 @Composable
-private fun CardDualValue(dual: Pair<String, String>, size: TextUnit, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
+private fun CardDualValue(
+    dual: Pair<String, String>, size: TextUnit, localizeDigits: (String) -> String, onToggleUnits: () -> Unit,
+    color: Color = Color.Unspecified,
+) {
     DualUnitText(
         primary = localizeDigits(dual.first),
         secondary = localizeDigits(dual.second),
         primarySize = size,
+        color = color,
         horizontalAlignment = Alignment.CenterHorizontally,
         onClick = onToggleUnits,
     )
@@ -2470,9 +2474,10 @@ private fun HourlyCardValue(
 ) {
     val size = 14f.s(LocalScale.current)
     when (mode) {
-        ForecastDisplayMode.Temperature -> CardDualValue(item.temperature.displayDual(metricPrimary), size, localizeDigits, onToggleUnits)
+        ForecastDisplayMode.Temperature ->
+            CardDualValue(item.temperature.displayDual(metricPrimary), size, localizeDigits, onToggleUnits, temperatureColor(item.temperature.celsius))
         ForecastDisplayMode.Wind -> {
-            CardDualValue(item.windSpeed.displayDual(metricPrimary), size, localizeDigits, onToggleUnits)
+CardDualValue(item.windSpeed.displayDual(metricPrimary), size, localizeDigits, onToggleUnits)
             WindDirectionLabel(item.windDirection, visible = showWindArrow(item.windSpeed))
         }
         ForecastDisplayMode.Precipitation -> CardDualValue(item.precipitation.displayDual(metricPrimary), size, localizeDigits, onToggleUnits)
@@ -2501,9 +2506,9 @@ private fun DailyCardValue(
     val size = 13f.s(scale)
     when (mode) {
         ForecastDisplayMode.Temperature -> {
-            CardDualValue(item.tempMax.displayDual(metricPrimary), size, localizeDigits, onToggleUnits)
+            CardDualValue(item.tempMax.displayDual(metricPrimary), size, localizeDigits, onToggleUnits, temperatureColor(item.tempMax.celsius))
             TemperatureRangeBar(low = low, high = high, modifier = Modifier.padding(vertical = 4.dp).width(6.dp).height(56.sd(scale)))
-            CardDualValue(item.tempMin.displayDual(metricPrimary), size, localizeDigits, onToggleUnits)
+            CardDualValue(item.tempMin.displayDual(metricPrimary), size, localizeDigits, onToggleUnits, temperatureColor(item.tempMin.celsius))
         }
         ForecastDisplayMode.Wind -> {
             CardDualValue(item.windSpeed.displayDual(metricPrimary), size, localizeDigits, onToggleUnits)

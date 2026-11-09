@@ -10,16 +10,17 @@
 		primaryUnit?: string;
 		secondaryUnit?: string;
 		secondaryScale?: number;
+		color?: string;
 	}
 
-	let { primary, secondary, primarySize = '1rem', align = 'start', onClick, primaryUnit, secondaryUnit, secondaryScale = 0.75 }: Props = $props();
+	let { primary, secondary, primarySize = '1rem', align = 'start', onClick, primaryUnit, secondaryUnit, secondaryScale = 0.75, color }: Props = $props();
 </script>
 
 {#snippet content()}
-	<div class="primary" style:font-size={primarySize}
+	<div class="primary" style:font-size={primarySize} style:color={color}
 		><bdi dir="ltr">{primary}{#if primaryUnit}<span class="unit" style:font-size="calc({primarySize} * 0.55)">{" " + primaryUnit}</span>{/if}</bdi></div
 	>
-	<div class="secondary" style:font-size="calc({primarySize} * {secondaryScale})"
+	<div class="secondary" style:font-size="calc({primarySize} * {secondaryScale})" style:color={color} style:opacity={color ? 0.55 : undefined}
 		><bdi dir="ltr">{secondary}{#if secondaryUnit}<span class="unit" style:font-size="calc({primarySize} * 0.55)">{" " + secondaryUnit}</span>{/if}</bdi></div
 	>
 {/snippet}

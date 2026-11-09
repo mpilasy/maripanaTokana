@@ -12,6 +12,7 @@
 	import { placeIsoDate, type DayNormal } from '#lib/domain/normals.js';
 	import { wmoEmoji } from '#lib/api/wmoWeatherCode.js';
 	import { formatDayName, formatDayMonth } from '#lib/utils/date.js';
+	import { temperatureColor } from '#lib/utils/tempColors.js';
 	import DualUnitText from './DualUnitText.svelte';
 	import HumidityDewPoint, { DEW_COLOR } from './HumidityDewPoint.svelte';
 	import WindCompass from './WindCompass.svelte';
@@ -271,11 +272,11 @@
 <!-- The value under a daily card's icon for the tab displayMode. Android has the same in DailyCardValue (WeatherContent.kt). -->
 {#snippet dailyCardValue(item: DailyForecastType, i: number)}
 	{#if displayMode === 'Temperature'}
-		{@render cardDualValue(item.tempMax.displayDual(metricPrimary))}
+		{@render cardDualValue(item.tempMax.displayDual(metricPrimary), temperatureColor(item.tempMax.celsius))}
 		<div class="range-track" aria-hidden="true">
 			<div class="range-fill" style:bottom="{barPercent(item.tempMin.celsius)}%" style:top="{100 - barPercent(item.tempMax.celsius)}%"></div>
 		</div>
-		{@render cardDualValue(item.tempMin.displayDual(metricPrimary))}
+		{@render cardDualValue(item.tempMin.displayDual(metricPrimary), temperatureColor(item.tempMin.celsius))}
 	{:else if displayMode === 'Wind'}
 		{@render cardDualValue(item.windSpeed.displayDual(metricPrimary))}
 		<span class="wind-dir">
@@ -314,8 +315,8 @@
 {/snippet}
 
 <!-- A value in both units on a forecast card; a tap swaps the units -->
-{#snippet cardDualValue(dual: [string, string])}
-	<DualUnitText primary={loc(dual[0])} secondary={loc(dual[1])} primarySize="0.8125rem" align="center" onClick={onToggleUnits} />
+{#snippet cardDualValue(dual: [string, string], color?: string)}
+	<DualUnitText primary={loc(dual[0])} secondary={loc(dual[1])} primarySize="0.8125rem" align="center" {color} onClick={onToggleUnits} />
 {/snippet}
 
 <style>
