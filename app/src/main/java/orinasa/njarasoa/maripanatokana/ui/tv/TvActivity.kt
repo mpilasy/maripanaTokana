@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -40,8 +41,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.key.Key
@@ -51,6 +51,7 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dagger.hilt.android.AndroidEntryPoint
@@ -68,6 +69,8 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 import javax.inject.Inject
+import kotlin.math.ceil
+import kotlin.math.roundToInt
 
 // The prototype shows one fixed place in metric first; places and units come later
 private const val PLACE_NAME = "Roseville"
@@ -80,6 +83,7 @@ private const val DAY_COUNT = 10
 private const val CHART_HOURS = 72
 private const val CHART_LEAD_HOURS = 24
 private const val HOUR_MS = 3_600_000L
+private const val SCALE_STEP_C = 5
 
 private val Background = Color(0xFF12123A)
 private val Card = Color(0xFF26265A)
@@ -171,7 +175,8 @@ private fun HomeScreen(data: WeatherData, focusKey: String, onOpen: (key: String
     val focus = remember { FocusRequester() }
     LaunchedEffect(Unit) { focus.requestFocus() }
     val hourFormat = remember(data.utcOffsetSeconds) { placeFormat("HH:mm", data.utcOffsetSeconds) }
-    val dayFormat = remember(data.utcOffsetSeconds) { placeFormat("EEE d", data.utcOffsetSeconds) }
+    // Two lines: a day card is too narrow for the name and the date on one line
+    val dayFormat = remember(data.utcOffsetSeconds) { placeFormat("EEE\nd", data.utcOffsetSeconds) }
     fun cardModifier(key: String) = if (key == focusKey) Modifier.focusRequester(focus) else Modifier
 
     Row(Modifier.fillMaxSize().padding(horizontal = 48.dp, vertical = 27.dp), horizontalArrangement = Arrangement.spacedBy(32.dp)) {
@@ -182,9 +187,9 @@ private fun HomeScreen(data: WeatherData, focusKey: String, onOpen: (key: String
                     val day = data.dailySunrise.indexOfLast { it <= hour.time }.coerceAtLeast(0)
                     val night = !isDaytime(hour.time, data.dailySunrise.getOrElse(day) { 0L }, data.dailySunset.getOrElse(day) { 0L })
                     val (primary, secondary) = hour.temperature.displayDual(METRIC_PRIMARY)
-                    FocusCard(cardModifier("hour$i").weight(1f), onClick = { onOpen("hour$i", hour.time) }) {
-                        ForecastCell(hourFormat(hour.time), hour.weatherCode, night) {
-                            TempText(primary, secondary, temperatureColor(hour.temperature.celsius))
+                    FocusCard(cardModifier("hour$i").weight(1f).fillMaxHeight(), onClick = { onOpen("hour$i", hour.time) }) {
+                        ForecastCell(hourFormat(hour.time), hour.weatherCode, night, labelSize = 20, iconSize = 64) {
+                            TempText(primary, secondary, temperatureColor(hour.temperature.celsius), primarySize = 26, secondarySize = 18)
                         }
                     }
                 }
@@ -194,11 +199,11 @@ private fun HomeScreen(data: WeatherData, focusKey: String, onOpen: (key: String
                     val (highP, highS) = day.tempMax.displayDual(METRIC_PRIMARY)
                     val (lowP, lowS) = day.tempMin.displayDual(METRIC_PRIMARY)
                     // Noon of the day, so the chart opens in the daytime
-                    FocusCard(cardModifier("day$i").weight(1f), onClick = { onOpen("day$i", day.date + 12 * HOUR_MS) }) {
-                        ForecastCell(dayFormat(day.date), day.weatherCode, night = false) {
-                            TempText(highP, highS, temperatureColor(day.tempMax.celsius))
-                            Spacer(Modifier.height(6.dp))
-                            TempText(lowP, lowS, temperatureColor(day.tempMin.celsius))
+                    FocusCard(cardModifier("day$i").weight(1f).fillMaxHeight(), onClick = { onOpen("day$i", day.date + 12 * HOUR_MS) }) {
+                        ForecastCell(dayFormat(day.date), day.weatherCode, night = false, labelSize = 17, iconSize = 48) {
+                            TempText(highP, highS, temperatureColor(day.tempMax.celsius), primarySize = 20, secondarySize = 15)
+                            Spacer(Modifier.height(8.dp))
+                            TempText(lowP, lowS, temperatureColor(day.tempMin.celsius), primarySize = 20, secondarySize = 15)
                         }
                     }
                 }
@@ -247,18 +252,18 @@ private fun FocusCard(modifier: Modifier, onClick: () -> Unit, content: @Composa
 }
 
 @Composable
-private fun ForecastCell(label: String, code: Int, night: Boolean, values: @Composable () -> Unit) {
-    Text(label, color = Dim, fontSize = 15.sp, maxLines = 1)
-    Spacer(Modifier.height(6.dp))
-    WeatherIcon(code, night = night, size = 40.dp)
-    Spacer(Modifier.height(6.dp))
+private fun ForecastCell(label: String, code: Int, night: Boolean, labelSize: Int, iconSize: Int, values: @Composable () -> Unit) {
+    Text(label, color = Dim, fontSize = labelSize.sp, lineHeight = (labelSize + 3).sp, textAlign = TextAlign.Center, maxLines = 2)
+    Spacer(Modifier.height(8.dp))
+    WeatherIcon(code, night = night, size = iconSize.dp)
+    Spacer(Modifier.height(8.dp))
     values()
 }
 
 @Composable
-private fun TempText(primary: String, secondary: String, color: Color) {
-    Text(primary, color = color, fontSize = 19.sp, fontWeight = FontWeight.Bold, maxLines = 1)
-    Text(secondary, color = color.copy(alpha = 0.6f), fontSize = 14.sp, maxLines = 1)
+private fun TempText(primary: String, secondary: String, color: Color, primarySize: Int, secondarySize: Int) {
+    Text(primary, color = color, fontSize = primarySize.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+    Text(secondary, color = color.copy(alpha = 0.6f), fontSize = secondarySize.sp, maxLines = 1)
 }
 
 /** Left and right move the selected hour over the place's hours, up and down a whole day. */
@@ -344,25 +349,38 @@ private fun TemperatureLine(
     val max = known.max() + 1
     Canvas(modifier) {
         val bottom = size.height - 32.dp.toPx()
-        fun x(i: Int) = size.width * i / (CHART_HOURS - 1)
+        // The space on the left is for the temperature scale
+        val left = 112.dp.toPx()
+        fun x(i: Int) = left + (size.width - left) * i / (CHART_HOURS - 1)
         fun y(c: Double) = (bottom - (c - min) / (max - min) * bottom).toFloat()
 
         val label = Paint().apply { color = Dim.toArgb(); textSize = 16.sp.toPx(); isAntiAlias = true }
+        // The scale: a line each 5 °C, in both units
+        var tick = ceil(min / SCALE_STEP_C).toInt() * SCALE_STEP_C
+        while (tick <= max) {
+            val tickY = y(tick.toDouble())
+            drawLine(Color.White.copy(alpha = 0.15f), Offset(left, tickY), Offset(size.width, tickY), 1.dp.toPx())
+            val fahrenheit = (tick * 9.0 / 5 + 32).roundToInt()
+            drawContext.canvas.nativeCanvas.drawText("$tick°C · $fahrenheit°F", 0f, tickY + 6.dp.toPx(), label)
+            tick += SCALE_STEP_C
+        }
         shown.forEachIndexed { i, h ->
             val localHour = (((h.time / 1000 + offsetSeconds) / 3600) % 24).toInt()
             if (localHour % 12 == 0) {
                 drawLine(Color.White.copy(alpha = 0.15f), Offset(x(i), 0f), Offset(x(i), bottom), 1.dp.toPx())
-                drawContext.canvas.nativeCanvas.drawText(hourFormat(h.time), x(i), size.height - 6.dp.toPx(), label)
+                val text = hourFormat(h.time)
+                // Centred on its line, and kept inside the screen at the right edge
+                val textWidth = label.measureText(text)
+                val textX = (x(i) - textWidth / 2).coerceAtMost(size.width - textWidth)
+                drawContext.canvas.nativeCanvas.drawText(text, textX, size.height - 6.dp.toPx(), label)
             }
         }
-        val path = Path()
-        var started = false
-        temps.forEachIndexed { i, c ->
-            if (c == null) return@forEachIndexed
-            if (started) path.lineTo(x(i), y(c)) else path.moveTo(x(i), y(c))
-            started = true
+        // Each piece of the line has the colour of its temperature on the scale
+        temps.zipWithNext().forEachIndexed { i, (a, b) ->
+            if (a != null && b != null) {
+                drawLine(temperatureColor((a + b) / 2), Offset(x(i), y(a)), Offset(x(i + 1), y(b)), 4.dp.toPx(), StrokeCap.Round)
+            }
         }
-        drawPath(path, Color.White, style = Stroke(3.dp.toPx()))
 
         val mark = selected - first
         drawLine(Color.White.copy(alpha = 0.6f), Offset(x(mark), 0f), Offset(x(mark), bottom), 2.dp.toPx())
