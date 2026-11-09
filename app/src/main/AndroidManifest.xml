@@ -6,10 +6,13 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
-    <!-- Phone-only app - not compatible with TV, Wear, Auto, etc. -->
+    <!-- The TV prototype: a TV has no touchscreen -->
     <uses-feature
         android:name="android.hardware.touchscreen"
-        android:required="true" />
+        android:required="false" />
+    <uses-feature
+        android:name="android.software.leanback"
+        android:required="false" />
 
     <application
         android:name=".MaripanaTokanaApp"
@@ -55,6 +58,16 @@
                 <data android:host="www.google.com" android:pathPrefix="/maps" />
                 <data android:host="www.openstreetmap.org" />
                 <data android:host="maps.apple.com" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ui.tv.TvActivity"
+            android:exported="true"
+            android:banner="@mipmap/ic_launcher"
+            android:theme="@style/Theme.MaripanaTokana">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
         </activity>
         <receiver
