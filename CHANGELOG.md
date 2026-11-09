@@ -9,6 +9,12 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261109165738] - 2026-11-09
+
+- Hourly and 10-day forecasts: the temperatures use the colours of the temperature scale.
+- Air quality: the chart view and the hourly forecast show air quality for places at a half-hour UTC offset, such as New Delhi. Before, each hour was exactly 30 minutes from the air quality data, and no hour matched.
+- Web: vite 8.3.7.
+
 ## [1.6.20261109040327] - 2026-11-09
 
 - Moon tile: shows only the next new or full moon, whichever comes first, on one line with its date. In 1.6.20261109035136, the two dates did not fit on a phone and the Malagasy names ran together.
