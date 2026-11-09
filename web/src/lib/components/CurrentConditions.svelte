@@ -351,7 +351,10 @@
 					<path d={moonLitPath(moon.illumination.phase, moon.southern, x, y, 7)} fill="#F2EBD3" />
 				{/snippet}
 			</SkyArc>
-			<span class="under-arc mid-arc">{loc(`${Math.round(moon.illumination.fraction * 100)}%`)}</span>
+			<span class="under-arc mid-arc moon-arc-phase">
+				<MoonPhaseIcon phase={moon.illumination.phase} southern={moon.southern} size={20} />
+				{($json('moon_phases') as string[])?.[moonPhaseIndex(moon.illumination.phase)] ?? ''}
+			</span>
 		</div>
 		{#if moonDown && moon.nextRise != null}<span class="rises-in">{risesIn(moon.nextRise)}</span>{/if}
 		<div class="sky-times">
@@ -362,13 +365,9 @@
 		<div class="moon-next">
 			<span class="sky-label">{($json('moon_phases') as string[])?.[moon.nextMoon.index] ?? ''}</span>{dayMonth(moon.nextMoon.time)}
 		</div>
-		<!-- The direction as a labelled value, like the times; the phase at the end -->
+		<!-- The direction as a labelled value, like the times -->
 		<div class="moon-bottom">
 			<LabeledValue label={$_('detail_azimuth')} value={loc(`${getCardinalDirection(moonAzimuth, $json('cardinal_directions'))} (${moonAzimuth}°)`)} />
-			<span class="moon-phase">
-				<MoonPhaseIcon phase={moon.illumination.phase} southern={moon.southern} size={16} />
-				{($json('moon_phases') as string[])?.[moonPhaseIndex(moon.illumination.phase)] ?? ''}
-			</span>
 		</div>
 		</div>
 	</div>
@@ -572,7 +571,7 @@
 		font-feature-settings: var(--font-features);
 	}
 
-	/* The length of the day and the moon's part lit, in the middle of the arc */
+	/* The length of the day and the moon's phase, in the middle of the arc */
 	.mid-arc {
 		bottom: auto;
 		top: 50%;
@@ -594,15 +593,13 @@
 		font-feature-settings: var(--font-features);
 	}
 
-	.moon-phase {
+	/* The moon's phase in the middle of its arc: the icon over the name */
+	.moon-arc-phase {
 		display: flex;
 		flex-direction: column;
-		align-items: flex-end;
+		align-items: center;
 		gap: 2px;
 		font-size: 0.75rem;
-		line-height: 0.875rem;
-		text-align: end;
-		color: rgba(255, 255, 255, 0.7);
 	}
 
 	.tile-title {

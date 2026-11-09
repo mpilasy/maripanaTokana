@@ -47,6 +47,7 @@ import orinasa.njarasoa.maripanatokana.domain.model.AqiStandard
 import orinasa.njarasoa.maripanatokana.domain.model.AqiTier
 import orinasa.njarasoa.maripanatokana.domain.model.Moon
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
+import orinasa.njarasoa.maripanatokana.ui.weather.components.MoonPhaseIcon
 import orinasa.njarasoa.maripanatokana.ui.weather.components.colorsFor
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -69,7 +70,10 @@ private fun rememberScreenFocus(): FocusRequester {
 }
 
 @Composable
-private fun Tile(label: String, primary: String, secondary: String?, modifier: Modifier, color: Color = Color.White, extra: String? = null) {
+private fun Tile(
+    label: String, primary: String, secondary: String?, modifier: Modifier, color: Color = Color.White, extra: String? = null,
+    icon: (@Composable () -> Unit)? = null,
+) {
     Column(
         modifier.fillMaxHeight().background(Card.copy(alpha = 0.55f), TileShape).padding(12.dp),
         verticalArrangement = Arrangement.Center,
@@ -77,6 +81,7 @@ private fun Tile(label: String, primary: String, secondary: String?, modifier: M
     ) {
         Text(label, color = Dim, fontSize = 16.sp, maxLines = 1)
         Spacer(Modifier.height(4.dp))
+        icon?.invoke()
         Text(primary, color = color, fontSize = 28.sp, fontWeight = FontWeight.Bold, maxLines = 1)
         if (secondary != null) Text(secondary, color = Dim, fontSize = 18.sp, maxLines = 1)
         if (extra != null) Text(extra, color = Dim, fontSize = 15.sp, maxLines = 1)
@@ -130,7 +135,11 @@ internal fun DetailsScreen(data: WeatherData) {
         listOf(
             { m -> Tile(stringResource(R.string.detail_sunrise), timeFormat(data.sunrise * 1000), null, m) },
             { m -> Tile(stringResource(R.string.detail_sunset), timeFormat(data.sunset * 1000), null, m) },
-            { m -> Tile(stringResource(R.string.detail_moon), "${(moon.fraction * 100).roundToInt()}%", phases[Moon.phaseIndex(moon.phase)], m) },
+            { m ->
+                Tile(stringResource(R.string.detail_moon), phases[Moon.phaseIndex(moon.phase)], null, m) {
+                    MoonPhaseIcon(moon.phase, southern = (data.latitude ?: 0.0) < 0, size = 56.dp)
+                }
+            },
             { m ->
                 Tile(stringResource(R.string.detail_air_quality), aqi?.displayDual()?.first ?: "--", aqi?.let { tiers[it.primaryTier.ordinal] }, m,
                     color = aqi?.let { colorsFor(it.primaryTier).background } ?: Color.White)

@@ -3591,15 +3591,23 @@ private fun MoonTile(lat: Double, lon: Double, utcOffsetSeconds: Int, timeFormat
                 SkyArc(arcT, Color(0xFFCFC8E8), Modifier.fillMaxSize(), belowHorizon = nextRise?.let { Color(0xFFCFC8E8).copy(alpha = 0.35f) }) {
                     drawMoon(illumination.phase, southern, it, 7.dp.toPx())
                 }
-                // The part lit, in the middle of the arc, where the sun tile shows the length of the day
-                Text(
-                    text = localizeDigits("%d%%".format(Locale.US, (illumination.fraction * 100).roundToInt())),
-                    fontSize = 13f.s(scale),
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = LocalDisplayFont.current,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                    modifier = Modifier.align(Alignment.Center),
-                )
+                // The phase, in the middle of the arc, where the sun tile shows the length of the day
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                    modifier = Modifier.align(Alignment.Center).fillMaxWidth(0.6f),
+                ) {
+                    MoonPhaseIcon(illumination.phase, southern, size = 20.sd(scale))
+                    Text(
+                        text = phaseNames[Moon.phaseIndex(illumination.phase)],
+                        fontSize = 12f.s(scale),
+                        lineHeight = 14f.s(scale),
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = LocalDisplayFont.current,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                    )
+                }
             }
             nextRise?.let { RisesIn((it - now) / 1000, localizeDigits) }
             Row(modifier = Modifier.fillMaxWidth()) {
@@ -3640,22 +3648,11 @@ private fun MoonTile(lat: Double, lon: Double, utcOffsetSeconds: Int, timeFormat
                 )
             }
             Spacer(modifier = Modifier.weight(1f))
-            // The direction as a labelled value, like the times; the phase at the end
+            // The direction as a labelled value, like the times
             val az = position.azimuth.roundToInt() % 360
-            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
+            // At the start, as on the web
+            Box(Modifier.fillMaxWidth()) {
                 LabeledValue(stringResource(R.string.detail_azimuth), localizeDigits("${directions[((az * 16 + 180) / 360) % 16]} (%d°)".format(Locale.US, az)))
-                Spacer(modifier = Modifier.weight(1f))
-                Column(horizontalAlignment = Alignment.End, modifier = Modifier.padding(start = 6.dp)) {
-                    MoonPhaseIcon(illumination.phase, southern, size = 16.sd(scale))
-                    Text(
-                        text = stringArrayResource(R.array.moon_phases)[Moon.phaseIndex(illumination.phase)],
-                        fontSize = 12f.s(scale),
-                        lineHeight = 14f.s(scale),
-                        fontFamily = bodyFont,
-                        textAlign = TextAlign.End,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                    )
-                }
             }
         }
     }
