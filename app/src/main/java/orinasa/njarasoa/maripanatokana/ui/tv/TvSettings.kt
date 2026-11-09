@@ -134,7 +134,7 @@ internal fun TvLocalized(localeIndex: Int, metric: Boolean, content: @Composable
     )
 }
 
-private enum class SettingsPage { List, Help, About }
+private enum class SettingsPage { List, Help }
 
 /** The title of a page without weather, so without the place name. */
 @Composable
@@ -155,7 +155,6 @@ internal fun SettingsScreen(
     if (page != SettingsPage.List) BackHandler { page = SettingsPage.List }
     when (page) {
         SettingsPage.Help -> HelpPage()
-        SettingsPage.About -> AboutPage()
         SettingsPage.List -> {
             val focus = remember { FocusRequester() }
             LaunchedEffect(Unit) { focus.requestFocus() }
@@ -173,7 +172,6 @@ internal fun SettingsScreen(
                     onLocale(next)
                 }
                 SettingRow(Modifier, stringResource(R.string.help_title), "›") { page = SettingsPage.Help }
-                SettingRow(Modifier, stringResource(R.string.about_title), "›") { page = SettingsPage.About }
             }
         }
     }
@@ -226,7 +224,7 @@ private fun AboutLine(text: String, size: Int = 18) {
 
 /** The phone's About text. A TV has no browser to rely on, so the addresses show as text. */
 @Composable
-private fun AboutPage() {
+internal fun AboutPage() {
     val context = LocalContext.current
     val device = remember { deviceInfo(context) }
     ScrollScreen {

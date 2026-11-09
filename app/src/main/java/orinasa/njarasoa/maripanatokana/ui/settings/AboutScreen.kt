@@ -74,24 +74,29 @@ internal data class Credit(
 )
 
 /** A QR code of the About page: the image, its label and the address shown under it. The web has the same codes. */
-internal data class AppQrCode(@DrawableRes val image: Int, @StringRes val labelRes: Int?, val label: String, val address: String?)
+internal data class AppQrCode(@DrawableRes val image: Int, @StringRes val labelRes: Int?, val label: String, val address: String?, val url: String)
 
 internal val appQrCodes = listOf(
-    AppQrCode(R.drawable.qr_source_code, R.string.about_source_code, "", "github.com/mpilasy/maripanaTokana"),
-    AppQrCode(R.drawable.qr_web_app, R.string.about_web_version, "", "maripana.njarasoa.org"),
-    AppQrCode(R.drawable.qr_fdroid, null, "F-Droid", "f-droid.org"),
-    AppQrCode(R.drawable.qr_obtainium, null, "Obtainium", null),
+    AppQrCode(R.drawable.qr_source_code, R.string.about_source_code, "", "github.com/mpilasy/maripanaTokana", "https://github.com/mpilasy/maripanaTokana"),
+    AppQrCode(R.drawable.qr_web_app, R.string.about_web_version, "", "maripana.njarasoa.org", "https://maripana.njarasoa.org"),
+    AppQrCode(R.drawable.qr_fdroid, null, "F-Droid", "f-droid.org", "https://f-droid.org/packages/orinasa.njarasoa.maripanatokana/"),
+    AppQrCode(R.drawable.qr_obtainium, null, "Obtainium", null, "https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/mpilasy/maripanaTokana"),
 )
 
-/** The QR codes, for another phone or a computer to scan; [size] is the side of each code. */
+/** The QR codes, for another phone or a computer to scan; [size] is the side of each code. With [onOpen], a tap opens the code's address. */
 @Composable
-internal fun AppQrCodes(size: Dp, perRow: Int, labelColor: Color, addressColor: Color, labelSize: TextUnit, addressSize: TextUnit) {
+internal fun AppQrCodes(
+    size: Dp, perRow: Int, labelColor: Color, addressColor: Color, labelSize: TextUnit, addressSize: TextUnit, onOpen: ((String) -> Unit)? = null,
+) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         appQrCodes.chunked(perRow).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
                 row.forEach { code ->
                     val label = code.labelRes?.let { stringResource(it) } ?: code.label
-                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(size + 24.dp)) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.width(size + 24.dp).then(if (onOpen != null) Modifier.clickable(role = Role.Button) { onOpen(code.url) } else Modifier),
+                    ) {
                         // No smoothing: the small image keeps sharp squares when it grows
                         Image(ImageBitmap.imageResource(code.image), contentDescription = label, modifier = Modifier.size(size), filterQuality = FilterQuality.None)
                         Text(label, color = labelColor, fontSize = labelSize, textAlign = TextAlign.Center)
@@ -254,40 +259,13 @@ fun AboutScreen(onBack: () -> Unit, onOpenHelp: () -> Unit, languageFlag: String
                         .clickable(role = Role.Button, onClick = onOpenHelp)
                         .padding(horizontal = 12.dp, vertical = 6.dp),
                 )
-                Text(
-                    text = stringResource(R.string.about_source_code) + " ↗",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier
-                        .clickable(role = Role.Button) { uriHandler.openUri("https://github.com/mpilasy/maripanaTokana") }
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
-                )
-                // The same app in a browser, nothing to install
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .clickable(role = Role.Button) { uriHandler.openUri("https://maripana.njarasoa.org") }
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
-                ) {
-                    Text(
-                        text = stringResource(R.string.about_web_version) + " ↗",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    Text(
-                        text = "maripana.njarasoa.org",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
-                    )
-                }
                 Spacer(Modifier.height(12.dp))
                 AppQrCodes(
                     size = 112.dp, perRow = 2,
                     labelColor = MaterialTheme.colorScheme.onSurface,
                     addressColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
                     labelSize = 13.sp, addressSize = 11.sp,
+                    onOpen = { uriHandler.openUri(it) },
                 )
             }
         }

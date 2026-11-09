@@ -102,6 +102,7 @@ private sealed interface TvScreen {
     data object Details : TvScreen
     data object AirQuality : TvScreen
     data object Alerts : TvScreen
+    data object About : TvScreen
 }
 
 /** The TV prototype: the weather of one place, with a chart and details. Only a TV launcher starts it. */
@@ -305,6 +306,7 @@ private fun TvApp(data: WeatherData, onPlaces: () -> Unit, onSettings: () -> Uni
         TvScreen.Details -> DetailsScreen(data)
         TvScreen.AirQuality -> data.airQuality?.let { AirQualityScreen(it, data.locationName) }
         TvScreen.Alerts -> AlertsScreen(data)
+        TvScreen.About -> AboutPage()
     }
 }
 
@@ -407,8 +409,14 @@ private fun CurrentPanel(
         PanelButton(cardModifier("details"), onClick = { onOpen("details", TvScreen.Details) }) {
             Text(stringResource(R.string.section_current_conditions), color = Color.White, fontSize = 16.sp, maxLines = 1)
         }
-        PanelButton(cardModifier("settings"), onClick = onSettings) {
-            Text(stringResource(R.string.settings_title), color = Color.White, fontSize = 16.sp, maxLines = 1)
+        // Side by side, so the panel keeps its height
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            PanelButton(cardModifier("settings").weight(1f), onClick = onSettings) {
+                Text(stringResource(R.string.settings_title), color = Color.White, fontSize = 16.sp, maxLines = 1)
+            }
+            PanelButton(cardModifier("about").weight(1f), onClick = { onOpen("about", TvScreen.About) }) {
+                Text(stringResource(R.string.about_title), color = Color.White, fontSize = 16.sp, maxLines = 1)
+            }
         }
     }
 }
