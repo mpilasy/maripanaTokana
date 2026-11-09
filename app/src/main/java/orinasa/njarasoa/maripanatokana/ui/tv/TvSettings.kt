@@ -8,6 +8,7 @@ import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.view.View
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -29,9 +31,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -129,18 +134,15 @@ internal fun TvLocalized(localeIndex: Int, metric: Boolean, content: @Composable
 
 private enum class SettingsPage { List, Help, About }
 
+/** The title of a page without weather, so without the place name. */
 @Composable
-private fun PageTitle(place: String?, title: String) {
-    Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
-        if (place != null) Text(place, localize = false, color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.Bold, maxLines = 1)
-        Text(title, color = if (place != null) Dim else Color.White, fontSize = 24.sp)
-    }
+private fun PageTitle(title: String) {
+    Text(title, color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.Bold)
 }
 
 /** OK on a row changes it at once, or opens its page. The other phone settings are not on the TV for now. */
 @Composable
 internal fun SettingsScreen(
-    place: String?,
     display: TvDisplayPrefs,
     metric: Boolean,
     localeIndex: Int,
@@ -150,14 +152,14 @@ internal fun SettingsScreen(
     var page by remember { mutableStateOf(SettingsPage.List) }
     if (page != SettingsPage.List) BackHandler { page = SettingsPage.List }
     when (page) {
-        SettingsPage.Help -> HelpPage(place)
-        SettingsPage.About -> AboutPage(place)
+        SettingsPage.Help -> HelpPage()
+        SettingsPage.About -> AboutPage()
         SettingsPage.List -> {
             val focus = remember { FocusRequester() }
             LaunchedEffect(Unit) { focus.requestFocus() }
             val locale = supportedLocales[localeIndex]
             Column(Modifier.fillMaxSize().padding(horizontal = 48.dp, vertical = 27.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                PageTitle(place, stringResource(R.string.settings_title))
+                PageTitle(stringResource(R.string.settings_title))
                 Spacer(Modifier.height(4.dp))
                 SettingRow(Modifier.focusRequester(focus), stringResource(R.string.cd_toggle_units), if (metric) "°C · m/s · hPa" else "°F · mph · inHg") {
                     display.setMetricPrimary(!metric)
@@ -198,9 +200,9 @@ private val HELP = listOf(
 )
 
 @Composable
-private fun HelpPage(place: String?) {
+private fun HelpPage() {
     ScrollScreen {
-        PageTitle(place, stringResource(R.string.help_title))
+        PageTitle(stringResource(R.string.help_title))
         HELP.forEach { (question, answer) ->
             Column {
                 Text(stringResource(question), color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
@@ -220,20 +222,33 @@ private fun AboutLine(text: String, size: Int = 18) {
     Text(text, localize = false, color = Dim, fontSize = size.sp)
 }
 
+@Composable
+private fun AboutQr(image: Int, label: String, address: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        // No smoothing: the small image keeps sharp squares when it grows
+        Image(ImageBitmap.imageResource(image), contentDescription = label, modifier = Modifier.size(180.dp), filterQuality = FilterQuality.None)
+        Text(label, color = Color.White, fontSize = 18.sp)
+        Text(address, localize = false, color = Dim, fontSize = 15.sp)
+    }
+}
+
 /** The phone's About text. A TV has no browser to rely on, so the addresses show as text. */
 @Composable
-private fun AboutPage(place: String?) {
+private fun AboutPage() {
     val context = LocalContext.current
     val device = remember { deviceInfo(context) }
     ScrollScreen {
-        PageTitle(place, stringResource(R.string.about_title))
+        PageTitle(stringResource(R.string.about_title))
         Text(stringResource(R.string.app_name), localize = false, color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Bold)
         AboutLine("v${BuildConfig.VERSION_NAME}")
         AboutLine("${stringResource(R.string.hash_version, BuildConfig.GIT_HASH)} • ${BuildConfig.BUILD_TIME} • ${BuildConfig.FLAVOR}", 15)
         AboutLine("© 2026 Orinasa Njarasoa")
         AboutLine(stringResource(R.string.about_app_license))
-        AboutLine("${stringResource(R.string.about_source_code)}: github.com/mpilasy/maripanaTokana")
-        AboutLine("${stringResource(R.string.about_web_version)}: maripana.njarasoa.org")
+        // A TV has no browser to rely on: a phone scans the codes
+        Row(horizontalArrangement = Arrangement.spacedBy(48.dp), modifier = Modifier.padding(vertical = 8.dp)) {
+            AboutQr(R.drawable.qr_source_code, stringResource(R.string.about_source_code), "github.com/mpilasy/maripanaTokana")
+            AboutQr(R.drawable.qr_web_app, stringResource(R.string.about_web_version), "maripana.njarasoa.org")
+        }
         AboutHeading(stringResource(R.string.about_section_device))
         device.forEach { row -> AboutLine("${stringResource(row.labelRes)}: ${row.value}") }
         creditSections.forEach { section ->

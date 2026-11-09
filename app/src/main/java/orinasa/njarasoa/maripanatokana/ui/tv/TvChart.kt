@@ -137,7 +137,7 @@ private fun tileLabel(tile: ChartTile) = when (tile) {
 internal fun ChartScreen(data: WeatherData, startIndex: Int) {
     val hours = data.chartHourly
     if (hours.isEmpty()) {
-        Message(stringResource(R.string.error_fetch_weather), data.locationName)
+        Message(stringResource(R.string.error_fetch_weather))
         return
     }
     val usLabel = stringResource(R.string.air_quality_us_aqi)

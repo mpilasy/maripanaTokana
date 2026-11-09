@@ -89,7 +89,6 @@ internal fun PlacesScreen(
     activeId: String?,
     showDevice: Boolean,
     locationFailed: Boolean,
-    currentName: String?,
     search: suspend (String) -> Result<List<GeocodingResult>>,
     onDevice: () -> Unit,
     onSaved: (SavedLocation) -> Unit,
@@ -118,10 +117,7 @@ internal fun PlacesScreen(
     if (editing) BackHandler { editing = false }
 
     Column(Modifier.fillMaxSize().padding(horizontal = 48.dp, vertical = 27.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            if (currentName != null) Text(currentName, localize = false, color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.Bold, maxLines = 1)
-            Text(stringResource(R.string.locations_title), color = if (currentName != null) Dim else Color.White, fontSize = 24.sp)
-        }
+        Text(stringResource(R.string.locations_title), color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(12.dp))
         if (editing) {
             BasicTextField(

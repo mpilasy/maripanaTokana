@@ -220,11 +220,9 @@ private fun TvRoot(
     TvLocalized(localeIndex, metric) {
         Box(Modifier.fillMaxSize().background(Background)) {
             val s = state
-            val savedName = saved.find { it.id == activeId }?.displayName
             if (showSettings) {
                 BackHandler { showSettings = false }
                 SettingsScreen(
-                    place = (s as? TvState.Ready)?.data?.locationName ?: savedName,
                     display = display,
                     metric = metric,
                     localeIndex = localeIndex,
@@ -238,7 +236,6 @@ private fun TvRoot(
                     activeId = activeId,
                     showDevice = locatable,
                     locationFailed = locatable && s == TvState.NoLocation,
-                    currentName = (s as? TvState.Ready)?.data?.locationName ?: savedName,
                     search = repository::searchLocation,
                     onDevice = { activate(null) },
                     onSaved = { activate(it.id) },
@@ -258,8 +255,8 @@ private fun TvRoot(
                 )
             } else {
                 when (s) {
-                    TvState.Loading -> Message(stringResource(R.string.loading), savedName)
-                    TvState.Failed -> FailedScreen(savedName, onRetry = { attempt++ }, onPlaces = { showPlaces = true })
+                    TvState.Loading -> Message(stringResource(R.string.loading))
+                    TvState.Failed -> FailedScreen(onRetry = { attempt++ }, onPlaces = { showPlaces = true })
                     is TvState.Ready -> TvApp(s.data, onPlaces = { showPlaces = true }, onSettings = { showSettings = true })
                     TvState.NoLocation -> Unit
                 }
@@ -269,19 +266,17 @@ private fun TvRoot(
 }
 
 @Composable
-internal fun Message(text: String, place: String?) {
+internal fun Message(text: String) {
     Column(Modifier.fillMaxSize(), Arrangement.Center, Alignment.CenterHorizontally) {
-        if (place != null) Text(place, localize = false, color = Color.White, fontSize = 34.sp, fontWeight = FontWeight.Bold)
         Text(text, color = Color.White, fontSize = 28.sp)
     }
 }
 
 @Composable
-private fun FailedScreen(place: String?, onRetry: () -> Unit, onPlaces: () -> Unit) {
+private fun FailedScreen(onRetry: () -> Unit, onPlaces: () -> Unit) {
     val focus = remember { FocusRequester() }
     LaunchedEffect(Unit) { focus.requestFocus() }
     Column(Modifier.fillMaxSize(), Arrangement.Center, Alignment.CenterHorizontally) {
-        if (place != null) Text(place, localize = false, color = Color.White, fontSize = 34.sp, fontWeight = FontWeight.Bold)
         Text(stringResource(R.string.error_fetch_weather), color = Color.White, fontSize = 28.sp)
         Spacer(Modifier.height(24.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
