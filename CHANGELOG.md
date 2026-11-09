@@ -9,6 +9,10 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.7.20261109225355] - 2026-11-09
+
+- Web About: the four QR codes are in one even grid, four across on a computer and two on a phone. F-Droid and Obtainium have their badge under their code. The GitHub and Add to Home screen badges are in a row below.
+
 ## [1.7.20261109223736] - 2026-11-09
 
 - About: on Android and the web, each QR code is the link to its address, and the text links that repeated them are gone. On Android TV, About opens from the home screen, beside Settings.
