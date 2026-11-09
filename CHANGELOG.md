@@ -9,6 +9,10 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261109040327] - 2026-11-09
+
+- Moon tile: shows only the next new or full moon, whichever comes first, on one line with its date. In 1.6.20261109035136, the two dates did not fit on a phone and the Malagasy names ran together.
+
 ## [1.6.20261109035136] - 2026-11-09
 
 - Moon tile: shows the dates of the next new moon and full moon, the first one first.
