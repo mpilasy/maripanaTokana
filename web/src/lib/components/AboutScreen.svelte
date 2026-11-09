@@ -38,9 +38,19 @@
 		<!-- How to use the app -->
 		<button type="button" class="source-link help-link" onclick={onOpenHelp}>{$_('help_title')} ›</button>
 		<a class="source-link" href="https://github.com/mpilasy/maripanaTokana" target="_blank" rel="noopener">{$_('about_source_code')} ↗</a>
-		{#if onAndroid || installable}
-			<AppBadges android={onAndroid} {installable} />
-		{/if}
+		<!-- For another phone or a computer to scan. Android's AboutScreen.kt has the same codes -->
+		<div class="qr-codes">
+			<figure class="qr-code">
+				<img src="/qr/source_code.png" alt={$_('about_source_code')} width="112" height="112" />
+				<figcaption><span class="qr-label">{$_('about_source_code')}</span><span class="qr-address" dir="ltr">github.com/mpilasy/maripanaTokana</span></figcaption>
+			</figure>
+			<figure class="qr-code">
+				<img src="/qr/web_app.png" alt={$_('about_web_version')} width="112" height="112" />
+				<figcaption><span class="qr-label">{$_('about_web_version')}</span><span class="qr-address" dir="ltr">maripana.njarasoa.org</span></figcaption>
+			</figure>
+		</div>
+		<!-- The F-Droid and Obtainium codes are under their badges, so a computer shows the badges too -->
+		<AppBadges android={onAndroid} {installable} />
 	</div>
 
 	{#if deviceRows.length > 0}
@@ -115,6 +125,34 @@
 		text-decoration: none;
 	}
 
+	.qr-codes {
+		display: flex;
+		justify-content: center;
+		gap: 24px;
+		margin-top: 12px;
+	}
+	.qr-code {
+		margin: 0;
+		width: 136px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		text-align: center;
+	}
+	.qr-code img {
+		/* No smoothing: the small image keeps sharp squares when it grows */
+		image-rendering: pixelated;
+	}
+	.qr-label {
+		display: block;
+		font-size: 13px;
+	}
+	.qr-address {
+		display: block;
+		font-size: 11px;
+		opacity: 0.55;
+		overflow-wrap: anywhere;
+	}
 	.source-link {
 		margin-top: 8px;
 		padding: 6px 12px;

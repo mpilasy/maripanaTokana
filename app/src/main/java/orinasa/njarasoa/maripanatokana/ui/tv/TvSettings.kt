@@ -10,6 +10,7 @@ import android.view.View
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -50,6 +51,7 @@ import androidx.core.content.edit
 import androidx.core.text.TextUtilsCompat
 import orinasa.njarasoa.maripanatokana.BuildConfig
 import orinasa.njarasoa.maripanatokana.R
+import orinasa.njarasoa.maripanatokana.ui.settings.AppQrCodes
 import orinasa.njarasoa.maripanatokana.ui.settings.creditSections
 import orinasa.njarasoa.maripanatokana.ui.settings.deviceInfo
 import orinasa.njarasoa.maripanatokana.ui.weather.supportedLocales
@@ -222,16 +224,6 @@ private fun AboutLine(text: String, size: Int = 18) {
     Text(text, localize = false, color = Dim, fontSize = size.sp)
 }
 
-@Composable
-private fun AboutQr(image: Int, label: String, address: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        // No smoothing: the small image keeps sharp squares when it grows
-        Image(ImageBitmap.imageResource(image), contentDescription = label, modifier = Modifier.size(180.dp), filterQuality = FilterQuality.None)
-        Text(label, color = Color.White, fontSize = 18.sp)
-        Text(address, localize = false, color = Dim, fontSize = 15.sp)
-    }
-}
-
 /** The phone's About text. A TV has no browser to rely on, so the addresses show as text. */
 @Composable
 private fun AboutPage() {
@@ -245,9 +237,8 @@ private fun AboutPage() {
         AboutLine("© 2026 Orinasa Njarasoa")
         AboutLine(stringResource(R.string.about_app_license))
         // A TV has no browser to rely on: a phone scans the codes
-        Row(horizontalArrangement = Arrangement.spacedBy(48.dp), modifier = Modifier.padding(vertical = 8.dp)) {
-            AboutQr(R.drawable.qr_source_code, stringResource(R.string.about_source_code), "github.com/mpilasy/maripanaTokana")
-            AboutQr(R.drawable.qr_web_app, stringResource(R.string.about_web_version), "maripana.njarasoa.org")
+        Box(Modifier.padding(vertical = 8.dp)) {
+            AppQrCodes(size = 160.dp, perRow = 4, labelColor = Color.White, addressColor = Dim, labelSize = 18.sp, addressSize = 14.sp)
         }
         AboutHeading(stringResource(R.string.about_section_device))
         device.forEach { row -> AboutLine("${stringResource(row.labelRes)}: ${row.value}") }

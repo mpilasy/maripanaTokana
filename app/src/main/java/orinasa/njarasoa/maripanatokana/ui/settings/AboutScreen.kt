@@ -4,6 +4,16 @@
 package orinasa.njarasoa.maripanatokana.ui.settings
 
 import androidx.annotation.RawRes
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.Image
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -62,6 +72,36 @@ internal data class Credit(
     /** True for the Open-Meteo forecast: the name shows the chosen weather model after it. */
     val showsWeatherModel: Boolean = false,
 )
+
+/** A QR code of the About page: the image, its label and the address shown under it. The web has the same codes. */
+internal data class AppQrCode(@DrawableRes val image: Int, @StringRes val labelRes: Int?, val label: String, val address: String?)
+
+internal val appQrCodes = listOf(
+    AppQrCode(R.drawable.qr_source_code, R.string.about_source_code, "", "github.com/mpilasy/maripanaTokana"),
+    AppQrCode(R.drawable.qr_web_app, R.string.about_web_version, "", "maripana.njarasoa.org"),
+    AppQrCode(R.drawable.qr_fdroid, null, "F-Droid", "f-droid.org"),
+    AppQrCode(R.drawable.qr_obtainium, null, "Obtainium", null),
+)
+
+/** The QR codes, for another phone or a computer to scan; [size] is the side of each code. */
+@Composable
+internal fun AppQrCodes(size: Dp, perRow: Int, labelColor: Color, addressColor: Color, labelSize: TextUnit, addressSize: TextUnit) {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        appQrCodes.chunked(perRow).forEach { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                row.forEach { code ->
+                    val label = code.labelRes?.let { stringResource(it) } ?: code.label
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(size + 24.dp)) {
+                        // No smoothing: the small image keeps sharp squares when it grows
+                        Image(ImageBitmap.imageResource(code.image), contentDescription = label, modifier = Modifier.size(size), filterQuality = FilterQuality.None)
+                        Text(label, color = labelColor, fontSize = labelSize, textAlign = TextAlign.Center)
+                        if (code.address != null) Text(code.address, color = addressColor, fontSize = addressSize, textAlign = TextAlign.Center)
+                    }
+                }
+            }
+        }
+    }
+}
 
 internal data class CreditSection(@StringRes val titleRes: Int, val items: List<Credit>)
 
@@ -242,6 +282,13 @@ fun AboutScreen(onBack: () -> Unit, onOpenHelp: () -> Unit, languageFlag: String
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
                     )
                 }
+                Spacer(Modifier.height(12.dp))
+                AppQrCodes(
+                    size = 112.dp, perRow = 2,
+                    labelColor = MaterialTheme.colorScheme.onSurface,
+                    addressColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                    labelSize = 13.sp, addressSize = 11.sp,
+                )
             }
         }
 

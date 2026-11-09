@@ -30,13 +30,20 @@
 		<p class="text">{$_('android_app_text')}</p>
 	{/if}
 	<div class="badges">
+		<!-- Each with a QR code under it, for a phone to scan from a computer -->
+		<div class="badge-with-qr">
+			<a href={FDROID_URL} target="_blank" rel="noopener noreferrer">
+				<img src="/badges/get-it-on-fdroid.png" alt={$_('android_app_fdroid')} width="646" height="250" />
+			</a>
+			<img class="qr" src="/qr/fdroid.png" alt="" width="112" height="112" />
+		</div>
+		<div class="badge-with-qr">
+			<a href={OBTAINIUM_URL} target="_blank" rel="noopener noreferrer">
+				<img src="/badges/get-it-on-obtainium.png" alt={$_('android_app_obtainium')} width="646" height="250" />
+			</a>
+			<img class="qr" src="/qr/obtainium.png" alt="" width="112" height="112" />
+		</div>
 		{#if android}
-		<a href={FDROID_URL} target="_blank" rel="noopener noreferrer">
-			<img src="/badges/get-it-on-fdroid.png" alt={$_('android_app_fdroid')} width="646" height="250" />
-		</a>
-		<a href={OBTAINIUM_URL} target="_blank" rel="noopener noreferrer">
-			<img src="/badges/get-it-on-obtainium.png" alt={$_('android_app_obtainium')} width="646" height="250" />
-		</a>
 		<a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">
 			<img src="/badges/get-it-on-github.png" alt={$_('android_app_github')} width="646" height="250" />
 		</a>
@@ -71,6 +78,18 @@
 		border-radius: 8px;
 	}
 
+	.badge-with-qr {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 6px;
+	}
+	.badges .qr {
+		width: 112px;
+		height: 112px;
+		/* No smoothing: the small image keeps sharp squares when it grows */
+		image-rendering: pixelated;
+	}
 	.badges a:focus-visible {
 		outline: 2px solid rgba(255, 255, 255, 0.5);
 		outline-offset: 2px;
