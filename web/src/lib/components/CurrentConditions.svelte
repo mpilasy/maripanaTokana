@@ -24,7 +24,7 @@
 	import CompassDial from './CompassDial.svelte';
 	import LabeledValue from './LabeledValue.svelte';
 	import AqiTierBadge from './AqiTierBadge.svelte';
-	import { moonArcProgress, moonIllumination, moonPhaseIndex, moonPosition, moonTimes, polarPeriod, sunPosition } from '#lib/domain/moon.js';
+	import { moonArcProgress, moonIllumination, moonPhaseIndex, moonPosition, moonTimes, nextMoonPhase, polarPeriod, sunPosition } from '#lib/domain/moon.js';
 	import { moonLitPath } from '#lib/utils/moonPath.js';
 
 	interface Props {
@@ -157,7 +157,9 @@
 		const position = moonPosition(now, data.latitude, data.longitude);
 		// The next moonrise in the three days, for the moon below the horizon
 		const nextRise = days.map((d) => d.rise).find((t): t is number => t != null && t > now) ?? null;
-		return { illumination, position, today: days[1], arcT: moonArcProgress(now, days), southern: data.latitude < 0, nextRise };
+		// The next new and full moon (their index in moon_phases), the first one first
+		const nextMoons = [{ time: nextMoonPhase(now, 0), index: 0 }, { time: nextMoonPhase(now, 0.5), index: 4 }].sort((a, b) => a.time - b.time);
+		return { illumination, position, today: days[1], arcT: moonArcProgress(now, days), southern: data.latitude < 0, nextRise, nextMoons };
 	});
 	let moonAzimuth = $derived(Math.round(moon.position.azimuth) % 360);
 	let moonDown = $derived(moon.position.altitude < 0);
@@ -335,7 +337,8 @@
 	</div>
 {/snippet}
 
-<!-- The moon, laid out like the sun: its arc, the part lit, rise and set today, phase and direction -->
+<!-- The moon, laid out like the sun: its arc, the part lit, rise and set today, the dates of the next new and full moon,
+     phase and direction -->
 {#snippet moonTile()}
 	<div class="sky-tile">
 		<span class="tile-title">{$_('detail_moon')}</span>
@@ -353,6 +356,11 @@
 		<div class="sky-times">
 			<span><span class="sky-label">{$_('detail_moonrise')}</span> {moon.today.rise != null ? loc(formatHourAtLocation(moon.today.rise, data.utcOffsetSeconds)) : '--'}</span>
 			<span><span class="sky-label">{$_('detail_moonset')}</span> {moon.today.set != null ? loc(formatHourAtLocation(moon.today.set, data.utcOffsetSeconds)) : '--'}</span>
+		</div>
+		<div class="sky-times">
+			{#each moon.nextMoons as m (m.index)}
+				<span><span class="sky-label">{($json('moon_phases') as string[])?.[m.index] ?? ''}</span> {dayMonth(m.time)}</span>
+			{/each}
 		</div>
 		<!-- The direction as a labelled value, like the times; the phase at the end -->
 		<div class="moon-bottom">

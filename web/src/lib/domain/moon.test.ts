@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { describe, expect, it } from 'vitest';
-import { moonArcProgress, moonIllumination, moonPhaseIndex, moonPosition, moonTimes, polarPeriod } from './moon';
+import { moonArcProgress, moonIllumination, moonPhaseIndex, moonPosition, moonTimes, nextMoonPhase, polarPeriod } from './moon';
 
 // Reference values from SunCalc's own tests (2013-03-05 UTC, 50.5° N, 30.5° E), as in MoonTest.kt
 const lat = 50.5;
@@ -32,6 +32,17 @@ describe('moon', () => {
 	it('phase index wraps at new moon', () => {
 		expect(moonPhaseIndex(0.98)).toBe(0);
 		expect(moonPhaseIndex(0.5)).toBe(4);
+	});
+
+	it('next phase finds the new and full moon', () => {
+		// January 2024: new moon on the 11th at 11:57 UTC, full moon on the 25th at 17:54 UTC; the formulas are
+		// good to some hours
+		const from = Date.parse('2024-01-01T00:00:00Z');
+		expect(Math.abs(nextMoonPhase(from, 0) - Date.parse('2024-01-11T11:57:00Z'))).toBeLessThan(8 * 3_600_000);
+		expect(Math.abs(nextMoonPhase(from, 0.5) - Date.parse('2024-01-25T17:54:00Z'))).toBeLessThan(8 * 3_600_000);
+		// From just after a full moon: the next one, about a month later
+		const full = nextMoonPhase(from, 0.5);
+		expect(Math.abs(nextMoonPhase(full + 60_000, 0.5) - full - 29.5 * 86_400_000)).toBeLessThan(86_400_000);
 	});
 
 	it('arc progress: halfway between rise and set, -1 while down', () => {

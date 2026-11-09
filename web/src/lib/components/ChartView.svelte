@@ -15,6 +15,8 @@
 	import { ChartStyle } from '#lib/utils/chartStyle.js';
 	import { formatDayName, formatHourAtLocation } from '#lib/utils/date.js';
 	import { prefersReducedMotion } from '#lib/utils/motion.js';
+	import { moonLitPath } from '#lib/utils/moonPath.js';
+	import { moonIllumination, nextMoonPhase } from '#lib/domain/moon.js';
 	import {
 		CHART_SLOT, chartAirQuality, chartDayExtremes, chartDaySpans, chartDomain, chartHours, chartIndexForX, chartLineIndex, chartLineOffset, chartNightRuns, chartScrollForIndex,
 		CHART_LABEL_SIZES, chartLabelFit, chartTileRows, chartTiles, chartValueAt, chartVisibleRange,
@@ -28,6 +30,8 @@
 	interface Props {
 		hours: ChartHour[];
 		utcOffsetSeconds: number;
+		/** South of the equator, where the moon is seen mirrored. */
+		southern: boolean;
 		placeName: string;
 		metricPrimary: boolean;
 		localeTag: string;
@@ -40,7 +44,7 @@
 		onBack: () => void;
 	}
 
-	let { hours, utcOffsetSeconds, placeName, metricPrimary, localeTag, hourlyAirQuality, aqiStandard, loc, onToggleUnits, onBack }: Props = $props();
+	let { hours, utcOffsetSeconds, southern, placeName, metricPrimary, localeTag, hourlyAirQuality, aqiStandard, loc, onToggleUnits, onBack }: Props = $props();
 
 	// Sizes in px, the same as on Android: the axis column, the gap between panels, the title line,
 	// the room above the wind line for the direction arrows, the room above and under the temperature
@@ -200,6 +204,41 @@
 	});
 	let shownDays = $derived(days.filter((d) => d.right >= hoursLeft && d.left <= hoursLeft + viewport));
 
+	// The moon of each day: the phase to draw, and on the day of a new or full moon the index of its name in
+	// moon_phases (0 or 4). That day shows the moon new or full; the other days show it at the place's noon
+	let moons = $derived(
+		days.map((d) => {
+			const end = d.date + 24 * 3_600_000;
+			if (nextMoonPhase(d.date, 0.5) < end) return { phase: 0.5, event: 4 };
+			if (nextMoonPhase(d.date, 0) < end) return { phase: 0, event: 0 };
+			return { phase: moonIllumination(d.date + 12 * 3_600_000).phase, event: null };
+		}),
+	);
+	// The moon after each day label of the time axes: its radius, and the gap on each side of it
+	const MOON_R = 5;
+	const MOON_GAP = 4;
+	// The day labels of the time axes (the day at the start stays in view): the date, the moon of the day and, on the day
+	// of a new or full moon, its name, when they fit
+	let dayLabels = $derived.by(() => {
+		// Measured again when the fonts are in
+		void fontsReady;
+		const names = ($json('moon_phases') as string[] | undefined) ?? [];
+		return shownDays.flatMap((d) => {
+			const date = dayLabel(d.date);
+			const left = Math.max(d.left, hoursLeft) + 4;
+			const room = d.right - 4 - left;
+			const dateWidth = textWidth(date, 'bold', 10, '--font-display');
+			if (dateWidth > room) return [];
+			const { phase, event } = moons[d.k];
+			const moonX = left + dateWidth + MOON_GAP + MOON_R;
+			const nameX = moonX + MOON_R + MOON_GAP;
+			const name = event != null ? (names[event] ?? '') : '';
+			const withMoon = moonX + MOON_R - left <= room;
+			const withName = withMoon && name !== '' && nameX + textWidth(name, 'normal', 10, '--font-body') - left <= room;
+			return [{ key: d.startIndex, left, date, phase, moonX: withMoon ? moonX : null, name: withName ? name : null, nameX }];
+		});
+	});
+
 	// The runs of night hours that reach the drawn hours
 	let nights = $derived(chartNightRuns(shown.map((h) => h.isNight)).filter((r) => r.end > drawn.start && r.start < drawn.end));
 
@@ -317,19 +356,18 @@
 	// The baseline of a 9 px label under a point: the label's top is `LABEL_GAP` under the point
 	const LABEL_UNDER = LABEL_GAP + 7;
 	let labelCanvas: CanvasRenderingContext2D | null = null;
-	/** The width of a high or low label: the primary unit at 9 px bold, the other unit at 0.8em and weight 500. */
-	function extremeLabelWidth(primary: string, secondary: string | null): number {
+	/** The width of `text` in px, at `weight` and `size` px in the font of the CSS variable `fontVar`; 0 on the server. */
+	function textWidth(text: string, weight: string, size: number, fontVar: string): number {
 		if (typeof document === 'undefined') return 0;
 		labelCanvas ??= document.createElement('canvas').getContext('2d');
 		if (!labelCanvas) return 0;
-		const family = getComputedStyle(document.documentElement).getPropertyValue('--font-display').trim() || 'sans-serif';
-		labelCanvas.font = `bold 9px ${family}`;
-		let width = labelCanvas.measureText(primary).width;
-		if (secondary) {
-			labelCanvas.font = `500 7.2px ${family}`;
-			width += labelCanvas.measureText(' ' + secondary).width;
-		}
-		return width;
+		const family = getComputedStyle(document.documentElement).getPropertyValue(fontVar).trim() || 'sans-serif';
+		labelCanvas.font = `${weight} ${size}px ${family}`;
+		return labelCanvas.measureText(text).width;
+	}
+	/** The width of a high or low label: the primary unit at 9 px bold, the other unit at 0.8em and weight 500. */
+	function extremeLabelWidth(primary: string, secondary: string | null): number {
+		return textWidth(primary, 'bold', 9, '--font-display') + (secondary ? textWidth(' ' + secondary, '500', 7.2, '--font-display') : 0);
 	}
 	/**
 	 * The labels of the day's high and low of one line (`id` keeps the keys apart); `text` gives the label of an hour.
@@ -786,14 +824,17 @@
 						<line x1={cx(i)} x2={cx(i)} y1={topAxisBottom - 3} y2={topAxisBottom} stroke="white" stroke-opacity="0.3" stroke-width="1" />
 						<text x={cx(i)} y={topAxisBottom - 6} text-anchor="middle" font-size="10" fill="white" fill-opacity="0.6">{hourText}</text>
 					{/each}
-					{#each shownDays as d (d.startIndex)}
-						{@const label = dayLabel(d.date)}
-						{@const left = Math.max(d.left, hoursLeft) + 4}
-						<!-- The width is an estimate (about 6.5 px a letter at 11 px bold) -->
-						{#if left + label.length * 6.5 + 4 <= d.right}
-							<text x={left} y={panels.time.top + 30} font-size="11" font-weight="bold" fill="white">{label}</text>
-							<text x={left} y={panels.timeTop.top + 12} font-size="11" font-weight="bold" fill="white">{label}</text>
-						{/if}
+					{#each dayLabels as l (l.key)}
+						{#each [panels.time.top + 30, panels.timeTop.top + 12] as baseline (baseline)}
+							<text x={l.left} y={baseline} font-size="10" font-weight="bold" fill="white" style:font-family="var(--font-display)">{l.date}</text>
+							{#if l.moonX != null}
+								<circle cx={l.moonX} cy={baseline - 3.5} r={MOON_R} fill="#3A3570" />
+								<path d={moonLitPath(l.phase, southern, l.moonX, baseline - 3.5, MOON_R)} fill="#F2EBD3" />
+							{/if}
+							{#if l.name}
+								<text x={l.nameX} y={baseline} font-size="10" fill="white" fill-opacity="0.7" style:font-family="var(--font-body)">{l.name}</text>
+							{/if}
+						{/each}
 					{/each}
 
 					<!-- A dot on each line at the selected hour -->

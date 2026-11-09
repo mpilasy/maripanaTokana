@@ -43,6 +43,18 @@ class MoonTest {
         assertEquals(4, Moon.phaseIndex(0.5))
     }
 
+    @Test
+    fun nextPhaseFindsTheNewAndFullMoon() {
+        // January 2024: new moon on the 11th at 11:57 UTC, full moon on the 25th at 17:54 UTC; the formulas are
+        // good to some hours
+        val from = Instant.parse("2024-01-01T00:00:00Z").toEpochMilli()
+        assertEquals(Instant.parse("2024-01-11T11:57:00Z").toEpochMilli().toDouble(), Moon.nextPhase(from, 0.0).toDouble(), 8 * 3_600_000.0)
+        assertEquals(Instant.parse("2024-01-25T17:54:00Z").toEpochMilli().toDouble(), Moon.nextPhase(from, 0.5).toDouble(), 8 * 3_600_000.0)
+        // From just after a full moon: the next one, about a month later
+        val full = Moon.nextPhase(from, 0.5)
+        assertEquals(29.5 * 86_400_000, (Moon.nextPhase(full + 60_000, 0.5) - full).toDouble(), 86_400_000.0)
+    }
+
     private fun noon(date: String) = Instant.parse("${date}T12:00:00Z").toEpochMilli()
 
     private fun assertNear(date: String, ms: Long) = assertEquals(noon(date).toDouble(), ms.toDouble(), 2 * 86_400_000.0)

@@ -157,6 +157,27 @@ object Moon {
         return PolarPeriod(since, until)
     }
 
+    /**
+     * The first time after [fromMs] at which the phase reaches [target] (0 = new moon, 0.5 = full moon), in epoch
+     * millis, to about a minute: steps of 6 hours, then halves.
+     */
+    fun nextPhase(fromMs: Long, target: Double): Long {
+        // How far the phase is past the target, from -0.5 to 0.5: it goes from below 0 to 0 or more at the target
+        fun past(ms: Long) = ((illumination(ms).phase - target) % 1 + 1.5) % 1 - 0.5
+        val step = 6 * 3_600_000L
+        var a = fromMs
+        var b = a + step
+        while (!(past(a) < 0 && past(b) >= 0)) {
+            a = b
+            b += step
+        }
+        while (b - a > 60_000) {
+            val m = (a + b) / 2
+            if (past(m) < 0) a = m else b = m
+        }
+        return b
+    }
+
     /** Index into moon_phases: new, waxing crescent, first quarter, waxing gibbous, full, waning gibbous, last quarter, waning crescent. */
     fun phaseIndex(phase: Double): Int = ((phase * 8 + 0.5).toInt()) % 8
 }

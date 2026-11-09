@@ -141,6 +141,28 @@ export function polarPeriod(ms: number, lat: number, midnightSun: boolean): Pola
 	return { since, until };
 }
 
+/**
+ * The first time after `fromMs` at which the phase reaches `target` (0 = new moon, 0.5 = full moon), in epoch
+ * millis, to about a minute: steps of 6 hours, then halves.
+ */
+export function nextMoonPhase(fromMs: number, target: number): number {
+	// How far the phase is past the target, from -0.5 to 0.5: it goes from below 0 to 0 or more at the target
+	const past = (ms: number) => ((((moonIllumination(ms).phase - target) % 1) + 1.5) % 1) - 0.5;
+	const step = 6 * 3_600_000;
+	let a = fromMs;
+	let b = a + step;
+	while (!(past(a) < 0 && past(b) >= 0)) {
+		a = b;
+		b += step;
+	}
+	while (b - a > 60_000) {
+		const m = Math.floor((a + b) / 2);
+		if (past(m) < 0) a = m;
+		else b = m;
+	}
+	return b;
+}
+
 export function moonPhaseIndex(phase: number): number {
 	return Math.trunc(phase * 8 + 0.5) % 8;
 }

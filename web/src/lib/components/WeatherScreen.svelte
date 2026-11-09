@@ -793,6 +793,7 @@
 	<ChartView
 		hours={$weatherState.data.chartHourly}
 		utcOffsetSeconds={$weatherState.data.utcOffsetSeconds}
+		southern={$weatherState.data.latitude < 0}
 		placeName={chartPlace}
 		metricPrimary={$metricPrimary}
 		localeTag={SUPPORTED_LOCALES[$localeIndex].tag}

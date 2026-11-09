@@ -106,6 +106,7 @@ import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.domain.model.AqiStandard
 import orinasa.njarasoa.maripanatokana.domain.model.ChartHour
 import orinasa.njarasoa.maripanatokana.domain.model.HourlyAirQuality
+import orinasa.njarasoa.maripanatokana.domain.model.Moon
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.model.showWindArrow
 import orinasa.njarasoa.maripanatokana.ui.theme.Hairline
@@ -119,6 +120,7 @@ import orinasa.njarasoa.maripanatokana.ui.weather.DualUnitText
 import orinasa.njarasoa.maripanatokana.ui.weather.HeroStatDivider
 import orinasa.njarasoa.maripanatokana.ui.weather.PrecipChance
 import orinasa.njarasoa.maripanatokana.ui.weather.buildLocationTimeZone
+import orinasa.njarasoa.maripanatokana.ui.weather.components.drawMoon
 import orinasa.njarasoa.maripanatokana.ui.weather.glass
 import orinasa.njarasoa.maripanatokana.ui.weather.components.colorsFor
 import orinasa.njarasoa.maripanatokana.ui.weather.components.computeMonotoneCubicControlPoints
@@ -163,6 +165,9 @@ private val TITLE_INSET = 10.dp
 private val ARROW_ROW = 14.dp
 // The room above and under each primary line for the labels of the day high and low, and above the rain bars
 private val EXTREME_ROW = 12.dp
+// The moon after each day label of the time axes: its radius, and the gap on each side of it
+private val MOON_R = 5.dp
+private val MOON_GAP = 4.dp
 // The cards, as the section cards of the main screen
 private val CARD_SHAPE = RoundedCornerShape(20.dp)
 private val CARD_MARGIN = 12.dp
@@ -273,7 +278,7 @@ fun ChartViewScreen(
                 ) {
                     // The hours run left to right in every language, as in the other charts of the app
                     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-                        ChartPanels(hours, airQuality, aqiStandard, data.utcOffsetSeconds, metricPrimary, localizeDigits) { selected = it }
+                        ChartPanels(hours, airQuality, aqiStandard, data.utcOffsetSeconds, (data.latitude ?: 0.0) < 0, metricPrimary, localizeDigits) { selected = it }
                     }
                 }
             }
@@ -475,6 +480,8 @@ private fun ChartPanels(
     airQuality: List<HourlyAirQuality?>,
     aqiStandard: AqiStandard,
     utcOffsetSeconds: Int,
+    // South of the equator, where the moon is seen mirrored
+    southern: Boolean,
     metricPrimary: Boolean,
     localizeDigits: (String) -> String,
     onSelect: (Int) -> Unit,
@@ -544,6 +551,19 @@ private fun ChartPanels(
     val aqExtremes = remember(aqValues, days) { chartDayExtremes(aqValues, days) }
     // The highest bar of each day, with any number of hours
     val rainPeaks = remember(series, days) { chartDayExtremes(series.precipitation, days, minHours = 1) }
+    // The moon of each day: the phase to draw, and on the day of a new or full moon the index of its name in
+    // moon_phases (0 or 4). That day shows the moon new or full; the other days show it at the place's noon
+    val moons = remember(days) {
+        days.map { span ->
+            val end = span.date + 24 * HOUR
+            when {
+                Moon.nextPhase(span.date, 0.5) < end -> 0.5 to 4
+                Moon.nextPhase(span.date, 0.0) < end -> 0.0 to 0
+                else -> Moon.illumination(span.date + 12 * HOUR).phase to null
+            }
+        }
+    }
+    val phaseNames = stringArrayResource(R.array.moon_phases)
     val localHours = remember(hours, utcOffsetSeconds) { times.map { Math.floorMod((it + utcOffsetSeconds * 1000L) / HOUR, 24L).toInt() } }
     val locationZone = remember(utcOffsetSeconds) { buildLocationTimeZone(utcOffsetSeconds) }
     val hourFormat = remember(locationZone) { SimpleDateFormat("HH:mm", Locale.US).apply { timeZone = locationZone } }
@@ -769,9 +789,13 @@ private fun ChartPanels(
             }
 
             // Time axes at the top and the bottom: an hour label every 4 hours, and the day at each midnight
-            // (the day at the start stays in view). The top axis is the bottom one mirrored: the labels are above their ticks.
+            // (the day at the start stays in view), with the moon of the day and, on the day of a new or full moon, its name,
+            // when they fit. The top axis is the bottom one mirrored: the labels are above their ticks.
             val hourStyle = TextStyle(color = onSurface.copy(alpha = 0.6f), fontSize = 10.sp, fontFamily = displayFont)
-            val dayStyle = TextStyle(color = onSurface, fontSize = 11.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont)
+            val dayStyle = TextStyle(color = onSurface, fontSize = 10.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont)
+            val phaseStyle = TextStyle(color = onSurface.copy(alpha = 0.7f), fontSize = 10.sp, fontFamily = bodyFont)
+            val moonR = MOON_R.toPx()
+            val moonGap = MOON_GAP.toPx()
             val tick = 3.dp.toPx()
             val dayOffset = 18.dp.toPx()
             fun drawTimeAxis(panel: ChartPanel, mirrored: Boolean) {
@@ -792,8 +816,19 @@ private fun ChartPanels(
                     val layout = textMeasurer.measure(localizeDigits(dayFormat.format(Date(span.date))), dayStyle)
                     val pad = 4.dp.toPx()
                     val left = maxOf(start, axisPx) + pad
+                    val room = end - pad - left
+                    if (layout.size.width > room) return@forEachIndexed
                     val y = if (mirrored) bottom - dayOffset - layout.size.height else top + dayOffset
-                    if (left + layout.size.width + pad <= end) drawText(layout, topLeft = Offset(left, y))
+                    drawText(layout, topLeft = Offset(left, y))
+                    val moonX = left + layout.size.width + moonGap + moonR
+                    if (moonX + moonR - left > room) return@forEachIndexed
+                    val cy = y + layout.size.height / 2f
+                    val (phase, event) = moons[k]
+                    drawMoon(phase, southern, Offset(moonX, cy), moonR)
+                    if (event == null) return@forEachIndexed
+                    val name = textMeasurer.measure(phaseNames[event], phaseStyle)
+                    val nameX = moonX + moonR + moonGap
+                    if (nameX + name.size.width - left <= room) drawText(name, topLeft = Offset(nameX, cy - name.size.height / 2f))
                 }
             }
             drawTimeAxis(ChartPanel.TOP_TIME, mirrored = true)
