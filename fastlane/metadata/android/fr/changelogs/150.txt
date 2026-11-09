@@ -1,0 +1,9 @@
+- À côté de la température : son évolution sur 6 h.
+- Prochaines heures : température en couleur et risque de pluie.
+- UV sur la carte principale s'il est modéré ou plus.
+- Max. du jour face à la normale sur 10 ans.
+- Ce qui a changé depuis la prévision d'hier.
+- Mer : vagues, température et marées.
+- Paramètres : choix du modèle météo.
+- Vue graphique : 10 jours heure par heure, avec qualité de l'air et max./min. par graphique.
+- En lecture, l'en-tête se réduit et le pied de page se retire.

@@ -9,6 +9,12 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.6.20261109032458] - 2026-11-08
+
+- Chart view: each hour is half as wide, so the screen shows twice as many hours. The weather icons, UV badges, wind arrows and hour labels show every 4 hours (was every 3 hours).
+- Chart view: the wind, pressure, humidity and air quality charts show the high and the low of each day on their main line, as the temperature chart does. The labels use the colour of the line; the air quality labels use the colour of their level.
+- Chart view: a high or low label stays inside the chart at the edges. On the web, the labels show on top of the dots of the selected hour.
+
 ## [1.6.20261108202449] - 2026-11-08
 
 - Chart view: the card of the selected hour is compact, so the charts get about half of a phone screen. The tiles fill 2 rows (5 and 4), and the air quality tile shows only the value of the primary standard.
