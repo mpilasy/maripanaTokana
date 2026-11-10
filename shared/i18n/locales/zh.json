@@ -153,6 +153,18 @@
 	"detail_azimuth": "方位角",
 	"detail_air_quality": "空气质量",
 	"detail_sun": "太阳",
+	"noon_from_overhead": "正午太阳偏离天顶",
+	"noon_range": "全年 {min} 至 {max}",
+	"detail_declination": "赤纬",
+	"season_events": [
+		"春分",
+		"夏至",
+		"秋分",
+		"冬至"
+	],
+	"day_unit_one": "天",
+	"day_unit_other": "天",
+	"season_today": "今天",
 	"tab_conditions": "天气",
 	"outlook_rain_from": "{time} 起有雨",
 	"outlook_rain_until": "雨将持续到约 {time}",

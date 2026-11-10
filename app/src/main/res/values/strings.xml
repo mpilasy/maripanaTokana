@@ -130,6 +130,12 @@
     <string name="detail_cloud_cover">Cloud Cover</string>
     <string name="detail_air_quality">Air Quality</string>
     <string name="detail_sun">Sun</string>
+    <string name="noon_from_overhead">Noon sun from overhead</string>
+    <string name="noon_range">%1$s to %2$s in a year</string>
+    <string name="detail_declination">Declination</string>
+    <string name="day_unit_one">day</string>
+    <string name="day_unit_other">days</string>
+    <string name="season_today">Today</string>
     <string name="tab_conditions">Conditions</string>
     <string name="outlook_rain_from">Rain from %1$s</string>
     <string name="outlook_rain_until">Rain until about %1$s</string>
@@ -331,6 +337,12 @@
         <item>October</item>
         <item>November</item>
         <item>December</item>
+    </string-array>
+    <string-array name="season_events">
+        <item>Spring equinox</item>
+        <item>Summer solstice</item>
+        <item>Autumn equinox</item>
+        <item>Winter solstice</item>
     </string-array>
     <string-array name="cardinal_directions">
         <item>N</item>

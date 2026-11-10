@@ -130,6 +130,12 @@
     <string name="detail_azimuth">Acimut</string>
     <string name="detail_air_quality">Calidad del aire</string>
     <string name="detail_sun">Sol</string>
+    <string name="noon_from_overhead">Desvío del cenit a mediodía</string>
+    <string name="noon_range">%1$s a %2$s en el año</string>
+    <string name="detail_declination">Declinación</string>
+    <string name="day_unit_one">día</string>
+    <string name="day_unit_other">días</string>
+    <string name="season_today">Hoy</string>
     <string name="tab_conditions">Condiciones</string>
     <string name="outlook_rain_from">Lluvia desde las %1$s</string>
     <string name="outlook_rain_until">Lluvia hasta las %1$s aprox.</string>
@@ -331,6 +337,12 @@
         <item>octubre</item>
         <item>noviembre</item>
         <item>diciembre</item>
+    </string-array>
+    <string-array name="season_events">
+        <item>Equinoccio de primavera</item>
+        <item>Solsticio de verano</item>
+        <item>Equinoccio de otoño</item>
+        <item>Solsticio de invierno</item>
     </string-array>
     <string-array name="cardinal_directions">
         <item>N</item>

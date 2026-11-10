@@ -26,6 +26,7 @@
 	import AqiTierBadge from './AqiTierBadge.svelte';
 	import { moonArcProgress, moonIllumination, moonPhaseIndex, moonPosition, moonTimes, nextMoonPhase, polarPeriod, sunPosition } from '#lib/domain/moon.js';
 	import { moonLitPath } from '#lib/utils/moonPath.js';
+	import { daysUntil, declination, MAX_DECLINATION, noonOffset, noonRange, seasonNameIndex, seasonsAround } from '#lib/domain/seasons.js';
 
 	interface Props {
 		data: WeatherData;
@@ -162,6 +163,41 @@
 		const nextMoon = newMoon < fullMoon ? { time: newMoon, index: 0 } : { time: fullMoon, index: 4 };
 		return { illumination, position, today: days[1], arcT: moonArcProgress(now, days), southern: data.latitude < 0, nextRise, nextMoon };
 	});
+	// Unicode left-to-right isolate and its end
+	const LRI = String.fromCharCode(0x2066);
+	const PDI = String.fromCharCode(0x2069);
+	/** A latitude ("17° S"), isolated left to right, so the degrees and the letter keep their order in an Arabic sentence. */
+	function latitudeText(lat: number): string {
+		const directions = $json('cardinal_directions') as string[] | undefined;
+		const r = Math.round(Math.abs(lat));
+		return LRI + loc(r === 0 ? '0°' : `${r}° ${directions?.[lat > 0 ? 0 : 8] ?? ''}`) + PDI;
+	}
+	// The noon sun from overhead today ("62° S") and in a year; an offset to the south is positive, a latitude negative
+	let noon = $derived.by(() => {
+		// Today's solar noon is half way between sunrise and sunset
+		const ms = polar ? Date.now() : ((data.sunrise + data.sunset) / 2) * 1000;
+		const [min, max] = noonRange(data.latitude);
+		return {
+			value: latitudeText(-noonOffset(data.latitude, ms)),
+			range: $_('noon_range', { values: { min: latitudeText(-min), max: latitudeText(-max) } }),
+		};
+	});
+	// Where on Earth the sun is straight overhead now (the declination), and the next solstice or equinox: its name and
+	// the days until it
+	let season = $derived.by(() => {
+		const now = Date.now();
+		const { next } = seasonsAround(now);
+		const days = daysUntil(now, next.time, data.utcOffsetSeconds);
+		const dec = declination(now);
+		return {
+			declination: latitudeText(dec),
+			// On the dial from 23° S to 23° N
+			fraction: (dec + MAX_DECLINATION) / (2 * MAX_DECLINATION),
+			name: ($json('season_events') as string[] | undefined)?.[seasonNameIndex(next.kind, data.latitude)] ?? '',
+			days: days === 0 ? $_('season_today') : `${loc(String(days))} ${$_(days === 1 ? 'day_unit_one' : 'day_unit_other')}`,
+			date: dayMonth(next.time),
+		};
+	});
 	let moonAzimuth = $derived(Math.round(moon.position.azimuth) % 360);
 	let moonDown = $derived(moon.position.altitude < 0);
 </script>
@@ -294,20 +330,37 @@
 	</DetailCard>
 {/snippet}
 
-<!-- Sun / Moon, air quality / UV, cloud cover / visibility (without air quality: UV / cloud cover, then visibility) -->
+<!-- Sun / Moon, declination / air quality, UV / cloud cover, then visibility (without air quality: declination / UV, cloud cover / visibility) -->
 {#snippet skyTiles()}
 	{@render sunTile()}
 	{@render moonTile()}
+	{@render declinationTile()}
 	{#if data.airQuality}
 		{@render airQualityTile(data.airQuality)}
 		{@render uvTile()}
 		{@render cloudCoverTile()}
-		{@render visibilityTile()}
+		<div class="wide">{@render visibilityTile()}</div>
 	{:else}
 		{@render uvTile()}
 		{@render cloudCoverTile()}
-		<div class="wide">{@render visibilityTile()}</div>
+		{@render visibilityTile()}
 	{/if}
+{/snippet}
+
+<!-- The declination (where on Earth the sun is straight overhead) on a dial from 23° S to 23° N, the days until the
+     next solstice or equinox, and its name and date -->
+{#snippet declinationTile()}
+	<DetailCard title={$_('detail_declination')} value={season.declination}>
+		{#snippet centerDialSnippet()}
+			<Gauge fraction={season.fraction} color="#FFD54F">
+				<DialValue value={season.declination} secondary={season.days} />
+				<DialEnds min={[latitudeText(-MAX_DECLINATION)]} max={[latitudeText(MAX_DECLINATION)]} />
+			</Gauge>
+		{/snippet}
+		{#snippet footerSnippet()}
+			<span class="footer-center">{season.name}&nbsp;·&nbsp;{season.date}</span>
+		{/snippet}
+	</DetailCard>
 {/snippet}
 
 <!-- The sun's arc and times, or the polar night or midnight sun with its dates -->
@@ -334,6 +387,12 @@
 		{#if sunAzimuth != null}
 			<LabeledValue label={$_('detail_azimuth')} value={loc(`${getCardinalDirection(sunAzimuth, $json('cardinal_directions'))} (${sunAzimuth}°)`)} centered />
 		{/if}
+		<!-- At the bottom, centred: the noon sun from overhead today, and in a year -->
+		<div class="noon">
+			<span class="sky-label">{$_('noon_from_overhead')}</span>
+			<span class="noon-value">{noon.value}</span>
+			<span class="noon-range">{noon.range}</span>
+		</div>
 		</div>
 	</div>
 {/snippet}
@@ -645,6 +704,36 @@
 		font-size: 0.6875rem;
 		font-weight: 400;
 		color: rgba(255, 255, 255, 0.5);
+	}
+
+	/* The noon sun from overhead: at the bottom of the sun tile, centred */
+	.noon {
+		margin-top: auto;
+		align-self: stretch;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		text-align: center;
+	}
+
+	.noon > .sky-label {
+		line-height: 0.8125rem;
+	}
+
+	.noon-value {
+		font-family: var(--font-display);
+		font-size: 0.9375rem;
+		font-weight: 700;
+		color: white;
+		font-feature-settings: var(--font-features);
+	}
+
+	/* The values in a year: a long text (Malagasy) wraps */
+	.noon-range {
+		font-size: 0.6875rem;
+		line-height: 0.8125rem;
+		color: rgba(255, 255, 255, 0.7);
+		font-feature-settings: var(--font-features);
 	}
 
 </style>

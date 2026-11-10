@@ -153,6 +153,18 @@
 	"detail_cloud_cover": "Cloud Cover",
 	"detail_air_quality": "Air Quality",
 	"detail_sun": "Sun",
+	"noon_from_overhead": "Noon sun from overhead",
+	"noon_range": "{min} to {max} in a year",
+	"detail_declination": "Declination",
+	"season_events": [
+		"Spring equinox",
+		"Summer solstice",
+		"Autumn equinox",
+		"Winter solstice"
+	],
+	"day_unit_one": "day",
+	"day_unit_other": "days",
+	"season_today": "Today",
 	"tab_conditions": "Conditions",
 	"outlook_rain_from": "Rain from {time}",
 	"outlook_rain_until": "Rain until about {time}",

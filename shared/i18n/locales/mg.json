@@ -153,6 +153,18 @@
 	"detail_cloud_cover": "Tako-drahona",
 	"detail_air_quality": "Hadion'ny rivotra",
 	"detail_sun": "Masoandro",
+	"noon_from_overhead": "Mitataovovonana",
+	"noon_range": "{min} ka hatramin'ny {max} ao anatin'ny taona",
+	"detail_declination": "Tsatoka",
+	"season_events": [
+		"Ekinoksan'ny lohataona",
+		"Solstisin'ny fahavaratra",
+		"Ekinoksan'ny fararano",
+		"Solstisin'ny ririnina"
+	],
+	"day_unit_one": "andro",
+	"day_unit_other": "andro",
+	"season_today": "Androany",
 	"tab_conditions": "Toetrandro",
 	"outlook_rain_from": "Orana manomboka amin'ny {time}",
 	"outlook_rain_until": "Orana hatramin'ny {time}\u00a0eo\u00a0ho\u00a0eo",

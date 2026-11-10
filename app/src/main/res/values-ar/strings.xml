@@ -130,6 +130,12 @@
     <string name="detail_azimuth">السمت</string>
     <string name="detail_air_quality">جودة الهواء</string>
     <string name="detail_sun">الشمس</string>
+    <string name="noon_from_overhead">بُعد شمس الظهر عن السمت</string>
+    <string name="noon_range">من %1$s إلى %2$s خلال السنة</string>
+    <string name="detail_declination">الميل</string>
+    <string name="day_unit_one">يوم</string>
+    <string name="day_unit_other">أيام</string>
+    <string name="season_today">اليوم</string>
     <string name="tab_conditions">الطقس</string>
     <string name="outlook_rain_from">أمطار ابتداءً من %1$s</string>
     <string name="outlook_rain_until">أمطار حتى حوالي %1$s</string>
@@ -331,6 +337,12 @@
         <item>أكتوبر</item>
         <item>نوفمبر</item>
         <item>ديسمبر</item>
+    </string-array>
+    <string-array name="season_events">
+        <item>الاعتدال الربيعي</item>
+        <item>الانقلاب الصيفي</item>
+        <item>الاعتدال الخريفي</item>
+        <item>الانقلاب الشتوي</item>
     </string-array>
     <string-array name="cardinal_directions">
         <item>ش</item>

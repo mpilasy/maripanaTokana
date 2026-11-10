@@ -153,6 +153,18 @@
 	"detail_azimuth": "दिगंश",
 	"detail_air_quality": "वायु गुणवत्ता",
 	"detail_sun": "सूर्य",
+	"noon_from_overhead": "दोपहर का सूर्य शीर्षबिंदु से",
+	"noon_range": "साल में {min} से {max}",
+	"detail_declination": "क्रांति",
+	"season_events": [
+		"वसंत विषुव",
+		"ग्रीष्म संक्रांति",
+		"शरद विषुव",
+		"शीत संक्रांति"
+	],
+	"day_unit_one": "दिन",
+	"day_unit_other": "दिन",
+	"season_today": "आज",
 	"tab_conditions": "मौसम",
 	"outlook_rain_from": "{time} से बारिश",
 	"outlook_rain_until": "लगभग {time} तक बारिश",

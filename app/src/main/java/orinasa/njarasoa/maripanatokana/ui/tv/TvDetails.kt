@@ -47,7 +47,9 @@ import orinasa.njarasoa.maripanatokana.domain.model.AlertLevel
 import orinasa.njarasoa.maripanatokana.domain.model.AqiStandard
 import orinasa.njarasoa.maripanatokana.domain.model.AqiTier
 import orinasa.njarasoa.maripanatokana.domain.model.Moon
+import orinasa.njarasoa.maripanatokana.domain.model.Seasons
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
+import orinasa.njarasoa.maripanatokana.ui.weather.latitudeText
 import orinasa.njarasoa.maripanatokana.ui.weather.components.MoonPhaseIcon
 import orinasa.njarasoa.maripanatokana.ui.weather.components.colorsFor
 import java.util.Locale
@@ -84,7 +86,8 @@ private fun Tile(
         Text(label, color = Dim, fontSize = 15.sp, lineHeight = 18.sp, maxLines = 2, textAlign = TextAlign.Center)
         Spacer(Modifier.height(4.dp))
         icon?.invoke()
-        Text(primary, color = color, fontSize = 28.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+        // Long values ("30.02 inHg") a little smaller, so they fit a tile of the five-tile rows
+        Text(primary, color = color, fontSize = if (primary.length > 8) 24.sp else 28.sp, fontWeight = FontWeight.Bold, maxLines = 1)
         if (secondary != null) Text(secondary, color = Dim, fontSize = 18.sp, maxLines = 1)
         if (extra != null) Text(extra, color = Dim, fontSize = 13.sp, lineHeight = 16.sp, maxLines = 2, textAlign = TextAlign.Center)
     }
@@ -116,15 +119,16 @@ internal fun DetailsScreen(data: WeatherData) {
     val direction = data.windDeg?.let { "${directions[((it * 16 + 180) / 360) % 16]} ($it°)" }
     val uvTier = data.uvIndex?.let { uv -> uvLabels[listOf(3.0, 6.0, 8.0, 11.0).count { uv >= it }] }
     val aqi = data.airQuality
+    // Five, five and four tiles: four rows would be too short for the moon and the noon sun
     val rows: List<List<@Composable (Modifier) -> Unit>> = listOf(
         listOf(
             { m -> Tile(stringResource(R.string.detail_precipitation), precipP, precipS, m) },
             { m -> Tile(stringResource(R.string.detail_wind), windP, windS, m, extra = direction) },
             { m -> Tile(stringResource(R.string.detail_wind_gust), gust?.first ?: "--", gust?.second, m) },
             { m -> Tile(stringResource(R.string.detail_pressure), pressureP, pressureS, m) },
+            { m -> Tile(stringResource(R.string.detail_humidity), data.humidity?.let { "$it%" } ?: "--", null, m, extra = "${stringResource(R.string.detail_dewpoint)}: ${ltr("$dewP · $dewS")}") },
         ),
         listOf(
-            { m -> Tile(stringResource(R.string.detail_humidity), data.humidity?.let { "$it%" } ?: "--", null, m, extra = "${stringResource(R.string.detail_dewpoint)}: ${ltr("$dewP · $dewS")}") },
             { m ->
                 Tile(stringResource(R.string.detail_uv_index), data.uvIndex?.let { "%.1f".format(Locale.US, it) } ?: "--", uvTier, m,
                     color = data.uvIndex?.let { colorsFor(it).background } ?: Color.White)
@@ -133,10 +137,6 @@ internal fun DetailsScreen(data: WeatherData) {
                 Tile(stringResource(R.string.detail_visibility), (if (metric) kilometres else miles) ?: "--", if (metric) miles else kilometres, m)
             },
             { m -> Tile(stringResource(R.string.detail_cloud_cover), data.cloudCover?.let { "$it%" } ?: "--", null, m) },
-        ),
-        listOf(
-            { m -> Tile(stringResource(R.string.detail_sunrise), timeFormat(data.sunrise * 1000), null, m) },
-            { m -> Tile(stringResource(R.string.detail_sunset), timeFormat(data.sunset * 1000), null, m) },
             { m ->
                 Tile(stringResource(R.string.detail_moon), phases[Moon.phaseIndex(moon.phase)], null, m) {
                     MoonPhaseIcon(moon.phase, southern = (data.latitude ?: 0.0) < 0, size = 56.dp)
@@ -146,6 +146,12 @@ internal fun DetailsScreen(data: WeatherData) {
                 Tile(stringResource(R.string.detail_air_quality), aqi?.displayDual()?.first ?: "--", aqi?.let { tiers[it.primaryTier.ordinal] }, m,
                     color = aqi?.let { colorsFor(it.primaryTier).background } ?: Color.White)
             },
+        ),
+        listOf(
+            { m -> Tile(stringResource(R.string.detail_sunrise), timeFormat(data.sunrise * 1000), null, m) },
+            { m -> Tile(stringResource(R.string.detail_sunset), timeFormat(data.sunset * 1000), null, m) },
+            { m -> NoonTile(data, directions, m) },
+            { m -> DeclinationTile(data, directions, m) },
         ),
     )
     Column(
@@ -159,6 +165,37 @@ internal fun DetailsScreen(data: WeatherData) {
             }
         }
     }
+}
+
+/** The noon sun from overhead today and in a year. */
+@Composable
+private fun NoonTile(data: WeatherData, directions: Array<String>, modifier: Modifier) {
+    val lat = data.latitude
+    if (lat == null) {
+        Tile(stringResource(R.string.noon_from_overhead), "--", null, modifier)
+        return
+    }
+    val polar = data.sunset <= data.sunrise || data.sunset - data.sunrise >= 86_400
+    // Today's solar noon is half way between sunrise and sunset
+    val ms = if (polar) System.currentTimeMillis() else (data.sunrise + data.sunset) / 2 * 1000
+    val text = { l: Double -> latitudeText(l, directions) { it } }
+    val (min, max) = Seasons.noonRange(lat)
+    // An offset to the south is positive, a latitude to the south negative
+    Tile(stringResource(R.string.noon_from_overhead), text(-Seasons.noonOffset(lat, ms)), null, modifier,
+        extra = stringResource(R.string.noon_range, text(-min), text(-max)))
+}
+
+/** The declination (where on Earth the sun is straight overhead), the days until the next solstice or equinox, and its name and date. */
+@Composable
+private fun DeclinationTile(data: WeatherData, directions: Array<String>, modifier: Modifier) {
+    val now = System.currentTimeMillis()
+    val around = remember(now / 3_600_000) { Seasons.around(now) }
+    val days = Seasons.daysUntil(now, around.next.time, data.utcOffsetSeconds)
+    val name = stringArrayResource(R.array.season_events)[Seasons.seasonNameIndex(around.next.kind, data.latitude ?: 0.0)]
+    val dayMonth = rememberPlaceFormat("d MMM", data.utcOffsetSeconds)
+    val daysText = if (days == 0) stringResource(R.string.season_today) else "$days ${stringResource(if (days == 1) R.string.day_unit_one else R.string.day_unit_other)}"
+    Tile(stringResource(R.string.detail_declination), latitudeText(Seasons.declination(now), directions) { it }, daysText, modifier,
+        extra = "$name\u00a0·\u00a0${dayMonth(around.next.time)}")
 }
 
 private fun amount(value: Double?): String? =

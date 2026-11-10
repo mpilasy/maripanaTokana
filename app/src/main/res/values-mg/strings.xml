@@ -130,6 +130,12 @@
     <string name="detail_cloud_cover">Tako-drahona</string>
     <string name="detail_air_quality">Hadion\'ny rivotra</string>
     <string name="detail_sun">Masoandro</string>
+    <string name="noon_from_overhead">Mitataovovonana</string>
+    <string name="noon_range">%1$s ka hatramin\'ny %2$s ao anatin\'ny taona</string>
+    <string name="detail_declination">Tsatoka</string>
+    <string name="day_unit_one">andro</string>
+    <string name="day_unit_other">andro</string>
+    <string name="season_today">Androany</string>
     <string name="tab_conditions">Toetrandro</string>
     <string name="outlook_rain_from">Orana manomboka amin\'ny %1$s</string>
     <string name="outlook_rain_until">Orana hatramin\'ny %1$s eo ho eo</string>
@@ -331,6 +337,12 @@
         <item>Oktobra</item>
         <item>Novambra</item>
         <item>Desambra</item>
+    </string-array>
+    <string-array name="season_events">
+        <item>Ekinoksan\'ny lohataona</item>
+        <item>Solstisin\'ny fahavaratra</item>
+        <item>Ekinoksan\'ny fararano</item>
+        <item>Solstisin\'ny ririnina</item>
     </string-array>
     <string-array name="cardinal_directions">
         <item>N</item>

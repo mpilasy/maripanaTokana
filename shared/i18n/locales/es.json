@@ -153,6 +153,18 @@
 	"detail_azimuth": "Acimut",
 	"detail_air_quality": "Calidad del aire",
 	"detail_sun": "Sol",
+	"noon_from_overhead": "Desvío del cenit a mediodía",
+	"noon_range": "{min} a {max} en el año",
+	"detail_declination": "Declinación",
+	"season_events": [
+		"Equinoccio de primavera",
+		"Solsticio de verano",
+		"Equinoccio de otoño",
+		"Solsticio de invierno"
+	],
+	"day_unit_one": "día",
+	"day_unit_other": "días",
+	"season_today": "Hoy",
 	"tab_conditions": "Condiciones",
 	"outlook_rain_from": "Lluvia desde las {time}",
 	"outlook_rain_until": "Lluvia hasta las {time} aprox.",

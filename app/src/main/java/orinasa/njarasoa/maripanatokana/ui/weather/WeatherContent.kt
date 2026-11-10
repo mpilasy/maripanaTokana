@@ -252,6 +252,7 @@ import orinasa.njarasoa.maripanatokana.ui.weather.components.SkyArc
 import orinasa.njarasoa.maripanatokana.ui.weather.components.CompassDial
 import orinasa.njarasoa.maripanatokana.ui.weather.components.drawMoon
 import orinasa.njarasoa.maripanatokana.domain.model.Moon
+import orinasa.njarasoa.maripanatokana.domain.model.Seasons
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import orinasa.njarasoa.maripanatokana.ui.weather.components.TemperatureRangeBar
@@ -2912,7 +2913,10 @@ private fun HumidityTile(data: WeatherData, metricPrimary: Boolean, localizeDigi
         footer = { LabeledValue(stringResource(R.string.detail_dewpoint), localizeDigits(dewP), secondary = localizeDigits(dewS), centered = true, ltr = true) })
 }
 
-/** Sun / Moon, air quality / UV, cloud cover / visibility (without air quality: UV / cloud cover, then visibility). */
+/**
+ * Sun / Moon, declination / air quality, UV / cloud cover, then visibility (without air quality: declination / UV,
+ * cloud cover / visibility).
+ */
 @Composable
 private fun SkyTiles(data: WeatherData, metricPrimary: Boolean, timeFormat: SimpleDateFormat, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
     val tile = Modifier.fillMaxHeight()
@@ -2925,22 +2929,29 @@ private fun SkyTiles(data: WeatherData, metricPrimary: Boolean, timeFormat: Simp
             MoonTile(data.latitude, data.longitude, data.utcOffsetSeconds, timeFormat, localizeDigits, tile.weight(1f))
         }
     }
+    val declination: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit = {
+        if (data.latitude != null) DeclinationTile(data.latitude, data.utcOffsetSeconds, timeFormat, localizeDigits, tile.weight(1f))
+    }
     val aqi = data.airQuality
     if (aqi != null) {
         TileRow {
+            declination()
             AirQualityTile(aqi, localizeDigits, tile.weight(1f))
+        }
+        TileRow {
+            UvTile(data, localizeDigits, tile.weight(1f))
+            CloudCoverTile(data, localizeDigits, tile.weight(1f))
+        }
+        TileRow { VisibilityTile(data, metricPrimary, localizeDigits, onToggleUnits, tile.weight(1f)) }
+    } else {
+        TileRow {
+            declination()
             UvTile(data, localizeDigits, tile.weight(1f))
         }
         TileRow {
             CloudCoverTile(data, localizeDigits, tile.weight(1f))
             VisibilityTile(data, metricPrimary, localizeDigits, onToggleUnits, tile.weight(1f))
         }
-    } else {
-        TileRow {
-            UvTile(data, localizeDigits, tile.weight(1f))
-            CloudCoverTile(data, localizeDigits, tile.weight(1f))
-        }
-        TileRow { VisibilityTile(data, metricPrimary, localizeDigits, onToggleUnits, tile.weight(1f)) }
     }
 }
 
@@ -3412,8 +3423,102 @@ private fun SunTile(sunrise: Long, sunset: Long, nextSunrise: Long?, latitude: D
             SunTimes(sunTimes(sunrise, sunset, period, timeFormat, dayMonthFormat), centered = polar, localizeDigits)
             // In a midnight sun, where the sun is now: it goes round the sky, so its direction changes all day
             if (midnightSun && latitude != null && longitude != null) SunAzimuth(latitude, longitude, localizeDigits)
+            // At the bottom, centred: the noon sun from overhead today, and in a year
+            if (latitude != null) {
+                Spacer(modifier = Modifier.weight(1f))
+                NoonFromOverhead(latitude, sunrise, sunset, localizeDigits)
+            }
         }
     }
+}
+
+/** The noon sun from overhead today ("62° S") and in a year, centred. */
+@Composable
+private fun NoonFromOverhead(latitude: Double, sunrise: Long, sunset: Long, localizeDigits: (String) -> String) {
+    val scale = LocalScale.current
+    val directions = stringArrayResource(R.array.cardinal_directions)
+    fun text(lat: Double) = latitudeText(lat, directions, localizeDigits)
+    // Today's solar noon is half way between sunrise and sunset
+    val polar = isPolarNight(sunrise, sunset) || isMidnightSun(sunrise, sunset)
+    val ms = if (polar) System.currentTimeMillis() else (sunrise + sunset) / 2 * 1000
+    val (min, max) = Seasons.noonRange(latitude)
+    // An offset to the south is positive, a latitude to the south negative
+    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = stringResource(R.string.noon_from_overhead),
+            fontSize = 11f.s(scale),
+            lineHeight = 13f.s(scale),
+            fontFamily = LocalBodyFont.current,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+        )
+        Text(
+            text = text(-Seasons.noonOffset(latitude, ms)),
+            fontSize = 15f.s(scale),
+            fontWeight = FontWeight.Bold,
+            fontFamily = LocalDisplayFont.current,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        // A long text (Malagasy) wraps
+        Text(
+            text = stringResource(R.string.noon_range, text(-min), text(-max)),
+            fontSize = 11f.s(scale),
+            lineHeight = 13f.s(scale),
+            fontFamily = LocalBodyFont.current,
+            color = Color.White.copy(alpha = 0.7f),
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+/**
+ * A latitude as whole degrees and a direction ("17° S"), isolated left to right, so the degrees and the letter keep
+ * their order in an Arabic sentence.
+ */
+internal fun latitudeText(lat: Double, directions: Array<String>, localizeDigits: (String) -> String): String {
+    val r = abs(lat).roundToInt()
+    return "\u2066" + localizeDigits(if (r == 0) "0°" else "$r° ${directions[if (lat > 0) 0 else 8]}") + "\u2069"
+}
+
+/**
+ * The declination (where on Earth the sun is straight overhead) on a dial from 23° S to 23° N, the days until the
+ * next solstice or equinox, and its name and date.
+ */
+@Composable
+private fun DeclinationTile(latitude: Double, utcOffsetSeconds: Int, timeFormat: SimpleDateFormat, localizeDigits: (String) -> String, modifier: Modifier) {
+    val scale = LocalScale.current
+    val now = System.currentTimeMillis()
+    val around = remember(now / 3_600_000) { Seasons.around(now) }
+    val days = Seasons.daysUntil(now, around.next.time, utcOffsetSeconds)
+    val appLocale = LocalConfiguration.current.locales[0]
+    val dayMonthFormat = remember(appLocale, timeFormat) { SimpleDateFormat("d MMM", appLocale).apply { timeZone = timeFormat.timeZone } }
+    val directions = stringArrayResource(R.array.cardinal_directions)
+    val dec = Seasons.declination(now)
+    val declination = latitudeText(dec, directions, localizeDigits)
+    // On the dial from 23° S to 23° N
+    val fraction = ((dec + Seasons.MAX_DECLINATION) / (2 * Seasons.MAX_DECLINATION)).toFloat()
+    val daysText = if (days == 0) stringResource(R.string.season_today)
+        else localizeDigits("$days ${stringResource(if (days == 1) R.string.day_unit_one else R.string.day_unit_other)}")
+    val name = stringArrayResource(R.array.season_events)[Seasons.seasonNameIndex(around.next.kind, latitude)]
+    DetailCard(declination, modifier,
+        title = stringResource(R.string.detail_declination),
+        centerDial = { dialModifier ->
+            Gauge(fraction, Color(0xFFFFD54F), dialModifier, size = null) {
+                DialValue(declination, secondary = daysText)
+                DialEnds(latitudeText(-Seasons.MAX_DECLINATION, directions, localizeDigits), latitudeText(Seasons.MAX_DECLINATION, directions, localizeDigits))
+            }
+        },
+        footer = {
+            Text(
+                // No line break at the dot
+                text = "$name\u00a0·\u00a0${localizeDigits(dayMonthFormat.format(Date(around.next.time)))}",
+                fontSize = 13f.s(scale),
+                lineHeight = 16f.s(scale),
+                fontFamily = LocalBodyFont.current,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        })
 }
 
 // Polar night (the sun stays down all day) or midnight sun (up all day): no rise or set, as for the moon

@@ -38,6 +38,7 @@ const PLACEHOLDER_ORDER = {
 	weather_model_days: ['days'],
 	temp_trend_rise: ['delta', 'time'],
 	temp_trend_fall: ['delta', 'time'],
+	noon_range: ['min', 'max'],
 	frostbite_minutes: ['minutes'],
 	frostbite_under_minutes: ['minutes'],
 	updated_time: ['time'],

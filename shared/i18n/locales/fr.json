@@ -153,6 +153,18 @@
 	"detail_azimuth": "Azimut",
 	"detail_air_quality": "Qualité de l'air",
 	"detail_sun": "Soleil",
+	"noon_from_overhead": "Écart au zénith à midi",
+	"noon_range": "{min} à {max} sur l'année",
+	"detail_declination": "Déclinaison",
+	"season_events": [
+		"Équinoxe de printemps",
+		"Solstice d'été",
+		"Équinoxe d'automne",
+		"Solstice d'hiver"
+	],
+	"day_unit_one": "jour",
+	"day_unit_other": "jours",
+	"season_today": "Aujourd'hui",
 	"tab_conditions": "Conditions",
 	"outlook_rain_from": "Pluie à partir de {time}",
 	"outlook_rain_until": "Pluie jusque vers {time}",

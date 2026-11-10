@@ -130,6 +130,12 @@
     <string name="detail_azimuth">दिगंश</string>
     <string name="detail_air_quality">वायु गुणवत्ता</string>
     <string name="detail_sun">सूर्य</string>
+    <string name="noon_from_overhead">दोपहर का सूर्य शीर्षबिंदु से</string>
+    <string name="noon_range">साल में %1$s से %2$s</string>
+    <string name="detail_declination">क्रांति</string>
+    <string name="day_unit_one">दिन</string>
+    <string name="day_unit_other">दिन</string>
+    <string name="season_today">आज</string>
     <string name="tab_conditions">मौसम</string>
     <string name="outlook_rain_from">%1$s से बारिश</string>
     <string name="outlook_rain_until">लगभग %1$s तक बारिश</string>
@@ -331,6 +337,12 @@
         <item>अक्टूबर</item>
         <item>नवंबर</item>
         <item>दिसंबर</item>
+    </string-array>
+    <string-array name="season_events">
+        <item>वसंत विषुव</item>
+        <item>ग्रीष्म संक्रांति</item>
+        <item>शरद विषुव</item>
+        <item>शीत संक्रांति</item>
     </string-array>
     <string-array name="cardinal_directions">
         <item>N</item>

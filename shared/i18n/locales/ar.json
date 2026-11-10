@@ -153,6 +153,18 @@
 	"detail_azimuth": "السمت",
 	"detail_air_quality": "جودة الهواء",
 	"detail_sun": "الشمس",
+	"noon_from_overhead": "بُعد شمس الظهر عن السمت",
+	"noon_range": "من {min} إلى {max} خلال السنة",
+	"detail_declination": "الميل",
+	"season_events": [
+		"الاعتدال الربيعي",
+		"الانقلاب الصيفي",
+		"الاعتدال الخريفي",
+		"الانقلاب الشتوي"
+	],
+	"day_unit_one": "يوم",
+	"day_unit_other": "أيام",
+	"season_today": "اليوم",
 	"tab_conditions": "الطقس",
 	"outlook_rain_from": "أمطار ابتداءً من {time}",
 	"outlook_rain_until": "أمطار حتى حوالي {time}",
