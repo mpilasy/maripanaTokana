@@ -231,6 +231,7 @@
 		"Muy mala",
 		"Peligrosa"
 	],
+	"cd_close": "Cerrar",
 	"web_only": {
 		"copy_link": "Copiar enlace",
 		"link_copied": "¡Enlace copiado!",
@@ -240,7 +241,6 @@
 		"geo_timeout": "La solicitud de ubicación expiró. Inténtalo de nuevo.",
 		"install_step_share": "Toca Compartir",
 		"install_step_add": "Toca Añadir a pantalla de inicio",
-		"cd_close": "Cerrar",
 		"help_section_install": "Instalación",
 		"help_q_install": "¿Cómo añado la aplicación a la pantalla de inicio?",
 		"help_a_install": "En tu navegador, toca Compartir y luego Añadir a pantalla de inicio. Después, la aplicación se abre desde su propio icono, sin la barra del navegador.",

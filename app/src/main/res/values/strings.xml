@@ -176,6 +176,7 @@
     <string name="alert_level_emergency">Emergency</string>
     <string name="locations_title">Locations</string>
     <string name="locations_search_hint">Search city or zip</string>
+    <string name="cd_close">Close</string>
     <string name="cd_change_font">Change font</string>
     <string name="font_default">Default</string>
     <string name="cd_change_language">Change language</string>

@@ -176,6 +176,7 @@
     <string name="alert_level_emergency">आपतकाल</string>
     <string name="locations_title">स्थानहरू</string>
     <string name="locations_search_hint">सहर वा जिप कोड खोज्नुहोस्</string>
+    <string name="cd_close">बन्द गर्नुहोस्</string>
     <string name="cd_change_font">फन्ट परिवर्तन गर्नुहोस्</string>
     <string name="font_default">पूर्वनिर्धारित</string>
     <string name="cd_change_language">भाषा परिवर्तन गर्नुहोस्</string>

@@ -231,6 +231,7 @@
 		"Ratsy be",
 		"Mampidi-doza"
 	],
+	"cd_close": "Akatony",
 	"web_only": {
 		"copy_link": "Adikao ny rohy",
 		"link_copied": "Voatahiry ny rohy!",
@@ -240,7 +241,6 @@
 		"geo_timeout": "Lany fotoana ny fitadiavana toerana. Andramo indray azafady.",
 		"install_step_share": "Tsindrio ny Zarao",
 		"install_step_add": "Tsindrio ny Apetrao eo amin'ny fidirana",
-		"cd_close": "Akatony",
 		"help_section_install": "Fametrahana",
 		"help_q_install": "Ahoana no hametrahana ny fampiharana eo amin'ny fidirana?",
 		"help_a_install": "Tsindrio ny Zarao, avy eo ny Apetrao eo amin'ny fidirana. Hisokatra avy amin'ny sariny manokana ny fampiharana avy eo, toy ny fampiharana tena izy.",

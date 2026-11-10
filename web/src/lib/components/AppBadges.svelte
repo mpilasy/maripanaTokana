@@ -3,9 +3,10 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import InstallBadge from './InstallBadge.svelte';
+	import QrDialog from './QrDialog.svelte';
 
 	/**
-	 * The QR codes of the app (source code, web app, F-Droid and Obtainium), and ways to get it. `android`: the
+	 * The links of the app (source code, web app, F-Droid and Obtainium), and ways to get it. `android`: the
 	 * GitHub releases badge for the Android app. `installable`: the "Add to Home screen" badge for the web app.
 	 */
 	let { android, installable }: { android: boolean; installable: boolean } = $props();
@@ -25,47 +26,57 @@
 	const GITHUB_URL = 'https://github.com/mpilasy/maripanaTokana/releases/latest';
 	const SOURCE_URL = 'https://github.com/mpilasy/maripanaTokana';
 	const WEB_URL = 'https://maripana.njarasoa.org';
+
+	type Code = { label: string; address: string; url: string; qr: string };
+	const codes = $derived({
+		source: { label: $_('about_source_code'), address: 'github.com/mpilasy/maripanaTokana', url: SOURCE_URL, qr: '/qr/source_code.png' },
+		web: { label: $_('about_web_version'), address: 'maripana.njarasoa.org', url: WEB_URL, qr: '/qr/web_app.png' },
+		fdroid: { label: 'F-Droid', address: 'f-droid.org', url: FDROID_URL, qr: '/qr/fdroid.png' },
+		obtainium: { label: 'Obtainium', address: 'apps.obtainium.imranr.dev', url: OBTAINIUM_URL, qr: '/qr/obtainium.png' },
+	});
+	let open = $state<Code | null>(null);
+
+	function show(e: MouseEvent, code: Code) {
+		e.preventDefault();
+		open = code;
+	}
 </script>
 
 <div class="get-app">
 	{#if android}
 		<p class="text">{$_('android_app_text')}</p>
 	{/if}
-	<!-- One even grid: a QR code in each cell, for a phone to scan from a computer. A click opens the address.
-	     Android's AboutScreen.kt has the same four codes. -->
-	<div class="codes">
-		<a class="cell" href={SOURCE_URL} target="_blank" rel="noopener noreferrer">
-			<img class="qr" src="/qr/source_code.png" alt="" width="112" height="112" />
-			<span class="label">{$_('about_source_code')}</span>
-			<span class="address" dir="ltr">github.com/mpilasy/maripanaTokana</span>
-		</a>
-		<a class="cell" href={WEB_URL} target="_blank" rel="noopener noreferrer">
-			<img class="qr" src="/qr/web_app.png" alt="" width="112" height="112" />
-			<span class="label">{$_('about_web_version')}</span>
-			<span class="address" dir="ltr">maripana.njarasoa.org</span>
-		</a>
-		<a class="cell" href={FDROID_URL} target="_blank" rel="noopener noreferrer">
-			<img class="qr" src="/qr/fdroid.png" alt="" width="112" height="112" />
-			<img class="badge" src="/badges/get-it-on-fdroid.png" alt={$_('android_app_fdroid')} width="646" height="250" />
-		</a>
-		<a class="cell" href={OBTAINIUM_URL} target="_blank" rel="noopener noreferrer">
-			<img class="qr" src="/qr/obtainium.png" alt="" width="112" height="112" />
-			<img class="badge" src="/badges/get-it-on-obtainium.png" alt={$_('android_app_obtainium')} width="646" height="250" />
-		</a>
+	<!-- A click shows the QR code of the link, for a phone to scan from a computer; the dialog opens the address.
+	     Android's AboutScreen.kt has the same four links. -->
+	<div class="links">
+		{#each [codes.source, codes.web] as code (code.qr)}
+			<a class="link" href={code.url} target="_blank" rel="noopener noreferrer" onclick={(e) => show(e, code)}>
+				<span class="label">{code.label} ›</span>
+				<span class="address" dir="ltr">{code.address}</span>
+			</a>
+		{/each}
 	</div>
-	{#if android || installable}
-		<div class="badges">
-			{#if android}
-				<a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">
-					<img src="/badges/get-it-on-github.png" alt={$_('android_app_github')} width="646" height="250" />
-				</a>
-			{/if}
-			{#if installable}
-				<InstallBadge />
-			{/if}
-		</div>
-	{/if}
+	<div class="badges">
+		<a href={FDROID_URL} target="_blank" rel="noopener noreferrer" onclick={(e) => show(e, codes.fdroid)}>
+			<img src="/badges/get-it-on-fdroid.png" alt={$_('android_app_fdroid')} width="646" height="250" />
+		</a>
+		<a href={OBTAINIUM_URL} target="_blank" rel="noopener noreferrer" onclick={(e) => show(e, codes.obtainium)}>
+			<img src="/badges/get-it-on-obtainium.png" alt={$_('android_app_obtainium')} width="646" height="250" />
+		</a>
+		{#if android}
+			<a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">
+				<img src="/badges/get-it-on-github.png" alt={$_('android_app_github')} width="646" height="250" />
+			</a>
+		{/if}
+		{#if installable}
+			<InstallBadge />
+		{/if}
+	</div>
 </div>
+
+{#if open}
+	<QrDialog label={open.label} address={open.address} url={open.url} qr={open.qr} onclose={() => (open = null)} />
+{/if}
 
 <style>
 	.get-app {
@@ -79,56 +90,33 @@
 		color: rgba(255, 255, 255, 0.6);
 	}
 
-	/* Two cells across on a phone, four on a wider screen; every cell is the same width */
-	.codes {
-		display: grid;
-		grid-template-columns: repeat(2, 140px);
-		justify-content: center;
-		align-items: start;
-		gap: 20px 24px;
-	}
-
-	@media (min-width: 640px) {
-		.codes {
-			grid-template-columns: repeat(4, 140px);
-		}
-	}
-
-	.cell {
+	.links {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 8px;
+		gap: 4px;
+	}
+
+	.link {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding: 4px 12px;
 		color: inherit;
 		text-decoration: none;
 		text-align: center;
 		border-radius: 8px;
 	}
 
-	.qr {
-		display: block;
-		width: 112px;
-		height: 112px;
-		/* No smoothing: the small image keeps sharp squares when it grows */
-		image-rendering: pixelated;
-	}
-
 	.label {
-		font-size: 13px;
-		line-height: 1.2;
+		font-size: 14px;
+		font-weight: 600;
 	}
 
 	.address {
-		margin-top: -6px;
 		font-size: 11px;
 		opacity: 0.55;
 		overflow-wrap: anywhere;
-	}
-
-	.badge {
-		display: block;
-		width: 128px;
-		height: auto;
 	}
 
 	.badges {
@@ -150,7 +138,7 @@
 		height: auto;
 	}
 
-	.cell:focus-visible,
+	.link:focus-visible,
 	.badges a:focus-visible {
 		outline: 2px solid rgba(255, 255, 255, 0.5);
 		outline-offset: 2px;

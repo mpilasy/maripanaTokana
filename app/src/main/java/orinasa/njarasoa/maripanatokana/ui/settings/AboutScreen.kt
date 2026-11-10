@@ -4,8 +4,12 @@
 package orinasa.njarasoa.maripanatokana.ui.settings
 
 import androidx.annotation.RawRes
-import androidx.compose.ui.unit.TextUnit
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.TextButton
 import androidx.compose.ui.unit.Dp
+import orinasa.njarasoa.maripanatokana.ui.weather.components.LocalizedDialog
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.FilterQuality
@@ -73,35 +77,54 @@ internal data class Credit(
     val showsWeatherModel: Boolean = false,
 )
 
-/** A QR code of the About page: the image, its label and the address shown under it. The web has the same codes. */
-internal data class AppQrCode(@DrawableRes val image: Int, @StringRes val labelRes: Int?, val label: String, val address: String?, val url: String)
+/** A link of the About page: its label, the address shown under it, and the QR code that a tap shows. The web has the same links. */
+internal data class AppQrCode(@DrawableRes val image: Int, @StringRes val labelRes: Int?, val label: String, val address: String, val url: String)
 
 internal val appQrCodes = listOf(
     AppQrCode(R.drawable.qr_source_code, R.string.about_source_code, "", "github.com/mpilasy/maripanaTokana", "https://github.com/mpilasy/maripanaTokana"),
     AppQrCode(R.drawable.qr_web_app, R.string.about_web_version, "", "maripana.njarasoa.org", "https://maripana.njarasoa.org"),
     AppQrCode(R.drawable.qr_fdroid, null, "F-Droid", "f-droid.org", "https://f-droid.org/packages/orinasa.njarasoa.maripanatokana/"),
-    AppQrCode(R.drawable.qr_obtainium, null, "Obtainium", null, "https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/mpilasy/maripanaTokana"),
+    AppQrCode(R.drawable.qr_obtainium, null, "Obtainium", "apps.obtainium.imranr.dev", "https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/mpilasy/maripanaTokana"),
 )
 
-/** The QR codes, for another phone or a computer to scan; [size] is the side of each code. With [onOpen], a tap opens the code's address. */
 @Composable
-internal fun AppQrCodes(
-    size: Dp, perRow: Int, labelColor: Color, addressColor: Color, labelSize: TextUnit, addressSize: TextUnit, onOpen: ((String) -> Unit)? = null,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        appQrCodes.chunked(perRow).forEach { row ->
-            Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                row.forEach { code ->
-                    val label = code.labelRes?.let { stringResource(it) } ?: code.label
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.width(size + 24.dp).then(if (onOpen != null) Modifier.clickable(role = Role.Button) { onOpen(code.url) } else Modifier),
-                    ) {
-                        // No smoothing: the small image keeps sharp squares when it grows
-                        Image(ImageBitmap.imageResource(code.image), contentDescription = label, modifier = Modifier.size(size), filterQuality = FilterQuality.None)
-                        Text(label, color = labelColor, fontSize = labelSize, textAlign = TextAlign.Center)
-                        if (code.address != null) Text(code.address, color = addressColor, fontSize = addressSize, textAlign = TextAlign.Center)
-                    }
+internal fun AppQrCode.labelText() = labelRes?.let { stringResource(it) } ?: label
+
+/** The QR code, for another phone or a computer to scan. No smoothing: the small image keeps sharp squares when it grows. */
+@Composable
+internal fun AppQrImage(code: AppQrCode, size: Dp) {
+    Image(ImageBitmap.imageResource(code.image), contentDescription = code.address, modifier = Modifier.size(size), filterQuality = FilterQuality.None)
+}
+
+@Composable
+private fun AppLink(code: AppQrCode, onClick: () -> Unit) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable(role = Role.Button, onClick = onClick).padding(horizontal = 12.dp, vertical = 4.dp),
+    ) {
+        Text(code.labelText() + " ›", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+        Text(code.address, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f))
+    }
+}
+
+/** The QR code of a link, large; a tap on the address opens it. */
+@Composable
+private fun AppQrDialog(code: AppQrCode, onOpen: () -> Unit, onDismiss: () -> Unit) {
+    LocalizedDialog(onDismissRequest = onDismiss) {
+        Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+            Column(Modifier.fillMaxWidth().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(code.labelText(), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
+                Spacer(Modifier.height(12.dp))
+                AppQrImage(code, 240.dp)
+                Text(
+                    code.address,
+                    fontSize = 14.sp,
+                    textAlign = TextAlign.Center,
+                    color = Color(0xFF64B5F6),
+                    modifier = Modifier.clickable(role = Role.Button, onClick = onOpen).padding(12.dp),
+                )
+                TextButton(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) {
+                    Text(stringResource(R.string.cd_close), color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -260,13 +283,9 @@ fun AboutScreen(onBack: () -> Unit, onOpenHelp: () -> Unit, languageFlag: String
                         .padding(horizontal = 12.dp, vertical = 6.dp),
                 )
                 Spacer(Modifier.height(12.dp))
-                AppQrCodes(
-                    size = 112.dp, perRow = 2,
-                    labelColor = MaterialTheme.colorScheme.onSurface,
-                    addressColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
-                    labelSize = 13.sp, addressSize = 11.sp,
-                    onOpen = { uriHandler.openUri(it) },
-                )
+                var qrCode by remember { mutableStateOf<AppQrCode?>(null) }
+                appQrCodes.forEach { code -> AppLink(code) { qrCode = code } }
+                qrCode?.let { code -> AppQrDialog(code, onOpen = { uriHandler.openUri(code.url) }, onDismiss = { qrCode = null }) }
             }
         }
 

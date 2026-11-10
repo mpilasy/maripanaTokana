@@ -231,6 +231,7 @@
 		"Very Unhealthy",
 		"Hazardous"
 	],
+	"cd_close": "Close",
 	"web_only": {
 		"copy_link": "Copy link",
 		"link_copied": "Link copied!",
@@ -240,7 +241,6 @@
 		"geo_timeout": "Location request timed out. Please try again.",
 		"install_step_share": "Tap Share",
 		"install_step_add": "Tap Add to Home Screen",
-		"cd_close": "Close",
 		"help_section_install": "Install",
 		"help_q_install": "How do I add the app to my Home Screen?",
 		"help_a_install": "In your browser, tap Share, then tap Add to Home Screen. The app then opens from its own icon, without the browser bar.",

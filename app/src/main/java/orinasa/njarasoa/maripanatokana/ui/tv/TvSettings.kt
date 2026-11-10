@@ -51,7 +51,17 @@ import androidx.core.content.edit
 import androidx.core.text.TextUtilsCompat
 import orinasa.njarasoa.maripanatokana.BuildConfig
 import orinasa.njarasoa.maripanatokana.R
-import orinasa.njarasoa.maripanatokana.ui.settings.AppQrCodes
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.gestures.BringIntoViewSpec
+import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
+import orinasa.njarasoa.maripanatokana.ui.settings.AppQrCode
+import orinasa.njarasoa.maripanatokana.ui.settings.DeviceRow
+import orinasa.njarasoa.maripanatokana.ui.settings.AppQrImage
+import orinasa.njarasoa.maripanatokana.ui.settings.appQrCodes
+import orinasa.njarasoa.maripanatokana.ui.settings.labelText
+import orinasa.njarasoa.maripanatokana.ui.weather.components.LocalizedDialog
 import orinasa.njarasoa.maripanatokana.ui.settings.creditSections
 import orinasa.njarasoa.maripanatokana.ui.settings.deviceInfo
 import orinasa.njarasoa.maripanatokana.ui.weather.supportedLocales
@@ -223,10 +233,32 @@ private fun AboutLine(text: String, size: Int = 18) {
 }
 
 /** The phone's About text. A TV has no browser to rely on, so the addresses show as text. */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun AboutPage() {
     val context = LocalContext.current
     val device = remember { deviceInfo(context) }
+    var qrCode by remember { mutableStateOf<AppQrCode?>(null) }
+    qrCode?.let { code ->
+        // Back closes it
+        LocalizedDialog(onDismissRequest = { qrCode = null }) {
+            Column(
+                Modifier.background(Card, RoundedCornerShape(16.dp)).padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(code.labelText(), color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Bold)
+                AppQrImage(code, 300.dp)
+                Text(code.address, localize = false, color = Dim, fontSize = 18.sp)
+            }
+        }
+    }
+    // On a TV, Compose scrolls a focused item to near the middle of the screen; here the page scrolls only when the link is not visible
+    CompositionLocalProvider(LocalBringIntoViewSpec provides object : BringIntoViewSpec {}) { AboutContent(device, onLink = { qrCode = it }) }
+}
+
+@Composable
+private fun AboutContent(device: List<DeviceRow>, onLink: (AppQrCode) -> Unit) {
     ScrollScreen {
         PageTitle(stringResource(R.string.about_title))
         Text(stringResource(R.string.app_name), localize = false, color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Bold)
@@ -234,9 +266,19 @@ internal fun AboutPage() {
         AboutLine("${stringResource(R.string.hash_version, BuildConfig.GIT_HASH)} • ${BuildConfig.BUILD_TIME} • ${BuildConfig.FLAVOR}", 15)
         AboutLine("© 2026 Orinasa Njarasoa")
         AboutLine(stringResource(R.string.about_app_license))
-        // A TV has no browser to rely on: a phone scans the codes
-        Box(Modifier.padding(vertical = 8.dp)) {
-            AppQrCodes(size = 160.dp, perRow = 4, labelColor = Color.White, addressColor = Dim, labelSize = 18.sp, addressSize = 14.sp)
+        // A TV has no browser to rely on: OK on a link shows its QR code, for a phone to scan.
+        // Left and right move between the links; up and down still scroll the page.
+        val firstLink = remember { FocusRequester() }
+        LaunchedEffect(Unit) { firstLink.requestFocus() }
+        Row(Modifier.padding(vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            appQrCodes.forEachIndexed { i, code ->
+                FocusCard(Modifier.weight(1f).then(if (i == 0) Modifier.focusRequester(firstLink) else Modifier), onClick = { onLink(code) }) {
+                    Column(Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(code.labelText(), color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                        Text(code.address, localize = false, color = Dim, fontSize = 13.sp, textAlign = TextAlign.Center, maxLines = 2)
+                    }
+                }
+            }
         }
         AboutHeading(stringResource(R.string.about_section_device))
         device.forEach { row -> AboutLine("${stringResource(row.labelRes)}: ${row.value}") }

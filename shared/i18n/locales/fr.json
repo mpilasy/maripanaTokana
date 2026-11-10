@@ -231,6 +231,7 @@
 		"Très mauvaise",
 		"Dangereuse"
 	],
+	"cd_close": "Fermer",
 	"web_only": {
 		"copy_link": "Copier le lien",
 		"link_copied": "Lien copié !",
@@ -240,7 +241,6 @@
 		"geo_timeout": "La demande de position a expiré. Veuillez réessayer.",
 		"install_step_share": "Touchez Partager",
 		"install_step_add": "Touchez Sur l'écran d'accueil",
-		"cd_close": "Fermer",
 		"help_section_install": "Installation",
 		"help_q_install": "Comment ajouter l'application à l'écran d'accueil ?",
 		"help_a_install": "Dans votre navigateur, touchez Partager, puis Sur l'écran d'accueil. L'application s'ouvre ensuite depuis sa propre icône, sans la barre du navigateur.",
