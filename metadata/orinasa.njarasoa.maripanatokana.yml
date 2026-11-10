@@ -36,9 +36,9 @@ Binaries:
   https://github.com/mpilasy/maripanaTokana/releases/download/v%v/maripanaTokana-v%v.apk
 
 Builds:
-  - versionName: 1.7.20261110042513
-    versionCode: 164
-    commit: 578c9ce5b398c540afef7a13603808340ad6c929
+  - versionName: 1.7.20261110053846
+    versionCode: 165
+    commit: 16b07ff72db1248f7a7f90110e73fe55629695c0
     subdir: app
     gradle:
       - fdroid
@@ -47,5 +47,5 @@ AllowedAPKSigningKeys: 93270696531c2486d39b6d009a5f948eb0f7f6309b4dc4b46eeb53896
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 1.7.20261110042513
-CurrentVersionCode: 164
+CurrentVersion: 1.7.20261110053846
+CurrentVersionCode: 165
