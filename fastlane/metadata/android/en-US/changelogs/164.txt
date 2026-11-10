@@ -1,0 +1,10 @@
+- New: Android TV version, made for the remote.
+- Next to the temperature: its change in 6 hours.
+- Next hours: temperature in colour and chance of rain.
+- UV on the main card when moderate or higher.
+- Today's high vs the 10-year normal.
+- What changed since yesterday's forecast.
+- Sea: waves, sea temperature and tides.
+- Settings: choose the weather model.
+- Chart view: 10 days hour by hour, air quality, highs and lows.
+- Moon: next new or full moon, also in the chart view.

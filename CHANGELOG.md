@@ -9,6 +9,12 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.7.20261110042513] - 2026-11-09
+
+- Web: on iPhone and iPad, the About page does not show the F-Droid and Obtainium badges, because they install Android apps only.
+- Web: the app that is open from the iPhone or iPad Home Screen shows the globe on the app background while it loads, in place of a blank screen.
+- Web: the main screen and the Settings page do not show a scrollbar, as in the Android app.
+
 ## [1.7.20261110020422] - 2026-11-09
 
 - About: the source code, web app, F-Droid and Obtainium links show their QR code in a popup, one at a time, instead of four QR codes on the page, on Android, Android TV and the web.
