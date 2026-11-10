@@ -86,11 +86,18 @@
 		isolation: isolate;
 		color: white;
 		overflow-y: auto;
+		/* No scrollbar, as in the Android app */
+		scrollbar-width: none;
 		z-index: 100;
 		padding: 0 16px;
 		padding-top: env(safe-area-inset-top);
 		padding-bottom: max(24px, env(safe-area-inset-bottom));
 		box-sizing: border-box;
+	}
+
+	/* Safari before 18.2 ignores scrollbar-width */
+	.page::-webkit-scrollbar {
+		display: none;
 	}
 
 	.page::before {

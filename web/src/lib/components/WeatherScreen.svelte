@@ -1253,6 +1253,11 @@
 		initial-value: 0px;
 	}
 
+	/* Safari before 18.2 ignores scrollbar-width */
+	.scroll-area::-webkit-scrollbar {
+		display: none;
+	}
+
 	.scroll-area {
 		flex: 1;
 		min-width: 0;
@@ -1261,9 +1266,9 @@
 		/* Room for the footer at all times, so the content does not move when it slides */
 		padding: 16px 0 calc(16px + var(--footer-height));
 		-webkit-overflow-scrolling: touch;
-		/* A dark scrollbar on desktop, to match the dark screen */
 		color-scheme: dark;
-		scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+		/* No scrollbar, as in the Android app. The wheel, touch and keys still scroll. */
+		scrollbar-width: none;
 		/* Soft fade where content scrolls under the fixed header, and under the footer while it shows */
 		--footer-cover: var(--footer-height);
 		--footer-fade: 16px;
