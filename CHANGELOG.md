@@ -9,6 +9,12 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.7.20261110053846] - 2026-11-09
+
+- Sky: the sun card shows how far from straight overhead the noon sun is today and its range in a year at the place. A new declination card shows where on Earth the sun is straight overhead, on a dial from 23° S to 23° N, with the days until the next solstice or equinox, on Android, Android TV and the web.
+- Web: iOS launch images for iPhones in landscape.
+- Android TV: the current conditions screen has rows of five, five and four tiles.
+
 ## [1.7.20261110042513] - 2026-11-09
 
 - Web: on iPhone and iPad, the About page does not show the F-Droid and Obtainium badges, because they install Android apps only.
