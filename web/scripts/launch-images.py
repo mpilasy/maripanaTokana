@@ -92,7 +92,7 @@ def main() -> None:
 	for old in OUT.glob('*.png'):
 		old.unlink()
 	entries = []
-	screens = [(s, PHONE_GLOBE, ['portrait']) for s in IPHONES] + [(s, TABLET_GLOBE, ['portrait', 'landscape']) for s in IPADS]
+	screens = [(s, PHONE_GLOBE, ['portrait', 'landscape']) for s in IPHONES] + [(s, TABLET_GLOBE, ['portrait', 'landscape']) for s in IPADS]
 	for (w, h, ratio), globe_css, orientations in screens:
 		for orientation in orientations:
 			pw, ph = (w * ratio, h * ratio) if orientation == 'portrait' else (h * ratio, w * ratio)

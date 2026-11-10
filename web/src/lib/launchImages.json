@@ -7,11 +7,25 @@
 		"href": "/launch/1320x2868.png"
 	},
 	{
+		"width": 440,
+		"height": 956,
+		"ratio": 3,
+		"orientation": "landscape",
+		"href": "/launch/2868x1320.png"
+	},
+	{
 		"width": 420,
 		"height": 912,
 		"ratio": 3,
 		"orientation": "portrait",
 		"href": "/launch/1260x2736.png"
+	},
+	{
+		"width": 420,
+		"height": 912,
+		"ratio": 3,
+		"orientation": "landscape",
+		"href": "/launch/2736x1260.png"
 	},
 	{
 		"width": 430,
@@ -21,11 +35,25 @@
 		"href": "/launch/1290x2796.png"
 	},
 	{
+		"width": 430,
+		"height": 932,
+		"ratio": 3,
+		"orientation": "landscape",
+		"href": "/launch/2796x1290.png"
+	},
+	{
 		"width": 428,
 		"height": 926,
 		"ratio": 3,
 		"orientation": "portrait",
 		"href": "/launch/1284x2778.png"
+	},
+	{
+		"width": 428,
+		"height": 926,
+		"ratio": 3,
+		"orientation": "landscape",
+		"href": "/launch/2778x1284.png"
 	},
 	{
 		"width": 414,
@@ -37,9 +65,23 @@
 	{
 		"width": 414,
 		"height": 896,
+		"ratio": 3,
+		"orientation": "landscape",
+		"href": "/launch/2688x1242.png"
+	},
+	{
+		"width": 414,
+		"height": 896,
 		"ratio": 2,
 		"orientation": "portrait",
 		"href": "/launch/828x1792.png"
+	},
+	{
+		"width": 414,
+		"height": 896,
+		"ratio": 2,
+		"orientation": "landscape",
+		"href": "/launch/1792x828.png"
 	},
 	{
 		"width": 414,
@@ -49,11 +91,25 @@
 		"href": "/launch/1242x2208.png"
 	},
 	{
+		"width": 414,
+		"height": 736,
+		"ratio": 3,
+		"orientation": "landscape",
+		"href": "/launch/2208x1242.png"
+	},
+	{
 		"width": 402,
 		"height": 874,
 		"ratio": 3,
 		"orientation": "portrait",
 		"href": "/launch/1206x2622.png"
+	},
+	{
+		"width": 402,
+		"height": 874,
+		"ratio": 3,
+		"orientation": "landscape",
+		"href": "/launch/2622x1206.png"
 	},
 	{
 		"width": 393,
@@ -63,11 +119,25 @@
 		"href": "/launch/1179x2556.png"
 	},
 	{
+		"width": 393,
+		"height": 852,
+		"ratio": 3,
+		"orientation": "landscape",
+		"href": "/launch/2556x1179.png"
+	},
+	{
 		"width": 390,
 		"height": 844,
 		"ratio": 3,
 		"orientation": "portrait",
 		"href": "/launch/1170x2532.png"
+	},
+	{
+		"width": 390,
+		"height": 844,
+		"ratio": 3,
+		"orientation": "landscape",
+		"href": "/launch/2532x1170.png"
 	},
 	{
 		"width": 375,
@@ -78,10 +148,24 @@
 	},
 	{
 		"width": 375,
+		"height": 812,
+		"ratio": 3,
+		"orientation": "landscape",
+		"href": "/launch/2436x1125.png"
+	},
+	{
+		"width": 375,
 		"height": 667,
 		"ratio": 2,
 		"orientation": "portrait",
 		"href": "/launch/750x1334.png"
+	},
+	{
+		"width": 375,
+		"height": 667,
+		"ratio": 2,
+		"orientation": "landscape",
+		"href": "/launch/1334x750.png"
 	},
 	{
 		"width": 320,
@@ -89,6 +173,13 @@
 		"ratio": 2,
 		"orientation": "portrait",
 		"href": "/launch/640x1136.png"
+	},
+	{
+		"width": 320,
+		"height": 568,
+		"ratio": 2,
+		"orientation": "landscape",
+		"href": "/launch/1136x640.png"
 	},
 	{
 		"width": 1032,
