@@ -1,0 +1,219 @@
+[
+	{
+		"width": 440,
+		"height": 956,
+		"ratio": 3,
+		"orientation": "portrait",
+		"href": "/launch/1320x2868.png"
+	},
+	{
+		"width": 420,
+		"height": 912,
+		"ratio": 3,
+		"orientation": "portrait",
+		"href": "/launch/1260x2736.png"
+	},
+	{
+		"width": 430,
+		"height": 932,
+		"ratio": 3,
+		"orientation": "portrait",
+		"href": "/launch/1290x2796.png"
+	},
+	{
+		"width": 428,
+		"height": 926,
+		"ratio": 3,
+		"orientation": "portrait",
+		"href": "/launch/1284x2778.png"
+	},
+	{
+		"width": 414,
+		"height": 896,
+		"ratio": 3,
+		"orientation": "portrait",
+		"href": "/launch/1242x2688.png"
+	},
+	{
+		"width": 414,
+		"height": 896,
+		"ratio": 2,
+		"orientation": "portrait",
+		"href": "/launch/828x1792.png"
+	},
+	{
+		"width": 414,
+		"height": 736,
+		"ratio": 3,
+		"orientation": "portrait",
+		"href": "/launch/1242x2208.png"
+	},
+	{
+		"width": 402,
+		"height": 874,
+		"ratio": 3,
+		"orientation": "portrait",
+		"href": "/launch/1206x2622.png"
+	},
+	{
+		"width": 393,
+		"height": 852,
+		"ratio": 3,
+		"orientation": "portrait",
+		"href": "/launch/1179x2556.png"
+	},
+	{
+		"width": 390,
+		"height": 844,
+		"ratio": 3,
+		"orientation": "portrait",
+		"href": "/launch/1170x2532.png"
+	},
+	{
+		"width": 375,
+		"height": 812,
+		"ratio": 3,
+		"orientation": "portrait",
+		"href": "/launch/1125x2436.png"
+	},
+	{
+		"width": 375,
+		"height": 667,
+		"ratio": 2,
+		"orientation": "portrait",
+		"href": "/launch/750x1334.png"
+	},
+	{
+		"width": 320,
+		"height": 568,
+		"ratio": 2,
+		"orientation": "portrait",
+		"href": "/launch/640x1136.png"
+	},
+	{
+		"width": 1032,
+		"height": 1376,
+		"ratio": 2,
+		"orientation": "portrait",
+		"href": "/launch/2064x2752.png"
+	},
+	{
+		"width": 1032,
+		"height": 1376,
+		"ratio": 2,
+		"orientation": "landscape",
+		"href": "/launch/2752x2064.png"
+	},
+	{
+		"width": 1024,
+		"height": 1366,
+		"ratio": 2,
+		"orientation": "portrait",
+		"href": "/launch/2048x2732.png"
+	},
+	{
+		"width": 1024,
+		"height": 1366,
+		"ratio": 2,
+		"orientation": "landscape",
+		"href": "/launch/2732x2048.png"
+	},
+	{
+		"width": 834,
+		"height": 1210,
+		"ratio": 2,
+		"orientation": "portrait",
+		"href": "/launch/1668x2420.png"
+	},
+	{
+		"width": 834,
+		"height": 1210,
+		"ratio": 2,
+		"orientation": "landscape",
+		"href": "/launch/2420x1668.png"
+	},
+	{
+		"width": 834,
+		"height": 1194,
+		"ratio": 2,
+		"orientation": "portrait",
+		"href": "/launch/1668x2388.png"
+	},
+	{
+		"width": 834,
+		"height": 1194,
+		"ratio": 2,
+		"orientation": "landscape",
+		"href": "/launch/2388x1668.png"
+	},
+	{
+		"width": 820,
+		"height": 1180,
+		"ratio": 2,
+		"orientation": "portrait",
+		"href": "/launch/1640x2360.png"
+	},
+	{
+		"width": 820,
+		"height": 1180,
+		"ratio": 2,
+		"orientation": "landscape",
+		"href": "/launch/2360x1640.png"
+	},
+	{
+		"width": 834,
+		"height": 1112,
+		"ratio": 2,
+		"orientation": "portrait",
+		"href": "/launch/1668x2224.png"
+	},
+	{
+		"width": 834,
+		"height": 1112,
+		"ratio": 2,
+		"orientation": "landscape",
+		"href": "/launch/2224x1668.png"
+	},
+	{
+		"width": 810,
+		"height": 1080,
+		"ratio": 2,
+		"orientation": "portrait",
+		"href": "/launch/1620x2160.png"
+	},
+	{
+		"width": 810,
+		"height": 1080,
+		"ratio": 2,
+		"orientation": "landscape",
+		"href": "/launch/2160x1620.png"
+	},
+	{
+		"width": 768,
+		"height": 1024,
+		"ratio": 2,
+		"orientation": "portrait",
+		"href": "/launch/1536x2048.png"
+	},
+	{
+		"width": 768,
+		"height": 1024,
+		"ratio": 2,
+		"orientation": "landscape",
+		"href": "/launch/2048x1536.png"
+	},
+	{
+		"width": 744,
+		"height": 1133,
+		"ratio": 2,
+		"orientation": "portrait",
+		"href": "/launch/1488x2266.png"
+	},
+	{
+		"width": 744,
+		"height": 1133,
+		"ratio": 2,
+		"orientation": "landscape",
+		"href": "/launch/2266x1488.png"
+	}
+]

@@ -8,6 +8,8 @@
 	import { fontIndex, localeIndex } from '#lib/stores/preferences.js';
 	import { refreshIfStale } from '#lib/stores/weather.js';
 	import { listenForInstallPrompt } from '#lib/installHint.js';
+	// Made by scripts/launch-images.py
+	import launchImages from '#lib/launchImages.json';
 
 	let { children } = $props();
 
@@ -62,6 +64,11 @@
 	{#if fontUrl}
 		<link href={fontUrl} rel="stylesheet" />
 	{/if}
+	<!-- iOS shows the image that has the size of the screen while the app from the Home Screen loads. Other browsers ignore these tags. -->
+	{#each launchImages as image (image.href)}
+		<link rel="apple-touch-startup-image" href={image.href}
+			media="screen and (device-width: {image.width}px) and (device-height: {image.height}px) and (-webkit-device-pixel-ratio: {image.ratio}) and (orientation: {image.orientation})" />
+	{/each}
 </svelte:head>
 
 <div class="stage-backdrop">
