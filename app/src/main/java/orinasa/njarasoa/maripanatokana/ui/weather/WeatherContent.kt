@@ -3148,9 +3148,10 @@ internal fun DetailCard(
             ) {
                 if (centerDial != null) {
                     // As wide as the card allows, up to 132 dp, and square. No BoxWithConstraints: the tile
-                    // rows measure intrinsic heights, which it does not support
+                    // rows measure intrinsic heights, which it does not support. heightIn comes first: the intrinsic
+                    // height of a full-width tile is otherwise its full width
                     centerDial(
-                        Modifier.widthIn(max = 132.dp).fillMaxWidth().aspectRatio(1f)
+                        Modifier.heightIn(max = 132.dp).widthIn(max = 132.dp).fillMaxWidth().aspectRatio(1f)
                             .then(if (onToggleUnits != null) Modifier.clickable(onClick = onToggleUnits) else Modifier)
                     )
                 } else if (secondaryValue != null) {
