@@ -4,6 +4,7 @@
 	import { _ } from 'svelte-i18n';
 	import InstallBadge from './InstallBadge.svelte';
 	import QrDialog from './QrDialog.svelte';
+	import { isIos } from '#lib/installHint.js';
 
 	/**
 	 * The links of the app (source code, web app, F-Droid and Obtainium), and ways to get it. `android`: the
@@ -35,6 +36,8 @@
 		obtainium: { label: 'Obtainium', address: 'apps.obtainium.imranr.dev', url: OBTAINIUM_URL, qr: '/qr/obtainium.png' },
 	});
 	let open = $state<Code | null>(null);
+	// F-Droid and Obtainium install Android apps only: an iPhone or iPad cannot use them
+	const ios = isIos();
 
 	function show(e: MouseEvent, code: Code) {
 		e.preventDefault();
@@ -56,13 +59,16 @@
 			</a>
 		{/each}
 	</div>
+	{#if !ios || installable}
 	<div class="badges">
+		{#if !ios}
 		<a href={FDROID_URL} target="_blank" rel="noopener noreferrer" onclick={(e) => show(e, codes.fdroid)}>
 			<img src="/badges/get-it-on-fdroid.png" alt={$_('android_app_fdroid')} width="646" height="250" />
 		</a>
 		<a href={OBTAINIUM_URL} target="_blank" rel="noopener noreferrer" onclick={(e) => show(e, codes.obtainium)}>
 			<img src="/badges/get-it-on-obtainium.png" alt={$_('android_app_obtainium')} width="646" height="250" />
 		</a>
+		{/if}
 		{#if android}
 			<a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">
 				<img src="/badges/get-it-on-github.png" alt={$_('android_app_github')} width="646" height="250" />
@@ -72,6 +78,7 @@
 			<InstallBadge />
 		{/if}
 	</div>
+	{/if}
 </div>
 
 {#if open}
