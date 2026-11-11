@@ -28,7 +28,7 @@
 		return () => window.removeEventListener('click', close);
 	});
 
-	// A tap opens the point on a map, as the coordinates did before
+	// A tap opens the point on a map
 	function openInMap() {
 		window.open(`https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=15/${lat}/${lon}`, '_blank');
 	}

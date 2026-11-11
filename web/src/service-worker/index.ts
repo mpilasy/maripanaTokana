@@ -16,12 +16,12 @@ const APP_ASSETS = new Set<string>([
 	...assets.map((file) => asset(file.path))
 ]);
 
-// Install: activate immediately (no precaching — cache populates via NetworkFirst)
+// Install: activate at once; no precache, NetworkFirst fills the cache
 sw.addEventListener('install', () => {
 	sw.skipWaiting();
 });
 
-// Activate: clean old caches, claim all clients immediately
+// Activate: delete old caches and take control of all clients
 sw.addEventListener('activate', (event) => {
 	event.waitUntil(
 		caches.keys().then((keys) =>
@@ -38,7 +38,6 @@ sw.addEventListener('activate', (event) => {
 sw.addEventListener('fetch', (event) => {
 	const url = new URL(event.request.url);
 
-	// Skip non-GET requests
 	if (event.request.method !== 'GET') return;
 
 	// API calls: NetworkFirst
@@ -87,7 +86,6 @@ sw.addEventListener('fetch', (event) => {
 		event.respondWith(
 			fetch(event.request)
 				.then((response) => {
-					// Update cache with fresh response
 					if (response.ok && APP_ASSETS.has(url.pathname)) {
 						const clone = response.clone();
 						caches.open(CACHE_APP).then((cache) => cache.put(event.request, clone));

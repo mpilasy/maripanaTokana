@@ -12,8 +12,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import orinasa.njarasoa.maripanatokana.data.location.LocationProvider
 import orinasa.njarasoa.maripanatokana.data.location.NativeLocationProvider
-import orinasa.njarasoa.maripanatokana.ui.permission.PermissionHandler
-import orinasa.njarasoa.maripanatokana.ui.permission.FDroidPermissionHandler
+import orinasa.njarasoa.maripanatokana.ui.mobile.permission.PermissionHandler
+import orinasa.njarasoa.maripanatokana.ui.mobile.permission.FDroidPermissionHandler
 import javax.inject.Singleton
 
 @Module

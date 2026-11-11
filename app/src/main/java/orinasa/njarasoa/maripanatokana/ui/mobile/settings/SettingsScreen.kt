@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-package orinasa.njarasoa.maripanatokana.ui.settings
+package orinasa.njarasoa.maripanatokana.ui.mobile.settings
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
@@ -13,7 +13,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import orinasa.njarasoa.maripanatokana.ui.theme.Hairline
-import orinasa.njarasoa.maripanatokana.ui.weather.components.LanguageFlagButton
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.LanguageFlagButton
 import androidx.compose.foundation.layout.PaddingValues
 import orinasa.njarasoa.maripanatokana.ui.theme.SectionSurface
 import androidx.compose.foundation.clickable

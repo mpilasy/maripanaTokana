@@ -11,8 +11,8 @@ import orinasa.njarasoa.maripanatokana.domain.model.Pressure
 import orinasa.njarasoa.maripanatokana.domain.model.Temperature
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.model.WindSpeed
-import orinasa.njarasoa.maripanatokana.ui.weather.chart.chartDaylight
-import orinasa.njarasoa.maripanatokana.ui.weather.chart.chartHours
+import orinasa.njarasoa.maripanatokana.ui.chart.chartDaylight
+import orinasa.njarasoa.maripanatokana.ui.chart.chartHours
 import kotlin.math.roundToInt
 import java.util.Calendar
 import java.util.TimeZone
@@ -71,14 +71,14 @@ fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = 
 
     val nowMillis = System.currentTimeMillis()
 
-    // Find the first index using correctly parsed absolute UTC times
+    // The first hour at or after now, in absolute UTC times
     val startIndex = parsedHourlyTimes.indexOfFirst { it >= nowMillis }.takeIf { it != -1 } ?: 0
 
     val endIndex = minOf(startIndex + 24, hourly.time.size)
 
     val hourlyForecast = (startIndex until endIndex).mapNotNull { i ->
         val epoch = parsedHourlyTimes[i]
-        if (epoch < nowMillis) return@mapNotNull null // Extra safety
+        if (epoch < nowMillis) return@mapNotNull null
 
         HourlyForecast(
             time = epoch,

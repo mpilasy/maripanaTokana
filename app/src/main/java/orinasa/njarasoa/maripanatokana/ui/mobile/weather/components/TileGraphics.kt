@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-package orinasa.njarasoa.maripanatokana.ui.weather.components
+package orinasa.njarasoa.maripanatokana.ui.mobile.weather.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -19,7 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import orinasa.njarasoa.maripanatokana.ui.weather.LocalShareCopy
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.LocalShareCopy
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.rotate
@@ -176,28 +176,6 @@ fun SkyArc(t: Float, progressColor: Color, modifier: Modifier = Modifier, belowH
             drawCircle(belowHorizon, r, Offset(cx - rx, base + r + 2.dp.toPx()))
         }
     }
-}
-
-/** The moon's lit part for [phase] (0 = new, 0.5 = full); [southern] mirrors it, as it is seen south of the equator. */
-@Composable
-fun MoonPhaseIcon(phase: Double, southern: Boolean, modifier: Modifier = Modifier, size: Dp = 44.dp) {
-    Canvas(modifier.size(size)) { drawMoon(phase, southern, center, this.size.minDimension / 2) }
-}
-
-/** Draws the moon at [c] with radius [r]: a faint full disc and its lit part. */
-fun DrawScope.drawMoon(phase: Double, southern: Boolean, c: Offset, r: Float) {
-    drawCircle(Color(0xFF3A3570), r, c)
-    // The terminator is a half ellipse; cos > 0 is a crescent, cos < 0 a gibbous moon
-    val k = cos(2 * PI * phase)
-    val litRight = (phase < 0.5) != southern
-    val rx = (r * kotlin.math.abs(k)).toFloat()
-    val path = Path().apply {
-        moveTo(c.x, c.y - r)
-        arcTo(Rect(c.x - r, c.y - r, c.x + r, c.y + r), -90f, if (litRight) 180f else -180f, false)
-        arcTo(Rect(c.x - rx, c.y - r, c.x + rx, c.y + r), 90f, if ((k > 0) == litRight) -180f else 180f, false)
-        close()
-    }
-    drawPath(path, Color(0xFFF2EBD3))
 }
 
 /** A vertical track with a blue-to-orange segment from [low] to [high] (fractions of the week's range, 0 = bottom). */

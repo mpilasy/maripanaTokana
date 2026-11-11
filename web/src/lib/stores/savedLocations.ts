@@ -59,8 +59,7 @@ export function openSavedLocationsDialog() {
 	showSavedLocationsDialog.set(true);
 }
 
-/** Preview machinery: switching to a location without saving it. A core location-switching
- * concern, not Advanced-Mode-exclusive — anyone can preview a searched location. */
+/** A preview: a place on screen that is not saved. Every user can preview a place; the "advanced" names are old. */
 export interface AdvancedOverrideLocation {
 	lat: number;
 	lon: number;
@@ -91,10 +90,8 @@ export function initLocationOverride() {
 	checkOverrideExpiry();
 }
 
-/** Previews a location without saving it: switches the displayed weather to it, but does not add
- * it to the saved-locations list. Expires after 12h. Mutually exclusive with switchToLocation —
- * starting a preview clears the active saved-location id, and switching to a real location clears
- * an active preview. Use favoriteCurrentLocation to save it. */
+/** Shows the weather of a place without saving it, for 12 h. It clears the active favorite, and
+ * switchToLocation clears the preview. favoriteCurrentLocation saves it. */
 export function setLocationOverride(lat: number, lon: number, name: string, subtext?: string) {
 	weatherState.set({ kind: 'loading' });
 	if (typeof localStorage !== 'undefined') {
@@ -126,8 +123,7 @@ export function clearAdvancedModeOverride() {
 	locationOverride.set(null);
 }
 
-/** Adds a search result as a saved location (or reuses an existing one at the same
- * coordinates) and immediately switches to it. */
+/** Saves a search result (or reuses the favorite at the same coordinates) and switches to it. */
 export function addSavedLocation(result: { name: string; latitude: number; longitude: number; admin1?: string; country?: string }) {
 	const id = `${result.latitude},${result.longitude}`;
 	const subtext = [result.admin1, result.country].filter(Boolean).join(', ') || undefined;
@@ -147,8 +143,7 @@ export function removeSavedLocation(id: string) {
 	if (get(activeLocationId) === id) switchToLocation(null);
 }
 
-/** Promotes the location currently being previewed (via setLocationOverride) into a saved
- * favorite, and switches to it via its saved-location id. No-op if nothing is being previewed. */
+/** Saves the previewed place as a favorite and switches to it. Does nothing without a preview. */
 export function favoriteCurrentLocation() {
 	const override = get(locationOverride);
 	if (!override) return;
@@ -197,14 +192,12 @@ function showLocationName(name: string) {
 	);
 }
 
-/** Unfavorites the currently active saved location, if any. */
 export function unfavoriteCurrentLocation() {
 	const id = get(activeLocationId);
 	if (id) removeSavedLocation(id);
 }
 
-/** Switches the active location. Pass null to switch back to GPS ("Current Location"). Clears
- * any active preview (see setLocationOverride) — the two are mutually exclusive. */
+/** Switches the active location; null is the GPS location. Clears the preview (see setLocationOverride). */
 export function switchToLocation(id: string | null) {
 	weatherState.set({ kind: 'loading' });
 	clearAdvancedModeOverride();

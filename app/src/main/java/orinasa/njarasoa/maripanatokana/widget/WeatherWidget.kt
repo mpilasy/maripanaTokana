@@ -39,7 +39,7 @@ import androidx.glance.text.TextStyle
 import orinasa.njarasoa.maripanatokana.MainActivity
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.data.remote.wmoDescriptionRes
-import orinasa.njarasoa.maripanatokana.ui.weather.components.weatherIconRes
+import orinasa.njarasoa.maripanatokana.ui.common.components.weatherIconRes
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.model.isDaytime
 import orinasa.njarasoa.maripanatokana.widget.theme.WidgetColorProviders
@@ -97,8 +97,8 @@ private fun WeatherWidgetContent(data: WeatherData, metricPrimary: Boolean) {
         val baseContext = LocalContext.current
         val context = remember(baseContext) {
             val prefs = baseContext.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
-            val localeIndex = prefs.getInt("locale_index", 0).coerceIn(orinasa.njarasoa.maripanatokana.ui.weather.supportedLocales.indices)
-            val locale = java.util.Locale.forLanguageTag(orinasa.njarasoa.maripanatokana.ui.weather.supportedLocales[localeIndex].tag)
+            val localeIndex = prefs.getInt("locale_index", 0).coerceIn(orinasa.njarasoa.maripanatokana.ui.common.supportedLocales.indices)
+            val locale = java.util.Locale.forLanguageTag(orinasa.njarasoa.maripanatokana.ui.common.supportedLocales[localeIndex].tag)
             val config = android.content.res.Configuration(baseContext.resources.configuration)
             config.setLocale(locale)
             baseContext.createConfigurationContext(config)

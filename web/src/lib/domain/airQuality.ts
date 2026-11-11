@@ -4,13 +4,11 @@
 export type AqiStandard = 'US' | 'EUROPEAN';
 export type AqiTier = 'good' | 'moderate' | 'unhealthy' | 'very_unhealthy' | 'hazardous';
 
-// Ordinals line up with uv_labels[0..3] ("Low"/"Moderate"/"High"/"Very High") — pollen reuses
-// that i18n array instead of a dedicated one, since the wording is identical.
+// The order matches uv_labels[0..3] ("Low"/"Moderate"/"High"/"Very High"): pollen uses those labels, which have the same words.
 export type PollenTier = 'low' | 'moderate' | 'high' | 'very_high';
 export const POLLEN_TIERS: PollenTier[] = ['low', 'moderate', 'high', 'very_high'];
 
-// No official breakpoints are published for pollen (unlike AQI). These are commonly-used generic
-// grains/m³ bands applied uniformly across species; treat as an approximation.
+// Pollen has no official breakpoints (unlike AQI): these are common grains/m³ bands for all species, an approximation.
 export function pollenTierFor(value: number): PollenTier {
 	if (value < 10) return 'low';
 	if (value < 50) return 'moderate';
@@ -18,8 +16,7 @@ export function pollenTierFor(value: number): PollenTier {
 	return 'very_high';
 }
 
-// Pollen concentrations in grains/m³ from Open-Meteo's CAMS-Europe pollen model. Only populated
-// for locations within CAMS-Europe coverage — all null everywhere else.
+// Pollen in grains/m³ from Open-Meteo's CAMS-Europe model; all null outside CAMS-Europe.
 export interface PollenReadings {
 	alder: number | null;
 	birch: number | null;
@@ -38,9 +35,7 @@ export function hasPollenData(pollen: PollenReadings): boolean {
 		|| pollen.mugwort != null || pollen.olive != null || pollen.ragweed != null;
 }
 
-// AirNow AQI category colors (airnow.gov/aqi/aqi-basics) — matches AqiTierBadge.svelte's CSS
-// classes, as actual color values for contexts (e.g. canvas/SVG fills) that need a value rather
-// than a class name.
+// AirNow AQI category colors (airnow.gov/aqi/aqi-basics), the same as in AqiTierBadge.svelte, for SVG fills.
 export const AQI_TIER_COLORS: Record<AqiTier, string> = {
 	good: '#00E400',
 	moderate: '#FFFF00',
@@ -49,8 +44,8 @@ export const AQI_TIER_COLORS: Record<AqiTier, string> = {
 	hazardous: '#7E0023',
 };
 
-// Countries covered by Open-Meteo's CAMS-Europe air quality domain. Mirrors the country set
-// used for MeteoAlarm coverage — see METEOALARM_COUNTRIES in $lib/api/alerts/meteoAlarm.ts.
+// Countries in Open-Meteo's CAMS-Europe air quality domain; the same set as METEOALARM_COUNTRIES in
+// $lib/api/alerts/meteoAlarm.ts.
 const EUROPEAN_COUNTRY_CODES = new Set([
 	'at', 'ba', 'be', 'bg', 'hr', 'cy', 'cz', 'dk', 'ee', 'fi', 'fr', 'de', 'gr', 'hu', 'ie', 'it',
 	'lv', 'lt', 'lu', 'mt', 'md', 'me', 'nl', 'mk', 'no', 'pl', 'pt', 'ro', 'rs', 'sk', 'si',
@@ -68,10 +63,8 @@ export interface AirQualityConcentrations {
 	dust: number | null;
 }
 
-// Per-pollutant AQI tier, resolved from Open-Meteo's precomputed sub-indices for whichever
-// standard is primary at this location. Null when Open-Meteo doesn't publish a sub-index for
-// this pollutant+standard pair (the EU index has no CO sub-index) or ammonia/dust, which have
-// no official AQI breakpoints at all.
+// The tier of each pollutant from Open-Meteo's sub-indices of the primary standard. Null when there is no
+// sub-index (the EU index has none for CO), and for ammonia and dust, which have no AQI breakpoints.
 export interface AirQualityPollutants extends AirQualityConcentrations {
 	pm25Tier: AqiTier | null;
 	pm10Tier: AqiTier | null;
@@ -128,9 +121,8 @@ export function aqiDialPosition(value: number, standard: AqiStandard): number {
 }
 
 export class AirQualityIndex {
-	// Pollutant concentrations in µg/m³ plus per-pollutant tier, straight from the Open-Meteo
-	// air-quality "current" call. Null when a given pollutant isn't covered by the domain for
-	// this location (e.g. ammonia is CAMS-Europe only) or the API omitted it.
+	// Concentrations in µg/m³ and tiers from Open-Meteo's "current" air quality. Null when the domain does not
+	// cover the pollutant at the place (ammonia is CAMS-Europe only) or the API leaves it out.
 	readonly pollutants: AirQualityPollutants;
 	readonly pollen: PollenReadings;
 
@@ -169,9 +161,8 @@ export class AirQualityIndex {
 	}
 
 	/**
-	 * Dual-unit display. Unlike temperature/pressure, primary/secondary here is NOT tied to the
-	 * metric/imperial toggle — it's fixed by location (European countries show EU AQI as primary,
-	 * everywhere else shows US AQI as primary) and doesn't flip when units are toggled.
+	 * Both indices, primary first. The place sets the primary (EU AQI in Europe, else US AQI), not the
+	 * metric/imperial switch.
 	 */
 	displayDual(): [string, string] {
 		return this.primaryStandard === 'EUROPEAN'

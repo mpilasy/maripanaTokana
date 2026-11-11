@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-package orinasa.njarasoa.maripanatokana.ui.weather.chart
+package orinasa.njarasoa.maripanatokana.ui.chart
 
 import orinasa.njarasoa.maripanatokana.domain.model.ChartHour
 import orinasa.njarasoa.maripanatokana.domain.model.DailyForecast

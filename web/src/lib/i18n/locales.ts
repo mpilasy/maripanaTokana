@@ -20,19 +20,14 @@ export const SUPPORTED_LOCALES: SupportedLocale[] = [
 	{ tag: 'zh', flag: '\uD83C\uDDE8\uD83C\uDDF3', name: '中文' },
 ];
 
-/**
- * Replaces ASCII digits 0-9 with native digits and applies locale-specific
- * decimal separator. Same approach as Android SupportedLocale.localizeDigits().
- */
+/** Puts the locale's decimal separator and native digits in place of "." and 0-9. As Android's SupportedLocale.localizeDigits(). */
 export function localizeDigits(s: string, locale: SupportedLocale): string {
 	let result = s;
 
-	// Replace decimal separator if needed
 	if (locale.decimalSep && locale.decimalSep !== '.') {
 		result = result.replace(/\./g, locale.decimalSep);
 	}
 
-	// Replace digits with native script if needed
 	const nativeZero = locale.nativeZero;
 	if (nativeZero != null) {
 		let out = '';

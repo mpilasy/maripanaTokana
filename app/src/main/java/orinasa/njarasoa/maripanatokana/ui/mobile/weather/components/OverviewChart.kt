@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-package orinasa.njarasoa.maripanatokana.ui.weather.components
+package orinasa.njarasoa.maripanatokana.ui.mobile.weather.components
 
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.em
@@ -24,7 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import orinasa.njarasoa.maripanatokana.ui.weather.LocalShareCopy
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.LocalShareCopy
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -51,11 +51,11 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.font.FontFamily
-import orinasa.njarasoa.maripanatokana.ui.weather.chart.ChartDomain
-import orinasa.njarasoa.maripanatokana.ui.weather.chart.ChartStyle
-import orinasa.njarasoa.maripanatokana.ui.weather.chart.chartDash
-import orinasa.njarasoa.maripanatokana.ui.weather.chart.chartDomain
-import orinasa.njarasoa.maripanatokana.ui.weather.chart.chartNightRuns
+import orinasa.njarasoa.maripanatokana.ui.chart.ChartDomain
+import orinasa.njarasoa.maripanatokana.ui.chart.ChartStyle
+import orinasa.njarasoa.maripanatokana.ui.chart.chartDash
+import orinasa.njarasoa.maripanatokana.ui.chart.chartDomain
+import orinasa.njarasoa.maripanatokana.ui.chart.chartNightRuns
 
 internal enum class OverviewStyle { LINE, BARS }
 

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-package orinasa.njarasoa.maripanatokana.ui.weather.components
+package orinasa.njarasoa.maripanatokana.ui.mobile.weather.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -9,7 +9,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import orinasa.njarasoa.maripanatokana.ui.weather.TouchTarget
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.TouchTarget
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -57,9 +57,9 @@ import orinasa.njarasoa.maripanatokana.domain.model.AlertLevel
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherAlert
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFont
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
-import orinasa.njarasoa.maripanatokana.ui.weather.LocalScale
-import orinasa.njarasoa.maripanatokana.ui.weather.s
-import orinasa.njarasoa.maripanatokana.ui.weather.sd
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.LocalScale
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.s
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.sd
 
 // The level colours, as on the web (WeatherAlertBanner.svelte). Dark text on them is at least 5:1.
 private fun levelColor(level: AlertLevel): Color = when (level) {

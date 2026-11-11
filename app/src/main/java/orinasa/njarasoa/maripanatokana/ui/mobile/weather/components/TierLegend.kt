@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-package orinasa.njarasoa.maripanatokana.ui.weather.components
+package orinasa.njarasoa.maripanatokana.ui.mobile.weather.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -22,11 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * Compact color-key legend for charts whose data points are colored by a discrete tier (UV,
- * AQI, ...) rather than a single fixed line color — without this, a viewer has no way to know
- * what a given dot's color means. Horizontally scrollable rather than wrapping (matches the
- * app's existing Hourly Forecast card-row convention), so it stays readable and never overflows
- * regardless of label length or locale.
+ * A color key for charts whose points take the color of their tier (UV, AQI, ...). It scrolls sideways
+ * instead of wrapping, as the forecast card rows do, so long labels in any language never overflow.
  */
 @Composable
 fun TierLegend(

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-package orinasa.njarasoa.maripanatokana.ui.weather.components
+package orinasa.njarasoa.maripanatokana.ui.mobile.weather.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
@@ -21,19 +21,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import orinasa.njarasoa.maripanatokana.domain.model.AqiTier
-
-// AirNow AQI category colors (airnow.gov/aqi/aqi-basics). Our AqiTier enum has 5 buckets rather
-// than AirNow's 6 — UNHEALTHY covers AirNow's Orange "Unhealthy for Sensitive Groups" (101-150)
-// and Red "Unhealthy" (151-200) range, mapped here to Red.
-internal data class AqiTierColors(val background: Color, val text: Color)
-
-internal fun colorsFor(tier: AqiTier): AqiTierColors = when (tier) {
-    AqiTier.GOOD -> AqiTierColors(Color(0xFF00E400), Color(0xFF1A1A1A))
-    AqiTier.MODERATE -> AqiTierColors(Color(0xFFFFFF00), Color(0xFF1A1A1A))
-    AqiTier.UNHEALTHY -> AqiTierColors(Color(0xFFFF0000), Color.White)
-    AqiTier.VERY_UNHEALTHY -> AqiTierColors(Color(0xFF8F3F97), Color.White)
-    AqiTier.HAZARDOUS -> AqiTierColors(Color(0xFF7E0023), Color.White)
-}
+import orinasa.njarasoa.maripanatokana.ui.common.components.colorsFor
 
 @Composable
 fun AqiTierBadge(

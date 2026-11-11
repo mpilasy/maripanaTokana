@@ -9,8 +9,8 @@ enum class AqiStandard { US, EUROPEAN }
 
 enum class AqiTier { GOOD, MODERATE, UNHEALTHY, VERY_UNHEALTHY, HAZARDOUS }
 
-// Ordinals line up with uv_labels[0..3] ("Low"/"Moderate"/"High"/"Very High") — pollen reuses that
-// array instead of a dedicated one, since the wording is identical and it's already translated.
+// The ordinals match uv_labels[0..3] ("Low", "Moderate", "High", "Very High"): pollen uses that array,
+// which has the same words in every language.
 enum class PollenTier { LOW, MODERATE, HIGH, VERY_HIGH }
 
 /**
@@ -35,9 +35,8 @@ data class AirQualityIndex(
     val usValue: Int,
     val europeanValue: Int,
     val primaryStandard: AqiStandard,
-    // Pollutant concentrations in µg/m³, straight from the Open-Meteo air-quality "current" call.
-    // Null when a given pollutant isn't covered by the domain for this location (e.g. ammonia is
-    // CAMS-Europe only) or the API omitted it.
+    // Pollutant concentrations in µg/m³, from the Open-Meteo air-quality "current" call. Null when the
+    // domain of this location does not cover the pollutant (ammonia is CAMS-Europe only) or the API omits it.
     val pm25: Double? = null,
     val pm10: Double? = null,
     val carbonMonoxide: Double? = null,
@@ -46,10 +45,9 @@ data class AirQualityIndex(
     val ozone: Double? = null,
     val ammonia: Double? = null,
     val dust: Double? = null,
-    // Per-pollutant AQI tier, resolved from Open-Meteo's precomputed sub-indices for whichever
-    // standard is primary at this location. Null when Open-Meteo doesn't publish a sub-index for
-    // this pollutant+standard pair (the EU index has no CO sub-index) or ammonia/dust, which have
-    // no official AQI breakpoints at all.
+    // The AQI tier of each pollutant, from the Open-Meteo sub-indices of the primary standard at this
+    // location. Null when there is no sub-index (the EU index has none for CO; ammonia and dust have no
+    // official AQI breakpoints).
     val pm25Tier: AqiTier? = null,
     val pm10Tier: AqiTier? = null,
     val carbonMonoxideTier: AqiTier? = null,
@@ -65,9 +63,8 @@ data class AirQualityIndex(
         get() = tierFor(europeanValue, AqiStandard.EUROPEAN)
 
     /**
-     * Dual-unit display. Unlike Temperature/Pressure, primary/secondary here is NOT tied to the
-     * metric/imperial toggle — it's fixed by location (European countries show EU AQI as primary,
-     * everywhere else shows US AQI as primary) and doesn't flip when units are toggled.
+     * Both standards. The location sets the primary one (EU AQI in Europe, US AQI elsewhere), not the
+     * metric/imperial setting, so a unit change does not swap them.
      */
     fun displayDual(): Pair<String, String> =
         if (primaryStandard == AqiStandard.EUROPEAN) europeanValue.toString() to usValue.toString()

@@ -1,6 +1,6 @@
 <!-- SPDX-FileCopyrightText: Orinasa Njarasoa -->
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
-<!-- Twin: DialEnds in app/src/main/java/orinasa/njarasoa/maripanatokana/ui/weather/WeatherContent.kt -->
+<!-- Twin: DialEnds in app/src/main/java/orinasa/njarasoa/maripanatokana/ui/mobile/weather/WeatherContent.kt -->
 <script lang="ts">
 	/**
 	 * The two end values of a dial's scale, just under the two ends of its arc (in a Gauge): the number in

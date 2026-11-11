@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-package orinasa.njarasoa.maripanatokana.ui.weather.components
+package orinasa.njarasoa.maripanatokana.ui.mobile.weather.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -43,6 +43,7 @@ import orinasa.njarasoa.maripanatokana.domain.model.SavedLocation
 import orinasa.njarasoa.maripanatokana.ui.theme.Hairline
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 import orinasa.njarasoa.maripanatokana.ui.theme.TileSurface
+import orinasa.njarasoa.maripanatokana.ui.common.components.LocalizedDialog
 
 /** Names a favorite. Saving a blank name, or Reset, goes back to the place name. */
 @Composable

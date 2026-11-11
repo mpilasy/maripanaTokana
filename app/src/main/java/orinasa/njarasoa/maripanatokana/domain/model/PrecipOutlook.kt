@@ -3,7 +3,7 @@
 
 package orinasa.njarasoa.maripanatokana.domain.model
 
-/** What the next 24 hours hold for rain or snow, for the one-line summary on the first page. */
+/** What the next 24 hours hold for rain or snow, for the one-line summary in the hero card. */
 data class PrecipOutlook(val kind: Kind, val snow: Boolean, val time: Long? = null) {
     enum class Kind { STARTS, STOPS, ALL_DAY, DRY }
 

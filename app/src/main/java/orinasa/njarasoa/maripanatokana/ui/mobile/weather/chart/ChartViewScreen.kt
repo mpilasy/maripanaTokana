@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-package orinasa.njarasoa.maripanatokana.ui.weather.chart
+package orinasa.njarasoa.maripanatokana.ui.mobile.weather.chart
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
@@ -120,17 +120,17 @@ import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 import orinasa.njarasoa.maripanatokana.ui.theme.SectionSurface
 import orinasa.njarasoa.maripanatokana.ui.theme.TileSurface
 import orinasa.njarasoa.maripanatokana.ui.theme.temperatureColor
-import orinasa.njarasoa.maripanatokana.ui.weather.DualUnitText
-import orinasa.njarasoa.maripanatokana.ui.weather.HeroStatDivider
-import orinasa.njarasoa.maripanatokana.ui.weather.PrecipChance
-import orinasa.njarasoa.maripanatokana.ui.weather.buildLocationTimeZone
-import orinasa.njarasoa.maripanatokana.ui.weather.components.drawMoon
-import orinasa.njarasoa.maripanatokana.ui.weather.glass
-import orinasa.njarasoa.maripanatokana.ui.weather.components.colorsFor
-import orinasa.njarasoa.maripanatokana.ui.weather.components.computeMonotoneCubicControlPoints
-import orinasa.njarasoa.maripanatokana.ui.weather.components.ForecastTabs
-import orinasa.njarasoa.maripanatokana.ui.weather.components.dualLabel
-import orinasa.njarasoa.maripanatokana.ui.weather.components.weatherIconRes
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.DualUnitText
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.HeroStatDivider
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.PrecipChance
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.buildLocationTimeZone
+import orinasa.njarasoa.maripanatokana.ui.common.components.drawMoon
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.glass
+import orinasa.njarasoa.maripanatokana.ui.common.components.colorsFor
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.computeMonotoneCubicControlPoints
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.ForecastTabs
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.dualLabel
+import orinasa.njarasoa.maripanatokana.ui.common.components.weatherIconRes
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -138,6 +138,29 @@ import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.roundToInt
+import orinasa.njarasoa.maripanatokana.ui.chart.CHART_SLOT
+import orinasa.njarasoa.maripanatokana.ui.chart.ChartDayExtremes
+import orinasa.njarasoa.maripanatokana.ui.chart.ChartDaySpan
+import orinasa.njarasoa.maripanatokana.ui.chart.ChartDomain
+import orinasa.njarasoa.maripanatokana.ui.chart.ChartStyle
+import orinasa.njarasoa.maripanatokana.ui.chart.ChartTile
+import orinasa.njarasoa.maripanatokana.ui.chart.chartDash
+import orinasa.njarasoa.maripanatokana.ui.chart.chartAirQuality
+import orinasa.njarasoa.maripanatokana.ui.chart.chartDayExtremes
+import orinasa.njarasoa.maripanatokana.ui.chart.chartDayMaxIndex
+import orinasa.njarasoa.maripanatokana.ui.chart.chartDaySpans
+import orinasa.njarasoa.maripanatokana.ui.chart.chartDays
+import orinasa.njarasoa.maripanatokana.ui.chart.chartDomain
+import orinasa.njarasoa.maripanatokana.ui.chart.chartHours
+import orinasa.njarasoa.maripanatokana.ui.chart.chartIndexForX
+import orinasa.njarasoa.maripanatokana.ui.chart.chartLabelFit
+import orinasa.njarasoa.maripanatokana.ui.chart.chartLineIndex
+import orinasa.njarasoa.maripanatokana.ui.chart.chartLineOffset
+import orinasa.njarasoa.maripanatokana.ui.chart.chartMaxScroll
+import orinasa.njarasoa.maripanatokana.ui.chart.chartScrollForIndex
+import orinasa.njarasoa.maripanatokana.ui.chart.chartTileRows
+import orinasa.njarasoa.maripanatokana.ui.chart.chartTiles
+import orinasa.njarasoa.maripanatokana.ui.chart.chartVisibleRange
 
 private const val HOUR = 3_600_000L
 // The weather icons, wind arrows and hour labels show every this many local hours (00, 04, 08…)

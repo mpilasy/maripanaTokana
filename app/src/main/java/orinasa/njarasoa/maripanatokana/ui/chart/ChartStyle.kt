@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-package orinasa.njarasoa.maripanatokana.ui.weather.chart
+package orinasa.njarasoa.maripanatokana.ui.chart
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect

@@ -3,7 +3,7 @@
 
 import type { HourlyForecast, MinutelyForecast } from './weatherData';
 
-/** What the next 24 hours hold for rain or snow, for the one-line summary on the first page. */
+/** What the next 24 hours hold for rain or snow, for the one-line summary in the hero card. */
 export type PrecipOutlook =
 	| { kind: 'starts' | 'stops'; snow: boolean; time: number }
 	| { kind: 'all_day' | 'dry'; snow: boolean };
@@ -39,7 +39,7 @@ export function precipOutlook(hourly: HourlyForecast[], minutely: MinutelyForeca
 	return { kind: wetNow ? 'stops' : 'starts', snow, time: hourly[change].time };
 }
 
-/** Whether rain falls within the nowcast's two hours; a dry nowcast just repeats the main card's rain line. */
+/** Whether rain falls within the nowcast's two hours; a dry nowcast repeats the hero card's rain line. */
 export function nowcastHasRain(minutely: MinutelyForecast[] | undefined, nowMs = Date.now()): boolean {
 	return (minutely ?? []).some(
 		(m) => m.time >= nowMs - 15 * 60 * 1000 && m.time <= nowMs + 2 * 3600 * 1000 && m.precipitation.mm > 0.05

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-package orinasa.njarasoa.maripanatokana.ui.permission
+package orinasa.njarasoa.maripanatokana.ui.mobile.permission
 
 import android.Manifest
 import android.app.Activity
@@ -76,7 +76,7 @@ class FDroidPermissionHandler @Inject constructor(
 
         return remember(launcher) {
             {
-                // Mark that we have requested at least once (used by isPermissionPermanentlyDenied)
+                // Records the first request, for isPermissionPermanentlyDenied
                 ctx.getSharedPreferences(PERM_PREFS, Context.MODE_PRIVATE)
                     .edit().putBoolean(KEY_REQUESTED, true).apply()
                 launcher.launch(

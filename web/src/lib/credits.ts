@@ -3,7 +3,7 @@
 
 /**
  * Services, assets and libraries acknowledged on the About page.
- * Keep in sync with app/src/main/java/.../ui/settings/AboutScreen.kt.
+ * Keep in sync with app/src/main/java/.../ui/common/about/Credits.kt.
  * `nameKey` / `noteKey` are i18n keys used instead of the literal `name` / `note`.
  */
 export interface Credit {

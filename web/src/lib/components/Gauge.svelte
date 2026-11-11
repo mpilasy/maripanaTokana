@@ -24,7 +24,7 @@
 	}
 	let f = $derived(Number.isFinite(fraction) ? Math.min(1, Math.max(0, fraction)) : 0);
 	let end = $derived(point(135 + 270 * f).split(' '));
-	// Twin: dialEndTop in app/src/main/java/orinasa/njarasoa/maripanatokana/ui/weather/WeatherContent.kt
+	// Twin: dialEndTop in app/src/main/java/orinasa/njarasoa/maripanatokana/ui/mobile/weather/WeatherContent.kt
 	// The top of the DialEnds labels: 2 px under the knob (radius 4.5 + half its 2.5 stroke) at an end of the arc
 	let dialEndTop = $derived(((24 + r * Math.SQRT1_2 + 5.75 * k) / 48) * (size ?? width) + 2);
 </script>

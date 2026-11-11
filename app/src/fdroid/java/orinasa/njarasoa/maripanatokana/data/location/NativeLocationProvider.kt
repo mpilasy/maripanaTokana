@@ -86,8 +86,8 @@ class NativeLocationProvider(
         }
     }
 
-    // Returns any stale cached fix from any provider, ignoring whether the provider
-    // is currently enabled. Used as a last-resort fallback when a fresh fix times out.
+    // The newest cached fix of any provider, also of a disabled one, when it is less than 24 h old.
+    // The fallback when a fresh fix times out.
     @SuppressLint("MissingPermission")
     private fun getStaleFallbackLocation(): Location? {
         val providers = listOf(
@@ -105,9 +105,7 @@ class NativeLocationProvider(
 
     @SuppressLint("MissingPermission")
     private suspend fun requestLocationUpdate(): Location? {
-        // Use a dedicated HandlerThread so location callbacks never run on the main thread.
-        // Running on Looper.getMainLooper() risks jank and ANR if the callback or any
-        // downstream work touches the UI thread while a frame is being rendered.
+        // A HandlerThread keeps the location callbacks off the main thread, which prevents jank and ANR.
         val handlerThread = HandlerThread("LocationRequest").also { it.start() }
 
         val locationFlow = callbackFlow<Location> {
@@ -119,10 +117,9 @@ class NativeLocationProvider(
                 override fun onProviderDisabled(provider: String) {}
             }
 
-            // Register each provider independently so a failure on one never blocks the others.
-            // PASSIVE_PROVIDER piggybacks on other apps' requests — on non-GMS devices where
-            // NETWORK_PROVIDER is absent, it immediately delivers any fix GPSTest or other apps
-            // are already producing, bypassing the GPS warm-up delay entirely.
+            // Register each provider on its own, so a failure on one does not stop the others.
+            // PASSIVE_PROVIDER gets the fixes that other apps request: on a device without Google services
+            // and without NETWORK_PROVIDER, it can give a fix at once, before the GPS warms up.
             var registered = false
             for (provider in listOf(
                 LocationManager.GPS_PROVIDER,
@@ -137,7 +134,7 @@ class NativeLocationProvider(
                         registered = true
                     }
                 } catch (_: SecurityException) {
-                    // Provider requires a permission we don't have; try the next one
+                    // The provider needs a permission that the app does not have: try the next one
                 } catch (e: Exception) {
                     AppLog.w("NativeLocation", "provider $provider failed", e)
                 }
@@ -150,8 +147,8 @@ class NativeLocationProvider(
             }
         }
 
-        // Wait up to 30s: GPS cold-start on non-GMS devices can take 20-30s even when the
-        // hardware is warm. On timeout, fall back to any stale cached fix.
+        // Wait up to 30 s: a GPS cold start on a device without Google services can take 20-30 s.
+        // On timeout, use the newest cached fix.
         val liveLocation = try {
             withTimeoutOrNull(30_000L) {
                 locationFlow.take(1).firstOrNull()

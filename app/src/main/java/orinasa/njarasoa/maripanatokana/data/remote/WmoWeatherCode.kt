@@ -67,9 +67,7 @@ private val WMO_NIGHT_EMOJI = mapOf(
 fun wmoEmoji(code: Int, isNight: Boolean = false): String =
     (if (isNight) WMO_NIGHT_EMOJI[code] else null) ?: WMO_EMOJI[code] ?: "\uD83C\uDF10" // 🌐
 
-/**
- * Maps WMO weather code + is_day to an OWM-style icon code for backward compatibility.
- */
+/** A WMO weather code and is_day as a two-digit icon code with a day or night suffix, for example "01d". */
 fun wmoIconCode(code: Int, isDay: Boolean): String {
     val base = WMO_ICON_CODES[code] ?: "01"
     val suffix = if (isDay) "d" else "n"

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-package orinasa.njarasoa.maripanatokana.ui.weather
+package orinasa.njarasoa.maripanatokana.ui.mobile.weather
 
 import android.content.Context
 import androidx.core.content.edit
@@ -44,40 +44,7 @@ import orinasa.njarasoa.maripanatokana.data.location.parseCoordinates
 import orinasa.njarasoa.maripanatokana.data.location.shortPlaceName
 import java.util.Locale
 import javax.inject.Inject
-
-/** [name] is the language's own name, for the language list. */
-data class SupportedLocale(val tag: String, val flag: String, val name: String, val nativeZero: Char? = null) {
-    // Java lacks CLDR data for "mg" — fall back to French (same convention)
-    private val decimalSep: Char = java.text.DecimalFormatSymbols(
-        java.util.Locale.forLanguageTag(if (tag == "mg") "fr" else tag)
-    ).decimalSeparator
-
-    /** Replace ASCII digits 0-9 with native script digits and '.' with locale decimal separator. */
-    fun localizeDigits(s: String): String {
-        if (nativeZero == null && decimalSep == '.') return s
-        val z = nativeZero
-        return buildString(s.length) {
-            for (c in s) {
-                append(when {
-                    z != null && c in '0'..'9' -> z + (c - '0')
-                    c == '.' && decimalSep != '.' -> decimalSep
-                    else -> c
-                })
-            }
-        }
-    }
-}
-
-val supportedLocales = listOf(
-    SupportedLocale("mg", "🇲🇬", "Malagasy"),
-    SupportedLocale("ar", "🇸🇦", "العربية", '٠'),  // ٠
-    SupportedLocale("en", "🇬🇧", "English"),
-    SupportedLocale("es", "🇪🇸", "Español"),
-    SupportedLocale("fr", "🇫🇷", "Français"),
-    SupportedLocale("hi", "🇮🇳", "हिन्दी", '०'),  // ०
-    SupportedLocale("ne", "🇳🇵", "नेपाली", '०'),  // ०
-    SupportedLocale("zh", "🇨🇳", "中文"),
-)
+import orinasa.njarasoa.maripanatokana.ui.common.supportedLocales
 
 @HiltViewModel
 class WeatherViewModel @Inject constructor(
@@ -200,7 +167,7 @@ class WeatherViewModel @Inject constructor(
     }
 
     fun onLocationDoubleClicked() {
-        // No longer doing anything on double click
+        // A double click has no action
     }
 
     fun searchLocation(query: String) {
@@ -569,7 +536,7 @@ class WeatherViewModel @Inject constructor(
         fetchJob = viewModelScope.launch {
             try {
                 if (!isResolvingSharedLocation) {
-                    // Only show loading if we don't already have data
+                    // Show Loading only when no data is on screen
                     if (_uiState.value !is WeatherUiState.Success) {
                         _refreshFailed.value = false; _refreshError.value = null
                         // Show the last successful data for this location right away, then refresh
@@ -696,7 +663,7 @@ class WeatherViewModel @Inject constructor(
             }
         }
         if (completed == null) {
-            // Safety net: if the entire fetch timed out, guarantee we exit Loading.
+            // When the whole fetch times out, do not stay in Loading.
             if (_uiState.value is WeatherUiState.Loading) {
                 _uiState.value = WeatherUiState.Error(
                     if (locationObtained) R.string.error_fetch_weather else R.string.error_get_location

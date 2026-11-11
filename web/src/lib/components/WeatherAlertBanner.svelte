@@ -25,7 +25,6 @@
 		expandedItems = next;
 	}
 
-	// Determine the most severe level present
 	let levels = $derived(alerts.map(a => a.level));
 	let topLevel = $derived(levels.includes('emergency') ? 'emergency'
 		: levels.includes('warning') ? 'warning'

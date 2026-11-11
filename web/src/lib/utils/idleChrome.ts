@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // The state of the header and the footer of the main page.
-// Twin: IdleChrome in app/src/main/java/orinasa/njarasoa/maripanatokana/ui/weather/IdleChrome.kt
+// Twin: IdleChrome in app/src/main/java/orinasa/njarasoa/maripanatokana/ui/mobile/weather/IdleChrome.kt
 
 /** The time without a scroll after which the header folds and the footer goes out of view. */
 export const CHROME_IDLE_MS = 3000;

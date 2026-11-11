@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-package orinasa.njarasoa.maripanatokana.ui.weather
+package orinasa.njarasoa.maripanatokana.ui.mobile.weather
 
 import android.Manifest
 import android.content.Intent
@@ -36,9 +36,9 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import orinasa.njarasoa.maripanatokana.ui.settings.AboutScreen
-import orinasa.njarasoa.maripanatokana.ui.settings.HelpScreen
-import orinasa.njarasoa.maripanatokana.ui.settings.SettingsScreen
+import orinasa.njarasoa.maripanatokana.ui.mobile.settings.AboutScreen
+import orinasa.njarasoa.maripanatokana.ui.mobile.settings.HelpScreen
+import orinasa.njarasoa.maripanatokana.ui.mobile.settings.SettingsScreen
 import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -60,20 +60,21 @@ import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.domain.model.AqiStandard
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherSource
 import orinasa.njarasoa.maripanatokana.domain.model.weatherModelFor
-import orinasa.njarasoa.maripanatokana.ui.permission.PermissionHandler
+import orinasa.njarasoa.maripanatokana.ui.mobile.permission.PermissionHandler
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFont
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFontFeatures
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 import orinasa.njarasoa.maripanatokana.ui.theme.buildTypography
 import orinasa.njarasoa.maripanatokana.ui.theme.fontPairings
 import orinasa.njarasoa.maripanatokana.ui.theme.localName
-import orinasa.njarasoa.maripanatokana.ui.weather.chart.ChartViewMode
-import orinasa.njarasoa.maripanatokana.ui.weather.chart.ChartViewScreen
-import orinasa.njarasoa.maripanatokana.ui.weather.components.RenameLocationDialog
-import orinasa.njarasoa.maripanatokana.ui.weather.components.SavedLocationsDialog
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.chart.ChartViewMode
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.chart.ChartViewScreen
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.RenameLocationDialog
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.SavedLocationsDialog
 import androidx.compose.runtime.saveable.rememberSaveable
 import java.text.SimpleDateFormat
 import java.util.Locale
+import orinasa.njarasoa.maripanatokana.ui.common.supportedLocales
 
 @Composable
 fun WeatherScreen(
@@ -206,7 +207,7 @@ private fun WeatherMainScreen(
     val savedLocations by viewModel.savedLocations.collectAsStateWithLifecycle()
     val activeLocationId by viewModel.activeLocationId.collectAsStateWithLifecycle()
 
-    // Swipe-to-cycle-locations: Current Location + saved locations, in list order, no wraparound.
+    // The places of the list: the current location, then the saved places in list order.
     val locationCycle = remember(savedLocations) { listOf<String?>(null) + savedLocations.map { it.id } }
     val locationCycleIndex = locationCycle.indexOf(activeLocationId)
 
@@ -260,7 +261,7 @@ private fun WeatherMainScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    // Switching location or refreshing via Loading used to dispose the content (and its scroll); keep that.
+    // Loading (a location switch or a refresh) goes back to the top of the page.
     val isLoading = uiState is WeatherUiState.Loading
     LaunchedEffect(isLoading) { if (isLoading) scrollState.scrollTo(0) }
 

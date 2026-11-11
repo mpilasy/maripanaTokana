@@ -25,7 +25,7 @@
 	let fontPickerOpen = $state(false);
 	$effect(() => onMenuOpen?.(pickerOpen || fontPickerOpen));
 	const languageItems = SUPPORTED_LOCALES.map((l) => ({ lead: l.flag, label: l.name, lang: l.tag }));
-	// Twin: fontLabel in app/src/main/java/orinasa/njarasoa/maripanatokana/ui/weather/components/FooterPickers.kt
+	// Twin: FontPairing.localName in app/src/main/java/orinasa/njarasoa/maripanatokana/ui/theme/AppFonts.kt
 	/** The pairing's name; the default pairing's name is translated, the others are proper names. */
 	const fontLabel = (name: string) => (name === fontPairings[0].name ? $_('font_default') : name);
 	// Each font name in its own display font
@@ -42,7 +42,7 @@
 </svelte:head>
 
 <!-- A small arrow after the font name or the flag: a tap opens the same list as holding it -->
-<!-- Twin: the KeyboardArrowDown icons in app/src/main/java/orinasa/njarasoa/maripanatokana/ui/weather/components/FooterPickers.kt -->
+<!-- Twin: the KeyboardArrowDown icons in app/src/main/java/orinasa/njarasoa/maripanatokana/ui/mobile/weather/components/FooterPickers.kt -->
 {#snippet showAll(toggle: () => void, expanded: boolean)}
 	<button type="button" class="show-all touch-target" aria-label={$_('cd_show_all')} aria-expanded={expanded}
 		onclick={(e) => { e.stopPropagation(); toggle(); }}>

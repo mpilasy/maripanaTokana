@@ -3,7 +3,7 @@
 
 package orinasa.njarasoa.maripanatokana.widget
 
-import orinasa.njarasoa.maripanatokana.ui.weather.buildLocationTimeZone
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.buildLocationTimeZone
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

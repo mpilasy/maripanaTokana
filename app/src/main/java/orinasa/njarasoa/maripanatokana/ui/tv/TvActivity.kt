@@ -68,8 +68,8 @@ import orinasa.njarasoa.maripanatokana.domain.repository.LocationRepository
 import orinasa.njarasoa.maripanatokana.domain.repository.WeatherRepository
 import orinasa.njarasoa.maripanatokana.ui.theme.MaripanaTokanaTheme
 import orinasa.njarasoa.maripanatokana.ui.theme.temperatureColor
-import orinasa.njarasoa.maripanatokana.ui.weather.components.WeatherIcon
-import orinasa.njarasoa.maripanatokana.ui.weather.components.colorsFor
+import orinasa.njarasoa.maripanatokana.ui.common.components.WeatherIcon
+import orinasa.njarasoa.maripanatokana.ui.common.components.colorsFor
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.TimeZone

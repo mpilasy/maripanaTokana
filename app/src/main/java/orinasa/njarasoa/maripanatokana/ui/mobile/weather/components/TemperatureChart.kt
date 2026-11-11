@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-package orinasa.njarasoa.maripanatokana.ui.weather.components
+package orinasa.njarasoa.maripanatokana.ui.mobile.weather.components
 
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.foundation.Canvas
@@ -11,7 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import orinasa.njarasoa.maripanatokana.ui.weather.LocalShareCopy
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.LocalShareCopy
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
@@ -34,10 +34,10 @@ import androidx.compose.ui.unit.sp
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.domain.model.HourlyForecast
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
-import orinasa.njarasoa.maripanatokana.ui.weather.chart.ChartStyle
-import orinasa.njarasoa.maripanatokana.ui.weather.chart.chartDash
-import orinasa.njarasoa.maripanatokana.ui.weather.chart.chartDomain
-import orinasa.njarasoa.maripanatokana.ui.weather.chart.chartMidnights
+import orinasa.njarasoa.maripanatokana.ui.chart.ChartStyle
+import orinasa.njarasoa.maripanatokana.ui.chart.chartDash
+import orinasa.njarasoa.maripanatokana.ui.chart.chartDomain
+import orinasa.njarasoa.maripanatokana.ui.chart.chartMidnights
 
 /**
  * The 24 hours' temperature under the hourly cards, with the dew point as a thin line on the same scale,

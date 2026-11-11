@@ -34,12 +34,10 @@ describe('date formatting', () => {
 
 	describe('formatDate', () => {
 		it('should accept and use custom arrays for Malagasy without error', () => {
-			// Note: In Node.js, Intl supports mg, so it uses Intl instead of arrays
-			// This test just verifies the function accepts the arrays and returns a formatted string
+			// Node.js Intl supports mg, so the result comes from Intl, not from the arrays
 			const result = formatDate(testTimestamp, 'mg', mgWeekdays, mgMonths);
 			expect(result).toBeTruthy();
 			expect(typeof result).toBe('string');
-			// Should contain October in some form
 			expect(result.toLowerCase()).toContain('oktobra');
 		});
 
@@ -61,7 +59,6 @@ describe('date formatting', () => {
 			const result = formatDayName(testTimestamp, 'mg', utcOffsetSeconds, false, mgWeekdays);
 			expect(result).toBeTruthy();
 			expect(typeof result).toBe('string');
-			// Should be one of the weekday names
 			expect(mgWeekdays.includes(result) || result.length <= 3).toBe(true);
 		});
 

@@ -51,7 +51,7 @@ export function refreshErrorReason(key: string): string | null {
 	return key === 'error_fetch_weather' ? null : key;
 }
 
-const STALE_MS = 30 * 60 * 1000; // 30 minutes
+const STALE_MS = 30 * 60 * 1000;
 
 // Incremented on every doFetchWeather; results of older fetches (including their alerts) are dropped.
 let fetchGeneration = 0;
@@ -59,7 +59,7 @@ let fetchGeneration = 0;
 // Open-Meteo snaps response coordinates to a ~10 km grid, so compare with a tolerance.
 const SAME_LOCATION_DEG = 0.1;
 
-// Cached GPS weather data fetched in background while previewing another location
+// The GPS weather, fetched in the background while a preview shows another place
 let cachedGpsWeatherData: WeatherData | null = null;
 
 async function fetchAtLocation(lat: number, lon: number, knownName?: string, knownSubtext?: string, localeTag?: string, alertsGeneration: number | null = fetchGeneration): Promise<WeatherData> {
@@ -81,12 +81,10 @@ async function fetchAtLocation(lat: number, lon: number, knownName?: string, kno
 		return { ...data, latitude: lat, longitude: lon, sea: await seaPromise };
 	}
 
-	// Open-Meteo path
 	const weatherPromise = fetchWeather(lat, lon, weatherModelFor(get(weatherModel))?.key ?? null);
 	const airQualityResponsePromise = fetchAirQuality(lat, lon).catch(() => null);
-	// Country decides which AQI standard is primary (european_aqi vs us_aqi) — same lookup
-	// used for alert-source gating in fetchAllAlerts. Fetched once here and passed through to
-	// avoid firing a second, redundant reverse-geocode request from fetchAllAlerts.
+	// The country picks the primary AQI standard (european_aqi or us_aqi). fetchAllAlerts gets the same
+	// lookup, so it does not reverse geocode again.
 	const locationInfoPromise = getLocationInfo(lat, lon, localeTag);
 	const [response, location, airQualityResponse, locationInfo, sea] = await Promise.all([weatherPromise, namePromise, airQualityResponsePromise, locationInfoPromise, seaPromise]);
 	const airQuality = airQualityResponse ? mapToAirQuality(airQualityResponse, locationInfo.countryCode) : null;
@@ -229,7 +227,7 @@ async function fetchAlertsForData(lat: number, lon: number, generation: number, 
 	}
 }
 
-/** Background-fetch GPS weather and cache it for when the preview is cleared */
+/** Fetches the GPS weather in the background and keeps it for when the preview is cleared. */
 function spawnGpsCacheRefresh() {
 	getPosition()
 		.then(async (fresh) => {
@@ -241,24 +239,21 @@ function spawnGpsCacheRefresh() {
 			const fits = cached?.lang === localeTag;
 			const data = await fetchAtLocation(lat, lon, fits ? cached?.name : undefined, fits ? cached?.subtext : undefined, localeTag, null);
 			cachedGpsWeatherData = data;
-			// Don't overwrite the location cache while previewing another location — it would
-			// corrupt the cached_location key and cause updateLocationName to reverse-geocode the
-			// wrong (real GPS) coordinates on language change.
+			// Not during a preview: updateLocationName would then look up the GPS place on a language change
 			if (!get(locationOverride)) {
 				cacheLocation(lat, lon, data.locationName, data.locationSubtext, localeTag);
 			}
 		})
 		.catch(() => {
-			// Silently fail - this is a best-effort background refresh
+			// Best effort: a failure shows nothing
 		});
 }
 
-/** Called when a preview is cleared to immediately show GPS weather */
+/** Shows the GPS weather at once when a preview is cleared. */
 export function restoreGpsWeather() {
 	if (cachedGpsWeatherData) {
 		setWeatherData(cachedGpsWeatherData);
 		cachedGpsWeatherData = null;
-		// Also refresh in background to get truly fresh data
 		doFetchWeather();
 	} else {
 		doFetchWeather();
@@ -322,12 +317,11 @@ async function fetchDeviceLocation(gen: number) {
 	// The saved name only if it is in the current language; otherwise look it up again
 	const nameFits = cached?.lang === localeTag;
 
-	// Start fetching weather for cached location immediately if available
+	// The weather at the cached position and the fresh position are fetched at the same time
 	const cachedFetchPromise = cached
 		? fetchAtLocation(cached.lat, cached.lon, nameFits ? cached.name : undefined, nameFits ? cached.subtext : undefined, localeTag)
 		: null;
 
-	// Start getting fresh location concurrently
 	const freshLocationPromise = getPosition();
 	freshLocationPromise.catch(() => {}); // handled below; avoid unhandled rejection on early exit
 
@@ -340,7 +334,7 @@ async function fetchDeviceLocation(gen: number) {
 	if (!fresh) return;
 
 	const moved = !cached || movedSignificantly(cached.lat, cached.lon, fresh.lat, fresh.lon);
-	// Cached-location fetch failed and we haven't moved: the same request would just fail again.
+	// The cached-location fetch failed and the device did not move: the same request would fail again.
 	if (cachedError && !moved) throw cachedError;
 
 	if (moved || !cachedShown) {
@@ -409,8 +403,8 @@ export async function updateLocationName(localeTag: string) {
 		weatherState.update((s) => (s.kind === 'success' ? { ...s, data: { ...s.data, locationSubtext: location.subtext } } : s));
 		return;
 	}
-	// Use advanced mode override coordinates if present (read from localStorage, not the store, to
-	// avoid stale state). This prevents language switches from reverse-geocoding real GPS coordinates.
+	// The preview coordinates when there is a preview (from localStorage, not the store, which can be stale),
+	// so that a language change does not look up the GPS place
 	const overrideLat = typeof localStorage !== 'undefined' ? localStorage.getItem('advanced_override_lat') : null;
 	const overrideLon = typeof localStorage !== 'undefined' ? localStorage.getItem('advanced_override_lon') : null;
 	const lat = overrideLat ? parseFloat(overrideLat) : getCachedLocation()?.lat;

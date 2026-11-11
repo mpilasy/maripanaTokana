@@ -12,8 +12,8 @@ import orinasa.njarasoa.maripanatokana.domain.model.Pressure
 import orinasa.njarasoa.maripanatokana.domain.model.Temperature
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.model.WindSpeed
-import orinasa.njarasoa.maripanatokana.ui.weather.chart.chartDaylight
-import orinasa.njarasoa.maripanatokana.ui.weather.chart.chartHours
+import orinasa.njarasoa.maripanatokana.ui.chart.chartDaylight
+import orinasa.njarasoa.maripanatokana.ui.chart.chartHours
 import kotlin.math.roundToInt
 
 // The same on the web (pirateWeather.ts). Sleet is freezing rain (66), so it gets the sleet icon.

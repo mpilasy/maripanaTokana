@@ -36,8 +36,10 @@ export function isStandalone(): boolean {
 		|| matchMedia('(display-mode: standalone)').matches;
 }
 
-/** iPhone and iPad browsers never offer to install a web app, so the app tells the user how. */
-// True on iOS when the app is not open from the Home Screen. All iOS browsers can add it there.
+/**
+ * True on iOS when the app is not open from the Home Screen. iOS browsers never offer to install a web app,
+ * but all of them can add it there, so the app tells the user how.
+ */
 export function canAddToHomeScreen(): boolean {
 	return isIos() && !isStandalone();
 }

@@ -60,7 +60,7 @@
 	const weekdayNames = $derived($json('weekday_names') as string[] | undefined);
 	const monthNames = $derived($json('month_names') as string[] | undefined);
 
-	// Browser locale detection for secondary language on error screen
+	// The browser language, for a second language on the error screen
 	function findBrowserLocaleTag(): string | null {
 		if (typeof navigator === 'undefined') return null;
 		const lang = navigator.language.split('-')[0].toLowerCase();
@@ -463,7 +463,7 @@
 								</svg>
 							</button>
 						{/if}
-						<!-- Twin: HeaderNameLine in app/src/main/java/orinasa/njarasoa/maripanatokana/ui/weather/WeatherContent.kt -->
+						<!-- Twin: HeaderNameLine in app/src/main/java/orinasa/njarasoa/maripanatokana/ui/mobile/weather/WeatherContent.kt -->
 						<!-- The name has priority: the time shows only when all of it fits after the name -->
 						{#if headerCollapsed && remoteTime}
 							<span class="location-time-fit"><span class="location-time"><span aria-hidden="true">&#x1F553;</span> {remoteTime}</span></span>

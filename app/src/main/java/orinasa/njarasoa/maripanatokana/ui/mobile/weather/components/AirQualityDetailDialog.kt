@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-package orinasa.njarasoa.maripanatokana.ui.weather.components
+package orinasa.njarasoa.maripanatokana.ui.mobile.weather.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,6 +33,7 @@ import orinasa.njarasoa.maripanatokana.domain.model.AqiStandard
 import orinasa.njarasoa.maripanatokana.domain.model.AqiTier
 import orinasa.njarasoa.maripanatokana.domain.model.PollenTier
 import java.util.Locale
+import orinasa.njarasoa.maripanatokana.ui.common.components.LocalizedDialog
 
 private data class PollutantRow(val label: String, val value: Double, val tier: AqiTier?)
 private data class PollenRow(val label: String, val value: Double, val tier: PollenTier)
@@ -65,8 +66,7 @@ fun AirQualityDetailDialog(
         airQuality.dust?.let { PollutantRow(stringResource(R.string.air_quality_dust), it, null) },
     )
 
-    // Pollen tiers reuse uv_labels (0=Low..3=Very High) rather than a dedicated array — see
-    // PollenTier's kdoc.
+    // Pollen tiers use uv_labels (0 = Low to 3 = Very High); see the comment on PollenTier.
     val uvLabels = stringArrayResource(R.array.uv_labels)
     fun pollenTierLabel(tier: PollenTier) = uvLabels[tier.ordinal]
     val pollen = airQuality.pollen

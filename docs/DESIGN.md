@@ -130,16 +130,28 @@ maripanaTokana/
 │   │   │   │   ├── CommonLocationModule.kt  # Hilt: LocationRepository binding
 │   │   │   │   └── RepositoryModule.kt      # Hilt: Repository bindings
 │   │   │   ├── ui/
-│   │   │   │   ├── weather/
-│   │   │   │   │   ├── WeatherScreen.kt     # Main UI host & dialog controller
-│   │   │   │   │   ├── WeatherContent.kt    # Main scrollable weather layout
-│   │   │   │   │   ├── WeatherViewModel.kt  # State, saved locations, refresh orchestration
-│   │   │   │   │   ├── WeatherUiState.kt    # Sealed UI state
-│   │   │   │   │   ├── chart/               # ChartViewScreen (chart view), ChartViewMath, ChartStyle (colours)
-│   │   │   │   │   └── components/          # NowcastCard, ActivitiesCard, OverviewChart, TemperatureChart,
-│   │   │   │   │                            # DailyTemperatureChart, TileGraphics (tabs, gauges, sun arc),
-│   │   │   │   │                            # WeatherIcon, WeatherAlertBanner, SavedLocationsDialog,
-│   │   │   │   │                            # RenameLocationDialog, AirQualityDetailDialog, etc.
+│   │   │   │   ├── mobile/                  # Phone screens only
+│   │   │   │   │   ├── weather/
+│   │   │   │   │   │   ├── WeatherScreen.kt     # Main UI host & dialog controller
+│   │   │   │   │   │   ├── WeatherContent.kt    # Main scrollable weather layout
+│   │   │   │   │   │   ├── WeatherViewModel.kt  # State, saved locations, refresh orchestration
+│   │   │   │   │   │   ├── WeatherUiState.kt    # Sealed UI state
+│   │   │   │   │   │   ├── chart/               # ChartViewScreen (chart view)
+│   │   │   │   │   │   └── components/          # NowcastCard, ActivitiesCard, OverviewChart, TemperatureChart,
+│   │   │   │   │   │                            # DailyTemperatureChart, TileGraphics (tabs, gauges, sun arc),
+│   │   │   │   │   │                            # tier badges, WeatherAlertBanner, SavedLocationsDialog,
+│   │   │   │   │   │                            # RenameLocationDialog, AirQualityDetailDialog, etc.
+│   │   │   │   │   ├── settings/
+│   │   │   │   │   │   ├── SettingsScreen.kt / SettingsViewModel.kt
+│   │   │   │   │   │   └── HelpScreen.kt / AboutScreen.kt
+│   │   │   │   │   └── permission/
+│   │   │   │   │       └── PermissionHandler.kt # Interface (flavor-implemented)
+│   │   │   │   ├── common/                  # UI code that the phone and the TV share
+│   │   │   │   │   ├── Locales.kt           # SupportedLocale, supportedLocales
+│   │   │   │   │   ├── Format.kt            # latitudeText
+│   │   │   │   │   ├── components/          # WeatherIcon, MoonPhaseIcon, TierColors (colorsFor), LocalizedDialog
+│   │   │   │   │   └── about/               # Credits, AppQrCodes, DeviceInfo
+│   │   │   │   ├── chart/                   # ChartViewMath (chart math), ChartStyle (colours): phone and TV charts
 │   │   │   │   ├── tv/
 │   │   │   │   │   ├── TvActivity.kt        # TV entry point and home screen (D-pad cards)
 │   │   │   │   │   ├── TvChart.kt           # Hourly and daily charts
@@ -147,11 +159,6 @@ maripanaTokana/
 │   │   │   │   │   ├── TvPlaces.kt          # Search, device location and saved places
 │   │   │   │   │   ├── TvSettings.kt        # Units, language, Help and About
 │   │   │   │   │   └── TvDream.kt           # Screensaver (DreamService)
-│   │   │   │   ├── settings/
-│   │   │   │   │   ├── SettingsScreen.kt / SettingsViewModel.kt
-│   │   │   │   │   └── HelpScreen.kt / AboutScreen.kt / DeviceInfo.kt
-│   │   │   │   ├── permission/
-│   │   │   │   │   └── PermissionHandler.kt # Interface (flavor-implemented)
 │   │   │   │   └── theme/
 │   │   │   │       ├── AppFonts.kt          # 22 font pairings
 │   │   │   │       ├── Theme.kt             # Material3 theme
@@ -314,7 +321,7 @@ The app takes `geo:` links, map links (Google, OpenStreetMap, Apple) and coordin
 The hero card also shows the change of the temperature in 6 hours and, when the high differs from the 10-year normal by 2 °C or more, today's high against the normal (`HighVsNormal`). The four hour tiles show the temperature in colour and the chance of rain.
 
 ### 8.5 Chart View
-`ui/weather/chart/ChartViewScreen.kt`. The chart button in the hourly forecast card opens it in the hourly mode, and the one in the 10-day forecast card opens it in the daily mode (`ChartViewMode`); Back closes it. A switch at the top (Hourly | Daily) changes the mode. The hourly mode shows up to 240 hours (10 days) in stacked panels that scroll sideways together, and opens at the current hour. The daily mode shows one point for each day of the daily forecast in the same panels, all in the width: the high and low, the daily totals, highest and mean values, and the highest hourly gust and air quality of each day (`chartDays`, `chartDayMaxIndex`); a tap selects a day. The panels, from top to bottom, are a time axis with weather icons, temperature (with dew point, heat index and wind chill), precipitation (with the chance of rain), wind (with gusts and direction arrows), pressure, humidity, and UV index with the air quality as a dashed line on its own scale (only when an hour has a UV index or air quality). A card at the top shows the values of the selected hour or day in both units; a tap changes the units. One finger scrolls the hours, and a tap moves the hour under it to the selection line. The data comes from `WeatherData.chartHourly` (`ChartHour`). `ChartStyle.kt` holds the colours and line styles that the main-page charts and the TV charts also use. The web has the same view in `ChartView.svelte`.
+`ui/mobile/weather/chart/ChartViewScreen.kt`. The chart button in the hourly forecast card opens it in the hourly mode, and the one in the 10-day forecast card opens it in the daily mode (`ChartViewMode`); Back closes it. A switch at the top (Hourly | Daily) changes the mode. The hourly mode shows up to 240 hours (10 days) in stacked panels that scroll sideways together, and opens at the current hour. The daily mode shows one point for each day of the daily forecast in the same panels, all in the width: the high and low, the daily totals, highest and mean values, and the highest hourly gust and air quality of each day (`chartDays`, `chartDayMaxIndex`); a tap selects a day. The panels, from top to bottom, are a time axis with weather icons, temperature (with dew point, heat index and wind chill), precipitation (with the chance of rain), wind (with gusts and direction arrows), pressure, humidity, and UV index with the air quality as a dashed line on its own scale (only when an hour has a UV index or air quality). A card at the top shows the values of the selected hour or day in both units; a tap changes the units. One finger scrolls the hours, and a tap moves the hour under it to the selection line. The data comes from `WeatherData.chartHourly` (`ChartHour`). `ui/chart/ChartStyle.kt` holds the colours and line styles that the main-page charts and the TV charts also use. The web has the same view in `ChartView.svelte`.
 
 ### 8.6 Android TV
 `TvActivity` (declared in the manifest with the `LEANBACK_LAUNCHER` category and no touchscreen requirement) shows the weather of one place with screens made for the D-pad. A card has a white border when it has focus; OK opens it; Back returns to the card that had focus. The TV screens use the phone's data layer and preferences (saved places, units, language) but not `WeatherContent`.
@@ -367,7 +374,7 @@ Updated every 30 minutes in background via `WorkManager` and `BaseWidgetWeatherF
 
 ## 12. Advanced Mode
 
-Renamed from "Expert Mode" in v1.2.15. A switch in Settings (`ui/settings/SettingsScreen.kt`), saved as `settings_advanced_mode`. It stays on until the user turns it off. It:
+Renamed from "Expert Mode" in v1.2.15. A switch in Settings (`ui/mobile/settings/SettingsScreen.kt`), saved as `settings_advanced_mode`. It stays on until the user turns it off. It:
 - Shows the Weather source, Alerts and Location (geocoder) sections in Settings.
 - Shows the alert sources that failed, on the main screen.
 - When turned off, clears a place preview and fetches the weather again.

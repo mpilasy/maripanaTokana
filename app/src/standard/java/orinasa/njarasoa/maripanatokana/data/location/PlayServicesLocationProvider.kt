@@ -11,11 +11,7 @@ import com.google.android.gms.tasks.CancellationTokenSource
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeoutOrNull
 
-/**
- * Location provider using Google Play Services FusedLocationProviderClient.
- * Provides enhanced accuracy and power efficiency compared to native LocationManager.
- * Standard flavor for Google Play distribution.
- */
+/** Location from the Google Play services FusedLocationProviderClient (standard flavor). */
 class PlayServicesLocationProvider(
     private val fusedLocationClient: FusedLocationProviderClient,
 ) : LocationProvider {

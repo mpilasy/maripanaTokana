@@ -6,7 +6,7 @@ package orinasa.njarasoa.maripanatokana
 import android.content.Context
 import android.content.res.Resources
 import androidx.core.content.edit
-import orinasa.njarasoa.maripanatokana.ui.weather.supportedLocales
+import orinasa.njarasoa.maripanatokana.ui.common.supportedLocales
 
 /**
  * Sets the app language on the first start after install: the first language of the device that the app has, else

@@ -17,7 +17,7 @@
 #  11. Non-Malagasy system locale → Error shown in both app language and system language
 #
 # Hard invariant: if CircularProgressIndicator is still on screen at t=20s, the test FAILS.
-# This invariant is what would have caught the v1.0.13 "keeps loading" bug.
+# This invariant catches a screen that keeps loading.
 #
 # BEFORE running: emulator -avd <name> -wipe-data   (guarantees no stale emulator state)
 # REQUIRES: adb in PATH, $ANDROID_HOME, emulator with telnet console (for geo fix).
@@ -229,7 +229,7 @@ revoke_perms
 disable_providers
 launch_app
 sleep 2
-# Auto-grant permission silently for this scenario (we just want to test location path)
+# Auto-grant permission silently for this scenario (this scenario tests the location path only)
 adb -s "$DEV" shell pm grant "$PKG" android.permission.ACCESS_COARSE_LOCATION 2>/dev/null || true
 adb -s "$DEV" shell pm grant "$PKG" android.permission.ACCESS_FINE_LOCATION 2>/dev/null || true
 adb -s "$DEV" shell am force-stop "$PKG" >/dev/null 2>&1
@@ -257,7 +257,7 @@ pass "Scenario 2: Loading ended within 20s (no geo fix)"
 
 # ── SCENARIO 3: Cached GPS fix + permission granted → weather loads ────────────
 # IMPORTANT: on API 34+, getLastKnownLocation returns null if the calling app did not
-# have location permission at the time the fix was captured. We therefore grant permission
+# have location permission at the time the fix was captured. So the script grants permission
 # BEFORE applying the geo fix so the system records this app as an "active accessor" and
 # allows getLastKnownLocation to return the cached fix on first launch.
 echo ""
@@ -293,7 +293,7 @@ pass "Scenario 4: Success within 15s (warm cache)"
 
 # ── SCENARIO 5: Deny → dialog can re-appear (v1.0.12 regression) ──────────────
 # Tests the invariant: after permission denial, the system dialog can be triggered
-# again. On API <33, the app task survives denial so we tap the "Grant Permission"
+# again. On API <33, the app task survives denial, so the script taps the "Grant Permission"
 # button. On API 33+, the task is destroyed after denial, so re-launching the app
 # causes LaunchedEffect(Unit) to auto-fire the dialog — same end result.
 echo ""
@@ -496,10 +496,10 @@ save_logcat 10
 pass "Scenario 10: location master toggle off → Open Settings button shown"
 
 # ── SCENARIO 11: Non-Malagasy system locale → Error in both languages ─────────────
-# The app defaults to Malagasy (locale index 0). A reviewer with an English emulator
-# must see the error in BOTH Malagasy (app locale) AND English (system locale).
-# We use location_mode 0 (not just disable_providers) to force an error even when the
-# emulator has a cached geo fix from earlier scenarios.
+# The error must show in the app language and in the system language (English here).
+# The Malagasy check expects the app in Malagasy, but a new install now starts in the
+# device language, so that check only warns. location_mode 0 (not only disable_providers)
+# forces an error even when the emulator has a cached geo fix from earlier scenarios.
 echo ""
 echo "=== SCENARIO 11: Non-Malagasy system locale → dual-language error ==="
 install_apk "$FDROID_APK"

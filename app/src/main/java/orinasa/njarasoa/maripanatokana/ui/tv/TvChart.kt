@@ -60,15 +60,15 @@ import orinasa.njarasoa.maripanatokana.domain.model.ThermalIndices
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.model.WindSpeed
 import orinasa.njarasoa.maripanatokana.ui.theme.temperatureColor
-import orinasa.njarasoa.maripanatokana.ui.weather.chart.ChartDomain
-import orinasa.njarasoa.maripanatokana.ui.weather.chart.ChartStyle
-import orinasa.njarasoa.maripanatokana.ui.weather.chart.ChartTile
-import orinasa.njarasoa.maripanatokana.ui.weather.chart.chartDash
-import orinasa.njarasoa.maripanatokana.ui.weather.chart.chartAirQuality
-import orinasa.njarasoa.maripanatokana.ui.weather.chart.chartDomain
-import orinasa.njarasoa.maripanatokana.ui.weather.chart.chartTiles
-import orinasa.njarasoa.maripanatokana.ui.weather.components.WeatherIcon
-import orinasa.njarasoa.maripanatokana.ui.weather.components.colorsFor
+import orinasa.njarasoa.maripanatokana.ui.chart.ChartDomain
+import orinasa.njarasoa.maripanatokana.ui.chart.ChartStyle
+import orinasa.njarasoa.maripanatokana.ui.chart.ChartTile
+import orinasa.njarasoa.maripanatokana.ui.chart.chartDash
+import orinasa.njarasoa.maripanatokana.ui.chart.chartAirQuality
+import orinasa.njarasoa.maripanatokana.ui.chart.chartDomain
+import orinasa.njarasoa.maripanatokana.ui.chart.chartTiles
+import orinasa.njarasoa.maripanatokana.ui.common.components.WeatherIcon
+import orinasa.njarasoa.maripanatokana.ui.common.components.colorsFor
 import java.util.Locale
 import kotlin.math.roundToInt
 

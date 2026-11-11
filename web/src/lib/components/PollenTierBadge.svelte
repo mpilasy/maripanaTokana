@@ -15,8 +15,7 @@
 <span class="pollen-badge tier-{tier}" class:compact>{label}</span>
 
 <style>
-	/* Reuses UvTierBadge's Low/Moderate/High/Very High colors (green/yellow/orange/red) — same
-	   four-tier semantics, so the same color ramp applies. */
+	/* UvTierBadge's Low/Moderate/High/Very High colors (green/yellow/orange/red): the four levels mean the same */
 	.pollen-badge {
 		/* A tint of the level's colour, with the text in a lighter shade of it, as on the activity badges */
 		background: color-mix(in srgb, var(--tier) 22%, transparent);

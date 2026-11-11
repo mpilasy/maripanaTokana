@@ -28,7 +28,7 @@ value class Temperature private constructor(val celsius: Double) {
         else if (decimals > 0) "%.${decimals}f°F".format(Locale.US, fahrenheit)
         else "%d°F".format(Locale.US, fahrenheit.roundToInt())
 
-    /** Dual-unit display as required by spec: "2°C / 36°F" */
+    /** Dual-unit display: "2°C / 36°F" */
     fun displayDual(): String = "${displayCelsius()} / ${displayFahrenheit()}"
 
     /** Returns (primary, secondary) based on preferred unit system. */

@@ -34,9 +34,8 @@ function formatExifDate(date: Date): string {
 }
 
 /**
- * Minimal little-endian TIFF/EXIF blob carrying just DateTime, DateTimeOriginal
- * and DateTimeDigitized — no GPS/location data. This is the same payload format
- * PNG's "eXIf" chunk expects (no "Exif\0\0"/APP1 wrapper needed, unlike JPEG).
+ * A little-endian TIFF/EXIF block with only DateTime, DateTimeOriginal and DateTimeDigitized (no location).
+ * PNG's "eXIf" chunk takes it as it is: no "Exif\0\0"/APP1 wrapper, unlike JPEG.
  */
 function buildExifTiff(date: Date): Uint8Array {
 	const dateBytes = textEncoder.encode(formatExifDate(date) + '\0'); // 20 bytes incl. null terminator
@@ -102,10 +101,7 @@ function buildExifTiff(date: Date): Uint8Array {
 	return bytes;
 }
 
-/**
- * Insert an "eXIf" chunk (PNG's native EXIF carrier, standardized 2017) right
- * after IHDR, per spec requiring it precede the first IDAT chunk.
- */
+/** Inserts an "eXIf" chunk right after IHDR: the PNG spec puts it before the first IDAT chunk. */
 function addExifDateTime(pngBytes: Uint8Array, date: Date): Uint8Array {
 	const exifData = buildExifTiff(date);
 	const typeAndData = new Uint8Array(4 + exifData.length);
@@ -129,8 +125,8 @@ function addExifDateTime(pngBytes: Uint8Array, date: Date): Uint8Array {
 }
 
 /**
- * Capture a DOM element (and optionally a header element), composite them
- * onto a branded canvas, and share as PNG via Web Share API (or download).
+ * Captures the header and the content, draws them on one canvas with the app name, and shares it as a PNG
+ * (Web Share API) or downloads it.
  */
 export async function captureAndShare(
 	headerEl: HTMLElement,
@@ -144,13 +140,11 @@ export async function captureAndShare(
 		onclone: (doc: Document) => doc.querySelectorAll<HTMLElement>('[data-share-only]').forEach((el) => { el.style.display = 'block'; }),
 	};
 
-	// Capture both elements
 	const [headerCapture, contentCapture] = await Promise.all([
 		html2canvas(headerEl, opts),
 		html2canvas(contentEl, opts),
 	]);
 
-	// Composite onto branded canvas
 	const width = Math.max(headerCapture.width, contentCapture.width) + PADDING * 2;
 	// Two small lines under the content: app name and version, then the site
 	const copyrightHeight = COPYRIGHT_FONT_SIZE * 4 + 6 + PADDING / 2;
@@ -161,14 +155,13 @@ export async function captureAndShare(
 	canvas.height = height;
 	const ctx = canvas.getContext('2d')!;
 
-	// Background
 	ctx.fillStyle = BG_COLOR;
 	ctx.fillRect(0, 0, width, height);
 
-	// Header (location + date — captured from DOM with actual fonts/styling)
+	// The header: the place and the date
 	ctx.drawImage(headerCapture, PADDING, PADDING);
 
-	// Content (the shared section)
+	// The shared section
 	ctx.drawImage(contentCapture, PADDING, PADDING + headerCapture.height + GAP);
 
 	// App name, version and site, faint and small (canvas is drawn at scale 2)
@@ -189,7 +182,6 @@ export async function captureAndShare(
 	const blob = new Blob([withExif.buffer as ArrayBuffer], { type: 'image/png' });
 	const file = new File([blob], 'maripanatokana-weather.png', { type: 'image/png' });
 
-	// Share or download
 	if (navigator.share && navigator.canShare?.({ files: [file] })) {
 		await navigator.share({ files: [file] });
 	} else {

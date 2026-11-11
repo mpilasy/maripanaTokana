@@ -47,9 +47,7 @@ interface AlertRegions {
 	inMeteoAlarm: boolean;
 }
 
-// Coordinate-based fallbacks so a failed/rate-limited reverse-geocode (cc === '') doesn't
-// silently suppress a country-gated source — reverse geocoding is an extra network call
-// that can fail independently of the alert fetch itself.
+// Coordinate fallbacks: when the reverse geocode fails (cc === ''), a country-gated source still runs.
 function alertRegions(lat: number, lon: number, cc: string): AlertRegions {
 	return {
 		inUS: cc === 'us' || isInUS(lat, lon),
@@ -73,8 +71,7 @@ export async function fetchAllAlerts(
 ): Promise<AlertsResult> {
 	if (!settings.alertsEnabled) return { alerts: [], failedSources: [] };
 
-	// Accept a pre-fetched location lookup when the caller already needed one (e.g. for AQI
-	// standard selection) to avoid firing a second, redundant reverse-geocode request.
+	// A location lookup from the caller prevents a second reverse geocode
 	const { countryCode, stateCode, subdivisionName } = locationInfo ?? await getLocationInfo(lat, lon);
 	const cc = countryCode ?? '';
 

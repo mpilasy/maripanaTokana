@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-License-Identifier: GPL-3.0-or-later
-package orinasa.njarasoa.maripanatokana.ui.weather.components
+package orinasa.njarasoa.maripanatokana.ui.mobile.weather.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -8,8 +8,8 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.ui.Alignment
-import orinasa.njarasoa.maripanatokana.ui.weather.ShowAllChevron
-import orinasa.njarasoa.maripanatokana.ui.weather.TouchTarget
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.ShowAllChevron
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.TouchTarget
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
@@ -56,7 +56,7 @@ import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.ui.theme.Hairline
 import orinasa.njarasoa.maripanatokana.ui.theme.fontPairings
 import orinasa.njarasoa.maripanatokana.ui.theme.localName
-import orinasa.njarasoa.maripanatokana.ui.weather.supportedLocales
+import orinasa.njarasoa.maripanatokana.ui.common.supportedLocales
 
 /**
  * The language flag: a tap shows the next language; holding it lists every language to pick one,

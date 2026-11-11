@@ -2,18 +2,16 @@
 FROM node:24-alpine AS build
 WORKDIR /app
 
-# Copy package files and install dependencies
 COPY web/package.json web/package-lock.json ./
 RUN npm ci
 
-# Copy web source code (symlinks copied as-is, resolved below)
+# The i18n locales symlink is copied as-is and replaced below
 COPY web/ .
 
-# Replace i18n locales symlink with actual canonical files
+# Replace the i18n locales symlink with the canonical files
 RUN rm -f src/lib/i18n/locales
 COPY shared/i18n/locales/ ./src/lib/i18n/locales/
 
-# Build
 RUN npm run build
 
 # Stage 2: Run
@@ -29,10 +27,8 @@ ENV COMPRESS=true
 
 EXPOSE 3000
 
-# Health check
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD wget -qO- http://127.0.0.1:3000/ >/dev/null || exit 1
 
-# Run as non-root user
 USER node
 
 CMD ["node", "build/index.js"]

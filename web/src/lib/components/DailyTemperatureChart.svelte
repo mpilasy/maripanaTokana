@@ -159,7 +159,7 @@
 </script>
 
 <svg width={svgWidth} {height} viewBox="0 0 {svgWidth} {height}" class="daily-chart" role={ariaLabel ? 'img' : undefined} aria-label={ariaLabel}>
-	<!-- Monday Vertical Lines -->
+	<!-- A dashed line at each Monday -->
 	{#each mondayIndices as idx}
 		{@const x = getX(idx)}
 		<line x1={x} y1="0" x2={x} y2={height} stroke="white" stroke-width="1" stroke-opacity="0.1" stroke-dasharray="2 2" />

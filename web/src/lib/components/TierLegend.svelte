@@ -13,12 +13,8 @@
 	let { entries }: Props = $props();
 </script>
 
-<!--
-	Compact color-key legend for charts whose data points are colored by a discrete tier (UV,
-	AQI, ...) rather than a single fixed line color — without this, a viewer has no way to know
-	what a given dot's color means. Wraps across lines instead of truncating, so it stays
-	readable regardless of label length or locale.
--->
+<!-- The color key of a chart whose dots have the color of their level (UV, AQI). It wraps instead of cutting
+     long labels short. -->
 <div class="tier-legend">
 	{#each entries as entry}
 		<span class="legend-item">

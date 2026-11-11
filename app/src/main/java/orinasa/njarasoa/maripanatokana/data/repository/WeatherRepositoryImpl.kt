@@ -41,7 +41,7 @@ import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.repository.AlertsResult
 import orinasa.njarasoa.maripanatokana.domain.repository.WeatherRepository
 import orinasa.njarasoa.maripanatokana.data.remote.dedupeByPlace
-import orinasa.njarasoa.maripanatokana.ui.weather.supportedLocales
+import orinasa.njarasoa.maripanatokana.ui.common.supportedLocales
 import orinasa.njarasoa.maripanatokana.util.AppLog
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
@@ -158,7 +158,6 @@ class WeatherRepositoryImpl @Inject constructor(
                 latitude = lat,
                 longitude = lon,
                 alertsLoading = true,
-                // derived alerts from the source are preserved and passed to fetchAlerts later
                 forecastChanges = changes,
                 sea = sea,
             ))
@@ -544,7 +543,7 @@ class WeatherRepositoryImpl @Inject constructor(
     /** The alert for [entry], or null when it is not an actual alert or is for an area other than [subdivisionName]. */
     private fun meteoAlarmAlert(entry: MeteoAlarmEntry, subdivisionName: String?, onsetParser: SimpleDateFormat): WeatherAlert? {
         if (entry.event.isBlank() || (entry.status.isNotBlank() && entry.status != "Actual")) return null
-        // Filter to user's subdivision when known
+        // Keep only the user's subdivision when it is known
         if (!subdivisionName.isNullOrBlank() && entry.areaDesc.isNotBlank() && !areaMatches(entry.areaDesc, subdivisionName)) return null
         val level = when (entry.severity.lowercase()) {
             "extreme" -> AlertLevel.EMERGENCY

@@ -3,7 +3,7 @@
 
 package orinasa.njarasoa.maripanatokana
 
-import orinasa.njarasoa.maripanatokana.ui.weather.supportedLocales
+import orinasa.njarasoa.maripanatokana.ui.common.supportedLocales
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

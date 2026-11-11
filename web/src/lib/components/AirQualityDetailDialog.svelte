@@ -46,8 +46,7 @@
 		).filter(([, value]) => value != null) as [string, number, AqiTier | null][]
 	);
 
-	// Pollen tiers reuse uv_labels (0=Low..3=Very High) rather than a dedicated array — see
-	// pollenTierFor's doc comment in $lib/domain/airQuality.
+	// Pollen tiers use uv_labels (0 = Low to 3 = Very High): see PollenTier in $lib/domain/airQuality
 	function pollenTierLabel(tier: PollenTier): string {
 		const labels = $json('uv_labels') as string[];
 		if (!Array.isArray(labels)) return '';

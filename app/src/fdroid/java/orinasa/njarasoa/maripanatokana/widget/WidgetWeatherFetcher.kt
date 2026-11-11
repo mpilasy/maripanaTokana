@@ -31,7 +31,7 @@ object WidgetWeatherFetcher : BaseWidgetWeatherFetcher() {
         try {
             val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
-            // Try GPS first, then network
+            // The newer of the last GPS fix and the last network fix
             val gpsLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
             val networkLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
 

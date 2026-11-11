@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-package orinasa.njarasoa.maripanatokana.ui.weather
+package orinasa.njarasoa.maripanatokana.ui.mobile.weather
 
 import androidx.compose.foundation.layout.PaddingValues
-import orinasa.njarasoa.maripanatokana.ui.weather.chart.ChartViewMode
-import orinasa.njarasoa.maripanatokana.ui.weather.components.FontPicker
-import orinasa.njarasoa.maripanatokana.ui.weather.components.LanguageFlagButton
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.chart.ChartViewMode
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.FontPicker
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.LanguageFlagButton
 import android.content.Intent
 import orinasa.njarasoa.maripanatokana.domain.model.ThermalIndices
 import orinasa.njarasoa.maripanatokana.domain.model.greatCircleKm
@@ -115,7 +115,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.staticCompositionLocalOf
 import orinasa.njarasoa.maripanatokana.domain.model.ActivityIndices
-import orinasa.njarasoa.maripanatokana.ui.weather.components.ActivitiesCard
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.ActivitiesCard
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -225,47 +225,48 @@ import orinasa.njarasoa.maripanatokana.ui.theme.TileSurface
 import orinasa.njarasoa.maripanatokana.ui.theme.TileSurfaceHighlight
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFontFeatures
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
-import orinasa.njarasoa.maripanatokana.ui.weather.components.AirQualityDetailDialog
-import orinasa.njarasoa.maripanatokana.ui.weather.components.AqiTierBadge
-import orinasa.njarasoa.maripanatokana.ui.weather.components.TierPill
-import orinasa.njarasoa.maripanatokana.ui.weather.components.ChartScrub
-import orinasa.njarasoa.maripanatokana.ui.weather.components.DailyTemperatureChart
-import orinasa.njarasoa.maripanatokana.ui.weather.components.ForecastTabs
-import orinasa.njarasoa.maripanatokana.ui.weather.components.WeatherIcon
-import orinasa.njarasoa.maripanatokana.ui.weather.components.LevelBar
-import orinasa.njarasoa.maripanatokana.ui.weather.components.OverviewChart
-import orinasa.njarasoa.maripanatokana.ui.weather.components.OverviewStyle
-import orinasa.njarasoa.maripanatokana.ui.weather.components.colorsFor
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.AirQualityDetailDialog
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.AqiTierBadge
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.TierPill
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.ChartScrub
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.DailyTemperatureChart
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.ForecastTabs
+import orinasa.njarasoa.maripanatokana.ui.common.components.WeatherIcon
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.LevelBar
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.OverviewChart
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.OverviewStyle
+import orinasa.njarasoa.maripanatokana.ui.common.components.colorsFor
 import orinasa.njarasoa.maripanatokana.domain.model.AqiTier
 import orinasa.njarasoa.maripanatokana.ui.theme.AppDarkPrimary
-import orinasa.njarasoa.maripanatokana.ui.weather.chart.ChartStyle
-import orinasa.njarasoa.maripanatokana.ui.weather.chart.chartDaylight
-import orinasa.njarasoa.maripanatokana.ui.weather.chart.chartMidnights
-import orinasa.njarasoa.maripanatokana.ui.weather.components.SecondScale
+import orinasa.njarasoa.maripanatokana.ui.chart.ChartStyle
+import orinasa.njarasoa.maripanatokana.ui.chart.chartDaylight
+import orinasa.njarasoa.maripanatokana.ui.chart.chartMidnights
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.SecondScale
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.foundation.border
-import orinasa.njarasoa.maripanatokana.ui.weather.components.Gauge
-import orinasa.njarasoa.maripanatokana.ui.weather.components.SunArc
-import orinasa.njarasoa.maripanatokana.ui.weather.components.MoonPhaseIcon
-import orinasa.njarasoa.maripanatokana.ui.weather.components.SkyArc
-import orinasa.njarasoa.maripanatokana.ui.weather.components.CompassDial
-import orinasa.njarasoa.maripanatokana.ui.weather.components.drawMoon
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.Gauge
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.SunArc
+import orinasa.njarasoa.maripanatokana.ui.common.components.MoonPhaseIcon
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.SkyArc
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.CompassDial
+import orinasa.njarasoa.maripanatokana.ui.common.components.drawMoon
 import orinasa.njarasoa.maripanatokana.domain.model.Moon
 import orinasa.njarasoa.maripanatokana.domain.model.Seasons
 import kotlin.math.abs
 import kotlin.math.roundToInt
-import orinasa.njarasoa.maripanatokana.ui.weather.components.TemperatureRangeBar
-import orinasa.njarasoa.maripanatokana.ui.weather.components.WindCompass
-import orinasa.njarasoa.maripanatokana.ui.weather.components.TemperatureChart
-import orinasa.njarasoa.maripanatokana.ui.weather.components.UvTierBadge
-import orinasa.njarasoa.maripanatokana.ui.weather.components.WeatherAlertBanner
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.TemperatureRangeBar
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.WindCompass
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.TemperatureChart
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.UvTierBadge
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.WeatherAlertBanner
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import orinasa.njarasoa.maripanatokana.ui.common.latitudeText
 
 internal enum class ForecastDisplayMode {
     Temperature,
@@ -324,7 +325,7 @@ internal fun WeatherContent(
 ) {
     val context = LocalContext.current
     val appLocale = LocalConfiguration.current.locales[0]
-    // Bolt: Memoize SimpleDateFormat to avoid expensive recreation on recomposition
+    // Remembered: a SimpleDateFormat is costly to make again on each recomposition
     val dateFormat = remember(appLocale) { SimpleDateFormat("EEE d MMM", appLocale) }
     val screenTimeFormat = remember(appLocale) {
         SimpleDateFormat(
@@ -927,7 +928,7 @@ internal fun WeatherContent(
                             )
                             NextHoursStrip(data, metricPrimary, localizeDigits, onToggleUnits)
                         }
-                        // The 36 dp circle in the same place as before, in a 48 dp hit area
+                        // The 36 dp circle in a 48 dp hit area
                         Box(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
@@ -972,7 +973,7 @@ internal fun WeatherContent(
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                             modifier = Modifier.padding(start = 4.dp, bottom = 8.dp).semantics { heading() },
                         )
-                        orinasa.njarasoa.maripanatokana.ui.weather.components.NowcastCard(
+                        orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.NowcastCard(
                             items = data.minutelyForecast,
                             isMetricPrimary = metricPrimary,
                             utcOffsetSeconds = data.utcOffsetSeconds,
@@ -1218,7 +1219,7 @@ private fun rememberReduceMotion(): Boolean {
 
 /**
  * A small down arrow after a footer pill (font, language): a tap opens the same list as holding the pill.
- * Twin: the chevron buttons in web/src/lib/components/Footer.svelte
+ * Twin: the show-all buttons in web/src/lib/components/Footer.svelte
  */
 @Composable
 internal fun ShowAllChevron(onClick: () -> Unit, alpha: Float = 0.7f) {
@@ -1431,7 +1432,7 @@ internal fun SectionCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                // The 48 dp share button takes 2 dp more each side than the old 44 dp row: the padding is 2 dp less
+                // The 48 dp share button takes 2 dp more each side than a 44 dp row: the padding is 2 dp less
                 .padding(start = if (bare) 4.dp else 16.dp, end = if (bare) 0.dp else 2.dp, top = 4.dp, bottom = 4.dp)
                 // Large text: the title can take two lines
                 .heightIn(min = 48.dp),
@@ -1876,7 +1877,6 @@ internal fun HourlyForecastRow(
     // The selected tab; the caller keeps it, so the share image shows the same tab
     modeState: MutableState<ForecastDisplayMode> = remember { mutableStateOf(ForecastDisplayMode.Temperature) },
 ) {
-    // Bolt: Memoize SimpleDateFormat for location time
     val locationHourFormat = remember(utcOffsetSeconds) { 
         SimpleDateFormat("HH:mm", Locale.US).apply {
             val sign = if (utcOffsetSeconds >= 0) "+" else "-"
@@ -2117,11 +2117,8 @@ internal fun DailyForecastList(
     normals: DailyNormals? = null,
 ) {
     val appLocale = LocalConfiguration.current.locales[0]
-    // Bolt: Memoize SimpleDateFormat
-    // Day names must use the forecast location's timezone, not the device's — item.date is an
-    // absolute instant representing local midnight AT THE LOCATION, so formatting it in the
-    // device's default timezone can shift the displayed calendar day when the two zones differ
-    // (e.g. an advanced-mode location override far from the device's real timezone).
+    // Day names in the place's time zone: item.date is local midnight at the place, so the device time zone
+    // can show the wrong day (for example, for an advanced-mode location far from the device).
     val locationTimeZone = remember(utcOffsetSeconds) { buildLocationTimeZone(utcOffsetSeconds) }
     val dayFormat = remember(appLocale, locationTimeZone) { SimpleDateFormat("EEE", appLocale).apply { timeZone = locationTimeZone } }
     val dayMonthFormat = remember(appLocale, locationTimeZone) { SimpleDateFormat("d MMM", appLocale).apply { timeZone = locationTimeZone } }
@@ -2180,7 +2177,7 @@ internal fun DailyForecastList(
         )
         val cards: @Composable () -> Unit = {
         forecasts.forEach { item ->
-            // Bolt: Add key to enable smart recomposition
+            // Keyed by date, so Compose keeps each card when the list changes
             androidx.compose.runtime.key(item.date) {
                 Card(
                     modifier = Modifier.width(itemWidth),
@@ -3474,15 +3471,6 @@ private fun NoonFromOverhead(latitude: Double, sunrise: Long, sunset: Long, loca
 }
 
 /**
- * A latitude as whole degrees and a direction ("17° S"), isolated left to right, so the degrees and the letter keep
- * their order in an Arabic sentence.
- */
-internal fun latitudeText(lat: Double, directions: Array<String>, localizeDigits: (String) -> String): String {
-    val r = abs(lat).roundToInt()
-    return "\u2066" + localizeDigits(if (r == 0) "0°" else "$r° ${directions[if (lat > 0) 0 else 8]}") + "\u2069"
-}
-
-/**
  * The declination (where on Earth the sun is straight overhead) on a dial from 23° S to 23° N, the days until the
  * next solstice or equinox, and its name and date.
  */
@@ -3832,37 +3820,33 @@ internal suspend fun shareCardBitmap(context: android.content.Context, bitmap: B
     context.startActivity(Intent.createChooser(intent, null))
 }
 
-/** Check if the location's timezone differs from the device's timezone. */
+/** True when the place's UTC offset differs from the device's offset now. */
 private fun isRemoteTimezone(utcOffsetSeconds: Int): Boolean {
     val deviceOffsetMs = TimeZone.getDefault().getOffset(System.currentTimeMillis())
     return deviceOffsetMs != utcOffsetSeconds * 1000
 }
 
-/** Get the current time at a location given its UTC offset. */
+/** The current time at the place, with the weekday when its date differs from the device's date. */
 private fun formatLocationCurrentTime(utcOffsetSeconds: Int, locale: Locale): String {
     val utcNow = System.currentTimeMillis()
     val locationMs = utcNow + utcOffsetSeconds * 1000L
     
-    // Check if the date is different
     val deviceDate = SimpleDateFormat("yyyyMMdd", Locale.US).apply { timeZone = TimeZone.getDefault() }.format(Date(utcNow))
     val locationDate = SimpleDateFormat("yyyyMMdd", Locale.US).apply { timeZone = TimeZone.getTimeZone("UTC") }.format(Date(locationMs))
 
     return if (deviceDate != locationDate) {
-        // Show date and time, e.g., "Mon, 14:30"
+        // Weekday and time, for example "Mon, 14:30"
         val format = SimpleDateFormat("EEE, HH:mm", locale)
         format.timeZone = TimeZone.getTimeZone("UTC")
         format.format(Date(locationMs))
     } else {
-        // Show only time
         val format = SimpleDateFormat("HH:mm", Locale.US)
         format.timeZone = TimeZone.getTimeZone("UTC")
         format.format(Date(locationMs))
     }
 }
 
-/**
- * Convert an epoch (UTC millis) to the device's actual local time.
- */
+/** [epochMillis] as HH:mm in the device's time zone. */
 private fun formatHourInDeviceTime(epochMillis: Long): String {
     val format = SimpleDateFormat("HH:mm", Locale.US)
     // Default timezone for SimpleDateFormat is the device's local timezone
@@ -3945,7 +3929,7 @@ private fun LocationDetails(
     val haptic = LocalHapticFeedback.current
     val copiedMessage = stringResource(R.string.copied)
     val copyLabel = stringResource(R.string.copy)
-    // A tap opens the point in a map app, as the coordinates did before; not this app, which also takes places
+    // A tap opens the point in a map app, but not in this app, which also accepts geo: links
     val openInMap = {
         val geo = Intent(Intent.ACTION_VIEW, "geo:$lat,$lon?q=$lat,$lon".toUri())
         val self = arrayOf(android.content.ComponentName(context, MainActivity::class.java))

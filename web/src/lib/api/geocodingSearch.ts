@@ -33,9 +33,8 @@ export function dedupeResults(items: SearchResult[]): SearchResult[] {
 }
 
 /**
- * Forward-geocoding search used by SavedLocationsDialog (including its Advanced Mode "Use once"
- * temporary-override action). Supports direct "lat,lon" input, URLs, DMS, or queries Open-Meteo's geocoding
- * API — mirrors Android's SystemGeocoderSource.searchLocations.
+ * The search of the places dialog: Plus Codes, "lat,lon", links and DMS, else Open-Meteo's geocoding API.
+ * Mirrors Android's SystemGeocoderSource.searchLocations.
  */
 export async function searchLocations(query: string): Promise<SearchResult[]> {
 	let results: SearchResult[] = [];

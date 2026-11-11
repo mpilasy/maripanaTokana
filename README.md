@@ -133,13 +133,17 @@ app/src/main/java/orinasa/njarasoa/maripanatokana/
 │   ├── model/           # Value classes (Temperature, Pressure, WindSpeed, ...), alerts, air quality, saved places
 │   └── repository/      # Repository interfaces
 ├── ui/
-│   ├── permission/      # PermissionHandler interface (each flavor has its own implementation)
-│   ├── settings/        # Settings, Help and About screens, device info
+│   ├── chart/           # Chart math and chart colours, for the phone and TV charts
+│   ├── common/          # UI code that the phone and the TV share: languages, weather and moon icons,
+│   │                    # tier colours, dialog, About credits and QR codes, device info
+│   ├── mobile/          # Phone screens only
+│   │   ├── permission/  # PermissionHandler interface (each flavor has its own implementation)
+│   │   ├── settings/    # Settings, Help and About screens
+│   │   └── weather/     # WeatherScreen, WeatherContent, WeatherViewModel, WeatherUiState, permission and error screens
+│   │       ├── chart/   # Chart view (ChartViewScreen)
+│   │       └── components/ # Forecast charts, tiles, dials, alert banner, nowcast, dialogs
 │   ├── theme/           # Compose theme, fonts, CompositionLocals
-│   ├── tv/              # Android TV: home, hourly and daily charts, details, places, settings, screensaver
-│   └── weather/         # WeatherScreen, WeatherContent, WeatherViewModel, WeatherUiState, permission and error screens
-│       ├── chart/       # Chart view (ChartViewScreen)
-│       └── components/  # Forecast charts, tiles, dials, alert banner, nowcast, dialogs
+│   └── tv/              # Android TV: home, hourly and daily charts, details, places, settings, screensaver
 ├── util/                # Logging
 └── widget/              # Glance widgets (4x1, 4x2), WorkManager updater
     └── theme/           # Widget Glance theme

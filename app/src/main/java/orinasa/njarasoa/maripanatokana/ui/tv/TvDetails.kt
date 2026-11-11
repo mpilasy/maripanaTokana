@@ -49,9 +49,9 @@ import orinasa.njarasoa.maripanatokana.domain.model.AqiTier
 import orinasa.njarasoa.maripanatokana.domain.model.Moon
 import orinasa.njarasoa.maripanatokana.domain.model.Seasons
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
-import orinasa.njarasoa.maripanatokana.ui.weather.latitudeText
-import orinasa.njarasoa.maripanatokana.ui.weather.components.MoonPhaseIcon
-import orinasa.njarasoa.maripanatokana.ui.weather.components.colorsFor
+import orinasa.njarasoa.maripanatokana.ui.common.latitudeText
+import orinasa.njarasoa.maripanatokana.ui.common.components.MoonPhaseIcon
+import orinasa.njarasoa.maripanatokana.ui.common.components.colorsFor
 import java.util.Locale
 import kotlin.math.roundToInt
 

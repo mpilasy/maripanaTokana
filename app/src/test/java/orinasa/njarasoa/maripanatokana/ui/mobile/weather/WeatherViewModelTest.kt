@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-package orinasa.njarasoa.maripanatokana.ui.weather
+package orinasa.njarasoa.maripanatokana.ui.mobile.weather
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -122,43 +122,9 @@ class WeatherViewModelTest {
 
     @Test
     fun testRefreshPerformance() = runTest(testDispatcher) {
-        // Baseline:
-        // doFetch calls:
-        // 1. getLastLocation (100ms) -> success
-        // 2. getWeather (2000ms) -> success (Total 2100ms)
-        // 3. getFreshLocation (3000ms) -> success (Total 5100ms)
-        // 4. movedSignificantly? Assume yes or usedCached logic.
-        // If sequential: 100 + 2000 + 3000 = 5100ms roughly.
-        // If parallel: max(100+2000, 3000) = 3000ms roughly. Or slightly more due to logic.
-
-        // We need to ensure movedSignificantly returns true or we force a fetch?
-        // In current implementation:
-        // if (!usedCached || movedSignificantly(...))
-        // usedCached becomes true in step 1.
-        // movedSignificantly checks prefs.
-        // Prefs return 0f (from setup).
-        // getLastLocation returns 10.0, 20.0.
-        // saveLocation saves 10.0, 20.0.
-        // getFreshLocation returns 10.1, 20.1.
-        // movedSignificantly(10.1, 20.1) vs (10.0, 20.0).
-        // delta ~ 0.1 deg > 0.045 deg. So movedSignificantly = true.
-        // So it will fetch weather again.
-        // 3000ms (Fresh Loc) + 2000ms (Weather) = 5000ms.
-
-        // Wait, if parallel:
-        // Task 1: 100ms (Loc) + 2000ms (Weather) = 2100ms.
-        // Task 2: 3000ms (Loc).
-        // Task 2 finishes at 3000ms.
-        // Then Task 2 fetches weather (2000ms).
-        // Total time for Task 2 chain: 3000 + 2000 = 5000ms.
-
-        // So Parallel total time = 5000ms.
-        // Sequential total time:
-        // 1. LastLoc (100) -> Weather (2000) = 2100ms.
-        // 2. FreshLoc (3000) -> Weather (2000) = 5000ms (relative to start of FreshLoc).
-        // Total sequential: 2100 + 5000 = 7100ms.
-
-        // Improvement: 7100ms -> 5000ms.
+        // The cached fix (100 ms) loads the weather (2000 ms) while the fresh fix (3000 ms) runs. The fresh fix
+        // is about 0.1° away (more than 0.045°), so it loads the weather again (2000 ms).
+        // In parallel: max(2100, 3000 + 2000) = 5000 ms. One after the other: 2100 + 3000 + 2000 = 7100 ms.
 
         val start = currentTime
         viewModel.refresh()
@@ -167,22 +133,6 @@ class WeatherViewModelTest {
         val duration = end - start
 
         println("Duration: $duration ms")
-
-        // Assert that parallel execution is faster than sequential sum
-        // 100 + 2000 + 3000 + 2000 = 7100
-        // We expect < 6000 for parallel
-
-        // Actually, if parallel:
-        // T1: 0..2100
-        // T2: 0..3000 (Loc) -> 3000..5000 (Weather)
-        // Max end time is 5000.
-
-        // If sequential:
-        // T1: 0..2100
-        // T2: 2100..5100 (Loc) -> 5100..7100 (Weather)
-        // Max end time is 7100.
-
-        // So checking if duration < 6000 asserts parallel execution of T2 Loc vs T1.
 
         assertTrue("Duration should be optimized (parallel). Got $duration ms, expected < 6000 ms", duration < 6000)
     }

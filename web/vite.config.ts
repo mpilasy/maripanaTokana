@@ -15,7 +15,7 @@ export default defineConfig({
 			csp: {
 				mode: 'auto',
 				reportOnly: {
-					// Validated default policy — report-only until verified in browser console
+					// Report-only until the policy is verified
 					'default-src': ['self'],
 					'script-src': ['self'],
 					'style-src': ['self', 'unsafe-inline'],

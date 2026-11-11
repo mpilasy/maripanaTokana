@@ -4,7 +4,7 @@
 set -euo pipefail
 
 # Do the F-Droid reproducible build check before a release is published.
-# F-Droid builds the app from source and compares it with our signed APK.
+# F-Droid builds the app from source and compares it with the signed release APK.
 # If they are not the same, F-Droid does not publish that version.
 #
 # This script does the same check in F-Droid's own build image, with
@@ -18,7 +18,7 @@ set -euo pipefail
 # The commit must be on GitHub, because fdroid build clones from there.
 # With --build-only, the script does not compare. It writes F-Droid's unsigned
 # APK to UNSIGNED_OUT. Compare it later with scripts/fdroid_compare.py. The
-# release workflow does this, so that the F-Droid build and our build can run
+# release workflow does this, so that the F-Droid build and the release build can run
 # at the same time.
 
 BUILD_ONLY=
@@ -47,7 +47,7 @@ if [ -z "$BUILD_ONLY" ]; then
     cp "$APK" "$WORK/ref/$APP_ID.apk"
 fi
 
-# Our metadata, with this build. Binaries is removed: the signed APK is not
+# The app metadata, with this build. Binaries is removed: the signed APK is not
 # on GitHub yet, so the comparison is done after the build (see inner.sh),
 # with the same fdroidserver function that "fdroid build" uses.
 cp "$ROOT/metadata/$APP_ID.yml" "$WORK/metadata/$APP_ID.yml"

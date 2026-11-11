@@ -1,25 +1,14 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-package orinasa.njarasoa.maripanatokana.ui.weather.components
+package orinasa.njarasoa.maripanatokana.ui.mobile.weather.components
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import orinasa.njarasoa.maripanatokana.domain.model.PollenTier
-
-// Reuses UvTierBadge's Low/Moderate/High/Very High colors (green/yellow/orange/red) — same
-// four-tier semantics, so the same color ramp applies.
-internal data class PollenTierColors(val background: Color, val text: Color)
-
-internal fun colorsFor(tier: PollenTier): PollenTierColors = when (tier) {
-    PollenTier.LOW -> PollenTierColors(Color(0xFF299501), Color.White)
-    PollenTier.MODERATE -> PollenTierColors(Color(0xFFF7E401), Color(0xFF1A1A1A))
-    PollenTier.HIGH -> PollenTierColors(Color(0xFFF85900), Color.White)
-    PollenTier.VERY_HIGH -> PollenTierColors(Color(0xFFD8001D), Color.White)
-}
+import orinasa.njarasoa.maripanatokana.ui.common.components.colorsFor
 
 @Composable
 fun PollenTierBadge(

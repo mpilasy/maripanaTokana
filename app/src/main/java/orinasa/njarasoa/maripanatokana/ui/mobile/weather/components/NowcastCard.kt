@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-package orinasa.njarasoa.maripanatokana.ui.weather.components
+package orinasa.njarasoa.maripanatokana.ui.mobile.weather.components
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.res.painterResource
@@ -41,7 +41,7 @@ import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFont
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 import java.text.SimpleDateFormat
 import java.util.Date
-import orinasa.njarasoa.maripanatokana.ui.weather.buildLocationTimeZone
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.buildLocationTimeZone
 import java.util.Locale
 
 // In the place's own time, like the hourly cards

@@ -15,17 +15,15 @@ export function isToday(timestamp: number): boolean {
 	return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
 }
 
-// Cache for date formatters to avoid expensive instantiations
+// Formatters are slow to make, so they are kept
 const dateFormatters = new Map<string, Intl.DateTimeFormat>();
 
 export function formatDate(timestamp: number, localeTag: string, weekdayNames?: string[], monthNames?: string[]): string {
 	const d = new Date(timestamp);
 
-	// Check if Intl supports this locale
 	const intlSupported = Intl.DateTimeFormat.supportedLocalesOf([localeTag]).length > 0;
 
 	if (intlSupported || !weekdayNames || !monthNames) {
-		// Use standard Intl for supported locales
 		let formatter = dateFormatters.get(localeTag);
 		if (!formatter) {
 			formatter = new Intl.DateTimeFormat(localeTag, {
@@ -75,38 +73,31 @@ export function formatShortDate(timestamp: number, localeTag: string, weekdayNam
 	return `${weekday} ${d.getDate()} ${short(month)}`;
 }
 
-/**
- * Format an epoch (UTC millis) to HH:mm in the device's local timezone.
- */
+/** HH:mm of an epoch (UTC millis) in the device's timezone. */
 export function formatHourInDeviceTime(epochMillis: number): string {
 	const d = new Date(epochMillis);
 	return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
-/**
- * Format an epoch (UTC millis) to HH:mm in the location's timezone using UTC offset.
- */
+/** HH:mm of an epoch (UTC millis) at the location, from its UTC offset. */
 export function formatHourAtLocation(epochMillis: number, utcOffsetSec: number): string {
-	// Add offset to get location's local "millisecond instant"
 	const locationLocalMs = epochMillis + utcOffsetSec * 1000;
 	const d = new Date(locationLocalMs);
-	// Use UTC methods because we manually applied the offset to the epoch
+	// UTC methods, because the offset is already in the time
 	return `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
 }
 
-// Cache for location time formatters to avoid expensive instantiations
+// Formatters are slow to make, so they are kept
 const locationTimeFormatters = new Map<string, Intl.DateTimeFormat>();
 
-/**
- * Get the current time at a location given its UTC offset.
- */
+/** The current time at a location, from its UTC offset; with the weekday when its date differs from the device's. */
 export function formatLocationCurrentTime(utcOffsetSeconds: number, localeTag: string): string {
 	const now = Date.now();
 	const locationMs = now + utcOffsetSeconds * 1000;
 	const dLocation = new Date(locationMs);
 	const dDevice = new Date(now);
 	
-	// Compare dates using fast numeric checks instead of slow toLocaleDateString
+	// Numeric checks, faster than toLocaleDateString
 	if (
 		dDevice.getFullYear() !== dLocation.getUTCFullYear() ||
 		dDevice.getMonth() !== dLocation.getUTCMonth() ||
@@ -127,9 +118,7 @@ export function formatLocationCurrentTime(utcOffsetSeconds: number, localeTag: s
 	return `${hh}:${mm}`;
 }
 
-/**
- * Check if the location's timezone differs from the device's timezone.
- */
+/** True when the location's UTC offset differs from the device's. */
 export function isRemoteTimezone(utcOffsetSeconds: number): boolean {
 	const deviceOffsetSeconds = new Date().getTimezoneOffset() * -60;
 	return deviceOffsetSeconds !== utcOffsetSeconds;
@@ -140,21 +129,15 @@ const dayMonthFormatters = new Map<string, Intl.DateTimeFormat>();
 const alertTimeFormatters = new Map<string, Intl.DateTimeFormat>();
 
 /**
- * Day names must use the forecast location's timezone, not the browser's — `timestamp` is an
- * absolute instant representing local midnight AT THE LOCATION, so formatting it in the
- * browser's default timezone can shift the displayed calendar day when the two zones differ
- * (e.g. an advanced-mode location override far from the browser's real timezone). We shift the
- * timestamp by the location's offset and format with timeZone: 'UTC' so the result is anchored
- * to the location's wall-clock date regardless of where the browser is.
+ * The day name at the location, not in the browser's timezone: `timestamp` is local midnight at the location.
+ * The function adds the location's offset and formats in UTC, so the day does not shift with the browser's zone.
  */
 export function formatDayName(timestamp: number, localeTag: string, utcOffsetSeconds: number, short = false, weekdayNames?: string[]): string {
 	const adjustedDate = new Date(timestamp + utcOffsetSeconds * 1000);
 
-	// Check if Intl supports this locale
 	const intlSupported = Intl.DateTimeFormat.supportedLocalesOf([localeTag]).length > 0;
 
 	if (intlSupported || !weekdayNames) {
-		// Use standard Intl for supported locales
 		const key = short ? `${localeTag}:short` : localeTag;
 		let formatter = dayNameFormatters.get(key);
 		if (!formatter) {
@@ -178,11 +161,9 @@ export function formatDayName(timestamp: number, localeTag: string, utcOffsetSec
 export function formatDayMonth(timestamp: number, localeTag: string, utcOffsetSeconds: number, monthNames?: string[]): string {
 	const adjustedDate = new Date(timestamp + utcOffsetSeconds * 1000);
 
-	// Check if Intl supports this locale
 	const intlSupported = Intl.DateTimeFormat.supportedLocalesOf([localeTag]).length > 0;
 
 	if (intlSupported || !monthNames) {
-		// Use standard Intl for supported locales
 		let formatter = dayMonthFormatters.get(localeTag);
 		if (!formatter) {
 			formatter = new Intl.DateTimeFormat(localeTag, { day: 'numeric', month: 'short', timeZone: 'UTC' });
@@ -195,7 +176,7 @@ export function formatDayMonth(timestamp: number, localeTag: string, utcOffsetSe
 	const day = adjustedDate.getUTCDate();
 	const month = monthNames[adjustedDate.getUTCMonth()];
 
-	// Use first 3 letters for Latin-script locales (mg), but for Devanagari (ne) it might not work, so use full
+	// 3 letters for mg; Devanagari (ne) keeps the full name
 	const shortMonth = localeTag === 'ne' ? month : month.substring(0, 3);
 	return `${day} ${shortMonth}`;
 }

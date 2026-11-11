@@ -5,9 +5,8 @@ import type { NwsAlertResponse } from '../externalAlertsTypes';
 import type { WeatherAlert, AlertLevel } from '#lib/domain/weatherData.js';
 import { USER_AGENT } from './shared';
 
-// Coarse fallback for when reverse geocoding fails (e.g. Nominatim rate-limiting) so NWS
-// alerts don't silently disappear — mirrors isInAustralia/isInJapan. Three sub-regions (rather
-// than one wide box) to avoid a false positive over Mexico/Cuba/the Caribbean.
+// Coarse fallback for when reverse geocoding fails, as isInAustralia/isInJapan. Three boxes, not one wide box,
+// so that Mexico, Cuba and the Caribbean do not match.
 export function isInUS(lat: number, lon: number): boolean {
 	const conus = lat >= 24.0 && lat <= 49.5 && lon >= -125.0 && lon <= -66.0;
 	const alaska = lat >= 51.0 && lat <= 72.0 && lon >= -180.0 && lon <= -129.0;

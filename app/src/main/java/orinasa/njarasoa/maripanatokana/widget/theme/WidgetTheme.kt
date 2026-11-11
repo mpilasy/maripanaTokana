@@ -8,10 +8,7 @@ import androidx.glance.unit.ColorProvider
 import orinasa.njarasoa.maripanatokana.ui.theme.CardBlue
 import orinasa.njarasoa.maripanatokana.ui.theme.DarkNavy
 
-/**
- * Widget palette derived from the reference screenshots:
- * deep navy background, vibrant purple-blue cards, white text.
- */
+/** Widget palette: deep navy background, purple-blue cards, white text. */
 object WidgetColors {
     val BackgroundDark = DarkNavy
     val BackgroundMid = Color(0xFF1A1565)

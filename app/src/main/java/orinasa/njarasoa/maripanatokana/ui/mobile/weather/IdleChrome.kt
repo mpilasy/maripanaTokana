@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-package orinasa.njarasoa.maripanatokana.ui.weather
+package orinasa.njarasoa.maripanatokana.ui.mobile.weather
 
 // The state of the header and the footer of the main page. The web has the same helper with the same rules (idleChrome).
 

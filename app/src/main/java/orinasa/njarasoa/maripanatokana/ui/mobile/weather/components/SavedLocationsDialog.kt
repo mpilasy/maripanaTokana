@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-package orinasa.njarasoa.maripanatokana.ui.weather.components
+package orinasa.njarasoa.maripanatokana.ui.mobile.weather.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -57,11 +57,11 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.data.remote.GeocodingResult
+import orinasa.njarasoa.maripanatokana.ui.common.components.LocalizedDialog
 
 /**
- * Plain location search: always opens blank, searches as you type, tapping a result switches
- * the displayed weather to it (a preview — it is not saved). Saving to favorites happens
- * separately, via the header's favorite icon on the currently-displayed location.
+ * Location search: opens blank and searches while the user types. A tap on a result shows its weather as a
+ * preview, which is not saved. The favorite icon in the header saves the place on screen.
  */
 @Composable
 fun SavedLocationsDialog(

@@ -328,7 +328,7 @@
 	}
 
 	.chart-container {
-		margin-top: -8px; /* Pull up slightly to feel "attached" */
+		margin-top: -8px; /* Close to the cards above */
 	}
 
 	.hourly-card {

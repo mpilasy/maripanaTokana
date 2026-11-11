@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-package orinasa.njarasoa.maripanatokana.ui.settings
+package orinasa.njarasoa.maripanatokana.ui.mobile.settings
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background

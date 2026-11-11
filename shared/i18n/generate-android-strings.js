@@ -68,7 +68,7 @@ const PLACEHOLDER_ORDER = {
 	chart_air_quality_summary: ['max'],
 };
 
-// Keys that use printf-style format specifiers (%.1f etc) — not our {name} placeholders
+// Keys that use printf-style format specifiers (%.1f etc) — not the {name} placeholders
 const FORMATTED_FALSE_KEYS = new Set(['visibility_km', 'visibility_mi']);
 
 /**
@@ -116,7 +116,7 @@ function convertPlaceholders(key, value) {
 function buildStringsXml(data) {
 	const lines = ['<resources>'];
 
-	// Collect all keys: top-level (non-object, non-array for now) + android_only
+	// Collect the string and array keys: top-level (except web_only) and android_only
 	const androidOnly = data.android_only || {};
 	const stringKeys = [];
 	const arrayKeys = [];

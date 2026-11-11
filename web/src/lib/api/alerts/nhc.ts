@@ -8,8 +8,7 @@ const SEARCH_RADIUS_KM = 1500;
 const KNOTS_TO_MPH = 1.15078;
 const KM_TO_MI = 0.621371;
 
-// NHC's CurrentStorms.json has no "headline" field despite what older code assumed — it's
-// always empty, so alerts must be built from the raw classification/intensity/movement fields.
+// CurrentStorms.json has no "headline" field: the alert text comes from the classification, intensity and movement.
 const CLASSIFICATION_NAMES: Record<string, string> = {
 	TD: 'Tropical Depression',
 	SD: 'Subtropical Depression',

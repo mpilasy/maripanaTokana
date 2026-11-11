@@ -17,10 +17,10 @@ import androidx.activity.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import orinasa.njarasoa.maripanatokana.ui.theme.MaripanaTokanaTheme
 import orinasa.njarasoa.maripanatokana.ui.tv.TvActivity
-import orinasa.njarasoa.maripanatokana.ui.weather.WeatherScreen
-import orinasa.njarasoa.maripanatokana.ui.weather.WeatherViewModel
-import orinasa.njarasoa.maripanatokana.ui.weather.supportedLocales
-import orinasa.njarasoa.maripanatokana.ui.permission.PermissionHandler
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.WeatherScreen
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.WeatherViewModel
+import orinasa.njarasoa.maripanatokana.ui.common.supportedLocales
+import orinasa.njarasoa.maripanatokana.ui.mobile.permission.PermissionHandler
 import javax.inject.Inject
 
 @AndroidEntryPoint

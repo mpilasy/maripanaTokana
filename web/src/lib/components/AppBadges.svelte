@@ -50,7 +50,7 @@
 		<p class="text">{$_('android_app_text')}</p>
 	{/if}
 	<!-- A click shows the QR code of the link, for a phone to scan from a computer; the dialog opens the address.
-	     Android's AboutScreen.kt has the same four links. -->
+	     Android's AppQrCodes.kt has the same four links. -->
 	<div class="links">
 		{#each [codes.source, codes.web] as code (code.qr)}
 			<a class="link" href={code.url} target="_blank" rel="noopener noreferrer" onclick={(e) => show(e, code)}>

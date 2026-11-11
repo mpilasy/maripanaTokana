@@ -56,15 +56,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.BringIntoViewSpec
 import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
-import orinasa.njarasoa.maripanatokana.ui.settings.AppQrCode
-import orinasa.njarasoa.maripanatokana.ui.settings.DeviceRow
-import orinasa.njarasoa.maripanatokana.ui.settings.AppQrImage
-import orinasa.njarasoa.maripanatokana.ui.settings.appQrCodes
-import orinasa.njarasoa.maripanatokana.ui.settings.labelText
-import orinasa.njarasoa.maripanatokana.ui.weather.components.LocalizedDialog
-import orinasa.njarasoa.maripanatokana.ui.settings.creditSections
-import orinasa.njarasoa.maripanatokana.ui.settings.deviceInfo
-import orinasa.njarasoa.maripanatokana.ui.weather.supportedLocales
+import orinasa.njarasoa.maripanatokana.ui.common.about.AppQrCode
+import orinasa.njarasoa.maripanatokana.ui.common.about.DeviceRow
+import orinasa.njarasoa.maripanatokana.ui.common.about.AppQrImage
+import orinasa.njarasoa.maripanatokana.ui.common.about.appQrCodes
+import orinasa.njarasoa.maripanatokana.ui.common.about.labelText
+import orinasa.njarasoa.maripanatokana.ui.common.components.LocalizedDialog
+import orinasa.njarasoa.maripanatokana.ui.common.about.creditSections
+import orinasa.njarasoa.maripanatokana.ui.common.about.deviceInfo
+import orinasa.njarasoa.maripanatokana.ui.common.supportedLocales
 import java.util.Locale
 
 /** True when the metric value comes first. */

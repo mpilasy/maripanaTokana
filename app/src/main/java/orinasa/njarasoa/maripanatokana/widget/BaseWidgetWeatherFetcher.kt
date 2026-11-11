@@ -40,9 +40,7 @@ interface WidgetEntryPoint {
     fun weatherRepository(): WeatherRepository
 }
 
-/**
- * Base logic for standalone weather fetcher for Glance widgets.
- */
+/** The shared code of the flavor WidgetWeatherFetchers: the Glance widgets fetch without Hilt. */
 open class BaseWidgetWeatherFetcher(private val baseUrl: String = "https://api.open-meteo.com/") {
 
     protected val json = Json {

@@ -14,7 +14,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import orinasa.njarasoa.maripanatokana.R
 
-// Existing fonts
 private val Orbitron = FontFamily(
     Font(R.font.orbitron_regular, FontWeight.Normal),
     Font(R.font.orbitron_bold, FontWeight.Bold),
@@ -40,7 +39,6 @@ private val Nunito = FontFamily(
     Font(R.font.nunito_bold, FontWeight.Bold),
 )
 
-// New fonts
 private val SpaceGrotesk = FontFamily(
     Font(R.font.space_grotesk_regular, FontWeight.Normal),
     Font(R.font.space_grotesk_bold, FontWeight.Bold),
@@ -137,7 +135,6 @@ private val AtkinsonHyperlegible = FontFamily(
     Font(R.font.atkinson_hyperlegible_bold, FontWeight.Bold),
 )
 
-// New pairings fonts
 private val FiraCode = FontFamily(
     Font(R.font.fira_code, FontWeight.Normal),
     Font(R.font.fira_code, FontWeight.Bold),
@@ -181,7 +178,7 @@ data class FontPairing(
 
 val fontPairings = listOf(
     FontPairing("Default", FontFamily.Default, FontFamily.Default),
-    // Existing
+    // Technical
     FontPairing("Orbitron + Outfit", Orbitron, Outfit),
     FontPairing("Rajdhani + Inter", Rajdhani, Inter),
     FontPairing("Oxanium + Nunito", Oxanium, Nunito),
@@ -201,7 +198,7 @@ val fontPairings = listOf(
     FontPairing("Exo 2 + Barlow", Exo2, Barlow),
     FontPairing("Michroma + Saira", Michroma, Saira),
     FontPairing("Jost + Atkinson", Jost, AtkinsonHyperlegible),
-    // New pairings – data fonts configured with tabular numerals (tnum)
+    // Data fonts with tabular numerals (tnum)
     FontPairing("Roboto + Fira Code", FontFamily.Default, FiraCode, bodyFontFeatures = "tnum"),
     FontPairing("Montserrat + Open Sans", Montserrat, OpenSans, bodyFontFeatures = "tnum"),
     FontPairing("Space Grotesk + Space Mono", SpaceGrotesk, SpaceMono, bodyFontFeatures = "tnum"),

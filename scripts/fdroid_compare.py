@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-FileCopyrightText: Orinasa Njarasoa
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Compare our signed APK with F-Droid's unsigned build of the same version.
+"""Compare the signed release APK with F-Droid's unsigned build of the same version.
 
 Usage: scripts/fdroid_compare.py SIGNED_APK UNSIGNED_APK
 

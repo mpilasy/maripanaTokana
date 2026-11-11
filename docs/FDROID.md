@@ -230,13 +230,13 @@ Location: `app/src/fdroid/java/.../di/LocationModule.kt`
 ## UI Adaptations
 
 ### Permission handlers
-`WeatherScreen` is shared code. The flavors differ in their implementation of the `PermissionHandler` interface (`app/src/main/.../ui/permission/PermissionHandler.kt`):
+`WeatherScreen` is shared code. The flavors differ in their implementation of the `PermissionHandler` interface (`app/src/main/.../ui/mobile/permission/PermissionHandler.kt`):
 
-**Standard Flavor** (`app/src/standard/.../ui/permission/StandardPermissionHandler.kt`)
+**Standard Flavor** (`app/src/standard/.../ui/mobile/permission/StandardPermissionHandler.kt`)
 - Uses the Accompanist Permissions library
 - Uses `rememberMultiplePermissionsState` for the fine and coarse location permissions
 
-**F-Droid Flavor** (`app/src/fdroid/.../ui/permission/FDroidPermissionHandler.kt`)
+**F-Droid Flavor** (`app/src/fdroid/.../ui/mobile/permission/FDroidPermissionHandler.kt`)
 - Uses the AndroidX activity result API and `ContextCompat` directly
 - Does not use Accompanist
 

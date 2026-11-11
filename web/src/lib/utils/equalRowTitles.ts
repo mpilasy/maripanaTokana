@@ -4,7 +4,7 @@
 /**
  * A Svelte action for a grid of tiles: the titles of the tiles in one row get the height of the
  * tallest title in that row, so the dials under them line up when one title wraps to two lines.
- * Twin: RowTitles in app/.../ui/weather/WeatherContent.kt.
+ * Twin: RowTitles in app/.../ui/mobile/weather/WeatherContent.kt.
  */
 export function equalRowTitles(node: HTMLElement) {
 	const align = () => {

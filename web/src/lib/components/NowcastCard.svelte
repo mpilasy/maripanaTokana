@@ -199,10 +199,9 @@
 						</linearGradient>
 					</defs>
 					{#if points.length > 1}
-												<!-- Bottom baseline -->
 						<line x1="0" y1={chartHeight} x2={containerWidth} y2={chartHeight} stroke="rgba(255, 255, 255, 0.2)" />
 						
-						<!-- 30-min vertical tick lines & aligned X-axis labels -->
+						<!-- A line and a time label every 30 minutes -->
 						{#each ticks30Min as tickTime}
 							{@const ratioX = Math.max(0, Math.min(1, (tickTime - startTime) / durationMs))}
 							{@const tickX = ratioX * containerWidth}
@@ -210,18 +209,15 @@
 							<text x={tickX} y={totalHeight - 2} text-anchor="middle" font-size="9" fill="rgba(255, 255, 255, 0.7)">{formatTime(tickTime)}</text>
 						{/each}
 
-						<!-- Area fill and smooth Bezier line stroke -->
+						<!-- The area under the curve, then the curve -->
 						<path d={areaPathD} fill="url(#nowcastGradient)" />
 						<path d={pathD} fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
 
-						<!-- Max legend on peak curve point -->
 						{#if maxPointInfo}
 							<!-- A dot on the peak, its amount in the top corner away from it, clear of the line -->
 							<circle cx={maxPointInfo.x} cy={maxPointInfo.y} r="3" fill="#38bdf8" />
 							<text x={maxPointInfo.x > containerWidth / 2 ? 0 : containerWidth} y="10" text-anchor={maxPointInfo.x > containerWidth / 2 ? 'start' : 'end'} direction="ltr" font-size="9" font-weight="bold" fill="#38bdf8">{splitDual(yMaxLabelText)[0]}{#if splitDual(yMaxLabelText)[1]}<tspan font-size="0.8em" font-weight="500" fill-opacity="0.7">{" " + splitDual(yMaxLabelText)[1]}</tspan>{/if}</text>
 						{/if}
-
-						<!-- Min legend on baseline min point -->
 					{/if}
 				</svg>
 			</div>
