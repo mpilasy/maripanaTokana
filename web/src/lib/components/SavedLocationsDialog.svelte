@@ -10,18 +10,21 @@
 	let query = $state('');
 	let results = $state<SearchResult[]>([]);
 	let timeout: ReturnType<typeof setTimeout>;
+	let requestId = 0;
 	let inputEl = $state<HTMLInputElement | null>(null);
 
 	$effect(() => { inputEl?.focus(); });
 
 	function handleInput() {
 		clearTimeout(timeout);
+		const id = ++requestId; // a newer input makes older responses stale
 		timeout = setTimeout(async () => {
 			if (query.trim().length < 2) {
 				results = [];
 				return;
 			}
-			results = await searchLocations(query);
+			const found = await searchLocations(query);
+			if (id === requestId) results = found;
 		}, 500);
 	}
 
