@@ -90,15 +90,45 @@ function geocodeKey(lat: number, lon: number, localeTag?: string): string {
 	return `${lat.toFixed(2)},${lon.toFixed(2)},${localeTag ?? ''}`;
 }
 
+let geocodeSwept = false;
+
+function isGeocodeEntryFresh(raw: string | null, now: number): boolean {
+	try {
+		const entry = JSON.parse(raw ?? '') as { at: number };
+		return now - entry.at < GEOCODE_TTL_MS;
+	} catch {
+		return false;
+	}
+}
+
+// Once per page load: remove every expired or unparseable geocode entry from localStorage
+function sweepGeocodeStorage(now: number) {
+	if (geocodeSwept || typeof localStorage === 'undefined') return;
+	geocodeSwept = true;
+	try {
+		const stale: string[] = [];
+		for (let i = 0; i < localStorage.length; i++) {
+			const k = localStorage.key(i);
+			if (k?.startsWith(GEOCODE_STORAGE_PREFIX) && !isGeocodeEntryFresh(localStorage.getItem(k), now)) stale.push(k);
+		}
+		for (const k of stale) localStorage.removeItem(k);
+	} catch { /* ignore */ }
+}
+
 function readGeocodeCache(key: string): LocationLookup | null {
 	const now = Date.now();
+	sweepGeocodeStorage(now);
 	const mem = geocodeMemory.get(key);
 	if (mem && now - mem.at < GEOCODE_TTL_MS) return mem.value;
+	if (mem) geocodeMemory.delete(key);
 	try {
 		const raw = localStorage.getItem(GEOCODE_STORAGE_PREFIX + key);
 		if (!raw) return null;
+		if (!isGeocodeEntryFresh(raw, now)) {
+			localStorage.removeItem(GEOCODE_STORAGE_PREFIX + key);
+			return null;
+		}
 		const entry = JSON.parse(raw) as { at: number; value: LocationLookup };
-		if (now - entry.at >= GEOCODE_TTL_MS) return null;
 		geocodeMemory.set(key, entry);
 		return entry.value;
 	} catch {
@@ -172,4 +202,5 @@ export async function reverseGeocode(lat: number, lon: number, localeTag?: strin
 export function _clearGeocodeCache() {
 	geocodeMemory.clear();
 	geocodeInflight.clear();
+	geocodeSwept = false;
 }
