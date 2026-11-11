@@ -18,6 +18,7 @@ class MaripanaTokanaApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        DefaultLanguage.apply(this)
         PrefsMigration.migrate(this)
 
         val constraints = Constraints.Builder()

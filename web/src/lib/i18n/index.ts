@@ -23,13 +23,14 @@ register('ne', () => import('#lib/i18n/locales/ne.json').then(flattenForWeb));
 register('zh', () => import('#lib/i18n/locales/zh.json').then(flattenForWeb));
 
 export function initI18n(savedLocaleTag?: string) {
-	const fallback = 'mg';
-	const initialLocale = savedLocaleTag || getLocaleFromNavigator()?.split('-')[0] || fallback;
-	// Only use a supported locale
-	const supported = SUPPORTED_LOCALES.find((l) => l.tag === initialLocale);
+	// The saved language, else the first browser language that the app has, else English
+	const fallback = 'en';
+	const browser = typeof navigator === 'undefined' ? [] : [...(navigator.languages ?? []), getLocaleFromNavigator() ?? ''];
+	const candidates = [savedLocaleTag ?? '', ...browser].map((tag) => tag.split('-')[0]);
+	const supported = candidates.find((tag) => SUPPORTED_LOCALES.some((l) => l.tag === tag));
 
 	init({
 		fallbackLocale: fallback,
-		initialLocale: supported ? supported.tag : fallback,
+		initialLocale: supported ?? fallback,
 	});
 }
