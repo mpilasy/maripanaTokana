@@ -9,6 +9,13 @@ import type { AssetPath } from '$app/types';
 
 const CACHE_APP = `app-${version}`;
 const CACHE_API = 'api-cache';
+const CACHE_API_MAX_ENTRIES = 50;
+
+// Delete the oldest entries (keys() is in insertion order) above the limit
+async function trimApiCache(cache: Cache) {
+	const keys = await cache.keys();
+	await Promise.all(keys.slice(0, Math.max(0, keys.length - CACHE_API_MAX_ENTRIES)).map((k) => cache.delete(k)));
+}
 
 // Manifest paths are relative to the base path; asset() makes them absolute pathnames.
 const APP_ASSETS = new Set<string>([
@@ -52,7 +59,7 @@ sw.addEventListener('fetch', (event) => {
 						const stamped = response.clone().arrayBuffer().then(
 							(body) => new Response(body, { status: response.status, statusText: response.statusText, headers })
 						);
-						stamped.then((copy) => caches.open(CACHE_API).then((cache) => cache.put(event.request, copy))).catch(() => {});
+						stamped.then((copy) => caches.open(CACHE_API).then((cache) => cache.put(event.request, copy).then(() => trimApiCache(cache)))).catch(() => {});
 					}
 					return response;
 				})
