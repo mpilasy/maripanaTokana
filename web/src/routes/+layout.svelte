@@ -2,6 +2,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { get } from 'svelte/store';
 	import { locale } from 'svelte-i18n';
 	import { initI18n, SUPPORTED_LOCALES } from '#lib/i18n/index.js';
 	import { fontPairings } from '#lib/fonts.js';
@@ -18,13 +19,8 @@
 	let bodyFamily = $state('system-ui, sans-serif');
 	let fontFeatures = $state('normal');
 
-	// Initialize i18n on module load
-	const savedIndex = typeof localStorage !== 'undefined'
-		? JSON.parse(localStorage.getItem('locale_index') ?? '0')
-		: 0;
-	initI18n(SUPPORTED_LOCALES[savedIndex]?.tag);
+	initI18n(SUPPORTED_LOCALES[get(localeIndex)]?.tag);
 
-	// React to locale index changes
 	$effect(() => {
 		const loc = SUPPORTED_LOCALES[$localeIndex];
 		if (loc) {
@@ -36,7 +32,6 @@
 		}
 	});
 
-	// React to font index changes
 	$effect(() => {
 		const pairing = fontPairings[$fontIndex];
 		if (pairing) {
@@ -49,7 +44,7 @@
 
 	onMount(() => {
 		listenForInstallPrompt();
-		// Auto-refresh on tab focus
+		// Refresh old data when the tab shows again
 		const handler = () => {
 			if (document.visibilityState === 'visible') {
 				refreshIfStale();

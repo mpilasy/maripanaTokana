@@ -30,7 +30,20 @@ function persistedWritable<T>(key: string, defaultValue: T) {
 
 export const metricPrimary = persistedWritable<boolean>('metric_primary', true);
 export const fontIndex = persistedWritable<number>('font_index', 0);
-export const localeIndex = persistedWritable<number>('locale_index', 0);
+/** The index in SUPPORTED_LOCALES of the first of `languages` (BCP 47 tags) that the app has, else English. */
+export function browserLocaleIndex(languages: readonly string[]): number {
+	for (const tag of languages) {
+		const i = SUPPORTED_LOCALES.findIndex((l) => l.tag === tag.split('-')[0].toLowerCase());
+		if (i >= 0) return i;
+	}
+	return SUPPORTED_LOCALES.findIndex((l) => l.tag === 'en');
+}
+
+// The saved language; on the first visit, the browser language (twin of DefaultLanguage.kt)
+export const localeIndex = persistedWritable<number>(
+	'locale_index',
+	browserLocaleIndex(typeof navigator === 'undefined' ? [] : navigator.languages?.length ? navigator.languages : [navigator.language ?? ''])
+);
 
 export const weatherSource = persistedWritable<WeatherSource>('weather_source', 'OPEN_METEO');
 export const weatherApiKey = persistedWritable<string>('weather_api_key', '');
