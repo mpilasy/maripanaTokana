@@ -9,6 +9,12 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.7.20261111165956] - 2026-11-11
+
+- Chart view (Android and web): a daily mode with one point per day, opened from the 10-day card; an Hourly | Daily switch at the top. The temperature panel shows the high and the low, the precipitation panel the daily totals, and the wind and UV panels the highest gust and air quality of each day.
+- On the first start, the app uses the language of the device or browser when it has it, else English (it was Malagasy). An existing install keeps its language.
+- Store descriptions and docs: Android TV, the chart view and the forecast tabs.
+
 ## [1.7.20261111160128] - 2026-11-11
 
 - Charts on the TV, the phone and the web use one colour set: the dew point green and dashed, the gust amber, the heat index pink and the wind chill purple.

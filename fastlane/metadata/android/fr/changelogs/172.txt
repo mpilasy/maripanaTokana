@@ -7,4 +7,4 @@
 - Changements depuis la prévision d'hier.
 - Mer : vagues, température et marées.
 - Réglages : modèle météo.
-- Graphiques : 10 jours heure par heure, air, max./min.
+- Graphiques : par heure ou par jour, air, max./min.

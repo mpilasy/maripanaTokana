@@ -7,4 +7,4 @@
 - What changed since yesterday's forecast.
 - Sea: waves, sea temperature and tides.
 - Settings: choose the weather model.
-- Chart view: 10 days hourly, air quality, highs and lows.
+- Chart view: hourly or daily, air quality, highs and lows.
