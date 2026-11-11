@@ -6,6 +6,8 @@ package orinasa.njarasoa.maripanatokana.data.source
 import android.content.Context
 import android.location.Geocoder
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import orinasa.njarasoa.maripanatokana.data.location.matchesRegionQualifier
 import orinasa.njarasoa.maripanatokana.data.location.shortPlaceName
 import orinasa.njarasoa.maripanatokana.data.remote.GeocodingResult
@@ -24,8 +26,8 @@ class SystemGeocoderSource @Inject constructor(
 
     @Suppress("DEPRECATION")
     override suspend fun reverseGeocode(lat: Double, lon: Double, locale: Locale): Pair<String, String?> {
-        val geocoder = Geocoder(context, locale)
-        val addr = geocoder.getFromLocation(lat, lon, 1)?.firstOrNull()
+        // getFromLocation blocks (IPC and network): keep it off the main thread
+        val addr = withContext(Dispatchers.IO) { Geocoder(context, locale).getFromLocation(lat, lon, 1)?.firstOrNull() }
         val rawName = addr?.locality
             ?: addr?.subAdminArea
             ?: addr?.adminArea

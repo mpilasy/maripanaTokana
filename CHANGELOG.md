@@ -9,6 +9,8 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+- Android: the place-name lookup of the system geocoder no longer runs on the main thread, so a slow network cannot freeze the app.
+
 ## [1.7.20261111184249] - 2026-11-11
 
 - When the shown position is more than 30 minutes old, or the app uses the last known position because a new one failed, a line under the place name says "Using last known location" with its time, on Android, Android TV and the web.
