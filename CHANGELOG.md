@@ -9,6 +9,10 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.7.20261111152148] - 2026-11-11
+
+- Android TV charts: the scale stays the same while the selected hour moves. When OK shows the air quality and the selected hour is after its last value, the selection moves to that last value.
+
 ## [1.7.20261111150921] - 2026-11-11
 
 - Android TV charts: the temperature plot also shows the dew point and, when they apply, the heat index and the wind chill. The precipitation plot shows the chance of rain, and the wind plot the gust. Each line has its own colour, and the cards above the plot use the same colours. The air quality plot stops at its last value.
