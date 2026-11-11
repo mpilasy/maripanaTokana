@@ -53,6 +53,7 @@ import orinasa.njarasoa.maripanatokana.domain.model.HourlyAirQuality
 import orinasa.njarasoa.maripanatokana.domain.model.Precipitation
 import orinasa.njarasoa.maripanatokana.domain.model.Pressure
 import orinasa.njarasoa.maripanatokana.domain.model.Temperature
+import orinasa.njarasoa.maripanatokana.domain.model.ThermalIndices
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.model.WindSpeed
 import orinasa.njarasoa.maripanatokana.ui.theme.temperatureColor
@@ -68,16 +69,24 @@ import kotlin.math.roundToInt
 
 private const val CHART_HOURS = 72
 
-// The lines that share the temperature plot of the days: the high and low as in the chart view, the dew point green
+// The lines that share the temperature plot: the high and low as in the chart view, the dew point green, the heat
+// index pink and the wind chill purple
 private val HighLine = Color(0xFFFF7043)
 private val LowLine = Color(0xFF64B5F6)
 private val DewLine = Color(0xFF81C784)
+private val HeatLine = Color(0xFFF48FB1)
+private val ChillLine = Color(0xFFCE93D8)
+// The gust on the wind plot
+private val GustLine = Color(0xFFFFB74D)
+
+/** A thin line on the plot of another series, on the same scale: the dew point, heat index, wind chill or gust. */
+private class ExtraLine(val values: List<Double?>, val color: Color, val dashed: Boolean = false)
 private const val CHART_LEAD_HOURS = 24
 
 /**
  * One value of the chart over the hours or the days. [values] has one entry for each hour or day, in the base unit of
- * the value. [low], when there is one, is a second line under [values]: the daily lows under the highs. [dewPoint], when
- * there is one, is a thin dashed line on the same scale. [chance], when
+ * the value. [low], when there is one, is a second line under [values]: the daily lows under the highs. [extras] are
+ * thin lines on the same scale. [chance], when
  * there is one, is the chance of rain in percent, as a line over the bars with its own scale. A series [withPrevious]
  * has its card next to the one before it and no plot of its own: the plot of the one before shows it. [text] gives a
  * value in both units (the second is null when the value has one unit).
@@ -92,10 +101,31 @@ private class TvSeries(
     val bars: Boolean = false,
     val low: List<Double?>? = null,
     val lowColor: Color? = null,
-    val dewPoint: List<Double?>? = null,
+    val extras: List<ExtraLine> = emptyList(),
     val chance: List<Double?>? = null,
     val withPrevious: Boolean = false,
 )
+
+/**
+ * The series that share the temperature plot, after [temperature]: the dew point, and the heat index and wind chill
+ * when the data has any. Each has its card, and a thin line on the temperature plot.
+ */
+private fun withTemperatureExtras(
+    temperature: TvSeries, dew: List<Double?>?, heat: List<Double?>, chill: List<Double?>, metric: Boolean,
+): List<TvSeries> {
+    val parts = listOfNotNull(
+        dew?.let { Triple(R.string.detail_dewpoint, it, ExtraLine(it, DewLine, dashed = true)) },
+        heat.takeIf { v -> v.any { it != null } }?.let { Triple(R.string.detail_heat_index, it, ExtraLine(it, HeatLine)) },
+        chill.takeIf { v -> v.any { it != null } }?.let { Triple(R.string.detail_wind_chill, it, ExtraLine(it, ChillLine)) },
+    )
+    val main = TvSeries(
+        temperature.label, temperature.values, temperature.fromZero, temperature.minSpan, temperature.color, temperature.text,
+        low = temperature.low, lowColor = temperature.lowColor, extras = parts.map { it.third },
+    )
+    return listOf(main) + parts.map { (label, values, line) ->
+        TvSeries(label, values, false, 5.0, { line.color }, { temperatureText(it, metric) }, withPrevious = true)
+    }
+}
 
 private fun temperatureText(c: Double, metric: Boolean): Pair<String, String?> = Temperature.fromCelsius(c).displayDual(metric)
 
@@ -137,28 +167,79 @@ private fun seriesFor(tile: ChartTile, data: WeatherData, metric: Boolean, usLab
     }
 }
 
-/** The values of the daily chart: one entry for each day of [days]. */
-private fun dailySeries(days: List<DailyForecast>, metric: Boolean): List<TvSeries> = listOf(
-    TvSeries(
+/**
+ * The values of the daily chart: one entry for each day of [days]. The heat index is the one of the high, the wind
+ * chill the one of the low. The gust is the highest hourly gust of the day at the place, where the hours reach.
+ */
+private fun dailySeries(days: List<DailyForecast>, hours: List<ChartHour>, offsetSeconds: Int, metric: Boolean): List<TvSeries> {
+    fun day(ms: Long) = Math.floorDiv(ms + offsetSeconds * 1000L, 86_400_000L)
+    val gustByDay = hours.filter { it.windGust != null }.groupBy { day(it.time) }.mapValues { (_, h) -> h.maxOf { it.windGust!!.metersPerSecond } }
+    val gust = days.map { gustByDay[day(it.date)] }.takeIf { v -> v.any { it != null } }
+    val chance = days.map { it.precipProbability.toDouble() }
+    val temperature = TvSeries(
         R.string.detail_temperature, days.map { it.tempMax.celsius }, false, 5.0, { HighLine }, { temperatureText(it, metric) },
-        low = days.map { it.tempMin.celsius }, lowColor = LowLine, dewPoint = days.map { it.dewPoint?.celsius },
-    ),
-    TvSeries(R.string.detail_dewpoint, days.map { it.dewPoint?.celsius }, false, 5.0, { DewLine }, { temperatureText(it, metric) }, withPrevious = true),
-    // One plot for the amount and the chance of rain
-    TvSeries(
-        R.string.detail_precipitation, days.map { it.precipitation.mm }, true, 1.0, { ChartStyle.precipitation },
-        { Precipitation.fromMm(it).displayDual(metric) }, bars = true, chance = days.map { it.precipProbability.toDouble() },
-    ),
-    TvSeries(
-        R.string.detail_precip_chance, days.map { it.precipProbability.toDouble() }, true, 100.0, { ChartStyle.chance },
-        { "${it.roundToInt()}%" to null }, withPrevious = true,
-    ),
-    TvSeries(R.string.detail_wind, days.map { it.windSpeed.metersPerSecond }, true, 5.0, { ChartStyle.wind }, { windText(it, metric) }),
-    TvSeries(
-        R.string.detail_uv_index, days.map { d -> d.uvIndexMax.takeIf { it.isFinite() } }, true, 5.0, { colorsFor(it).background },
-        { "%.1f".format(Locale.US, it) to null },
-    ),
-    TvSeries(R.string.detail_humidity, days.map { it.humidity?.toDouble() }, true, 100.0, { ChartStyle.humidity }, { "${it.roundToInt()}%" to null }),
+        low = days.map { it.tempMin.celsius }, lowColor = LowLine,
+    )
+    val wind = days.map { it.windSpeed.metersPerSecond }
+    return withTemperatureExtras(
+        temperature, days.map { it.dewPoint?.celsius }.takeIf { v -> v.any { it != null } },
+        days.map { ThermalIndices.heatIndex(it)?.celsius }, days.map { ThermalIndices.windChill(it)?.celsius }, metric,
+    ) + listOf(
+        // One plot for the amount and the chance of rain
+        TvSeries(
+            R.string.detail_precipitation, days.map { it.precipitation.mm }, true, 1.0, { ChartStyle.precipitation },
+            { Precipitation.fromMm(it).displayDual(metric) }, bars = true, chance = chance,
+        ),
+        chanceSeries(chance),
+        TvSeries(
+            R.string.detail_wind, wind, true, 5.0, { ChartStyle.wind }, { windText(it, metric) },
+            extras = listOfNotNull(gust?.let { ExtraLine(it, GustLine) }),
+        ),
+    ) + listOfNotNull(
+        gust?.let { TvSeries(R.string.detail_wind_gust, it, true, 5.0, { GustLine }, { v -> windText(v, metric) }, withPrevious = true) },
+        TvSeries(
+            R.string.detail_uv_index, days.map { d -> d.uvIndexMax.takeIf { it.isFinite() } }, true, 5.0, { colorsFor(it).background },
+            { "%.1f".format(Locale.US, it) to null },
+        ),
+        TvSeries(R.string.detail_humidity, days.map { it.humidity?.toDouble() }, true, 100.0, { ChartStyle.humidity }, { "${it.roundToInt()}%" to null }),
+    )
+}
+
+/**
+ * The series of the hourly chart. The temperature plot also has the dew point, heat index and wind chill, the
+ * precipitation plot the chance of rain, and the wind plot the gust.
+ */
+private fun hourlySeries(data: WeatherData, metric: Boolean, usLabel: String, euLabel: String): List<TvSeries> {
+    val hours = data.chartHourly
+    val tiles = chartTiles(hours, data.hourlyAirQuality.isNotEmpty())
+    val heat = hours.map { h -> h.temperature?.let { ThermalIndices.heatIndex(it, h.humidity)?.celsius } }
+    val chill = hours.map { h -> h.temperature?.let { t -> h.windSpeed?.let { ThermalIndices.windChill(t, it)?.celsius } } }
+    val chance = hours.map { it.precipProbability?.toDouble() }.takeIf { v -> v.any { it != null } }
+    val gust = if (ChartTile.WIND_GUST in tiles) hours.map { it.windGust?.metersPerSecond } else null
+    return tiles.flatMap { tile ->
+        val one = seriesFor(tile, data, metric, usLabel, euLabel)
+        when (tile) {
+            ChartTile.TEMPERATURE -> withTemperatureExtras(
+                one, if (ChartTile.DEW_POINT in tiles) hours.map { it.dewPoint?.celsius } else null, heat, chill, metric,
+            )
+            ChartTile.DEW_POINT -> emptyList()
+            ChartTile.PRECIPITATION -> if (chance == null) listOf(one) else listOf(
+                TvSeries(one.label, one.values, one.fromZero, one.minSpan, one.color, one.text, bars = true, chance = chance),
+                chanceSeries(chance),
+            )
+            ChartTile.WIND -> if (gust == null) listOf(one) else listOf(
+                TvSeries(one.label, one.values, one.fromZero, one.minSpan, one.color, one.text, extras = listOf(ExtraLine(gust, GustLine))),
+                TvSeries(R.string.detail_wind_gust, gust, true, 5.0, { GustLine }, { windText(it, metric) }, withPrevious = true),
+            )
+            ChartTile.WIND_GUST -> emptyList()
+            else -> listOf(one)
+        }
+    }
+}
+
+/** The card of the chance of rain, next to the precipitation; the precipitation plot draws it. */
+private fun chanceSeries(chance: List<Double?>) = TvSeries(
+    R.string.detail_precip_chance, chance, true, 100.0, { ChartStyle.chance }, { "${it.roundToInt()}%" to null }, withPrevious = true,
 )
 
 private fun tileLabel(tile: ChartTile) = when (tile) {
@@ -184,9 +265,7 @@ internal fun ChartScreen(data: WeatherData, startIndex: Int) {
     val usLabel = stringResource(R.string.air_quality_us_aqi)
     val euLabel = stringResource(R.string.air_quality_eu_aqi)
     val metric = LocalMetricPrimary.current
-    val series = remember(data, metric) {
-        chartTiles(hours, data.hourlyAirQuality.isNotEmpty()).map { seriesFor(it, data, metric, usLabel, euLabel) }
-    }
+    val series = remember(data, metric) { hourlySeries(data, metric, usLabel, euLabel) }
     var selected by remember { mutableIntStateOf(startIndex.coerceIn(hours.indices)) }
     var shownSeries by remember { mutableIntStateOf(0) }
     val focus = remember { FocusRequester() }
@@ -210,7 +289,8 @@ internal fun ChartScreen(data: WeatherData, startIndex: Int) {
                         true
                     }
                     event.key in okKeys && down && series.isNotEmpty() -> {
-                        shownSeries = (shownSeries + 1) % series.size
+                        // The next series with a plot of its own
+                        do shownSeries = (shownSeries + 1) % series.size while (series[shownSeries].withPrevious)
                         true
                     }
                     else -> false
@@ -248,7 +328,7 @@ internal fun DailyChartScreen(data: WeatherData, startIndex: Int) {
         return
     }
     val metric = LocalMetricPrimary.current
-    val series = remember(data, metric) { dailySeries(days, metric) }
+    val series = remember(data, metric) { dailySeries(days, data.chartHourly, data.utcOffsetSeconds, metric) }
     var selected by remember { mutableIntStateOf(startIndex.coerceIn(days.indices)) }
     var shownSeries by remember { mutableIntStateOf(0) }
     val focus = remember { FocusRequester() }
@@ -300,6 +380,8 @@ internal fun DailyChartScreen(data: WeatherData, startIndex: Int) {
 /** The values of the selected hour or day; the value in the plot has a band behind it. */
 @Composable
 private fun SeriesStrip(series: List<TvSeries>, selected: Int, shownSeries: Int) {
+    // More than ten cards are narrow: a smaller value keeps "29.93 inHg" in one line
+    val valueSize = if (series.size > 10) 13.sp else 15.sp
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
         series.forEachIndexed { i, s ->
             val value = s.values[selected]
@@ -309,7 +391,8 @@ private fun SeriesStrip(series: List<TvSeries>, selected: Int, shownSeries: Int)
             val shape = RoundedCornerShape(8.dp)
             Column(
                 Modifier.weight(1f)
-                    .background(if (i == shownSeries || (s.withPrevious && i - 1 == shownSeries)) Card else Color.Transparent, shape)
+                    // A card lights up with the plot that shows it: its own, or that of the first card of its group
+                    .background(if ((0..i).last { !series[it].withPrevious } == shownSeries) Card else Color.Transparent, shape)
                     .padding(vertical = 6.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -317,10 +400,10 @@ private fun SeriesStrip(series: List<TvSeries>, selected: Int, shownSeries: Int)
                 Text(stringResource(s.label), color = Dim, fontSize = 11.sp, lineHeight = 13.sp, minLines = 2, maxLines = 2,
                     textAlign = TextAlign.Center)
                 Row {
-                    Text(text?.first ?: "--", color = value?.let(s.color) ?: Dim, fontSize = 15.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                    Text(text?.first ?: "--", color = value?.let(s.color) ?: Dim, fontSize = valueSize, fontWeight = FontWeight.Bold, maxLines = 1)
                     lowText?.let {
-                        Text(" / ", color = Dim, fontSize = 15.sp, fontWeight = FontWeight.Bold, maxLines = 1)
-                        Text(it.first, color = s.lowColor ?: Dim, fontSize = 15.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                        Text(" / ", color = Dim, fontSize = valueSize, fontWeight = FontWeight.Bold, maxLines = 1)
+                        Text(it.first, color = s.lowColor ?: Dim, fontSize = valueSize, fontWeight = FontWeight.Bold, maxLines = 1)
                     }
                 }
                 Text(listOfNotNull(text?.second, lowText?.second).joinToString(" / ").ifEmpty { " " }, color = Dim, fontSize = 12.sp, maxLines = 1)
@@ -335,14 +418,15 @@ private fun SeriesStrip(series: List<TvSeries>, selected: Int, shownSeries: Int)
  */
 @Composable
 private fun SeriesPlot(series: TvSeries, window: Int, lead: Int, selected: Int, modifier: Modifier, axis: (Int) -> String?) {
-    val count = series.values.size
+    // No plot after the last value: the air quality ends days before the rest
+    val count = (series.values.indexOfLast { it != null } + 1).coerceAtLeast(1)
     val first = (selected - lead).coerceIn(0, (count - window).coerceAtLeast(0))
     val end = (first + window).coerceAtMost(count)
     val values = series.values.subList(first, end)
     val lows = series.low?.subList(first, end)
     val chances = series.chance?.subList(first, end)
-    val dews = series.dewPoint?.subList(first, end)
-    val domain = chartDomain(values + lows.orEmpty() + dews.orEmpty(), series.fromZero, series.minSpan) ?: return
+    val extras = series.extras.map { it to it.values.subList(first, end) }
+    val domain = chartDomain(values + lows.orEmpty() + extras.flatMap { it.second }, series.fromZero, series.minSpan) ?: return
     val shape = LocalTvShaper.current
     Canvas(modifier) {
         val top = 20.dp.toPx()
@@ -393,13 +477,13 @@ private fun SeriesPlot(series: TvSeries, window: Int, lead: Int, selected: Int, 
             }
         }
 
-        // The dew point: thin, dashed and green
-        dews?.zipWithNext()?.forEachIndexed { i, (a, b) ->
-            if (a != null && b != null) {
-                drawLine(
-                    DewLine, Offset(x(i), y(a)), Offset(x(i + 1), y(b)), 2.dp.toPx(),
-                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(8.dp.toPx(), 6.dp.toPx())),
-                )
+        // The thin lines: the dew point dashed
+        val dash = PathEffect.dashPathEffect(floatArrayOf(8.dp.toPx(), 6.dp.toPx()))
+        for ((line, part) in extras) {
+            part.zipWithNext().forEachIndexed { i, (a, b) ->
+                if (a != null && b != null) {
+                    drawLine(line.color, Offset(x(i), y(a)), Offset(x(i + 1), y(b)), 2.dp.toPx(), pathEffect = if (line.dashed) dash else null)
+                }
             }
         }
 
@@ -414,7 +498,8 @@ private fun SeriesPlot(series: TvSeries, window: Int, lead: Int, selected: Int, 
             line.zipWithNext().forEachIndexed { i, (a, b) ->
                 if (a != null && b != null) drawLine(ChartStyle.chance, Offset(x(i), chanceY(a)), Offset(x(i + 1), chanceY(b)), 3.dp.toPx(), StrokeCap.Round)
             }
-            line.forEachIndexed { i, v -> v?.let { drawCircle(ChartStyle.chance, 4.dp.toPx(), Offset(x(i), chanceY(it))) } }
+            // A dot on each day; the hours are too close together for dots
+            if (window < 24) line.forEachIndexed { i, v -> v?.let { drawCircle(ChartStyle.chance, 4.dp.toPx(), Offset(x(i), chanceY(it))) } }
         }
 
         // The highest and lowest values in the window; the lowest rain is nearly always 0, so bars show only the highest
@@ -438,10 +523,12 @@ private fun SeriesPlot(series: TvSeries, window: Int, lead: Int, selected: Int, 
         highest?.let { (i, v) -> if (!series.bars || v!! > 0) label(i, v!!, above = true) }
         lowest?.let { (i, v) -> if (!series.bars && (lows != null || i != highest?.index)) label(i, v!!, above = false) }
 
+        // The selection can be after the last value (air quality); then it has no mark
         val mark = selected - first
+        if (mark !in values.indices) return@Canvas
         drawLine(Color.White.copy(alpha = 0.6f), Offset(x(mark), top), Offset(x(mark), bottom), 2.dp.toPx())
         values[mark]?.let { v -> drawCircle(series.color(v), 8.dp.toPx(), Offset(x(mark), y(v))) }
         lows?.get(mark)?.let { v -> drawCircle(series.lowColor ?: series.color(v), 8.dp.toPx(), Offset(x(mark), y(v))) }
-        dews?.get(mark)?.let { v -> drawCircle(DewLine, 6.dp.toPx(), Offset(x(mark), y(v))) }
+        for ((line, part) in extras) part[mark]?.let { v -> drawCircle(line.color, 6.dp.toPx(), Offset(x(mark), y(v))) }
     }
 }
