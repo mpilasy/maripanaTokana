@@ -9,6 +9,14 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.7.20261111184249] - 2026-11-11
+
+- When the shown position is more than 30 minutes old, or the app uses the last known position because a new one failed, a line under the place name says "Using last known location" with its time, on Android, Android TV and the web.
+- About: the F-Droid, Obtainium and GitHub badges show on Android too, and again on iPhone and iPad on the web, so a user can pass the app to someone else.
+- Web: sharing a card works again for cards with coloured badges (it failed since the badges used mixed colours). The Content Security Policy is now enforced.
+- Web: on the first visit, the app uses the browser language when it has it, else English.
+- Screen readers read a summary of the nowcast chart. Android frees the share images after use.
+
 ## [1.7.20261111165956] - 2026-11-11
 
 - Chart view (Android and web): a daily mode with one point per day, opened from the 10-day card; an Hourly | Daily switch at the top. The temperature panel shows the high and the low, the precipitation panel the daily totals, and the wind and UV panels the highest gust and air quality of each day.

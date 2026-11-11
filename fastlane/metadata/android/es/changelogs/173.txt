@@ -1,0 +1,10 @@
+- Cielo: sol del mediodía, declinación, solsticio, luna.
+- Nuevo: Android TV para el mando, con gráficos por hora y por día.
+- Junto a la temperatura: su cambio en 6 horas.
+- Próximas horas: temperatura en color y lluvia.
+- UV en la tarjeta principal si es moderado o más.
+- Máx. de hoy frente a la normal de 10 años.
+- Cambios desde el pronóstico de ayer.
+- Mar: olas, temperatura y mareas.
+- Ajustes: elige el modelo meteorológico.
+- Gráficos: por hora o por día, calidad del aire, máx./mín.
