@@ -122,6 +122,7 @@
     <string name="detail_sunrise">شروق الشمس</string>
     <string name="detail_temperature">درجة الحرارة</string>
     <string name="detail_precipitation">الهطول</string>
+    <string name="detail_precip_chance">احتمال المطر</string>
     <string name="detail_cloud_cover">الغطاء السحابي</string>
     <string name="detail_sunset">غروب الشمس</string>
     <string name="detail_moon">القمر</string>

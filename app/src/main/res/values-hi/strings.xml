@@ -122,6 +122,7 @@
     <string name="detail_sunrise">सूर्योदय</string>
     <string name="detail_temperature">तापमान</string>
     <string name="detail_precipitation">वर्षा</string>
+    <string name="detail_precip_chance">बारिश की संभावना</string>
     <string name="detail_cloud_cover">बादल आवरण</string>
     <string name="detail_sunset">सूर्यास्त</string>
     <string name="detail_moon">चंद्रमा</string>

@@ -77,7 +77,6 @@ import javax.inject.Inject
 
 private const val HOUR_COUNT = 8
 private const val DAY_COUNT = 10
-private const val HOUR_MS = 3_600_000L
 private const val LOCATION_TIMEOUT_MS = 10_000L
 internal const val REFRESH_MS = 30 * 60_000L
 private const val RETRY_MS = 5 * 60_000L
@@ -99,6 +98,7 @@ private sealed interface TvState {
 private sealed interface TvScreen {
     data object Home : TvScreen
     data class Chart(val index: Int) : TvScreen
+    data class DailyChart(val index: Int) : TvScreen
     data object Details : TvScreen
     data object AirQuality : TvScreen
     data object Alerts : TvScreen
@@ -303,6 +303,7 @@ private fun TvApp(data: WeatherData, onPlaces: () -> Unit, onSettings: () -> Uni
             screen = next
         }
         is TvScreen.Chart -> ChartScreen(data, s.index)
+        is TvScreen.DailyChart -> DailyChartScreen(data, s.index)
         TvScreen.Details -> DetailsScreen(data)
         TvScreen.AirQuality -> data.airQuality?.let { AirQualityScreen(it, data.locationName) }
         TvScreen.Alerts -> AlertsScreen(data)
@@ -352,8 +353,7 @@ private fun HomeScreen(data: WeatherData, focusKey: String, onPlaces: () -> Unit
                 data.dailyForecast.take(DAY_COUNT).forEachIndexed { i, day ->
                     val (highP, highS) = day.tempMax.displayDual(metric)
                     val (lowP, lowS) = day.tempMin.displayDual(metric)
-                    // Noon of the day, so the chart opens in the daytime
-                    FocusCard(cardModifier("day$i").weight(1f).fillMaxHeight(), onClick = { onOpen("day$i", chartAt(day.date + 12 * HOUR_MS)) }) {
+                    FocusCard(cardModifier("day$i").weight(1f).fillMaxHeight(), onClick = { onOpen("day$i", TvScreen.DailyChart(i)) }) {
                         ForecastCell(dayFormat(day.date), day.weatherCode, night = false, labelSize = 17, iconSize = 48) {
                             TempText(highP, highS, temperatureColor(day.tempMax.celsius), primarySize = 20, secondarySize = 15)
                             Spacer(Modifier.height(8.dp))

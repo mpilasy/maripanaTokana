@@ -145,6 +145,7 @@
 	"detail_sunrise": "सूर्योदय",
 	"detail_temperature": "तापक्रम",
 	"detail_precipitation": "वर्षा",
+	"detail_precip_chance": "वर्षाको सम्भावना",
 	"detail_cloud_cover": "बादल आवरण",
 	"detail_sunset": "सूर्यास्त",
 	"detail_moon": "चन्द्रमा",

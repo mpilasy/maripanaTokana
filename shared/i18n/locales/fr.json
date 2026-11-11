@@ -145,6 +145,7 @@
 	"detail_sunrise": "Lever du soleil",
 	"detail_temperature": "Température",
 	"detail_precipitation": "Précipitations",
+	"detail_precip_chance": "Risque de pluie",
 	"detail_cloud_cover": "Couverture nuageuse",
 	"detail_sunset": "Coucher du soleil",
 	"detail_moon": "Lune",

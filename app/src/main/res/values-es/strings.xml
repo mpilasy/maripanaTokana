@@ -122,6 +122,7 @@
     <string name="detail_sunrise">Amanecer</string>
     <string name="detail_temperature">Temperatura</string>
     <string name="detail_precipitation">Precipitación</string>
+    <string name="detail_precip_chance">Probabilidad de lluvia</string>
     <string name="detail_cloud_cover">Nubosidad</string>
     <string name="detail_sunset">Atardecer</string>
     <string name="detail_moon">Luna</string>

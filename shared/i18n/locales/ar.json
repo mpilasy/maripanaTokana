@@ -145,6 +145,7 @@
 	"detail_sunrise": "شروق الشمس",
 	"detail_temperature": "درجة الحرارة",
 	"detail_precipitation": "الهطول",
+	"detail_precip_chance": "احتمال المطر",
 	"detail_cloud_cover": "الغطاء السحابي",
 	"detail_sunset": "غروب الشمس",
 	"detail_moon": "القمر",

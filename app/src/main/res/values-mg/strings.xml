@@ -110,6 +110,7 @@
     <string name="activity_tier_not_needed">Tsy ilaina</string>
     <string name="detail_temperature">Maripàna</string>
     <string name="detail_precipitation">Orana</string>
+    <string name="detail_precip_chance">Hisy orana ve?</string>
     <string name="detail_wind">Rivotra</string>
     <string name="detail_wind_gust">Tadio</string>
     <string name="detail_pressure">Tsindry Atmosferika</string>

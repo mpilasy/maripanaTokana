@@ -133,6 +133,7 @@
 	"activity_tier_not_needed": "Not needed",
 	"detail_temperature": "Temperature",
 	"detail_precipitation": "Precipitation",
+	"detail_precip_chance": "Chance of rain",
 	"detail_wind": "Wind",
 	"detail_wind_gust": "Wind Gust",
 	"detail_pressure": "Pressure",

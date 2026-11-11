@@ -145,6 +145,7 @@
 	"detail_sunrise": "日出",
 	"detail_temperature": "温度",
 	"detail_precipitation": "降水",
+	"detail_precip_chance": "降雨概率",
 	"detail_cloud_cover": "云量",
 	"detail_sunset": "日落",
 	"detail_moon": "月亮",

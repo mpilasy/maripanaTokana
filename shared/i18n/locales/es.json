@@ -145,6 +145,7 @@
 	"detail_sunrise": "Amanecer",
 	"detail_temperature": "Temperatura",
 	"detail_precipitation": "Precipitación",
+	"detail_precip_chance": "Probabilidad de lluvia",
 	"detail_cloud_cover": "Nubosidad",
 	"detail_sunset": "Atardecer",
 	"detail_moon": "Luna",

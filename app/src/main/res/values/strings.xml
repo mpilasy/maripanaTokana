@@ -110,6 +110,7 @@
     <string name="activity_tier_not_needed">Not needed</string>
     <string name="detail_temperature">Temperature</string>
     <string name="detail_precipitation">Precipitation</string>
+    <string name="detail_precip_chance">Chance of rain</string>
     <string name="detail_wind">Wind</string>
     <string name="detail_wind_gust">Wind Gust</string>
     <string name="detail_pressure">Pressure</string>

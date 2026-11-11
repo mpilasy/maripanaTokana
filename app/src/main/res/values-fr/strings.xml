@@ -122,6 +122,7 @@
     <string name="detail_sunrise">Lever du soleil</string>
     <string name="detail_temperature">Température</string>
     <string name="detail_precipitation">Précipitations</string>
+    <string name="detail_precip_chance">Risque de pluie</string>
     <string name="detail_cloud_cover">Couverture nuageuse</string>
     <string name="detail_sunset">Coucher du soleil</string>
     <string name="detail_moon">Lune</string>

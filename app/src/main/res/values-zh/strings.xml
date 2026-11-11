@@ -122,6 +122,7 @@
     <string name="detail_sunrise">日出</string>
     <string name="detail_temperature">温度</string>
     <string name="detail_precipitation">降水</string>
+    <string name="detail_precip_chance">降雨概率</string>
     <string name="detail_cloud_cover">云量</string>
     <string name="detail_sunset">日落</string>
     <string name="detail_moon">月亮</string>
