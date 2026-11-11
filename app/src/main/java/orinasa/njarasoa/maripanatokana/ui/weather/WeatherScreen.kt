@@ -67,6 +67,7 @@ import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
 import orinasa.njarasoa.maripanatokana.ui.theme.buildTypography
 import orinasa.njarasoa.maripanatokana.ui.theme.fontPairings
 import orinasa.njarasoa.maripanatokana.ui.theme.localName
+import orinasa.njarasoa.maripanatokana.ui.weather.chart.ChartViewMode
 import orinasa.njarasoa.maripanatokana.ui.weather.chart.ChartViewScreen
 import orinasa.njarasoa.maripanatokana.ui.weather.components.RenameLocationDialog
 import orinasa.njarasoa.maripanatokana.ui.weather.components.SavedLocationsDialog
@@ -82,7 +83,8 @@ fun WeatherScreen(
     var showSettings by rememberSaveable { mutableStateOf(false) }
     var showAbout by rememberSaveable { mutableStateOf(false) }
     var showHelp by rememberSaveable { mutableStateOf(false) }
-    var showChartView by rememberSaveable { mutableStateOf(false) }
+    // The mode of the open chart view; null when it is closed
+    var chartViewMode by rememberSaveable { mutableStateOf<ChartViewMode?>(null) }
     // The chart view shows the weather on screen; without it (loading, error) the main screen shows
     val uiState by viewModel.uiState.collectAsState()
     val chartData = (uiState as? WeatherUiState.Success)?.data
@@ -132,17 +134,19 @@ fun WeatherScreen(
             AboutScreen(onBack = { showAbout = false }, onOpenHelp = { showHelp = true }, languageFlag = supportedLocales[localeIndex].flag, onCycleLanguage = viewModel::cycleLanguage, onSelectLanguage = viewModel::selectLanguage, weatherModelName = modelName)
         } else if (showSettings) {
             SettingsScreen(onBack = { showSettings = false }, onOpenAbout = { showAbout = true }, localizeDigits = supportedLocales[localeIndex]::localizeDigits)
-        } else if (showChartView && chartData != null) {
+        } else if (chartViewMode != null && chartData != null) {
             val metricPrimary by viewModel.metricPrimary.collectAsState()
             ChartViewScreen(
                 data = chartData,
+                mode = chartViewMode!!,
+                onModeChange = { chartViewMode = it },
                 metricPrimary = metricPrimary,
                 // The air quality only when the place has it, as the main screen
                 hourlyAirQuality = chartData.hourlyAirQuality.takeIf { chartData.airQuality != null }.orEmpty(),
                 aqiStandard = chartData.airQuality?.primaryStandard ?: AqiStandard.US,
                 localizeDigits = supportedLocales[localeIndex]::localizeDigits,
                 onToggleUnits = viewModel::toggleUnits,
-                onBack = { showChartView = false },
+                onBack = { chartViewMode = null },
             )
         } else {
             WeatherMainScreen(
@@ -152,7 +156,7 @@ fun WeatherScreen(
                 onOpenSettings = { showSettings = true },
                 onOpenAbout = { showAbout = true },
                 onOpenHelp = { showHelp = true },
-                onOpenChartView = { showChartView = true },
+                onOpenChartView = { chartViewMode = it },
             )
         }
         }
@@ -168,7 +172,7 @@ private fun WeatherMainScreen(
     onOpenSettings: () -> Unit,
     onOpenAbout: () -> Unit,
     onOpenHelp: () -> Unit,
-    onOpenChartView: () -> Unit,
+    onOpenChartView: (ChartViewMode) -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()

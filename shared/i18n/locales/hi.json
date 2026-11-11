@@ -99,6 +99,8 @@
 	"chart_view_no_data": "डेटा नहीं",
 	"chart_view_open": "चार्ट दृश्य खोलें",
 	"chart_view_summary": "अगले {hours} घंटों के चार्ट",
+	"chart_view_hourly": "प्रति घंटा",
+	"chart_view_daily": "प्रतिदिन",
 	"high_vs_normal_above": "अधिकतम सामान्य से {delta} ऊपर",
 	"high_vs_normal_below": "अधिकतम सामान्य से {delta} नीचे",
 	"normal_label": "सामान्य",

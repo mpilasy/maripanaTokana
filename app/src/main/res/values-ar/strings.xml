@@ -76,6 +76,8 @@
     <string name="chart_view_no_data">لا توجد بيانات</string>
     <string name="chart_view_open">افتح عرض الرسوم البيانية</string>
     <string name="chart_view_summary">رسوم بيانية للساعات الـ %1$s القادمة</string>
+    <string name="chart_view_hourly">كل ساعة</string>
+    <string name="chart_view_daily">يوميًا</string>
     <string name="high_vs_normal_above">العظمى أعلى من المعتاد بـ %1$s</string>
     <string name="high_vs_normal_below">العظمى أدنى من المعتاد بـ %1$s</string>
     <string name="normal_label">المعتاد</string>

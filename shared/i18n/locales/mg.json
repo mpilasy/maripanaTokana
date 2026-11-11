@@ -99,6 +99,8 @@
 	"chart_view_no_data": "Tsy misy",
 	"chart_view_open": "Sokafy ny sarivina",
 	"chart_view_summary": "Sarivina ho an'ny ora {hours} manaraka",
+	"chart_view_hourly": "Isan'ora",
+	"chart_view_daily": "Isan'andro",
 	"high_vs_normal_above": "{delta} mihoatra ny mahazatra",
 	"high_vs_normal_below": "{delta} latsaky ny mahazatra",
 	"normal_label": "Mahazatra",

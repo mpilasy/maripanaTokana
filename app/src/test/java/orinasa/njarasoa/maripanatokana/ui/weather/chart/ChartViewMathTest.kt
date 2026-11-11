@@ -4,6 +4,8 @@
 package orinasa.njarasoa.maripanatokana.ui.weather.chart
 
 import orinasa.njarasoa.maripanatokana.domain.model.ChartHour
+import orinasa.njarasoa.maripanatokana.domain.model.DailyForecast
+import orinasa.njarasoa.maripanatokana.domain.model.Precipitation
 import orinasa.njarasoa.maripanatokana.domain.model.Temperature
 import orinasa.njarasoa.maripanatokana.domain.model.WindSpeed
 import org.junit.Assert.assertEquals
@@ -321,6 +323,59 @@ class ChartViewMathTest {
         assertEquals(listOf(0, null), chartAirQuality(hours, listOf(t0 - 10 * 60_000L, t0 + 10 * 60_000L)))
         assertEquals(listOf(null, null), chartAirQuality(hours, emptyList()))
         assertTrue(chartAirQuality(emptyList(), listOf(t0)).isEmpty())
+    }
+
+    // chartDayMaxIndex
+
+    @Test
+    fun chartDayMaxIndexFindsTheHighestValueOfEachLocalDay() {
+        // 48 hours from 00:00 UTC; at UTC+3 the first local day ends at 21:00 UTC (index 21)
+        val times = hourly(t0, 48)
+        val values = List<Double?>(48) { 1.0 }.toMutableList()
+        values[20] = 9.0 // 23:00 local, day 1
+        values[21] = 8.0 // 00:00 local, day 2
+        values[30] = 8.0 // a tie in day 2: the first one wins
+        val dates = listOf(t0 - 3 * hour, t0 + day - 3 * hour)
+        assertEquals(listOf(20, 21), chartDayMaxIndex(dates, times, values, 3 * 3600))
+    }
+
+    @Test
+    fun chartDayMaxIndexGivesNullForDaysWithoutValues() {
+        val times = hourly(t0, 24)
+        val values = List<Double?>(24) { if (it == 5) Double.NaN else null }
+        assertEquals(listOf<Int?>(null, null), chartDayMaxIndex(listOf(t0, t0 + day), times, values, 0))
+        assertEquals(listOf<Int?>(null), chartDayMaxIndex(listOf(t0), emptyList(), emptyList(), 0))
+    }
+
+    // chartDays
+
+    @Test
+    fun chartDaysTakesTheDayValuesAndTheHighestHourlyGust() {
+        val day1 = DailyForecast(
+            date = t0, tempMax = Temperature.fromCelsius(25.0), tempMin = Temperature.fromCelsius(14.0), weatherCode = 3,
+            precipProbability = 60, windSpeed = WindSpeed.fromMetersPerSecond(7.0), windDirection = 90,
+            precipitation = Precipitation.fromMm(4.0), uvIndexMax = 6.5, humidity = 70,
+        )
+        val day2 = day1.copy(date = t0 + day)
+        val hours = listOf(
+            chartHour(t0 + hour).copy(windGust = WindSpeed.fromMetersPerSecond(12.0)),
+            chartHour(t0 + 5 * hour).copy(windGust = WindSpeed.fromMetersPerSecond(15.0)),
+        )
+        val days = chartDays(listOf(day1, day2), hours, 0)
+        assertEquals(2, days.size)
+        val d = days[0]
+        assertEquals(t0, d.time)
+        assertEquals(25.0, d.temperature!!.celsius, 1e-9)
+        assertEquals(4.0, d.precipitation!!.mm, 1e-9)
+        assertEquals(60, d.precipProbability)
+        assertEquals(90, d.windDirection)
+        assertEquals(15.0, d.windGust!!.metersPerSecond, 1e-9)
+        assertEquals(6.5, d.uvIndex!!, 1e-9)
+        assertEquals(70, d.humidity)
+        assertNull(d.pressure)
+        assertEquals(false, d.isNight)
+        // The hours do not reach the second day: no gust
+        assertNull(days[1].windGust)
     }
 
     // chartTiles

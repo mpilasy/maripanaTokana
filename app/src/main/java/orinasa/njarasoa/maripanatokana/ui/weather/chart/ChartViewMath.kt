@@ -4,6 +4,7 @@
 package orinasa.njarasoa.maripanatokana.ui.weather.chart
 
 import orinasa.njarasoa.maripanatokana.domain.model.ChartHour
+import orinasa.njarasoa.maripanatokana.domain.model.DailyForecast
 import orinasa.njarasoa.maripanatokana.domain.model.isDaytime
 import java.math.BigDecimal
 import java.math.MathContext
@@ -213,6 +214,42 @@ fun chartScrollForIndex(index: Int, slotPx: Float, count: Int, viewPx: Float): F
  */
 fun chartAirQuality(hourTimes: List<Long>, aqTimes: List<Long>): List<Int?> =
     hourTimes.map { t -> aqTimes.indexOfFirst { kotlin.math.abs(it - t) <= HOUR / 2 }.takeIf { it >= 0 } }
+
+/**
+ * For each local day of [dates] (any time in the day, epoch millis), the index in [times] of the highest value of
+ * [values] in that day at the place (UTC + [utcOffsetSec]); null when no time of the day has a value. With ties, the
+ * first one.
+ */
+fun chartDayMaxIndex(dates: List<Long>, times: List<Long>, values: List<Double?>, utcOffsetSec: Int): List<Int?> {
+    val offset = utcOffsetSec * 1000L
+    fun day(t: Long) = Math.floorDiv(t + offset, DAY)
+    val best = HashMap<Long, Int>()
+    times.forEachIndexed { i, t ->
+        val v = values.getOrNull(i)?.takeIf { it.isFinite() } ?: return@forEachIndexed
+        val d = day(t)
+        val old = best[d]
+        if (old == null || v > values[old]!!) best[d] = i
+    }
+    return dates.map { best[day(it)] }
+}
+
+/**
+ * The days of the daily mode of the chart view, one point for each day of [days], as hours: the time is the date of
+ * the day, the temperature its high, and the dew point, pressure and humidity its means. The rain is the day's total,
+ * the chance of rain, wind and UV index their highest values. The gust is the highest gust of the [hours] in that local
+ * day at the place; null when the hours do not reach the day. A day is never at night.
+ */
+fun chartDays(days: List<DailyForecast>, hours: List<ChartHour>, utcOffsetSec: Int): List<ChartHour> {
+    val gustIndex = chartDayMaxIndex(days.map { it.date }, hours.map { it.time }, hours.map { it.windGust?.metersPerSecond }, utcOffsetSec)
+    return days.mapIndexed { k, d ->
+        ChartHour(
+            time = d.date, temperature = d.tempMax, dewPoint = d.dewPoint, weatherCode = d.weatherCode, isNight = false,
+            precipitation = d.precipitation, precipProbability = d.precipProbability, windSpeed = d.windSpeed,
+            windDirection = d.windDirection, windGust = gustIndex[k]?.let { hours[it].windGust }, pressure = d.pressure,
+            humidity = d.humidity, uvIndex = d.uvIndexMax,
+        )
+    }
+}
 
 /** The value tiles of the selection card, in their order. */
 enum class ChartTile { TEMPERATURE, DEW_POINT, PRECIPITATION, WIND, WIND_GUST, PRESSURE, HUMIDITY, UV_INDEX, AIR_QUALITY }

@@ -76,6 +76,8 @@
     <string name="chart_view_no_data">डेटा नहीं</string>
     <string name="chart_view_open">चार्ट दृश्य खोलें</string>
     <string name="chart_view_summary">अगले %1$s घंटों के चार्ट</string>
+    <string name="chart_view_hourly">प्रति घंटा</string>
+    <string name="chart_view_daily">प्रतिदिन</string>
     <string name="high_vs_normal_above">अधिकतम सामान्य से %1$s ऊपर</string>
     <string name="high_vs_normal_below">अधिकतम सामान्य से %1$s नीचे</string>
     <string name="normal_label">सामान्य</string>

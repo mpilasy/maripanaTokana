@@ -4,7 +4,7 @@
 // Pure functions of the chart view and the charts on the main page. Android has the same functions with the same
 // rules in ChartViewMath.kt.
 
-import { isDaytime, type ChartHour } from '#lib/domain/weatherData.js';
+import { isDaytime, type ChartHour, type DailyForecast } from '#lib/domain/weatherData.js';
 
 const HOUR = 3_600_000;
 const DAY = 24 * HOUR;
@@ -13,6 +13,9 @@ const DAY = 24 * HOUR;
 export const CHART_MAX_HOURS = 240;
 /** The width of one hour, in px. */
 export const CHART_SLOT = 14;
+
+/** What the chart view shows: the hours (from the hourly card) or the days (from the 10-day card). */
+export type ChartViewMode = 'hourly' | 'daily';
 
 /** A range of indexes: `start` is in it, `end` is not. */
 export interface IndexRange {
@@ -269,6 +272,41 @@ export function chartAirQuality(hourTimes: number[], aqTimes: number[]): (number
 		const i = aqTimes.findIndex((a) => Math.abs(a - t) <= HOUR / 2);
 		return i >= 0 ? i : null;
 	});
+}
+
+/**
+ * For each local day of `dayDates` (any time in the day, epoch millis): the index in `times` of the highest of
+ * `values` in that day at the place (UTC + `utcOffsetSec`), the first one with ties; null when no time of the day
+ * has a value. Nulls and values that are not numbers are ignored.
+ */
+export function chartDayMaxIndex(dayDates: number[], times: number[], values: (number | null | undefined)[], utcOffsetSec: number): (number | null)[] {
+	const offset = utcOffsetSec * 1000;
+	const dayOf = (t: number) => Math.floor((t + offset) / DAY);
+	const best = new Map<number, number>();
+	times.forEach((t, i) => {
+		const v = values[i];
+		if (v == null || !Number.isFinite(v)) return;
+		const day = dayOf(t);
+		const b = best.get(day);
+		if (b == null || v > values[b]!) best.set(day, i);
+	});
+	return dayDates.map((d) => best.get(dayOf(d)) ?? null);
+}
+
+/**
+ * The days of the daily mode of the chart view, one point for each day of `days`, as hours: the time is the date of
+ * the day, the temperature its high, and the dew point, pressure and humidity its means. The rain is the day's total,
+ * the chance of rain, wind and UV index their highest values. The gust is the highest gust of the `hours` in that
+ * local day at the place; null when the hours do not reach the day. A day is never at night.
+ */
+export function chartDays(days: DailyForecast[], hours: ChartHour[], utcOffsetSec: number): ChartHour[] {
+	const gustIndex = chartDayMaxIndex(days.map((d) => d.date), hours.map((h) => h.time), hours.map((h) => h.windGust?.metersPerSecond), utcOffsetSec);
+	return days.map((d, k) => ({
+		time: d.date, temperature: d.tempMax, dewPoint: d.dewPoint ?? null, weatherCode: d.weatherCode, isNight: false,
+		precipitation: d.precipitation, precipProbability: d.precipProbability, windSpeed: d.windSpeed, windDeg: d.windDeg,
+		windGust: gustIndex[k] == null ? null : hours[gustIndex[k]!].windGust, pressure: d.pressure ?? null,
+		humidity: d.humidity ?? null, uvIndex: d.uvIndexMax,
+	}));
 }
 
 /** The value tiles of the selection card, in their order. */

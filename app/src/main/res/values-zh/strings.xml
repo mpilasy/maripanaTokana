@@ -76,6 +76,8 @@
     <string name="chart_view_no_data">无数据</string>
     <string name="chart_view_open">打开图表视图</string>
     <string name="chart_view_summary">未来 %1$s 小时的图表</string>
+    <string name="chart_view_hourly">逐时</string>
+    <string name="chart_view_daily">逐日</string>
     <string name="high_vs_normal_above">最高气温比常年高 %1$s</string>
     <string name="high_vs_normal_below">最高气温比常年低 %1$s</string>
     <string name="normal_label">常年值</string>

@@ -4,6 +4,7 @@
 package orinasa.njarasoa.maripanatokana.ui.weather
 
 import androidx.compose.foundation.layout.PaddingValues
+import orinasa.njarasoa.maripanatokana.ui.weather.chart.ChartViewMode
 import orinasa.njarasoa.maripanatokana.ui.weather.components.FontPicker
 import orinasa.njarasoa.maripanatokana.ui.weather.components.LanguageFlagButton
 import android.content.Intent
@@ -304,7 +305,7 @@ internal fun WeatherContent(
     onOpenSettings: () -> Unit = {},
     onOpenAbout: () -> Unit = {},
     onOpenHelp: () -> Unit = {},
-    onOpenChartView: () -> Unit = {},
+    onOpenChartView: (ChartViewMode) -> Unit = {},
     weatherSource: WeatherSource = WeatherSource.OPEN_METEO,
     isSavedLocation: Boolean = false,
     onGoToCurrentLocation: () -> Unit = {},
@@ -961,7 +962,7 @@ internal fun WeatherContent(
             if (data.hourlyForecast.isNotEmpty()) add {
                 val hourlyMode = remember { mutableStateOf(ForecastDisplayMode.Temperature) }
                 SectionCard(stringResource(R.string.section_hourly_forecast), headerGraphicsLayer, shareCopy = true,
-                    action = { ChartViewButton(onOpenChartView) }) {
+                    action = { ChartViewButton { onOpenChartView(ChartViewMode.HOURLY) } }) {
                     if (showNowcast) {
                         Text(
                             text = stringResource(R.string.section_nowcast),
@@ -985,7 +986,8 @@ internal fun WeatherContent(
             }
             if (data.dailyForecast.isNotEmpty()) add {
                 val dailyMode = remember { mutableStateOf(ForecastDisplayMode.Temperature) }
-                SectionCard(stringResource(R.string.section_this_week), headerGraphicsLayer, shareCopy = true) {
+                SectionCard(stringResource(R.string.section_this_week), headerGraphicsLayer, shareCopy = true,
+                    action = { ChartViewButton { onOpenChartView(ChartViewMode.DAILY) } }) {
                     ForecastChangesBlock(data.forecastChanges, metricPrimary, localizeDigits)
                     DailyForecastList(data.dailyForecast, metricPrimary, localizeDigits, onToggleUnits, data.utcOffsetSeconds,
                         hourlyAirQuality = data.hourlyAirQuality.takeIf { data.airQuality != null }.orEmpty(),
@@ -1508,7 +1510,7 @@ internal fun SectionCard(
     }
 }
 
-/** The button that opens the chart view, in the header of the hourly card. 48 dp, as the share button. */
+/** The button that opens the chart view, in the header of the hourly and 10-day cards. 48 dp, as the share button. */
 @Composable
 private fun ChartViewButton(onClick: () -> Unit) {
     IconButton(

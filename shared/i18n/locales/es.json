@@ -99,6 +99,8 @@
 	"chart_view_no_data": "Sin datos",
 	"chart_view_open": "Abrir la vista de gráficos",
 	"chart_view_summary": "Gráficos de las próximas {hours} horas",
+	"chart_view_hourly": "Por hora",
+	"chart_view_daily": "Por día",
 	"high_vs_normal_above": "Máx. {delta} por encima de lo normal",
 	"high_vs_normal_below": "Máx. {delta} por debajo de lo normal",
 	"normal_label": "Normal",

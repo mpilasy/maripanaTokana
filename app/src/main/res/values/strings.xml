@@ -76,6 +76,8 @@
     <string name="chart_view_no_data">No data</string>
     <string name="chart_view_open">Open the chart view</string>
     <string name="chart_view_summary">Charts of the next %1$s hours</string>
+    <string name="chart_view_hourly">Hourly</string>
+    <string name="chart_view_daily">Daily</string>
     <string name="high_vs_normal_above">High %1$s above normal</string>
     <string name="high_vs_normal_below">High %1$s below normal</string>
     <string name="normal_label">Normal</string>

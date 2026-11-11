@@ -47,6 +47,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableFloatState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
@@ -127,6 +128,7 @@ import orinasa.njarasoa.maripanatokana.ui.weather.components.drawMoon
 import orinasa.njarasoa.maripanatokana.ui.weather.glass
 import orinasa.njarasoa.maripanatokana.ui.weather.components.colorsFor
 import orinasa.njarasoa.maripanatokana.ui.weather.components.computeMonotoneCubicControlPoints
+import orinasa.njarasoa.maripanatokana.ui.weather.components.ForecastTabs
 import orinasa.njarasoa.maripanatokana.ui.weather.components.dualLabel
 import orinasa.njarasoa.maripanatokana.ui.weather.components.weatherIconRes
 import kotlinx.coroutines.launch
@@ -195,14 +197,27 @@ private val ChartTile.labelRes: Int
         ChartTile.AIR_QUALITY -> R.string.detail_air_quality
     }
 
-/** The values of one hour in the primary unit, as the charts draw them. */
-private class ChartSeries(hours: List<ChartHour>, private val metricPrimary: Boolean) {
+/** What the chart view shows: the hours, or one point for each day of the daily forecast. */
+enum class ChartViewMode { HOURLY, DAILY }
+
+/**
+ * The values of the daily mode that a day as an hour (chartDays) does not hold: the low of each day, the heat index of
+ * the high and the wind chill of the low.
+ */
+private class DayExtras(val lows: List<Temperature>, val heatIndex: List<Temperature?>, val windChill: List<Temperature?>)
+
+/** The values of one hour (or day, with [days]) in the primary unit, as the charts draw them. */
+private class ChartSeries(hours: List<ChartHour>, private val metricPrimary: Boolean, days: DayExtras? = null) {
     private fun Temperature.primary() = if (metricPrimary) celsius else fahrenheit
     val temperature = hours.map { it.temperature?.primary() }
+    // The low of each day; null in the hourly mode
+    val low = days?.lows?.map { it.primary() }
     val dewPoint = hours.map { it.dewPoint?.primary() }
     // The NWS heat index and wind chill of each hour; null where they do not apply
-    val heatIndex = hours.map { h -> h.temperature?.let { ThermalIndices.heatIndex(it, h.humidity) }?.primary() }
-    val windChill = hours.map { h -> h.temperature?.let { t -> h.windSpeed?.let { ThermalIndices.windChill(t, it) } }?.primary() }
+    val heatIndex = days?.heatIndex?.map { it?.primary() }
+        ?: hours.map { h -> h.temperature?.let { ThermalIndices.heatIndex(it, h.humidity) }?.primary() }
+    val windChill = days?.windChill?.map { it?.primary() }
+        ?: hours.map { h -> h.temperature?.let { t -> h.windSpeed?.let { ThermalIndices.windChill(t, it) } }?.primary() }
     val uv = hours.map { it.uvIndex?.takeIf { v -> v.isFinite() } }
     val precipitation = hours.map { it.precipitation?.let { p -> if (metricPrimary) p.mm else p.inches } }
     val chance = hours.map { it.precipProbability?.toDouble() }
@@ -213,30 +228,52 @@ private class ChartSeries(hours: List<ChartHour>, private val metricPrimary: Boo
 }
 
 /**
- * Up to 240 hours of the forecast in stacked panels that scroll sideways together, with the values of the
- * selected hour at the top. It opens at the current hour. The web has the same view in ChartView.svelte.
+ * The forecast in stacked panels, with the values of the selection at the top. In [mode] HOURLY, up to 240 hours that
+ * scroll sideways together; it opens at the current hour. In [mode] DAILY, one point for each day of the daily
+ * forecast, all in the width; a tap selects a day. A switch at the top changes the mode ([onModeChange]). The web has
+ * the same view in ChartView.svelte.
  */
 @Composable
 fun ChartViewScreen(
     data: WeatherData,
+    mode: ChartViewMode,
     metricPrimary: Boolean,
     hourlyAirQuality: List<HourlyAirQuality>,
     aqiStandard: AqiStandard,
     localizeDigits: (String) -> String,
+    onModeChange: (ChartViewMode) -> Unit,
     onToggleUnits: () -> Unit,
     onBack: () -> Unit,
 ) {
     BackHandler(onBack = onBack)
-    // The data can be some hours old: start again at the current hour
-    val hours = remember(data.chartHourly) {
-        data.chartHourly.slice(chartHours(data.chartHourly.map { it.time }, System.currentTimeMillis()))
+    val daily = mode == ChartViewMode.DAILY
+    // The data can be some hours old: start again at the current hour. In the daily mode, the days as hours
+    val hours = remember(data, daily) {
+        if (daily) chartDays(data.dailyForecast, data.chartHourly, data.utcOffsetSeconds)
+        else data.chartHourly.slice(chartHours(data.chartHourly.map { it.time }, System.currentTimeMillis()))
     }
-    // The air quality of each hour; null when no entry is near
-    val airQuality = remember(hours, hourlyAirQuality) {
-        chartAirQuality(hours.map { it.time }, hourlyAirQuality.map { it.time }).map { it?.let(hourlyAirQuality::get) }
+    val dayExtras = remember(data, daily) {
+        if (!daily) null else data.dailyForecast.let { days ->
+            DayExtras(days.map { it.tempMin }, days.map { ThermalIndices.heatIndex(it) }, days.map { ThermalIndices.windChill(it) })
+        }
+    }
+    // The air quality of each hour; null when no entry is near. In the daily mode, the hour with the highest air
+    // quality of each day at the place
+    val airQuality = remember(hours, hourlyAirQuality, aqiStandard, daily) {
+        val aqTimes = hourlyAirQuality.map { it.time }
+        val indices = if (!daily) chartAirQuality(hours.map { it.time }, aqTimes) else chartDayMaxIndex(
+            hours.map { it.time }, aqTimes,
+            hourlyAirQuality.map { (if (aqiStandard == AqiStandard.EUROPEAN) it.europeanValue else it.usValue).toDouble() },
+            data.utcOffsetSeconds,
+        )
+        indices.map { it?.let(hourlyAirQuality::get) }
     }
     val tiles = remember(hours, airQuality) { chartTiles(hours, airQuality.any { it != null }) }
-    var selected by remember(hours) { mutableIntStateOf(0) }
+    // Each mode keeps its own selection, and the hourly mode its scroll, while the view is open
+    val hourlySelected = remember(data) { mutableIntStateOf(0) }
+    val dailySelected = remember(data) { mutableIntStateOf(0) }
+    val hourlyScroll = remember(data) { mutableFloatStateOf(0f) }
+    var selected by if (daily) dailySelected else hourlySelected
     val bodyFont = LocalBodyFont.current
     val displayFont = LocalDisplayFont.current
     val onSurface = MaterialTheme.colorScheme.onSurface
@@ -271,8 +308,21 @@ fun ChartViewScreen(
                     }
                 }
             }
+            // The switch between the hours and the days
+            ForecastTabs(
+                tabs = listOf(
+                    ChartViewMode.HOURLY to stringResource(R.string.chart_view_hourly),
+                    ChartViewMode.DAILY to stringResource(R.string.chart_view_daily),
+                ),
+                selected = mode,
+                onSelect = onModeChange,
+                modifier = Modifier.padding(start = CARD_MARGIN, end = CARD_MARGIN, top = 4.dp),
+            )
             hours.getOrNull(selected)?.let { hour ->
-                SelectionHeader(hour, tiles, airQuality.getOrNull(selected), aqiStandard, data.utcOffsetSeconds, metricPrimary, localizeDigits, onToggleUnits)
+                SelectionHeader(
+                    hour, dayExtras?.lows?.getOrNull(selected), tiles, airQuality.getOrNull(selected), aqiStandard, data.utcOffsetSeconds,
+                    metricPrimary, localizeDigits, onToggleUnits,
+                )
             }
             Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(top = 8.dp, bottom = 16.dp)) {
                 // The chart card: the axis column and the panels, with no title row
@@ -286,7 +336,10 @@ fun ChartViewScreen(
                 ) {
                     // The hours run left to right in every language, as in the other charts of the app
                     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-                        ChartPanels(hours, airQuality, aqiStandard, data.utcOffsetSeconds, (data.latitude ?: 0.0) < 0, metricPrimary, localizeDigits) { selected = it }
+                        ChartPanels(
+                            hours, dayExtras, selected, hourlyScroll, airQuality, aqiStandard, data.utcOffsetSeconds, (data.latitude ?: 0.0) < 0, metricPrimary,
+                            localizeDigits,
+                        ) { selected = it }
                     }
                 }
             }
@@ -298,16 +351,18 @@ fun ChartViewScreen(
  * The card of the selected hour: its time and weather icon in the title row, then the values as tiles in rows of up
  * to 5 (chartTileRows), each in both units. The card is compact, so the charts get most of the screen, and it has the
  * same tiles (chartTiles) and size for every hour. Screen readers read it again when the selection moves; a tap
- * changes the units, as everywhere in the app.
+ * changes the units, as everywhere in the app. In the daily mode, [hour] is a day (chartDays) and [low] is its low:
+ * the title shows the date with no time, and the temperature tile shows the low under the high.
  */
 @Composable
 private fun SelectionHeader(
-    hour: ChartHour, tiles: List<ChartTile>, airQuality: HourlyAirQuality?, aqiStandard: AqiStandard, utcOffsetSeconds: Int, metricPrimary: Boolean,
-    localizeDigits: (String) -> String, onToggleUnits: () -> Unit,
+    hour: ChartHour, low: Temperature?, tiles: List<ChartTile>, airQuality: HourlyAirQuality?, aqiStandard: AqiStandard, utcOffsetSeconds: Int,
+    metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit,
 ) {
     val appLocale = LocalConfiguration.current.locales[0]
-    val timeFormat = remember(appLocale, utcOffsetSeconds) {
-        SimpleDateFormat("EEE d MMM, HH:mm", appLocale).apply { timeZone = buildLocationTimeZone(utcOffsetSeconds) }
+    val daily = low != null
+    val timeFormat = remember(appLocale, utcOffsetSeconds, daily) {
+        SimpleDateFormat(if (daily) "EEE d MMM" else "EEE d MMM, HH:mm", appLocale).apply { timeZone = buildLocationTimeZone(utcOffsetSeconds) }
     }
     val directions = stringArrayResource(R.array.cardinal_directions)
     val onSurface = MaterialTheme.colorScheme.onSurface
@@ -359,6 +414,14 @@ private fun SelectionHeader(
                             DualUnitText(
                                 primary = localizeDigits(p), secondary = localizeDigits(s), primarySize = VALUE_SIZE,
                                 color = Color(0xFF1A1A1A), secondaryAlpha = 1f, horizontalAlignment = Alignment.CenterHorizontally,
+                            )
+                        }
+                        // The low of the day under the high, in the colour of the low line
+                        low?.let {
+                            val (lp, ls) = it.displayDual(metricPrimary)
+                            DualUnitText(
+                                primary = localizeDigits(lp), secondary = localizeDigits(ls), primarySize = VALUE_SIZE,
+                                color = ChartStyle.low, horizontalAlignment = Alignment.CenterHorizontally,
                             )
                         }
                     } ?: dual(null)
@@ -481,10 +544,17 @@ private fun SelectionHeader(
  * The selected hour is the hour under the selection line, which moves from the start of the plot to the middle and,
  * at the end, to the end of the plot (chartLineOffset). Gestures: one finger scrolls the hours, with a fling (a
  * vertical drag goes to the page; the first movement decides). A tap moves the hour under it to the selection line.
+ * In the daily mode ([dayExtras] not null), [hours] are the days (chartDays), which all fit in the width with no
+ * scroll: a tap selects the day under it, and the selection line is on the [selected] day.
  */
 @Composable
 private fun ChartPanels(
     hours: List<ChartHour>,
+    dayExtras: DayExtras?,
+    selected: Int,
+    // The start of the plot in px, kept by the caller so the hourly mode comes back at the same place; the days of the
+    // daily mode do not scroll and leave it as it is
+    scroll: MutableFloatState,
     airQuality: List<HourlyAirQuality?>,
     aqiStandard: AqiStandard,
     utcOffsetSeconds: Int,
@@ -501,33 +571,42 @@ private fun ChartPanels(
     val bodyFont = LocalBodyFont.current
     val appLocale = LocalConfiguration.current.locales[0]
     val count = hours.size
+    val daily = dayExtras != null
     val axisPx = with(density) { AXIS_WIDTH.toPx() }
-    val slotPx = with(density) { CHART_SLOT.dp.toPx() }
 
     // The start of the plot; it opens at 0, with the current hour (the first hour) under the selection line
-    var scrollPx by remember(hours) { mutableFloatStateOf(0f) }
+    var scrollPx by scroll
     var widthPx by remember { mutableIntStateOf(0) }
     // The plot width, read when it is used: the gesture and selection code is made once
     fun viewPx() = maxOf(0f, widthPx - axisPx)
+    // The width of one hour; in the daily mode, the days share the plot width
+    fun slotPx() = if (daily) (if (count > 0) viewPx() / count else 0f) else with(density) { CHART_SLOT.dp.toPx() }
     val scope = rememberCoroutineScope()
     // A positive delta moves to later hours (reverseDirection below), so animateScrollBy takes the distance in px
     val scrollState = rememberScrollableState { delta ->
         val old = scrollPx
-        scrollPx = (old + delta).coerceIn(0f, chartMaxScroll(slotPx, count, viewPx()))
+        scrollPx = (old + delta).coerceIn(0f, chartMaxScroll(slotPx(), count, viewPx()))
         scrollPx - old
     }
-    // A tap moves the hour under it to the selection line, with a short animation
+    val onSelectNow by rememberUpdatedState(onSelect)
+    // A tap moves the hour under it to the selection line, with a short animation; in the daily mode it selects the
+    // day under it
     fun scrollToTap(x: Float) {
         if (x < axisPx) return
-        val i = chartIndexForX(scrollPx + x - axisPx, slotPx, count)
+        val i = chartIndexForX(scrollPx + x - axisPx, slotPx(), count)
         if (i < 0) return
-        scope.launch { scrollState.animateScrollBy(chartScrollForIndex(i, slotPx, count, viewPx()) - scrollPx) }
+        if (daily) {
+            if (i != selected) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            onSelectNow(i)
+            return
+        }
+        scope.launch { scrollState.animateScrollBy(chartScrollForIndex(i, slotPx(), count, viewPx()) - scrollPx) }
     }
     // The selected hour is the hour under the selection line: a tick each time a new hour comes under it
-    val onSelectNow by rememberUpdatedState(onSelect)
-    LaunchedEffect(hours) {
+    LaunchedEffect(hours, daily) {
+        if (daily) return@LaunchedEffect
         var first = true
-        snapshotFlow { chartLineIndex(scrollPx, slotPx, count, viewPx()) }.collect { i ->
+        snapshotFlow { chartLineIndex(scrollPx, slotPx(), count, viewPx()) }.collect { i ->
             if (i < 0) return@collect
             onSelectNow(i)
             if (!first) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
@@ -535,10 +614,13 @@ private fun ChartPanels(
         }
     }
 
-    val series = remember(hours, metricPrimary) { ChartSeries(hours, metricPrimary) }
+    val series = remember(hours, dayExtras, metricPrimary) { ChartSeries(hours, metricPrimary, dayExtras) }
     // Each scale is computed once from all the hours, so it stays the same while the hours scroll
     val tDomain = remember(series) {
-        chartDomain(series.temperature + series.dewPoint + series.heatIndex + series.windChill, fromZero = false, minSpan = if (metricPrimary) 5.0 else 9.0)
+        chartDomain(
+            series.temperature + series.low.orEmpty() + series.dewPoint + series.heatIndex + series.windChill,
+            fromZero = false, minSpan = if (metricPrimary) 5.0 else 9.0,
+        )
     }
     val pDomain = remember(series) { chartDomain(series.precipitation, fromZero = true, minSpan = if (metricPrimary) 1.0 else 0.04) }
     val wDomain = remember(series) { chartDomain(series.wind + series.gust, fromZero = true, minSpan = if (metricPrimary) 5.0 else 10.0) }
@@ -549,21 +631,35 @@ private fun ChartPanels(
         airQuality.map { it?.let { aq -> (if (aqiStandard == AqiStandard.EUROPEAN) aq.europeanValue else aq.usValue).toDouble() } }
     }
     val aqDomain = remember(aqValues) { chartDomain(aqValues, fromZero = true, minSpan = 50.0) }
-    // No UV index and no air quality in any hour: no UV index panel
+    // No UV index and no air quality in any hour: no UV index panel. In the daily mode, no pressure panel when no day
+    // has a pressure (data saved before it was fetched)
     val showUv = uvDomain != null || aqDomain != null
-    val panels = remember(showUv) { ChartPanel.entries.filter { it != ChartPanel.UV_INDEX || showUv } }
+    val showPressure = !daily || prDomain != null
+    val panels = remember(showUv, showPressure) {
+        ChartPanel.entries.filter { (it != ChartPanel.UV_INDEX || showUv) && (it != ChartPanel.PRESSURE || showPressure) }
+    }
     // The last hour with air quality before the first hours without it, where the "no data" label starts
     val aqEnd = remember(aqValues) { (0 until aqValues.size - 1).firstOrNull { aqValues[it] != null && aqValues[it + 1] == null } }
     val times = remember(hours) { hours.map { it.time } }
-    val days = remember(hours, utcOffsetSeconds) { chartDaySpans(times, utcOffsetSeconds) }
-    // The high and low of each day on the primary line of each panel
-    val tempExtremes = remember(series, days) { chartDayExtremes(series.temperature, days) }
-    val windExtremes = remember(series, days) { chartDayExtremes(series.wind, days) }
-    val pressureExtremes = remember(series, days) { chartDayExtremes(series.pressure, days) }
-    val humidityExtremes = remember(series, days) { chartDayExtremes(series.humidity, days) }
-    val uvExtremes = remember(series, days) { chartDayExtremes(series.uv, days) }
+    // In the daily mode, each point is a day of its own
+    val days = remember(hours, utcOffsetSeconds, daily) {
+        if (daily) times.mapIndexed { i, t -> ChartDaySpan(i, i + 1, t) } else chartDaySpans(times, utcOffsetSeconds)
+    }
+    // The high and low of each day on the primary line of each panel. In the daily mode, the highest and lowest of
+    // all the days (a label for each day does not fit), and the low of the temperature is the lowest low
+    val extremeSpans = if (daily) listOf(ChartDaySpan(0, count, 0L)) else days
+    val minHours = if (daily) 1 else 12
+    val tempExtremes = remember(series, days) {
+        val highs = chartDayExtremes(series.temperature, extremeSpans, minHours)
+        val lows = series.low?.let { chartDayExtremes(it, extremeSpans, minHours) } ?: highs
+        highs.zip(lows) { h, l -> ChartDayExtremes(h.highIndex, l.lowIndex) }
+    }
+    val windExtremes = remember(series, days) { chartDayExtremes(series.wind, extremeSpans, minHours) }
+    val pressureExtremes = remember(series, days) { chartDayExtremes(series.pressure, extremeSpans, minHours) }
+    val humidityExtremes = remember(series, days) { chartDayExtremes(series.humidity, extremeSpans, minHours) }
+    val uvExtremes = remember(series, days) { chartDayExtremes(series.uv, extremeSpans, minHours) }
     // The highest bar of each day, with any number of hours
-    val rainPeaks = remember(series, days) { chartDayExtremes(series.precipitation, days, minHours = 1) }
+    val rainPeaks = remember(series, days) { chartDayExtremes(series.precipitation, extremeSpans, minHours = 1) }
     // The moon of each day: the phase to draw, and on the day of a new or full moon the index of its name in
     // moon_phases (0 or 4). That day shows the moon new or full; the other days show it at the place's noon
     val moons = remember(days) {
@@ -577,10 +673,15 @@ private fun ChartPanels(
         }
     }
     val phaseNames = stringArrayResource(R.array.moon_phases)
-    val localHours = remember(hours, utcOffsetSeconds) { times.map { Math.floorMod((it + utcOffsetSeconds * 1000L) / HOUR, 24L).toInt() } }
+    // The hours with a weather icon, a wind arrow and a time label: every 4 local hours; every day in the daily mode
+    val marked = remember(hours, utcOffsetSeconds, daily) {
+        times.map { daily || Math.floorMod((it + utcOffsetSeconds * 1000L) / HOUR, 24L).toInt() % LABEL_HOURS == 0 }
+    }
     val locationZone = remember(utcOffsetSeconds) { buildLocationTimeZone(utcOffsetSeconds) }
     val hourFormat = remember(locationZone) { SimpleDateFormat("HH:mm", Locale.US).apply { timeZone = locationZone } }
     val dayFormat = remember(appLocale, locationZone) { SimpleDateFormat("EEE d MMM", appLocale).apply { timeZone = locationZone } }
+    // The day labels of the daily mode: the weekday over the day of the month
+    val shortDayFormat = remember(appLocale, locationZone) { SimpleDateFormat("EEE'\n'd", appLocale).apply { timeZone = locationZone } }
     // One painter for each icon in use
     val iconRes = remember(hours) { hours.map { weatherIconRes(it.weatherCode, it.isNight) } }
     val painters: Map<Int, Painter> = iconRes.distinct().associateWith { res -> key(res) { painterResource(res) } }
@@ -601,7 +702,7 @@ private fun ChartPanels(
             stringResource(if (aqiStandard == AqiStandard.EUROPEAN) R.string.air_quality_eu_aqi else R.string.air_quality_us_aqi),
     )
     val noData = stringResource(R.string.chart_view_no_data)
-    val summary = stringResource(R.string.chart_view_summary, localizeDigits(count.toString()))
+    val summary = if (daily) stringResource(R.string.section_this_week) else stringResource(R.string.chart_view_summary, localizeDigits(count.toString()))
     val totalHeight = panels.sumOf { it.heightDp } + PANEL_GAP.value * (panels.size - 1)
     val onSurface = MaterialTheme.colorScheme.onSurface
 
@@ -612,17 +713,19 @@ private fun ChartPanels(
             .onSizeChanged { widthPx = it.width }
             .semantics { contentDescription = summary }
             // One finger scrolls the hours, with a fling; a vertical drag goes to the page (the first movement decides)
-            .scrollable(scrollState, Orientation.Horizontal, reverseDirection = true)
-            .pointerInput(hours, density) { detectTapGestures(onTap = { scrollToTap(it.x) }) },
+            // The days of the daily mode do not scroll
+            .scrollable(scrollState, Orientation.Horizontal, enabled = !daily, reverseDirection = true)
+            .pointerInput(hours, density, selected) { detectTapGestures(onTap = { scrollToTap(it.x) }) },
     ) {
         if (count == 0) return@Canvas
         val viewW = size.width - axisPx
-        val slot = slotPx
+        val slot = if (daily) viewW / count else slotPx()
         val scroll = scrollPx.coerceIn(0f, chartMaxScroll(slot, count, viewW))
-        val lineOffset = chartLineOffset(scroll, slot, count, viewW)
+        fun cx(i: Int) = axisPx + i * slot + slot / 2 - scroll
+        // In the daily mode, the selection line is on the selected day
+        val lineOffset = if (daily) cx(selected) - axisPx else chartLineOffset(scroll, slot, count, viewW)
         val lineX = axisPx + lineOffset
         val drawn = chartVisibleRange(scroll, viewW, slot, count)
-        fun cx(i: Int) = axisPx + i * slot + slot / 2 - scroll
         // The hour position under the selection line, for the dots on the lines (0 is the middle of the first hour)
         val linePos = (scroll + lineOffset) / slot - 0.5f
         val chartsTop = panelTop(panels, ChartPanel.ICONS)
@@ -639,15 +742,15 @@ private fun ChartPanels(
 
         // The high of each day above its point and the low under it (not with [lows] false), on a primary line ([y]
         // gives the point of a value); a label stays inside the plot, and a low that would cover the high of its day is
-        // left out
+        // left out. The lows can be on a line of their own ([lowValues], [lowLabel]): the daily lows
         val extremeStyle = TextStyle(fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont, textDirection = TextDirection.Ltr)
         fun drawDayExtremes(
             values: List<Double?>, extremes: List<ChartDayExtremes>, y: (Double) -> Float, color: (Int, Boolean) -> Color,
-            lows: Boolean = true, label: (Int) -> String?,
+            lows: Boolean = true, lowValues: List<Double?> = values, lowLabel: ((Int) -> String?)? = null, label: (Int) -> String?,
         ) {
             fun measure(i: Int, high: Boolean): androidx.compose.ui.text.TextLayoutResult? {
-                if (i !in drawn || values[i] == null) return null
-                val text = label(i) ?: return null
+                if (i !in drawn || (if (high) values else lowValues)[i] == null) return null
+                val text = (if (high) label else lowLabel ?: label)(i) ?: return null
                 val c = color(i, high)
                 return textMeasurer.measure(dualLabel(localizeDigits(text), c), extremeStyle.copy(color = c))
             }
@@ -664,7 +767,7 @@ private fun ChartPanels(
                 if (!lows) continue
                 measure(e.lowIndex, false)?.let { layout ->
                     val i = e.lowIndex
-                    val topLeft = Offset(left(i, layout.size.width), y(values[i]!!) + 2.dp.toPx())
+                    val topLeft = Offset(left(i, layout.size.width), y(lowValues[i]!!) + 2.dp.toPx())
                     val box = Rect(topLeft, Size(layout.size.width.toFloat(), layout.size.height.toFloat()))
                     if (highBox?.overlaps(box) != true) drawText(layout, topLeft = topLeft)
                 }
@@ -681,13 +784,15 @@ private fun ChartPanels(
         }
 
         clipRect(left = axisPx) {
-            // Days: alternate backgrounds, and a stronger line at each midnight in every panel
+            // Days: alternate backgrounds, and a stronger line at each midnight in every panel (not in the daily mode)
+            // The start of day k: its first hour, or half a slot before it for the first day and in the daily mode
+            fun dayLeft(k: Int) = cx(days[k].startIndex) - if (k == 0 || daily) slot / 2 else 0f
             days.forEachIndexed { k, span ->
-                val left = if (k == 0) cx(span.startIndex) - slot / 2 else cx(span.startIndex)
-                val right = days.getOrNull(k + 1)?.let { cx(it.startIndex) } ?: (cx(span.endIndex - 1) + slot / 2)
+                val left = dayLeft(k)
+                val right = if (k + 1 < days.size) dayLeft(k + 1) else cx(span.endIndex - 1) + slot / 2
                 if (right < axisPx || left > size.width) return@forEachIndexed
                 if (k % 2 == 1) drawRect(Color.White.copy(alpha = 0.03f), Offset(left, 0f), Size(right - left, size.height))
-                if (k > 0) drawVerticalLine(panels, left, ChartStyle.midnight, ChartStyle.midnightWidth.toPx())
+                if (k > 0 && !daily) drawVerticalLine(panels, left, ChartStyle.midnight, ChartStyle.midnightWidth.toPx())
             }
             // Night hours, faintly darker
             var runStart = -1
@@ -716,7 +821,10 @@ private fun ChartPanels(
                 CornerRadius(ChartStyle.selectionColumnRadius.toPx()),
             )
 
-            drawIcons(hours, drawn, localHours, ::cx, panelTop(panels, ChartPanel.ICONS), painters, textMeasurer, displayFont, localizeDigits)
+            drawIcons(
+                hours, drawn, marked, ::cx, panelTop(panels, ChartPanel.ICONS), minOf(26.dp.toPx(), slot), painters, textMeasurer, displayFont,
+                localizeDigits,
+            )
 
             // Temperature with the dew point (dashed), the heat index and the wind chill on the same scale, and a
             // dashed line at freezing
@@ -729,14 +837,24 @@ private fun ChartPanels(
                 drawSeries(series.dewPoint, drawn, ::cx, { tArea.y(it, d) }, ChartStyle.dewPoint, ChartStyle.thinLineWidth.toPx(), ChartStyle.dewPointDash)
                 drawSeries(series.heatIndex, drawn, ::cx, { tArea.y(it, d) }, ChartStyle.heatIndex, ChartStyle.thinLineWidth.toPx())
                 drawSeries(series.windChill, drawn, ::cx, { tArea.y(it, d) }, ChartStyle.windChill, ChartStyle.thinLineWidth.toPx())
-                drawSeries(series.temperature, drawn, ::cx, { tArea.y(it, d) }, ChartStyle.temperature, ChartStyle.lineWidth.toPx())
+                // In the daily mode, the high and the low line
+                series.low?.let { drawSeries(it, drawn, ::cx, { v -> tArea.y(v, d) }, ChartStyle.low, ChartStyle.lineWidth.toPx()) }
+                drawSeries(
+                    series.temperature, drawn, ::cx, { tArea.y(it, d) }, if (daily) ChartStyle.high else ChartStyle.temperature,
+                    ChartStyle.lineWidth.toPx(),
+                )
                 drawSelectedDot(series.dewPoint, linePos, lineX) { tArea.y(it, d) }
                 drawSelectedDot(series.heatIndex, linePos, lineX) { tArea.y(it, d) }
                 drawSelectedDot(series.windChill, linePos, lineX) { tArea.y(it, d) }
+                series.low?.let { drawSelectedDot(it, linePos, lineX) { v -> tArea.y(v, d) } }
                 drawSelectedDot(series.temperature, linePos, lineX) { tArea.y(it, d) }
 
-                // The high and low of each day
-                drawDayExtremes(series.temperature, tempExtremes, { tArea.y(it, d) }, { _, high -> if (high) ChartStyle.high else ChartStyle.low }) { i ->
+                // The high and low of each day; in the daily mode, the highest high and the lowest low
+                drawDayExtremes(
+                    series.temperature, tempExtremes, { tArea.y(it, d) }, { _, high -> if (high) ChartStyle.high else ChartStyle.low },
+                    lowValues = series.low ?: series.temperature,
+                    lowLabel = dayExtras?.let { e -> { i: Int -> e.lows[i].displayDual(metricPrimary).let { (p, s) -> "$p · $s" } } },
+                ) { i ->
                     hours[i].temperature?.displayDual(metricPrimary)?.let { (p, s) -> "$p · $s" }
                 }
             }
@@ -765,7 +883,7 @@ private fun ChartPanels(
                 }
             }
 
-            // Wind and gusts on one scale, with the direction every 4 hours
+            // Wind and gusts on one scale, with the direction every 4 hours (every day in the daily mode)
             wDomain?.let { d ->
                 drawSeries(series.gust, drawn, ::cx, { wArea.y(it, d) }, ChartStyle.gust, ChartStyle.thinLineWidth.toPx())
                 drawSeries(series.wind, drawn, ::cx, { wArea.y(it, d) }, ChartStyle.wind, ChartStyle.lineWidth.toPx())
@@ -777,7 +895,7 @@ private fun ChartPanels(
             }
             val arrowY = wArea.top - ARROW_ROW.toPx() / 2
             for (i in drawn) {
-                if (localHours[i] % LABEL_HOURS != 0) continue
+                if (!marked[i]) continue
                 val speed = hours[i].windSpeed ?: continue
                 val direction = hours[i].windDirection ?: continue
                 if (showWindArrow(speed)) drawWindArrow(Offset(cx(i), arrowY), direction)
@@ -837,8 +955,23 @@ private fun ChartPanels(
             fun drawTimeAxis(panel: ChartPanel, mirrored: Boolean) {
                 val top = panelTop(panels, panel)
                 val bottom = top + panel.heightDp.dp.toPx()
+                if (daily) {
+                    // The daily mode: the weekday over the day of the month under each day, or under every second
+                    // day when the labels do not fit; no moon
+                    val labelStyle = dayStyle.copy(textAlign = TextAlign.Center, lineHeight = 12.sp)
+                    val layouts = times.map { textMeasurer.measure(localizeDigits(shortDayFormat.format(Date(it))), labelStyle) }
+                    val every = if (layouts.maxOf { it.size.width } > slot - 2.dp.toPx()) 2 else 1
+                    for (i in drawn step every) {
+                        val tickTop = if (mirrored) bottom - tick else top
+                        drawLine(Color.White.copy(alpha = 0.3f), Offset(cx(i), tickTop), Offset(cx(i), tickTop + tick), 1.dp.toPx())
+                        val layout = layouts[i]
+                        val y = if (mirrored) bottom - tick - layout.size.height else top + tick
+                        drawText(layout, topLeft = Offset(cx(i) - layout.size.width / 2f, y))
+                    }
+                    return
+                }
                 for (i in drawn) {
-                    if (localHours[i] % LABEL_HOURS != 0) continue
+                    if (!marked[i]) continue
                     val tickTop = if (mirrored) bottom - tick else top
                     drawLine(Color.White.copy(alpha = 0.3f), Offset(cx(i), tickTop), Offset(cx(i), tickTop + tick), 1.dp.toPx())
                     val layout = textMeasurer.measure(localizeDigits(hourFormat.format(Date(times[i]))), hourStyle)
@@ -898,14 +1031,14 @@ private fun ChartPanels(
         // Titles on top of everything, at the start of each band; they do not scroll. A second line is named only when
         // it has a value
         val temperatureKeys = listOfNotNull(
-            titles.dewPoint to ChartStyle.dewPoint,
+            (titles.dewPoint to ChartStyle.dewPoint).takeIf { series.dewPoint.any { it != null } },
             (titles.heatIndex to ChartStyle.heatIndex).takeIf { series.heatIndex.any { it != null } },
             (titles.windChill to ChartStyle.windChill).takeIf { series.windChill.any { it != null } },
         )
         drawTitle(panels, ChartPanel.TEMPERATURE, titles.temperature, temperatureKeys, textMeasurer, bodyFont)
         drawTitle(panels, ChartPanel.PRECIPITATION, titles.precipitation, listOf(titles.chance to ChartStyle.chance), textMeasurer, bodyFont)
         drawTitle(panels, ChartPanel.WIND, titles.wind, listOf(titles.gust to ChartStyle.gust), textMeasurer, bodyFont)
-        drawTitle(panels, ChartPanel.PRESSURE, titles.pressure, emptyList(), textMeasurer, bodyFont)
+        if (showPressure) drawTitle(panels, ChartPanel.PRESSURE, titles.pressure, emptyList(), textMeasurer, bodyFont)
         drawTitle(panels, ChartPanel.HUMIDITY, titles.humidity, emptyList(), textMeasurer, bodyFont)
         // The air quality key is neutral, because its line changes colour with the tier
         if (showUv) {
@@ -1044,14 +1177,16 @@ private fun DrawScope.drawSelectedDot(values: List<Double?>, position: Float, x:
     drawCircle(ChartStyle.selectionDot, ChartStyle.selectionDotRadius.toPx(), Offset(x, y(v)))
 }
 
-/** The weather icon every 4 hours (night icons at night), with the UV index under it from 1, in its tier colour. */
+/**
+ * The weather icon of each [marked] hour, [iconSize] px wide (night icons at night), with the UV index under it from 1,
+ * in its tier colour.
+ */
 private fun DrawScope.drawIcons(
-    hours: List<ChartHour>, range: IntRange, localHours: List<Int>, x: (Int) -> Float, top: Float,
+    hours: List<ChartHour>, range: IntRange, marked: List<Boolean>, x: (Int) -> Float, top: Float, iconSize: Float,
     painters: Map<Int, Painter>, textMeasurer: TextMeasurer, font: FontFamily, localizeDigits: (String) -> String,
 ) {
-    val iconSize = 26.dp.toPx()
     for (i in range) {
-        if (localHours[i] % LABEL_HOURS != 0) continue
+        if (!marked[i]) continue
         val hour = hours[i]
         painters[weatherIconRes(hour.weatherCode, hour.isNight)]?.let { painter ->
             translate(x(i) - iconSize / 2, top) { with(painter) { draw(Size(iconSize, iconSize)) } }

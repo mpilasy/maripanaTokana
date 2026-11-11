@@ -5,11 +5,14 @@
 	import SettingsPage from './SettingsPage.svelte';
 	import WeatherIcon from './WeatherIcon.svelte';
 	import DualUnitText from './DualUnitText.svelte';
-	import type { ChartHour, HourlyAirQuality } from '#lib/domain/weatherData.js';
+	import ForecastTabs from './ForecastTabs.svelte';
+	import { tick } from 'svelte';
+	import type { ChartHour, DailyForecast, HourlyAirQuality } from '#lib/domain/weatherData.js';
+	import type { Temperature } from '#lib/domain/temperature.js';
 	import { AirQualityIndex, AQI_TIER_COLORS, type AqiStandard, type AqiTier } from '#lib/domain/airQuality.js';
 	import { getCardinalDirection, showWindArrow } from '#lib/domain/windSpeed.js';
 	import { uvColorFor, uvTier } from '#lib/domain/uv.js';
-	import { heatIndex, windChill } from '#lib/domain/thermalIndices.js';
+	import { dailyHeatIndex, dailyWindChill, heatIndex, windChill } from '#lib/domain/thermalIndices.js';
 	import { monotonePath } from '#lib/utils/monotonePath.js';
 	import { runsOf, splitDual } from '#lib/utils/dualLabel.js';
 	import { temperatureColor } from '#lib/utils/tempColors.js';
@@ -19,17 +22,21 @@
 	import { moonLitPath } from '#lib/utils/moonPath.js';
 	import { moonIllumination, nextMoonPhase } from '#lib/domain/moon.js';
 	import {
-		CHART_SLOT, chartAirQuality, chartDayExtremes, chartDaySpans, chartDomain, chartHours, chartIndexForX, chartLineIndex, chartLineOffset, chartNightRuns, chartScrollForIndex,
+		CHART_SLOT, chartAirQuality, chartDayExtremes, chartDayMaxIndex, chartDays, chartDaySpans, chartDomain, chartHours, chartIndexForX, chartLineIndex, chartLineOffset, chartNightRuns, chartScrollForIndex,
 		CHART_LABEL_SIZES, chartLabelFit, chartTileRows, chartTiles, chartValueAt, chartVisibleRange,
-		type ChartDomain, type ChartTile,
+		type ChartDomain, type ChartTile, type ChartViewMode,
 	} from '#lib/utils/chartView.js';
 
 	/**
 	 * Up to 240 hours of the forecast in stacked panels that scroll sideways together, with the values of the
-	 * selected hour at the top. It opens at the current hour. Android has the same view in ChartViewScreen.kt.
+	 * selected hour at the top. It opens at the current hour. In daily mode, the days of the daily forecast fill the
+	 * width (no sideways scroll), and a tap selects a day. Android has the same view in ChartViewScreen.kt.
 	 */
 	interface Props {
 		hours: ChartHour[];
+		dailyForecast: DailyForecast[];
+		/** Hours or days; the switch at the top changes it. */
+		mode: ChartViewMode;
 		utcOffsetSeconds: number;
 		/** South of the equator, where the moon is seen mirrored. */
 		southern: boolean;
@@ -45,7 +52,8 @@
 		onBack: () => void;
 	}
 
-	let { hours, utcOffsetSeconds, southern, placeName, metricPrimary, localeTag, hourlyAirQuality, aqiStandard, loc, onToggleUnits, onBack }: Props = $props();
+	let { hours, dailyForecast, mode = $bindable(), utcOffsetSeconds, southern, placeName, metricPrimary, localeTag, hourlyAirQuality, aqiStandard, loc, onToggleUnits, onBack }: Props = $props();
+	let daily = $derived(mode === 'daily');
 
 	// Sizes in px, the same as on Android: the axis column, the gap between panels, the title line,
 	// the room above the wind line for the direction arrows, the room above and under the temperature
@@ -100,19 +108,23 @@
 
 	// The data can be some hours old: start again at the current hour
 	const openedAt = Date.now();
-	let shown = $derived.by(() => {
+	let shownHours = $derived.by(() => {
 		const range = chartHours(hours.map((h) => h.time), openedAt);
 		return hours.slice(range.start, range.end);
 	});
+	/** The hours, or the days in daily mode as points that the panels draw as the hours (chartDays). */
+	let shown = $derived(daily ? chartDays(dailyForecast, hours, utcOffsetSeconds) : shownHours);
 	let count = $derived(shown.length);
 
-	// The air quality of each hour: the entry less than 30 minutes away, or null
-	let aqEntries = $derived.by(() => {
-		const indexes = chartAirQuality(shown.map((h) => h.time), hourlyAirQuality.map((a) => a.time));
-		return indexes.map((i) => (i == null ? null : hourlyAirQuality[i]));
-	});
 	const aqPrimary = (a: HourlyAirQuality) => (aqiStandard === 'EUROPEAN' ? a.europeanValue : a.usValue);
-	let aqValues = $derived(aqEntries.map((a) => (a ? (Number.isFinite(aqPrimary(a)) ? aqPrimary(a) : null) : null)));
+	// The air quality of each hour (the entry less than 30 minutes away) or the highest of each local day; null where
+	// there is none
+	let aqValues = $derived.by(() => {
+		const entries = daily
+			? chartDayMaxIndex(shown.map((d) => d.time), hourlyAirQuality.map((a) => a.time), hourlyAirQuality.map(aqPrimary), utcOffsetSeconds)
+			: chartAirQuality(shown.map((h) => h.time), hourlyAirQuality.map((a) => a.time));
+		return entries.map((i) => (i == null ? null : Number.isFinite(aqPrimary(hourlyAirQuality[i])) ? aqPrimary(hourlyAirQuality[i]) : null));
+	});
 	let hasAirQuality = $derived(aqValues.some((v) => v != null));
 	const aqTier = (v: number): AqiTier => AirQualityIndex.tierFor(v, aqiStandard);
 
@@ -122,21 +134,36 @@
 
 	let { ids: panelIds, panels, totalHeight, chartsTop, chartsBottom, topAxisBottom, lineSegments, bands } = $derived(layout(showUvPanel));
 
-	const slot = CHART_SLOT;
 	let scrollLeft = $state(0);
 	let viewport = $state(0);
 	let selected = $state(0);
+	// The selected day of the daily mode
+	let selectedDay = $state(0);
 	let scroller = $state<HTMLElement | null>(null);
+	// The width of one hour, or of one day: the days share the width of the view
+	let slot = $derived(daily && count > 0 && viewport > 0 ? viewport / count : CHART_SLOT);
 
 	// The browser's scroll is the start of the view, in px from the start of the first hour. `lineX` is the position
 	// under the selection line, which moves from the start of the view to the middle and, at the end, to the end of the
-	// view (chartLineOffset).
-	let lineX = $derived(scrollLeft + chartLineOffset(scrollLeft, slot, count, viewport));
-	let hoursLeft = $derived(scrollLeft);
-	// Lines are drawn for the hours in view and 2 more on each side
-	let drawn = $derived(chartVisibleRange(hoursLeft, viewport, slot, count));
+	// view (chartLineOffset). In daily mode it is the middle of the selected day.
+	let lineX = $derived(daily ? (selectedDay + 0.5) * slot : scrollLeft + chartLineOffset(scrollLeft, slot, count, viewport));
+	let hoursLeft = $derived(daily ? 0 : scrollLeft);
+	// Lines are drawn for the hours in view and 2 more on each side; all the days
+	let drawn = $derived(daily ? { start: 0, end: count } : chartVisibleRange(hoursLeft, viewport, slot, count));
 	let drawIndexes = $derived(Array.from({ length: Math.max(0, drawn.end - drawn.start) }, (_, k) => drawn.start + k));
-	let selectedHour = $derived(shown[Math.min(selected, count - 1)]);
+	let selectedIndex = $derived(Math.min(daily ? selectedDay : selected, count - 1));
+	/** The selected hour, or day in daily mode. */
+	let selectedHour = $derived(shown[selectedIndex]);
+
+	/** Changes the mode. Back to the hours, the view scrolls to where it was. */
+	async function setMode(next: ChartViewMode) {
+		if (next === mode) return;
+		mode = next;
+		if (next === 'hourly') {
+			await tick();
+			if (scroller) scroller.scrollLeft = scrollLeft;
+		}
+	}
 
 	const weekdayNames = $derived($json('weekday_names') as string[] | undefined);
 	const monthNames = $derived($json('month_names') as string[] | undefined);
@@ -151,18 +178,16 @@
 	let gusts = $derived(shown.map((h) => (h.windGust ? finite(metricPrimary ? h.windGust.metersPerSecond : h.windGust.mph) : null)));
 	let pressures = $derived(shown.map((h) => (h.pressure ? finite(metricPrimary ? h.pressure.hPa : h.pressure.inHg) : null)));
 	let humidities = $derived(shown.map((h) => finite(h.humidity)));
-	// The heat index and the wind chill of each hour; null where they do not apply
-	let heats = $derived(shown.map((h) => {
-		const t = h.temperature ? heatIndex(h.temperature, h.humidity) : null;
-		return t ? finite(metricPrimary ? t.celsius : t.fahrenheit) : null;
-	}));
-	let chills = $derived(shown.map((h) => {
-		const t = h.temperature && h.windSpeed ? windChill(h.temperature, h.windSpeed) : null;
-		return t ? finite(metricPrimary ? t.celsius : t.fahrenheit) : null;
-	}));
+	const tempValue = (t: Temperature | null) => (t ? finite(metricPrimary ? t.celsius : t.fahrenheit) : null);
+	// The day's low in daily mode (the temperature line is the high); empty in hourly mode
+	let lows = $derived(daily ? dailyForecast.map((d) => tempValue(d.tempMin)) : []);
+	// The heat index and the wind chill of each hour; null where they do not apply. In daily mode, the heat index of
+	// the high and the wind chill of the low
+	let heats = $derived(daily ? dailyForecast.map((d) => tempValue(dailyHeatIndex(d))) : shown.map((h) => tempValue(h.temperature ? heatIndex(h.temperature, h.humidity) : null)));
+	let chills = $derived(daily ? dailyForecast.map((d) => tempValue(dailyWindChill(d))) : shown.map((h) => tempValue(h.temperature && h.windSpeed ? windChill(h.temperature, h.windSpeed) : null)));
 
-	// Each scale fits all the chart hours, so that it stays the same while the hours scroll
-	let tempDomain = $derived(chartDomain([...temps, ...dews, ...heats, ...chills], false, metricPrimary ? 5 : 9));
+	// Each scale fits all the chart hours (or days), so that it stays the same while the hours scroll
+	let tempDomain = $derived(chartDomain([...temps, ...lows, ...dews, ...heats, ...chills], false, metricPrimary ? 5 : 9));
 	let precipDomain = $derived(chartDomain(precips, true, metricPrimary ? 1 : 0.04));
 	let windDomain = $derived(chartDomain([...winds, ...gusts], true, metricPrimary ? 5 : 10));
 	let pressureDomain = $derived(chartDomain(pressures, false, metricPrimary ? 4 : 0.12));
@@ -195,6 +220,7 @@
 		add(dews, tempDomain, panels.temp);
 		add(heats, tempDomain, panels.temp);
 		add(chills, tempDomain, panels.temp);
+		add(lows, tempDomain, panels.temp);
 		add(temps, tempDomain, panels.temp);
 		add(chances, PERCENT_DOMAIN, panels.precip);
 		add(gusts, windDomain, panels.wind);
@@ -209,12 +235,14 @@
 	});
 
 	const localHour = (t: number) => new Date(t + utcOffsetSeconds * 1000).getUTCHours();
-	// Icons, wind arrows and hour labels every 4 local hours (00, 04, 08…)
+	// Icons, wind arrows and hour labels every 4 local hours (00, 04, 08…); every day in daily mode
 	const LABEL_HOURS = 4;
-	let labelled = $derived(drawIndexes.filter((i) => localHour(shown[i].time) % LABEL_HOURS === 0));
+	let labelled = $derived(daily ? drawIndexes : drawIndexes.filter((i) => localHour(shown[i].time) % LABEL_HOURS === 0));
 
-	// Each local day, from the middle of its first hour to the middle of the next day's first hour
+	// Each local day, from the middle of its first hour to the middle of the next day's first hour; in daily mode, the
+	// column of each day
 	let days = $derived.by(() => {
+		if (daily) return shown.map((d, k) => ({ date: d.time, startIndex: k, endIndex: k + 1, k, left: k * slot, right: (k + 1) * slot }));
 		const spans = chartDaySpans(shown.map((h) => h.time), utcOffsetSeconds);
 		return spans.map((s, k) => ({
 			...s,
@@ -224,6 +252,9 @@
 		}));
 	});
 	let shownDays = $derived(days.filter((d) => d.right >= hoursLeft && d.left <= hoursLeft + viewport));
+	// The spans of the high and low labels: each day, or all the days in daily mode (the highest and the lowest only)
+	let extremeSpans = $derived(daily ? [{ startIndex: 0, endIndex: count }] : days);
+	let extremeMinHours = $derived(daily ? 1 : 12);
 
 	// The moon of each day: the phase to draw, and on the day of a new or full moon the index of its name in
 	// moon_phases (0 or 4). That day shows the moon new or full; the other days show it at the place's noon
@@ -243,6 +274,8 @@
 	let dayLabels = $derived.by(() => {
 		// Measured again when the fonts are in
 		void fontsReady;
+		// Daily mode has a label under each day instead
+		if (daily) return [];
 		const names = ($json('moon_phases') as string[] | undefined) ?? [];
 		return shownDays.flatMap((d) => {
 			const date = dayLabel(d.date);
@@ -282,9 +315,9 @@
 		return loc(`${formatDayName(time, localeTag, utcOffsetSeconds, true, weekdayNames)} ${d.getUTCDate()} ${month}`);
 	}
 
-	/** "EEE d MMM, HH:mm" at the place. */
+	/** "EEE d MMM, HH:mm" at the place; only the day in daily mode. */
 	function hourLabel(h: ChartHour): string {
-		return `${dayLabel(h.time)}, ${loc(formatHourAtLocation(h.time, utcOffsetSeconds))}`;
+		return daily ? dayLabel(h.time) : `${dayLabel(h.time)}, ${loc(formatHourAtLocation(h.time, utcOffsetSeconds))}`;
 	}
 
 	/**
@@ -405,9 +438,9 @@
 	}
 	/**
 	 * The labels of the day's high and low of one line (`id` keeps the keys apart); `text` gives the label of an hour.
-	 * A label stays inside the part of the plot in view. With `highsOnly`, the lows are left out.
+	 * A label stays inside the part of the plot in view. `which` keeps only the highs or only the lows.
 	 */
-	function dayExtremeLabels(id: PanelId, values: (number | null)[], d: ChartDomain | null, color: (i: number, high: boolean) => string, text: (i: number) => string | null, highsOnly = false) {
+	function dayExtremeLabels(id: PanelId, values: (number | null)[], d: ChartDomain | null, color: (i: number, high: boolean) => string, text: (i: number) => string | null, which: 'both' | 'highs' | 'lows' = 'both') {
 		if (!d) return [];
 		const out: { key: string; x: number; y: number; color: string; primary: string; secondary: string | null }[] = [];
 		const add = (high: boolean, i: number) => {
@@ -432,30 +465,37 @@
 				secondary,
 			});
 		};
-		for (const e of chartDayExtremes(values, days)) {
-			add(true, e.high);
-			if (!highsOnly && e.low !== e.high) add(false, e.low);
+		for (const e of chartDayExtremes(values, extremeSpans, extremeMinHours)) {
+			if (which !== 'lows') add(true, e.high);
+			if (which === 'lows' || (which === 'both' && e.low !== e.high)) add(false, e.low);
 		}
 		return out;
 	}
 	let extremeLabels = $derived.by(() => {
 		// Measured again when the fonts are in
 		void fontsReady;
+		const tempColor = (_: number, high: boolean) => (high ? ChartStyle.high : ChartStyle.low);
 		return [
-			...dayExtremeLabels('temp', temps, tempDomain, (_, high) => (high ? ChartStyle.high : ChartStyle.low), (i) => shown[i].temperature?.displayDual(metricPrimary).join(' · ') ?? null),
+			// Daily mode: the highest high and the lowest low
+			...(daily
+				? [
+					...dayExtremeLabels('temp', temps, tempDomain, tempColor, (i) => dailyForecast[i].tempMax.displayDual(metricPrimary).join(' · '), 'highs'),
+					...dayExtremeLabels('temp', lows, tempDomain, tempColor, (i) => dailyForecast[i].tempMin.displayDual(metricPrimary).join(' · '), 'lows'),
+				]
+				: dayExtremeLabels('temp', temps, tempDomain, tempColor, (i) => shown[i].temperature?.displayDual(metricPrimary).join(' · ') ?? null)),
 			...dayExtremeLabels('wind', winds, windDomain, () => ChartStyle.wind, (i) => shown[i].windSpeed?.displayDual(metricPrimary).join(' · ') ?? null),
 			...dayExtremeLabels('pressure', pressures, pressureDomain, () => ChartStyle.pressure, (i) => shown[i].pressure?.displayDual(metricPrimary).join(' · ') ?? null),
 			...dayExtremeLabels('humidity', humidities, PERCENT_DOMAIN, () => ChartStyle.humidity, (i) => (shown[i].humidity != null ? `${shown[i].humidity}%` : null)),
 			// Only the highs of the UV index: its lows are 0 at night
-			...(hasUvIndex ? dayExtremeLabels('uvIndex', uvs, uvDomain, (i) => uvColorFor(uvs[i]!), (i) => String(Math.round(uvs[i]!)), true) : []),
+			...(hasUvIndex ? dayExtremeLabels('uvIndex', uvs, uvDomain, (i) => uvColorFor(uvs[i]!), (i) => String(Math.round(uvs[i]!)), 'highs') : []),
 		];
 	});
 
-	// The value of the highest bar of each day (any number of hours), above the bar
+	// The value of the highest bar of each day (any number of hours), above the bar; in daily mode, of the highest bar
 	let precipLabels = $derived.by(() => {
 		if (!precipDomain) return [];
 		const out: { key: string; i: number; y: number; primary: string; secondary: string | null }[] = [];
-		for (const e of chartDayExtremes(precips, days, 1)) {
+		for (const e of chartDayExtremes(precips, extremeSpans, 1)) {
 			const i = e.high;
 			if (i < drawn.start || i >= drawn.end || precips[i] == null || precips[i]! <= 0) continue;
 			const [primary, secondary] = splitDual(shown[i].precipitation!.displayDual(metricPrimary).join(' · '));
@@ -464,7 +504,7 @@
 		return out;
 	});
 
-	let summary = $derived($_('chart_view_summary', { values: { hours: loc(String(count)) } }));
+	let summary = $derived(daily ? $_('section_this_week') : $_('chart_view_summary', { values: { hours: loc(String(count)) } }));
 
 	/** One value tile of the selection card: its label, and the value as a pair of units, as text, or on a pill. */
 	interface Cell {
@@ -475,6 +515,8 @@
 		/** The chance of rain, localised, under the precipitation. */
 		chance?: string;
 		direction?: string;
+		/** The day's low under the high, in daily mode. */
+		low?: [string, string];
 		/** The tile has a line under the value, which keeps its height when it is empty. */
 		extraLine?: boolean;
 	}
@@ -515,11 +557,13 @@
 		if (!h) return [];
 		const missing: [string, string] = ['–', '\u00a0'];
 		const dual = (pair: [string, string] | undefined): [string, string] => (pair ? [loc(pair[0]), loc(pair[1])] : missing);
-		const aq = aqEntries[Math.min(selected, count - 1)];
+		const aq = aqValues[selectedIndex];
 		const values = tiles.map((tile): Omit<Cell, 'label'> => {
 			switch (tile) {
-				case 'temperature':
-					return { dual: dual(h.temperature?.displayDual(metricPrimary)), pill: h.temperature ? { background: temperatureColor(h.temperature.celsius), color: '#1A1A1A' } : undefined };
+				case 'temperature': {
+					const low = daily ? dual(dailyForecast[selectedIndex]?.tempMin.displayDual(metricPrimary)) : undefined;
+					return { dual: dual(h.temperature?.displayDual(metricPrimary)), pill: h.temperature ? { background: temperatureColor(h.temperature.celsius), color: '#1A1A1A' } : undefined, low, extraLine: daily };
+				}
 				case 'dewPoint':
 					return { dual: dual(h.dewPoint?.displayDual(metricPrimary)) };
 				case 'precipitation': {
@@ -543,9 +587,8 @@
 				}
 				case 'airQuality': {
 					// The primary standard in a pill of its tier colour; the panel title names the standard
-					if (!aq) return { text: missing[0] };
-					const primary = aqPrimary(aq);
-					return { text: loc(String(primary)), pill: aqiPill(aqTier(primary)) };
+					if (aq == null) return { text: missing[0] };
+					return { text: loc(String(aq)), pill: aqiPill(aqTier(aq)) };
 				}
 			}
 		});
@@ -573,6 +616,8 @@
 
 	/** On each scroll: a new hour under the selection line becomes the selection, with a short vibrate. */
 	function onScroll() {
+		// The days do not scroll; the scroll of the hours stays for the way back
+		if (daily) return;
 		scrollLeft = scroller?.scrollLeft ?? 0;
 		const i = chartLineIndex(scrollLeft, slot, count, viewport);
 		if (i < 0 || i === selected) return;
@@ -602,7 +647,7 @@
 			if (press.mouse) scroller?.setPointerCapture(e.pointerId);
 		}
 		// A mouse drags the hours, as in the app's other rows
-		if (press.moved && press.mouse && scroller) scroller.scrollLeft = press.scroll - dx;
+		if (press.moved && press.mouse && scroller && !daily) scroller.scrollLeft = press.scroll - dx;
 	}
 
 	function onPointerUp(e: PointerEvent) {
@@ -611,7 +656,16 @@
 		press = null;
 		if (!tap || !scroller) return;
 		const i = chartIndexForX(e.clientX - scroller.getBoundingClientRect().left + scroller.scrollLeft, slot, count);
-		if (i >= 0) centre(i, true);
+		if (i < 0) return;
+		// A tap on a day selects it
+		if (daily) selectDay(i);
+		else centre(i, true);
+	}
+
+	function selectDay(i: number) {
+		if (i === selectedDay) return;
+		selectedDay = i;
+		navigator.vibrate?.(5);
 	}
 
 	// Shift and the wheel: the hours scroll (a sideways wheel or trackpad scrolls them without help). Not passive, so
@@ -629,12 +683,12 @@
 	});
 
 	// Keys (web only): Left and Right scroll one hour (so the selection moves by one), Home and End go to the first
-	// and last hour
+	// and last hour. In daily mode they move the selected day.
 	function onKeyDown(e: KeyboardEvent) {
 		if (count === 0) return;
 		// From the hour under the line now: the scroll event that updates the selection may not have come yet
 		const s = scroller?.scrollLeft ?? 0;
-		const current = chartLineIndex(s, slot, count, viewport);
+		const current = daily ? selectedDay : chartLineIndex(s, slot, count, viewport);
 		let next: number;
 		if (e.key === 'ArrowLeft') next = Math.max(0, current - 1);
 		else if (e.key === 'ArrowRight') next = Math.min(count - 1, current + 1);
@@ -642,11 +696,19 @@
 		else if (e.key === 'End') next = count - 1;
 		else return;
 		e.preventDefault();
-		centre(next, false);
+		if (daily) selectedDay = next;
+		else centre(next, false);
 	}
 </script>
 
 <SettingsPage title={placeName.trim() || $_('chart_view_title')} subtitle={placeName.trim() ? $_('chart_view_title') : undefined} stacked {onBack}>
+
+	<!-- Hours or days, when the place has both -->
+	{#if dailyForecast.length > 0}
+		<div class="mode-tabs">
+			<ForecastTabs tabs={[{ id: 'hourly', label: $_('chart_view_hourly') }, { id: 'daily', label: $_('chart_view_daily') }]} selected={mode} onSelect={(id) => setMode(id as ChartViewMode)} />
+		</div>
+	{/if}
 
 	<!-- The selected hour's values; a screen reader reads them again when the selection moves, a tap swaps the units -->
 	<button type="button" class="card selection" onclick={onToggleUnits} aria-describedby="chart-units-hint">
@@ -680,7 +742,8 @@
 										</span>
 									{/if}
 									{#if c.direction}<span class="sel-sub sel-direction">{c.direction}</span>{/if}
-									{#if c.extraLine && !c.chance && !c.direction}<span class="sel-sub" aria-hidden="true">&nbsp;</span>{/if}
+									{#if c.low}<bdi dir="ltr" class="sel-sub sel-low" style:color={ChartStyle.low}>{c.low[0]} <span class="sel-low-other">{c.low[1]}</span></bdi>{/if}
+									{#if c.extraLine && !c.chance && !c.direction && !c.low}<span class="sel-sub" aria-hidden="true">&nbsp;</span>{/if}
 								</span>
 							{/each}
 						</span>
@@ -701,7 +764,7 @@
 		aria-label={summary}
 		aria-valuemin={0}
 		aria-valuemax={Math.max(0, count - 1)}
-		aria-valuenow={selected}
+		aria-valuenow={selectedIndex}
 		aria-valuetext={selectedHour ? hourLabel(selectedHour) : undefined}
 		onkeydown={onKeyDown}
 		style:height="{totalHeight}px"
@@ -725,6 +788,7 @@
 
 		<div
 			class="scroller"
+			class:fixed={daily}
 			bind:this={scroller}
 			bind:clientWidth={viewport}
 			onscroll={onScroll}
@@ -754,7 +818,7 @@
 						{#if d.k % 2 === 1}
 							<rect x={d.left} y="0" width={d.right - d.left} height={totalHeight} fill="white" fill-opacity="0.03" />
 						{/if}
-						{#if d.k > 0}
+						{#if d.k > 0 && !daily}
 							{@render verticalLine(d.left, ChartStyle.midnight, ChartStyle.midnightWidth)}
 						{/if}
 					{/each}
@@ -792,7 +856,11 @@
 							<path d={curve(dews, tempDomain, panels.temp)} fill="none" stroke={ChartStyle.dewPoint} stroke-width={ChartStyle.thinLineWidth} stroke-dasharray={ChartStyle.dewPointDash} />
 							<path d={curve(heats, tempDomain, panels.temp)} fill="none" stroke={ChartStyle.heatIndex} stroke-width={ChartStyle.thinLineWidth} />
 							<path d={curve(chills, tempDomain, panels.temp)} fill="none" stroke={ChartStyle.windChill} stroke-width={ChartStyle.thinLineWidth} />
-							<path d={curve(temps, tempDomain, panels.temp)} fill="none" stroke={ChartStyle.temperature} stroke-width={ChartStyle.lineWidth} />
+							<!-- Daily mode: the high and the low lines -->
+							{#if daily}
+								<path d={curve(lows, tempDomain, panels.temp)} fill="none" stroke={ChartStyle.low} stroke-width={ChartStyle.lineWidth} />
+							{/if}
+							<path d={curve(temps, tempDomain, panels.temp)} fill="none" stroke={daily ? ChartStyle.high : ChartStyle.temperature} stroke-width={ChartStyle.lineWidth} />
 						</g>
 					{/if}
 
@@ -866,7 +934,16 @@
 
 					<!-- Time axes: an hour label every 4 hours, and the day at each midnight (the day at the start stays in view).
 					     The bottom axis has its ticks, then the hours, then the days; the top axis is the same, mirrored. -->
-					{#each labelled as i (i)}
+					<!-- Daily mode: the weekday and the day of the month of each day, on two lines (the top axis mirrored) -->
+					{#each daily ? labelled : [] as i (i)}
+						{@const weekday = loc(formatDayName(shown[i].time, localeTag, utcOffsetSeconds, true, weekdayNames))}
+						{@const date = loc(String(new Date(shown[i].time + utcOffsetSeconds * 1000).getUTCDate()))}
+						{#each [[panels.time.top + 13, panels.time.top + 30], [topAxisBottom - 6, panels.timeTop.top + 12]] as [weekdayY, dateY] (weekdayY)}
+							<text x={cx(i)} y={weekdayY} text-anchor="middle" font-size="10" fill="white" fill-opacity="0.6">{weekday}</text>
+							<text x={cx(i)} y={dateY} text-anchor="middle" font-size="10" font-weight="bold" fill="white" style:font-family="var(--font-display)">{date}</text>
+						{/each}
+					{/each}
+					{#each daily ? [] : labelled as i (i)}
 						{@const hourText = loc(formatHourAtLocation(shown[i].time, utcOffsetSeconds))}
 						<line x1={cx(i)} x2={cx(i)} y1={panels.time.top} y2={panels.time.top + 3} stroke="white" stroke-opacity="0.3" stroke-width="1" />
 						<text x={cx(i)} y={panels.time.top + 13} text-anchor="middle" font-size="10" fill="white" fill-opacity="0.6">{hourText}</text>
@@ -1066,6 +1143,22 @@
 		color: rgba(255, 255, 255, 0.7);
 	}
 
+	/* The day's low, primary unit first, the other unit smaller */
+	.sel-low {
+		font-family: var(--font-display);
+		font-weight: 700;
+	}
+
+	.sel-low-other {
+		font-size: 0.8em;
+		font-weight: 500;
+		opacity: 0.7;
+	}
+
+	.mode-tabs {
+		margin-bottom: 8px;
+	}
+
 	.chart-card {
 		padding: 8px 0;
 		overflow: hidden;
@@ -1129,6 +1222,11 @@
 		user-select: none;
 		-webkit-user-select: none;
 		scrollbar-width: none;
+	}
+
+	/* The days fill the width and do not scroll */
+	.scroller.fixed {
+		overflow-x: hidden;
 	}
 
 	.scroller::-webkit-scrollbar {

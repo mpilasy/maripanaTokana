@@ -4,8 +4,9 @@
 import { describe, expect, it } from 'vitest';
 import { Temperature } from '#lib/domain/temperature.js';
 import { WindSpeed } from '#lib/domain/windSpeed.js';
-import type { ChartHour } from '#lib/domain/weatherData.js';
-import { chartAirQuality, chartLabelFit, chartTileRows, chartTiles, chartDayExtremes, chartDaylight, chartDaySpans, chartDomain, chartHours, chartIndexForX, chartLineIndex, chartLineOffset, chartMaxScroll, chartScrollForIndex, chartValueAt, chartMidnights, chartNightRuns, chartVisibleRange } from './chartView';
+import type { ChartHour, DailyForecast } from '#lib/domain/weatherData.js';
+import { Precipitation } from '#lib/domain/precipitation.js';
+import { chartAirQuality, chartDayMaxIndex, chartDays, chartLabelFit, chartTileRows, chartTiles, chartDayExtremes, chartDaylight, chartDaySpans, chartDomain, chartHours, chartIndexForX, chartLineIndex, chartLineOffset, chartMaxScroll, chartScrollForIndex, chartValueAt, chartMidnights, chartNightRuns, chartVisibleRange } from './chartView';
 
 const HOUR = 3_600_000;
 const T0 = Date.UTC(2026, 10, 7, 0, 0); // 2026-11-07 00:00 UTC
@@ -331,5 +332,42 @@ describe('chartTileRows', () => {
 	});
 	it('gives no row without tiles', () => {
 		expect(chartTileRows(0)).toEqual([]);
+	});
+});
+
+describe('chartDayMaxIndex', () => {
+	const DAY = 24 * HOUR;
+	it('gives the index of the highest value of each local day', () => {
+		// UTC-6: the local days start at 06:00 UTC
+		const offset = -6 * 3600;
+		const days = [T0 + 6 * HOUR, T0 + 6 * HOUR + DAY, T0 + 6 * HOUR + 2 * DAY];
+		const times = hours(48);
+		const values = times.map((_, i) => (i === 3 ? 50 : i === 10 ? 20 : i === 40 ? 30 : 1));
+		// Hour 3 is in the local day before the first day; the first day has hour 10, the second hour 40, the third no data
+		expect(chartDayMaxIndex(days, times, values, offset)).toEqual([10, 40, null]);
+	});
+	it('ignores nulls and values that are not numbers, and takes the first one with ties', () => {
+		expect(chartDayMaxIndex([T0], hours(4), [null, 5, Number.NaN, 5], 0)).toEqual([1]);
+		expect(chartDayMaxIndex([T0], hours(2), [null, undefined], 0)).toEqual([null]);
+	});
+});
+
+describe('chartDays', () => {
+	it('gives one point per day with the high, the means and the highest gust of the local day', () => {
+		const day = (date: number, max: number): DailyForecast => ({
+			date, tempMax: Temperature.fromCelsius(max), tempMin: Temperature.fromCelsius(max - 10), weatherCode: 3,
+			precipProbability: 40, windSpeed: WindSpeed.fromMetersPerSecond(6), windDeg: 90, precipitation: Precipitation.fromMm(2),
+			uvIndexMax: 4, humidity: 70, dewPoint: null,
+		});
+		const hour = (time: number, gust: number | null): ChartHour => ({
+			time, temperature: null, dewPoint: null, weatherCode: 0, isNight: true, precipitation: null, precipProbability: null,
+			windSpeed: null, windDeg: null, windGust: gust == null ? null : WindSpeed.fromMetersPerSecond(gust), pressure: null,
+			humidity: null, uvIndex: null,
+		});
+		const list = [hour(T0, 5), hour(T0 + HOUR, 9), hour(T0 + 2 * HOUR, null)];
+		const points = chartDays([day(T0, 12), day(T0 + 24 * HOUR, 15)], list, 0);
+		expect(points.map((p) => p.temperature?.celsius)).toEqual([12, 15]);
+		expect(points.map((p) => p.windGust?.metersPerSecond ?? null)).toEqual([9, null]);
+		expect(points[0]).toMatchObject({ time: T0, isNight: false, weatherCode: 3, precipProbability: 40, windDeg: 90, humidity: 70, uvIndex: 4, pressure: null });
 	});
 });

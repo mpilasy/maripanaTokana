@@ -76,6 +76,8 @@
     <string name="chart_view_no_data">Sin datos</string>
     <string name="chart_view_open">Abrir la vista de gráficos</string>
     <string name="chart_view_summary">Gráficos de las próximas %1$s horas</string>
+    <string name="chart_view_hourly">Por hora</string>
+    <string name="chart_view_daily">Por día</string>
     <string name="high_vs_normal_above">Máx. %1$s por encima de lo normal</string>
     <string name="high_vs_normal_below">Máx. %1$s por debajo de lo normal</string>
     <string name="normal_label">Normal</string>

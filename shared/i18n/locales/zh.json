@@ -99,6 +99,8 @@
 	"chart_view_no_data": "无数据",
 	"chart_view_open": "打开图表视图",
 	"chart_view_summary": "未来 {hours} 小时的图表",
+	"chart_view_hourly": "逐时",
+	"chart_view_daily": "逐日",
 	"high_vs_normal_above": "最高气温比常年高 {delta}",
 	"high_vs_normal_below": "最高气温比常年低 {delta}",
 	"normal_label": "常年值",

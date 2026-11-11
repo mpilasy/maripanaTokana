@@ -99,6 +99,8 @@
 	"chart_view_no_data": "No data",
 	"chart_view_open": "Open the chart view",
 	"chart_view_summary": "Charts of the next {hours} hours",
+	"chart_view_hourly": "Hourly",
+	"chart_view_daily": "Daily",
 	"high_vs_normal_above": "High {delta} above normal",
 	"high_vs_normal_below": "High {delta} below normal",
 	"normal_label": "Normal",
