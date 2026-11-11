@@ -29,7 +29,10 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
@@ -57,6 +60,7 @@ import orinasa.njarasoa.maripanatokana.domain.model.ThermalIndices
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.model.WindSpeed
 import orinasa.njarasoa.maripanatokana.ui.theme.temperatureColor
+import orinasa.njarasoa.maripanatokana.ui.weather.chart.ChartDomain
 import orinasa.njarasoa.maripanatokana.ui.weather.chart.ChartStyle
 import orinasa.njarasoa.maripanatokana.ui.weather.chart.ChartTile
 import orinasa.njarasoa.maripanatokana.ui.weather.chart.chartAirQuality
@@ -81,13 +85,26 @@ private val GustLine = Color(0xFFFFB74D)
 
 /** A thin line on the plot of another series, on the same scale: the dew point, heat index, wind chill or gust. */
 private class ExtraLine(val values: List<Double?>, val color: Color, val dashed: Boolean = false)
+
+/**
+ * A line on the plot of another series with its own scale on the right: the chance of rain (0 to 100 %) on the
+ * precipitation, the air quality on the UV index. The air quality is dashed, so that it stands apart from the UV line;
+ * both change colour with their tiers. [dots] puts a dot on each value (days only: hours are too close together).
+ */
+private class RightLine(
+    val values: List<Double?>,
+    val domain: ChartDomain,
+    val color: (Double) -> Color,
+    val text: (Double) -> String,
+    val dashed: Boolean = false,
+    val dots: Boolean = false,
+)
 private const val CHART_LEAD_HOURS = 24
 
 /**
  * One value of the chart over the hours or the days. [values] has one entry for each hour or day, in the base unit of
  * the value. [low], when there is one, is a second line under [values]: the daily lows under the highs. [extras] are
- * thin lines on the same scale. [chance], when
- * there is one, is the chance of rain in percent, as a line over the bars with its own scale. A series [withPrevious]
+ * thin lines on the same scale. [right], when there is one, is a line with its own scale. A series [withPrevious]
  * has its card next to the one before it and no plot of its own: the plot of the one before shows it. [text] gives a
  * value in both units (the second is null when the value has one unit).
  */
@@ -102,7 +119,7 @@ private class TvSeries(
     val low: List<Double?>? = null,
     val lowColor: Color? = null,
     val extras: List<ExtraLine> = emptyList(),
-    val chance: List<Double?>? = null,
+    val right: RightLine? = null,
     val withPrevious: Boolean = false,
 )
 
@@ -169,10 +186,18 @@ private fun seriesFor(tile: ChartTile, data: WeatherData, metric: Boolean, usLab
 
 /**
  * The values of the daily chart: one entry for each day of [days]. The heat index is the one of the high, the wind
- * chill the one of the low. The gust is the highest hourly gust of the day at the place, where the hours reach.
+ * chill the one of the low. The gust and the air quality are the highest hourly values of the day at the place, where
+ * the hours reach.
  */
-private fun dailySeries(days: List<DailyForecast>, hours: List<ChartHour>, offsetSeconds: Int, metric: Boolean): List<TvSeries> {
-    fun day(ms: Long) = Math.floorDiv(ms + offsetSeconds * 1000L, 86_400_000L)
+private fun dailySeries(data: WeatherData, metric: Boolean, usLabel: String, euLabel: String): List<TvSeries> {
+    val days = data.dailyForecast
+    val hours = data.chartHourly
+    fun day(ms: Long) = Math.floorDiv(ms + data.utcOffsetSeconds * 1000L, 86_400_000L)
+    val standard = data.airQuality?.primaryStandard ?: AqiStandard.US
+    val european = standard == AqiStandard.EUROPEAN
+    val airByDay = data.hourlyAirQuality.groupBy { day(it.time) }
+        .mapValues { (_, h) -> h.maxOf { if (european) it.europeanValue else it.usValue }.toDouble() }
+    val air = days.map { airByDay[day(it.date)] }.takeIf { v -> v.any { it != null } }
     val gustByDay = hours.filter { it.windGust != null }.groupBy { day(it.time) }.mapValues { (_, h) -> h.maxOf { it.windGust!!.metersPerSecond } }
     val gust = days.map { gustByDay[day(it.date)] }.takeIf { v -> v.any { it != null } }
     val chance = days.map { it.precipProbability.toDouble() }
@@ -181,6 +206,15 @@ private fun dailySeries(days: List<DailyForecast>, hours: List<ChartHour>, offse
         low = days.map { it.tempMin.celsius }, lowColor = LowLine,
     )
     val wind = days.map { it.windSpeed.metersPerSecond }
+    // The air quality on the UV plot
+    val airParts = air?.let { airQualityParts(it, standard, usLabel, euLabel, days = true) }
+    val uvWithAirQuality = listOfNotNull(
+        TvSeries(
+            R.string.detail_uv_index, days.map { d -> d.uvIndexMax.takeIf { it.isFinite() } }, true, 5.0, { colorsFor(it).background },
+            { "%.1f".format(Locale.US, it) to null }, right = airParts?.second,
+        ),
+        airParts?.first,
+    )
     return withTemperatureExtras(
         temperature, days.map { it.dewPoint?.celsius }.takeIf { v -> v.any { it != null } },
         days.map { ThermalIndices.heatIndex(it)?.celsius }, days.map { ThermalIndices.windChill(it)?.celsius }, metric,
@@ -188,7 +222,7 @@ private fun dailySeries(days: List<DailyForecast>, hours: List<ChartHour>, offse
         // One plot for the amount and the chance of rain
         TvSeries(
             R.string.detail_precipitation, days.map { it.precipitation.mm }, true, 1.0, { ChartStyle.precipitation },
-            { Precipitation.fromMm(it).displayDual(metric) }, bars = true, chance = chance,
+            { Precipitation.fromMm(it).displayDual(metric) }, bars = true, right = chanceLine(chance, days = true),
         ),
         chanceSeries(chance),
         TvSeries(
@@ -197,17 +231,14 @@ private fun dailySeries(days: List<DailyForecast>, hours: List<ChartHour>, offse
         ),
     ) + listOfNotNull(
         gust?.let { TvSeries(R.string.detail_wind_gust, it, true, 5.0, { GustLine }, { v -> windText(v, metric) }, withPrevious = true) },
-        TvSeries(
-            R.string.detail_uv_index, days.map { d -> d.uvIndexMax.takeIf { it.isFinite() } }, true, 5.0, { colorsFor(it).background },
-            { "%.1f".format(Locale.US, it) to null },
-        ),
+    ) + uvWithAirQuality + listOf(
         TvSeries(R.string.detail_humidity, days.map { it.humidity?.toDouble() }, true, 100.0, { ChartStyle.humidity }, { "${it.roundToInt()}%" to null }),
     )
 }
 
 /**
  * The series of the hourly chart. The temperature plot also has the dew point, heat index and wind chill, the
- * precipitation plot the chance of rain, and the wind plot the gust.
+ * precipitation plot the chance of rain, the wind plot the gust, and the UV plot the air quality.
  */
 private fun hourlySeries(data: WeatherData, metric: Boolean, usLabel: String, euLabel: String): List<TvSeries> {
     val hours = data.chartHourly
@@ -224,7 +255,7 @@ private fun hourlySeries(data: WeatherData, metric: Boolean, usLabel: String, eu
             )
             ChartTile.DEW_POINT -> emptyList()
             ChartTile.PRECIPITATION -> if (chance == null) listOf(one) else listOf(
-                TvSeries(one.label, one.values, one.fromZero, one.minSpan, one.color, one.text, bars = true, chance = chance),
+                TvSeries(one.label, one.values, one.fromZero, one.minSpan, one.color, one.text, bars = true, right = chanceLine(chance, days = false)),
                 chanceSeries(chance),
             )
             ChartTile.WIND -> if (gust == null) listOf(one) else listOf(
@@ -232,9 +263,32 @@ private fun hourlySeries(data: WeatherData, metric: Boolean, usLabel: String, eu
                 TvSeries(R.string.detail_wind_gust, gust, true, 5.0, { GustLine }, { windText(it, metric) }, withPrevious = true),
             )
             ChartTile.WIND_GUST -> emptyList()
+            // The air quality on the UV plot, when there is one
+            ChartTile.UV_INDEX -> if (ChartTile.AIR_QUALITY !in tiles) listOf(one) else {
+                val (card, line) = airQualityParts(
+                    seriesFor(ChartTile.AIR_QUALITY, data, metric, usLabel, euLabel).values,
+                    data.airQuality?.primaryStandard ?: AqiStandard.US, usLabel, euLabel, days = false,
+                )
+                listOf(TvSeries(one.label, one.values, one.fromZero, one.minSpan, one.color, one.text, right = line), card)
+            }
+            ChartTile.AIR_QUALITY -> if (ChartTile.UV_INDEX in tiles) emptyList() else listOf(one)
             else -> listOf(one)
         }
     }
+}
+
+/** The chance of rain on the precipitation plot. */
+private fun chanceLine(chance: List<Double?>, days: Boolean) = RightLine(
+    chance, ChartDomain(0.0, 100.0, listOf(0.0, 50.0, 100.0)), { ChartStyle.chance }, { "${it.roundToInt()}%" }, dots = days,
+)
+
+/** The air quality card, next to the UV index, and its dashed line on the UV plot. */
+private fun airQualityParts(values: List<Double?>, standard: AqiStandard, usLabel: String, euLabel: String, days: Boolean): Pair<TvSeries, RightLine?> {
+    val european = standard == AqiStandard.EUROPEAN
+    val color = { v: Double -> colorsFor(AirQualityIndex.tierFor(v.roundToInt(), standard)).background }
+    val text = { v: Double -> "${v.roundToInt()} ${if (european) euLabel else usLabel}" }
+    val card = TvSeries(tileLabel(ChartTile.AIR_QUALITY), values, true, 50.0, color, { text(it) to null }, withPrevious = true)
+    return card to chartDomain(values, true, 50.0)?.let { RightLine(values, it, color, text, dashed = true, dots = days) }
 }
 
 /** The card of the chance of rain, next to the precipitation; the precipitation plot draws it. */
@@ -331,7 +385,9 @@ internal fun DailyChartScreen(data: WeatherData, startIndex: Int) {
         return
     }
     val metric = LocalMetricPrimary.current
-    val series = remember(data, metric) { dailySeries(days, data.chartHourly, data.utcOffsetSeconds, metric) }
+    val usLabel = stringResource(R.string.air_quality_us_aqi)
+    val euLabel = stringResource(R.string.air_quality_eu_aqi)
+    val series = remember(data, metric) { dailySeries(data, metric, usLabel, euLabel) }
     var selected by remember { mutableIntStateOf(startIndex.coerceIn(days.indices)) }
     var shownSeries by remember { mutableIntStateOf(0) }
     val focus = remember { FocusRequester() }
@@ -419,6 +475,35 @@ private fun SeriesStrip(series: List<TvSeries>, selected: Int, shownSeries: Int)
 }
 
 /**
+ * A line through [points] (value and colour; null for a gap) as one path for each run of one colour, so that a dash
+ * pattern runs on along the line instead of starting again at each hour.
+ */
+private fun DrawScope.dashedLine(
+    points: List<Pair<Double, Color>?>, x: (Int) -> Float, y: (Double) -> Float, width: Float, dash: PathEffect?,
+) {
+    var path: Path? = null
+    var color: Color? = null
+    fun flush() {
+        path?.let { p -> color?.let { drawPath(p, it, style = Stroke(width, cap = StrokeCap.Round, pathEffect = dash)) } }
+        path = null
+    }
+    points.forEachIndexed { i, point ->
+        if (point == null) { flush(); return@forEachIndexed }
+        val (v, c) = point
+        val here = Offset(x(i), y(v))
+        if (path == null || c != color) {
+            // A new run starts at the end of the last one, so that the line has no break
+            val start = points.getOrNull(i - 1)?.let { Offset(x(i - 1), y(it.first)) }
+            flush()
+            path = Path().apply { (start ?: here).let { moveTo(it.x, it.y) } }
+            color = c
+        }
+        path!!.lineTo(here.x, here.y)
+    }
+    flush()
+}
+
+/**
  * [window] entries of [series] (hours or days), [lead] of them before the selection, with the selected entry marked.
  * [axis] gives the label under an entry, with a line across the plot, or null for none.
  */
@@ -430,7 +515,8 @@ private fun SeriesPlot(series: TvSeries, window: Int, lead: Int, selected: Int, 
     val end = (first + window).coerceAtMost(count)
     val values = series.values.subList(first, end)
     val lows = series.low?.subList(first, end)
-    val chances = series.chance?.subList(first, end)
+    val rightLine = series.right
+    val rightPart = rightLine?.values?.subList(first, end)
     val extras = series.extras.map { it to it.values.subList(first, end) }
     // The scale of all the values, not only of the window, so that it stays the same while the selection moves
     val domain = chartDomain(
@@ -443,8 +529,10 @@ private fun SeriesPlot(series: TvSeries, window: Int, lead: Int, selected: Int, 
         // The space on the left is for the scale
         val left = 96.dp.toPx()
         // A few days: half a slot of space at each end, so the bars and the end labels stay inside
-        // The space on the right is for the scale of the chance of rain
-        val right = size.width - if (chances != null) 56.dp.toPx() else 0f
+        // The space on the right is for the scale of the right line
+        val scalePaint = Paint().apply { color = Dim.toArgb(); textSize = 14.sp.toPx(); isAntiAlias = true }
+        val rightTicks = rightLine?.domain?.ticks?.map { it to shape(rightLine.text(it)) }.orEmpty()
+        val right = size.width - (rightTicks.maxOfOrNull { scalePaint.measureText(it.second) }?.plus(12.dp.toPx()) ?: 0f)
         val inset = if (window < 24) (right - left) / window / 2 else 0f
         val slot = (right - left - 2 * inset) / (window - 1).coerceAtLeast(1)
         fun x(i: Int) = left + inset + slot * i
@@ -489,26 +577,20 @@ private fun SeriesPlot(series: TvSeries, window: Int, lead: Int, selected: Int, 
         // The thin lines: the dew point dashed
         val dash = PathEffect.dashPathEffect(floatArrayOf(8.dp.toPx(), 6.dp.toPx()))
         for ((line, part) in extras) {
-            part.zipWithNext().forEachIndexed { i, (a, b) ->
-                if (a != null && b != null) {
-                    drawLine(line.color, Offset(x(i), y(a)), Offset(x(i + 1), y(b)), 2.dp.toPx(), pathEffect = if (line.dashed) dash else null)
-                }
-            }
+            dashedLine(part.map { v -> v?.let { it to line.color } }, ::x, ::y, 2.dp.toPx(), if (line.dashed) dash else null)
         }
 
-        // The chance of rain from 0% at the bottom to 100% at the top, with its scale on the right
-        chances?.let { line ->
-            fun chanceY(v: Double) = (bottom - v / 100 * (bottom - top)).toFloat()
-            val scale = Paint().apply { color = ChartStyle.chance.toArgb(); textSize = 14.sp.toPx(); isAntiAlias = true }
-            listOf(0.0, 50.0, 100.0).forEach { v ->
-                val text = shape("${v.roundToInt()}%")
-                canvas.drawText(text, size.width - scale.measureText(text), chanceY(v) + 4.dp.toPx(), scale)
-            }
-            line.zipWithNext().forEachIndexed { i, (a, b) ->
-                if (a != null && b != null) drawLine(ChartStyle.chance, Offset(x(i), chanceY(a)), Offset(x(i + 1), chanceY(b)), 3.dp.toPx(), StrokeCap.Round)
-            }
-            // A dot on each day; the hours are too close together for dots
-            if (window < 24) line.forEachIndexed { i, v -> v?.let { drawCircle(ChartStyle.chance, 4.dp.toPx(), Offset(x(i), chanceY(it))) } }
+        // The right line on its own scale, with the scale on the right
+        if (rightLine != null && rightPart != null) {
+            val d = rightLine.domain
+            fun rightY(v: Double) = (bottom - (v - d.min) / (d.max - d.min) * (bottom - top)).toFloat()
+            rightTicks.forEach { (v, text) -> canvas.drawText(text, size.width - scalePaint.measureText(text), rightY(v) + 4.dp.toPx(), scalePaint) }
+            val rightDash = PathEffect.dashPathEffect(floatArrayOf(10.dp.toPx(), 6.dp.toPx()))
+            dashedLine(
+                rightPart.map { v -> v?.let { it to rightLine.color(it) } }, ::x, ::rightY, 3.dp.toPx(),
+                if (rightLine.dashed) rightDash else null,
+            )
+            if (rightLine.dots) rightPart.forEachIndexed { i, v -> v?.let { drawCircle(rightLine.color(it), 4.dp.toPx(), Offset(x(i), rightY(it))) } }
         }
 
         // The highest and lowest values in the window; the lowest rain is nearly always 0, so bars show only the highest
