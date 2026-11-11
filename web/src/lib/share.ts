@@ -124,6 +124,35 @@ function addExifDateTime(pngBytes: Uint8Array, date: Date): Uint8Array {
 	return result;
 }
 
+const COLOR_PROPS = [
+	'color', 'background-color', 'border-top-color', 'border-right-color', 'border-bottom-color', 'border-left-color',
+	'outline-color', 'text-decoration-color', 'fill', 'stroke',
+] as const;
+
+/** `color(srgb r g b / a)` (channels 0–1) as `rgba(…)`; other values unchanged. */
+export function srgbToRgba(value: string): string {
+	return value.replace(/color\(srgb ([\d.e-]+) ([\d.e-]+) ([\d.e-]+)(?: \/ ([\d.e-]+))?\)/g, (_, r, g, b, a) => {
+		const c = (v: string) => Math.round(Math.min(1, Math.max(0, Number(v))) * 255);
+		return `rgba(${c(r)}, ${c(g)}, ${c(b)}, ${a ?? 1})`;
+	});
+}
+
+/**
+ * html2canvas cannot read `color(srgb …)`, which is how the browser gives a `color-mix()` value (the tier badges, the
+ * hero chips, the alert banner). In the copy it draws, each such colour becomes an inline `rgba()`.
+ */
+function srgbColorsToRgba(doc: Document): void {
+	const view = doc.defaultView;
+	if (!view) return;
+	doc.querySelectorAll<HTMLElement>('*').forEach((el) => {
+		const style = view.getComputedStyle(el);
+		for (const prop of COLOR_PROPS) {
+			const value = style.getPropertyValue(prop);
+			if (value.includes('color(')) el.style.setProperty(prop, srgbToRgba(value));
+		}
+	});
+}
+
 /**
  * Captures the header and the content, draws them on one canvas with the app name, and shares it as a PNG
  * (Web Share API) or downloads it.
@@ -136,8 +165,11 @@ export async function captureAndShare(
 
 	const opts = {
 		backgroundColor: BG_COLOR, scale: 2, useCORS: true, logging: false,
-		// Show the parts that are only for share images (the hero's copyright)
-		onclone: (doc: Document) => doc.querySelectorAll<HTMLElement>('[data-share-only]').forEach((el) => { el.style.display = 'block'; }),
+		onclone: (doc: Document) => {
+			// Show the parts that are only for share images (the hero's copyright)
+			doc.querySelectorAll<HTMLElement>('[data-share-only]').forEach((el) => { el.style.display = 'block'; });
+			srgbColorsToRgba(doc);
+		},
 	};
 
 	const [headerCapture, contentCapture] = await Promise.all([

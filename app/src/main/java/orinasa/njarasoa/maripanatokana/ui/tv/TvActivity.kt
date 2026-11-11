@@ -64,6 +64,7 @@ import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.data.remote.wmoDescriptionRes
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.model.isDaytime
+import orinasa.njarasoa.maripanatokana.domain.model.LocationFix
 import orinasa.njarasoa.maripanatokana.domain.repository.LocationRepository
 import orinasa.njarasoa.maripanatokana.domain.repository.WeatherRepository
 import orinasa.njarasoa.maripanatokana.ui.theme.MaripanaTokanaTheme
@@ -92,7 +93,8 @@ private sealed interface TvState {
     data object Failed : TvState
     /** No saved place is active and the TV does not know where it is. */
     data object NoLocation : TvState
-    data class Ready(val data: WeatherData) : TvState
+    /** [oldFixTime] is the time of the device fix when it is old (see [LocationFix.isOld]), else null. */
+    data class Ready(val data: WeatherData, val oldFixTime: Long? = null) : TvState
 }
 
 private sealed interface TvScreen {
@@ -136,7 +138,7 @@ private fun canLocate(context: Context): Boolean {
     return listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER, "fused").any { manager.isProviderEnabled(it) }
 }
 
-private suspend fun deviceLocation(locations: LocationRepository): Pair<Double, Double>? =
+private suspend fun deviceLocation(locations: LocationRepository): LocationFix? =
     withTimeoutOrNull(LOCATION_TIMEOUT_MS) {
         locations.getLastLocation().getOrNull() ?: locations.getFreshLocation().getOrNull()
     }
@@ -161,12 +163,12 @@ private fun TvRoot(
 
     // The language is a key: the place names and the alert text come in the language of the app
     /** Loads the weather of ([lat], [lon]) and then its alerts; false when the weather fails. */
-    suspend fun load(lat: Double, lon: Double, place: SavedLocation?): Boolean = repository.getWeather(lat, lon).fold(
+    suspend fun load(lat: Double, lon: Double, place: SavedLocation?, oldFixTime: Long? = null): Boolean = repository.getWeather(lat, lon).fold(
         onSuccess = { loaded ->
             val data = if (place != null) loaded.copy(locationName = place.displayName, locationSubtext = place.subtext) else loaded
-            state = TvState.Ready(data)
+            state = TvState.Ready(data, oldFixTime)
             repository.fetchAlerts(lat, lon).onSuccess { result ->
-                state = TvState.Ready(data.copy(alerts = result.alerts, failedAlertSources = result.failedSources))
+                state = TvState.Ready(data.copy(alerts = result.alerts, failedAlertSources = result.failedSources), oldFixTime)
             }
             true
         },
@@ -181,9 +183,10 @@ private fun TvRoot(
             permissions.launch(LOCATION_PERMISSIONS)
             return@LaunchedEffect
         }
+        val fix = if (place == null && locatable && hasLocationPermission(context)) deviceLocation(locations) else null
         val coordinates = when {
             place != null -> place.latitude to place.longitude
-            locatable && hasLocationPermission(context) -> deviceLocation(locations)
+            fix != null -> fix.latitude to fix.longitude
             else -> null
         }
         if (coordinates == null) {
@@ -191,7 +194,7 @@ private fun TvRoot(
             return@LaunchedEffect
         }
         val (lat, lon) = coordinates
-        if (!load(lat, lon, place)) state = TvState.Failed
+        if (!load(lat, lon, place, fix?.takeIf { it.isOld() }?.timeMs)) state = TvState.Failed
     }
 
     // A TV can stay on this screen for hours: while the app is on screen, the weather loads again when it is 30 minutes old
@@ -199,7 +202,8 @@ private fun TvRoot(
     LaunchedEffect(lifecycleOwner, activeId, localeIndex) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
             while (true) {
-                val data = (state as? TvState.Ready)?.data
+                val ready = state as? TvState.Ready
+                val data = ready?.data
                 val wait = if (data == null) REFRESH_MS else REFRESH_MS - (System.currentTimeMillis() - data.timestamp)
                 if (data == null || wait > 0) {
                     delay(wait.coerceAtLeast(RETRY_MS / 5))
@@ -207,7 +211,7 @@ private fun TvRoot(
                 }
                 val lat = data.latitude
                 val lon = data.longitude
-                if (lat == null || lon == null || !load(lat, lon, saved.find { it.id == activeId })) delay(RETRY_MS)
+                if (lat == null || lon == null || !load(lat, lon, saved.find { it.id == activeId }, ready.oldFixTime)) delay(RETRY_MS)
             }
         }
     }
@@ -258,7 +262,7 @@ private fun TvRoot(
                 when (s) {
                     TvState.Loading -> Message(stringResource(R.string.loading))
                     TvState.Failed -> FailedScreen(onRetry = { attempt++ }, onPlaces = { showPlaces = true })
-                    is TvState.Ready -> TvApp(s.data, onPlaces = { showPlaces = true }, onSettings = { showSettings = true })
+                    is TvState.Ready -> TvApp(s.data, s.oldFixTime, onPlaces = { showPlaces = true }, onSettings = { showSettings = true })
                     TvState.NoLocation -> Unit
                 }
             }
@@ -293,12 +297,12 @@ private fun FailedScreen(onRetry: () -> Unit, onPlaces: () -> Unit) {
 
 /** Which screen shows. [focusKey] is the card that had focus, so Back returns to it. */
 @Composable
-private fun TvApp(data: WeatherData, onPlaces: () -> Unit, onSettings: () -> Unit) {
+private fun TvApp(data: WeatherData, oldFixTime: Long?, onPlaces: () -> Unit, onSettings: () -> Unit) {
     var screen by remember { mutableStateOf<TvScreen>(TvScreen.Home) }
     var focusKey by remember { mutableStateOf("hour0") }
     if (screen != TvScreen.Home) BackHandler { screen = TvScreen.Home }
     when (val s = screen) {
-        TvScreen.Home -> HomeScreen(data, focusKey, onPlaces, onSettings) { key, next ->
+        TvScreen.Home -> HomeScreen(data, oldFixTime, focusKey, onPlaces, onSettings) { key, next ->
             focusKey = key
             screen = next
         }
@@ -324,7 +328,7 @@ internal fun rememberPlaceFormat(pattern: String, offsetSeconds: Int): (Long) ->
 }
 
 @Composable
-private fun HomeScreen(data: WeatherData, focusKey: String, onPlaces: () -> Unit, onSettings: () -> Unit, onOpen: (key: String, screen: TvScreen) -> Unit) {
+private fun HomeScreen(data: WeatherData, oldFixTime: Long?, focusKey: String, onPlaces: () -> Unit, onSettings: () -> Unit, onOpen: (key: String, screen: TvScreen) -> Unit) {
     val metric = LocalMetricPrimary.current
     val focus = remember { FocusRequester() }
     LaunchedEffect(Unit) { focus.requestFocus() }
@@ -335,7 +339,7 @@ private fun HomeScreen(data: WeatherData, focusKey: String, onPlaces: () -> Unit
     fun chartAt(time: Long) = TvScreen.Chart(data.chartHourly.indexOfFirst { it.time >= time }.coerceAtLeast(0))
 
     Row(Modifier.fillMaxSize().padding(horizontal = 48.dp, vertical = 27.dp), horizontalArrangement = Arrangement.spacedBy(32.dp)) {
-        CurrentPanel(data, Modifier.weight(0.3f), ::cardModifier, onPlaces, onSettings, onOpen)
+        CurrentPanel(data, oldFixTime, Modifier.weight(0.3f), ::cardModifier, onPlaces, onSettings, onOpen)
         Column(Modifier.weight(0.7f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             CardRow(Modifier.weight(1f)) {
                 data.hourlyForecast.take(HOUR_COUNT).forEachIndexed { i, hour ->
@@ -368,7 +372,7 @@ private fun HomeScreen(data: WeatherData, focusKey: String, onPlaces: () -> Unit
 
 @Composable
 private fun CurrentPanel(
-    data: WeatherData, modifier: Modifier, cardModifier: (String) -> Modifier, onPlaces: () -> Unit, onSettings: () -> Unit, onOpen: (String, TvScreen) -> Unit,
+    data: WeatherData, oldFixTime: Long?, modifier: Modifier, cardModifier: (String) -> Modifier, onPlaces: () -> Unit, onSettings: () -> Unit, onOpen: (String, TvScreen) -> Unit,
 ) {
     val metric = LocalMetricPrimary.current
     val (temp, tempSecond) = data.temperature.displayDual(metric)
@@ -376,6 +380,11 @@ private fun CurrentPanel(
     Column(modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterVertically)) {
         PanelButton(cardModifier("place"), onClick = onPlaces) {
             Text(data.locationName, localize = false, color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+        // The device fix is old: tell when it was taken
+        if (oldFixTime != null) {
+            val fixFormat = rememberPlaceFormat("HH:mm", data.utcOffsetSeconds)
+            Text("${stringResource(R.string.last_known_location)} · ${fixFormat(oldFixTime)}", color = Dim, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         data.alerts.maxByOrNull { it.level.ordinal }?.let { worst ->
             PanelButton(cardModifier("alerts"), onClick = { onOpen("alerts", TvScreen.Alerts) }) {

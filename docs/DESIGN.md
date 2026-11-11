@@ -242,6 +242,8 @@ When fetching weather for "Current Location":
 1. `getLastLocation()` — returns instant cached GPS coordinates.
 2. `getFreshLocation()` — fetches active GPS coordinates in background; if position moved >5 km, or if step 1 gave nothing, weather re-fetches.
 
+Both return a `LocationFix` (coordinates and the fix time). A fix is old when it is more than 30 minutes old, or when the fresh request failed and the provider used a cached fix (`fallback`). When the shown weather is for the device location and its fix is old, the header shows a small line under the place: "Using last known location · 14:05" (the fix time, in the format of the "Updated" line). The TV home shows the same line under the place name. Saved places and previews do not show it.
+
 The whole fetch has a 45-second timeout. The last cached weather for the place shows at once, before the fetch.
 
 ---
@@ -325,7 +327,7 @@ The hero card also shows the change of the temperature in 6 hours and, when the 
 
 ### 8.6 Android TV
 `TvActivity` (declared in the manifest with the `LEANBACK_LAUNCHER` category and no touchscreen requirement) shows the weather of one place with screens made for the D-pad. A card has a white border when it has focus; OK opens it; Back returns to the card that had focus. The TV screens use the phone's data layer and preferences (saved places, units, language) but not `WeatherContent`.
-- **Home** (`TvActivity.kt`): a left panel with the place, the worst alert, the weather icon, temperature, feels-like, the time and the update time, an air-quality button, and Details, Settings and About buttons. On the right, one row of hourly cards and one row of daily cards. OK on an hour or a day opens its chart.
+- **Home** (`TvActivity.kt`): a left panel with the place (and "Using last known location · time" when the device fix is old), the worst alert, the weather icon, temperature, feels-like, the time and the update time, an air-quality button, and Details, Settings and About buttons. On the right, one row of hourly cards and one row of daily cards. OK on an hour or a day opens its chart.
 - **Charts** (`TvChart.kt`): the hourly chart and the daily chart. Left and right move the selected hour or day; up and down move a whole day in the hourly chart; OK shows the next value. Related values share one plot: temperature with dew point, heat index and wind chill (the daily chart also has the low); precipitation with the chance of rain; wind with gusts; UV index with the air quality as a dashed line on its own scale; the humidity; and, in the hourly chart, the pressure. The cards above the plot show the values of the selected hour or day in both units.
 - **Details** (`TvDetails.kt`): precipitation, wind, gust, pressure, humidity and dew point, UV, visibility, cloud cover, moon, air quality, sunrise, sunset, the noon sun, and the declination. The same file has the air-quality screen (both standards, pollutants, pollen) and the alerts screen (full text).
 - **Places** (`TvPlaces.kt`): search, device location and the saved places, with the same storage as the phone.
@@ -391,7 +393,7 @@ Settings screen (`SettingsScreen.kt`) always shows the Advanced mode switch and 
 - **Geocoding Source**: System Geocoder vs Nominatim.
 - **Alert Toggles**: Master alerts switch + individual source toggles for all 7 official providers.
 
-Settings, Help and About share the `SettingsPage` layout. Help has three sections (Places and favorites; Language, font and units; Weather data). About has the license, the source code and web links, the credits for data, imagery, fonts and libraries, and the device information (`DeviceInfo.kt`).
+Settings, Help and About share the `SettingsPage` layout. Help has three sections (Places and favorites; Language, font and units; Weather data). About has the license, the source code and web links, the F-Droid and Obtainium badges (a tap shows the QR code, for another phone to scan) and the GitHub releases badge (a tap opens it), the credits for data, imagery, fonts and libraries, and the device information (`DeviceInfo.kt`).
 
 ---
 

@@ -3,6 +3,7 @@
 
 package orinasa.njarasoa.maripanatokana.data.location
 
+import orinasa.njarasoa.maripanatokana.domain.model.LocationFix
 import orinasa.njarasoa.maripanatokana.util.AppLog
 import android.annotation.SuppressLint
 import android.content.Context
@@ -27,7 +28,7 @@ class NativeLocationProvider(
     private val locationManager: LocationManager =
         context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
-    override suspend fun getLastLocation(): Result<Pair<Double, Double>> {
+    override suspend fun getLastLocation(): Result<LocationFix> {
         return try {
             val gpsLocation = getLastKnownLocation(LocationManager.GPS_PROVIDER)
             val networkLocation = getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
@@ -41,7 +42,7 @@ class NativeLocationProvider(
             }
 
             if (location != null && !location.isStale()) {
-                Result.success(Pair(location.latitude, location.longitude))
+                Result.success(LocationFix(location.latitude, location.longitude, location.time))
             } else {
                 Result.failure(Exception("No cached location"))
             }
@@ -55,11 +56,11 @@ class NativeLocationProvider(
         }
     }
 
-    override suspend fun getFreshLocation(): Result<Pair<Double, Double>> {
+    override suspend fun getFreshLocation(): Result<LocationFix> {
         return try {
             val location = requestLocationUpdate()
             if (location != null) {
-                Result.success(Pair(location.latitude, location.longitude))
+                Result.success(location)
             } else {
                 Result.failure(Exception("Unable to get location"))
             }
@@ -104,7 +105,7 @@ class NativeLocationProvider(
     private fun Location.isStale() = System.currentTimeMillis() - time > MAX_FIX_AGE_MS
 
     @SuppressLint("MissingPermission")
-    private suspend fun requestLocationUpdate(): Location? {
+    private suspend fun requestLocationUpdate(): LocationFix? {
         // A HandlerThread keeps the location callbacks off the main thread, which prevents jank and ANR.
         val handlerThread = HandlerThread("LocationRequest").also { it.start() }
 
@@ -159,6 +160,7 @@ class NativeLocationProvider(
             null
         }
 
-        return liveLocation ?: getStaleFallbackLocation()
+        liveLocation?.let { return LocationFix(it.latitude, it.longitude, it.time) }
+        return getStaleFallbackLocation()?.let { LocationFix(it.latitude, it.longitude, it.time, fallback = true) }
     }
 }

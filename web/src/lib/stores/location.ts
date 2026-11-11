@@ -11,6 +11,8 @@ interface CachedLocation {
 	subtext?: string;
 	/** Language the name and subtext were looked up in. */
 	lang?: string;
+	/** Time of the position fix (epoch ms). Not in a location saved before 1.7. */
+	time?: number;
 }
 
 export function getCachedLocation(): CachedLocation | null {
@@ -24,12 +26,14 @@ export function getCachedLocation(): CachedLocation | null {
 	}
 }
 
-export function cacheLocation(lat: number, lon: number, name?: string, subtext?: string, lang?: string) {
+/** `time` is the time of the position fix: the default is now (a fresh fix), null when it is not known. */
+export function cacheLocation(lat: number, lon: number, name?: string, subtext?: string, lang?: string, time: number | null = Date.now()) {
 	if (typeof localStorage !== 'undefined') {
 		const data: CachedLocation = { lat, lon };
 		if (name) data.name = name;
 		if (subtext) data.subtext = subtext;
 		if (lang) data.lang = lang;
+		if (time) data.time = time;
 		localStorage.setItem(LOCATION_KEY, JSON.stringify(data));
 	}
 }

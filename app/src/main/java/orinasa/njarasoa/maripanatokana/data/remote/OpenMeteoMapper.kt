@@ -54,7 +54,6 @@ private const val DAILY_DAYS = 10
 
 fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = null): WeatherData {
     val c = current
-    val isDay = c.isDay == 1
 
     // Pre-parse hourly timestamps once
     val parsedHourlyTimes = hourly.time.map { parseIsoDateTime(it, utcOffsetSeconds) }
@@ -157,7 +156,6 @@ fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = 
         tempMin = Temperature.fromCelsius(daily.temperatureMin.firstOrNull() ?: c.temperature),
         tempMax = Temperature.fromCelsius(daily.temperatureMax.firstOrNull() ?: c.temperature),
         weatherCode = c.weatherCode,
-        iconCode = wmoIconCode(c.weatherCode, isDay),
         locationName = locationName,
         locationSubtext = locationSubtext,
         pressure = Pressure.fromHPa(c.pressureMsl ?: Double.NaN),

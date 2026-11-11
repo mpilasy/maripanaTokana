@@ -3,6 +3,8 @@
 
 package orinasa.njarasoa.maripanatokana.data.location
 
+import orinasa.njarasoa.maripanatokana.domain.model.LocationFix
+
 /**
  * Abstraction for location retrieval supporting multiple implementations.
  * - PlayServicesLocationProvider: Uses Google Play Services for enhanced accuracy
@@ -11,13 +13,14 @@ package orinasa.njarasoa.maripanatokana.data.location
 interface LocationProvider {
     /**
      * Get the last known location from the device.
-     * @return Success with Pair(latitude, longitude) or failure if no cached location exists
+     * @return Success with the fix and its time, or failure if no cached location exists
      */
-    suspend fun getLastLocation(): Result<Pair<Double, Double>>
+    suspend fun getLastLocation(): Result<LocationFix>
 
     /**
      * Request a fresh location update from the device.
-     * @return Success with Pair(latitude, longitude) or failure if location cannot be acquired
+     * @return Success with the fix and its time (marked as fallback when a cached fix replaced a failed
+     * request), or failure if location cannot be acquired
      */
-    suspend fun getFreshLocation(): Result<Pair<Double, Double>>
+    suspend fun getFreshLocation(): Result<LocationFix>
 }

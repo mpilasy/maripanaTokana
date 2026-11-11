@@ -66,22 +66,3 @@ private val WMO_NIGHT_EMOJI = mapOf(
 
 fun wmoEmoji(code: Int, isNight: Boolean = false): String =
     (if (isNight) WMO_NIGHT_EMOJI[code] else null) ?: WMO_EMOJI[code] ?: "\uD83C\uDF10" // 🌐
-
-/** A WMO weather code and is_day as a two-digit icon code with a day or night suffix, for example "01d". */
-fun wmoIconCode(code: Int, isDay: Boolean): String {
-    val base = WMO_ICON_CODES[code] ?: "01"
-    val suffix = if (isDay) "d" else "n"
-    return "$base$suffix"
-}
-
-private val WMO_ICON_CODES = mapOf(
-    listOf(0) to "01",
-    listOf(1) to "02",
-    listOf(2) to "03",
-    listOf(3) to "04",
-    listOf(45, 48) to "50",
-    listOf(51, 53, 55, 56, 57, 80, 81, 82) to "09",
-    listOf(61, 63, 65, 66, 67) to "10",
-    listOf(71, 73, 75, 77, 85, 86) to "13",
-    listOf(95, 96, 99) to "11",
-).flatMap { (codes, icon) -> codes.map { it to icon } }.toMap()

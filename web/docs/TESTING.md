@@ -53,6 +53,7 @@ npm run dev
 | Deny geolocation | Error screen with dual-language retry button |
 | Subsequent visit (permission already granted) | Loads weather immediately (cached location used first) |
 | Cached location available | Instant display from cache, then updates if position changed >5 km |
+| Cached location available, fresh position fails (block location after a first visit) | Weather for the cached position, with "Using last known location · {time of the cached position}" under the place line. Not shown for a saved place or a preview. A refresh with a fresh position removes the line |
 
 ---
 
@@ -129,6 +130,7 @@ npm run dev
   - [ ] "About" link in the footer opens the About page
   - [ ] About page shows the app name, version, license, Help link, source code link, "On the web" link, data source credits and device information
   - [ ] "Help" link on the About page opens the Help page
+  - [ ] The F-Droid and Obtainium badges show on all devices, also on iPhone and iPad (to show to an Android user). A click shows the QR code
   - [ ] Back button returns to the weather screen
 
 - [ ] **Install Link (iOS only)**

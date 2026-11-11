@@ -32,7 +32,7 @@ The same APK also runs on Android TV, with screens made for the remote: current 
 **Places**
 - **Search** by city, postal code, coordinates (decimal or degrees, minutes and seconds), Plus Code or map link. A searched place shows for 12 hours, then the app goes back to your location.
 - **Favorites**: tap the heart to save a searched place. Hold the name to rename it, and tap the full heart to remove it. Swipe, or tap the arrows, to move between places. Hold an arrow to pick a place from a list. The pin goes back to your location.
-- **Header**: the place, then the region and country. For a place in another time zone, a chip shows its local time. Place names in other scripts can also show in Latin letters.
+- **Header**: the place, then the region and country. For a place in another time zone, a chip shows its local time. Place names in other scripts can also show in Latin letters. When the device location is more than 30 minutes old (or a fresh fix failed), a small line shows "Using last known location" with the time of the fix.
 - **Location details**: the grid icon opens a card with the place, the coordinates and the full Plus Code. Tap a line to open a map, and hold a line to copy it.
 - **Shared places**: share a map link, a `geo:` link or coordinates to the Android app. The web app takes them as `?q=` or from the system share menu.
 
@@ -41,7 +41,7 @@ The same APK also runs on Android TV, with screens made for the remote: current 
 - **8 languages**: Malagasy, Arabic, English, Spanish, French, Hindi, Nepali and Chinese. Tap the flag in the footer to change, or hold it to pick from a list. Local digits for Arabic, Hindi and Nepali, a decimal comma where the language uses one, and right-to-left layout for Arabic. The permission and error screens also show the system language, when it is different.
 - **22 font choices**: the default font and 21 font pairs. Tap the font name in the footer to change, or hold it to pick from a list.
 - **Share**: each card has a share button that shares the card as an image, with the date and time but no location data.
-- **Help and About pages**: 11 questions and answers; the data sources, fonts, libraries and licenses; and what the system reports about the device.
+- **Help and About pages**: 11 questions and answers; the data sources, fonts, libraries and licenses; what the system reports about the device; and the F-Droid, Obtainium and GitHub badges with QR codes, to pass the app to another person (QR codes only on the TV).
 - **Refresh**: pull down, or tap the update time. The app also refreshes when you come back to it and the data is more than 30 minutes old.
 - **Two home-screen widgets** (Android): 4x1 (current weather) and 4x2 (current weather, feels-like, humidity, wind and the next 3 days). They refresh every 30 minutes.
 - **Install on iPhone and iPad** (web): an Install link in the footer shows how to add the web app to the Home Screen.

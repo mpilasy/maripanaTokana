@@ -59,22 +59,23 @@ export function openSavedLocationsDialog() {
 	showSavedLocationsDialog.set(true);
 }
 
-/** A preview: a place on screen that is not saved. Every user can preview a place; the "advanced" names are old. */
-export interface AdvancedOverrideLocation {
+/** A preview: a place on screen that is not saved. Every user can preview a place. The storage keys keep their old
+ * "advanced_override_" names, so that saved previews still load. */
+export interface PreviewLocation {
 	lat: number;
 	lon: number;
 	name: string;
 	subtext?: string;
 }
 
-export const locationOverride = writable<AdvancedOverrideLocation | null>(null);
+export const locationOverride = writable<PreviewLocation | null>(null);
 
 export function checkOverrideExpiry() {
 	if (typeof localStorage === 'undefined') return;
 	const setTime = localStorage.getItem('advanced_override_set_time');
 	if (!setTime) return;
 	if (Date.now() - parseInt(setTime, 10) >= 12 * 60 * 60 * 1000) {
-		clearAdvancedModeOverride();
+		clearPreview();
 	}
 }
 
@@ -112,7 +113,7 @@ export function setLocationOverride(lat: number, lon: number, name: string, subt
 	doFetchWeather();
 }
 
-export function clearAdvancedModeOverride() {
+export function clearPreview() {
 	if (typeof localStorage !== 'undefined') {
 		localStorage.removeItem('advanced_override_lat');
 		localStorage.removeItem('advanced_override_lon');
@@ -156,7 +157,7 @@ export function favoriteCurrentLocation() {
 	}
 	// The same place is already on screen: keep it under the saved id instead of reloading
 	if (get(weatherState).kind !== 'success') return switchToLocation(id);
-	clearAdvancedModeOverride();
+	clearPreview();
 	activeLocationId.set(id);
 	if (typeof localStorage !== 'undefined') localStorage.setItem(ACTIVE_LOCATION_KEY, id);
 	const saved = current.find((l) => l.id === id);
@@ -200,7 +201,7 @@ export function unfavoriteCurrentLocation() {
 /** Switches the active location; null is the GPS location. Clears the preview (see setLocationOverride). */
 export function switchToLocation(id: string | null) {
 	weatherState.set({ kind: 'loading' });
-	clearAdvancedModeOverride();
+	clearPreview();
 	activeLocationId.set(id);
 	if (typeof localStorage !== 'undefined') {
 		if (id == null) localStorage.removeItem(ACTIVE_LOCATION_KEY);

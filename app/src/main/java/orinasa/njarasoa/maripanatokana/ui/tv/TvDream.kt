@@ -104,7 +104,7 @@ class TvDreamService : DreamService(), LifecycleOwner, SavedStateRegistryOwner {
     private suspend fun loadWeather(places: TvPlaceStore): WeatherData? {
         val place = places.saved().find { it.id == places.activeId() }
         val coordinates = place?.let { it.latitude to it.longitude }
-            ?: withTimeoutOrNull(10_000L) { locationRepository.getLastLocation().getOrNull() }
+            ?: withTimeoutOrNull(10_000L) { locationRepository.getLastLocation().getOrNull()?.let { it.latitude to it.longitude } }
             ?: return null
         val loaded = repository.getWeather(coordinates.first, coordinates.second).getOrNull() ?: return null
         val data = if (place != null) loaded.copy(locationName = place.displayName) else loaded

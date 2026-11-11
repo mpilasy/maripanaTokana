@@ -34,7 +34,6 @@ class GetWeatherTest {
         tempMin = Temperature.fromCelsius(15.0),
         tempMax = Temperature.fromCelsius(25.0),
         weatherCode = 3,
-        iconCode = "03d",
         locationName = "",
         pressure = Pressure.fromHPa(1013.0),
         humidity = 50,

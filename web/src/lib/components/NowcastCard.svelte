@@ -38,7 +38,7 @@
 	let maxPrecipObj = $derived(Precipitation.fromMm(maxPrecipMm));
 	let yMaxLabelText = $derived(localizeDigits(maxPrecipObj.displayDual($metricPrimary).join(' · ')));
 
-	let firstPrecipIndex = $derived(displayItems.findIndex((i) => i.precipitation.mm > 0.05));
+	let firstPrecipIndex =$derived(displayItems.findIndex((i) => i.precipitation.mm > 0.05));
 	let minutesUntilStart = $derived.by(() => {
 		let result = 0;
 		if (firstPrecipIndex > 0 && displayItems.length > 0) {
@@ -61,6 +61,9 @@
 		}
 		return result;
 	});
+
+	// The screen-reader name of the chart: the nowcast sentence and the peak amount. Twin: NowcastCard.kt
+	let chartLabel = $derived(`${headlineText} · ${yMaxLabelText}`);
 
 	// In the place's own time, like the hourly cards
 	function formatTime(epochMs: number): string {
@@ -191,7 +194,7 @@
 	{#if hasPrecipitation && displayItems.length > 1}
 		<div class="chart-section">
 			<div class="chart-container" bind:this={container}>
-				<svg width="100%" height={totalHeight} viewBox="0 0 {containerWidth} {totalHeight}">
+				<svg width="100%" height={totalHeight} viewBox="0 0 {containerWidth} {totalHeight}" role="img" aria-label={chartLabel}>
 					<defs>
 						<linearGradient id="nowcastGradient" x1="0" y1="0" x2="0" y2="1">
 							<stop offset="0%" stop-color="#38bdf8" stop-opacity="0.4" />

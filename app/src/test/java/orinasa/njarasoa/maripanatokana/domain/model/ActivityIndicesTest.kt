@@ -21,7 +21,6 @@ class ActivityIndicesTest {
             tempMin = Temperature.fromCelsius(tempC - 5),
             tempMax = Temperature.fromCelsius(tempC + 5),
             weatherCode = 0,
-            iconCode = "01d",
             locationName = "Test City",
             pressure = Pressure.fromHPa(1013.0),
             humidity = humidity,

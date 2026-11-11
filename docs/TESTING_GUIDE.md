@@ -173,6 +173,7 @@ ls -lh app/build/outputs/apk/fdroid/debug/app-fdroid-debug.apk
 - [ ] **Nowcast**
   - [ ] "Minutely Nowcast" shows in the Hourly Forecast card only when precipitation is expected in the next 2 hours (Open-Meteo source)
   - [ ] Nowcast is not shown when no precipitation is expected
+  - [ ] TalkBack reads the nowcast chart as the sentence and the peak amount in both units
 
 - [ ] **Hourly Forecast**
   - [ ] Card shows the tabs Conditions, Heat index and Wind chill (only when an hour has them), Precipitation, Wind, Pressure, Humidity, UV, Air quality
@@ -217,6 +218,8 @@ ls -lh app/build/outputs/apk/fdroid/debug/app-fdroid-debug.apk
 - [ ] **About Page**
   - [ ] "About" link in the footer opens the About page
   - [ ] About page shows the app name, version, license, source code link, device information, and data source credits
+  - [ ] About page shows the F-Droid, Obtainium and GitHub badges; F-Droid and Obtainium show their QR code, GitHub opens the releases page
+  - [ ] TV About shows the QR codes only
   - [ ] "Help" link on the About page opens the Help page
   - [ ] Back button returns to the weather screen
 
@@ -322,6 +325,8 @@ See `app/src/main/java/orinasa/njarasoa/maripanatokana/ui/theme/AppFonts.kt` for
   - [ ] Location used if available (instant load)
   - [ ] Background location update (5-10 sec)
   - [ ] Fresh location doesn't block UI
+  - [ ] With a device fix more than 30 minutes old (or when the fresh fix fails and a cached fix is used), the header shows "Using last known location · time" under the place; a fresh fix removes it
+  - [ ] The line does not show for a saved place or a preview; the TV home shows it under the place name
 
 - [ ] **Location Permission Handling**
   - [ ] App requests permission on first launch

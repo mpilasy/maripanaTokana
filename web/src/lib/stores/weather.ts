@@ -31,7 +31,7 @@ import {
 import { SUPPORTED_LOCALES } from '#lib/i18n/locales.js';
 import {
 	activeLocationId, savedLocations, locationOverride, checkOverrideExpiry, displayName, setSavedLocationSubtext,
-	type AdvancedOverrideLocation, type SavedLocation
+	type PreviewLocation, type SavedLocation
 } from '#lib/stores/savedLocations.js';
 
 export type WeatherState =
@@ -45,6 +45,11 @@ export const isRefreshing = writable<boolean>(false);
 export const refreshFailed = writable<boolean>(false);
 /** i18n key explaining why the last refresh failed (invalid key, offline, ...); null when generic or no failure. */
 export const refreshError = writable<string | null>(null);
+/**
+ * Set when the device-location weather uses the cached position because the fresh position failed.
+ * `time` is the time of the cached fix (absent for a location saved before 1.7). Null otherwise.
+ */
+export const lastKnownLocation = writable<{ time?: number } | null>(null);
 
 /** Only informative failures get shown next to the generic "couldn't refresh" line. */
 export function refreshErrorReason(key: string): string | null {
@@ -162,6 +167,7 @@ function setWeatherData(fetched: WeatherData) {
 	data.normals = normals ? alignNormals(normals, data) : undefined;
 	refreshFailed.set(!!staleFromCache);
 	refreshError.set(staleFromCache ? 'error_offline' : null);
+	lastKnownLocation.set(null);
 	saveSnapshot(currentSnapshotKey(), { ...data, alerts: [], alertsLoading: true });
 	weatherState.update(s => {
 		const existingAlerts =
@@ -292,7 +298,7 @@ function showSnapshotWhileLoading() {
 	}
 }
 
-async function fetchPreview(gen: number, override: AdvancedOverrideLocation) {
+async function fetchPreview(gen: number, override: PreviewLocation) {
 	const data = await fetchAtLocation(override.lat, override.lon, override.name, override.subtext);
 	if (gen !== fetchGeneration) return;
 	setWeatherData(data);
@@ -331,7 +337,11 @@ async function fetchDeviceLocation(gen: number) {
 	const cachedShown = data !== null;
 
 	const fresh = await freshPosition(gen, freshLocationPromise, cachedShown);
-	if (!fresh) return;
+	if (!fresh) {
+		// The fresh position failed: the weather on screen is for the cached position
+		if (cachedShown && gen === fetchGeneration) lastKnownLocation.set({ time: cached?.time });
+		return;
+	}
 
 	const moved = !cached || movedSignificantly(cached.lat, cached.lon, fresh.lat, fresh.lon);
 	// The cached-location fetch failed and the device did not move: the same request would fail again.
@@ -411,7 +421,8 @@ export async function updateLocationName(localeTag: string) {
 	const lon = overrideLon ? parseFloat(overrideLon) : getCachedLocation()?.lon;
 	if (lat == null || lon == null) return;
 	const location = await reverseGeocode(lat, lon, localeTag);
-	cacheLocation(lat, lon, location.name, location.subtext, localeTag);
+	// Only the name changes: keep the time of the fix
+	cacheLocation(lat, lon, location.name, location.subtext, localeTag, getCachedLocation()?.time ?? null);
 	weatherState.update(s => {
 		if (s.kind !== 'success') return s;
 		return { ...s, data: { ...s.data, locationName: location.name, locationSubtext: location.subtext } };

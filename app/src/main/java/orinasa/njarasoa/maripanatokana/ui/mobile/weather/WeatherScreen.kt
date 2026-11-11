@@ -179,6 +179,7 @@ private fun WeatherMainScreen(
     val isRefreshing by viewModel.isRefreshing.collectAsState()
     val refreshFailed by viewModel.refreshFailed.collectAsState()
     val refreshError by viewModel.refreshError.collectAsState()
+    val lastKnownFixTime by viewModel.lastKnownFixTime.collectAsState()
     val advancedModeActive by viewModel.advancedModeActive.collectAsState()
     val metricPrimary by viewModel.metricPrimary.collectAsState()
     val fontIndex by viewModel.fontIndex.collectAsState()
@@ -200,8 +201,8 @@ private fun WeatherMainScreen(
     }
 
     val searchResults by viewModel.searchResults.collectAsStateWithLifecycle()
-    val advancedOverrideLat by viewModel.advancedOverrideLat.collectAsStateWithLifecycle()
-    val advancedOverrideLon by viewModel.advancedOverrideLon.collectAsStateWithLifecycle()
+    val previewLat by viewModel.previewLat.collectAsStateWithLifecycle()
+    val previewLon by viewModel.previewLon.collectAsStateWithLifecycle()
 
     val showSavedLocationsDialog by viewModel.showSavedLocationsDialog.collectAsStateWithLifecycle()
     val savedLocations by viewModel.savedLocations.collectAsStateWithLifecycle()
@@ -481,6 +482,7 @@ private fun WeatherMainScreen(
                             metricPrimary = metricPrimary,
                             refreshFailed = refreshFailed,
                             refreshError = refreshError,
+                            lastKnownFixTime = lastKnownFixTime,
                             advancedMode = advancedModeActive,
                             fontName = pairing.localName(),
                             fontIndex = fontIndex,
@@ -496,7 +498,7 @@ private fun WeatherMainScreen(
                             onCycleLanguage = { viewModel.cycleLanguage() },
                             onSelectLanguage = { viewModel.selectLanguage(it) },
                             onRefresh = { viewModel.refresh() },
-                            onLocationLongClicked = if (activeSavedLocation != null && advancedOverrideLat == null) {
+                            onLocationLongClicked = if (activeSavedLocation != null && previewLat == null) {
                                 { renameLocationId = activeSavedLocation.id }
                             } else null,
                             // Index 0 is the current location, which has no name to change
@@ -520,9 +522,9 @@ private fun WeatherMainScreen(
                             onSelectLocation = { i ->
                                 if (i != locationCycleIndex) viewModel.switchToLocation(locationCycle[i])
                             },
-                            hasLocationOverride = advancedOverrideLat != null,
-                            advancedOverrideLat = advancedOverrideLat,
-                            advancedOverrideLon = advancedOverrideLon,
+                            hasLocationOverride = previewLat != null,
+                            previewLat = previewLat,
+                            previewLon = previewLon,
                         )
                     }
                 }

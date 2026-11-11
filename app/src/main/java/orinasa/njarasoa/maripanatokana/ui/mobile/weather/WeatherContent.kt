@@ -316,10 +316,11 @@ internal fun WeatherContent(
     locationCoordinates: List<Pair<Double, Double>?> = emptyList(), // same order as locationNames; null when not known
     onSelectLocation: (Int) -> Unit = {},
     hasLocationOverride: Boolean = false,
-    advancedOverrideLat: Double? = null,
-    advancedOverrideLon: Double? = null,
+    previewLat: Double? = null,
+    previewLon: Double? = null,
     refreshFailed: Boolean = false,
     refreshError: FetchError? = null,
+    lastKnownFixTime: Long? = null, // time of an old device fix behind the shown GPS weather
     advancedMode: Boolean = false,
     scrollState: ScrollState = rememberScrollState(),
 ) {
@@ -357,8 +358,8 @@ internal fun WeatherContent(
     }
 
     // Coordinates of the location being shown; dev override wins, cached GPS only for old cached data
-    val (displayLat, displayLon) = if (advancedOverrideLat != null && advancedOverrideLon != null) {
-        advancedOverrideLat to advancedOverrideLon
+    val (displayLat, displayLon) = if (previewLat != null && previewLon != null) {
+        previewLat to previewLon
     } else if (data.latitude != null && data.longitude != null) {
         data.latitude to data.longitude
     } else {
@@ -509,6 +510,23 @@ internal fun WeatherContent(
                         LocalTimeChip(data.utcOffsetSeconds, appLocale, localizeDigits)
                     }
                 }
+                }
+                // The device fix is old: tell when it was taken, in the format of the "Updated" line
+                if (lastKnownFixTime != null) {
+                    AnimatedVisibility(!headerCollapsed, enter = expandVertically(tween(chromeMs)), exit = shrinkVertically(tween(chromeMs))) {
+                        val fixTime = Date(lastKnownFixTime)
+                        Text(
+                            text = stringResource(R.string.last_known_location) + " · " + localizeDigits(
+                                if (android.text.format.DateUtils.isToday(lastKnownFixTime)) screenTimeFormat.format(fixTime)
+                                else "${dateFormat.format(fixTime)}, ${screenTimeFormat.format(fixTime)}"
+                            ),
+                            fontSize = 13f.s(scale),
+                            fontFamily = bodyFont,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                 }
             }
             // Folded: no "Updated" line; the refresh button in the actions has the data age as its label
@@ -3754,6 +3772,7 @@ private fun MoonTile(lat: Double, lon: Double, utcOffsetSeconds: Int, timeFormat
     }
 }
 
+/** Draws [header] over [content] with the app footer. Recycles the software inputs: do not use them after. */
 internal suspend fun combineBitmaps(header: Bitmap, content: Bitmap): Bitmap = withContext(Dispatchers.Default) {
     // Hardware bitmaps can't be drawn onto a software canvas; copy only those, then recycle the copies.
     val h = softwareBitmap(header)
@@ -3779,8 +3798,10 @@ internal suspend fun combineBitmaps(header: Bitmap, content: Bitmap): Bitmap = w
     footerLines.forEachIndexed { i, line ->
         canvas.drawText(line, width / 2f, footerTop + lineHeight * i - footerPaint.ascent(), footerPaint)
     }
-    if (h !== header) h.recycle()
-    if (c !== content) c.recycle()
+    // The callers make the inputs only for this image. Recycle the software copies and the software inputs;
+    // hardware inputs are left to the garbage collector.
+    h.recycle()
+    c.recycle()
     result
 }
 

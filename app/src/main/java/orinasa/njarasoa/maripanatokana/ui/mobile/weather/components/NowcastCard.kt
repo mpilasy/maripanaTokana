@@ -27,6 +27,8 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
@@ -162,10 +164,13 @@ fun NowcastCard(
             val durationMs = (endTime - startTime).coerceAtLeast(1L)
             val ticks30Min = generate30MinTicks(startTime, endTime)
 
+            // A screen reader reads the sentence and the peak amount of the next 2 hours, as shown on the card
+            val chartDescription = "$headlineText · $yLabelText"
             Canvas(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(95.dp)
+                    .semantics { contentDescription = chartDescription }
             ) {
                 val width = size.width
                 val height = size.height

@@ -12,7 +12,6 @@ data class WeatherData(
     val tempMin: Temperature,
     val tempMax: Temperature,
     val weatherCode: Int,
-    val iconCode: String,
     val locationName: String,
     val locationSubtext: String? = null,
     // Latin-letter name and region when locationName is in another script (e.g. 東京 -> Tokyo)

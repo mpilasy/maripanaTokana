@@ -3,7 +3,9 @@
 
 package orinasa.njarasoa.maripanatokana.domain.repository
 
+import orinasa.njarasoa.maripanatokana.domain.model.LocationFix
+
 interface LocationRepository {
-    suspend fun getLastLocation(): Result<Pair<Double, Double>>
-    suspend fun getFreshLocation(): Result<Pair<Double, Double>>
+    suspend fun getLastLocation(): Result<LocationFix>
+    suspend fun getFreshLocation(): Result<LocationFix>
 }

@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -26,6 +27,7 @@ import orinasa.njarasoa.maripanatokana.data.remote.GeocodingResult
 import orinasa.njarasoa.maripanatokana.data.repository.WeatherCache
 import orinasa.njarasoa.maripanatokana.data.source.toFetchError
 import orinasa.njarasoa.maripanatokana.domain.model.FetchError
+import orinasa.njarasoa.maripanatokana.domain.model.LocationFix
 import orinasa.njarasoa.maripanatokana.domain.model.SavedLocation
 import orinasa.njarasoa.maripanatokana.domain.model.sortedByDistanceFrom
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
@@ -101,15 +103,15 @@ class WeatherViewModel @Inject constructor(
         .map { it.advancedMode }
         .stateIn(viewModelScope, SharingStarted.Eagerly, settingsRepository.current.advancedMode)
 
-    private val _advancedOverrideLat = MutableStateFlow<Double?>(
+    private val _previewLat = MutableStateFlow<Double?>(
         privatePrefs.getFloat("advanced_override_lat", Float.NaN).takeUnless { it.isNaN() }?.toDouble()
     )
-    val advancedOverrideLat: StateFlow<Double?> = _advancedOverrideLat.asStateFlow()
+    val previewLat: StateFlow<Double?> = _previewLat.asStateFlow()
 
-    private val _advancedOverrideLon = MutableStateFlow<Double?>(
+    private val _previewLon = MutableStateFlow<Double?>(
         privatePrefs.getFloat("advanced_override_lon", Float.NaN).takeUnless { it.isNaN() }?.toDouble()
     )
-    val advancedOverrideLon: StateFlow<Double?> = _advancedOverrideLon.asStateFlow()
+    val previewLon: StateFlow<Double?> = _previewLon.asStateFlow()
 
     private val _searchResults = MutableStateFlow<List<GeocodingResult>>(emptyList())
     val searchResults: StateFlow<List<GeocodingResult>> = _searchResults.asStateFlow()
@@ -121,6 +123,17 @@ class WeatherViewModel @Inject constructor(
 
     private val _activeLocationId = MutableStateFlow(prefs.getString("active_location_id", null))
     val activeLocationId: StateFlow<String?> = _activeLocationId.asStateFlow()
+
+    // The time of the device fix behind the shown GPS weather when that fix is old, else null
+    private val _oldFixTime = MutableStateFlow<Long?>(null)
+
+    /**
+     * The time of the device fix (epoch ms) when the GPS weather is on screen and the fix is old
+     * (see [LocationFix.isOld]); null for a fresh fix, a saved place or a preview.
+     */
+    val lastKnownFixTime: StateFlow<Long?> = combine(_oldFixTime, _activeLocationId, _previewLat) { time, id, lat ->
+        time.takeIf { id == null && lat == null }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val _showSavedLocationsDialog = MutableStateFlow(false)
     val showSavedLocationsDialog: StateFlow<Boolean> = _showSavedLocationsDialog.asStateFlow()
@@ -144,7 +157,7 @@ class WeatherViewModel @Inject constructor(
             var prev = advancedModeActive.value
             advancedModeActive.collect { active ->
                 if (!active && prev) {
-                    clearAdvancedModeOverride()
+                    clearPreview()
                     fetchWeather()
                 }
                 prev = active
@@ -162,7 +175,7 @@ class WeatherViewModel @Inject constructor(
     private fun checkOverrideExpiry() {
         val setTime = privatePrefs.getLong("advanced_override_set_time", 0L)
         if (setTime != 0L && System.currentTimeMillis() - setTime >= 12 * 60 * 60 * 1000L) {
-            clearAdvancedModeOverride()
+            clearPreview()
         }
     }
 
@@ -234,8 +247,8 @@ class WeatherViewModel @Inject constructor(
             putLong("advanced_override_set_time", System.currentTimeMillis())
         }
         prefs.edit { remove("active_location_id") }
-        _advancedOverrideLat.value = lat
-        _advancedOverrideLon.value = lon
+        _previewLat.value = lat
+        _previewLon.value = lon
         _activeLocationId.value = null
         _showSavedLocationsDialog.value = false
         _searchResults.value = emptyList()
@@ -286,19 +299,19 @@ class WeatherViewModel @Inject constructor(
     fun clearLocationOverride() {
         cancelSharedText()
         _uiState.value = WeatherUiState.Loading
-        clearAdvancedModeOverride()
+        clearPreview()
         fetchWeather()
     }
 
-    private fun clearAdvancedModeOverride() {
+    private fun clearPreview() {
         privatePrefs.edit {
             remove("advanced_override_lat")
             remove("advanced_override_lon")
             remove("advanced_override_name")
             remove("advanced_override_set_time")
         }
-        _advancedOverrideLat.value = null
-        _advancedOverrideLon.value = null
+        _previewLat.value = null
+        _previewLon.value = null
     }
 
     private fun loadSavedLocations(): List<SavedLocation> {
@@ -355,8 +368,8 @@ class WeatherViewModel @Inject constructor(
     /** Promotes the location currently being previewed (via [setLocationOverride]) into a saved
      * favorite, and switches to it via its saved-location id. No-op if nothing is being previewed. */
     fun favoriteCurrentLocation() {
-        val lat = _advancedOverrideLat.value ?: return
-        val lon = _advancedOverrideLon.value ?: return
+        val lat = _previewLat.value ?: return
+        val lon = _previewLon.value ?: return
         val rawName = privatePrefs.getString("advanced_override_name", null) ?: return
         val parts = rawName.split(",", limit = 2).map { it.trim() }
         val name = parts.getOrElse(0) { rawName }
@@ -371,7 +384,7 @@ class WeatherViewModel @Inject constructor(
         }
         // The same place is already on screen: keep it under the saved id instead of reloading
         val shown = (_uiState.value as? WeatherUiState.Success)?.data ?: return switchToLocation(id)
-        clearAdvancedModeOverride()
+        clearPreview()
         _activeLocationId.value = id
         prefs.edit { putString("active_location_id", id) }
         publish(id, shown.copy(locationName = shownName, locationSubtext = subtext))
@@ -385,7 +398,7 @@ class WeatherViewModel @Inject constructor(
         persistSavedLocations(updated)
         val renamed = updated.find { it.id == id } ?: return
         val shown = (_uiState.value as? WeatherUiState.Success)?.data ?: return
-        if (_activeLocationId.value == id && _advancedOverrideLat.value == null) {
+        if (_activeLocationId.value == id && _previewLat.value == null) {
             publish(id, shown.copy(locationName = renamed.displayName, romanName = null, romanSubtext = null))
         }
     }
@@ -400,7 +413,7 @@ class WeatherViewModel @Inject constructor(
     fun switchToLocation(id: String?) {
         cancelSharedText()
         _uiState.value = WeatherUiState.Loading
-        clearAdvancedModeOverride()
+        clearPreview()
         _activeLocationId.value = id
         prefs.edit {
             if (id == null) remove("active_location_id") else putString("active_location_id", id)
@@ -445,13 +458,13 @@ class WeatherViewModel @Inject constructor(
     /**
      * After a language change, looks the shown place up again in the new language: a favorite takes the new
      * region and country line (keeping its own name), the GPS place its new name and line. A place typed in through
-     * the advanced override keeps the name it was given.
+     * a preview keeps the name it was given.
      */
     private fun relocalizePlaceName() {
         val data = (_uiState.value as? WeatherUiState.Success)?.data ?: return
         val lat = data.latitude ?: return
         val lon = data.longitude ?: return
-        if (_advancedOverrideLat.value != null) return
+        if (_previewLat.value != null) return
         val favoriteId = _activeLocationId.value
         viewModelScope.launch {
             val (name, subtext) = weatherRepository.localPlaceName(lat, lon) ?: return@launch
@@ -616,7 +629,8 @@ class WeatherViewModel @Inject constructor(
                 var lastFix: Pair<Double, Double>? = null
 
                 val step1 = launch {
-                    locationRepository.getLastLocation().onSuccess { (lat, lon) ->
+                    locationRepository.getLastLocation().onSuccess { fix ->
+                        val (lat, lon) = fix
                         locationObtained = true
                         lastFix = lat to lon
                         saveLocation(lat, lon)
@@ -625,6 +639,7 @@ class WeatherViewModel @Inject constructor(
                                 if (!freshWeatherDisplayed) {
                                     privatePrefs.edit().putString("location_name", data.locationName).apply()
                                     publish("gps", data)
+                                    _oldFixTime.value = fix.timeMs.takeIf { fix.isOld() }
                                     cachedWeatherDisplayed = true
                                     displayedThisRun = true
                                     fetchAlertsForData(lat, lon)
@@ -637,12 +652,15 @@ class WeatherViewModel @Inject constructor(
                 // Step 2: get fresh location, re-fetch if moved significantly
                 launch {
                     locationRepository.getFreshLocation()
-                        .onSuccess { (lat, lon) ->
+                        .onSuccess { fix ->
+                            val (lat, lon) = fix
                             locationObtained = true
                             val nearLastFix = lastFix?.let { (lastLat, lastLon) -> !isFar(lastLat, lastLon, lat, lon) } == true
                             // Step 1 is loading the weather for about the same place: wait for it, do not load it again
                             if (nearLastFix) step1.join()
                             saveLocation(lat, lon)
+                            // The weather on screen is for about this place: it now has the age of this fix
+                            if (cachedWeatherDisplayed && nearLastFix) _oldFixTime.value = fix.timeMs.takeIf { fix.isOld() }
                             if (!cachedWeatherDisplayed || !nearLastFix) {
                                 weatherRepository.getWeather(lat, lon)
                                     .onSuccess { data ->
@@ -650,6 +668,7 @@ class WeatherViewModel @Inject constructor(
                                         displayedThisRun = true
                                         privatePrefs.edit().putString("location_name", data.locationName).apply()
                                         publish("gps", data)
+                                        _oldFixTime.value = fix.timeMs.takeIf { fix.isOld() }
                                         fetchAlertsForData(lat, lon)
                                     }
                                     .onFailure {

@@ -161,6 +161,8 @@ Users can save and navigate multiple locations (shipped v1.2.15):
 
 If the service worker answers with an old cached response, the app marks the data as stale and shows the "refresh failed" line with the offline reason. The app refreshes when the tab becomes visible and the data is more than 30 minutes old. It fetches the location again when it moves more than 0.045° (about 5 km). Timeouts: geolocation 15 s, Nominatim 10 s.
 
+The cached location (`cached_location` in `localStorage`) keeps the time of its position fix. When the fresh position fails and the weather for the cached position is on screen, the `lastKnownLocation` store is set, and the header shows "Using last known location · {time}" under the place line (the time in the format of the "Updated" line). It shows only for the device location, not for a saved place or a preview.
+
 ---
 
 ## 6. Domain Models

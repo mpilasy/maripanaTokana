@@ -3,7 +3,7 @@
 
 import { writable } from 'svelte/store';
 import { restoreGpsWeather } from '#lib/stores/weather.js';
-import { clearAdvancedModeOverride } from '#lib/stores/savedLocations.js';
+import { clearPreview } from '#lib/stores/savedLocations.js';
 
 export const advancedModeActive = writable(false);
 
@@ -25,6 +25,6 @@ export function disableAdvancedMode() {
         localStorage.removeItem('advanced_mode_enabled');
     }
     advancedModeActive.set(false);
-    clearAdvancedModeOverride();
+    clearPreview();
     restoreGpsWeather();
 }

@@ -186,6 +186,9 @@
     <string name="locations_title">المواقع</string>
     <string name="locations_search_hint">البحث عن مدينة أو رمز بريدي</string>
     <string name="cd_close">إغلاق</string>
+    <string name="android_app_fdroid">احصل عليه من F-Droid</string>
+    <string name="android_app_obtainium">احصل عليه من Obtainium</string>
+    <string name="android_app_github">احصل عليه من GitHub</string>
     <string name="cd_change_font">تغيير الخط</string>
     <string name="font_default">افتراضي</string>
     <string name="cd_change_language">تغيير اللغة</string>

@@ -44,7 +44,7 @@ vi.mock('#lib/stores/savedLocations.js', async () => {
 	};
 });
 
-import { doFetchWeather, weatherState, refreshFailed, refreshError } from './weather';
+import { doFetchWeather, weatherState, refreshFailed, refreshError, lastKnownLocation } from './weather';
 import { HttpError } from '#lib/api/http.js';
 
 describe('doFetchWeather GPS failure after cached weather shown', () => {
@@ -62,6 +62,20 @@ describe('doFetchWeather GPS failure after cached weather shown', () => {
 		await doFetchWeather();
 		expect(get(weatherState).kind).toBe('success');
 		expect(get(refreshFailed)).toBe(false);
+	});
+
+	it('marks the weather as for the last known location, with the time of the cached fix', async () => {
+		cachedLocation.value = { lat: 1, lon: 2, name: 'X', lang: 'mg', time: 1000 };
+		getPosition.mockRejectedValue(new Error('timeout'));
+		await doFetchWeather();
+		expect(get(lastKnownLocation)).toEqual({ time: 1000 });
+	});
+
+	it('clears the last known location mark after a fresh fix', async () => {
+		lastKnownLocation.set({ time: 1000 });
+		getPosition.mockResolvedValue({ lat: 1, lon: 2 });
+		await doFetchWeather();
+		expect(get(lastKnownLocation)).toBeNull();
 	});
 });
 

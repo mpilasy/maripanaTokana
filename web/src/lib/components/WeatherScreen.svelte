@@ -2,7 +2,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
 	import { _, json } from 'svelte-i18n';
-	import { weatherState, isRefreshing, doFetchWeather, updateLocationName, refreshFailed, refreshError } from '#lib/stores/weather.js';
+	import { weatherState, isRefreshing, doFetchWeather, updateLocationName, refreshFailed, refreshError, lastKnownLocation } from '#lib/stores/weather.js';
 	import {
 		initAdvancedMode,
 		advancedModeActive
@@ -192,6 +192,13 @@
 
 	function loc(s: string): string {
 		return localizeDigits(s, SUPPORTED_LOCALES[$localeIndex]);
+	}
+
+	/** The clock time when it is today, else "date, time" (the format of the "Updated" line). */
+	function clockOrDateTime(ms: number): string {
+		return isToday(ms)
+			? formatTime(ms)
+			: `${formatShortDate(ms, SUPPORTED_LOCALES[$localeIndex].tag, weekdayNames, monthNames)}, ${formatTime(ms)}`;
 	}
 
 	let showAirQualityDetail = $state(false);
@@ -424,9 +431,11 @@
 		{#snippet dailyChartAction()}{@render chartButton('daily')}{/snippet}
 		{@const decimal = `${data.latitude.toFixed(4)}, ${data.longitude.toFixed(4)}`}
 		{@const refreshFailedText = $_('refresh_failed', { values: { time: loc(formatTime(data.timestamp)) } }) + ($refreshError ? ' · ' + $_($refreshError) : '')}
-		{@const updatedText = $_('updated_time', { values: { time: loc(isToday(data.timestamp)
-			? formatTime(data.timestamp)
-			: `${formatShortDate(data.timestamp, SUPPORTED_LOCALES[$localeIndex].tag, weekdayNames, monthNames)}, ${formatTime(data.timestamp)}`) } })}
+		{@const updatedText = $_('updated_time', { values: { time: loc(clockOrDateTime(data.timestamp)) } })}
+		{@const lastKnownTime = $lastKnownLocation?.time}
+		{@const lastKnownText = $lastKnownLocation && !$locationOverride && $activeLocationId === null
+			? $_('last_known_location') + (lastKnownTime ? ' · ' + loc(clockOrDateTime(lastKnownTime)) : '')
+			: null}
 		{@const remoteTime = isRemoteTimezone(data.utcOffsetSeconds) ? loc(formatLocationCurrentTime(data.utcOffsetSeconds, SUPPORTED_LOCALES[$localeIndex].tag)) : null}
 		<!-- Pull indicator -->
 		{#if pullDelta > 0}
@@ -482,6 +491,10 @@
 							<span class="location-time"><span aria-hidden="true">&#x1F553;</span> {remoteTime}</span>
 						{/if}
 					</div>
+					<!-- The fresh position failed: the weather is for the cached position. Twin: WeatherContent.kt -->
+					{#if lastKnownText}
+						<p class="last-known">{lastKnownText}</p>
+					{/if}
 					<!-- The visible time stays in the button's name; "Refresh" follows it for screen readers -->
 					<button type="button" class="updated touch-target" onclick={(e) => { e.stopPropagation(); doFetchWeather(); }}>
 						<!-- The fetch time is the phone's; marked as such when the place keeps another time -->
@@ -1047,6 +1060,13 @@
 
 
 
+
+	.last-known {
+		margin: 2px 0 0;
+		font-family: var(--font-body);
+		font-size: 0.75rem;
+		color: rgba(255, 255, 255, 0.55);
+	}
 
 	.updated-phone {
 		flex: none;

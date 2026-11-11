@@ -186,6 +186,9 @@
     <string name="locations_title">Emplacements</string>
     <string name="locations_search_hint">Rechercher une ville ou un code postal</string>
     <string name="cd_close">Fermer</string>
+    <string name="android_app_fdroid">Disponible sur F-Droid</string>
+    <string name="android_app_obtainium">Disponible sur Obtainium</string>
+    <string name="android_app_github">Disponible sur GitHub</string>
     <string name="cd_change_font">Changer la police</string>
     <string name="font_default">Par défaut</string>
     <string name="cd_change_language">Changer la langue</string>

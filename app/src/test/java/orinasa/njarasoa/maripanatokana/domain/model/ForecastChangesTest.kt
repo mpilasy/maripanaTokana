@@ -116,7 +116,7 @@ class ForecastChangesTest {
         val data = WeatherData(
             temperature = Temperature.fromCelsius(20.0), feelsLike = Temperature.fromCelsius(20.0),
             tempMin = Temperature.fromCelsius(10.0), tempMax = Temperature.fromCelsius(25.0),
-            weatherCode = 0, iconCode = "01d", locationName = "", pressure = Pressure.fromHPa(1013.0), humidity = 50,
+            weatherCode = 0, locationName = "", pressure = Pressure.fromHPa(1013.0), humidity = 50,
             dewPoint = Temperature.fromCelsius(10.0), windSpeed = WindSpeed.fromMetersPerSecond(1.0), windDeg = 0,
             windGust = null, rain = null, snow = null, cloudCover = 0, uvIndex = 0.0, visibility = 10_000,
             sunrise = 0L, sunset = 0L,

@@ -25,7 +25,6 @@ class WeatherCacheTest {
         tempMin = Temperature.fromCelsius(15.0),
         tempMax = Temperature.fromCelsius(Double.NaN),
         weatherCode = 3,
-        iconCode = "03d",
         locationName = name,
         pressure = Pressure.fromHPa(1013.0),
         humidity = 50,

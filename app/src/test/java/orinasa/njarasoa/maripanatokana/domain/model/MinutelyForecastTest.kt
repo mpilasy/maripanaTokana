@@ -34,7 +34,6 @@ class MinutelyForecastTest {
             tempMin = Temperature.fromCelsius(15.0),
             tempMax = Temperature.fromCelsius(25.0),
             weatherCode = 0,
-            iconCode = "01d",
             locationName = "Test",
             pressure = Pressure.fromHPa(1013.0),
             humidity = 60,

@@ -247,6 +247,9 @@
 		"खतरनाक"
 	],
 	"cd_close": "बंद करें",
+	"android_app_fdroid": "F-Droid पर पाएँ",
+	"android_app_obtainium": "Obtainium पर पाएँ",
+	"android_app_github": "GitHub पर पाएँ",
 	"web_only": {
 		"copy_link": "लिंक कॉपी करें",
 		"link_copied": "लिंक कॉपी हो गया!",
@@ -260,9 +263,6 @@
 		"help_q_install": "ऐप को होम स्क्रीन पर कैसे जोड़ें?",
 		"help_a_install": "अपने ब्राउज़र में शेयर करें पर टैप करें, फिर होम स्क्रीन में जोड़ें पर टैप करें। इसके बाद ऐप अपने आइकन से खुलता है, ब्राउज़र बार के बिना।",
 		"android_app_text": "होम स्क्रीन विजेट वाला Android ऐप पाएँ।",
-		"android_app_fdroid": "F-Droid पर पाएँ",
-		"android_app_obtainium": "Obtainium पर पाएँ",
-		"android_app_github": "GitHub पर पाएँ",
 		"install_badge_small": "इसमें जोड़ें",
 		"install_badge_big": "होम स्क्रीन",
 		"install_step_menu": "ब्राउज़र मेनू खोलें",

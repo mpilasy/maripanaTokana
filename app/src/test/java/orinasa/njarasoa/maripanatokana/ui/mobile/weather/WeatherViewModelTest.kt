@@ -39,6 +39,7 @@ import orinasa.njarasoa.maripanatokana.data.remote.GeocodingResult
 import orinasa.njarasoa.maripanatokana.data.repository.WeatherCache
 import orinasa.njarasoa.maripanatokana.data.settings.AppSettingsRepository
 import orinasa.njarasoa.maripanatokana.domain.model.AppSettings
+import orinasa.njarasoa.maripanatokana.domain.model.LocationFix
 import orinasa.njarasoa.maripanatokana.domain.model.Precipitation
 import orinasa.njarasoa.maripanatokana.domain.model.Pressure
 import orinasa.njarasoa.maripanatokana.domain.model.Temperature
@@ -47,6 +48,9 @@ import orinasa.njarasoa.maripanatokana.domain.model.WindSpeed
 import orinasa.njarasoa.maripanatokana.domain.repository.LocationRepository
 import orinasa.njarasoa.maripanatokana.domain.repository.WeatherRepository
 import orinasa.njarasoa.maripanatokana.testutil.FakePrefs
+
+/** A fresh device fix taken now. */
+private fun fix(lat: Double, lon: Double) = LocationFix(lat, lon, System.currentTimeMillis())
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class WeatherViewModelTest {
@@ -101,12 +105,12 @@ class WeatherViewModelTest {
 
         coEvery { locationRepository.getLastLocation() } coAnswers {
             delay(100) // Fast cache
-            Result.success(10.0 to 20.0)
+            Result.success(fix(10.0, 20.0))
         }
 
         coEvery { locationRepository.getFreshLocation() } coAnswers {
             delay(3000) // Slow GPS
-            Result.success(10.1 to 20.1)
+            Result.success(fix(10.1, 20.1))
         }
 
         coEvery { weatherRepository.fetchAlerts(any(), any()) } returns Result.success(AlertsResult(emptyList(), emptyList()))
@@ -145,7 +149,7 @@ class WeatherViewModelTest {
         coEvery { weatherRepository.getWeather(any(), any()) } returns Result.failure(Exception("boom"))
         coEvery { locationRepository.getFreshLocation() } coAnswers {
             delay(3000)
-            Result.success(10.0 to 20.0)
+            Result.success(fix(10.0, 20.0))
         }
 
         viewModel.refresh()
@@ -192,7 +196,7 @@ class WeatherViewModelTest {
         // The fresh fix answers while the weather for the cached fix (10, 20) is still loading
         coEvery { locationRepository.getFreshLocation() } coAnswers {
             delay(500)
-            Result.success(10.001 to 20.001)
+            Result.success(fix(10.001, 20.001))
         }
 
         viewModel.refresh()
@@ -208,7 +212,7 @@ class WeatherViewModelTest {
         // The fresh fix is about 55 km from the cached fix (10, 20)
         coEvery { locationRepository.getFreshLocation() } coAnswers {
             delay(500)
-            Result.success(10.5 to 20.0)
+            Result.success(fix(10.5, 20.0))
         }
 
         viewModel.refresh()
@@ -259,8 +263,8 @@ class WeatherViewModelTest {
             coEvery { weatherRepository.fetchAlerts(any(), any()) } returns Result.success(AlertsResult(emptyList(), emptyList()))
             coEvery { weatherRepository.fetchNormals(any(), any()) } returns null
             coEvery { weatherRepository.romanPlaceName(any(), any()) } returns null
-            coEvery { locationRepository.getLastLocation() } returns Result.success(1.0 to 2.0)
-            coEvery { locationRepository.getFreshLocation() } returns Result.success(1.0 to 2.0)
+            coEvery { locationRepository.getLastLocation() } returns Result.success(fix(1.0, 2.0))
+            coEvery { locationRepository.getFreshLocation() } returns Result.success(fix(1.0, 2.0))
         }
 
         fun viewModel() = WeatherViewModel(weatherRepository, locationRepository, AppSettingsRepository(context), weatherCache, context)
@@ -277,6 +281,38 @@ class WeatherViewModelTest {
     }
 
     private fun WeatherViewModel.shownName() = (uiState.value as? WeatherUiState.Success)?.data?.locationName
+
+    @Test
+    fun oldCachedFixWithFailedFreshFixShowsItsTimeUntilAPreview() = runTest(testDispatcher) {
+        val f = JobsFixture()
+        val fixTime = System.currentTimeMillis() - 3 * 3600_000L
+        coEvery { f.locationRepository.getLastLocation() } returns Result.success(LocationFix(1.0, 2.0, fixTime))
+        coEvery { f.locationRepository.getFreshLocation() } returns Result.failure(Exception("no gps"))
+        val vm = f.viewModel()
+
+        vm.refresh()
+        awaitCondition { vm.lastKnownFixTime.value == fixTime }
+
+        vm.setLocationOverride(10.0, 20.0, "Preview")
+        awaitCondition { vm.shownName() == "Preview" }
+        assertEquals(null, vm.lastKnownFixTime.value)
+    }
+
+    @Test
+    fun freshFixClearsTheLastKnownLocationLine() = runTest(testDispatcher) {
+        val f = JobsFixture()
+        coEvery { f.locationRepository.getLastLocation() } returns
+            Result.success(LocationFix(1.0, 2.0, System.currentTimeMillis() - 3 * 3600_000L))
+        // The fresh fix of the fixture: (1.0, 2.0), taken now
+        val vm = f.viewModel()
+
+        vm.refresh()
+        awaitCondition { vm.shownName() == "1.0,2.0" }
+        Thread.sleep(50)
+        advanceUntilIdle()
+
+        assertEquals(null, vm.lastKnownFixTime.value)
+    }
 
     @Test
     fun placePickedWhileSharedTextResolvesIsKept() = runTest(testDispatcher) {
@@ -343,8 +379,8 @@ class WeatherViewModelTest {
     @Test
     fun previewRefreshesRunOneGpsRefreshAtATimeAndCacheIt() = runTest(testDispatcher) {
         val f = JobsFixture()
-        val fix = CompletableDeferred<Result<Pair<Double, Double>>>()
-        coEvery { f.locationRepository.getFreshLocation() } coAnswers { fix.await() }
+        val freshFix = CompletableDeferred<Result<LocationFix>>()
+        coEvery { f.locationRepository.getFreshLocation() } coAnswers { freshFix.await() }
         val vm = f.viewModel()
 
         vm.setLocationOverride(10.0, 20.0, "Preview")
@@ -358,7 +394,7 @@ class WeatherViewModelTest {
 
         coVerify(exactly = 1) { f.locationRepository.getFreshLocation() }
 
-        fix.complete(Result.success(3.0 to 4.0))
+        freshFix.complete(Result.success(fix(3.0, 4.0)))
         awaitCondition { f.weatherCache.load("gps") != null }
         assertEquals("3.0,4.0", f.weatherCache.load("gps")?.locationName)
         assertNotNull(vm.shownName())
@@ -370,7 +406,6 @@ class WeatherViewModelTest {
         tempMin = Temperature.fromCelsius(4.0),
         tempMax = Temperature.fromCelsius(19.0),
         weatherCode = 0,
-        iconCode = "01d",
         locationName = name,
         pressure = Pressure.fromHPa(1013.0),
         humidity = 50,

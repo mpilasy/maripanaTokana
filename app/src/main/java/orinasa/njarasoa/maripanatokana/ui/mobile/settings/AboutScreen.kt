@@ -3,7 +3,14 @@
 
 package orinasa.njarasoa.maripanatokana.ui.mobile.settings
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.RawRes
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -54,6 +61,7 @@ import orinasa.njarasoa.maripanatokana.ui.common.about.Credit
 import orinasa.njarasoa.maripanatokana.ui.common.about.creditSections
 import orinasa.njarasoa.maripanatokana.ui.common.about.AppQrCode
 import orinasa.njarasoa.maripanatokana.ui.common.about.appQrCodes
+import orinasa.njarasoa.maripanatokana.ui.common.about.GITHUB_RELEASES_URL
 import orinasa.njarasoa.maripanatokana.ui.common.about.AppQrImage
 import orinasa.njarasoa.maripanatokana.ui.common.about.labelText
 import orinasa.njarasoa.maripanatokana.ui.common.about.deviceInfo
@@ -67,6 +75,20 @@ private fun AppLink(code: AppQrCode, onClick: () -> Unit) {
         Text(code.labelText() + " ›", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
         Text(code.address, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f))
     }
+}
+
+/** A "Get it on" badge image. */
+@Composable
+private fun RowScope.AppBadge(@DrawableRes image: Int, description: String, onClick: () -> Unit) {
+    Image(
+        painter = painterResource(image),
+        contentDescription = description,
+        modifier = Modifier
+            .weight(1f)
+            .aspectRatio(646f / 250f)
+            .clip(RoundedCornerShape(8.dp))
+            .clickable(role = Role.Button, onClick = onClick),
+    )
 }
 
 /** The QR code of a link, large; a tap on the address opens it. */
@@ -159,7 +181,17 @@ fun AboutScreen(onBack: () -> Unit, onOpenHelp: () -> Unit, languageFlag: String
                 )
                 Spacer(Modifier.height(12.dp))
                 var qrCode by remember { mutableStateOf<AppQrCode?>(null) }
-                appQrCodes.forEach { code -> AppLink(code) { qrCode = code } }
+                appQrCodes.filter { it.badge == null }.forEach { code -> AppLink(code) { qrCode = code } }
+                // The badges, like on the web: F-Droid and Obtainium show their QR code, for another phone to scan;
+                // GitHub opens the releases page
+                Spacer(Modifier.height(20.dp))
+                Row(Modifier.widthIn(max = 470.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    appQrCodes.forEach { code ->
+                        val badge = code.badge ?: return@forEach
+                        AppBadge(badge, stringResource(code.badgeAltRes ?: return@forEach)) { qrCode = code }
+                    }
+                    AppBadge(R.drawable.badge_github, stringResource(R.string.android_app_github)) { uriHandler.openUri(GITHUB_RELEASES_URL) }
+                }
                 qrCode?.let { code -> AppQrDialog(code, onOpen = { uriHandler.openUri(code.url) }, onDismiss = { qrCode = null }) }
             }
         }

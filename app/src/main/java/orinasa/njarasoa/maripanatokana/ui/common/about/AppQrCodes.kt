@@ -16,15 +16,30 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import orinasa.njarasoa.maripanatokana.R
 
-/** A link of the About page: its label, the address shown under it, and the QR code that a tap shows. The web has the same links. */
-internal data class AppQrCode(@DrawableRes val image: Int, @StringRes val labelRes: Int?, val label: String, val address: String, val url: String)
+/**
+ * A link of the About page: its label, the address shown under it, and the QR code that a tap shows. The web has the same links.
+ * [badge] and [badgeAltRes]: the "Get it on" badge that the phone shows in place of the text link.
+ */
+internal data class AppQrCode(
+    @DrawableRes val image: Int, @StringRes val labelRes: Int?, val label: String, val address: String, val url: String,
+    @DrawableRes val badge: Int? = null, @StringRes val badgeAltRes: Int? = null,
+)
 
 internal val appQrCodes = listOf(
     AppQrCode(R.drawable.qr_source_code, R.string.about_source_code, "", "github.com/mpilasy/maripanaTokana", "https://github.com/mpilasy/maripanaTokana"),
     AppQrCode(R.drawable.qr_web_app, R.string.about_web_version, "", "maripana.njarasoa.org", "https://maripana.njarasoa.org"),
-    AppQrCode(R.drawable.qr_fdroid, null, "F-Droid", "f-droid.org", "https://f-droid.org/packages/orinasa.njarasoa.maripanatokana/"),
-    AppQrCode(R.drawable.qr_obtainium, null, "Obtainium", "apps.obtainium.imranr.dev", "https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/mpilasy/maripanaTokana"),
+    AppQrCode(
+        R.drawable.qr_fdroid, null, "F-Droid", "f-droid.org", "https://f-droid.org/packages/orinasa.njarasoa.maripanatokana/",
+        R.drawable.badge_fdroid, R.string.android_app_fdroid,
+    ),
+    AppQrCode(
+        R.drawable.qr_obtainium, null, "Obtainium", "apps.obtainium.imranr.dev", "https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/mpilasy/maripanaTokana",
+        R.drawable.badge_obtainium, R.string.android_app_obtainium,
+    ),
 )
+
+/** The GitHub releases badge links here; GitHub sends /releases/latest to the newest release, like on the web. */
+internal const val GITHUB_RELEASES_URL = "https://github.com/mpilasy/maripanaTokana/releases/latest"
 
 @Composable
 internal fun AppQrCode.labelText() = labelRes?.let { stringResource(it) } ?: label

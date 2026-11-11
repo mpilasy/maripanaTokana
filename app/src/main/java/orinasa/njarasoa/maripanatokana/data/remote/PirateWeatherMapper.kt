@@ -39,7 +39,6 @@ private fun percent(fraction: Double): Int = (fraction * 100).roundToInt()
 fun PirateWeatherResponse.toDomain(): WeatherData {
     val c = currently
     val wmoCode = pirateIconToWmo(c.icon)
-    val isDay = c.icon.endsWith("-day")
     val days = daily.data.take(10)
     val today = daily.data.firstOrNull()
 
@@ -50,7 +49,6 @@ fun PirateWeatherResponse.toDomain(): WeatherData {
         tempMin = Temperature.fromCelsius(today?.temperatureMin ?: c.temperature),
         tempMax = Temperature.fromCelsius(today?.temperatureMax ?: c.temperature),
         weatherCode = wmoCode,
-        iconCode = wmoIconCode(wmoCode, isDay),
         locationName = "",
         pressure = Pressure.fromHPa(c.pressure),
         humidity = c.humidity?.let(::percent),

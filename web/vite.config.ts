@@ -14,8 +14,8 @@ export default defineConfig({
 			output: { bundleStrategy: 'single' },
 			csp: {
 				mode: 'auto',
-				reportOnly: {
-					// Report-only until the policy is verified
+				// Enforced; violations are still reported to src/routes/api/csp-report
+				directives: {
 					'default-src': ['self'],
 					'script-src': ['self'],
 					'style-src': ['self', 'unsafe-inline'],
@@ -39,7 +39,6 @@ export default defineConfig({
 					'frame-ancestors': ['none'],
 					'base-uri': ['self'],
 					'form-action': ['self'],
-					// Required by SvelteKit for report-only mode; see src/routes/api/csp-report
 					'report-uri': ['/api/csp-report']
 				}
 			}

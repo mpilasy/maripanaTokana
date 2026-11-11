@@ -247,6 +247,9 @@
 		"Dangereuse"
 	],
 	"cd_close": "Fermer",
+	"android_app_fdroid": "Disponible sur F-Droid",
+	"android_app_obtainium": "Disponible sur Obtainium",
+	"android_app_github": "Disponible sur GitHub",
 	"web_only": {
 		"copy_link": "Copier le lien",
 		"link_copied": "Lien copié !",
@@ -260,9 +263,6 @@
 		"help_q_install": "Comment ajouter l'application à l'écran d'accueil ?",
 		"help_a_install": "Dans votre navigateur, touchez Partager, puis Sur l'écran d'accueil. L'application s'ouvre ensuite depuis sa propre icône, sans la barre du navigateur.",
 		"android_app_text": "Installez l'application Android, avec des widgets pour l'écran d'accueil.",
-		"android_app_fdroid": "Disponible sur F-Droid",
-		"android_app_obtainium": "Disponible sur Obtainium",
-		"android_app_github": "Disponible sur GitHub",
 		"install_badge_small": "Ajouter à",
 		"install_badge_big": "Écran d'accueil",
 		"install_step_menu": "Ouvrez le menu du navigateur",

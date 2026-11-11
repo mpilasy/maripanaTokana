@@ -186,6 +186,9 @@
     <string name="locations_title">स्थान</string>
     <string name="locations_search_hint">शहर या ज़िप कोड खोजें</string>
     <string name="cd_close">बंद करें</string>
+    <string name="android_app_fdroid">F-Droid पर पाएँ</string>
+    <string name="android_app_obtainium">Obtainium पर पाएँ</string>
+    <string name="android_app_github">GitHub पर पाएँ</string>
     <string name="cd_change_font">फ़ॉन्ट बदलें</string>
     <string name="font_default">डिफ़ॉल्ट</string>
     <string name="cd_change_language">भाषा बदलें</string>

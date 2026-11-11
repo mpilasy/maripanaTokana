@@ -3,6 +3,7 @@
 
 package orinasa.njarasoa.maripanatokana.data.location
 
+import orinasa.njarasoa.maripanatokana.domain.model.LocationFix
 import orinasa.njarasoa.maripanatokana.util.AppLog
 import android.location.Location
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -23,11 +24,11 @@ class PlayServicesLocationProvider(
         const val MAX_FIX_AGE_MS = 24 * 60 * 60 * 1000L
     }
 
-    override suspend fun getLastLocation(): Result<Pair<Double, Double>> {
+    override suspend fun getLastLocation(): Result<LocationFix> {
         return try {
             val location = fusedLocationClient.lastLocation.await()
             if (location != null && !location.isStale()) {
-                Result.success(Pair(location.latitude, location.longitude))
+                Result.success(LocationFix(location.latitude, location.longitude, location.time))
             } else {
                 Result.failure(Exception("No cached location"))
             }
@@ -41,7 +42,7 @@ class PlayServicesLocationProvider(
         }
     }
 
-    override suspend fun getFreshLocation(): Result<Pair<Double, Double>> {
+    override suspend fun getFreshLocation(): Result<LocationFix> {
         return try {
             val cts = CancellationTokenSource()
             val location = try {
@@ -64,7 +65,9 @@ class PlayServicesLocationProvider(
             }
 
             if (finalLocation != null && (finalLocation === location || !finalLocation.isStale())) {
-                Result.success(Pair(finalLocation.latitude, finalLocation.longitude))
+                Result.success(
+                    LocationFix(finalLocation.latitude, finalLocation.longitude, finalLocation.time, fallback = finalLocation !== location)
+                )
             } else {
                 Result.failure(Exception("Unable to get location"))
             }

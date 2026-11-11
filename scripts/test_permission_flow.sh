@@ -14,7 +14,7 @@
 #   8. Coarse-only grant → weather loads
 #   9. Permission revoked in background → PermissionRequired on return
 #  10. Location services master toggle OFF → "Open Settings" button (not "Retry")
-#  11. Non-Malagasy system locale → Error shown in both app language and system language
+#  11. New install → app starts in the device language (else English); error in that language
 #
 # Hard invariant: if CircularProgressIndicator is still on screen at t=20s, the test FAILS.
 # This invariant catches a screen that keeps loading.
@@ -495,13 +495,13 @@ adb -s "$DEV" shell settings put secure location_mode 3  # restore
 save_logcat 10
 pass "Scenario 10: location master toggle off → Open Settings button shown"
 
-# ── SCENARIO 11: Non-Malagasy system locale → Error in both languages ─────────────
-# The error must show in the app language and in the system language (English here).
-# The Malagasy check expects the app in Malagasy, but a new install now starts in the
-# device language, so that check only warns. location_mode 0 (not only disable_providers)
-# forces an error even when the emulator has a cached geo fix from earlier scenarios.
+# ── SCENARIO 11: First start language → error in the device language ───────────
+# A new install starts in the first device language that the app has, else in English
+# (DefaultLanguage.kt). The app and system languages are then the same, so the error shows
+# in one language only. location_mode 0 (not only disable_providers) forces an error even
+# when the emulator has a cached geo fix from earlier scenarios.
 echo ""
-echo "=== SCENARIO 11: Non-Malagasy system locale → dual-language error ==="
+echo "=== SCENARIO 11: First start language → error in the device language ==="
 install_apk "$FDROID_APK"
 reset_app
 adb -s "$DEV" shell pm grant "$PKG" android.permission.ACCESS_COARSE_LOCATION 2>/dev/null || true
@@ -510,28 +510,45 @@ adb -s "$DEV" shell settings put secure location_mode 0
 adb -s "$DEV" shell am start -W -n "$PKG/.MainActivity" >/dev/null
 assert_not_loading_within 20 "Scenario 11: must reach error state"
 dump_ui
-SYSTEM_LOCALE=$(adb -s "$DEV" shell getprop persist.sys.locale 2>/dev/null || \
-                adb -s "$DEV" shell getprop ro.product.locale 2>/dev/null || echo "en-US")
+SYSTEM_LOCALE=$(adb -s "$DEV" shell getprop persist.sys.locale 2>/dev/null | tr -d '\r')
+[[ -z "$SYSTEM_LOCALE" ]] && SYSTEM_LOCALE=$(adb -s "$DEV" shell getprop ro.product.locale 2>/dev/null | tr -d '\r')
+[[ -z "$SYSTEM_LOCALE" ]] && SYSTEM_LOCALE="en-US"
+SYSTEM_LANG=${SYSTEM_LOCALE%%-*}
 echo "  System locale: $SYSTEM_LOCALE"
-if echo "$SYSTEM_LOCALE" | grep -qi '^mg'; then
-    echo "  System locale is already Malagasy — strings would be identical, skipping dual check"
-else
-    if grep -q "Tsy nahomby" /tmp/ui.xml 2>/dev/null; then
-        echo "  Malagasy (app locale) error text found ✓"
-    else
-        echo "  WARNING: Malagasy app-locale text not found — app may not be defaulting to mg"
-    fi
-    if grep -qE "Failed to get location|Failed to fetch" /tmp/ui.xml 2>/dev/null; then
-        echo "  English (system locale) error text found ✓"
-    else
-        echo "FAIL (Scenario 11): system-locale error text not shown — dual-language fix not working"
-        echo "  UI: $(grep -oP 'text="[^"]+"' /tmp/ui.xml | grep -v '^text=""$' | tr '\n' ' ')"
-        exit 1
-    fi
-fi
+case "$SYSTEM_LANG" in
+    mg)
+        if ! grep -q "Tsy nahomby" /tmp/ui.xml 2>/dev/null; then
+            echo "FAIL (Scenario 11): Malagasy device but the error is not in Malagasy"
+            echo "  UI: $(grep -oP 'text="[^"]+"' /tmp/ui.xml | grep -v '^text=""$' | tr '\n' ' ')"
+            exit 1
+        fi
+        echo "  Malagasy error text found ✓"
+        ;;
+    ar|es|fr|hi|ne|zh)
+        # The app starts in this language; only check that it did not start in Malagasy
+        if grep -q "Tsy nahomby" /tmp/ui.xml 2>/dev/null; then
+            echo "FAIL (Scenario 11): new install started in Malagasy, not in the device language"
+            exit 1
+        fi
+        echo "  Error not in Malagasy ✓ (device language $SYSTEM_LANG)"
+        ;;
+    *)
+        # English, or a language that the app does not have: the app starts in English
+        if ! grep -qE "Failed to get location|Failed to fetch" /tmp/ui.xml 2>/dev/null; then
+            echo "FAIL (Scenario 11): English error text not shown on a new install"
+            echo "  UI: $(grep -oP 'text="[^"]+"' /tmp/ui.xml | grep -v '^text=""$' | tr '\n' ' ')"
+            exit 1
+        fi
+        if grep -q "Tsy nahomby" /tmp/ui.xml 2>/dev/null; then
+            echo "FAIL (Scenario 11): new install started in Malagasy, not in English"
+            exit 1
+        fi
+        echo "  English error text found, no Malagasy text ✓"
+        ;;
+esac
 adb -s "$DEV" shell settings put secure location_mode 3  # restore
 save_logcat 11
-pass "Scenario 11: error shown in both app locale and system locale"
+pass "Scenario 11: new install shows the error in the device language (else English)"
 
 # ── summary ──────────────────────────────────────────────────────────────────
 echo ""

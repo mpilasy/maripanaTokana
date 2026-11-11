@@ -247,6 +247,9 @@
 		"危险"
 	],
 	"cd_close": "关闭",
+	"android_app_fdroid": "在 F-Droid 上获取",
+	"android_app_obtainium": "在 Obtainium 上获取",
+	"android_app_github": "在 GitHub 上获取",
 	"web_only": {
 		"copy_link": "复制链接",
 		"link_copied": "链接已复制！",
@@ -260,9 +263,6 @@
 		"help_q_install": "如何将应用添加到主屏幕？",
 		"help_a_install": "在浏览器中点按“共享”，然后点按“添加到主屏幕”。之后应用会从自己的图标打开，不显示浏览器栏。",
 		"android_app_text": "获取 Android 应用，含主屏幕小部件。",
-		"android_app_fdroid": "在 F-Droid 上获取",
-		"android_app_obtainium": "在 Obtainium 上获取",
-		"android_app_github": "在 GitHub 上获取",
 		"install_badge_small": "添加到",
 		"install_badge_big": "主屏幕",
 		"install_step_menu": "打开浏览器菜单",
