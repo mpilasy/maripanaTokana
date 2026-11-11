@@ -183,8 +183,10 @@ object SharedLocationParser {
         val maxHops = 5
 
         while (hops < maxHops && currentUrl.isNotBlank()) {
+            var open: HttpURLConnection? = null
             try {
                 val connection = URL(currentUrl).openConnection() as HttpURLConnection
+                open = connection
                 connection.instanceFollowRedirects = false
                 connection.connectTimeout = 4000
                 connection.readTimeout = 4000
@@ -226,6 +228,8 @@ object SharedLocationParser {
                     hops = maxHops
                 }
             } catch (_: Exception) {
+                // A timeout or a TLS error must not keep the socket open
+                open?.disconnect()
                 result = currentUrl.ifBlank { null }
                 hops = maxHops
             }

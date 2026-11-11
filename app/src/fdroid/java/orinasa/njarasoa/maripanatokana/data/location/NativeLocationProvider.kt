@@ -143,8 +143,11 @@ class NativeLocationProvider(
             if (!registered) close()
 
             awaitClose {
-                locationManager.removeUpdates(locationListener)
-                handlerThread.quitSafely()
+                try {
+                    locationManager.removeUpdates(locationListener)
+                } finally {
+                    handlerThread.quitSafely()
+                }
             }
         }
 
