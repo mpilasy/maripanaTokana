@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
@@ -38,6 +40,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -271,12 +274,17 @@ private fun AboutContent(device: List<DeviceRow>, onLink: (AppQrCode) -> Unit) {
         // Left and right move between the links; up and down still scroll the page.
         val firstLink = remember { FocusRequester() }
         LaunchedEffect(Unit) { firstLink.requestFocus() }
-        Row(Modifier.padding(vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        // All cards as tall as the tallest (only F-Droid and Obtainium have a badge)
+        Row(Modifier.padding(vertical = 8.dp).height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             appQrCodes.forEachIndexed { i, code ->
-                FocusCard(Modifier.weight(1f).then(if (i == 0) Modifier.focusRequester(firstLink) else Modifier), onClick = { onLink(code) }) {
+                FocusCard(Modifier.weight(1f).fillMaxHeight().then(if (i == 0) Modifier.focusRequester(firstLink) else Modifier), onClick = { onLink(code) }) {
                     Column(Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(code.labelText(), color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
                         Text(code.address, localize = false, color = Dim, fontSize = 13.sp, textAlign = TextAlign.Center, maxLines = 2)
+                        // The "Get it on" badge tells that the link gets the app, before OK opens its QR code
+                        code.badge?.let {
+                            Image(painterResource(it), contentDescription = null, modifier = Modifier.padding(top = 8.dp).height(36.dp))
+                        }
                     }
                 }
             }

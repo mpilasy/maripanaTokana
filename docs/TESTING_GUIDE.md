@@ -219,7 +219,7 @@ ls -lh app/build/outputs/apk/fdroid/debug/app-fdroid-debug.apk
   - [ ] "About" link in the footer opens the About page
   - [ ] About page shows the app name, version, license, source code link, device information, and data source credits
   - [ ] About page shows the F-Droid, Obtainium and GitHub badges; F-Droid and Obtainium show their QR code, GitHub opens the releases page
-  - [ ] TV About shows the QR codes only
+  - [ ] TV About: the F-Droid and Obtainium cards show their badges, the source code and web cards none; OK opens the QR code without a badge
   - [ ] "Help" link on the About page opens the Help page
   - [ ] Back button returns to the weather screen
 
