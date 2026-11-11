@@ -38,14 +38,14 @@ The same APK also runs on Android TV, with screens made for the remote: current 
 
 **Display**
 - **Units**: every value shows metric and imperial units. Tap a value to put the other unit first.
-- **8 languages**: Malagasy, Arabic, English, Spanish, French, Hindi, Nepali and Chinese. Tap the flag in the footer to change. Local digits for Arabic, Hindi and Nepali, a decimal comma where the language uses one, and right-to-left layout for Arabic. The permission and error screens also show the system language, when it is different.
-- **22 font choices**: the default font and 21 font pairs. Tap the font name in the footer to change.
+- **8 languages**: Malagasy, Arabic, English, Spanish, French, Hindi, Nepali and Chinese. Tap the flag in the footer to change, or hold it to pick from a list. Local digits for Arabic, Hindi and Nepali, a decimal comma where the language uses one, and right-to-left layout for Arabic. The permission and error screens also show the system language, when it is different.
+- **22 font choices**: the default font and 21 font pairs. Tap the font name in the footer to change, or hold it to pick from a list.
 - **Share**: each card has a share button that shares the card as an image, with the date and time but no location data.
 - **Help and About pages**: 11 questions and answers; the data sources, fonts, libraries and licenses; and what the system reports about the device.
 - **Refresh**: pull down, or tap the update time. The app also refreshes when you come back to it and the data is more than 30 minutes old.
 - **Two home-screen widgets** (Android): 4x1 (current weather) and 4x2 (current weather, feels-like, humidity, wind and the next 3 days). They refresh every 30 minutes.
 - **Install on iPhone and iPad** (web): an Install link in the footer shows how to add the web app to the Home Screen.
-- **Advanced Mode** (Settings): shows the weather-source choice, a switch for each alert source, the geocoder choice (Android), and which alert sources failed.
+- **Advanced Mode** (Settings): shows the weather-source choice, the Open-Meteo model choice, a switch for each alert source, the geocoder choice (Android), and which alert sources failed.
 - Blue Marble background, edge to edge.
 
 ## Get the App

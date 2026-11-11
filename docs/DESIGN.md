@@ -4,7 +4,7 @@
 
 The phone app shows current conditions, an hourly forecast, a 10-day forecast, the sun, moon and sea, and saved places. Both forecasts have the same tabs (Conditions, Heat index and Wind chill when they apply, Precipitation, Wind, Pressure, Humidity, UV, and Air quality). Each tab shows a row of cards and a trend chart. A chart view shows up to 240 hours, or the days, in stacked panels. The app also has Help and About pages. Every measurement shows metric and imperial units together.
 
-It can be surfaced to the home screen via 4x1 and 4x2 Glance home screen widgets.
+The phone app also has two Glance home-screen widgets, 4x1 and 4x2.
 
 There is also a web PWA version built with SvelteKit. See [`web/docs/DESIGN.md`](../web/docs/DESIGN.md) for web architecture documentation.
 
@@ -262,6 +262,8 @@ Holds the complete weather snapshot: current conditions, official weather alerts
 ### 6.1 APIs
 - **Weather Forecast (`OpenMeteoApiService.kt`)**: Requests current, hourly, 15-minute precipitation, and daily weather variables (`forecast_days=10`). The mapper keeps all 10 days. It keeps the next 24 hours of hourly data.
 - **Air Quality & Pollen (`OpenMeteoAirQualityApiService.kt`)**: Requests current AQI, per-pollutant values, CAMS pollen variables, and the hourly AQI forecast (`forecast_days=5`, which feeds the 10-day forecast).
+- **Sea (`OpenMeteoMarineApiService.kt`)**: waves, swell, sea temperature and the sea level for the tides. An inland place gets no sea data, and the Sea card does not show.
+- **Normals (`OpenMeteoArchiveApiService.kt`)**: past weather (ERA5) for the normal highs and lows. `NormalsCache.kt` keeps them for each place for 30 days. `ForecastSnapshotStore.kt` keeps old forecasts to find what changed since yesterday.
 - **Geocoding**: the user picks the System Geocoder or Nominatim in Settings (Advanced Mode). The default is the System Geocoder in the standard flavor and Nominatim in the F-Droid flavor. Place search uses the Open-Meteo Geocoding API first, with Nominatim as fallback. Place names are split into primary city name and region/country subtext. The location details card shows the coordinates in DMS and decimal, and the Plus Code.
 - **Pirate Weather** has no air quality, so the Air quality tabs do not show with that source.
 - **Network**: all services share one OkHttp client with a 10 MB HTTP cache (`cacheDir/http`) and a 40-second call timeout. The forecast and the place name load at the same time.
@@ -312,7 +314,7 @@ The app takes `geo:` links, map links (Google, OpenStreetMap, Apple) and coordin
 The hero card also shows the change of the temperature in 6 hours and, when the high differs from the 10-year normal by 2 °C or more, today's high against the normal (`HighVsNormal`). The four hour tiles show the temperature in colour and the chance of rain.
 
 ### 8.5 Chart View
-`ui/weather/chart/ChartViewScreen.kt`. The chart button in the hourly forecast card opens it in the hourly mode, and the one in the 10-day forecast card opens it in the daily mode (`ChartViewMode`); Back closes it. A switch at the top (Hourly | Daily) changes the mode. The hourly mode shows up to 240 hours (10 days) in stacked panels that scroll sideways together, and opens at the current hour. The daily mode shows one point for each day of the daily forecast in the same panels, all in the width: the high and low, the daily totals, highest and mean values, and the highest hourly gust and air quality of each day (`chartDays`, `chartDayMaxIndex`); a tap selects a day. The panels, from top to bottom, are a time axis with weather icons, temperature (with dew point, heat index and wind chill), precipitation (with the chance of rain), wind (with gusts and direction arrows), pressure, humidity, and UV index with the air quality as a dashed line on its own scale (only when an hour has a UV index or air quality). A card at the top shows the values of the selected hour in both units; a tap changes the units. One finger scrolls the hours, and a tap moves the hour under it to the selection line. The data comes from `WeatherData.chartHourly` (`ChartHour`). `ChartStyle.kt` holds the colours and line styles that the main-page charts and the TV charts also use. The web has the same view in `ChartView.svelte`.
+`ui/weather/chart/ChartViewScreen.kt`. The chart button in the hourly forecast card opens it in the hourly mode, and the one in the 10-day forecast card opens it in the daily mode (`ChartViewMode`); Back closes it. A switch at the top (Hourly | Daily) changes the mode. The hourly mode shows up to 240 hours (10 days) in stacked panels that scroll sideways together, and opens at the current hour. The daily mode shows one point for each day of the daily forecast in the same panels, all in the width: the high and low, the daily totals, highest and mean values, and the highest hourly gust and air quality of each day (`chartDays`, `chartDayMaxIndex`); a tap selects a day. The panels, from top to bottom, are a time axis with weather icons, temperature (with dew point, heat index and wind chill), precipitation (with the chance of rain), wind (with gusts and direction arrows), pressure, humidity, and UV index with the air quality as a dashed line on its own scale (only when an hour has a UV index or air quality). A card at the top shows the values of the selected hour or day in both units; a tap changes the units. One finger scrolls the hours, and a tap moves the hour under it to the selection line. The data comes from `WeatherData.chartHourly` (`ChartHour`). `ChartStyle.kt` holds the colours and line styles that the main-page charts and the TV charts also use. The web has the same view in `ChartView.svelte`.
 
 ### 8.6 Android TV
 `TvActivity` (declared in the manifest with the `LEANBACK_LAUNCHER` category and no touchscreen requirement) shows the weather of one place with screens made for the D-pad. A card has a white border when it has focus; OK opens it; Back returns to the card that had focus. The TV screens use the phone's data layer and preferences (saved places, units, language) but not `WeatherContent`.
@@ -330,7 +332,7 @@ Each card has a share button. The shared image is the header and the card, with 
 ## 9. Internationalization (i18n)
 
 Supports 8 languages:
-- **Index 0**: Malagasy (`mg`, default on first run)
+- **Index 0**: Malagasy (`mg`)
 - **Index 1**: Arabic (`ar`, RTL layout, Eastern Arabic digits `٠-٩`, Arabic decimal `٫`)
 - **Index 2**: English (`en`)
 - **Index 3**: Spanish (`es`)
@@ -338,6 +340,8 @@ Supports 8 languages:
 - **Index 5**: Hindi (`hi`, Devanagari digits `०-९`)
 - **Index 6**: Nepali (`ne`, Devanagari digits `०-९`)
 - **Index 7**: Chinese (`zh`)
+
+On the first start after install, `DefaultLanguage.kt` selects the first device language that the app has, else English. An app that was installed before keeps its language (Malagasy if the user never changed it).
 
 Numeric formatting uses `Locale.US` internally, applying character replacement at display time via `SupportedLocale.localizeDigits()` for 100% consistency. It also changes the decimal point to the language's separator: a comma for French, Spanish and Malagasy, and `٫` for Arabic.
 
@@ -357,9 +361,7 @@ Two Glance home screen widgets:
 - **4x1 (`WeatherWidget`)**: Compact view with city, dual-unit temperature, weather description, and refresh timestamp.
 - **4x2 (`WeatherWidgetLarge`)**: Expanded view adding feels-like, humidity, wind, and a 3-day forecast row.
 
-Updated every 30 minutes in background via `WorkManager` and `BaseWidgetWeatherFetcher` (standalone Retrofit fetcher, no Hilt). The same fetch loads the active alerts with the app's `WeatherRepository.fetchAlerts` (through the `WidgetEntryPoint` Hilt entry point, so the alert settings apply), and the widgets show their count as a badge. The flavor `WidgetWeatherFetcher` tries a fresh location fix first, then the saved coordinates. The widgets always use Open-Meteo and the device location, not the active favorite or the chosen weather source. Tapping the widget opens the app; tapping the time refreshes it: `RefreshActionCallback` queues a one-time `WeatherUpdateWorker` job, because the fetch (a location fix can take 20 s) is longer than a broadcast may run. The widget shows the place name that the app saved with its last GPS position only when the widget position is within about 5 km of it; else it looks up the name.
-
-The widgets have an alert badge, but the widget data has no alerts (`alerts = emptyList()`), so the badge does not show.
+Updated every 30 minutes in background via `WorkManager` and `BaseWidgetWeatherFetcher` (standalone Retrofit fetcher, no Hilt). The same fetch loads the active alerts with the app's `WeatherRepository.fetchAlerts` (through the `WidgetEntryPoint` Hilt entry point, so the alert settings apply), and the widgets show their count as a badge. The flavor `WidgetWeatherFetcher` tries a fresh location fix first, then the saved coordinates. The widgets always use Open-Meteo and the device location, not the active favorite or the chosen weather source. Tapping the widget opens the app; tapping the time refreshes it: `RefreshActionCallback` queues a one-time `WeatherUpdateWorker` job, because the fetch (a location fix can take 20 s) is longer than a broadcast may run. The widget shows the place name that the app saved with its last GPS position only when the widget position is within about 5 km of it; else it looks up the name. The widget cache (`WidgetCache.kt`) also keeps the alerts.
 
 ---
 
@@ -378,6 +380,7 @@ Search and place previews do not need Advanced Mode. The 12-hour limit applies t
 
 Settings screen (`SettingsScreen.kt`) always shows the Advanced mode switch and an About row. With Advanced Mode on, it also controls:
 - **Weather Source**: Open-Meteo (default, keyless) or Pirate Weather (optional API key with inline test flow).
+- **Weather Model** (Open-Meteo only): Automatic (default) or one model from `WEATHER_MODELS` in `WeatherModel.kt` (ECMWF IFS, ECMWF AIFS, GFS, ICON, Météo-France, UK Met Office, GEM, JMA). Each model has its number of forecast days.
 - **Geocoding Source**: System Geocoder vs Nominatim.
 - **Alert Toggles**: Master alerts switch + individual source toggles for all 7 official providers.
 

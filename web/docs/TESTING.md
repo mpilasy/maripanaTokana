@@ -13,12 +13,7 @@ The build should complete with zero errors. One non-blocking warning is expected
 
 ### Unit Tests
 
-Vitest runs the `src/**/*.test.ts` files in the Node environment. The settings are in `vite.config.ts`; there is no separate Vitest config file. The tests are next to the code they test:
-- `src/lib/api/`: HTTP helper, Open-Meteo client and mapper, night weather, geocoding search, alert sources (`alerts/index`, `alerts/meteoAlarm`)
-- `src/lib/domain/`: temperature, precipitation outlook, air quality, UV, Plus Codes, shared-location parser, region qualifier, script detection
-- `src/lib/stores/`: weather, location, offline snapshot
-- `src/lib/utils/`: dates
-- `src/lib/server/`: the proxy cache
+Vitest runs the `src/**/*.test.ts` files in the Node environment. The settings are in `vite.config.ts`; there is no separate Vitest config file. The tests are next to the code they test, in `src/lib/api/`, `src/lib/domain/`, `src/lib/stores/`, `src/lib/utils/`, `src/lib/server/` and `src/lib/` (for example `chartView.test.ts`, `moon.test.ts`, `alerts/nhc.test.ts`, `weatherSnapshot.test.ts`, `ttlCache.test.ts`).
 
 There are no end-to-end tests. CI (`.github/workflows/ci.yml`) runs `npm ci`, `npm run check`, `npm test` and `npm run build` on each push to `main` and each pull request.
 
@@ -79,7 +74,7 @@ npm run dev
 - [ ] **Free-Scroll Layout**
   - [ ] All cards sit in one column that scrolls up and down
   - [ ] All cards are always open (no accordion, no collapse or expand control)
-  - [ ] Card order: alert banner (when alerts exist), hero card, Hourly Forecast, 10-Day Forecast, Current Conditions, Sun & Air, Activities
+  - [ ] Card order: alert banner (when alerts exist), hero card, Hourly Forecast, 10-Day Forecast, Current Conditions, Sun & Air, Sea (when the place has sea data), Activities
   - [ ] Header stays fixed at the top; footer stays fixed at the bottom
 
 - [ ] **Hero Card**
@@ -96,18 +91,31 @@ npm run dev
   - [ ] Nowcast is not shown when no precipitation is expected
 
 - [ ] **Hourly Forecast**
-  - [ ] Card shows 6 tabs: Conditions, Precipitation, Wind, Pressure, UV, Air Quality
+  - [ ] Card shows the tabs Conditions, Heat Index and Wind Chill (only when an hour has them), Precipitation, Wind, Pressure, Humidity, UV, Air Quality
   - [ ] Air Quality tab shows only when air quality data exists
   - [ ] Each tab shows a horizontal scrollable row of hourly cards and an overview chart below it
 
 - [ ] **10-Day Forecast**
-  - [ ] Card shows the same 6 tabs
+  - [ ] Card shows the same tabs
   - [ ] Each tab shows a horizontal scrollable row of daily cards (10 days) and an overview chart below it
+  - [ ] The block on top lists the changes since yesterday's forecast, when there are some
+  - [ ] The cards and the chart show the normal highs and lows
+
+- [ ] **Chart View**
+  - [ ] The chart button in the hourly card opens the hourly mode at the current hour
+  - [ ] The chart button in the 10-day card opens the daily mode
+  - [ ] The Hourly | Daily switch at the top changes the mode
+  - [ ] The panels scroll together; a click selects an hour or a day, and the card at the top shows its values in both units
+  - [ ] Back closes the chart view
 
 - [ ] **Current Conditions and Sun & Air (Cards)**
-  - [ ] Both cards show tiles for their data (temperature, precipitation, wind and gust, pressure, humidity, sun, air quality, UV index, visibility)
+  - [ ] Both cards show tiles for their data (temperature, precipitation, wind and gust, pressure, humidity, sun, moon, declination, air quality, UV index, cloud cover, visibility)
   - [ ] Air quality tile opens the detailed breakdown with pollen tier badges
   - [ ] UV tile shows the severity tier
+
+- [ ] **Sea**
+  - [ ] For a place on the coast, the Sea card shows waves, swell, sea temperature and the next high and low tides
+  - [ ] For an inland place, the Sea card does not show
 
 - [ ] **Activities**
   - [ ] Activities card shows activity indices
@@ -132,7 +140,7 @@ npm run dev
 
 - [ ] **Settings**
   - [ ] With Advanced Mode off, Settings shows the Advanced mode switch, its description, the geocoding information and the About row
-  - [ ] With Advanced Mode on, it also shows the weather source (with the Pirate Weather key test) and the alerts: a master switch and the 7 sources (NWS, GDACS, MeteoAlarm, JMA, ECCC, BOM, NHC)
+  - [ ] With Advanced Mode on, it also shows the weather source (with the Pirate Weather key test), the weather model (Open-Meteo only) and the alerts: a master switch and the 7 sources (NWS, GDACS, MeteoAlarm, JMA, ECCC, BOM, NHC)
 
 ---
 
@@ -160,11 +168,11 @@ npm run dev
 
 ## 7. Internationalization (8 Languages)
 
-Tap the flag emoji in the footer to cycle through languages:
+On the first visit (clear the site data first), the app uses the first browser language that it has, else English. Tap the flag emoji in the footer to cycle through languages, or hold it to pick from a list:
 
 | # | Flag | Language | Verify |
 |---|------|----------|--------|
-| 0 | (MG) | Malagasy | Default language, comma decimal separator |
+| 0 | (MG) | Malagasy | Comma decimal separator |
 | 1 | (SA) | Arabic | RTL layout, Eastern Arabic digits, Arabic decimal |
 | 2 | (GB) | English | LTR, standard digits |
 | 3 | (ES) | Spanish | LTR, comma decimal separator |
@@ -193,9 +201,9 @@ Tap the flag emoji in the footer to cycle through languages:
 
 ## 8. Dual-Language Error Screen
 
-- [ ] Set app language to Malagasy (default)
+- [ ] Set the browser language to English and the app language to Malagasy
 - [ ] Deny geolocation or block network
-- [ ] Error screen shows Malagasy text (primary) + English text (secondary, faded) if browser is English
+- [ ] Error screen shows Malagasy text (primary) + English text (secondary, faded)
 - [ ] Retry button shows both languages
 - [ ] Retry button is prominent (solid white, bold text)
 - [ ] "Choose a place" and "Open settings" buttons show below it
@@ -204,7 +212,7 @@ Tap the flag emoji in the footer to cycle through languages:
 
 ## 9. Font Pairings (22 fonts)
 
-Tap the font icon (Aa) in the footer to cycle through 22 font pairings.
+Tap the font button (Aa and the font name) in the footer to cycle through 22 font pairings. Hold it to pick from a list.
 
 - [ ] Font name displayed in footer updates on each tap
 - [ ] Default (index 0) uses system fonts

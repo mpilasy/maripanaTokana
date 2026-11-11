@@ -1,6 +1,6 @@
 # maripànaTokana Web App
 
-**maripànaTokana** (Malagasy for "a single thermometer") is a weather app. This folder holds its web version, built with SvelteKit. It has the same features as the [Android app](../README.md), except the widgets. It always shows metric and imperial units side by side, and it has 8 languages and 22 font choices.
+**maripànaTokana** (Malagasy for "a single thermometer") is a weather app. This folder holds its web version, built with SvelteKit. It has the same features as the [Android app](../README.md), except the widgets, the TV screens and the geocoder choice. It always shows metric and imperial units side by side, and it has 8 languages and 22 font choices.
 
 A hosted copy is at **[maripana.njarasoa.org](https://maripana.njarasoa.org)**.
 
@@ -9,14 +9,15 @@ A hosted copy is at **[maripana.njarasoa.org](https://maripana.njarasoa.org)**.
 For the full list, see the [main README](../README.md#features). This list gives the web details.
 
 - **Weather data** from [Open-Meteo](https://open-meteo.com) (default, no key) or [Pirate Weather](https://pirateweather.net) (your own API key). Air quality and pollen come from the Open-Meteo air-quality API.
-- **One scrolling column**: header, alert banner, main card, hourly forecast (with the minutely nowcast, Open-Meteo only), 10-day forecast, Current conditions, Sun & Air, Activities, and the footer. All cards stay open.
+- **One scrolling column**: header, alert banner, main card, hourly forecast (with the minutely nowcast, Open-Meteo only), 10-day forecast, Current conditions, Sun & Air, Sea (when the place has sea data), Activities, and the footer. All cards stay open.
 - **Main card**: the temperature (°C with 1 decimal, °F as a whole number), today's low and high, the rain or snow outlook and the air quality (when it is not good), and 4 hour tiles (+0, +4, +8 and +12 hours).
-- **Forecast tabs**: Conditions, Precipitation, Wind, Pressure, UV Index and Air Quality (when there is data). Each tab has a row of cards and a chart.
+- **Forecast tabs**: Conditions, Heat Index and Wind Chill (when they apply), Precipitation, Wind, Pressure, Humidity, UV Index and Air Quality (when there is data). Each tab has a row of cards and a chart.
+- **Chart view** (`ChartView.svelte`): opens from the hourly or the 10-day card, with an Hourly | Daily switch. It shows all values in stacked panels.
 - **7 alert sources**: NWS (US), NHC (hurricanes), MeteoAlarm (Europe), JMA (Japan), ECCC (Canada), BOM (Australia) and GDACS (global). See [Alert Proxy Routes](#alert-proxy-routes).
 - **Places**: the search icon in the header opens the search and the list of favorites. Swipe, or tap the arrows, to move between places. A searched place shows for 12 hours. The grid icon opens the location details: the place, the coordinates in degrees, minutes and seconds, and the Plus Code.
 - **Shared places**: the web app takes a place from the `text`, `url`, `q`, `loc` or `title` URL parameter. The manifest `share_target` uses this, so on Android you can share a map link or coordinates to the installed web app.
-- **Settings**: the Advanced Mode switch and the geocoding information. Advanced Mode stays on until you turn it off. It shows the weather-source choice with an API key test, a switch for each alert source, and which alert sources failed. When you turn it off, the app also goes back to your location.
-- **Units, languages and fonts**: tap a value to put the other unit first. Tap the flag or the font name in the footer to change the language or the font. The fonts are self-hosted in `static/fonts`.
+- **Settings**: the Advanced Mode switch and the geocoding information. Advanced Mode stays on until you turn it off. It shows the weather-source choice with an API key test, the Open-Meteo model choice, a switch for each alert source, and which alert sources failed. When you turn it off, the app also goes back to your location.
+- **Units, languages and fonts**: tap a value to put the other unit first. Tap the flag or the font name in the footer to change the language or the font, or hold it to pick from a list. On the first visit, the app uses the browser language when it has it, else English. The fonts are self-hosted in `static/fonts`.
 - **Share**: each card has a share button. `html2canvas` makes a PNG of the card, and the Web Share API shares it. If the browser cannot share files, the PNG is downloaded.
 - **Refresh**: pull down, or tap the update time. The app also refreshes when the tab becomes visible and the data is more than 30 minutes old.
 - **Offline**: the last forecast is saved in `localStorage` (`weatherSnapshot.ts`), and the service worker keeps the last API responses. Without a connection, the app shows them with their real age.
@@ -112,7 +113,7 @@ web/
 ├── src/
 │   ├── lib/
 │   │   ├── actions/          # Svelte actions (dragScroll, longPress)
-│   │   ├── api/              # Open-Meteo, Pirate Weather and air-quality clients, geocoding, mapper, WMO codes
+│   │   ├── api/              # Open-Meteo (forecast, air quality, marine, archive) and Pirate Weather clients, geocoding, mapper, WMO codes
 │   │   │   └── alerts/       # The 7 alert sources, index.ts (combines them) and shared.ts
 │   │   ├── components/       # Svelte UI components
 │   │   ├── domain/           # Value classes (Temperature, Pressure, ...), air quality, UV, activity indices

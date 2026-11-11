@@ -32,7 +32,7 @@ For the Android app's design documentation, see [`docs/DESIGN.md`](../../docs/DE
 
 | Layer | Technology | Role |
 |-------|-----------|------|
-| Framework | **SvelteKit** (v2) + **Svelte 5** | UI framework + routing + build tooling |
+| Framework | **SvelteKit 3** + **Svelte 5** | UI framework + routing + build tooling |
 | Language | **TypeScript** | Type safety throughout |
 | Build | **Vite** | Dev server + production bundler |
 | Hosting | **adapter-node** | Builds a standalone Node.js server (`build/index.js`) |
@@ -68,7 +68,8 @@ web/
 │       │   ├── wmoWeatherCode.ts         # WMO code → i18n description key
 │       │   ├── openMeteoMapper.ts / openMeteoTypes.ts  # Response mapping and types
 │       │   ├── http.ts / nightWeather.ts  # Fetch helper with timeout; night icons for the daily cards
-│       │   ├── externalAlerts.ts         # Merges alert sources
+│       │   ├── openMeteoMarine.ts / openMeteoArchive.ts  # Sea conditions and tides; past weather for the normals
+│       │   ├── externalAlerts.ts         # Re-exports the alert fetchers from alerts/
 │       │   └── alerts/                   # 7 official alert source fetchers, index.ts (combines them) + shared.ts
 │       ├── domain/                       # Domain models & value objects
 │       │   ├── weatherData.ts            # WeatherData, HourlyForecast, DailyForecast, HourlyAirQuality
@@ -83,6 +84,9 @@ web/
 │       │   ├── sharedLocationParser.ts   # Coordinates and map links in shared text
 │       │   ├── script.ts / regionQualifier.ts # Latin letters, place-name cleanup
 │       │   ├── dailyAirQuality.ts        # Worst AQI of each day
+│       │   ├── moon.ts / seasons.ts / sea.ts # Moon phase and times; solstices, equinoxes and declination; sea and tides
+│       │   ├── normals.ts / forecastChanges.ts # Normal highs and lows; what changed since yesterday
+│       │   ├── weatherModel.ts           # Open-Meteo models in Settings (WEATHER_MODELS)
 │       │   └── airQuality.ts            # AQI tiering, Pollen tiers, AQI_TIER_COLORS
 │       ├── i18n/                         # Internationalization
 │       │   ├── index.ts / locales.ts
@@ -90,7 +94,8 @@ web/
 │       ├── stores/
 │       │   ├── weather.ts                # Weather state machine & fetch orchestration
 │       │   ├── savedLocations.ts         # Multi-location state, favorites list, active selection
-│       │   ├── preferences.ts            # Persisted user preferences (units, font, language, weather source, API key, alert switches)
+│       │   ├── preferences.ts            # Persisted user preferences (units, font, language, weather source and model, API key, alert switches)
+│       │   ├── forecastHistory.ts        # Old forecasts, to find what changed since yesterday
 │       │   ├── location.ts              # Geolocation & Nominatim reverse geocoding
 │       │   ├── weatherSnapshot.ts       # Last weather data per place, for offline use
 │       │   └── advancedMode.ts          # Advanced Mode switch (stays on until turned off)
@@ -171,7 +176,7 @@ Immutable value objects (`Temperature`, `WindSpeed`, `Pressure`, `Precipitation`
 Svelte stores drive application state:
 - `stores/weather.ts`: Core weather state (`loading`, `success`, `error`), refresh logic.
 - `stores/savedLocations.ts`: Saved favorites array, active location selection, dialog visibility.
-- `stores/preferences.ts`: `metricPrimary`, `fontIndex`, `localeIndex`, the weather source, the API key and the alert switches, persisted in `localStorage`.
+- `stores/preferences.ts`: `metricPrimary`, `fontIndex`, `localeIndex`, the weather source and model, the API key and the alert switches, persisted in `localStorage`.
 - `stores/advancedMode.ts`: the Advanced Mode switch (`advanced_mode_enabled`). It has no time limit.
 - `stores/weatherSnapshot.ts`: the last weather data for each place (`weather_snapshot_v2`), for offline use.
 
@@ -188,14 +193,16 @@ Svelte stores drive application state:
         ├── LocationDetails, RenameLocationDialog, SavedLocationsDialog
         ├── WeatherAlertBanner (merged 7-source alerts, expandable)
         ├── HeroCard (temperature, low/high, rain or snow outlook, US and EU AQI, 4 hour tiles)
-        ├── SectionCard "Hourly forecast"
+        ├── SectionCard "Hourly forecast" (chart button opens ChartView in the hourly mode)
         │   ├── NowcastCard (only when rain or snow is coming; Open-Meteo only)
-        │   └── HourlyForecast (ForecastTabs: Conditions, Precipitation, Wind, Pressure, UV, Air quality; cards + TemperatureChart for Conditions, OverviewChart for the others)
-        ├── SectionCard "10-day forecast"
-        │   └── DailyForecast (same 6 tabs; cards + DailyTemperatureChart or OverviewChart)
+        │   └── HourlyForecast (ForecastTabs: Conditions, Heat index and Wind chill when they apply, Precipitation, Wind, Pressure, Humidity, UV, Air quality; cards + TemperatureChart for Conditions, OverviewChart for the others)
+        ├── SectionCard "10-day forecast" (chart button opens ChartView in the daily mode)
+        │   └── DailyForecast (same tabs, changes since yesterday, normals; cards + DailyTemperatureChart or OverviewChart)
         ├── SectionCard "Current conditions"  (CurrentConditions part="now")
-        ├── SectionCard "Sun & Air"           (CurrentConditions part="sky")
+        ├── SectionCard "Sun & Air"           (CurrentConditions part="sky": SunArc, SkyArc, moon, declination, air quality, UV, cloud cover, visibility)
+        ├── SectionCard "Sea"                 (SeaCard, only when the place has sea data)
         ├── SectionCard "Activities"          (ActivitiesCard)
+        ├── ChartView (hourly or daily stacked panels, Hourly | Daily switch; same as Android ChartViewScreen)
         ├── Footer (font name, Help and About links, iOS-only Install link, version, language flag)
         ├── InstallDialog (iOS only: Share, then Add to Home Screen)
         ├── AirQualityDetailDialog
@@ -242,7 +249,7 @@ Search and place previews do not need Advanced Mode. The 12-hour limit applies t
 
 ## 13. Settings & Pluggable Data Sources
 
-`SettingsScreen.svelte` always shows the Advanced mode switch, the geocoding information and the About row. With Advanced Mode on, it also provides controls for Weather Source (Open-Meteo vs Pirate Weather with API key validation), a master alerts switch and individual toggles for all 7 official alert sources.
+`SettingsScreen.svelte` always shows the Advanced mode switch, the geocoding information and the About row. With Advanced Mode on, it also provides controls for Weather Source (Open-Meteo vs Pirate Weather with API key validation), the Open-Meteo weather model (Automatic or one of `WEATHER_MODELS` in `domain/weatherModel.ts`), a master alerts switch and individual toggles for all 7 official alert sources.
 
 ---
 
@@ -266,7 +273,7 @@ Containerized via Docker (`node:24-alpine` multi-stage build running `node build
 
 ## 17. Key Patterns & Decisions
 
-- **Shared i18n Locales**: Symlinked from `shared/i18n/locales/` for 100% parity with Android. `flattenForWeb` adds the `web_only` keys and drops the `android_only` keys. The fallback language is `mg`; on the first run, the browser language is used.
+- **Shared i18n Locales**: Symlinked from `shared/i18n/locales/` for 100% parity with Android. `flattenForWeb` adds the `web_only` keys and drops the `android_only` keys. On the first run, the app uses the first browser language that it has, else English (`initI18n` in `i18n/index.ts`).
 - **Security**: a report-only Content Security Policy with reports to `/api/csp-report` (`vite.config.ts`), and security headers in `hooks.server.ts`.
 - **Single-Chunk Bundle**: All JS compiled into one chunk (`output.bundleStrategy: 'single'`).
 - **No Derived Alerts**: Only official meteorological agency alerts are displayed.

@@ -9,13 +9,13 @@ This document provides comprehensive testing procedures for the maripànaTokana 
 ./gradlew lintFdroidDebug                                     # Android lint
 ```
 
-The unit tests are in `app/src/test/java/orinasa/njarasoa/maripanatokana/` (JUnit 4 and MockK). They cover the domain models (temperature, wind, UV, air quality, precipitation outlook, activities), the location parsers (coordinates, Plus Codes, shared links, place names, scripts), the geocoders, the Open-Meteo mapper, the weather cache, the alert-source failures, the country resolver, the widget formats and `WeatherViewModel`. There are no instrumented tests (`app/src/androidTest` is empty).
+The unit tests are in `app/src/test/java/orinasa/njarasoa/maripanatokana/` (JUnit 4 and MockK). They cover the domain models (temperature, wind, UV, air quality, precipitation outlook, activities, moon, seasons, sea, normals, forecast changes), the chart view math, the location parsers (coordinates, Plus Codes, shared links, place names, scripts), the geocoders, the Open-Meteo mapper, the weather cache, the alert-source failures, the country resolver, the widget formats and `WeatherViewModel`. There are no instrumented tests (`app/src/androidTest` is empty).
 
 CI (`.github/workflows/ci.yml`) runs the i18n parity check, these unit tests, lint (allowed to fail) and the web checks on each push to `main` and on each pull request.
 
 Two scripts test on a device or emulator:
 - `scripts/test_fdroid_build.sh`: builds the F-Droid release, checks that it has no Google classes, checks the metadata and fastlane files, checks that two builds are identical, and tests on a device.
-- `scripts/test_permission_flow.sh`: 11 permission, location and weather scenarios. Start the emulator with `emulator -avd <name> -wipe-data` first. Set `TEST_DEV` to choose the device. It uses the emulator console to set the location.
+- `scripts/test_permission_flow.sh`: the permission, location and weather scenarios that the top of the script lists. Start the emulator with `emulator -avd <name> -wipe-data` first. Set `TEST_DEV` to choose the device. It uses the emulator console to set the location.
 
 ## Prerequisites
 
@@ -157,7 +157,7 @@ ls -lh app/build/outputs/apk/fdroid/debug/app-fdroid-debug.apk
 - [ ] **Free-Scroll Layout**
   - [ ] All cards sit in one column that scrolls up and down
   - [ ] All cards are always open (no accordion, no collapse or expand control)
-  - [ ] Card order: alert banner (when alerts exist), hero card, hourly forecast, 10-day forecast, Current conditions, Sun & Air, Activities
+  - [ ] Card order: alert banner (when alerts exist), hero card, hourly forecast, 10-day forecast, Current conditions, Sun & Air, Sea (when the place has sea data), Activities
   - [ ] Header stays fixed at the top; footer stays fixed at the bottom
   - [ ] Changing location scrolls the content back to the top
 
@@ -175,18 +175,31 @@ ls -lh app/build/outputs/apk/fdroid/debug/app-fdroid-debug.apk
   - [ ] Nowcast is not shown when no precipitation is expected
 
 - [ ] **Hourly Forecast**
-  - [ ] Card shows 6 tabs: Conditions, Precipitation, Wind, Pressure, UV, Air quality
+  - [ ] Card shows the tabs Conditions, Heat index and Wind chill (only when an hour has them), Precipitation, Wind, Pressure, Humidity, UV, Air quality
   - [ ] Each tab shows a horizontal row of hourly cards and an overview chart below it
   - [ ] Air quality tab shows only when air quality data exists
   - [ ] Horizontal scroll works smoothly
 
 - [ ] **10-Day Forecast**
-  - [ ] Card shows the same 6 tabs
+  - [ ] Card shows the same tabs
   - [ ] Each tab shows a row of daily cards (10 days) and an overview chart below it
   - [ ] Daily cards show day, date, condition, and low and high temperatures
+  - [ ] The block on top lists the changes since yesterday's forecast, when there are some
+  - [ ] The cards and the chart show the normal highs and lows
+
+- [ ] **Chart View**
+  - [ ] The chart button in the hourly card opens the hourly mode at the current hour
+  - [ ] The chart button in the 10-day card opens the daily mode
+  - [ ] The Hourly | Daily switch at the top changes the mode
+  - [ ] The panels scroll together; a tap selects an hour or a day, and the card at the top shows its values in both units
+  - [ ] Back closes the chart view
+
+- [ ] **Sea**
+  - [ ] For a place on the coast, the Sea card shows waves, swell, sea temperature and the next high and low tides
+  - [ ] For an inland place, the Sea card does not show
 
 - [ ] **Current Conditions and Sun & Air (Cards)**
-  - [ ] Both cards show tiles for their data (temperature, precipitation, wind, gust, pressure, humidity, sun, air quality, UV index, visibility)
+  - [ ] Both cards show tiles for their data (temperature, precipitation, wind, gust, pressure, humidity, sun, moon, declination, air quality, UV index, cloud cover, visibility)
   - [ ] Air quality tile opens the detailed pollutant and pollen breakdown
   - [ ] UV tile shows the severity tier
 
@@ -244,7 +257,7 @@ Test each of the 8 languages:
 
 - [ ] **Nepali (ne)**
   - [ ] All text in Devanagari script
-  - [ ] Native Nepali numerals
+  - [ ] Native Nepali numerals (०१२३४५६७८९)
   - [ ] Font renders clearly
 
 - [ ] **Chinese Simplified (zh-CN)**
@@ -253,9 +266,14 @@ Test each of the 8 languages:
   - [ ] No text overflow
   - [ ] Font renders clearly
 
+**First Start:**
+- [ ] On a new install, the app uses the device language when the app has it, else English
+- [ ] After an update, the app keeps the language of the earlier version
+
 **Language Cycling Test:**
 - [ ] Flag icon visible at the right end of the footer
 - [ ] Tapping the flag cycles through all 8 languages
+- [ ] Holding the flag opens a list of the languages
 - [ ] Cycles in this order: Malagasy, Arabic, English, Spanish, French, Hindi, Nepali, Chinese
 - [ ] Native digits render for ar/hi/ne; standard digits render for the other languages
 
@@ -269,6 +287,7 @@ Test each of the 22 font pairings:
 
 - [ ] **Font Cycling**
   - [ ] Tapping cycles through all 22 font pairings
+  - [ ] Holding the font name opens a list of the fonts
   - [ ] All fonts render clearly
   - [ ] Display font (headlines) changes
   - [ ] Body font (text) changes
@@ -319,8 +338,9 @@ Test both widgets (if configured):
   - [ ] Widget appears on home screen
   - [ ] Current temperature visible
   - [ ] Location name shown
+  - [ ] When alerts are active, a badge shows their number (both widgets)
   - [ ] Updates automatically
-  - [ ] Tapping opens app
+  - [ ] Tapping opens app; tapping the time refreshes the widget
 
 - [ ] **4x2 Detailed Widget**
   - [ ] Widget appears on home screen
@@ -328,6 +348,17 @@ Test both widgets (if configured):
   - [ ] 3-day forecast visible
   - [ ] Updates automatically
   - [ ] Tapping opens app
+
+### Android TV
+
+Install the same APK on an Android TV device or emulator. Use the remote (D-pad) only. The screens are described in [DESIGN.md](DESIGN.md#86-android-tv).
+
+- [ ] The app shows in the TV launcher and opens the TV home screen
+- [ ] The card with focus has a white border; OK opens it; Back returns to the card that had focus
+- [ ] OK on an hour or a day opens the hourly or daily chart; left and right move the selection
+- [ ] Details, air quality, alerts, places and settings (units, language, Help) open and work
+- [ ] A change of units, language or saved places on the TV stays after a restart
+- [ ] When you select it as the screensaver in the system settings, it shows the time and the weather
 
 ### Settings Screen (Android)
 
@@ -346,6 +377,7 @@ Turn on Advanced Mode for the next sections.
   - [ ] "Test" button with a valid key shows success; weather loads from Pirate Weather
   - [ ] "Test" button with an invalid key shows error; the key is not saved
   - [ ] Source selection persists after closing and reopening Settings
+  - [ ] With Open-Meteo, the weather model list shows Automatic (default) and the models; a model with fewer days shows fewer days in the 10-day forecast
 
 - [ ] **Alert Toggles**
   - [ ] Master alerts toggle disables all alert fetching
@@ -446,6 +478,7 @@ Recommend testing on:
 | Emulator | 30+ | Test modern Android |
 | Physical Phone | 24+ | Real-world performance |
 | Tablet (optional) | 24+ | Verify the layout on a wide screen |
+| Android TV (emulator or device) | 24+ | Test the TV screens with the remote |
 
 ## Logging & Debugging
 

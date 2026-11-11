@@ -327,9 +327,7 @@ Contains:
 - The `Binaries:` URL. It points to `maripanaTokana-v%v.apk`, the F-Droid flavor APK. The GitHub release also holds `maripanaTokana-standard-v%v.apk`, which F-Droid does not use
 - `AllowedAPKSigningKeys` (see Signing above)
 
-This file is a local copy. The file that F-Droid uses is `metadata/orinasa.njarasoa.maripanatokana.yml` in `fdroid/fdroiddata`, and the two are different:
-- `scripts/update_metadata.py` keeps one build entry here, for the newest version. Upstream, F-Droid's bot keeps the newest few build entries.
-- `License: GPL-3.0-or-later`, `WebSite` and the new `TetheredNet` text are here, but not upstream yet. They wait for MR !53903 (see below).
+This file is a local copy. The file that F-Droid uses is `metadata/orinasa.njarasoa.maripanatokana.yml` in `fdroid/fdroiddata`. Only the build entries are different: `scripts/update_metadata.py` keeps one build entry here, for the newest version, and upstream keeps the entries of many older versions.
 
 ## Building for F-Droid
 
@@ -380,7 +378,7 @@ sha256sum /tmp/build1.apk /tmp/build2.apk
 
 The first submission is done. The inclusion MR (`!33362`) merged into `fdroid/fdroiddata` on 2026-06-18. Do not open new MRs for normal releases. See "Maintenance and Updates" below for the release process.
 
-To change other metadata fields, open an MR from the fork `mpilasy/fdroiddata`. MR !53903 (branch `maripanatokana-website`) changes `License` to `GPL-3.0-or-later`, adds `WebSite` and updates the `TetheredNet` text. It is open and waits for review. Keep such an MR to the changed fields only. If it also changes build entries, its `checkupdates` job fails after each new tag.
+To change other metadata fields, change them here first, then open an MR from the fork `mpilasy/fdroiddata`. The last one, MR !53903 (`License: GPL-3.0-or-later`, `WebSite` and the `TetheredNet` text), merged on 2026-10-26. Keep such an MR to the changed fields only. If it also changes build entries, its `checkupdates` job fails after each new tag.
 
 The license changed from MIT to GPL-3.0-or-later in 1.5.25. Versions up to and including 1.5.24 were released under MIT.
 
