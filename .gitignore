@@ -43,7 +43,6 @@ web/**/tsconfig.tsbuildinfo
 
 # Local AI-tool notes & configs (kept locally, not committed)
 /.jules/
-/.Jules/
 /AGENTS.md
 /CLAUDE.md
 /GEMINI.md
