@@ -9,6 +9,10 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.7.20261111135439] - 2026-11-11
+
+- Android TV: a day card opens a daily chart. One plot shows the high, the low and the dew point, each in its own colour; another shows the precipitation as bars with the chance of rain as a line. The other plots show the wind, the UV index and the humidity of each day.
+
 ## [1.7.20261111014915] - 2026-11-10
 
 - Android TV: the banner shows a larger globe in the center and no app name.
