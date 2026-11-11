@@ -9,6 +9,11 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.7.20261111014915] - 2026-11-10
+
+- Android TV: the banner shows a larger globe in the center and no app name.
+- Android TV: the labels on the chart screen show in full on two lines, for example "Maripàna manando" (dew point), which showed only as "Maripàna".
+
 ## [1.7.20261110082440] - 2026-11-10
 
 - Android: a tile that is alone in its row, such as the visibility tile, is as tall as the other tiles.
