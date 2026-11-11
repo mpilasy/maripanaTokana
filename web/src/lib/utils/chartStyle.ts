@@ -1,26 +1,35 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { CHILL_COLOR, FREEZING_LINE } from './feltColors.js';
+import { FREEZING_LINE } from './feltColors.js';
 
 const PRIMARY = '#9B8FFF';
 const SKY_BLUE = '#64B5F6';
 
 /**
  * The colours, line widths (px) and dash patterns (SVG stroke-dasharray, px) of the chart view and of the charts
- * on the main page. A chart with a colour of its own (the heat index, the UV and air quality tiers) keeps it.
+ * on the main page. A chart with a colour of its own (the heat index chart of the main page, the UV and air quality
+ * tiers) keeps it.
  * Android has the same values with the same names in ChartStyle.kt.
  */
 export const ChartStyle = {
 	temperature: 'white',
-	dewPoint: CHILL_COLOR,
+	// A thin dashed line
+	dewPoint: '#81C784',
 	precipitation: SKY_BLUE,
 	chance: 'rgba(255, 255, 255, 0.6)',
 	wind: PRIMARY,
-	gust: 'rgba(155, 143, 255, 0.6)',
+	// A thin solid line
+	gust: '#FFB74D',
+	// Thin solid lines on the temperature panel of the chart view
+	heatIndex: '#F48FB1',
+	windChill: '#CE93D8',
 	pressure: PRIMARY,
 	humidity: SKY_BLUE,
 	freezing: FREEZING_LINE,
+	// The labels of the day's high and low on the temperature panel of the chart view
+	high: '#FF7043',
+	low: '#64B5F6',
 	// The normal high and low: the colours of the high and low lines at 50 % opacity
 	normalHigh: 'rgba(255, 112, 67, 0.5)',
 	normalLow: 'rgba(100, 181, 246, 0.5)',
@@ -45,7 +54,9 @@ export const ChartStyle = {
 	panelBandRadius: 12,
 
 	freezingDash: '4 3',
-	gustDash: '5 3',
+	dewPointDash: '5 3',
+	// The air quality line on the UV index panel of the chart view
+	airQualityDash: '6 4',
 	// Shorter dashes than the freezing line
 	normalDash: '2 3',
 } as const;

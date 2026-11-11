@@ -9,6 +9,7 @@
 	import { AirQualityIndex, AQI_TIER_COLORS, type AqiStandard, type AqiTier } from '#lib/domain/airQuality.js';
 	import { getCardinalDirection, showWindArrow } from '#lib/domain/windSpeed.js';
 	import { uvColorFor, uvTier } from '#lib/domain/uv.js';
+	import { heatIndex, windChill } from '#lib/domain/thermalIndices.js';
 	import { monotonePath } from '#lib/utils/monotonePath.js';
 	import { runsOf, splitDual } from '#lib/utils/dualLabel.js';
 	import { temperatureColor } from '#lib/utils/tempColors.js';
@@ -58,15 +59,15 @@
 	const BAND_INSET = 6;
 
 	// The panels from top to bottom, with their height; the value panels have a title line at the top.
-	// A time axis is at the top (`timeTop`, mirrored) and at the bottom (`time`). The air quality panel is there
-	// only when an hour has air quality.
-	type PanelId = 'timeTop' | 'icons' | 'temp' | 'precip' | 'wind' | 'pressure' | 'humidity' | 'airQuality' | 'time';
+	// A time axis is at the top (`timeTop`, mirrored) and at the bottom (`time`). The UV index panel (with the air
+	// quality on it) is there only when an hour has a UV index or air quality.
+	type PanelId = 'timeTop' | 'icons' | 'temp' | 'precip' | 'wind' | 'pressure' | 'humidity' | 'uvIndex' | 'time';
 	/** A panel: its top and height, and the part where the values go (`plotTop` to `plotBottom`). */
 	interface Panel { top: number; height: number; plotTop: number; plotBottom: number }
 	const isTitled = (id: PanelId) => id !== 'timeTop' && id !== 'icons' && id !== 'time';
-	function layout(withAirQuality: boolean) {
+	function layout(withUvIndex: boolean) {
 		const heights: [PanelId, number][] = [['timeTop', 36], ['icons', 46], ['temp', 156], ['precip', 100], ['wind', 128], ['pressure', 104], ['humidity', 104]];
-		if (withAirQuality) heights.push(['airQuality', 104]);
+		if (withUvIndex) heights.push(['uvIndex', 104]);
 		heights.push(['time', 36]);
 		const panels = {} as Record<PanelId, Panel>;
 		let top = 0;
@@ -79,7 +80,7 @@
 			top += height + PANEL_GAP;
 		}
 		const ids = heights.map(([id]) => id);
-		const last = panels[withAirQuality ? 'airQuality' : 'humidity'];
+		const last = panels[withUvIndex ? 'uvIndex' : 'humidity'];
 		return {
 			ids,
 			panels,
@@ -115,7 +116,11 @@
 	let hasAirQuality = $derived(aqValues.some((v) => v != null));
 	const aqTier = (v: number): AqiTier => AirQualityIndex.tierFor(v, aqiStandard);
 
-	let { ids: panelIds, panels, totalHeight, chartsTop, chartsBottom, topAxisBottom, lineSegments, bands } = $derived(layout(hasAirQuality));
+	let uvs = $derived(shown.map((h) => (h.uvIndex != null && Number.isFinite(h.uvIndex) ? h.uvIndex : null)));
+	let hasUvIndex = $derived(uvs.some((v) => v != null));
+	let showUvPanel = $derived(hasUvIndex || hasAirQuality);
+
+	let { ids: panelIds, panels, totalHeight, chartsTop, chartsBottom, topAxisBottom, lineSegments, bands } = $derived(layout(showUvPanel));
 
 	const slot = CHART_SLOT;
 	let scrollLeft = $state(0);
@@ -146,12 +151,23 @@
 	let gusts = $derived(shown.map((h) => (h.windGust ? finite(metricPrimary ? h.windGust.metersPerSecond : h.windGust.mph) : null)));
 	let pressures = $derived(shown.map((h) => (h.pressure ? finite(metricPrimary ? h.pressure.hPa : h.pressure.inHg) : null)));
 	let humidities = $derived(shown.map((h) => finite(h.humidity)));
+	// The heat index and the wind chill of each hour; null where they do not apply
+	let heats = $derived(shown.map((h) => {
+		const t = h.temperature ? heatIndex(h.temperature, h.humidity) : null;
+		return t ? finite(metricPrimary ? t.celsius : t.fahrenheit) : null;
+	}));
+	let chills = $derived(shown.map((h) => {
+		const t = h.temperature && h.windSpeed ? windChill(h.temperature, h.windSpeed) : null;
+		return t ? finite(metricPrimary ? t.celsius : t.fahrenheit) : null;
+	}));
 
 	// Each scale fits all the chart hours, so that it stays the same while the hours scroll
-	let tempDomain = $derived(chartDomain([...temps, ...dews], false, metricPrimary ? 5 : 9));
+	let tempDomain = $derived(chartDomain([...temps, ...dews, ...heats, ...chills], false, metricPrimary ? 5 : 9));
 	let precipDomain = $derived(chartDomain(precips, true, metricPrimary ? 1 : 0.04));
 	let windDomain = $derived(chartDomain([...winds, ...gusts], true, metricPrimary ? 5 : 10));
 	let pressureDomain = $derived(chartDomain(pressures, false, metricPrimary ? 4 : 0.12));
+	let uvDomain = $derived(hasUvIndex ? chartDomain(uvs, true, 5) : null);
+	// The air quality has its own scale, with its labels at the end of the UV index panel
 	let aqDomain = $derived(hasAirQuality ? chartDomain(aqValues, true, 50) : null);
 	/** The fixed 0-100 % scale of the chance of rain and the humidity. */
 	const PERCENT_DOMAIN: ChartDomain = { min: 0, max: 100, ticks: [0, 50, 100] };
@@ -177,13 +193,18 @@
 			if (d && v != null) dots.push({ y: y(v, d, p) });
 		};
 		add(dews, tempDomain, panels.temp);
+		add(heats, tempDomain, panels.temp);
+		add(chills, tempDomain, panels.temp);
 		add(temps, tempDomain, panels.temp);
 		add(chances, PERCENT_DOMAIN, panels.precip);
 		add(gusts, windDomain, panels.wind);
 		add(winds, windDomain, panels.wind);
 		add(pressures, pressureDomain, panels.pressure);
 		add(humidities, PERCENT_DOMAIN, panels.humidity);
-		if (hasAirQuality) add(aqValues, aqDomain, panels.airQuality);
+		if (showUvPanel) {
+			add(uvs, uvDomain, panels.uvIndex);
+			add(aqValues, aqDomain, panels.uvIndex);
+		}
 		return dots;
 	});
 
@@ -298,7 +319,7 @@
 		...axisLabels(windDomain, panels.wind, metricPrimary ? (v) => v * 2.23694 : (v) => v / 2.23694, metricPrimary ? 0 : 1),
 		...axisLabels(pressureDomain, panels.pressure, metricPrimary ? (v) => v * 0.02953 : (v) => v / 0.02953, metricPrimary ? 2 : 0),
 		...axisLabels(PERCENT_DOMAIN, panels.humidity, null, 0, '%'),
-		...(hasAirQuality ? axisLabels(aqDomain, panels.airQuality, null, 0) : []),
+		...(showUvPanel ? axisLabels(uvDomain, panels.uvIndex, null, 0) : []),
 	]);
 	let grid = $derived([
 		...(tempDomain?.ticks.map((v) => y(v, tempDomain!, panels.temp)) ?? []),
@@ -306,39 +327,55 @@
 		...(windDomain?.ticks.map((v) => y(v, windDomain!, panels.wind)) ?? []),
 		...(pressureDomain?.ticks.map((v) => y(v, pressureDomain!, panels.pressure)) ?? []),
 		...PERCENT_DOMAIN.ticks.map((v) => y(v, PERCENT_DOMAIN, panels.humidity)),
-		...(hasAirQuality ? (aqDomain?.ticks.map((v) => y(v, aqDomain!, panels.airQuality)) ?? []) : []),
+		// The UV index scale; with no UV index, the air quality scale
+		...(showUvPanel ? ((uvDomain ?? aqDomain)?.ticks.map((v) => y(v, (uvDomain ?? aqDomain)!, panels.uvIndex)) ?? []) : []),
 	]);
+	// The air quality scale at the end of the UV index panel, as the chance of rain scale (0 is left out)
+	let aqScale = $derived(aqDomain && showUvPanel ? aqDomain.ticks.filter((v) => v > aqDomain!.min).map((v) => ({ v, top: y(v, aqDomain!, panels.uvIndex) })) : []);
 
 	const aqiLabel = (standard: AqiStandard) => $_(standard === 'EUROPEAN' ? 'air_quality_eu_aqi' : 'air_quality_us_aqi');
 
-	// Panel titles: the name and both units (primary first), and the name of the second line in its colour
+	// Panel titles: the name and both units (primary first), and the names of the other lines, each in its colour
 	const units = (metric: string, imperial: string) => (metricPrimary ? `${metric} · ${imperial}` : `${imperial} · ${metric}`);
-	let titles = $derived<{ id: PanelId; title: string; second?: { text: string; color: string } }[]>([
-		{ id: 'temp', title: `${$_('detail_temperature')}  ${units('°C', '°F')}`, second: { text: $_('detail_dewpoint'), color: ChartStyle.dewPoint } },
-		{ id: 'precip', title: `${$_('detail_precipitation')}  ${units('mm', 'in')}`, second: { text: $_('precip_chance', { values: { value: '%' } }), color: ChartStyle.chance } },
-		{ id: 'wind', title: `${$_('detail_wind')}  ${units('m/s', 'mph')}`, second: { text: $_('detail_wind_gust'), color: ChartStyle.gust } },
-		{ id: 'pressure', title: `${$_('detail_pressure')}  ${units('hPa', 'inHg')}` },
-		{ id: 'humidity', title: `${$_('detail_humidity')}  %` },
-		...(hasAirQuality ? [{ id: 'airQuality' as PanelId, title: `${$_('detail_air_quality')}  ${aqiLabel(aqiStandard)}` }] : []),
-	]);
+	type Legend = { text: string; color: string };
+	let titles = $derived.by<{ id: PanelId; title: string; legend: Legend[] }[]>(() => {
+		const tempLegend: Legend[] = [{ text: $_('detail_dewpoint'), color: ChartStyle.dewPoint }];
+		if (heats.some((v) => v != null)) tempLegend.push({ text: $_('detail_heat_index'), color: ChartStyle.heatIndex });
+		if (chills.some((v) => v != null)) tempLegend.push({ text: $_('detail_wind_chill'), color: ChartStyle.windChill });
+		return [
+			{ id: 'temp', title: `${$_('detail_temperature')}  ${units('°C', '°F')}`, legend: tempLegend },
+			{ id: 'precip', title: `${$_('detail_precipitation')}  ${units('mm', 'in')}`, legend: [{ text: $_('precip_chance', { values: { value: '%' } }), color: ChartStyle.chance }] },
+			{ id: 'wind', title: `${$_('detail_wind')}  ${units('m/s', 'mph')}`, legend: [{ text: $_('detail_wind_gust'), color: ChartStyle.gust }] },
+			{ id: 'pressure', title: `${$_('detail_pressure')}  ${units('hPa', 'inHg')}`, legend: [] },
+			{ id: 'humidity', title: `${$_('detail_humidity')}  %`, legend: [] },
+			// The air quality legend is neutral, because the line colour changes with the level
+			...(showUvPanel
+				? [{ id: 'uvIndex' as PanelId, title: $_('detail_uv_index'), legend: hasAirQuality ? [{ text: `${$_('detail_air_quality')} ${aqiLabel(aqiStandard)}`, color: ChartStyle.chance }] : [] }]
+				: []),
+		];
+	});
 
-	// The air quality line has the colour of the level of the hour at the start of each segment: a gradient along the
-	// hours with a hard change at the middle of each hour where the level changes
-	let aqStops = $derived.by(() => {
+	/**
+	 * The stops of a line that has the colour of the level of the hour at the start of each segment: a gradient along
+	 * the hours with a hard change at the middle of each hour where the level changes.
+	 */
+	function tierStops(values: (number | null)[], color: (v: number) => string) {
 		const width = Math.max(1, count * slot);
 		const stops: { offset: number; color: string }[] = [];
 		let last: string | null = null;
-		aqValues.forEach((v, i) => {
+		values.forEach((v, i) => {
 			if (v == null) return;
-			const color = AQI_TIER_COLORS[aqTier(v)];
-			if (color === last) return;
+			const c = color(v);
+			if (c === last) return;
 			const offset = last == null ? 0 : cx(i) / width;
 			if (last != null) stops.push({ offset, color: last });
-			stops.push({ offset, color });
-			last = color;
+			stops.push({ offset, color: c });
+			last = c;
 		});
 		return stops;
-	});
+	}
+	let uvStops = $derived(tierStops(uvs, uvColorFor));
+	let aqStops = $derived(tierStops(aqValues, (v) => AQI_TIER_COLORS[aqTier(v)]));
 	// Where the air quality stops (about 5 days): the hour before the first missing hour after the data
 	let aqEnd = $derived.by(() => {
 		const first = aqValues.findIndex((v) => v != null);
@@ -350,9 +387,6 @@
 	// The day's high and low of the primary line of each panel, labelled at their points; the low is left out when it is
 	// the same hour as the high, because it would sit on the same point
 	const LABEL_GAP = 2;
-	// The colours of the high and low labels, as on the temperature chart of the main page
-	const HIGH_COLOR = '#FF8A65';
-	const LOW_COLOR = '#64B5F6';
 	// The baseline of a 9 px label under a point: the label's top is `LABEL_GAP` under the point
 	const LABEL_UNDER = LABEL_GAP + 7;
 	let labelCanvas: CanvasRenderingContext2D | null = null;
@@ -371,9 +405,9 @@
 	}
 	/**
 	 * The labels of the day's high and low of one line (`id` keeps the keys apart); `text` gives the label of an hour.
-	 * A label stays inside the part of the plot in view.
+	 * A label stays inside the part of the plot in view. With `highsOnly`, the lows are left out.
 	 */
-	function dayExtremeLabels(id: PanelId, values: (number | null)[], d: ChartDomain | null, color: (i: number, high: boolean) => string, text: (i: number) => string | null) {
+	function dayExtremeLabels(id: PanelId, values: (number | null)[], d: ChartDomain | null, color: (i: number, high: boolean) => string, text: (i: number) => string | null, highsOnly = false) {
 		if (!d) return [];
 		const out: { key: string; x: number; y: number; color: string; primary: string; secondary: string | null }[] = [];
 		const add = (high: boolean, i: number) => {
@@ -400,7 +434,7 @@
 		};
 		for (const e of chartDayExtremes(values, days)) {
 			add(true, e.high);
-			if (e.low !== e.high) add(false, e.low);
+			if (!highsOnly && e.low !== e.high) add(false, e.low);
 		}
 		return out;
 	}
@@ -408,11 +442,12 @@
 		// Measured again when the fonts are in
 		void fontsReady;
 		return [
-			...dayExtremeLabels('temp', temps, tempDomain, (_, high) => (high ? HIGH_COLOR : LOW_COLOR), (i) => shown[i].temperature?.displayDual(metricPrimary).join(' · ') ?? null),
+			...dayExtremeLabels('temp', temps, tempDomain, (_, high) => (high ? ChartStyle.high : ChartStyle.low), (i) => shown[i].temperature?.displayDual(metricPrimary).join(' · ') ?? null),
 			...dayExtremeLabels('wind', winds, windDomain, () => ChartStyle.wind, (i) => shown[i].windSpeed?.displayDual(metricPrimary).join(' · ') ?? null),
 			...dayExtremeLabels('pressure', pressures, pressureDomain, () => ChartStyle.pressure, (i) => shown[i].pressure?.displayDual(metricPrimary).join(' · ') ?? null),
 			...dayExtremeLabels('humidity', humidities, PERCENT_DOMAIN, () => ChartStyle.humidity, (i) => (shown[i].humidity != null ? `${shown[i].humidity}%` : null)),
-			...(hasAirQuality ? dayExtremeLabels('airQuality', aqValues, aqDomain, (i) => AQI_TIER_COLORS[aqTier(aqValues[i]!)], (i) => String(aqValues[i])) : []),
+			// Only the highs of the UV index: its lows are 0 at night
+			...(hasUvIndex ? dayExtremeLabels('uvIndex', uvs, uvDomain, (i) => uvColorFor(uvs[i]!), (i) => String(Math.round(uvs[i]!)), true) : []),
 		];
 	});
 
@@ -747,14 +782,16 @@
 						{/if}
 					{/each}
 
-					<!-- Temperature with the dew point on the same scale, and a dashed line at freezing -->
+					<!-- Temperature with the dew point, the heat index and the wind chill on the same scale, and a dashed line at freezing -->
 					{#if tempDomain}
 						{@const freezing = metricPrimary ? 0 : 32}
 						<g clip-path="url(#chart-clip-temp)">
 							{#if freezing > tempDomain.min && freezing < tempDomain.max}
 								<line x1="0" x2={count * slot} y1={y(freezing, tempDomain, panels.temp)} y2={y(freezing, tempDomain, panels.temp)} stroke={ChartStyle.freezing} stroke-width={ChartStyle.freezingWidth} stroke-dasharray={ChartStyle.freezingDash} />
 							{/if}
-							<path d={curve(dews, tempDomain, panels.temp)} fill="none" stroke={ChartStyle.dewPoint} stroke-width={ChartStyle.thinLineWidth} />
+							<path d={curve(dews, tempDomain, panels.temp)} fill="none" stroke={ChartStyle.dewPoint} stroke-width={ChartStyle.thinLineWidth} stroke-dasharray={ChartStyle.dewPointDash} />
+							<path d={curve(heats, tempDomain, panels.temp)} fill="none" stroke={ChartStyle.heatIndex} stroke-width={ChartStyle.thinLineWidth} />
+							<path d={curve(chills, tempDomain, panels.temp)} fill="none" stroke={ChartStyle.windChill} stroke-width={ChartStyle.thinLineWidth} />
 							<path d={curve(temps, tempDomain, panels.temp)} fill="none" stroke={ChartStyle.temperature} stroke-width={ChartStyle.lineWidth} />
 						</g>
 					{/if}
@@ -779,7 +816,7 @@
 					<!-- Wind and gusts on one scale, with the direction every 4 hours -->
 					<g clip-path="url(#chart-clip-wind)">
 						{#if windDomain}
-							<path d={curve(gusts, windDomain, panels.wind)} fill="none" stroke={ChartStyle.gust} stroke-width={ChartStyle.thinLineWidth} stroke-dasharray={ChartStyle.gustDash} />
+							<path d={curve(gusts, windDomain, panels.wind)} fill="none" stroke={ChartStyle.gust} stroke-width={ChartStyle.thinLineWidth} />
 							<path d={curve(winds, windDomain, panels.wind)} fill="none" stroke={ChartStyle.wind} stroke-width={ChartStyle.lineWidth} />
 						{/if}
 					</g>
@@ -798,8 +835,20 @@
 
 					<path clip-path="url(#chart-clip-humidity)" d={curve(humidities, PERCENT_DOMAIN, panels.humidity)} fill="none" stroke={ChartStyle.humidity} stroke-width={ChartStyle.lineWidth} />
 
-					<!-- The air quality in the primary standard, each segment in the colour of the level of the hour at its start;
-					     no line where the hours have no air quality, and a note where the data stops -->
+					<!-- The UV index, each segment in the colour of the level of the hour at its start -->
+					{#if hasUvIndex && uvDomain}
+						<defs>
+							<linearGradient id="chart-uv-gradient" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2={Math.max(1, count * slot)} y2="0">
+								{#each uvStops as stop, k (k)}
+									<stop offset={stop.offset} stop-color={stop.color} />
+								{/each}
+							</linearGradient>
+						</defs>
+						<path clip-path="url(#chart-clip-uvIndex)" d={curve(uvs, uvDomain, panels.uvIndex)} fill="none" stroke="url(#chart-uv-gradient)" stroke-width={ChartStyle.lineWidth} />
+					{/if}
+
+					<!-- The air quality in the primary standard on its own scale, dashed, each segment in the colour of the level of
+					     the hour at its start; no line where the hours have no air quality, and a note where the data stops -->
 					{#if hasAirQuality && aqDomain}
 						<defs>
 							<linearGradient id="chart-aq-gradient" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2={Math.max(1, count * slot)} y2="0">
@@ -808,10 +857,10 @@
 								{/each}
 							</linearGradient>
 						</defs>
-						<path clip-path="url(#chart-clip-airQuality)" d={curve(aqValues, aqDomain, panels.airQuality)} fill="none" stroke="url(#chart-aq-gradient)" stroke-width={ChartStyle.lineWidth} />
+						<path clip-path="url(#chart-clip-uvIndex)" d={curve(aqValues, aqDomain, panels.uvIndex)} fill="none" stroke="url(#chart-aq-gradient)" stroke-width={ChartStyle.lineWidth} stroke-dasharray={ChartStyle.airQualityDash} />
 						{#if aqEnd >= 0}
 							<!-- It stays at the start of the plot when the last hour with air quality is out of view -->
-							<text x={Math.max(cx(aqEnd), hoursLeft) + 8} y={(panels.airQuality.plotTop + panels.airQuality.plotBottom) / 2} dominant-baseline="central" font-size="11" fill="white" fill-opacity="0.5">{$_('chart_view_no_data')}</text>
+							<text x={Math.max(cx(aqEnd), hoursLeft) + 8} y={(panels.uvIndex.plotTop + panels.uvIndex.plotBottom) / 2} dominant-baseline="central" font-size="11" fill="white" fill-opacity="0.5">{$_('chart_view_no_data')}</text>
 						{/if}
 					{/if}
 
@@ -861,15 +910,19 @@
 			</div>
 		</div>
 
-		<!-- Titles at the start of each panel, and the chance of rain scale at the end of its panel; they do not scroll -->
+		<!-- Titles at the start of each panel, and the chance of rain and air quality scales at the end of their panels;
+		     they do not scroll -->
 		<div class="overlay" aria-hidden="true">
 			{#each titles as t (t.id)}
 				<div class="panel-title" style:top="{panels[t.id].top}px" style:height="{TITLE_HEIGHT}px" style:left="{BAND_INSET + 10}px" dir="auto">
-					<span class="title-main">{t.title}</span>{#if t.second}<span class="title-second" style:color={t.second.color}>{'   ● ' + t.second.text}</span>{/if}
+					<span class="title-main">{t.title}</span>{#each t.legend as l (l.text)}<span class="title-second" style:color={l.color}>{'   ● ' + l.text}</span>{/each}
 				</div>
 			{/each}
 			{#each [50, 100] as v (v)}
 				<span class="chance-label" style:top="{y(v, PERCENT_DOMAIN, panels.precip)}px">{loc(`${v}%`)}</span>
+			{/each}
+			{#each aqScale as s (s.v)}
+				<span class="chance-label" style:top="{s.top}px">{loc(String(s.v))}</span>
 			{/each}
 		</div>
 	</div>

@@ -10,7 +10,10 @@ import type { DailyForecast } from './weatherData.js';
  * Each is null outside the range where the NWS uses it.
  */
 
-/** The heat index (Rothfusz regression with the NWS adjustments), at 80 °F (27 °C) and above, when it is above the temperature. */
+/**
+ * The heat index (Rothfusz regression with the NWS adjustments), at 27 °C (80 °F) and above. The app uses it only
+ * when it is at least 5 °C above the temperature: a smaller difference is not felt much. The NWS formula is in °F.
+ */
 export function heatIndex(temperature: Temperature, humidity: number | null | undefined): Temperature | null {
 	const t = temperature.fahrenheit;
 	if (humidity == null || !Number.isFinite(t) || t < 80) return null;
@@ -19,18 +22,23 @@ export function heatIndex(temperature: Temperature, humidity: number | null | un
 		0.05481717 * rh * rh + 0.00122874 * t * t * rh + 0.00085282 * t * rh * rh - 0.00000199 * t * t * rh * rh;
 	if (rh < 13 && t <= 112) hi -= ((13 - rh) / 4) * Math.sqrt((17 - Math.abs(t - 95)) / 17);
 	if (rh > 85 && t <= 87) hi += ((rh - 85) / 10) * ((87 - t) / 5);
-	// In very dry air the index falls below the air temperature; then the source's "feels like" shows instead
-	if (hi <= t) return null;
-	return Temperature.fromFahrenheit(hi);
+	// A small difference (or, in very dry air, an index under the temperature): the source's "feels like" shows instead
+	const index = Temperature.fromFahrenheit(hi);
+	if (index.celsius < temperature.celsius + 5) return null;
+	return index;
 }
 
-/** The wind chill (NWS 2001 formula), at 50 °F (10 °C) and below, with wind over 3 mph (4.8 km/h). */
+/**
+ * The wind chill (NWS 2001 formula), at 10 °C (50 °F) and below, with wind over 4.8 km/h (3 mph). The app uses it
+ * only at 0 °C and below: above freezing it is not felt much. The NWS formula is in °F and mph.
+ */
 export function windChill(temperature: Temperature, wind: WindSpeed): Temperature | null {
 	const t = temperature.fahrenheit;
 	const v = wind.mph;
 	if (!Number.isFinite(t) || !Number.isFinite(v) || t > 50 || v <= 3) return null;
 	const p = Math.pow(v, 0.16);
-	return Temperature.fromFahrenheit(35.74 + 0.6215 * t - 35.75 * p + 0.4275 * t * p);
+	const chill = Temperature.fromFahrenheit(35.74 + 0.6215 * t - 35.75 * p + 0.4275 * t * p);
+	return chill.celsius > 0 ? null : chill;
 }
 
 /**

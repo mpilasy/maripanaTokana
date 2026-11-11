@@ -63,6 +63,7 @@ import orinasa.njarasoa.maripanatokana.ui.theme.temperatureColor
 import orinasa.njarasoa.maripanatokana.ui.weather.chart.ChartDomain
 import orinasa.njarasoa.maripanatokana.ui.weather.chart.ChartStyle
 import orinasa.njarasoa.maripanatokana.ui.weather.chart.ChartTile
+import orinasa.njarasoa.maripanatokana.ui.weather.chart.chartDash
 import orinasa.njarasoa.maripanatokana.ui.weather.chart.chartAirQuality
 import orinasa.njarasoa.maripanatokana.ui.weather.chart.chartDomain
 import orinasa.njarasoa.maripanatokana.ui.weather.chart.chartTiles
@@ -73,15 +74,7 @@ import kotlin.math.roundToInt
 
 private const val CHART_HOURS = 72
 
-// The lines that share the temperature plot: the high and low as in the chart view, the dew point green, the heat
-// index pink and the wind chill purple
-private val HighLine = Color(0xFFFF7043)
-private val LowLine = Color(0xFF64B5F6)
-private val DewLine = Color(0xFF81C784)
-private val HeatLine = Color(0xFFF48FB1)
-private val ChillLine = Color(0xFFCE93D8)
-// The gust on the wind plot
-private val GustLine = Color(0xFFFFB74D)
+// The colours of the lines are those of the phone chart view (ChartStyle), so a value has the same colour everywhere
 
 /** A thin line on the plot of another series, on the same scale: the dew point, heat index, wind chill or gust. */
 private class ExtraLine(val values: List<Double?>, val color: Color, val dashed: Boolean = false)
@@ -131,9 +124,9 @@ private fun withTemperatureExtras(
     temperature: TvSeries, dew: List<Double?>?, heat: List<Double?>, chill: List<Double?>, metric: Boolean,
 ): List<TvSeries> {
     val parts = listOfNotNull(
-        dew?.let { Triple(R.string.detail_dewpoint, it, ExtraLine(it, DewLine, dashed = true)) },
-        heat.takeIf { v -> v.any { it != null } }?.let { Triple(R.string.detail_heat_index, it, ExtraLine(it, HeatLine)) },
-        chill.takeIf { v -> v.any { it != null } }?.let { Triple(R.string.detail_wind_chill, it, ExtraLine(it, ChillLine)) },
+        dew?.let { Triple(R.string.detail_dewpoint, it, ExtraLine(it, ChartStyle.dewPoint, dashed = true)) },
+        heat.takeIf { v -> v.any { it != null } }?.let { Triple(R.string.detail_heat_index, it, ExtraLine(it, ChartStyle.heatIndex)) },
+        chill.takeIf { v -> v.any { it != null } }?.let { Triple(R.string.detail_wind_chill, it, ExtraLine(it, ChartStyle.windChill)) },
     )
     val main = TvSeries(
         temperature.label, temperature.values, temperature.fromZero, temperature.minSpan, temperature.color, temperature.text,
@@ -202,8 +195,8 @@ private fun dailySeries(data: WeatherData, metric: Boolean, usLabel: String, euL
     val gust = days.map { gustByDay[day(it.date)] }.takeIf { v -> v.any { it != null } }
     val chance = days.map { it.precipProbability.toDouble() }
     val temperature = TvSeries(
-        R.string.detail_temperature, days.map { it.tempMax.celsius }, false, 5.0, { HighLine }, { temperatureText(it, metric) },
-        low = days.map { it.tempMin.celsius }, lowColor = LowLine,
+        R.string.detail_temperature, days.map { it.tempMax.celsius }, false, 5.0, { ChartStyle.high }, { temperatureText(it, metric) },
+        low = days.map { it.tempMin.celsius }, lowColor = ChartStyle.low,
     )
     val wind = days.map { it.windSpeed.metersPerSecond }
     // The air quality on the UV plot
@@ -227,10 +220,10 @@ private fun dailySeries(data: WeatherData, metric: Boolean, usLabel: String, euL
         chanceSeries(chance),
         TvSeries(
             R.string.detail_wind, wind, true, 5.0, { ChartStyle.wind }, { windText(it, metric) },
-            extras = listOfNotNull(gust?.let { ExtraLine(it, GustLine) }),
+            extras = listOfNotNull(gust?.let { ExtraLine(it, ChartStyle.gust) }),
         ),
     ) + listOfNotNull(
-        gust?.let { TvSeries(R.string.detail_wind_gust, it, true, 5.0, { GustLine }, { v -> windText(v, metric) }, withPrevious = true) },
+        gust?.let { TvSeries(R.string.detail_wind_gust, it, true, 5.0, { ChartStyle.gust }, { v -> windText(v, metric) }, withPrevious = true) },
     ) + uvWithAirQuality + listOf(
         TvSeries(R.string.detail_humidity, days.map { it.humidity?.toDouble() }, true, 100.0, { ChartStyle.humidity }, { "${it.roundToInt()}%" to null }),
     )
@@ -259,8 +252,8 @@ private fun hourlySeries(data: WeatherData, metric: Boolean, usLabel: String, eu
                 chanceSeries(chance),
             )
             ChartTile.WIND -> if (gust == null) listOf(one) else listOf(
-                TvSeries(one.label, one.values, one.fromZero, one.minSpan, one.color, one.text, extras = listOf(ExtraLine(gust, GustLine))),
-                TvSeries(R.string.detail_wind_gust, gust, true, 5.0, { GustLine }, { windText(it, metric) }, withPrevious = true),
+                TvSeries(one.label, one.values, one.fromZero, one.minSpan, one.color, one.text, extras = listOf(ExtraLine(gust, ChartStyle.gust))),
+                TvSeries(R.string.detail_wind_gust, gust, true, 5.0, { ChartStyle.gust }, { windText(it, metric) }, withPrevious = true),
             )
             ChartTile.WIND_GUST -> emptyList()
             // The air quality on the UV plot, when there is one
@@ -575,7 +568,7 @@ private fun SeriesPlot(series: TvSeries, window: Int, lead: Int, selected: Int, 
         }
 
         // The thin lines: the dew point dashed
-        val dash = PathEffect.dashPathEffect(floatArrayOf(8.dp.toPx(), 6.dp.toPx()))
+        val dash = chartDash(ChartStyle.dewPointDash)
         for ((line, part) in extras) {
             dashedLine(part.map { v -> v?.let { it to line.color } }, ::x, ::y, 2.dp.toPx(), if (line.dashed) dash else null)
         }
@@ -585,7 +578,7 @@ private fun SeriesPlot(series: TvSeries, window: Int, lead: Int, selected: Int, 
             val d = rightLine.domain
             fun rightY(v: Double) = (bottom - (v - d.min) / (d.max - d.min) * (bottom - top)).toFloat()
             rightTicks.forEach { (v, text) -> canvas.drawText(text, size.width - scalePaint.measureText(text), rightY(v) + 4.dp.toPx(), scalePaint) }
-            val rightDash = PathEffect.dashPathEffect(floatArrayOf(10.dp.toPx(), 6.dp.toPx()))
+            val rightDash = chartDash(ChartStyle.airQualityDash)
             dashedLine(
                 rightPart.map { v -> v?.let { it to rightLine.color(it) } }, ::x, ::rightY, 3.dp.toPx(),
                 if (rightLine.dashed) rightDash else null,

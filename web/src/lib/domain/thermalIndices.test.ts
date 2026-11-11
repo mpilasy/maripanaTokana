@@ -6,39 +6,46 @@ import { Temperature } from './temperature.js';
 import { WindSpeed } from './windSpeed.js';
 import { frostbiteMinutes, heatIndex, relativeHumidity, windChill } from './thermalIndices.js';
 
-// Reference values from the NWS heat index and wind chill charts
-const f = (v: number) => Temperature.fromFahrenheit(v);
-const mph = (v: number) => WindSpeed.fromMph(v);
+// Reference values in °C and km/h, calculated with the NWS heat index and wind chill formulas
+const c = (v: number) => Temperature.fromCelsius(v);
+const kmh = (v: number) => WindSpeed.fromMetersPerSecond(v / 3.6);
 
 describe('heatIndex', () => {
-	it('matches the NWS chart', () => {
-		expect(Math.abs(heatIndex(f(90), 70)!.fahrenheit - 106)).toBeLessThan(1);
-		expect(Math.abs(heatIndex(f(80), 60)!.fahrenheit - 82)).toBeLessThan(1);
-		expect(Math.abs(heatIndex(f(100), 40)!.fahrenheit - 109)).toBeLessThan(1);
+	it('follows the NWS formula', () => {
+		expect(Math.abs(heatIndex(c(32), 70)!.celsius - 40.4)).toBeLessThan(0.5);
+		expect(Math.abs(heatIndex(c(30), 70)!.celsius - 35.0)).toBeLessThan(0.5);
+		expect(Math.abs(heatIndex(c(38), 50)!.celsius - 48.6)).toBeLessThan(0.5);
 	});
 
-	it('is null below 80 °F or without humidity', () => {
-		expect(heatIndex(f(79), 90)).toBeNull();
-		expect(heatIndex(f(90), null)).toBeNull();
+	it('is null below 27 °C or without humidity', () => {
+		expect(heatIndex(c(26), 90)).toBeNull();
+		expect(heatIndex(c(32), null)).toBeNull();
 	});
 
-	it('is null when not above the temperature', () => {
-		// Very dry heat (Kidal, Mali: 100 °F at 12 %) gives about 95 °F
-		expect(heatIndex(f(100), 12)).toBeNull();
-		expect(heatIndex(f(80), 40)).toBeNull();
+	it('is null when less than 5 °C above the temperature', () => {
+		// Very dry heat (Kidal, Mali: 38 °C at 12 %) gives about 35 °C, under the temperature
+		expect(heatIndex(c(38), 12)).toBeNull();
+		expect(heatIndex(c(27), 40)).toBeNull();
+		// 28.1 °C at 27 °C and 60 %, 37.2 °C at 35 °C and 40 %
+		expect(heatIndex(c(27), 60)).toBeNull();
+		expect(heatIndex(c(35), 40)).toBeNull();
 	});
 });
 
 describe('windChill', () => {
-	it('matches the NWS chart', () => {
-		expect(Math.abs(windChill(f(0), mph(15))!.fahrenheit + 19)).toBeLessThan(0.5);
-		expect(Math.abs(windChill(f(40), mph(10))!.fahrenheit - 34)).toBeLessThan(0.5);
-		expect(Math.abs(windChill(f(20), mph(60))!.fahrenheit + 4)).toBeLessThan(0.5);
+	it('follows the NWS formula', () => {
+		expect(Math.abs(windChill(c(-20), kmh(30))!.celsius + 32.5)).toBeLessThan(0.3);
+		expect(Math.abs(windChill(c(-5), kmh(20))!.celsius + 11.5)).toBeLessThan(0.3);
+		expect(Math.abs(windChill(c(-10), kmh(80))!.celsius + 24.0)).toBeLessThan(0.3);
+		// Just under freezing: -0.9 °C at 2 °C with 10 km/h
+		expect(Math.abs(windChill(c(2), kmh(10))!.celsius + 0.9)).toBeLessThan(0.3);
 	});
 
-	it('is null when warm or calm', () => {
-		expect(windChill(f(51), mph(20))).toBeNull();
-		expect(windChill(f(30), mph(3))).toBeNull();
+	it('is null when warm, calm or above freezing', () => {
+		expect(windChill(c(11), kmh(30))).toBeNull();
+		expect(windChill(c(-5), kmh(4))).toBeNull();
+		// 0.5 °C at 4 °C with 15 km/h
+		expect(windChill(c(4), kmh(15))).toBeNull();
 	});
 });
 

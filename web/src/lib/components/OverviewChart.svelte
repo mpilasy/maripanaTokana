@@ -224,7 +224,7 @@
 	{#snippet secondLine()}
 		{#if second && second2}
 			<path d={runsOf(second2.pts).filter((r) => r.length > 1).map((r) => monotonePath(r)).join(' ')} fill="none" stroke={second.color}
-				stroke-width={second.width ?? ChartStyle.lineWidth} stroke-dasharray={second.dashed ? ChartStyle.gustDash : undefined} />
+				stroke-width={second.width ?? ChartStyle.lineWidth} stroke-dasharray={second.dashed ? ChartStyle.dewPointDash : undefined} />
 		{/if}
 	{/snippet}
 	<!-- Hourly charts: the night hours darker, and a line at each local midnight -->

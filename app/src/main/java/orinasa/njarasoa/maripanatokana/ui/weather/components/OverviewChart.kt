@@ -213,7 +213,7 @@ internal fun OverviewChart(
                     drawPath(path, lineColor, style = Stroke(width, pathEffect = effect))
                 }
             }
-            fun drawSecondLine() = drawCurve(secondPoints, secondColor, secondWidth.toPx(), if (secondDashed) chartDash(ChartStyle.gustDash) else null)
+            fun drawSecondLine() = drawCurve(secondPoints, secondColor, secondWidth.toPx(), if (secondDashed) chartDash(ChartStyle.dewPointDash) else null)
 
             if (style == OverviewStyle.BARS) {
                 drawLine(Color.White.copy(alpha = 0.2f), Offset(0f, h - 0.5f), Offset(w, h - 0.5f), 1.dp.toPx())

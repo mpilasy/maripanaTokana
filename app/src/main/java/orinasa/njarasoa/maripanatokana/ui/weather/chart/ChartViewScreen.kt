@@ -99,6 +99,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -107,6 +108,8 @@ import orinasa.njarasoa.maripanatokana.domain.model.AqiStandard
 import orinasa.njarasoa.maripanatokana.domain.model.ChartHour
 import orinasa.njarasoa.maripanatokana.domain.model.HourlyAirQuality
 import orinasa.njarasoa.maripanatokana.domain.model.Moon
+import orinasa.njarasoa.maripanatokana.domain.model.Temperature
+import orinasa.njarasoa.maripanatokana.domain.model.ThermalIndices
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.model.showWindArrow
 import orinasa.njarasoa.maripanatokana.ui.theme.Hairline
@@ -140,7 +143,7 @@ private const val LABEL_HOURS = 4
 
 /**
  * The panels from top to bottom, with their height in dp. The value panels have a title line at the top and a band
- * behind them. The air quality panel is shown only when an hour has air quality.
+ * behind them. The UV index panel, with the air quality on it, is shown only when an hour has a UV index or air quality.
  */
 private enum class ChartPanel(val heightDp: Int, val titled: Boolean) {
     // The time axis at the top: the bottom one mirrored
@@ -151,7 +154,7 @@ private enum class ChartPanel(val heightDp: Int, val titled: Boolean) {
     WIND(128, true),
     PRESSURE(104, true),
     HUMIDITY(104, true),
-    AIR_QUALITY(104, true),
+    UV_INDEX(104, true),
     TIME(36, false),
 }
 
@@ -193,9 +196,14 @@ private val ChartTile.labelRes: Int
     }
 
 /** The values of one hour in the primary unit, as the charts draw them. */
-private class ChartSeries(hours: List<ChartHour>, metricPrimary: Boolean) {
-    val temperature = hours.map { it.temperature?.let { t -> if (metricPrimary) t.celsius else t.fahrenheit } }
-    val dewPoint = hours.map { it.dewPoint?.let { t -> if (metricPrimary) t.celsius else t.fahrenheit } }
+private class ChartSeries(hours: List<ChartHour>, private val metricPrimary: Boolean) {
+    private fun Temperature.primary() = if (metricPrimary) celsius else fahrenheit
+    val temperature = hours.map { it.temperature?.primary() }
+    val dewPoint = hours.map { it.dewPoint?.primary() }
+    // The NWS heat index and wind chill of each hour; null where they do not apply
+    val heatIndex = hours.map { h -> h.temperature?.let { ThermalIndices.heatIndex(it, h.humidity) }?.primary() }
+    val windChill = hours.map { h -> h.temperature?.let { t -> h.windSpeed?.let { ThermalIndices.windChill(t, it) } }?.primary() }
+    val uv = hours.map { it.uvIndex?.takeIf { v -> v.isFinite() } }
     val precipitation = hours.map { it.precipitation?.let { p -> if (metricPrimary) p.mm else p.inches } }
     val chance = hours.map { it.precipProbability?.toDouble() }
     val wind = hours.map { it.windSpeed?.let { w -> if (metricPrimary) w.metersPerSecond else w.mph } }
@@ -529,16 +537,21 @@ private fun ChartPanels(
 
     val series = remember(hours, metricPrimary) { ChartSeries(hours, metricPrimary) }
     // Each scale is computed once from all the hours, so it stays the same while the hours scroll
-    val tDomain = remember(series) { chartDomain(series.temperature + series.dewPoint, fromZero = false, minSpan = if (metricPrimary) 5.0 else 9.0) }
+    val tDomain = remember(series) {
+        chartDomain(series.temperature + series.dewPoint + series.heatIndex + series.windChill, fromZero = false, minSpan = if (metricPrimary) 5.0 else 9.0)
+    }
     val pDomain = remember(series) { chartDomain(series.precipitation, fromZero = true, minSpan = if (metricPrimary) 1.0 else 0.04) }
     val wDomain = remember(series) { chartDomain(series.wind + series.gust, fromZero = true, minSpan = if (metricPrimary) 5.0 else 10.0) }
     val prDomain = remember(series) { chartDomain(series.pressure, fromZero = false, minSpan = if (metricPrimary) 4.0 else 0.12) }
-    // The air quality in the primary standard; no value in any hour: no air quality panel
+    val uvDomain = remember(series) { chartDomain(series.uv, fromZero = true, minSpan = 5.0) }
+    // The air quality in the primary standard, on its own scale at the end of the UV index panel
     val aqValues = remember(airQuality, aqiStandard) {
         airQuality.map { it?.let { aq -> (if (aqiStandard == AqiStandard.EUROPEAN) aq.europeanValue else aq.usValue).toDouble() } }
     }
     val aqDomain = remember(aqValues) { chartDomain(aqValues, fromZero = true, minSpan = 50.0) }
-    val panels = remember(aqDomain) { ChartPanel.entries.filter { it != ChartPanel.AIR_QUALITY || aqDomain != null } }
+    // No UV index and no air quality in any hour: no UV index panel
+    val showUv = uvDomain != null || aqDomain != null
+    val panels = remember(showUv) { ChartPanel.entries.filter { it != ChartPanel.UV_INDEX || showUv } }
     // The last hour with air quality before the first hours without it, where the "no data" label starts
     val aqEnd = remember(aqValues) { (0 until aqValues.size - 1).firstOrNull { aqValues[it] != null && aqValues[it + 1] == null } }
     val times = remember(hours) { hours.map { it.time } }
@@ -548,7 +561,7 @@ private fun ChartPanels(
     val windExtremes = remember(series, days) { chartDayExtremes(series.wind, days) }
     val pressureExtremes = remember(series, days) { chartDayExtremes(series.pressure, days) }
     val humidityExtremes = remember(series, days) { chartDayExtremes(series.humidity, days) }
-    val aqExtremes = remember(aqValues, days) { chartDayExtremes(aqValues, days) }
+    val uvExtremes = remember(series, days) { chartDayExtremes(series.uv, days) }
     // The highest bar of each day, with any number of hours
     val rainPeaks = remember(series, days) { chartDayExtremes(series.precipitation, days, minHours = 1) }
     // The moon of each day: the phase to draw, and on the day of a new or full moon the index of its name in
@@ -575,12 +588,15 @@ private fun ChartPanels(
     val titles = ChartTitles(
         temperature = stringResource(R.string.detail_temperature) + "  " + units(metricPrimary, "°C", "°F"),
         dewPoint = stringResource(R.string.detail_dewpoint),
+        heatIndex = stringResource(R.string.detail_heat_index),
+        windChill = stringResource(R.string.detail_wind_chill),
         precipitation = stringResource(R.string.detail_precipitation) + "  " + units(metricPrimary, "mm", "in"),
         chance = stringResource(R.string.precip_chance, "%"),
         wind = stringResource(R.string.detail_wind) + "  " + units(metricPrimary, "m/s", "mph"),
         gust = stringResource(R.string.detail_wind_gust),
         pressure = stringResource(R.string.detail_pressure) + "  " + units(metricPrimary, "hPa", "inHg"),
         humidity = stringResource(R.string.detail_humidity) + "  %",
+        uvIndex = stringResource(R.string.detail_uv_index),
         airQuality = stringResource(R.string.detail_air_quality) + "  " +
             stringResource(if (aqiStandard == AqiStandard.EUROPEAN) R.string.air_quality_eu_aqi else R.string.air_quality_us_aqi),
     )
@@ -610,8 +626,8 @@ private fun ChartPanels(
         // The hour position under the selection line, for the dots on the lines (0 is the middle of the first hour)
         val linePos = (scroll + lineOffset) / slot - 0.5f
         val chartsTop = panelTop(panels, ChartPanel.ICONS)
-        // The bottom of the last value panel: the air quality when it shows, else the humidity
-        val lastPanel = if (aqDomain != null) ChartPanel.AIR_QUALITY else ChartPanel.HUMIDITY
+        // The bottom of the last value panel: the UV index when it shows, else the humidity
+        val lastPanel = if (showUv) ChartPanel.UV_INDEX else ChartPanel.HUMIDITY
         val chartsBottom = panelTop(panels, lastPanel) + lastPanel.heightDp.dp.toPx()
 
         val tArea = plotArea(panels, ChartPanel.TEMPERATURE, extraTop = EXTREME_ROW.toPx(), extraBottom = EXTREME_ROW.toPx())
@@ -619,12 +635,16 @@ private fun ChartPanels(
         val wArea = plotArea(panels, ChartPanel.WIND, extraTop = (ARROW_ROW + EXTREME_ROW).toPx(), extraBottom = EXTREME_ROW.toPx())
         val prArea = plotArea(panels, ChartPanel.PRESSURE, extraTop = EXTREME_ROW.toPx(), extraBottom = EXTREME_ROW.toPx())
         val hArea = plotArea(panels, ChartPanel.HUMIDITY, extraTop = EXTREME_ROW.toPx(), extraBottom = EXTREME_ROW.toPx())
-        val aqArea = plotArea(panels, ChartPanel.AIR_QUALITY, extraTop = EXTREME_ROW.toPx(), extraBottom = EXTREME_ROW.toPx())
+        val uvArea = plotArea(panels, ChartPanel.UV_INDEX, extraTop = EXTREME_ROW.toPx(), extraBottom = EXTREME_ROW.toPx())
 
-        // The high of each day above its point and the low under it, on a primary line ([y] gives the point of a
-        // value); a label stays inside the plot, and a low that would cover the high of its day is left out
+        // The high of each day above its point and the low under it (not with [lows] false), on a primary line ([y]
+        // gives the point of a value); a label stays inside the plot, and a low that would cover the high of its day is
+        // left out
         val extremeStyle = TextStyle(fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = displayFont, textDirection = TextDirection.Ltr)
-        fun drawDayExtremes(values: List<Double?>, extremes: List<ChartDayExtremes>, y: (Double) -> Float, color: (Int, Boolean) -> Color, label: (Int) -> String?) {
+        fun drawDayExtremes(
+            values: List<Double?>, extremes: List<ChartDayExtremes>, y: (Double) -> Float, color: (Int, Boolean) -> Color,
+            lows: Boolean = true, label: (Int) -> String?,
+        ) {
             fun measure(i: Int, high: Boolean): androidx.compose.ui.text.TextLayoutResult? {
                 if (i !in drawn || values[i] == null) return null
                 val text = label(i) ?: return null
@@ -641,6 +661,7 @@ private fun ChartPanels(
                     highBox = Rect(topLeft, Size(layout.size.width.toFloat(), layout.size.height.toFloat()))
                     drawText(layout, topLeft = topLeft)
                 }
+                if (!lows) continue
                 measure(e.lowIndex, false)?.let { layout ->
                     val i = e.lowIndex
                     val topLeft = Offset(left(i, layout.size.width), y(values[i]!!) + 2.dp.toPx())
@@ -686,7 +707,8 @@ private fun ChartPanels(
             wDomain?.let { drawGrid(it, wArea) }
             prDomain?.let { drawGrid(it, prArea) }
             drawGrid(PERCENT_DOMAIN, hArea)
-            aqDomain?.let { drawGrid(it, aqArea) }
+            // The grid of the UV index; with no UV index, the grid of the air quality
+            (uvDomain ?: aqDomain)?.let { drawGrid(it, uvArea) }
 
             // The selection column: the selected hour is under it, in every panel; the lines are on top of it
             drawRoundRect(
@@ -696,20 +718,25 @@ private fun ChartPanels(
 
             drawIcons(hours, drawn, localHours, ::cx, panelTop(panels, ChartPanel.ICONS), painters, textMeasurer, displayFont, localizeDigits)
 
-            // Temperature with the dew point on the same scale, and a dashed line at freezing
+            // Temperature with the dew point (dashed), the heat index and the wind chill on the same scale, and a
+            // dashed line at freezing
             tDomain?.let { d ->
                 val freezing = if (metricPrimary) 0.0 else 32.0
                 if (freezing > d.min && freezing < d.max) {
                     val fy = tArea.y(freezing, d)
                     drawLine(ChartStyle.freezing, Offset(axisPx, fy), Offset(size.width, fy), ChartStyle.freezingWidth.toPx(), pathEffect = chartDash(ChartStyle.freezingDash))
                 }
-                drawSeries(series.dewPoint, drawn, ::cx, { tArea.y(it, d) }, ChartStyle.dewPoint, ChartStyle.thinLineWidth.toPx())
+                drawSeries(series.dewPoint, drawn, ::cx, { tArea.y(it, d) }, ChartStyle.dewPoint, ChartStyle.thinLineWidth.toPx(), ChartStyle.dewPointDash)
+                drawSeries(series.heatIndex, drawn, ::cx, { tArea.y(it, d) }, ChartStyle.heatIndex, ChartStyle.thinLineWidth.toPx())
+                drawSeries(series.windChill, drawn, ::cx, { tArea.y(it, d) }, ChartStyle.windChill, ChartStyle.thinLineWidth.toPx())
                 drawSeries(series.temperature, drawn, ::cx, { tArea.y(it, d) }, ChartStyle.temperature, ChartStyle.lineWidth.toPx())
                 drawSelectedDot(series.dewPoint, linePos, lineX) { tArea.y(it, d) }
+                drawSelectedDot(series.heatIndex, linePos, lineX) { tArea.y(it, d) }
+                drawSelectedDot(series.windChill, linePos, lineX) { tArea.y(it, d) }
                 drawSelectedDot(series.temperature, linePos, lineX) { tArea.y(it, d) }
 
-                // The high and low of each day, in the colours of the temperature chart of the main page
-                drawDayExtremes(series.temperature, tempExtremes, { tArea.y(it, d) }, { _, high -> if (high) Color(0xFFFF8A65) else Color(0xFF64B5F6) }) { i ->
+                // The high and low of each day
+                drawDayExtremes(series.temperature, tempExtremes, { tArea.y(it, d) }, { _, high -> if (high) ChartStyle.high else ChartStyle.low }) { i ->
                     hours[i].temperature?.displayDual(metricPrimary)?.let { (p, s) -> "$p · $s" }
                 }
             }
@@ -740,7 +767,7 @@ private fun ChartPanels(
 
             // Wind and gusts on one scale, with the direction every 4 hours
             wDomain?.let { d ->
-                drawSeries(series.gust, drawn, ::cx, { wArea.y(it, d) }, ChartStyle.gust, ChartStyle.thinLineWidth.toPx(), dashed = true)
+                drawSeries(series.gust, drawn, ::cx, { wArea.y(it, d) }, ChartStyle.gust, ChartStyle.thinLineWidth.toPx())
                 drawSeries(series.wind, drawn, ::cx, { wArea.y(it, d) }, ChartStyle.wind, ChartStyle.lineWidth.toPx())
                 drawSelectedDot(series.gust, linePos, lineX) { wArea.y(it, d) }
                 drawSelectedDot(series.wind, linePos, lineX) { wArea.y(it, d) }
@@ -770,21 +797,30 @@ private fun ChartPanels(
                 hours[i].humidity?.let { "$it%" }
             }
 
-            // The air quality: each part of the line in the tier colour of the hour at its start, and a "no data"
-            // label after the last hour with air quality
+            // The air quality, dashed on its own scale: each part of the line in the tier colour of the hour at its
+            // start, and a "no data" label after the last hour with air quality
             aqDomain?.let { d ->
-                drawTierSeries(aqValues, drawn, ::cx, { aqArea.y(it, d) }, { i -> colorsFor(airQuality[i]!!.tier(aqiStandard)).background }, ChartStyle.lineWidth.toPx())
-                drawSelectedDot(aqValues, linePos, lineX) { aqArea.y(it, d) }
-                drawDayExtremes(aqValues, aqExtremes, { aqArea.y(it, d) }, { i, _ -> colorsFor(airQuality[i]!!.tier(aqiStandard)).background }) { i ->
-                    aqValues[i]?.toInt()?.toString()
-                }
+                drawTierSeries(
+                    aqValues, drawn, ::cx, { uvArea.y(it, d) }, { i -> colorsFor(airQuality[i]!!.tier(aqiStandard)).background },
+                    ChartStyle.lineWidth.toPx(), ChartStyle.airQualityDash,
+                )
+                drawSelectedDot(aqValues, linePos, lineX) { uvArea.y(it, d) }
                 aqEnd?.let { i ->
                     val layout = textMeasurer.measure(noData, TextStyle(color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp, fontFamily = bodyFont))
                     // It stays at the start of the plot when the last hour with air quality is out of view
                     val left = maxOf(cx(i), axisPx) + 8.dp.toPx()
                     if (left < size.width) {
-                        drawText(layout, topLeft = Offset(left, (aqArea.top + aqArea.bottom - layout.size.height) / 2))
+                        drawText(layout, topLeft = Offset(left, (uvArea.top + uvArea.bottom - layout.size.height) / 2))
                     }
+                }
+            }
+            // The UV index on top: each part of the line in the tier colour of the hour at its start, and the high of
+            // each day (the low is 0 at night)
+            uvDomain?.let { d ->
+                drawTierSeries(series.uv, drawn, ::cx, { uvArea.y(it, d) }, { i -> colorsFor(series.uv[i]!!).background }, ChartStyle.lineWidth.toPx())
+                drawSelectedDot(series.uv, linePos, lineX) { uvArea.y(it, d) }
+                drawDayExtremes(series.uv, uvExtremes, { uvArea.y(it, d) }, { i, _ -> colorsFor(series.uv[i]!!).background }, lows = false) { i ->
+                    series.uv[i]?.roundToInt()?.takeIf { it > 0 }?.toString()
                 }
             }
 
@@ -840,6 +876,14 @@ private fun ChartPanels(
                 val layout = textMeasurer.measure(localizeDigits("${v.toInt()}%"), chanceStyle)
                 drawText(layout, topLeft = Offset(size.width - layout.size.width - 2.dp.toPx(), pArea.y(v, PERCENT_DOMAIN) - layout.size.height / 2f))
             }
+            // The air quality scale at the end of the UV index panel, in the same way, with no label at 0
+            aqDomain?.let { d ->
+                val aqStyle = chanceStyle.copy(color = Color.White.copy(alpha = 0.6f))
+                d.ticks.filter { it > d.min }.forEach { v ->
+                    val layout = textMeasurer.measure(localizeDigits(v.roundToInt().toString()), aqStyle)
+                    drawText(layout, topLeft = Offset(size.width - layout.size.width - 2.dp.toPx(), uvArea.y(v, d) - layout.size.height / 2f))
+                }
+            }
         }
 
         // The axis column: the values of each scale in the primary unit, with the other unit small under them
@@ -849,15 +893,25 @@ private fun ChartPanels(
         wDomain?.let { axis.draw(this, it, wArea, if (metricPrimary) { v -> v * 2.23694 } else { v -> v / 2.23694 }, if (metricPrimary) 0 else 1) }
         prDomain?.let { axis.draw(this, it, prArea, if (metricPrimary) { v -> v * 0.02953 } else { v -> v / 0.02953 }, if (metricPrimary) 2 else 0) }
         axis.draw(this, PERCENT_DOMAIN, hArea, null, 0, suffix = "%")
-        aqDomain?.let { axis.draw(this, it, aqArea, null, 0) }
+        uvDomain?.let { axis.draw(this, it, uvArea, null, 0) }
 
-        // Titles on top of everything, at the start of each band; they do not scroll
-        drawTitle(panels, ChartPanel.TEMPERATURE, titles.temperature, titles.dewPoint, ChartStyle.dewPoint, textMeasurer, bodyFont)
-        drawTitle(panels, ChartPanel.PRECIPITATION, titles.precipitation, titles.chance, ChartStyle.chance, textMeasurer, bodyFont)
-        drawTitle(panels, ChartPanel.WIND, titles.wind, titles.gust, ChartStyle.gust, textMeasurer, bodyFont)
-        drawTitle(panels, ChartPanel.PRESSURE, titles.pressure, null, Color.Unspecified, textMeasurer, bodyFont)
-        drawTitle(panels, ChartPanel.HUMIDITY, titles.humidity, null, Color.Unspecified, textMeasurer, bodyFont)
-        if (aqDomain != null) drawTitle(panels, ChartPanel.AIR_QUALITY, titles.airQuality, null, Color.Unspecified, textMeasurer, bodyFont)
+        // Titles on top of everything, at the start of each band; they do not scroll. A second line is named only when
+        // it has a value
+        val temperatureKeys = listOfNotNull(
+            titles.dewPoint to ChartStyle.dewPoint,
+            (titles.heatIndex to ChartStyle.heatIndex).takeIf { series.heatIndex.any { it != null } },
+            (titles.windChill to ChartStyle.windChill).takeIf { series.windChill.any { it != null } },
+        )
+        drawTitle(panels, ChartPanel.TEMPERATURE, titles.temperature, temperatureKeys, textMeasurer, bodyFont)
+        drawTitle(panels, ChartPanel.PRECIPITATION, titles.precipitation, listOf(titles.chance to ChartStyle.chance), textMeasurer, bodyFont)
+        drawTitle(panels, ChartPanel.WIND, titles.wind, listOf(titles.gust to ChartStyle.gust), textMeasurer, bodyFont)
+        drawTitle(panels, ChartPanel.PRESSURE, titles.pressure, emptyList(), textMeasurer, bodyFont)
+        drawTitle(panels, ChartPanel.HUMIDITY, titles.humidity, emptyList(), textMeasurer, bodyFont)
+        // The air quality key is neutral, because its line changes colour with the tier
+        if (showUv) {
+            val aqKey = if (aqDomain != null) listOf(titles.airQuality to Color.White.copy(alpha = 0.6f)) else emptyList()
+            drawTitle(panels, ChartPanel.UV_INDEX, titles.uvIndex, aqKey, textMeasurer, bodyFont)
+        }
     }
 }
 
@@ -873,9 +927,10 @@ private val PERCENT_DOMAIN = ChartDomain(0.0, 100.0, listOf(0.0, 50.0, 100.0))
 private class ChartTitles(
     val temperature: String, val dewPoint: String,
     val precipitation: String, val chance: String,
+    val heatIndex: String, val windChill: String,
     val wind: String, val gust: String,
     val pressure: String, val humidity: String,
-    val airQuality: String,
+    val uvIndex: String, val airQuality: String,
 )
 
 /** The part of a panel where the values go, from [top] to [bottom] px. */
@@ -912,12 +967,12 @@ private fun DrawScope.drawGrid(d: ChartDomain, area: PlotArea) {
     }
 }
 
-/** A line through the hours of [range]; a missing value leaves a gap, and each run is a monotone curve. */
+/** A line through the hours of [range], dashed with [dash]; a missing value leaves a gap, and each run is a monotone curve. */
 private fun DrawScope.drawSeries(
     values: List<Double?>, range: IntRange, x: (Int) -> Float, y: (Double) -> Float,
-    color: Color, width: Float, dashed: Boolean = false,
+    color: Color, width: Float, dash: List<Dp>? = null,
 ) {
-    val effect = if (dashed) chartDash(ChartStyle.gustDash) else null
+    val effect = dash?.let { chartDash(it) }
     var run = mutableListOf<Offset>()
     fun flush() {
         if (run.size == 1) drawCircle(color, width, run[0])
@@ -940,24 +995,32 @@ private fun DrawScope.drawSeries(
 
 /**
  * A line through the hours of [range] as [drawSeries] draws it, but each part between two hours is in the colour of the
- * hour at its start ([color]).
+ * hour at its start ([color]). The parts of one colour in a row are one path, so a [dash] pattern runs on along them.
  */
 private fun DrawScope.drawTierSeries(
     values: List<Double?>, range: IntRange, x: (Int) -> Float, y: (Double) -> Float, color: (Int) -> Color, width: Float,
+    dash: List<Dp>? = null,
 ) {
+    val effect = dash?.let { chartDash(it) }
     var run = mutableListOf<Int>()
     fun flush() {
         val points = run.map { Offset(x(it), y(values[it]!!)) }
         if (points.size == 1) drawCircle(color(run[0]), width, points[0])
         if (points.size >= 2) {
+            var path: Path? = null
+            var pathColor = Color.Unspecified
+            // Round ends, so the parts join with no gap
+            fun drawPart() = path?.let { drawPath(it, pathColor, style = Stroke(width, cap = StrokeCap.Round, pathEffect = effect)) }
             computeMonotoneCubicControlPoints(points).forEachIndexed { k, cp ->
-                val path = Path().apply {
-                    moveTo(points[k].x, points[k].y)
-                    cubicTo(cp.cp1.x, cp.cp1.y, cp.cp2.x, cp.cp2.y, points[k + 1].x, points[k + 1].y)
+                val c = color(run[k])
+                if (path == null || c != pathColor) {
+                    drawPart()
+                    path = Path().apply { moveTo(points[k].x, points[k].y) }
+                    pathColor = c
                 }
-                // Round ends, so the parts join with no gap
-                drawPath(path, color(run[k]), style = Stroke(width, cap = StrokeCap.Round))
+                path!!.cubicTo(cp.cp1.x, cp.cp1.y, cp.cp2.x, cp.cp2.y, points[k + 1].x, points[k + 1].y)
             }
+            drawPart()
         }
         run = mutableListOf()
     }
@@ -1021,14 +1084,14 @@ private fun DrawScope.drawWindArrow(center: Offset, degrees: Int) {
     }
 }
 
-/** The panel name and units, and the name of the second line in its colour, centred in the title row of [panel]. */
+/** The panel name and units, and the name of each other line ([keys]: name and colour), in the title row of [panel]. */
 private fun DrawScope.drawTitle(
-    panels: List<ChartPanel>, panel: ChartPanel, title: String, second: String?, secondColor: Color, textMeasurer: TextMeasurer, font: FontFamily,
+    panels: List<ChartPanel>, panel: ChartPanel, title: String, keys: List<Pair<String, Color>>, textMeasurer: TextMeasurer, font: FontFamily,
 ) {
     val top = panelTop(panels, panel)
     val text: AnnotatedString = buildAnnotatedString {
         withStyle(SpanStyle(color = Color.White.copy(alpha = 0.9f), fontSize = 13.sp, fontWeight = FontWeight.Bold)) { append(title) }
-        if (second != null) withStyle(SpanStyle(color = secondColor, fontSize = 11.sp)) { append("   ● $second") }
+        keys.forEach { (name, color) -> withStyle(SpanStyle(color = color, fontSize = 11.sp)) { append("   ● $name") } }
     }
     val layout = textMeasurer.measure(text, TextStyle(fontFamily = font, textDirection = TextDirection.Content))
     drawText(layout, topLeft = Offset((BAND_INSET + TITLE_INSET).toPx(), top + (TITLE_HEIGHT.toPx() - layout.size.height) / 2))

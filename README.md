@@ -13,7 +13,7 @@
 
 Android and the web app have the same features. Only the widgets and the geocoder choice are Android only.
 
-The same APK also runs on Android TV, with screens made for the remote: current weather, hourly and 10-day forecasts, a chart of 9 values, alerts, air quality, details, places, units, language, Help and About. The TV does not yet have the weather source choice.
+The same APK also runs on Android TV, with screens made for the remote: current weather, hourly and 10-day forecasts, an hourly chart and a daily chart (related values share a plot: temperature with dew point, heat index and wind chill; precipitation with the chance of rain; wind with gusts; UV index with air quality), alerts, air quality, details, places, units, language, Help and About. The TV does not yet have the weather source choice.
 
 **Weather**
 - **Main card**: the condition, the temperature (°C with 1 decimal, °F as a whole number), today's low and high, and 4 hour tiles (now, +4, +8 and +12 hours). A line tells when rain or snow starts or stops in the next 24 hours. Air quality (US and EU index) shows when it is not good. For a place in another time zone, the hour tiles also show the phone's time.
