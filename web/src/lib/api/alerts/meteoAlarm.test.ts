@@ -19,8 +19,19 @@ describe('areaMatches', () => {
 		expect(areaMatches('Var', 'Vaucluse')).toBe(false);
 	});
 
-	it('matches on a shared word of 4 or more letters', () => {
+	it('matches when the names differ only in words for the type of area', () => {
 		expect(areaMatches('Zagreb region', 'Grad Zagreb')).toBe(true);
+		expect(areaMatches('Kreis Heilbronn', 'Landkreis Heilbronn')).toBe(true);
+		expect(areaMatches('Città metropolitana di Torino', 'Provincia di Torino')).toBe(true);
+	});
+
+	it('does not match other areas that share one word', () => {
+		expect(areaMatches('Haute-Garonne', 'Haute-Savoie')).toBe(false);
+		expect(areaMatches('Haute-Garonne', 'Tarn-et-Garonne')).toBe(false);
+		expect(areaMatches('Autonomous Community of Madrid', 'Autonomous Community of Valencia')).toBe(false);
+		expect(areaMatches('North Yorkshire', 'South Yorkshire')).toBe(false);
+		expect(areaMatches('Greater London', 'Greater Manchester')).toBe(false);
+		expect(areaMatches('Kreis Heilbronn', 'Kreis Esslingen')).toBe(false);
 	});
 
 	it('matches names in non-Latin scripts as whole words', () => {

@@ -13,6 +13,7 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 - Web: expired place names are removed from the browser storage, so the storage does not fill up over time.
 - Web: in the saved places search, the results of an older, slower query no longer replace the results of the newer query.
 - Web: the offline copy of the weather and place-name responses keeps at most 50 entries.
+- MeteoAlarm alerts (Android and web): an alert for another area that only shares one word with the place, such as "Haute-Savoie" for "Haute-Garonne", no longer shows.
 
 ## [1.7.20261111184249] - 2026-11-11
 

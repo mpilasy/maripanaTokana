@@ -460,31 +460,6 @@ class WeatherRepositoryImpl @Inject constructor(
         return NHC_COMPASS_DIRECTIONS[idx]
     }
 
-    private fun normalizeArea(s: String): String =
-        s.lowercase().replace('-', ' ').trim()
-            .let { java.text.Normalizer.normalize(it, java.text.Normalizer.Form.NFD) }
-            .replace(DIACRITICS, "")
-
-    private fun areaMatches(areaDesc: String, subdivision: String): Boolean {
-        val a = normalizeArea(areaDesc)
-        val b = normalizeArea(subdivision)
-        // Whole words only: a plain substring match let "Ain" match "Maine et Loire"
-        val tokensA = areaWords(a)
-        val tokensB = areaWords(b)
-        if (a == b || containsWords(tokensA, tokensB) || containsWords(tokensB, tokensA)) return true
-        // Word intersection: handles "Grad Zagreb" vs "Zagreb region" etc.
-        val wordsA = tokensA.filter { it.length >= 4 }
-        val wordsB = tokensB.filter { it.length >= 4 }
-        return wordsA.any { it in wordsB }
-    }
-
-    private fun areaWords(s: String): List<String> =
-        s.split(NON_WORD).filter { it.isNotEmpty() }
-
-    /** True when [needle] occurs in [hay] as a run of whole words. */
-    private fun containsWords(hay: List<String>, needle: List<String>): Boolean =
-        needle.isNotEmpty() && hay.windowed(needle.size).any { it == needle }
-
     private fun parseMeteoAlarmAtom(xml: String, subdivisionName: String? = null): List<WeatherAlert> {
         // One parser for all entries; a feed can hold hundreds
         val onsetParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
@@ -563,6 +538,46 @@ class WeatherRepositoryImpl @Inject constructor(
         // Compiled once: area matching runs for each MeteoAlarm entry
         private val DIACRITICS = Regex("\\p{InCombiningDiacriticalMarks}+")
         private val NON_WORD = Regex("[^\\p{L}\\p{N}]+")
+        // Words for the type of area and joining words, lowercase without accents: they do not name a place
+        private val AREA_TYPE_WORDS = setOf(
+            "region", "regione", "regiao", "regionen", "county", "district", "province", "provincia", "provincie",
+            "provinz", "departement", "community", "comunidad", "comunitat", "autonomous", "autonoma", "city",
+            "citta", "ciudad", "metropolitan", "metropolitana", "municipality", "kreis", "landkreis", "stadt",
+            "bezirk", "grad", "zupanija", "kommune", "kommun", "maakunta", "wojewodztwo", "powiat", "okres",
+            "kraj", "megye", "judetul", "oblast", "periferia", "περιφερεια",
+            "and", "the", "und", "der", "die", "das", "des", "del", "les", "los", "las", "von", "van", "sur",
+        )
+
+        private fun normalizeArea(s: String): String =
+            s.lowercase().replace('-', ' ').trim()
+                .let { java.text.Normalizer.normalize(it, java.text.Normalizer.Form.NFD) }
+                .replace(DIACRITICS, "")
+
+        /** True when the MeteoAlarm [areaDesc] is the place's [subdivision]. */
+        internal fun areaMatches(areaDesc: String, subdivision: String): Boolean {
+            val a = normalizeArea(areaDesc)
+            val b = normalizeArea(subdivision)
+            // Whole words only: a plain substring match let "Ain" match "Maine et Loire"
+            val tokensA = areaWords(a)
+            val tokensB = areaWords(b)
+            if (a == b || containsWords(tokensA, tokensB) || containsWords(tokensB, tokensA)) return true
+            // Without the words for the type of area, all the words of one name are in the other:
+            // "Grad Zagreb" is "Zagreb region", but "Haute-Garonne" is not "Haute-Savoie" or "Tarn-et-Garonne"
+            val wordsA = nameWords(tokensA)
+            val wordsB = nameWords(tokensB)
+            return wordsA.isNotEmpty() && wordsB.isNotEmpty() && (wordsB.containsAll(wordsA) || wordsA.containsAll(wordsB))
+        }
+
+        private fun nameWords(tokens: List<String>): Set<String> =
+            tokens.filter { it.length >= 3 && it !in AREA_TYPE_WORDS }.toSet()
+
+        private fun areaWords(s: String): List<String> =
+            s.split(NON_WORD).filter { it.isNotEmpty() }
+
+        /** True when [needle] occurs in [hay] as a run of whole words. */
+        private fun containsWords(hay: List<String>, needle: List<String>): Boolean =
+            needle.isNotEmpty() && hay.windowed(needle.size).any { it == needle }
+
         private const val GDACS_SEARCH_RADIUS_KM = 500
         private const val GDACS_SEARCH_DAYS = 7
         private const val GDACS_FEED_TTL_MS = 10 * 60 * 1000L

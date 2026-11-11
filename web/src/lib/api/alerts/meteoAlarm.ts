@@ -37,10 +37,26 @@ export function areaMatches(areaDesc: string, subdivision: string): boolean {
 	const tokensA = areaWords(a);
 	const tokensB = areaWords(b);
 	if (a === b || containsWords(tokensA, tokensB) || containsWords(tokensB, tokensA)) return true;
-	// Word intersection: handles cases like "Grad Zagreb" vs "Zagreb region"
-	const wordsA = tokensA.filter(w => w.length >= 4);
-	const wordsB = tokensB.filter(w => w.length >= 4);
-	return wordsA.some(w => wordsB.includes(w));
+	// Without the words for the type of area, all the words of one name are in the other:
+	// "Grad Zagreb" is "Zagreb region", but "Haute-Garonne" is not "Haute-Savoie" or "Tarn-et-Garonne"
+	const wordsA = nameWords(tokensA);
+	const wordsB = nameWords(tokensB);
+	const containsAll = (hay: Set<string>, needle: Set<string>) => [...needle].every((w) => hay.has(w));
+	return wordsA.size > 0 && wordsB.size > 0 && (containsAll(wordsB, wordsA) || containsAll(wordsA, wordsB));
+}
+
+// Words for the type of area and joining words, lowercase without accents: they do not name a place
+const AREA_TYPE_WORDS = new Set([
+	'region', 'regione', 'regiao', 'regionen', 'county', 'district', 'province', 'provincia', 'provincie',
+	'provinz', 'departement', 'community', 'comunidad', 'comunitat', 'autonomous', 'autonoma', 'city',
+	'citta', 'ciudad', 'metropolitan', 'metropolitana', 'municipality', 'kreis', 'landkreis', 'stadt',
+	'bezirk', 'grad', 'zupanija', 'kommune', 'kommun', 'maakunta', 'wojewodztwo', 'powiat', 'okres',
+	'kraj', 'megye', 'judetul', 'oblast', 'periferia', 'περιφερεια',
+	'and', 'the', 'und', 'der', 'die', 'das', 'des', 'del', 'les', 'los', 'las', 'von', 'van', 'sur'
+]);
+
+function nameWords(tokens: string[]): Set<string> {
+	return new Set(tokens.filter((w) => w.length >= 3 && !AREA_TYPE_WORDS.has(w)));
 }
 
 export async function fetchMeteoAlarmAlerts(lat: number, lon: number, countryCode: string, subdivisionName: string | null = null): Promise<WeatherAlert[]> {
