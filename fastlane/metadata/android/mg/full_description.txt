@@ -3,7 +3,8 @@ maripànaTokana dia fampiharana toetrandro ho an'ny Android. Aseho miaraka amin'
 <b>Ny toetrandro indray mitopy maso:</b>
 • Sokajy voalohany: ny toetrandro ankehitriny, ny maripàna, ny maripàna avo sy ny iva anio, ny orana na oram-panala raha hiraraka, ny hadion'ny rivotra raha tsy tsara, ary ny toetrandro amin'ny ora vitsivitsy manaraka
 • Pejy tokana mikodina: eo ambanin'ny sokajy voalohany, misokatra foana ny sokajy hafa rehetra
-• Isan'ora sy ny folo andro manaraka, misy tabilao: Toetrandro, Orana, Rivotra, Tsindry Atmosferika, Tara-masoandro ary Hadion'ny rivotra, samy misy sary ankapobeny
+• Isan'ora sy ny folo andro manaraka, misy tabilao: Toetrandro, Hafanana tsapa sy Hatsiaka tsapa (rehefa ilaina), Orana, Rivotra, Tsindry Atmosferika, Hamandoana, Tara-masoandro ary Hadion'ny rivotra, samy misy sary ankapobeny
+• Sarivina: hatramin'ny 10 andro isan'ora, sary maromaro mifindra miaraka: maripàna, orana, rivotra, tsindry atmosferika, hamandoana, tara-masoandro ary hadion'ny rivotra
 • Orana isa-minitra raha misy orana na oram-panala hiraraka
 • Izao sy Masoandro sy rivotra: ohatry ny, rivotra sy tadio miaraka amin'ny fiaviny, tsindry atmosferika, hamandoana sy maripàna manando, tahan'ny tara-masoandro, hadion'ny rivotra (AQI US sy EU), tazana, fiposahan'ny masoandro sy ny filentehany
 • Asa sy lalao: fanatanjahantena, fanahazan-damba ary aro-masoandro
@@ -36,7 +37,7 @@ maripànaTokana dia fampiharana toetrandro ho an'ny Android. Aseho miaraka amin'
 
 <b>Android TV:</b>
 • Io rindranasa io ihany eo amin'ny fahitalavitra, natao ho an'ny milina fahitalavitra
-• Toetrandro izao, vinavina isan'ora sy 10 andro, Sarivina, filazana ary hadion'ny rivotra
+• Toetrandro izao, vinavina isan'ora sy 10 andro, Sarivina isan'ora sy isan'andro, filazana ary hadion'ny rivotra
 
 <b>Fitsinjovana ny fiainana manokan'ny tsirairay:</b>
 • Ny hangalana ny toetrandro fotsiny no hampiasana ny toerana misy anao

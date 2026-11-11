@@ -1,0 +1,10 @@
+- Ciel : soleil à midi, déclinaison, solstice, lune.
+- Nouveau : Android TV pour la télécommande, avec graphiques horaires et journaliers.
+- À côté de la température : son évolution sur 6 h.
+- Prochaines heures : température en couleur et pluie.
+- UV sur la carte principale dès modéré.
+- Max. du jour et normale sur 10 ans.
+- Changements depuis la prévision d'hier.
+- Mer : vagues, température et marées.
+- Réglages : modèle météo.
+- Graphiques : 10 jours heure par heure, air, max./min.

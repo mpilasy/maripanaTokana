@@ -3,7 +3,8 @@ maripànaTokana («un solo termómetro» en malagasy) es una aplicación del tie
 <b>El tiempo de un vistazo:</b>
 • Tarjeta principal: estado actual, temperatura (°C con un decimal), mínima y máxima del día, lluvia o nieve cuando se acercan, calidad del aire cuando no es buena y 4 casillas para las próximas 12 horas
 • Desplazamiento libre: bajo la tarjeta principal, todas las demás tarjetas están siempre abiertas
-• Pronóstico por hora y pronóstico de 10 días con pestañas: Condiciones, Precipitación, Viento, Presión, UV y Calidad del aire, cada una con un gráfico general
+• Pronóstico por hora y pronóstico de 10 días con pestañas: Condiciones, Índice de calor y Enfriamiento por viento (cuando corresponden), Precipitación, Viento, Presión, Humedad, UV y Calidad del aire, cada una con un gráfico general
+• Gráficos: hasta 10 días hora por hora, en gráficos apilados que se desplazan juntos: temperatura, lluvia, viento, presión, humedad, UV y calidad del aire
 • Pronóstico minuto a minuto cuando se acerca lluvia o nieve
 • Casillas de Condiciones actuales y Sol y aire: sensación térmica, brújula del viento y ráfagas, presión, humedad y punto de rocío, índice UV, calidad del aire (AQI EE. UU. y UE), visibilidad, amanecer y atardecer
 • Actividades: carrera a pie, secado de ropa y protección solar
@@ -36,7 +37,7 @@ maripànaTokana («un solo termómetro» en malagasy) es una aplicación del tie
 
 <b>Android TV:</b>
 • La misma app en tu televisor, hecha para el mando
-• Tiempo actual, pronósticos por horas y de 10 días, gráfico de 9 valores, alertas y calidad del aire
+• Tiempo actual, pronósticos por horas y de 10 días, gráficos por hora y por día, alertas y calidad del aire
 
 <b>Privacidad:</b>
 • Tu ubicación se usa solo para obtener el tiempo

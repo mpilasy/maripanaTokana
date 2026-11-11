@@ -1,6 +1,8 @@
 # maripànaTokana - Design & Implementation Guide
 
-**maripànaTokana** (Malagasy for "a single thermometer") is a phone-only Android weather app. It shows current conditions, an hourly forecast, a 10-day forecast, and saved places. Both forecasts have the same tabs: Conditions, Precipitation, Wind, Pressure, UV, and Air quality. Each tab shows a row of cards and a trend chart. The app also has Help and About pages. Every measurement shows metric and imperial units together.
+**maripànaTokana** (Malagasy for "a single thermometer") is an Android weather app for phones and for Android TV. One APK has both: the phone screens start from `MainActivity`, and the TV screens start from `TvActivity` (a TV launcher starts it). Wear OS and Android Auto are not supported.
+
+The phone app shows current conditions, an hourly forecast, a 10-day forecast, the sun, moon and sea, and saved places. Both forecasts have the same tabs (Conditions, Heat index and Wind chill when they apply, Precipitation, Wind, Pressure, Humidity, UV, and Air quality). Each tab shows a row of cards and a trend chart. A chart view shows up to 240 hours in stacked panels. The app also has Help and About pages. Every measurement shows metric and imperial units together.
 
 It can be surfaced to the home screen via 4x1 and 4x2 Glance home screen widgets.
 
@@ -35,17 +37,18 @@ There is also a web PWA version built with SvelteKit. See [`web/docs/DESIGN.md`]
 
 | Component | Technology | Version |
 |-----------|-----------|---------|
-| Language | Kotlin | 2.2.21 |
-| Build system | Gradle + AGP | 9.2.1 |
-| UI framework | Jetpack Compose | BOM 2026.06.01 |
+| Language | Kotlin | 2.4.21 |
+| Build system | Gradle 9.8.2, AGP 9.4.1 | |
+| UI framework | Jetpack Compose | BOM 2026.09.00 |
 | Widget framework | Glance | 1.2.0 |
 | Dependency injection | Hilt | 2.60.1 |
 | Networking | Retrofit + OkHttp | 2.11.0 / 4.12.0 |
-| Serialization | Kotlinx Serialization | 1.7.3 |
+| Serialization | Kotlinx Serialization | 1.12.0 |
 | Location | Google Play Services (Standard) / LocationManager (F-Droid) | 21.4.0 |
 | Background work | WorkManager | 2.12.0 |
 | Permissions | Accompanist Permissions (Standard) | 0.37.3 |
 | Min SDK | Android 7.0 (API 24) | |
+| Compile SDK | API 37 | |
 | Target SDK | Android 16 (API 36) | |
 
 **Weather API:** [Open-Meteo](https://open-meteo.com) (default, no API key) and [Pirate Weather](https://pirateweather.net) (optional, the user enters their own API key).
@@ -107,6 +110,11 @@ maripanaTokana/
 │   │   │   │   │   ├── AirQualityIndex.kt   # AQI tiers, pollutant breakdown, pollen
 │   │   │   │   │   ├── HourlyAirQuality.kt  # Hourly AQI forecast entry
 │   │   │   │   │   ├── DailyAirQuality.kt   # Worst AQI of each day, from the hourly data
+│   │   │   │   │   ├── ChartHour.kt         # One hour of the chart view (up to 240 hours)
+│   │   │   │   │   ├── ThermalIndices.kt    # Heat index and wind chill
+│   │   │   │   │   ├── Normals.kt / ForecastChanges.kt # Normal highs and lows; what changed since yesterday
+│   │   │   │   │   ├── Moon.kt / Seasons.kt # Moon phase and times; solstices and equinoxes, declination
+│   │   │   │   │   ├── SeaConditions.kt     # Waves, swell, sea temperature and tides
 │   │   │   │   │   ├── HourlyForecast.kt    # Single hour forecast entry
 │   │   │   │   │   ├── MinutelyForecast.kt  # 15-minute precipitation entry (nowcast)
 │   │   │   │   │   ├── DailyForecast.kt     # Single day forecast entry
@@ -127,10 +135,18 @@ maripanaTokana/
 │   │   │   │   │   ├── WeatherContent.kt    # Main scrollable weather layout
 │   │   │   │   │   ├── WeatherViewModel.kt  # State, saved locations, refresh orchestration
 │   │   │   │   │   ├── WeatherUiState.kt    # Sealed UI state
+│   │   │   │   │   ├── chart/               # ChartViewScreen (chart view), ChartViewMath, ChartStyle (colours)
 │   │   │   │   │   └── components/          # NowcastCard, ActivitiesCard, OverviewChart, TemperatureChart,
-│   │   │   │   │                            # TileGraphics (tabs, gauges, sun arc), WeatherIcon,
-│   │   │   │   │                            # WeatherAlertBanner, SavedLocationsDialog, RenameLocationDialog,
-│   │   │   │   │                            # AirQualityDetailDialog, etc.
+│   │   │   │   │                            # DailyTemperatureChart, TileGraphics (tabs, gauges, sun arc),
+│   │   │   │   │                            # WeatherIcon, WeatherAlertBanner, SavedLocationsDialog,
+│   │   │   │   │                            # RenameLocationDialog, AirQualityDetailDialog, etc.
+│   │   │   │   ├── tv/
+│   │   │   │   │   ├── TvActivity.kt        # TV entry point and home screen (D-pad cards)
+│   │   │   │   │   ├── TvChart.kt           # Hourly and daily charts
+│   │   │   │   │   ├── TvDetails.kt         # Details, air quality and alerts screens
+│   │   │   │   │   ├── TvPlaces.kt          # Search, device location and saved places
+│   │   │   │   │   ├── TvSettings.kt        # Units, language, Help and About
+│   │   │   │   │   └── TvDream.kt           # Screensaver (DreamService)
 │   │   │   │   ├── settings/
 │   │   │   │   │   ├── SettingsScreen.kt / SettingsViewModel.kt
 │   │   │   │   │   └── HelpScreen.kt / AboutScreen.kt / DeviceInfo.kt
@@ -168,7 +184,7 @@ The app follows **MVVM** (Model-View-ViewModel) with Clean Architecture principl
 ┌─────────────────────────────────────────────────┐
 │  UI Layer                                       │
 │  WeatherScreen.kt / WeatherContent.kt (Compose) │
-│  WeatherWidget*.kt (Glance)                     │
+│  ui/tv/* (Compose for TV), WeatherWidget*.kt    │
 └─────────────────────────────────────────────────┘
          │  observes StateFlow          ▲  calls
          ▼                              │  actions
@@ -261,6 +277,8 @@ Hilt injects singletons and repositories via `di/NetworkModule.kt`, `di/CommonLo
 
 ## 8. UI Layer & Free-Scroll Layout
 
+This section describes the phone screens. The chart view is in 8.5 and the TV screens are in 8.6.
+
 All cards are always open. They sit in one scrolling column (`WeatherContent.kt`). The UI has no accordion and no snap paging. The header and the pager row are fixed at the top, and the column scrolls under them with a fade at its top edge. The footer is fixed at the bottom. Sizes scale with the screen width (`LocalScale`: 1, 0.8 or 0.7).
 
 The background is a navy gradient (`#0E0B3D` to `#1A1565`) with the Blue Marble image at 12% opacity. The cards use glass surfaces (`ui/theme/Color.kt`) on a dark Material 3 scheme.
@@ -284,11 +302,26 @@ The app takes `geo:` links, map links (Google, OpenStreetMap, Apple) and coordin
 ### 8.4 Card Order
 `WeatherContent.kt` shows the cards in this order:
 1. **Alert banner and hero card**: The banner shows official alerts when any exist. The hero card shows the weather icon and description, the temperature (one decimal in Celsius), the low and high, and a share button. A side column shows the rain or snow outlook. It also shows the US and EU AQI when air quality is not good. Under these, four hour tiles show the weather at +0, +4, +8, and +12 hours.
-2. **Hourly forecast**: The nowcast card (`NowcastCard`) shows first, only when the source is Open-Meteo and rain or snow comes in the next 2 hours. Tabs follow: Conditions, Precipitation, Wind, Pressure, UV, and Air quality. Each tab shows a row of cards and a chart: `TemperatureChart` (hourly) or `DailyTemperatureChart` (daily) for Conditions, and `OverviewChart` for the other tabs. The Air quality tab shows only when air quality data exists.
-3. **10-day forecast**: It has the same tabs as the hourly forecast.
+2. **Hourly forecast**: The title row has a button that opens the chart view (8.5). The nowcast card (`NowcastCard`) shows first, only when the source is Open-Meteo and rain or snow comes in the next 2 hours. Tabs follow (`ForecastTabs`): Conditions, Heat index and Wind chill (each only when an hour has it), Precipitation, Wind, Pressure, Humidity, UV, and Air quality. Each tab shows a row of cards that scrolls sideways, with a chart that scrolls with it (`ChartScrub`): `TemperatureChart` (hourly) or `DailyTemperatureChart` (daily) for Conditions, and `OverviewChart` for the other tabs. The Air quality tab shows only when air quality data exists. The hourly list has the next 24 hours.
+3. **10-day forecast**: It has the same tabs as the hourly forecast. A block on top (`ForecastChangesBlock`) lists up to 4 changes since yesterday's forecast. The cards and the daily temperature chart show the normal highs and lows.
 4. **Current conditions**: 6 tiles: temperature with feels-like, precipitation with cloud cover, wind with compass, gust, pressure with gauge, and humidity with dew point.
-5. **Sun & Air**: sun arc (sunrise and sunset), air quality with a dial, UV with a dial, and visibility. The air-quality tile opens `AirQualityDetailDialog` (pollutants and pollen).
-6. **Activities** (`ActivitiesCard`): Ratings for running, laundry, and UV safety, from the current weather data.
+5. **Sun & Air**: the sun tile (arc with the length of the day, sunrise and sunset, and the noon sun from overhead today and in a year), the moon tile (arc, phase, rise and set, next new or full moon), the declination tile (dial from 23° S to 23° N, days to the next solstice or equinox), air quality with a dial, UV with a dial, cloud cover, and visibility. The air-quality tile opens `AirQualityDetailDialog` (pollutants and pollen).
+6. **Sea** (only when the place has sea data): waves, swell, sea temperature, and the next high and low tides, with a note that the values are estimates.
+7. **Activities** (`ActivitiesCard`): Ratings for running, laundry, and UV safety, from the current weather data.
+
+The hero card also shows the change of the temperature in 6 hours and, when the high differs from the 10-year normal by 2 °C or more, today's high against the normal (`HighVsNormal`). The four hour tiles show the temperature in colour and the chance of rain.
+
+### 8.5 Chart View
+`ui/weather/chart/ChartViewScreen.kt`. The button in the hourly forecast card opens it as a full screen; Back closes it. It shows up to 240 hours (10 days) in stacked panels that scroll sideways together, and opens at the current hour. The panels, from top to bottom, are a time axis with weather icons, temperature (with dew point, heat index and wind chill), precipitation (with the chance of rain), wind (with gusts and direction arrows), pressure, humidity, and UV index with the air quality as a dashed line on its own scale (only when an hour has a UV index or air quality). A card at the top shows the values of the selected hour in both units; a tap changes the units. One finger scrolls the hours, and a tap moves the hour under it to the selection line. The data comes from `WeatherData.chartHourly` (`ChartHour`). `ChartStyle.kt` holds the colours and line styles that the main-page charts and the TV charts also use. The web has the same view in `ChartView.svelte`.
+
+### 8.6 Android TV
+`TvActivity` (declared in the manifest with the `LEANBACK_LAUNCHER` category and no touchscreen requirement) shows the weather of one place with screens made for the D-pad. A card has a white border when it has focus; OK opens it; Back returns to the card that had focus. The TV screens use the phone's data layer and preferences (saved places, units, language) but not `WeatherContent`.
+- **Home** (`TvActivity.kt`): a left panel with the place, the worst alert, the weather icon, temperature, feels-like, the time and the update time, an air-quality button, and Details, Settings and About buttons. On the right, one row of hourly cards and one row of daily cards. OK on an hour or a day opens its chart.
+- **Charts** (`TvChart.kt`): the hourly chart and the daily chart. Left and right move the selected hour or day; up and down move a whole day in the hourly chart; OK shows the next value. Related values share one plot: temperature with dew point, heat index and wind chill (the daily chart also has the low); precipitation with the chance of rain; wind with gusts; UV index with the air quality as a dashed line on its own scale; the humidity; and, in the hourly chart, the pressure. The cards above the plot show the values of the selected hour or day in both units.
+- **Details** (`TvDetails.kt`): precipitation, wind, gust, pressure, humidity and dew point, UV, visibility, cloud cover, moon, air quality, sunrise, sunset, the noon sun, and the declination. The same file has the air-quality screen (both standards, pollutants, pollen) and the alerts screen (full text).
+- **Places** (`TvPlaces.kt`): search, device location and the saved places, with the same storage as the phone.
+- **Settings** (`TvSettings.kt`): units, language, Help, and About. The weather source choice and the Advanced Mode options are not on the TV.
+- **Screensaver** (`TvDream.kt`): a `DreamService` that shows the time, the weather of the TV app's place, the worst alert and the next hours. The content drifts to avoid screen burn-in. Phones can choose it too.
 
 The **footer** is outside the scrolling column, and always left-to-right. It has the display font name (tap to change the font), the Help and About links, the version line (`v{version} • #{git hash} • {build time}`), and the language flag (tap to change the language).
 
@@ -389,7 +422,8 @@ Release APKs are signed when `keystore.properties` exists or the `KEYSTORE_FILE`
 ## 18. Key Design Decisions
 
 - **Free-Scroll Layout**: All cards stay open in one scrolling column.
-- **Tabbed Forecasts**: The hourly and 10-day forecasts each show a row of cards with an overview chart. Tabs switch the measurement.
+- **Tabbed Forecasts**: The hourly and 10-day forecasts each show a row of cards with an overview chart. Tabs switch the measurement. The chart view shows all measurements at once.
+- **One APK for phone and TV**: The TV screens are separate Compose screens in `ui/tv/`, with their own entry activity, and they share the data layer.
 - **Inline Value Classes**: Zero runtime allocation overhead with compile-time safety.
 - **Dual Units**: Simultaneous metric & imperial display with instant global unit toggle.
 - **No Derived Alerts**: Only official meteorological agencies supply alert data for maximum reliability.

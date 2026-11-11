@@ -13,15 +13,17 @@
 
 Android and the web app have the same features. Only the widgets and the geocoder choice are Android only.
 
-The same APK also runs on Android TV, with screens made for the remote: current weather, hourly and 10-day forecasts, an hourly chart and a daily chart (related values share a plot: temperature with dew point, heat index and wind chill; precipitation with the chance of rain; wind with gusts; UV index with air quality), alerts, air quality, details, places, units, language, Help and About. The TV does not yet have the weather source choice.
+The same APK also runs on Android TV, with screens made for the remote: current weather, hourly and 10-day forecasts, an hourly chart and a daily chart (related values share a plot: temperature with dew point, heat index and wind chill; precipitation with the chance of rain; wind with gusts; UV index with air quality), alerts, air quality, details (with the noon sun, the declination and the moon), places, units, language, Help and About. A screensaver shows the time and the weather. The TV does not yet have the weather source choice.
 
 **Weather**
-- **Main card**: the condition, the temperature (°C with 1 decimal, °F as a whole number), today's low and high, and 4 hour tiles (now, +4, +8 and +12 hours). A line tells when rain or snow starts or stops in the next 24 hours. Air quality (US and EU index) shows when it is not good. For a place in another time zone, the hour tiles also show the phone's time.
+- **Main card**: the condition, the temperature (°C with 1 decimal, °F as a whole number) with its change in 6 hours, today's low and high, and 4 hour tiles (now, +4, +8 and +12 hours) with the temperature in colour and the chance of rain. A line tells when rain or snow starts or stops in the next 24 hours. Today's high shows against the 10-year normal when they differ by 2 °C or more. The UV index shows when it is moderate or higher, and air quality (US and EU index) when it is not good. For a place in another time zone, the hour tiles also show the phone's time.
 - **One scrolling column**: below the main card, all cards are always open:
-  - **Hourly and 10-day forecasts** with the same tabs: Conditions, Precipitation, Wind, Pressure, UV Index and Air Quality (when there is data). Each tab has a row of cards and a chart.
+  - **Hourly forecast** (next 24 hours) and **10-day forecast**, with the same tabs: Conditions, Heat Index and Wind Chill (when they apply), Precipitation, Wind, Pressure, Humidity, UV Index and Air Quality (when there is data). Each tab has a row of cards that scrolls sideways, with one chart that scrolls with it. The 10-day forecast also lists what changed since yesterday's forecast, and the normal highs and lows.
+  - **Chart view**: the button in the hourly card opens up to 240 hours (10 days) in stacked panels that scroll together, with the values of the selected hour at the top: temperature (with dew point, heat index and wind chill), precipitation (with the chance of rain), wind (with gusts and direction), pressure, humidity, and UV index (with air quality as a dashed line on its own scale).
   - **Minutely nowcast** in the hourly card, for the next 2 hours, when rain or snow falls or is coming (Open-Meteo only).
   - **Current conditions**: temperature with feels-like, precipitation with cloud cover, wind with compass, gusts, pressure gauge, and humidity with dew point.
-  - **Sun & Air**: sun arc, air-quality gauge, UV dial and visibility. Tap the air-quality gauge to see each pollutant and, in Europe, 6 pollen types.
+  - **Sun & Air**: the sun arc with the length of the day and the noon sun from overhead (today and in a year), the moon (arc, phase, rise and set, next new or full moon), the declination of the sun (with the next solstice or equinox), the air-quality gauge, the UV dial, cloud cover and visibility. Tap the air-quality gauge to see each pollutant and, in Europe, 6 pollen types.
+  - **Sea**: waves, swell, sea temperature and the next high and low tides, when the place has sea data. The values are estimates, not for navigation.
   - **Activities**: ratings for running, drying laundry and sun protection.
 - **Weather alerts** from 7 sources: NWS (US), NHC (hurricanes), MeteoAlarm (Europe), JMA (Japan), ECCC (Canada), BOM (Australia) and GDACS (global). GDACS is used only where no regional source covers the place.
 - **Weather data** from [Open-Meteo](https://open-meteo.com) (default, no key) or [Pirate Weather](https://pirateweather.net) (your own API key).
@@ -68,11 +70,11 @@ Each [GitHub release](https://github.com/mpilasy/maripanaTokana/releases) has tw
 
 Both APKs have the same app ID and signing key, so a phone can have only one of them. To change, install the other APK over the current one.
 
-The Android app is made for phones with a touchscreen, Android 7.0 or later.
+The Android app is made for phones with a touchscreen and for Android TV with a remote, Android 7.0 or later. It does not support Wear OS or Android Auto.
 
 ## Build and Run
 
-You need JDK 21. The app uses Gradle 9.4.1 through the wrapper.
+You need JDK 21. The app uses Gradle 9.8.2 through the wrapper.
 
 ```bash
 # F-Droid flavor (no Google Play Services)
@@ -134,8 +136,10 @@ app/src/main/java/orinasa/njarasoa/maripanatokana/
 │   ├── permission/      # PermissionHandler interface (each flavor has its own implementation)
 │   ├── settings/        # Settings, Help and About screens, device info
 │   ├── theme/           # Compose theme, fonts, CompositionLocals
-│   └── weather/         # WeatherScreen, WeatherViewModel, WeatherUiState, permission and error screens
-│       └── components/  # Charts, tiles, dials, alert banner, nowcast, dialogs
+│   ├── tv/              # Android TV: home, hourly and daily charts, details, places, settings, screensaver
+│   └── weather/         # WeatherScreen, WeatherContent, WeatherViewModel, WeatherUiState, permission and error screens
+│       ├── chart/       # Chart view (ChartViewScreen)
+│       └── components/  # Forecast charts, tiles, dials, alert banner, nowcast, dialogs
 ├── util/                # Logging
 └── widget/              # Glance widgets (4x1, 4x2), WorkManager updater
     └── theme/           # Widget Glance theme
@@ -147,21 +151,22 @@ Code that is different for each flavor is in `app/src/fdroid/` and `app/src/stan
 
 | Component | Version |
 |-----------|---------|
-| AGP | 9.2.1 |
-| Gradle | 9.4.1 |
-| Kotlin | 2.2.21 |
-| KSP | 2.3.12 |
-| Compose BOM | 2026.06.01 |
+| AGP | 9.4.1 |
+| Gradle | 9.8.2 |
+| Kotlin | 2.4.21 |
+| KSP | 2.3.13 |
+| Compose BOM | 2026.09.00 |
 | Glance | 1.2.0 |
 | Hilt | 2.60.1 |
 | Retrofit | 2.11.0 |
 | OkHttp | 4.12.0 |
-| Kotlinx Serialization | 1.7.3 |
+| Kotlinx Serialization | 1.12.0 |
 | Play Services Location (Standard flavor) | 21.4.0 |
 | WorkManager | 2.12.0 |
 | JDK toolchain | 21 |
 | Min SDK | 24 (Android 7.0) |
-| Compile and target SDK | 36 |
+| Compile SDK | 37 |
+| Target SDK | 36 |
 
 ## Permissions
 
