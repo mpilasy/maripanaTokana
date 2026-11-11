@@ -291,6 +291,9 @@ internal fun ChartScreen(data: WeatherData, startIndex: Int) {
                     event.key in okKeys && down && series.isNotEmpty() -> {
                         // The next series with a plot of its own
                         do shownSeries = (shownSeries + 1) % series.size while (series[shownSeries].withPrevious)
+                        // A plot whose values end before the selection (air quality): select its last value
+                        val last = series[shownSeries].values.indexOfLast { it != null }
+                        if (last in 0 until selected) selected = last
                         true
                     }
                     else -> false
@@ -354,6 +357,9 @@ internal fun DailyChartScreen(data: WeatherData, startIndex: Int) {
                     event.key in okKeys && down -> {
                         // The next series with a plot of its own
                         do shownSeries = (shownSeries + 1) % series.size while (series[shownSeries].withPrevious)
+                        // A plot whose values end before the selection (air quality): select its last value
+                        val last = series[shownSeries].values.indexOfLast { it != null }
+                        if (last in 0 until selected) selected = last
                         true
                     }
                     else -> false
@@ -426,7 +432,10 @@ private fun SeriesPlot(series: TvSeries, window: Int, lead: Int, selected: Int, 
     val lows = series.low?.subList(first, end)
     val chances = series.chance?.subList(first, end)
     val extras = series.extras.map { it to it.values.subList(first, end) }
-    val domain = chartDomain(values + lows.orEmpty() + extras.flatMap { it.second }, series.fromZero, series.minSpan) ?: return
+    // The scale of all the values, not only of the window, so that it stays the same while the selection moves
+    val domain = chartDomain(
+        series.values + series.low.orEmpty() + series.extras.flatMap { it.values }, series.fromZero, series.minSpan,
+    ) ?: return
     val shape = LocalTvShaper.current
     Canvas(modifier) {
         val top = 20.dp.toPx()
