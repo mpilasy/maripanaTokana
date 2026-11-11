@@ -16,6 +16,7 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 - MeteoAlarm alerts (Android and web): an alert for another area that only shares one word with the place, such as "Haute-Savoie" for "Haute-Garonne", no longer shows.
 - Android: a failed short-link lookup no longer leaves its network connection open, and the F-Droid location code always stops its thread.
 - Android: the 30-minute background weather update runs only while a widget is on the home screen. Without a widget, it no longer uses the battery and the network.
+- Android widgets: the background image is 400 × 200, so a widget sends half as much image data to the home screen (0.9 MB instead of 1.9 MB).
 
 ## [1.7.20261111184249] - 2026-11-11
 
