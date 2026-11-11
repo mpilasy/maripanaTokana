@@ -95,12 +95,13 @@ internal fun Text(
     overflow: TextOverflow = TextOverflow.Clip,
     softWrap: Boolean = true,
     maxLines: Int = Int.MAX_VALUE,
+    minLines: Int = 1,
     style: TextStyle? = null,
 ) {
     val shaped = if (localize) LocalTvShaper.current(text) else text
     androidx.compose.material3.Text(
         shaped, modifier, color = color, fontSize = fontSize, fontWeight = fontWeight, textAlign = textAlign,
-        lineHeight = lineHeight, overflow = overflow, softWrap = softWrap, maxLines = maxLines,
+        lineHeight = lineHeight, overflow = overflow, softWrap = softWrap, maxLines = maxLines, minLines = minLines,
         style = style ?: androidx.compose.material3.LocalTextStyle.current,
     )
 }

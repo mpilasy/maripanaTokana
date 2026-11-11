@@ -206,7 +206,9 @@ private fun SeriesStrip(series: List<TvSeries>, selected: Int, shownSeries: Int)
                 Modifier.weight(1f).background(if (i == shownSeries) Card else Color.Transparent, shape).padding(vertical = 6.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Text(stringResource(tileLabel(s.tile)), color = Dim, fontSize = 11.sp, maxLines = 1, textAlign = TextAlign.Center)
+                // Two lines for every label, so that long labels show in full and the values stay in line
+                Text(stringResource(tileLabel(s.tile)), color = Dim, fontSize = 11.sp, lineHeight = 13.sp, minLines = 2, maxLines = 2,
+                    textAlign = TextAlign.Center)
                 Text(text?.first ?: "--", color = value?.let(s.color) ?: Dim, fontSize = 15.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                 Text(text?.second ?: " ", color = Dim, fontSize = 12.sp, maxLines = 1)
             }
