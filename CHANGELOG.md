@@ -9,6 +9,13 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.7.20261111160128] - 2026-11-11
+
+- Charts on the TV, the phone and the web use one colour set: the dew point green and dashed, the gust amber, the heat index pink and the wind chill purple.
+- Chart view (Android and web): the temperature panel shows the heat index and the wind chill when they apply. The air quality panel is now a UV index panel, with the air quality as a dashed line on its own scale.
+- Android TV: the daily chart has the air quality (the highest of each day); the UV plot shows the air quality as a dashed line on its own scale.
+- The app shows the wind chill only at 0 °C and below, and the heat index only when it is 5 °C or more above the temperature. Otherwise the source's "feels like" shows.
+
 ## [1.7.20261111152148] - 2026-11-11
 
 - Android TV charts: the scale stays the same while the selected hour moves. When OK shows the air quality and the selected hour is after its last value, the selection moves to that last value.
