@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,14 +43,16 @@ import orinasa.njarasoa.maripanatokana.domain.model.Precipitation
 import orinasa.njarasoa.maripanatokana.ui.theme.TileSurface
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFont
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
-import java.text.SimpleDateFormat
+import orinasa.njarasoa.maripanatokana.ui.common.clockFormat
+import orinasa.njarasoa.maripanatokana.ui.common.clockPattern
+import orinasa.njarasoa.maripanatokana.ui.common.uses24HourClock
 import java.util.Date
 import orinasa.njarasoa.maripanatokana.ui.mobile.weather.buildLocationTimeZone
 import java.util.Locale
 
 // In the place's own time, like the hourly cards
-private fun formatTime(epochMillis: Long, utcOffsetSeconds: Int): String =
-    SimpleDateFormat("HH:mm", Locale.US).apply { timeZone = buildLocationTimeZone(utcOffsetSeconds) }.format(Date(epochMillis))
+private fun formatTime(epochMillis: Long, utcOffsetSeconds: Int, uses24: Boolean, locale: Locale): String =
+    clockFormat(clockPattern(uses24), locale).apply { timeZone = buildLocationTimeZone(utcOffsetSeconds) }.format(Date(epochMillis))
 
 private fun computeHeadlineText(items: List<MinutelyForecast>, nowMillis: Long): Int {
     val firstPrecipIndex = items.indexOfFirst { it.precipitation.mm > 0.05 }
@@ -115,6 +119,8 @@ fun NowcastCard(
 
 
     val textMeasurer = rememberTextMeasurer()
+    val uses24 = uses24HourClock(LocalContext.current)
+    val appLocale = LocalConfiguration.current.locales[0]
     val timeLabelStyle = TextStyle(
         color = Color(0xB3FFFFFF),
         fontSize = 9.sp,
@@ -202,7 +208,7 @@ fun NowcastCard(
                         strokeWidth = 1.dp.toPx(),
                         pathEffect = gridDashEffect
                     )
-                    val text = formatTime(tickTime, utcOffsetSeconds)
+                    val text = formatTime(tickTime, utcOffsetSeconds, uses24, appLocale)
                     val layout = textMeasurer.measure(text, timeLabelStyle)
                     val textX = (tickX - layout.size.width / 2f).coerceIn(0f, width - layout.size.width)
                     drawText(layout, topLeft = Offset(textX, chartHeight + 4.dp.toPx()))

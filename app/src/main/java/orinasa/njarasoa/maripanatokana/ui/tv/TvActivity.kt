@@ -77,10 +77,14 @@ import orinasa.njarasoa.maripanatokana.domain.repository.WeatherRepository
 import orinasa.njarasoa.maripanatokana.ui.theme.MaripanaTokanaTheme
 import orinasa.njarasoa.maripanatokana.ui.theme.temperatureColor
 import orinasa.njarasoa.maripanatokana.ui.common.components.WeatherIcon
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.formatHourInDeviceTime
 import orinasa.njarasoa.maripanatokana.ui.mobile.weather.formatLocationCurrentTime
+import orinasa.njarasoa.maripanatokana.ui.common.clockFormat
+import orinasa.njarasoa.maripanatokana.ui.common.clockPattern
+import orinasa.njarasoa.maripanatokana.ui.common.hourLabelPattern
+import orinasa.njarasoa.maripanatokana.ui.common.uses24HourClock
 import orinasa.njarasoa.maripanatokana.ui.mobile.weather.isRemoteTimezone
 import orinasa.njarasoa.maripanatokana.ui.common.components.colorsFor
-import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.TimeZone
 import javax.inject.Inject
@@ -330,14 +334,13 @@ private fun TvApp(data: WeatherData, oldFixTime: Long?, onPlaces: () -> Unit, on
     }
 }
 
-/** A formatter that shows the place's local time; the epoch millis are shifted by [offsetSeconds]. */
-/** The TV's own time: [pattern], or "HH:mm" / "h:mm a" as the TV is set when null (as the phone's "Updated"). */
+/** The TV's own time with minutes, 24-hour or 12-hour as the TV is set (as the phone's "Updated"). */
 @Composable
-internal fun rememberDeviceFormat(pattern: String? = null): (Long) -> String {
-    val context = LocalContext.current
+internal fun rememberDeviceFormat(): (Long) -> String {
+    val uses24 = uses24HourClock(LocalContext.current)
     val locale = LocalConfiguration.current.locales[0]
-    return remember(pattern, locale) {
-        val format = SimpleDateFormat(pattern ?: if (android.text.format.DateFormat.is24HourFormat(context)) "HH:mm" else "h:mm a", locale)
+    return remember(uses24, locale) {
+        val format = clockFormat(clockPattern(uses24), locale)
         val device: (Long) -> String = { millis -> format.format(Date(millis)) }
         device
     }
@@ -356,11 +359,12 @@ internal fun DeviceTimeText(text: String, mark: Boolean, color: Color, fontSize:
     }
 }
 
+/** A formatter that shows the place's local time; the epoch millis are shifted by [offsetSeconds]. */
 @Composable
 internal fun rememberPlaceFormat(pattern: String, offsetSeconds: Int): (Long) -> String {
     val locale = LocalConfiguration.current.locales[0]
     return remember(pattern, offsetSeconds, locale) {
-        val format = SimpleDateFormat(pattern, locale).apply { timeZone = TimeZone.getTimeZone("UTC") }
+        val format = clockFormat(pattern, locale).apply { timeZone = TimeZone.getTimeZone("UTC") }
         // No dots ("lun.", "nov."): the digit helper would make them decimal commas
         val shift: (Long) -> String = { millis -> format.format(Date(millis + offsetSeconds * 1000L)).replace(".", "") }
         shift
@@ -372,9 +376,11 @@ private fun HomeScreen(data: WeatherData, oldFixTime: Long?, focusKey: String, o
     val metric = LocalMetricPrimary.current
     val focus = remember { FocusRequester() }
     LaunchedEffect(Unit) { focus.requestFocus() }
-    val hourFormat = rememberPlaceFormat("HH:mm", data.utcOffsetSeconds)
+    val uses24 = uses24HourClock(LocalContext.current)
+    val locale = LocalConfiguration.current.locales[0]
+    val hourFormat = rememberPlaceFormat(hourLabelPattern(uses24, data.utcOffsetSeconds % 3600 == 0), data.utcOffsetSeconds)
     // As on the phone: the TV's own time under the place's when the place keeps another time
-    val deviceHour = rememberDeviceFormat("HH:mm")
+    val deviceHour = { time: Long -> formatHourInDeviceTime(time, uses24, locale) }
     val remote = isRemoteTimezone(data.utcOffsetSeconds)
     // Two lines: a day card is too narrow for the name and the date on one line
     val dayFormat = rememberPlaceFormat("EEE\nd", data.utcOffsetSeconds)
@@ -454,7 +460,8 @@ private fun CurrentPanel(
         if (remote) {
             // As the phone's header chip: the place's time, with the weekday when its date is not the TV's
             val locale = LocalConfiguration.current.locales[0]
-            val placeNow = remember(now, data.utcOffsetSeconds, locale) { formatLocationCurrentTime(data.utcOffsetSeconds, locale) }
+            val uses24 = uses24HourClock(LocalContext.current)
+            val placeNow = remember(now, data.utcOffsetSeconds, locale, uses24) { formatLocationCurrentTime(data.utcOffsetSeconds, locale, uses24) }
             // Two lines, as on the phone (the chip, then "Updated"): one line is too long for a 12-hour clock
             Text("\uD83D\uDD53 $placeNow", color = Dim, fontSize = 16.sp, maxLines = 1)
             DeviceTimeText(stringResource(R.string.updated_time, deviceTime(data.timestamp)), mark = true, color = Dim, fontSize = 16.sp)

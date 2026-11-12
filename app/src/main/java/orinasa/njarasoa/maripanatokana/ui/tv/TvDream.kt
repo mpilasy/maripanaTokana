@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -48,9 +49,13 @@ import orinasa.njarasoa.maripanatokana.domain.repository.WeatherRepository
 import orinasa.njarasoa.maripanatokana.ui.theme.MaripanaTokanaTheme
 import orinasa.njarasoa.maripanatokana.ui.theme.temperatureColor
 import orinasa.njarasoa.maripanatokana.ui.common.components.WeatherIcon
-import java.text.SimpleDateFormat
 import java.util.Date
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.formatHourInDeviceTime
 import orinasa.njarasoa.maripanatokana.ui.mobile.weather.isRemoteTimezone
+import orinasa.njarasoa.maripanatokana.ui.common.clockFormat
+import orinasa.njarasoa.maripanatokana.ui.common.clockPattern
+import orinasa.njarasoa.maripanatokana.ui.common.hourLabelPattern
+import orinasa.njarasoa.maripanatokana.ui.common.uses24HourClock
 import javax.inject.Inject
 import kotlin.random.Random
 
@@ -154,7 +159,8 @@ private fun DreamScreen(load: suspend () -> WeatherData?) {
     }
     // The clock shows the TV's own time
     val locale = LocalConfiguration.current.locales[0]
-    val clock = remember(locale) { SimpleDateFormat("HH:mm", locale) }
+    val uses24 = uses24HourClock(LocalContext.current)
+    val clock = remember(locale, uses24) { clockFormat(clockPattern(uses24), locale) }
     Box(Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
         Column(Modifier.offset(drift.first.dp, drift.second.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(clock.format(Date(now)), color = Color.White.copy(alpha = 0.85f), fontSize = 96.sp, fontWeight = FontWeight.Light)
@@ -167,9 +173,11 @@ private fun DreamScreen(load: suspend () -> WeatherData?) {
 private fun DreamWeather(data: WeatherData) {
     val metric = LocalMetricPrimary.current
     val (temp, tempSecond) = data.temperature.displayDual(metric)
-    val hourFormat = rememberPlaceFormat("HH:mm", data.utcOffsetSeconds)
+    val uses24 = uses24HourClock(LocalContext.current)
+    val locale = LocalConfiguration.current.locales[0]
+    val hourFormat = rememberPlaceFormat(hourLabelPattern(uses24, data.utcOffsetSeconds % 3600 == 0), data.utcOffsetSeconds)
     // As on the phone: the TV's own time under the place's when the place keeps another time
-    val deviceHour = rememberDeviceFormat("HH:mm")
+    val deviceHour = { time: Long -> formatHourInDeviceTime(time, uses24, locale) }
     val remote = isRemoteTimezone(data.utcOffsetSeconds)
     Spacer(Modifier.height(8.dp))
     Text(data.locationName, localize = false, color = Dim, fontSize = 28.sp)

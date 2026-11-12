@@ -267,6 +267,10 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 import orinasa.njarasoa.maripanatokana.ui.common.latitudeText
+import orinasa.njarasoa.maripanatokana.ui.common.clockFormat
+import orinasa.njarasoa.maripanatokana.ui.common.clockPattern
+import orinasa.njarasoa.maripanatokana.ui.common.hourLabelPattern
+import orinasa.njarasoa.maripanatokana.ui.common.uses24HourClock
 
 internal enum class ForecastDisplayMode {
     Temperature,
@@ -328,14 +332,12 @@ internal fun WeatherContent(
     val appLocale = LocalConfiguration.current.locales[0]
     // Remembered: a SimpleDateFormat is costly to make again on each recomposition
     val dateFormat = remember(appLocale) { SimpleDateFormat("EEE d MMM", appLocale) }
-    val screenTimeFormat = remember(appLocale) {
-        SimpleDateFormat(
-            if (android.text.format.DateFormat.is24HourFormat(context)) "HH:mm" else "h:mm a",
-            appLocale
-        )
-    }
+    val uses24 = uses24HourClock(context)
+    val screenTimeFormat = remember(appLocale, uses24) { clockFormat(clockPattern(uses24), appLocale) }
     // Sunrise and sunset in the place's own time, like the hourly cards and its clock
-    val timeFormat = remember(data.utcOffsetSeconds) { SimpleDateFormat("HH:mm", Locale.US).apply { timeZone = buildLocationTimeZone(data.utcOffsetSeconds) } }
+    val timeFormat = remember(data.utcOffsetSeconds, appLocale, uses24) {
+        clockFormat(clockPattern(uses24), appLocale).apply { timeZone = buildLocationTimeZone(data.utcOffsetSeconds) }
+    }
     val displayFont = LocalDisplayFont.current
     val bodyFont = LocalBodyFont.current
 
@@ -1254,7 +1256,7 @@ internal fun ShowAllChevron(onClick: () -> Unit, alpha: Float = 0.7f) {
 /** The place's own time in a small chip, after the region line (or after the name in the folded header). */
 @Composable
 private fun LocalTimeChip(utcOffsetSeconds: Int, appLocale: Locale, localizeDigits: (String) -> String, modifier: Modifier = Modifier) {
-    val time = localizeDigits(formatLocationCurrentTime(utcOffsetSeconds, appLocale))
+    val time = localizeDigits(formatLocationCurrentTime(utcOffsetSeconds, appLocale, uses24HourClock(LocalContext.current)))
     Text(
         text = "\uD83D\uDD53 $time",
         fontSize = 12f.s(LocalScale.current),
@@ -1561,8 +1563,11 @@ internal val LocalShareCopy = staticCompositionLocalOf { false }
 private fun glanceOutlookText(data: WeatherData, localizeDigits: (String) -> String): String? {
     val outlook = remember(data.hourlyForecast, data.minutelyForecast) { PrecipOutlook.from(data.hourlyForecast, data.minutelyForecast) }
         ?.takeIf { it.kind != PrecipOutlook.Kind.DRY } ?: return null
-    val hourFormat = remember(data.utcOffsetSeconds) {
-        SimpleDateFormat("HH:mm", Locale.US).apply { timeZone = buildLocationTimeZone(data.utcOffsetSeconds) }
+    // A time with minutes: the minutely forecast gives times between the full hours
+    val appLocale = LocalConfiguration.current.locales[0]
+    val uses24 = uses24HourClock(LocalContext.current)
+    val hourFormat = remember(data.utcOffsetSeconds, appLocale, uses24) {
+        clockFormat(clockPattern(uses24), appLocale).apply { timeZone = buildLocationTimeZone(data.utcOffsetSeconds) }
     }
     val time = outlook.time?.let { localizeDigits(hourFormat.format(Date(it))) }.orEmpty()
     return when (outlook.kind) {
@@ -1694,8 +1699,10 @@ private fun TemperatureTrendChip(data: WeatherData, metricPrimary: Boolean, loca
     // Compared with the current clock time, so cached data shows only the hours still to come
     val trend = temperatureTrend(data.temperature, data.hourlyForecast, metricPrimary) ?: return
     val up = trend.direction == TemperatureTrend.Direction.UP
-    val hourFormat = remember(data.utcOffsetSeconds) {
-        SimpleDateFormat("HH:mm", Locale.US).apply { timeZone = buildLocationTimeZone(data.utcOffsetSeconds) }
+    val appLocale = LocalConfiguration.current.locales[0]
+    val uses24 = uses24HourClock(LocalContext.current)
+    val hourFormat = remember(data.utcOffsetSeconds, appLocale, uses24) {
+        clockFormat(hourLabelPattern(uses24, data.utcOffsetSeconds % 3600 == 0), appLocale).apply { timeZone = buildLocationTimeZone(data.utcOffsetSeconds) }
     }
     val scale = LocalScale.current
     val time = localizeDigits(hourFormat.format(Date(trend.time)))
@@ -1826,8 +1833,10 @@ private object NoIntrinsicWidthPolicy : MeasurePolicy {
 private fun NextHoursStrip(data: WeatherData, metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
     val hours = listOf(0, 4, 8, 12).mapNotNull { data.hourlyForecast.getOrNull(it) }
     if (hours.isEmpty()) return
-    val hourFormat = remember(data.utcOffsetSeconds) {
-        SimpleDateFormat("HH:mm", Locale.US).apply { timeZone = buildLocationTimeZone(data.utcOffsetSeconds) }
+    val appLocale = LocalConfiguration.current.locales[0]
+    val uses24 = uses24HourClock(LocalContext.current)
+    val hourFormat = remember(data.utcOffsetSeconds, appLocale, uses24) {
+        clockFormat(hourLabelPattern(uses24, data.utcOffsetSeconds % 3600 == 0), appLocale).apply { timeZone = buildLocationTimeZone(data.utcOffsetSeconds) }
     }
     val scale = LocalScale.current
     val bodyFont = LocalBodyFont.current
@@ -1847,10 +1856,11 @@ private fun NextHoursStrip(data: WeatherData, metricPrimary: Boolean, localizeDi
                     fontSize = 12f.s(scale),
                     fontFamily = bodyFont,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    maxLines = 1,
                 )
                 // The phone's own time too when the place is in another time zone, as in the hourly cards
                 if (isRemoteTimezone(data.utcOffsetSeconds)) {
-                    DeviceTime(localizeDigits(formatHourInDeviceTime(hour.time)))
+                    DeviceTime(localizeDigits(formatHourInDeviceTime(hour.time, uses24, appLocale)))
                 }
                 val dayIdx = data.dailySunrise.indexOfLast { it <= hour.time }.coerceAtLeast(0)
                 val isNight = !isDaytime(hour.time, data.dailySunrise.getOrElse(dayIdx) { 0L }, data.dailySunset.getOrElse(dayIdx) { 0L })
@@ -1895,14 +1905,10 @@ internal fun HourlyForecastRow(
     // The selected tab; the caller keeps it, so the share image shows the same tab
     modeState: MutableState<ForecastDisplayMode> = remember { mutableStateOf(ForecastDisplayMode.Temperature) },
 ) {
-    val locationHourFormat = remember(utcOffsetSeconds) { 
-        SimpleDateFormat("HH:mm", Locale.US).apply {
-            val sign = if (utcOffsetSeconds >= 0) "+" else "-"
-            val absOffset = Math.abs(utcOffsetSeconds)
-            val hh = absOffset / 3600
-            val mm = (absOffset % 3600) / 60
-            timeZone = TimeZone.getTimeZone(String.format(Locale.US, "GMT%s%02d:%02d", sign, hh, mm))
-        }
+    val appLocale = LocalConfiguration.current.locales[0]
+    val uses24 = uses24HourClock(LocalContext.current)
+    val locationHourFormat = remember(utcOffsetSeconds, appLocale, uses24) {
+        clockFormat(hourLabelPattern(uses24, utcOffsetSeconds % 3600 == 0), appLocale).apply { timeZone = buildLocationTimeZone(utcOffsetSeconds) }
     }
     val bodyFont = LocalBodyFont.current
     val fontFeatures = LocalBodyFontFeatures.current
@@ -1972,11 +1978,12 @@ internal fun HourlyForecastRow(
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                             style = TextStyle(fontFeatureSettings = fontFeatures),
                             textAlign = TextAlign.Center,
+                            maxLines = 1,
                             modifier = Modifier.fillMaxWidth()
                         )
                         if (isRemote) {
                             // The phone's time centred under the place's; the phone icon hangs off its side
-                            DeviceTime(localizeDigits(formatHourInDeviceTime(item.time)), modifier = Modifier.align(Alignment.CenterHorizontally))
+                            DeviceTime(localizeDigits(formatHourInDeviceTime(item.time, uses24, appLocale)), modifier = Modifier.align(Alignment.CenterHorizontally))
                         }
                         Spacer(modifier = Modifier.height(4.dp))
                         val dayIdx = dailySunrise.indexOfLast { it <= item.time }.coerceAtLeast(0)
@@ -3848,30 +3855,25 @@ internal fun isRemoteTimezone(utcOffsetSeconds: Int): Boolean {
 }
 
 /** The current time at the place, with the weekday when its date differs from the device's date. */
-internal fun formatLocationCurrentTime(utcOffsetSeconds: Int, locale: Locale): String {
+internal fun formatLocationCurrentTime(utcOffsetSeconds: Int, locale: Locale, uses24: Boolean): String {
     val utcNow = System.currentTimeMillis()
     val locationMs = utcNow + utcOffsetSeconds * 1000L
-    
+
     val deviceDate = SimpleDateFormat("yyyyMMdd", Locale.US).apply { timeZone = TimeZone.getDefault() }.format(Date(utcNow))
     val locationDate = SimpleDateFormat("yyyyMMdd", Locale.US).apply { timeZone = TimeZone.getTimeZone("UTC") }.format(Date(locationMs))
 
-    return if (deviceDate != locationDate) {
-        // Weekday and time, for example "Mon, 14:30"
-        val format = SimpleDateFormat("EEE, HH:mm", locale)
-        format.timeZone = TimeZone.getTimeZone("UTC")
-        format.format(Date(locationMs))
-    } else {
-        val format = SimpleDateFormat("HH:mm", Locale.US)
-        format.timeZone = TimeZone.getTimeZone("UTC")
-        format.format(Date(locationMs))
-    }
+    // Weekday and time when the dates differ, for example "Mon, 14:30" or "Mon, 2:30 PM"
+    val pattern = if (deviceDate != locationDate) "EEE, ${clockPattern(uses24)}" else clockPattern(uses24)
+    val format = clockFormat(pattern, locale)
+    format.timeZone = TimeZone.getTimeZone("UTC")
+    return format.format(Date(locationMs))
 }
 
-/** [epochMillis] as HH:mm in the device's time zone. */
-private fun formatHourInDeviceTime(epochMillis: Long): String {
-    val format = SimpleDateFormat("HH:mm", Locale.US)
+/** [epochMillis] as an hour label in the device's time zone: the minutes stay when the device is at a :30 or :45 offset. */
+internal fun formatHourInDeviceTime(epochMillis: Long, uses24: Boolean, locale: Locale): String {
+    val minute = Math.floorMod((epochMillis + TimeZone.getDefault().getOffset(epochMillis)) / 60_000L, 60L)
     // Default timezone for SimpleDateFormat is the device's local timezone
-    return format.format(Date(epochMillis))
+    return clockFormat(hourLabelPattern(uses24, minute == 0L), locale).format(Date(epochMillis))
 }
 
 internal fun buildLocationTimeZone(utcOffsetSeconds: Int): TimeZone {

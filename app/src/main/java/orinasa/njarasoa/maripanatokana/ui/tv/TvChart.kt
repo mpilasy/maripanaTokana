@@ -41,6 +41,7 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -68,6 +69,9 @@ import orinasa.njarasoa.maripanatokana.ui.chart.chartAirQuality
 import orinasa.njarasoa.maripanatokana.ui.chart.chartDomain
 import orinasa.njarasoa.maripanatokana.ui.chart.chartTiles
 import orinasa.njarasoa.maripanatokana.ui.common.components.WeatherIcon
+import orinasa.njarasoa.maripanatokana.ui.common.clockPattern
+import orinasa.njarasoa.maripanatokana.ui.common.hourLabelPattern
+import orinasa.njarasoa.maripanatokana.ui.common.uses24HourClock
 import orinasa.njarasoa.maripanatokana.ui.common.components.colorsFor
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -319,8 +323,9 @@ internal fun ChartScreen(data: WeatherData, startIndex: Int) {
     LaunchedEffect(Unit) { focus.requestFocus() }
     val moves = mapOf(Key.DirectionLeft to -1, Key.DirectionRight to 1, Key.DirectionUp to -24, Key.DirectionDown to 24)
     val okKeys = setOf(Key.DirectionCenter, Key.Enter, Key.NumPadEnter)
-    val titleFormat = rememberPlaceFormat("EEEE d MMM, HH:mm", data.utcOffsetSeconds)
-    val hourFormat = rememberPlaceFormat("EEE HH:mm", data.utcOffsetSeconds)
+    val uses24 = uses24HourClock(LocalContext.current)
+    val titleFormat = rememberPlaceFormat("EEEE d MMM, ${clockPattern(uses24)}", data.utcOffsetSeconds)
+    val hourFormat = rememberPlaceFormat("EEE ${hourLabelPattern(uses24, data.utcOffsetSeconds % 3600 == 0)}", data.utcOffsetSeconds)
 
     Column(
         Modifier

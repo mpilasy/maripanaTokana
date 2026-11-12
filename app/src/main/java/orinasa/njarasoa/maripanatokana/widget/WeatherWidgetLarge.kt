@@ -43,9 +43,10 @@ import orinasa.njarasoa.maripanatokana.ui.common.components.weatherIconRes
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.domain.model.isDaytime
 import orinasa.njarasoa.maripanatokana.widget.theme.WidgetColorProviders
-import java.text.SimpleDateFormat
+import orinasa.njarasoa.maripanatokana.ui.common.clockFormat
+import orinasa.njarasoa.maripanatokana.ui.common.clockPattern
+import orinasa.njarasoa.maripanatokana.ui.common.uses24HourClock
 import java.util.Date
-import java.util.Locale
 
 class WeatherWidgetLarge : GlanceAppWidget() {
 
@@ -79,7 +80,8 @@ private fun WeatherWidgetLargeContent(data: WeatherData, metricPrimary: Boolean)
             config.setLocale(locale)
             baseContext.createConfigurationContext(config)
         }
-    val timeFormat = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
+    // 24-hour or 12-hour as the device; the AM/PM marker in the app language
+    val timeFormat = remember(context) { clockFormat(clockPattern(uses24HourClock(context)), context.resources.configuration.locales[0]) }
     val refreshTime = timeFormat.format(Date(data.timestamp))
     val (tempPrimary, tempSecondary) = data.temperature.displayDual(metricPrimary)
 

@@ -57,6 +57,8 @@ import orinasa.njarasoa.maripanatokana.domain.model.AlertLevel
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherAlert
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalBodyFont
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
+import orinasa.njarasoa.maripanatokana.ui.common.clockFormat
+import orinasa.njarasoa.maripanatokana.ui.common.uses24HourClock
 import orinasa.njarasoa.maripanatokana.ui.mobile.weather.LocalScale
 import orinasa.njarasoa.maripanatokana.ui.mobile.weather.s
 import orinasa.njarasoa.maripanatokana.ui.mobile.weather.sd
@@ -305,10 +307,11 @@ fun WeatherAlertBanner(
                             }
                             if (alert.time != null) {
                                 Spacer(modifier = Modifier.height(2.sd(scale)))
-                                // The app's language order for day, month, year, 24-hour time, as formatAlertTime on the web
+                                // The app's language order for day, month, year and time (24-hour or 12-hour as the device), as formatAlertTime on the web
                                 val appLocale = LocalConfiguration.current.locales[0]
-                                val timeFormat = remember(appLocale) {
-                                    java.text.SimpleDateFormat(android.text.format.DateFormat.getBestDateTimePattern(appLocale, "yyyyMMddHHmm"), appLocale)
+                                val uses24 = uses24HourClock(LocalContext.current)
+                                val timeFormat = remember(appLocale, uses24) {
+                                    clockFormat(android.text.format.DateFormat.getBestDateTimePattern(appLocale, if (uses24) "yyyyMMddHHmm" else "yyyyMMddhhmm"), appLocale)
                                 }
                                 Text(
                                     text = localizeDigits(timeFormat.format(java.util.Date(alert.time))),

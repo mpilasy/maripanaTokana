@@ -76,6 +76,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -125,6 +126,10 @@ import orinasa.njarasoa.maripanatokana.ui.mobile.weather.HeroStatDivider
 import orinasa.njarasoa.maripanatokana.ui.mobile.weather.PrecipChance
 import orinasa.njarasoa.maripanatokana.ui.mobile.weather.buildLocationTimeZone
 import orinasa.njarasoa.maripanatokana.ui.common.components.drawMoon
+import orinasa.njarasoa.maripanatokana.ui.common.clockFormat
+import orinasa.njarasoa.maripanatokana.ui.common.clockPattern
+import orinasa.njarasoa.maripanatokana.ui.common.hourLabelPattern
+import orinasa.njarasoa.maripanatokana.ui.common.uses24HourClock
 import orinasa.njarasoa.maripanatokana.ui.mobile.weather.glass
 import orinasa.njarasoa.maripanatokana.ui.common.components.colorsFor
 import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.computeMonotoneCubicControlPoints
@@ -384,8 +389,9 @@ private fun SelectionHeader(
 ) {
     val appLocale = LocalConfiguration.current.locales[0]
     val daily = low != null
-    val timeFormat = remember(appLocale, utcOffsetSeconds, daily) {
-        SimpleDateFormat(if (daily) "EEE d MMM" else "EEE d MMM, HH:mm", appLocale).apply { timeZone = buildLocationTimeZone(utcOffsetSeconds) }
+    val uses24 = uses24HourClock(LocalContext.current)
+    val timeFormat = remember(appLocale, utcOffsetSeconds, daily, uses24) {
+        clockFormat(if (daily) "EEE d MMM" else "EEE d MMM, ${clockPattern(uses24)}", appLocale).apply { timeZone = buildLocationTimeZone(utcOffsetSeconds) }
     }
     val directions = stringArrayResource(R.array.cardinal_directions)
     val onSurface = MaterialTheme.colorScheme.onSurface
@@ -701,7 +707,10 @@ private fun ChartPanels(
         times.map { daily || Math.floorMod((it + utcOffsetSeconds * 1000L) / HOUR, 24L).toInt() % LABEL_HOURS == 0 }
     }
     val locationZone = remember(utcOffsetSeconds) { buildLocationTimeZone(utcOffsetSeconds) }
-    val hourFormat = remember(locationZone) { SimpleDateFormat("HH:mm", Locale.US).apply { timeZone = locationZone } }
+    val uses24 = uses24HourClock(LocalContext.current)
+    val hourFormat = remember(locationZone, appLocale, uses24) {
+        clockFormat(hourLabelPattern(uses24, utcOffsetSeconds % 3600 == 0), appLocale).apply { timeZone = locationZone }
+    }
     val dayFormat = remember(appLocale, locationZone) { SimpleDateFormat("EEE d MMM", appLocale).apply { timeZone = locationZone } }
     // The day labels of the daily mode: the weekday over the day of the month
     val shortDayFormat = remember(appLocale, locationZone) { SimpleDateFormat("EEE'\n'd", appLocale).apply { timeZone = locationZone } }

@@ -33,6 +33,7 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -50,6 +51,8 @@ import orinasa.njarasoa.maripanatokana.domain.model.Moon
 import orinasa.njarasoa.maripanatokana.domain.model.Seasons
 import orinasa.njarasoa.maripanatokana.domain.model.WeatherData
 import orinasa.njarasoa.maripanatokana.ui.common.latitudeText
+import orinasa.njarasoa.maripanatokana.ui.common.clockPattern
+import orinasa.njarasoa.maripanatokana.ui.common.uses24HourClock
 import orinasa.njarasoa.maripanatokana.ui.common.components.MoonPhaseIcon
 import orinasa.njarasoa.maripanatokana.ui.common.components.colorsFor
 import java.util.Locale
@@ -97,7 +100,7 @@ private fun Tile(
 @Composable
 internal fun DetailsScreen(data: WeatherData) {
     val focus = rememberScreenFocus()
-    val timeFormat = rememberPlaceFormat("HH:mm", data.utcOffsetSeconds)
+    val timeFormat = rememberPlaceFormat(clockPattern(uses24HourClock(LocalContext.current)), data.utcOffsetSeconds)
     val directions = stringArrayResource(R.array.cardinal_directions)
     val uvLabels = stringArrayResource(R.array.uv_labels)
     val phases = stringArrayResource(R.array.moon_phases)
@@ -311,7 +314,7 @@ internal fun ScrollScreen(content: @Composable ColumnScope.() -> Unit) {
 /** The alerts with their full text. */
 @Composable
 internal fun AlertsScreen(data: WeatherData) {
-    val timeFormat = rememberPlaceFormat("EEE d MMM, HH:mm", data.utcOffsetSeconds)
+    val timeFormat = rememberPlaceFormat("EEE d MMM, ${clockPattern(uses24HourClock(LocalContext.current))}", data.utcOffsetSeconds)
     val levels = mapOf(
         AlertLevel.WATCH to stringResource(R.string.alert_level_watch),
         AlertLevel.WARNING to stringResource(R.string.alert_level_warning),

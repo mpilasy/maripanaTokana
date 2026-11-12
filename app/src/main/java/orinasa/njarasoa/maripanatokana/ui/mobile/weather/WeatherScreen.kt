@@ -72,9 +72,11 @@ import orinasa.njarasoa.maripanatokana.ui.mobile.weather.chart.ChartViewScreen
 import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.RenameLocationDialog
 import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.SavedLocationsDialog
 import androidx.compose.runtime.saveable.rememberSaveable
-import java.text.SimpleDateFormat
 import java.util.Locale
 import orinasa.njarasoa.maripanatokana.ui.common.supportedLocales
+import orinasa.njarasoa.maripanatokana.ui.common.clockFormat
+import orinasa.njarasoa.maripanatokana.ui.common.clockPattern
+import orinasa.njarasoa.maripanatokana.ui.common.uses24HourClock
 
 @Composable
 fun WeatherScreen(
@@ -488,10 +490,7 @@ private fun WeatherMainScreen(
                             fontIndex = fontIndex,
                             currentFlag = supportedLocales[localeIndex].flag,
                             localizeDigits = supportedLocales[localeIndex]::localizeDigits,
-                            osTimeFormat = SimpleDateFormat(
-                                if (android.text.format.DateFormat.is24HourFormat(baseContext)) "HH:mm" else "h:mm a",
-                                Locale.US
-                            ),
+                            osTimeFormat = clockFormat(clockPattern(uses24HourClock(baseContext)), Locale.US),
                             onToggleUnits = { viewModel.toggleUnits() },
                             onCycleFont = { viewModel.cycleFont() },
                             onSelectFont = { viewModel.selectFont(it) },
