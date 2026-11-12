@@ -18,6 +18,7 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 - Android: the 30-minute background weather update runs only while a widget is on the home screen. Without a widget, it no longer uses the battery and the network.
 - Android widgets: the background image is 400 × 200, so a widget sends half as much image data to the home screen (0.9 MB instead of 1.9 MB).
 - MeteoAlarm alerts (Android and web): in France, a department no longer gets the alerts of a department whose name contains its name ("Loire" and "Haute-Loire", "Savoie" and "Haute-Savoie"). Italy now gets its alerts: they are for regions, and the app now compares them with the region of the place, also when its name is in English ("Tuscany" is "Toscana").
+- Web: MeteoAlarm alerts use the local area names of the place ("Haute-Savoie", not "Upper Savoy"), so places in departments with an English name get their alerts in an English browser. The place lookups wait at least 1.1 s between requests, as the Nominatim usage policy asks.
 
 ## [1.7.20261111184249] - 2026-11-11
 

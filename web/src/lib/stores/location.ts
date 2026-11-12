@@ -144,6 +144,20 @@ function writeGeocodeCache(key: string, value: LocationLookup) {
 	try { localStorage.setItem(GEOCODE_STORAGE_PREFIX + key, JSON.stringify(entry)); } catch { /* ignore */ }
 }
 
+/** The locale tag for names in the local language of the place ("Haute-Savoie", not "Upper Savoy"). */
+export const LOCAL_NAMES = '*';
+
+// Nominatim allows at most 1 request per second: reverse lookups leave at least 1.1 s apart
+const NOMINATIM_INTERVAL_MS = 1100;
+let nextNominatimAt = 0;
+
+async function waitForNominatim() {
+	const now = Date.now();
+	const at = Math.max(now, nextNominatimAt);
+	nextNominatimAt = at + NOMINATIM_INTERVAL_MS;
+	if (at > now) await new Promise((resolve) => setTimeout(resolve, at - now));
+}
+
 /**
  * Single Nominatim reverse call yielding display name/subtext and country/subdivision info.
  * Cached 24h (memory + localStorage) by coords rounded to 2 decimals + locale. Returns null on failure (not cached).
@@ -158,9 +172,13 @@ export function lookupLocation(lat: number, lon: number, localeTag?: string): Pr
 		try {
 			// Browsers forbid setting User-Agent; Nominatim identifies browser apps by Referer.
 			const headers: Record<string, string> = {};
-			if (localeTag) headers['Accept-Language'] = `${localeTag},en;q=0.5`;
+			// "*" accepts any language: Nominatim then gives the local names. It goes in the URL, so that the browser
+			// cache does not answer with the response for the same URL in the language of the user.
+			const local = localeTag === LOCAL_NAMES ? '&accept-language=*' : '';
+			if (localeTag && !local) headers['Accept-Language'] = `${localeTag},en;q=0.5`;
+			await waitForNominatim();
 			const res = await fetch(
-				`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=10&addressdetails=1`,
+				`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=10&addressdetails=1${local}`,
 				{ headers, signal: AbortSignal.timeout(10_000) }
 			);
 			if (!res.ok) return null;
@@ -206,4 +224,5 @@ export function _clearGeocodeCache() {
 	geocodeMemory.clear();
 	geocodeInflight.clear();
 	geocodeSwept = false;
+	nextNominatimAt = 0;
 }

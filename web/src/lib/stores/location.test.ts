@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { lookupLocation, _clearGeocodeCache } from './location';
+import { lookupLocation, _clearGeocodeCache, LOCAL_NAMES } from './location';
 
 describe('lookupLocation cache', () => {
 	beforeEach(() => _clearGeocodeCache());
@@ -26,6 +26,21 @@ describe('lookupLocation cache', () => {
 		expect(await lookupLocation(1, 2)).toBeNull();
 		await lookupLocation(1, 2);
 		expect(fetchMock).toHaveBeenCalledTimes(2);
+	});
+
+	it('asks for local names with "*" in the URL, and for the user language with English as the second choice', async () => {
+		const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) => new Response(JSON.stringify({
+			address: { county: 'Haute-Savoie', state: 'Auvergne-Rhône-Alpes', country_code: 'fr' }
+		})));
+		vi.stubGlobal('fetch', fetchMock);
+		const local = await lookupLocation(45.9, 6.13, LOCAL_NAMES);
+		await lookupLocation(45.9, 6.13, 'mg');
+		const header = (i: number) => (fetchMock.mock.calls[i][1]?.headers as Record<string, string>)['Accept-Language'];
+		expect(fetchMock.mock.calls[0][0]).toContain('&accept-language=*');
+		expect(header(0)).toBeUndefined();
+		expect(fetchMock.mock.calls[1][0]).not.toContain('accept-language');
+		expect(header(1)).toBe('mg,en;q=0.5');
+		expect(local).toMatchObject({ subdivisionName: 'Haute-Savoie', regionName: 'Auvergne-Rhône-Alpes' });
 	});
 });
 

@@ -3,6 +3,7 @@
 
 import type { WeatherAlert } from '#lib/domain/weatherData.js';
 import { getLocationInfo, type LocationInfo } from './shared';
+import { LOCAL_NAMES } from '#lib/stores/location.js';
 import { fetchNwsAlerts, isInUS } from './nws';
 import { fetchGdacsAlerts } from './gdacs';
 import { fetchMeteoAlarmAlerts, METEOALARM_COUNTRIES } from './meteoAlarm';
@@ -96,7 +97,11 @@ export async function fetchAllAlerts(
 		source('NWS', settings.alertsNwsEnabled && region.inUS, () => fetchNwsAlerts(lat, lon)),
 		// Skipped when a regional source covers the area
 		source('GDACS', settings.alertsGdacsEnabled && !coveredByRegional(region), () => fetchGdacsAlerts(lat, lon)),
-		source('MeteoAlarm', settings.alertsMeteoAlarmEnabled && region.inMeteoAlarm, () => fetchMeteoAlarmAlerts(lat, lon, cc, place)),
+		source('MeteoAlarm', settings.alertsMeteoAlarmEnabled && region.inMeteoAlarm, async () => {
+			// MeteoAlarm uses the local area names; the place lookup is in the language of the user
+			const local = await getLocationInfo(lat, lon, LOCAL_NAMES);
+			return fetchMeteoAlarmAlerts(lat, lon, cc, local.countryCode ? local : place);
+		}),
 		source('JMA', settings.alertsJmaEnabled && region.inJapan, () => fetchJmaAlerts(lat, lon)),
 		source('ECCC', settings.alertsEcccEnabled && region.inCanada, () => fetchEcccAlerts(lat, lon, 'ca')),
 		source('BOM', settings.alertsBomEnabled && region.inAustralia, () => fetchBomAlerts(stateCode)),
