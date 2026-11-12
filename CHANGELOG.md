@@ -9,6 +9,8 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.7.20261112203928] - 2026-11-12
+
 - Moon tile (phone and web): the moon no longer shows twice. While it is up, the moon on the arc shows the phase and the middle shows only the phase name; while it is down, the middle shows the phase icon and name. The name has more width, so a long name (Malagasy "Volan-tandrony") no longer breaks inside the word.
 
 ## [1.7.20261112190552] - 2026-11-12
