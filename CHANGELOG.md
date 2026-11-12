@@ -9,6 +9,8 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.7.20261112013642] - 2026-11-12
+
 - Android: the place-name lookup of the system geocoder no longer runs on the main thread, so a slow network cannot freeze the app.
 - Web: expired place names are removed from the browser storage, so the storage does not fill up over time.
 - Web: in the saved places search, the results of an older, slower query no longer replace the results of the newer query.

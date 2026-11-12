@@ -1,0 +1,9 @@
+- Alertes : corrections MeteoAlarm pour la France et l'Italie.
+- Widgets : mis à jour seulement sur l'écran d'accueil.
+- Ciel : soleil à midi, déclinaison, solstice, lune.
+- Nouveau : appli Android TV avec graphiques.
+- Évolution de la température sur 6 h ; prochaines heures en couleur, avec pluie.
+- UV sur la carte principale dès modéré.
+- Max. du jour et normale sur 10 ans ; écarts depuis hier.
+- Mer : vagues, eau, marées.
+- Réglages : modèle météo. Graphiques : par heure ou par jour.

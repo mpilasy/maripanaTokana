@@ -1,0 +1,9 @@
+- Alerts: MeteoAlarm fixes for France and Italy.
+- Widgets update only when on the home screen.
+- Sky: noon sun, declination, solstice, moon.
+- New: Android TV app with charts.
+- Temperature change in 6 hours; next hours in colour, with rain chance.
+- UV on the main card when moderate or higher.
+- Today's high vs the 10-year normal; changes since yesterday's forecast.
+- Sea: waves, temperature, tides.
+- Settings: weather model. Chart view: hourly or daily.
