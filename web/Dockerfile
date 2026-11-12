@@ -12,6 +12,9 @@ COPY web/ .
 RUN rm -f src/lib/i18n/locales
 COPY shared/i18n/locales/ ./src/lib/i18n/locales/
 
+# The commit for the About page (.claude/deploy-web.sh); the build context has no .git
+ARG GIT_HASH=
+ARG COMMIT_TIME=
 RUN npm run build
 
 # Stage 2: Run

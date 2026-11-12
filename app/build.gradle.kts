@@ -1,8 +1,6 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Properties
 
 plugins {
@@ -37,6 +35,12 @@ android {
         // Always 7 characters. "--short" gives more on a clone with more objects (F-Droid's), and then the APKs do not match.
         val gitHash = providers.exec { commandLine("git", "rev-parse", "HEAD") }.standardOutput.asText.get().trim().take(7)
         buildConfigField("String", "GIT_HASH", "\"$gitHash\"")
+        // The commit time of HEAD in UTC: the same for every build of the same commit, so the F-Droid build stays reproducible
+        val commitTime = providers.exec {
+            commandLine("git", "log", "-1", "--format=%cd", "--date=format-local:%Y-%m-%d %H:%M")
+            environment("TZ", "UTC")
+        }.standardOutput.asText.get().trim()
+        buildConfigField("String", "COMMIT_TIME", "\"$commitTime\"")
     }
 
     signingConfigs {
@@ -53,12 +57,10 @@ android {
     productFlavors {
         create("standard") {
             dimension = "distribution"
-            buildConfigField("String", "BUILD_TIME", "\"${SimpleDateFormat("yyyy-MM-dd HH:mm").format(Date())}\"")
         }
         create("fdroid") {
             dimension = "distribution"
             buildConfigField("String", "DISTRIBUTION", "\"fdroid\"")
-            buildConfigField("String", "BUILD_TIME", "\"reproducible\"")
         }
     }
 

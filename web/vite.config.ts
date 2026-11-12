@@ -4,8 +4,25 @@
 import adapter from '@sveltejs/adapter-node';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vitest/config';
+import { execFileSync } from 'node:child_process';
+
+// The short hash and the UTC commit time of HEAD, for the About page. The Docker build has no .git:
+// .claude/deploy-web.sh gives them as the GIT_HASH and COMMIT_TIME build arguments.
+function git(args: string[]): string {
+	try {
+		return execFileSync('git', args, { env: { ...process.env, TZ: 'UTC' }, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+	} catch {
+		return '';
+	}
+}
+const gitHash = process.env.GIT_HASH || git(['rev-parse', 'HEAD']).slice(0, 7);
+const commitTime = process.env.COMMIT_TIME || git(['log', '-1', '--format=%cd', '--date=format-local:%Y-%m-%d %H:%M']);
 
 export default defineConfig({
+	define: {
+		__GIT_HASH__: JSON.stringify(gitHash),
+		__COMMIT_TIME__: JSON.stringify(commitTime),
+	},
 	plugins: [
 		sveltekit({
 			adapter: adapter({ out: 'build' }),

@@ -1,9 +1,10 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-FileCopyrightText: 2014 Volodymyr Agafonkin (SunCalc formulas)
+// SPDX-License-Identifier: GPL-3.0-or-later AND BSD-2-Clause
 
 /**
  * The moon's phase, place in the sky, rise and set, calculated in the browser. The formulas are
- * those of SunCalc (Vladimir Agafonkin, BSD-2-Clause), after "Astronomy Answers" by Aart Kerkhoven.
+ * those of SunCalc (Volodymyr Agafonkin, BSD-2-Clause), after "Astronomy Answers" by Aart Kerkhoven.
  * The Android app has the same code in `domain/model/Moon.kt`; keep the two the same.
  */
 

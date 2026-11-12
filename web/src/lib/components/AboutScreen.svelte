@@ -3,21 +3,19 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import { version } from '../../../package.json';
-	import { creditSections } from '#lib/credits.js';
 	import SettingsPage from './SettingsPage.svelte';
 	import { deviceInfo, type DeviceRow } from '#lib/deviceInfo.js';
 	import { onMount } from 'svelte';
 	import { SUPPORTED_LOCALES } from '#lib/i18n/index.js';
-	import { localeIndex, weatherSource, weatherModel } from '#lib/stores/preferences.js';
-	import { weatherModelFor } from '#lib/domain/weatherModel.js';
+	import { localeIndex } from '#lib/stores/preferences.js';
 	import { isAndroid, isStandalone } from '#lib/installHint.js';
 	import AppBadges from './AppBadges.svelte';
+	import LicensesScreen from './LicensesScreen.svelte';
 
 	interface Props { onBack: () => void; onOpenHelp: () => void; languageFlag: string; onCycleLanguage: () => void; }
 	let { onBack, onOpenHelp, languageFlag, onCycleLanguage }: Props = $props();
 
-	// A chosen Open-Meteo model shows after the source name, for example "Open-Meteo · ECMWF IFS"
-	let chosenModel = $derived($weatherSource === 'OPEN_METEO' ? weatherModelFor($weatherModel) : null);
+	let showLicenses = $state(false);
 
 	let deviceRows = $state<DeviceRow[]>([]);
 	let onAndroid = $state(false);
@@ -33,10 +31,15 @@
 	<div class="section group identity">
 		<span class="app-name">maripànaTokana</span>
 		<span class="version">v{version}</span>
+		<!-- The hash and the UTC commit time, for bug reports. Twin: the Android About -->
+		<span class="build">{[__GIT_HASH__ && `#${__GIT_HASH__}`, __COMMIT_TIME__ && `${__COMMIT_TIME__} UTC`].filter(Boolean).join(' • ')}</span>
 		<span class="copyright">© 2026 Orinasa Njarasoa</span>
 		<a class="app-license" href="https://github.com/mpilasy/maripanaTokana/blob/main/LICENSE" target="_blank" rel="noopener">{$_('about_app_license')} ↗</a>
-		<!-- How to use the app -->
-		<button type="button" class="source-link help-link" onclick={onOpenHelp}>{$_('help_title')} ›</button>
+		<!-- How to use the app, and the credits for the data, images, fonts and libraries with their licences -->
+		<span class="page-links">
+			<button type="button" class="source-link help-link" onclick={onOpenHelp}>{$_('help_title')} ›</button>
+			<button type="button" class="source-link help-link" onclick={() => (showLicenses = true)}>{$_('licenses_title')} ›</button>
+		</span>
 		<AppBadges android={onAndroid} {installable} />
 	</div>
 
@@ -54,28 +57,11 @@
 		</div>
 	{/if}
 
-	{#each creditSections as section (section.titleKey)}
-		<div class="section">
-			<div class="section-title">{$_(section.titleKey)}</div>
-			<div class="group">
-				{#each section.items as item}
-					{@const baseName = item.nameKey ? $_(item.nameKey) : item.name}
-					{@const name = item.name === 'Open-Meteo' && chosenModel ? `${baseName} · ${chosenModel.name}` : baseName}
-					{@const note = item.noteKey ? $_(item.noteKey) : item.note}
-					<a class="credit-row" href={item.url} target="_blank" rel="noopener">
-						<span class="credit-text">
-							<span class="credit-name">{name}</span>
-							{#if note}
-								<span class="credit-note">{note}</span>
-							{/if}
-						</span>
-						<span class="credit-license">{item.license} ↗</span>
-					</a>
-				{/each}
-			</div>
-		</div>
-	{/each}
 </SettingsPage>
+
+{#if showLicenses}
+	<LicensesScreen onBack={() => (showLicenses = false)} />
+{/if}
 
 <style>
 	.identity {
@@ -99,8 +85,13 @@
 		color: rgba(255, 255, 255, 0.55);
 	}
 
+	.build {
+		font-size: 0.6875rem;
+		color: rgba(255, 255, 255, 0.4);
+	}
+
 	.copyright {
-		margin-top: 8px;
+		margin-top: 6px;
 		font-size: 0.875rem;
 		color: rgba(255, 255, 255, 0.85);
 	}
@@ -112,8 +103,12 @@
 		text-decoration: none;
 	}
 
+	.page-links {
+		display: flex;
+		margin-top: 4px;
+	}
+
 	.source-link {
-		margin-top: 8px;
 		padding: 6px 12px;
 		font-size: 0.875rem;
 		font-weight: 600;
@@ -159,49 +154,4 @@
 		text-align: end;
 		overflow-wrap: anywhere;
 		user-select: text;
-	}
-
-	.credit-row {
-		display: flex;
-		align-items: center;
-		gap: 12px;
-		padding: 10px 0;
-		color: white;
-		text-decoration: none;
-	}
-
-	.credit-row + .credit-row {
-		border-top: 1px solid var(--hairline);
-	}
-
-	.credit-row:hover .credit-name {
-		text-decoration: underline;
-	}
-
-	.credit-text {
-		flex: 1;
-		min-width: 0;
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-	}
-
-	.credit-name {
-		font-size: 0.9375rem;
-		font-weight: 500;
-	}
-
-	.credit-note {
-		font-size: 0.75rem;
-		line-height: 1rem;
-		color: rgba(255, 255, 255, 0.55);
-	}
-
-	.credit-license {
-		width: 110px;
-		flex-shrink: 0;
-		text-align: end;
-		font-size: 0.75rem;
-		color: rgba(255, 255, 255, 0.65);
-	}
-</style>
+	}</style>

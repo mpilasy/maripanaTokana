@@ -258,9 +258,8 @@ Flavor-specific widget location fetcher implementations:
 
 The F-Droid flavor is configured for reproducible builds:
 
-1. **BUILD_TIME buildConfigField**
-   - Standard flavor: the local build time (`yyyy-MM-dd HH:mm`), shown in the footer
-   - F-Droid flavor: "reproducible" string (for byte-identical builds). The F-Droid flavor also sets `DISTRIBUTION="fdroid"`
+1. **COMMIT_TIME buildConfigField**
+   - The commit time of `HEAD` in UTC (`yyyy-MM-dd HH:mm`, from `git log` with `TZ=UTC`), shown on the About page. It is the same for every build of the same commit, so it does not break reproducibility. (Before November 2026 it was BUILD_TIME: the local build time, and "reproducible" in the F-Droid flavor.) The F-Droid flavor also sets `DISTRIBUTION="fdroid"`
 
 2. **GIT_HASH buildConfigField**
    - The short hash of `HEAD`. It is the same for every build of the same commit, so it does not break reproducibility

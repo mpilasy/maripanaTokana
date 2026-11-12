@@ -33,9 +33,13 @@ path = [
   "app/src/main/res/drawable/ic_activity_laundry.xml",
   "app/src/main/res/drawable/ic_activity_run.xml",
   "app/src/main/res/drawable/ic_activity_sun.xml",
+  "app/src/main/res/drawable/ic_chart.xml",
+  "app/src/main/res/drawable/ic_cold.xml",
+  "app/src/main/res/drawable/ic_device_tv.xml",
   "app/src/main/res/drawable/ic_device_phone.xml",
   "app/src/main/res/drawable/ic_font.xml",
   "app/src/main/res/drawable/ic_grid.xml",
+  "app/src/main/res/drawable/ic_heat.xml",
   "app/src/main/res/drawable/ic_map.xml",
   "app/src/main/res/drawable/ic_my_location.xml",
   "app/src/main/res/drawable/ic_refresh.xml",
@@ -55,14 +59,14 @@ SPDX-License-Identifier = "Apache-2.0"
 
 # F-Droid badge (fdroid/artwork)
 [[annotations]]
-path = "web/static/badges/get-it-on-fdroid.png"
+path = ["web/static/badges/get-it-on-fdroid.png", "app/src/main/res/drawable-nodpi/badge_fdroid.png"]
 precedence = "override"
 SPDX-FileCopyrightText = "2016 Andrew Nayenko <relan@airpost.net>"
 SPDX-License-Identifier = "CC-BY-SA-3.0 OR GPL-3.0-or-later"
 
 # GitHub badge (Kunzisoft/Github-badge, from the F-Droid badge sources)
 [[annotations]]
-path = "web/static/badges/get-it-on-github.png"
+path = ["web/static/badges/get-it-on-github.png", "app/src/main/res/drawable-nodpi/badge_github.png"]
 precedence = "override"
 SPDX-FileCopyrightText = "Kunzisoft"
 SPDX-License-Identifier = "CC-BY-SA-3.0"
@@ -76,7 +80,7 @@ SPDX-License-Identifier = "CC0-1.0"
 
 # Obtainium badge (ImranR98/Obtainium)
 [[annotations]]
-path = "web/static/badges/get-it-on-obtainium.png"
+path = ["web/static/badges/get-it-on-obtainium.png", "app/src/main/res/drawable-nodpi/badge_obtainium.png"]
 precedence = "override"
 SPDX-FileCopyrightText = "Imran Remtulla"
 SPDX-License-Identifier = "GPL-3.0-only"
@@ -101,3 +105,18 @@ path = ["LICENSE", "app/src/main/res/raw/gpl_license.txt"]
 precedence = "override"
 SPDX-FileCopyrightText = "Free Software Foundation, Inc."
 SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# SunCalc licence text shown in the Android About page
+[[annotations]]
+path = "app/src/main/res/raw/suncalc_license.txt"
+precedence = "override"
+SPDX-FileCopyrightText = "Volodymyr Agafonkin"
+SPDX-License-Identifier = "BSD-2-Clause"
+
+# Licence texts of the code, icons and fonts in the web app (scripts/web_third_party_licenses.py);
+# each text names its own copyright holders
+[[annotations]]
+path = "web/static/licenses/**"
+precedence = "override"
+SPDX-FileCopyrightText = "The copyright holders named in each licence text"
+SPDX-License-Identifier = "MIT AND BSD-2-Clause AND BSD-3-Clause AND 0BSD AND Apache-2.0 AND OFL-1.1"

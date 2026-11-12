@@ -43,7 +43,6 @@ const PLACEHOLDER_ORDER = {
 	frostbite_under_minutes: ['minutes'],
 	updated_time: ['time'],
 	settings_api_error: ['code'],
-	hash_version: ['hash'],
 	widget_today_in: ['location'],
 	widget_now_in: ['location'],
 	widget_min_max: ['min_val', 'min_unit', 'max_val', 'max_unit'],

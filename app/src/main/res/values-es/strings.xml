@@ -273,6 +273,7 @@
     <string name="help_a_share">Toca el botón de compartir de una tarjeta.</string>
     <string name="about_title">Acerca de</string>
     <string name="about_row_desc">Fuentes de datos, bibliotecas y licencias</string>
+    <string name="licenses_title">Licencias</string>
     <string name="about_app_license">Software libre y de código abierto bajo la licencia GNU GPL, versión 3 o posterior</string>
     <string name="about_source_code">Código fuente</string>
     <string name="about_web_version">En la web</string>
@@ -311,7 +312,6 @@
     <string name="detail_no_precip">Ninguna</string>
     <string name="visibility_km" formatted="false">%.1f km</string>
     <string name="visibility_mi" formatted="false">%.2f mi</string>
-    <string name="hash_version">Hash: %1$s</string>
     <string name="widget_today_in">Hoy en %1$s</string>
     <string name="widget_now_in">Ahora en %1$s</string>
     <string name="widget_tap_to_refresh">Toca para actualizar el clima</string>

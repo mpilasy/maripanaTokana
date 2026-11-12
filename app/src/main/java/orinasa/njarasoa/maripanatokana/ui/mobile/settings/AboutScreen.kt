@@ -4,7 +4,6 @@
 package orinasa.njarasoa.maripanatokana.ui.mobile.settings
 
 import androidx.annotation.DrawableRes
-import androidx.annotation.RawRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.aspectRatio
@@ -28,13 +27,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -55,10 +52,6 @@ import orinasa.njarasoa.maripanatokana.BuildConfig
 import orinasa.njarasoa.maripanatokana.R
 import orinasa.njarasoa.maripanatokana.ui.theme.Hairline
 import orinasa.njarasoa.maripanatokana.ui.theme.LocalDisplayFont
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import orinasa.njarasoa.maripanatokana.ui.common.about.Credit
-import orinasa.njarasoa.maripanatokana.ui.common.about.creditSections
 import orinasa.njarasoa.maripanatokana.ui.common.about.AppQrCode
 import orinasa.njarasoa.maripanatokana.ui.common.about.appQrCodes
 import orinasa.njarasoa.maripanatokana.ui.common.about.GITHUB_RELEASES_URL
@@ -120,9 +113,12 @@ fun AboutScreen(onBack: () -> Unit, onOpenHelp: () -> Unit, languageFlag: String
     val uriHandler = LocalUriHandler.current
     var openTextRes by rememberSaveable { mutableStateOf<Int?>(null) }
     var openTextTitle by rememberSaveable { mutableStateOf("") }
+    var licensesOpen by rememberSaveable { mutableStateOf(false) }
     val licenseRes = openTextRes
     if (licenseRes != null) {
         LicenseTextScreen(title = openTextTitle, textRes = licenseRes, onBack = { openTextRes = null })
+    } else if (licensesOpen) {
+        LicensesScreen(onBack = { licensesOpen = false }, weatherModelName = weatherModelName)
     } else SettingsPage(title = stringResource(R.string.about_title), onBack = onBack, languageFlag = languageFlag, onCycleLanguage = onCycleLanguage, onSelectLanguage = onSelectLanguage) {
         // App identity
         SettingsGroup {
@@ -143,12 +139,12 @@ fun AboutScreen(onBack: () -> Unit, onOpenHelp: () -> Unit, languageFlag: String
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
                 )
                 Text(
-                    // The build details for bug reports: hash, build time, flavor and version code
-                    text = "${stringResource(R.string.hash_version, BuildConfig.GIT_HASH)}${if (BuildConfig.DEBUG) "-d" else ""} • ${BuildConfig.BUILD_TIME} • ${BuildConfig.FLAVOR} (${BuildConfig.VERSION_CODE})",
+                    // The build details for bug reports: hash, commit time, flavor and version code. Twin: the web About
+                    text = "#${BuildConfig.GIT_HASH}${if (BuildConfig.DEBUG) "-d" else ""} • ${BuildConfig.COMMIT_TIME} UTC • ${BuildConfig.FLAVOR} (${BuildConfig.VERSION_CODE})",
                     fontSize = 11.sp,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                 )
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(6.dp))
                 Text(
                     text = "© 2026 Orinasa Njarasoa",
                     fontSize = 14.sp,
@@ -168,23 +164,29 @@ fun AboutScreen(onBack: () -> Unit, onOpenHelp: () -> Unit, languageFlag: String
                         }
                         .padding(horizontal = 12.dp, vertical = 4.dp),
                 )
-                Spacer(Modifier.height(8.dp))
-                // How to use the app
-                Text(
-                    text = stringResource(R.string.help_title) + " ›",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier
-                        .clickable(role = Role.Button, onClick = onOpenHelp)
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
-                )
-                Spacer(Modifier.height(12.dp))
+                // How to use the app, and the credits for the data, images, fonts and libraries with their licences
+                Row(Modifier.padding(top = 4.dp)) {
+                    listOf(
+                        stringResource(R.string.help_title) to onOpenHelp,
+                        stringResource(R.string.licenses_title) to { licensesOpen = true },
+                    ).forEach { (label, onClick) ->
+                        Text(
+                            text = "$label ›",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier
+                                .clickable(role = Role.Button, onClick = onClick)
+                                .padding(horizontal = 12.dp, vertical = 6.dp),
+                        )
+                    }
+                }
+                Spacer(Modifier.height(4.dp))
                 var qrCode by remember { mutableStateOf<AppQrCode?>(null) }
                 appQrCodes.filter { it.badge == null }.forEach { code -> AppLink(code) { qrCode = code } }
                 // The badges, like on the web: F-Droid and Obtainium show their QR code, for another phone to scan;
                 // GitHub opens the releases page
-                Spacer(Modifier.height(20.dp))
+                Spacer(Modifier.height(12.dp))
                 Row(Modifier.widthIn(max = 470.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     appQrCodes.forEach { code ->
                         val badge = code.badge ?: return@forEach
@@ -208,24 +210,6 @@ fun AboutScreen(onBack: () -> Unit, onOpenHelp: () -> Unit, languageFlag: String
             }
         }
 
-        creditSections.forEach { section ->
-            Spacer(Modifier.height(24.dp))
-            SectionHeader(stringResource(section.titleRes))
-            SettingsGroup {
-                section.items.forEachIndexed { index, item ->
-                    if (index > 0) {
-                        Box(Modifier.fillMaxWidth().height(1.dp).background(Hairline))
-                    }
-                    val onOpen: (() -> Unit)? = when {
-                        item.textRes != null -> { { openTextTitle = item.name; openTextRes = item.textRes } }
-                        item.url != null -> { { uriHandler.openUri(item.url) } }
-                        else -> null
-                    }
-                    CreditRow(item, onOpen = onOpen, weatherModelName = weatherModelName)
-                }
-            }
-        }
-
         Spacer(Modifier.height(24.dp))
     }
 }
@@ -240,70 +224,5 @@ private fun DeviceInfoRow(label: String, value: String) {
         CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
             Text(text = value, fontSize = 13.sp, color = onSurface, textAlign = TextAlign.End, modifier = Modifier.weight(0.6f))
         }
-    }
-}
-
-@Composable
-private fun CreditRow(item: Credit, onOpen: (() -> Unit)?, weatherModelName: String?) {
-    val onSurface = MaterialTheme.colorScheme.onSurface
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .then(if (onOpen != null) Modifier.clickable(onClick = onOpen, role = Role.Button) else Modifier)
-            .padding(vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = (item.nameRes?.let { stringResource(it) } ?: item.name) +
-                    (weatherModelName?.takeIf { item.showsWeatherModel }?.let { " · $it" } ?: ""),
-                fontSize = 15.sp,
-                lineHeight = 20.sp,
-                fontWeight = FontWeight.Medium,
-                color = onSurface,
-            )
-            val note = item.noteRes?.let { stringResource(it) } ?: item.note
-            if (note != null) {
-                Text(text = note, fontSize = 12.sp, lineHeight = 16.sp, color = onSurface.copy(alpha = 0.55f))
-            }
-        }
-        Spacer(Modifier.width(12.dp))
-        Text(
-            text = item.license + if (onOpen != null) " ↗" else "",
-            fontSize = 12.sp,
-            lineHeight = 16.sp,
-            textAlign = TextAlign.End,
-            color = onSurface.copy(alpha = 0.65f),
-            modifier = Modifier.width(110.dp),
-        )
-    }
-}
-
-@Composable
-private fun LicenseTextScreen(title: String, @RawRes textRes: Int, onBack: () -> Unit) {
-    val context = LocalContext.current
-    val text by produceState<String?>(null, textRes) {
-        value = withContext(Dispatchers.IO) {
-            context.resources.openRawResource(textRes).bufferedReader().use { it.readText() }
-        }
-    }
-    SettingsPage(title = title, onBack = onBack) {
-        SettingsGroup {
-            val loaded = text
-            if (loaded == null) {
-                Box(Modifier.fillMaxWidth().padding(vertical = 24.dp), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.onSurface)
-                }
-            } else {
-                Text(
-                    text = loaded,
-                    fontSize = 12.sp,
-                    lineHeight = 17.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                    modifier = Modifier.padding(vertical = 12.dp),
-                )
-            }
-        }
-        Spacer(Modifier.height(24.dp))
     }
 }

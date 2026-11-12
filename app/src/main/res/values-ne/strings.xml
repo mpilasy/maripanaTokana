@@ -273,6 +273,7 @@
     <string name="help_a_share">कुनै कार्डको साझा गर्ने बटनमा थिच्नुहोस्।</string>
     <string name="about_title">बारेमा</string>
     <string name="about_row_desc">डेटा स्रोत, लाइब्रेरी र इजाजतपत्र</string>
+    <string name="licenses_title">इजाजतपत्र</string>
     <string name="about_app_license">GNU GPL संस्करण 3 वा पछिल्लो संस्करण अन्तर्गत निःशुल्क र खुला स्रोत सफ्टवेयर</string>
     <string name="about_source_code">स्रोत कोड</string>
     <string name="about_web_version">वेबमा</string>
@@ -311,7 +312,6 @@
     <string name="detail_no_precip">छैन</string>
     <string name="visibility_km" formatted="false">%.1f km</string>
     <string name="visibility_mi" formatted="false">%.2f mi</string>
-    <string name="hash_version">Hash: %1$s</string>
     <string name="widget_today_in">आज %1$s मा</string>
     <string name="widget_now_in">अहिले %1$s मा</string>
     <string name="widget_tap_to_refresh">मौसम ताजा गर्न थिच्नुहोस्</string>

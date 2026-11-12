@@ -232,8 +232,8 @@ private fun AboutHeading(text: String) {
 }
 
 @Composable
-private fun AboutLine(text: String, size: Int = 18) {
-    Text(text, localize = false, color = Dim, fontSize = size.sp)
+private fun AboutLine(text: String, size: Int = 18, modifier: Modifier = Modifier) {
+    Text(text, localize = false, color = Dim, fontSize = size.sp, modifier = modifier)
 }
 
 /** The phone's About text. A TV has no browser to rely on, so the addresses show as text. */
@@ -243,6 +243,12 @@ internal fun AboutPage() {
     val context = LocalContext.current
     val device = remember { deviceInfo(context) }
     var qrCode by remember { mutableStateOf<AppQrCode?>(null) }
+    var licensesOpen by remember { mutableStateOf(false) }
+    if (licensesOpen) {
+        BackHandler { licensesOpen = false }
+        LicensesPage()
+        return
+    }
     qrCode?.let { code ->
         // Back closes it
         LocalizedDialog(onDismissRequest = { qrCode = null }) {
@@ -258,29 +264,32 @@ internal fun AboutPage() {
         }
     }
     // On a TV, Compose scrolls a focused item to near the middle of the screen; here the page scrolls only when the link is not visible
-    CompositionLocalProvider(LocalBringIntoViewSpec provides object : BringIntoViewSpec {}) { AboutContent(device, onLink = { qrCode = it }) }
+    CompositionLocalProvider(LocalBringIntoViewSpec provides object : BringIntoViewSpec {}) { AboutContent(device, onLink = { qrCode = it }, onLicenses = { licensesOpen = true }) }
 }
 
 @Composable
-private fun AboutContent(device: List<DeviceRow>, onLink: (AppQrCode) -> Unit) {
+private fun AboutContent(device: List<DeviceRow>, onLink: (AppQrCode) -> Unit, onLicenses: () -> Unit) {
     ScrollScreen {
         PageTitle(stringResource(R.string.about_title))
-        Text(stringResource(R.string.app_name), localize = false, color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Bold)
-        AboutLine("v${BuildConfig.VERSION_NAME}")
-        AboutLine("${stringResource(R.string.hash_version, BuildConfig.GIT_HASH)} • ${BuildConfig.BUILD_TIME} • ${BuildConfig.FLAVOR}", 15)
-        AboutLine("© 2026 Orinasa Njarasoa")
-        AboutLine(stringResource(R.string.about_app_license))
+        // The app, its version, hash and commit time, close together
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(stringResource(R.string.app_name), localize = false, color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Bold)
+            AboutLine("v${BuildConfig.VERSION_NAME}")
+            AboutLine("#${BuildConfig.GIT_HASH} • ${BuildConfig.COMMIT_TIME} UTC • ${BuildConfig.FLAVOR} (${BuildConfig.VERSION_CODE})", 15)
+            AboutLine("© 2026 Orinasa Njarasoa", modifier = Modifier.padding(top = 6.dp))
+            AboutLine(stringResource(R.string.about_app_license))
+        }
         // A TV has no browser to rely on: OK on a link shows its QR code, for a phone to scan.
         // Left and right move between the links; up and down still scroll the page.
         val firstLink = remember { FocusRequester() }
         LaunchedEffect(Unit) { firstLink.requestFocus() }
         // All cards as tall as the tallest (only F-Droid and Obtainium have a badge)
-        Row(Modifier.padding(vertical = 8.dp).height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(Modifier.padding(vertical = 8.dp).height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             appQrCodes.forEachIndexed { i, code ->
                 FocusCard(Modifier.weight(1f).fillMaxHeight().then(if (i == 0) Modifier.focusRequester(firstLink) else Modifier), onClick = { onLink(code) }) {
-                    Column(Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(Modifier.padding(horizontal = 4.dp, vertical = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(code.labelText(), color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
-                        Text(code.address, localize = false, color = Dim, fontSize = 13.sp, textAlign = TextAlign.Center, maxLines = 2)
+                        Text(code.address, localize = false, color = Dim, fontSize = 12.sp, textAlign = TextAlign.Center, maxLines = 2)
                         // The "Get it on" badge tells that the link gets the app, before OK opens its QR code
                         code.badge?.let {
                             Image(painterResource(it), contentDescription = null, modifier = Modifier.padding(top = 8.dp).height(36.dp))
@@ -288,9 +297,24 @@ private fun AboutContent(device: List<DeviceRow>, onLink: (AppQrCode) -> Unit) {
                     }
                 }
             }
+            // In the same row as the links: up and down scroll the page, so only left and right reach it
+            // As wide as the links, so a long label ("Fahazoan'alàlana") breaks only between words
+            FocusCard(Modifier.weight(1f).fillMaxHeight(), onClick = onLicenses) {
+                Box(Modifier.fillMaxSize().padding(horizontal = 4.dp, vertical = 12.dp), contentAlignment = Alignment.Center) {
+                    Text(stringResource(R.string.licenses_title) + " ›", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                }
+            }
         }
         AboutHeading(stringResource(R.string.about_section_device))
         device.forEach { row -> AboutLine("${stringResource(row.labelRes)}: ${row.value}") }
+    }
+}
+
+/** The credits of the phone's Licenses page, as text: a TV has no browser for the licence pages. */
+@Composable
+private fun LicensesPage() {
+    ScrollScreen {
+        PageTitle(stringResource(R.string.licenses_title))
         creditSections.forEach { section ->
             AboutHeading(stringResource(section.titleRes))
             section.items.forEach { item ->

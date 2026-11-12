@@ -273,6 +273,7 @@
     <string name="help_a_share">Touchez le bouton de partage d\'une carte.</string>
     <string name="about_title">À propos</string>
     <string name="about_row_desc">Sources de données, bibliothèques et licences</string>
+    <string name="licenses_title">Licences</string>
     <string name="about_app_license">Logiciel libre et open source sous licence GNU GPL, version 3 ou ultérieure</string>
     <string name="about_source_code">Code source</string>
     <string name="about_web_version">Sur le web</string>
@@ -311,7 +312,6 @@
     <string name="detail_no_precip">Aucune</string>
     <string name="visibility_km" formatted="false">%.1f km</string>
     <string name="visibility_mi" formatted="false">%.2f mi</string>
-    <string name="hash_version">Hash: %1$s</string>
     <string name="widget_today_in">Aujourd\'hui à %1$s</string>
     <string name="widget_now_in">Maintenant à %1$s</string>
     <string name="widget_tap_to_refresh">Appuyez pour actualiser la météo</string>

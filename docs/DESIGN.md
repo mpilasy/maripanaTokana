@@ -396,7 +396,7 @@ Settings screen (`SettingsScreen.kt`) always shows the Advanced mode switch and 
 - **Geocoding Source**: System Geocoder vs Nominatim.
 - **Alert Toggles**: Master alerts switch + individual source toggles for all 7 official providers.
 
-Settings, Help and About share the `SettingsPage` layout. Help has three sections (Places and favorites; Language, font and units; Weather data). About has the license, the source code and web links, the F-Droid and Obtainium badges (a tap shows the QR code, for another phone to scan) and the GitHub releases badge (a tap opens it), the credits for data, imagery, fonts and libraries, and the device information (`DeviceInfo.kt`).
+Settings, Help and About share the `SettingsPage` layout. Help has three sections (Places and favorites; Language, font and units; Weather data). About has the version, the hash and the UTC commit time (`BuildConfig.COMMIT_TIME`; on the web `__GIT_HASH__` and `__COMMIT_TIME__` from `vite.config.ts`), the license, the Help and Licenses links, the source code and web links, the F-Droid and Obtainium badges (a tap shows the QR code, for another phone to scan) and the GitHub releases badge (a tap opens it), and the device information (`DeviceInfo.kt`). The Licenses page (`LicensesScreen`) has the credits for data, imagery, fonts and libraries; a tap on a credit shows its licence text in the app (Android `R.raw`, web `static/licenses/`), or opens its licence page. On the TV, a Licenses card at the end of the link row opens the credits as text.
 
 ---
 

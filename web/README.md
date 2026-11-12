@@ -21,7 +21,7 @@ For the full list, see the [main README](../README.md#features). This list gives
 - **Share**: each card has a share button. `html2canvas` makes a PNG of the card, and the Web Share API shares it. If the browser cannot share files, the PNG is downloaded.
 - **Refresh**: pull down, or tap the update time. The app also refreshes when the tab becomes visible and the data is more than 30 minutes old.
 - **Offline**: the last forecast is saved in `localStorage` (`weatherSnapshot.ts`), and the service worker keeps the last API responses. Without a connection, the app shows them with their real age.
-- **Help and About pages**, opened from the footer.
+- **Help and About pages**, opened from the footer. About has the version, the hash and the commit time, and opens the Licenses page: the credits, with the licence texts in `static/licenses/` (written by `scripts/web_third_party_licenses.py`).
 - **Install on iPhone and iPad**: iOS browsers never offer to install a web app. So on iOS, when the app is not open from the Home Screen, the footer has an Install link. It opens a panel with the two steps (Share, then Add to Home Screen), and Help has the same steps (`installHint.ts`, `InstallDialog.svelte`).
 - **Error screen in two languages**: when the browser language is different from the app language, the error screen shows both.
 
