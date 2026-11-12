@@ -176,13 +176,23 @@ export async function captureAndShare(
 		html2canvas(headerEl, opts),
 		html2canvas(contentEl, opts),
 	]);
+	const canvas = document.createElement('canvas');
+	try {
+		await shareCanvases(headerCapture, contentCapture, canvas);
+	} finally {
+		// Large canvases: free their memory now, not at the next garbage collection (iOS Safari limits canvas memory)
+		for (const c of [headerCapture, contentCapture, canvas]) { c.width = 0; c.height = 0; }
+	}
+}
+
+/** Draws the two captures on [canvas] with the app name, then shares or downloads the PNG. */
+async function shareCanvases(headerCapture: HTMLCanvasElement, contentCapture: HTMLCanvasElement, canvas: HTMLCanvasElement): Promise<void> {
 
 	const width = Math.max(headerCapture.width, contentCapture.width) + PADDING * 2;
 	// Two small lines under the content: app name and version, then the site
 	const copyrightHeight = COPYRIGHT_FONT_SIZE * 4 + 6 + PADDING / 2;
 	const height = PADDING + headerCapture.height + GAP + contentCapture.height + copyrightHeight;
 
-	const canvas = document.createElement('canvas');
 	canvas.width = width;
 	canvas.height = height;
 	const ctx = canvas.getContext('2d')!;
@@ -206,8 +216,8 @@ export async function captureAndShare(
 	ctx.fillText(SITE_URL, width / 2, footerTop + COPYRIGHT_FONT_SIZE * 2 + 6);
 
 	// Export as PNG blob, then stamp the share time into EXIF (no GPS/location)
-	const rawBlob = await new Promise<Blob>((resolve) =>
-		canvas.toBlob((b) => resolve(b!), 'image/png')
+	const rawBlob = await new Promise<Blob>((resolve, reject) =>
+		canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('The share image could not be made'))), 'image/png')
 	);
 	const pngBytes = new Uint8Array(await rawBlob.arrayBuffer());
 	const withExif = addExifDateTime(pngBytes, new Date());
@@ -222,6 +232,7 @@ export async function captureAndShare(
 		a.href = url;
 		a.download = file.name;
 		a.click();
-		URL.revokeObjectURL(url);
+		// Some browsers stop the download when the URL is revoked at once
+		setTimeout(() => URL.revokeObjectURL(url), 60_000);
 	}
 }
