@@ -1,11 +1,70 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-export function formatTime(timestamp: number): string {
+let clock24: boolean | null = null;
+
+/** True when the browser's region uses a 24-hour clock. Found once, then kept. As Android's uses24HourClock(). */
+export function uses24HourClock(): boolean {
+	if (clock24 === null) {
+		const cycle = new Intl.DateTimeFormat(undefined, { hour: 'numeric' }).resolvedOptions().hourCycle;
+		clock24 = cycle === 'h23' || cycle === 'h24';
+	}
+	return clock24;
+}
+
+/** Sets the clock for tests; null finds it again from the browser. */
+export function setUses24HourClock(value: boolean | null): void {
+	clock24 = value;
+}
+
+const amPmMarkers = new Map<string, [string, string]>();
+
+/**
+ * The AM or PM marker of [hours] in the app language (English when Intl does not have the language). No dots or
+ * spaces ("p. m." becomes "pm"): the digit helper changes dots to decimal commas. As Android's clockFormat().
+ */
+function amPm(hours: number, localeTag: string): string {
+	let markers = amPmMarkers.get(localeTag);
+	if (!markers) {
+		const tag = Intl.DateTimeFormat.supportedLocalesOf([localeTag]).length > 0 ? localeTag : 'en';
+		const formatter = new Intl.DateTimeFormat(tag, { hour: 'numeric', hourCycle: 'h12', timeZone: 'UTC' });
+		const marker = (h: number, fallback: string) =>
+			cleanDayPeriod(formatter.formatToParts(Date.UTC(2026, 0, 1, h)).find((p) => p.type === 'dayPeriod')?.value ?? fallback);
+		markers = [marker(9, 'AM'), marker(21, 'PM')];
+		amPmMarkers.set(localeTag, markers);
+	}
+	return markers[hours < 12 ? 0 : 1];
+}
+
+function cleanDayPeriod(value: string): string {
+	return value.replace(/[.\s]/g, '');
+}
+
+/** An Intl result with the AM/PM marker cleaned as in amPm(). */
+function formatWithCleanDayPeriod(formatter: Intl.DateTimeFormat, date: Date): string {
+	return formatter.formatToParts(date).map((p) => (p.type === 'dayPeriod' ? cleanDayPeriod(p.value) : p.value)).join('');
+}
+
+/** A time with minutes: "HH:mm" (24-hour) or "h:mm a" (12-hour, "9:05 PM"). As Android's clockPattern(). */
+function clockText(hours: number, minutes: number, localeTag: string): string {
+	const mm = String(minutes).padStart(2, '0');
+	if (uses24HourClock()) return `${String(hours).padStart(2, '0')}:${mm}`;
+	return `${hours % 12 || 12}:${mm} ${amPm(hours, localeTag)}`;
+}
+
+/**
+ * The label of a full hour: "HH:mm" (24-hour) or "h a" (12-hour, "9 PM"). [wholeHour] is false for times that are
+ * not on the full hour (a place or a device at a :30 or :45 offset): they keep the minutes. As Android's hourLabelPattern().
+ */
+function hourLabelText(hours: number, minutes: number, wholeHour: boolean, localeTag: string): string {
+	if (uses24HourClock() || !wholeHour) return clockText(hours, minutes, localeTag);
+	return `${hours % 12 || 12} ${amPm(hours, localeTag)}`;
+}
+
+/** A time with minutes in the device's timezone. */
+export function formatTime(timestamp: number, localeTag: string): string {
 	const d = new Date(timestamp);
-	const hh = String(d.getHours()).padStart(2, '0');
-	const mm = String(d.getMinutes()).padStart(2, '0');
-	return `${hh}:${mm}`;
+	return clockText(d.getHours(), d.getMinutes(), localeTag);
 }
 
 /** True if the timestamp falls on the device's current calendar day. */
@@ -24,15 +83,17 @@ export function formatDate(timestamp: number, localeTag: string, weekdayNames?: 
 	const intlSupported = Intl.DateTimeFormat.supportedLocalesOf([localeTag]).length > 0;
 
 	if (intlSupported || !weekdayNames || !monthNames) {
-		let formatter = dateFormatters.get(localeTag);
+		const uses24 = uses24HourClock();
+		const key = `${localeTag}:${uses24}`;
+		let formatter = dateFormatters.get(key);
 		if (!formatter) {
 			formatter = new Intl.DateTimeFormat(localeTag, {
 				weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-				hour: 'numeric', minute: '2-digit'
+				hour: 'numeric', minute: '2-digit', hourCycle: uses24 ? 'h23' : 'h12'
 			});
-			dateFormatters.set(localeTag, formatter);
+			dateFormatters.set(key, formatter);
 		}
-		return formatter.format(d);
+		return formatWithCleanDayPeriod(formatter, d);
 	}
 
 	// Build from arrays for unsupported locales (mg, ne)
@@ -40,10 +101,8 @@ export function formatDate(timestamp: number, localeTag: string, weekdayNames?: 
 	const month = monthNames[d.getMonth()];
 	const day = d.getDate();
 	const year = d.getFullYear();
-	const hours = String(d.getHours()).padStart(2, '0');
-	const minutes = String(d.getMinutes()).padStart(2, '0');
 
-	return `${weekday}, ${day} ${month} ${year} ${hours}:${minutes}`;
+	return `${weekday}, ${day} ${month} ${year} ${clockText(d.getHours(), d.getMinutes(), localeTag)}`;
 }
 
 const shortDateFormatters = new Map<string, Intl.DateTimeFormat>();
@@ -73,18 +132,24 @@ export function formatShortDate(timestamp: number, localeTag: string, weekdayNam
 	return `${weekday} ${d.getDate()} ${short(month)}`;
 }
 
-/** HH:mm of an epoch (UTC millis) in the device's timezone. */
-export function formatHourInDeviceTime(epochMillis: number): string {
+/** An epoch (UTC millis) as an hour label in the device's timezone: the minutes stay when the device is at a :30 or :45 offset. */
+export function formatHourInDeviceTime(epochMillis: number, localeTag: string): string {
 	const d = new Date(epochMillis);
-	return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+	return hourLabelText(d.getHours(), d.getMinutes(), d.getMinutes() === 0, localeTag);
 }
 
-/** HH:mm of an epoch (UTC millis) at the location, from its UTC offset. */
-export function formatHourAtLocation(epochMillis: number, utcOffsetSec: number): string {
-	const locationLocalMs = epochMillis + utcOffsetSec * 1000;
-	const d = new Date(locationLocalMs);
+/** An epoch (UTC millis) as an hour label at the location, from its UTC offset ("21:00" or "9 PM"). */
+export function formatHourAtLocation(epochMillis: number, utcOffsetSec: number, localeTag: string): string {
 	// UTC methods, because the offset is already in the time
-	return `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
+	const d = new Date(epochMillis + utcOffsetSec * 1000);
+	return hourLabelText(d.getUTCHours(), d.getUTCMinutes(), utcOffsetSec % 3600 === 0, localeTag);
+}
+
+/** An epoch (UTC millis) as a time with minutes at the location, from its UTC offset ("21:05" or "9:05 PM"). */
+export function formatTimeAtLocation(epochMillis: number, utcOffsetSec: number, localeTag: string): string {
+	// UTC methods, because the offset is already in the time
+	const d = new Date(epochMillis + utcOffsetSec * 1000);
+	return clockText(d.getUTCHours(), d.getUTCMinutes(), localeTag);
 }
 
 // Formatters are slow to make, so they are kept
@@ -103,19 +168,19 @@ export function formatLocationCurrentTime(utcOffsetSeconds: number, localeTag: s
 		dDevice.getMonth() !== dLocation.getUTCMonth() ||
 		dDevice.getDate() !== dLocation.getUTCDate()
 	) {
-		let formatter = locationTimeFormatters.get(localeTag);
+		const uses24 = uses24HourClock();
+		const key = `${localeTag}:${uses24}`;
+		let formatter = locationTimeFormatters.get(key);
 		if (!formatter) {
 			formatter = new Intl.DateTimeFormat(localeTag, {
-				weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC'
+				weekday: 'short', hour: uses24 ? '2-digit' : 'numeric', minute: '2-digit', hourCycle: uses24 ? 'h23' : 'h12', timeZone: 'UTC'
 			});
-			locationTimeFormatters.set(localeTag, formatter);
+			locationTimeFormatters.set(key, formatter);
 		}
-		return formatter.format(dLocation);
+		return formatWithCleanDayPeriod(formatter, dLocation);
 	}
-	
-	const hh = String(dLocation.getUTCHours()).padStart(2, '0');
-	const mm = String(dLocation.getUTCMinutes()).padStart(2, '0');
-	return `${hh}:${mm}`;
+
+	return clockText(dLocation.getUTCHours(), dLocation.getUTCMinutes(), localeTag);
 }
 
 /** True when the location's UTC offset differs from the device's. */
@@ -181,8 +246,11 @@ export function formatDayMonth(timestamp: number, localeTag: string, utcOffsetSe
 	return `${day} ${shortMonth}`;
 }
 
+/** Day, month, year and time (24-hour or 12-hour as the browser's region) in the app language's order. */
 export function formatAlertTime(timestamp: number, localeTag: string): string {
-	let formatter = alertTimeFormatters.get(localeTag);
+	const uses24 = uses24HourClock();
+	const key = `${localeTag}:${uses24}`;
+	let formatter = alertTimeFormatters.get(key);
 	if (!formatter) {
 		formatter = new Intl.DateTimeFormat(localeTag, {
 			year: 'numeric',
@@ -190,9 +258,9 @@ export function formatAlertTime(timestamp: number, localeTag: string): string {
 			day: '2-digit',
 			hour: '2-digit',
 			minute: '2-digit',
-			hour12: false
+			hourCycle: uses24 ? 'h23' : 'h12'
 		});
-		alertTimeFormatters.set(localeTag, formatter);
+		alertTimeFormatters.set(key, formatter);
 	}
-	return formatter.format(new Date(timestamp));
+	return formatWithCleanDayPeriod(formatter, new Date(timestamp));
 }

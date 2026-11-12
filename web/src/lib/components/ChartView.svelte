@@ -17,7 +17,7 @@
 	import { runsOf, splitDual } from '#lib/utils/dualLabel.js';
 	import { temperatureColor } from '#lib/utils/tempColors.js';
 	import { ChartStyle } from '#lib/utils/chartStyle.js';
-	import { formatDayName, formatHourAtLocation } from '#lib/utils/date.js';
+	import { formatDayName, formatHourAtLocation, formatTimeAtLocation } from '#lib/utils/date.js';
 	import { prefersReducedMotion } from '#lib/utils/motion.js';
 	import { moonLitPath } from '#lib/utils/moonPath.js';
 	import { moonIllumination, nextMoonPhase } from '#lib/domain/moon.js';
@@ -315,9 +315,9 @@
 		return loc(`${formatDayName(time, localeTag, utcOffsetSeconds, true, weekdayNames)} ${d.getUTCDate()} ${month}`);
 	}
 
-	/** "EEE d MMM, HH:mm" at the place; only the day in daily mode. */
+	/** "EEE d MMM, HH:mm" (or "h:mm a") at the place; only the day in daily mode. */
 	function hourLabel(h: ChartHour): string {
-		return daily ? dayLabel(h.time) : `${dayLabel(h.time)}, ${loc(formatHourAtLocation(h.time, utcOffsetSeconds))}`;
+		return daily ? dayLabel(h.time) : `${dayLabel(h.time)}, ${loc(formatTimeAtLocation(h.time, utcOffsetSeconds, localeTag))}`;
 	}
 
 	/**
@@ -944,7 +944,7 @@
 						{/each}
 					{/each}
 					{#each daily ? [] : labelled as i (i)}
-						{@const hourText = loc(formatHourAtLocation(shown[i].time, utcOffsetSeconds))}
+						{@const hourText = loc(formatHourAtLocation(shown[i].time, utcOffsetSeconds, localeTag))}
 						<line x1={cx(i)} x2={cx(i)} y1={panels.time.top} y2={panels.time.top + 3} stroke="white" stroke-opacity="0.3" stroke-width="1" />
 						<text x={cx(i)} y={panels.time.top + 13} text-anchor="middle" font-size="10" fill="white" fill-opacity="0.6">{hourText}</text>
 						<line x1={cx(i)} x2={cx(i)} y1={topAxisBottom - 3} y2={topAxisBottom} stroke="white" stroke-opacity="0.3" stroke-width="1" />

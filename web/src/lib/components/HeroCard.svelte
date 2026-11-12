@@ -5,7 +5,9 @@
 	import { isDaytime, type WeatherData } from '#lib/domain/weatherData.js';
 	import { wmoDescriptionKey } from '#lib/api/wmoWeatherCode.js';
 	import { precipOutlook } from '#lib/domain/precipOutlook.js';
-	import { formatHourAtLocation, formatHourInDeviceTime, isRemoteTimezone } from '#lib/utils/date.js';
+	import { formatHourAtLocation, formatHourInDeviceTime, formatTimeAtLocation, isRemoteTimezone } from '#lib/utils/date.js';
+	import { localeIndex } from '#lib/stores/preferences.js';
+	import { SUPPORTED_LOCALES } from '#lib/i18n/locales.js';
 	import DualUnitText from './DualUnitText.svelte';
 	import AqiTierBadge from './AqiTierBadge.svelte';
 	import UvTierBadge from './UvTierBadge.svelte';
@@ -29,6 +31,7 @@
 	}
 
 	let { data, placeName, metricPrimary, loc, onToggleUnits, onShare }: Props = $props();
+	let localeTag = $derived(SUPPORTED_LOCALES[$localeIndex].tag);
 
 	let cardEl = $state<HTMLElement | null>(null);
 
@@ -48,7 +51,8 @@
 		if (!o || o.kind === 'dry') return '';
 		const kind = o.snow ? 'snow' : 'rain';
 		if (o.kind === 'starts' || o.kind === 'stops') {
-			const time = loc(formatHourAtLocation(o.time, data.utcOffsetSeconds));
+			// A time with minutes: the minutely forecast gives times between the full hours
+			const time = loc(formatTimeAtLocation(o.time, data.utcOffsetSeconds, localeTag));
 			return $_(o.kind === 'starts' ? `outlook_${kind}_from` : `outlook_${kind}_until`, { values: { time } });
 		}
 		return $_(`outlook_${kind}_all_day`);
@@ -63,7 +67,7 @@
 		const c = `${Math.round(change)}°C`;
 		const f = `${Math.round(change * 9 / 5)}°F`;
 		const [primary, secondary] = metricPrimary ? [c, f] : [f, c];
-		const time = loc(formatHourAtLocation(trend.time, data.utcOffsetSeconds));
+		const time = loc(formatHourAtLocation(trend.time, data.utcOffsetSeconds, localeTag));
 		const up = trend.direction === 'up';
 		return {
 			arrow: up ? '↑' : '↓',
@@ -251,11 +255,11 @@
 			<div class="next-hours">
 				{#each nextHours as hour (hour.time)}
 					<div class="next-hour">
-						<span class="next-time">{loc(formatHourAtLocation(hour.time, data.utcOffsetSeconds))}</span>
+						<span class="next-time">{loc(formatHourAtLocation(hour.time, data.utcOffsetSeconds, localeTag))}</span>
 						<!-- The phone's own time too when the place is in another time zone, as in the hourly cards -->
 						{#if isRemoteTimezone(data.utcOffsetSeconds)}
 							<!-- The time is centred under the place's time; the phone icon hangs off its side -->
-							<span class="next-device-time">{loc(formatHourInDeviceTime(hour.time))}<svg class="next-device-icon" viewBox="0 0 24 24" width="10" height="10" fill="currentColor" aria-hidden="true"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg></span>
+							<span class="next-device-time">{loc(formatHourInDeviceTime(hour.time, localeTag))}<svg class="next-device-icon" viewBox="0 0 24 24" width="10" height="10" fill="currentColor" aria-hidden="true"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg></span>
 						{/if}
 						<WeatherIcon code={hour.weatherCode} night={isNightAt(hour.time)} size={40} />
 						<!-- A likely chance of precipitation under the icon; the space stays when there is none, so the slots line up -->
@@ -603,6 +607,7 @@
 
 	.next-time {
 		font-size: 0.75rem;
+		white-space: nowrap;
 		color: rgba(255,255,255,0.6);
 		font-feature-settings: var(--font-features);
 	}

@@ -12,7 +12,7 @@
 	import { AQI_TIER_COLORS, aqiDialPosition, type AirQualityIndex } from '#lib/domain/airQuality.js';
 	import { UV_TIER_COLORS, uvColorFor, uvDialPosition, type UvTier } from '#lib/domain/uv.js';
 	import DetailCard from './DetailCard.svelte';
-	import { formatDayMonth, formatHourAtLocation } from '#lib/utils/date.js';
+	import { formatDayMonth, formatTimeAtLocation } from '#lib/utils/date.js';
 	import { localeIndex } from '#lib/stores/preferences.js';
 	import { SUPPORTED_LOCALES } from '#lib/i18n/index.js';
 	import Gauge from './Gauge.svelte';
@@ -52,7 +52,7 @@
 
 	// Sunrise and sunset in the place's own time, like the hourly cards and its clock
 	function formatTime(epochSec: number): string {
-		return formatHourAtLocation(epochSec * 1000, data.utcOffsetSeconds);
+		return formatTimeAtLocation(epochSec * 1000, data.utcOffsetSeconds, SUPPORTED_LOCALES[$localeIndex].tag);
 	}
 
 
@@ -417,8 +417,8 @@
 		</div>
 		{#if moonDown && moon.nextRise != null}<span class="rises-in">{risesIn(moon.nextRise)}</span>{/if}
 		<div class="sky-times">
-			<span><span class="sky-label">{$_('detail_moonrise')}</span> {moon.today.rise != null ? loc(formatHourAtLocation(moon.today.rise, data.utcOffsetSeconds)) : '--'}</span>
-			<span><span class="sky-label">{$_('detail_moonset')}</span> {moon.today.set != null ? loc(formatHourAtLocation(moon.today.set, data.utcOffsetSeconds)) : '--'}</span>
+			<span><span class="sky-label">{$_('detail_moonrise')}</span> {moon.today.rise != null ? loc(formatTimeAtLocation(moon.today.rise, data.utcOffsetSeconds, SUPPORTED_LOCALES[$localeIndex].tag)) : '--'}</span>
+			<span><span class="sky-label">{$_('detail_moonset')}</span> {moon.today.set != null ? loc(formatTimeAtLocation(moon.today.set, data.utcOffsetSeconds, SUPPORTED_LOCALES[$localeIndex].tag)) : '--'}</span>
 		</div>
 		<!-- The next new or full moon: the name at the start, the date at the end -->
 		<div class="moon-next">

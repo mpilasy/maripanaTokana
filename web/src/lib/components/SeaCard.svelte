@@ -6,7 +6,9 @@
 	import { getCardinalDirection } from '#lib/domain/windSpeed.js';
 	import { Temperature } from '#lib/domain/temperature.js';
 	import { nextTides, seaHeightDual, type SeaConditions } from '#lib/domain/sea.js';
-	import { formatHourAtLocation } from '#lib/utils/date.js';
+	import { formatTimeAtLocation } from '#lib/utils/date.js';
+	import { localeIndex } from '#lib/stores/preferences.js';
+	import { SUPPORTED_LOCALES } from '#lib/i18n/locales.js';
 	import DetailCard from './DetailCard.svelte';
 	import WindCompass from './WindCompass.svelte';
 	import DialValue from './DialValue.svelte';
@@ -27,7 +29,7 @@
 		[tides.high && { key: 'tide_high', time: tides.high.time }, tides.low && { key: 'tide_low', time: tides.low.time }]
 			.filter((t) => t != null)
 			.sort((a, b) => a.time - b.time)
-			.map((t) => $_(t.key, { values: { time: loc(formatHourAtLocation(t.time, utcOffsetSeconds)) } }))
+			.map((t) => $_(t.key, { values: { time: loc(formatTimeAtLocation(t.time, utcOffsetSeconds, SUPPORTED_LOCALES[$localeIndex].tag)) } }))
 	);
 	let tempDual = $derived(sea.seaTemperatureC != null ? Temperature.fromCelsius(sea.seaTemperatureC).displayDual(metricPrimary) : null);
 	let levelDual = $derived(sea.seaLevelM != null ? seaHeightDual(sea.seaLevelM, metricPrimary) : null);

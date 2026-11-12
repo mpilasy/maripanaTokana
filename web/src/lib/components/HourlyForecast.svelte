@@ -9,6 +9,8 @@
 	import { getCardinalDirection, showWindArrow } from '#lib/domain/windSpeed.js';
 	import { wmoEmoji } from '#lib/api/wmoWeatherCode.js';
 	import { formatHourInDeviceTime, formatHourAtLocation, isRemoteTimezone } from '#lib/utils/date.js';
+	import { localeIndex } from '#lib/stores/preferences.js';
+	import { SUPPORTED_LOCALES } from '#lib/i18n/locales.js';
 	import type { HourlyAirQuality } from '#lib/domain/weatherData.js';
 	import { isDaytime } from '#lib/domain/weatherData.js';
 	import { AirQualityIndex, AQI_TIER_COLORS, type AqiStandard, type AqiTier } from '#lib/domain/airQuality.js';
@@ -45,6 +47,7 @@
 	}
 
 	let { forecasts, metricPrimary, dailySunrise, dailySunset, loc, onToggleUnits, utcOffsetSeconds, airQuality = null, shareCopy = false, displayMode = $bindable('Temperature') }: Props = $props();
+	let localeTag = $derived(SUPPORTED_LOCALES[$localeIndex].tag);
 
 	let scrollEl = $state<HTMLElement | null>(null);
 	// Share image: 6 items a line at most, so that chat apps do not shrink the image much
@@ -202,10 +205,10 @@
 	<div class="cards-row" style:grid-template-columns={shareCopy ? `repeat(${perLine}, 104px)` : undefined}>
 		{#each forecasts as item, i}
 			<div class="hourly-card" class:now={i === 0}>
-				<span class="hour">{loc(formatHourAtLocation(item.time, utcOffsetSeconds))}</span>
+				<span class="hour">{loc(formatHourAtLocation(item.time, utcOffsetSeconds, localeTag))}</span>
 				{#if isRemote}
 					<!-- The phone's time centred under the place's; the phone icon hangs off its side -->
-					<span class="hour-device-text">{loc(formatHourInDeviceTime(item.time))}<svg class="hour-device-icon" viewBox="0 0 24 24" width="10" height="10" fill="currentColor" aria-hidden="true"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg></span>
+					<span class="hour-device-text">{loc(formatHourInDeviceTime(item.time, localeTag))}<svg class="hour-device-icon" viewBox="0 0 24 24" width="10" height="10" fill="currentColor" aria-hidden="true"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg></span>
 				{/if}
 				<WeatherIcon code={item.weatherCode} night={isNightForHour(item.time)} size={44} />
 				{@render hourlyCardValue(item, i)}
@@ -220,7 +223,7 @@
 	</div>
 	</div>
 
-	<ChartScrub count={forecasts.length} itemWidth={104} itemSpacing={12} {scrollEl} label={(i) => loc(formatHourAtLocation(forecasts[i].time, utcOffsetSeconds))}>
+	<ChartScrub count={forecasts.length} itemWidth={104} itemSpacing={12} {scrollEl} label={(i) => loc(formatHourAtLocation(forecasts[i].time, utcOffsetSeconds, localeTag))}>
 		{#snippet children(selected)}
 			{#if displayMode === 'Temperature'}
 				<div class="chart-container">
@@ -353,6 +356,7 @@
 		font-feature-settings: var(--font-features);
 		width: 100%;
 		text-align: center;
+		white-space: nowrap;
 	}
 
 	.hour-device-text {

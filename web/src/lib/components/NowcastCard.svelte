@@ -5,9 +5,10 @@
 	import { _ } from 'svelte-i18n';
 	import type { MinutelyForecast } from '#lib/domain/weatherData.js';
 	import { Precipitation } from '#lib/domain/precipitation.js';
-	import { metricPrimary } from '#lib/stores/preferences.js';
+	import { metricPrimary, localeIndex } from '#lib/stores/preferences.js';
 	import { onMount } from 'svelte';
-	import { formatHourAtLocation } from '#lib/utils/date.js';
+	import { formatTimeAtLocation } from '#lib/utils/date.js';
+	import { SUPPORTED_LOCALES } from '#lib/i18n/locales.js';
 
 	interface Props {
 		items: MinutelyForecast[];
@@ -67,7 +68,7 @@
 
 	// In the place's own time, like the hourly cards
 	function formatTime(epochMs: number): string {
-		return localizeDigits(formatHourAtLocation(epochMs, utcOffsetSeconds));
+		return localizeDigits(formatTimeAtLocation(epochMs, utcOffsetSeconds, SUPPORTED_LOCALES[$localeIndex].tag));
 	}
 
 

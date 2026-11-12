@@ -197,8 +197,8 @@
 	/** The clock time when it is today, else "date, time" (the format of the "Updated" line). */
 	function clockOrDateTime(ms: number): string {
 		return isToday(ms)
-			? formatTime(ms)
-			: `${formatShortDate(ms, SUPPORTED_LOCALES[$localeIndex].tag, weekdayNames, monthNames)}, ${formatTime(ms)}`;
+			? formatTime(ms, SUPPORTED_LOCALES[$localeIndex].tag)
+			: `${formatShortDate(ms, SUPPORTED_LOCALES[$localeIndex].tag, weekdayNames, monthNames)}, ${formatTime(ms, SUPPORTED_LOCALES[$localeIndex].tag)}`;
 	}
 
 	let showAirQualityDetail = $state(false);
@@ -430,7 +430,7 @@
 		{#snippet hourlyChartAction()}{@render chartButton('hourly')}{/snippet}
 		{#snippet dailyChartAction()}{@render chartButton('daily')}{/snippet}
 		{@const decimal = `${data.latitude.toFixed(4)}, ${data.longitude.toFixed(4)}`}
-		{@const refreshFailedText = $_('refresh_failed', { values: { time: loc(formatTime(data.timestamp)) } }) + ($refreshError ? ' · ' + $_($refreshError) : '')}
+		{@const refreshFailedText = $_('refresh_failed', { values: { time: loc(formatTime(data.timestamp, SUPPORTED_LOCALES[$localeIndex].tag)) } }) + ($refreshError ? ' · ' + $_($refreshError) : '')}
 		{@const updatedText = $_('updated_time', { values: { time: loc(clockOrDateTime(data.timestamp)) } })}
 		{@const lastKnownTime = $lastKnownLocation?.time}
 		{@const lastKnownText = $lastKnownLocation && !$locationOverride && $activeLocationId === null

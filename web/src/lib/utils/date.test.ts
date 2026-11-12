@@ -1,10 +1,17 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { describe, it, expect, vi, afterEach } from 'vitest';
-import { formatDate, formatShortDate, formatDayName, formatDayMonth } from './date';
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
+import {
+	formatDate, formatShortDate, formatDayName, formatDayMonth, formatTime, formatHourInDeviceTime, formatHourAtLocation,
+	formatTimeAtLocation, formatLocationCurrentTime, formatAlertTime, uses24HourClock, setUses24HourClock
+} from './date';
 
 describe('date formatting', () => {
+	// The tests below were written for a 24-hour clock
+	beforeEach(() => setUses24HourClock(true));
+	afterEach(() => setUses24HourClock(null));
+
 	// Fixed timestamp: October 5, 2026, 14:30 UTC
 	const testTimestamp = new Date('2026-10-05T14:30:00Z').getTime();
 	const utcOffsetSeconds = 0; // UTC
@@ -143,6 +150,85 @@ describe('date formatting', () => {
 			expect(formatDayName(sunday, 'mg', 0, true, mgWeekdays)).toBe('Alah');
 			expect(formatDayName(monday, 'mg', 0, true, mgWeekdays)).toBe('Alats');
 			expect(formatShortDate(monday, 'mg', mgWeekdays, mgMonths)).toMatch(/^Alats \d+ Nov$/);
+		});
+	});
+});
+
+describe('clock (24-hour or 12-hour)', () => {
+	afterEach(() => setUses24HourClock(null));
+
+	// In the device's time zone: 21:05 and 21:00 local
+	const localEvening = new Date(2026, 9, 5, 21, 5).getTime();
+	const localFullHour = new Date(2026, 9, 5, 21, 0).getTime();
+	// At a place at UTC: 21:05 and 21:00 there
+	const utcEvening = Date.UTC(2026, 9, 5, 21, 5);
+	const utcFullHour = Date.UTC(2026, 9, 5, 21, 0);
+	const deviceOffset = -new Date().getTimezoneOffset() * 60;
+
+	it("follows the browser's regional default when not set", () => {
+		setUses24HourClock(null);
+		const cycle = new Intl.DateTimeFormat(undefined, { hour: 'numeric' }).resolvedOptions().hourCycle;
+		expect(uses24HourClock()).toBe(cycle === 'h23' || cycle === 'h24');
+	});
+
+	describe('24-hour', () => {
+		beforeEach(() => setUses24HourClock(true));
+
+		it('shows full-hour labels and times with minutes as HH:mm', () => {
+			expect(formatHourAtLocation(utcFullHour, 0, 'en')).toBe('21:00');
+			expect(formatTimeAtLocation(utcEvening, 0, 'en')).toBe('21:05');
+			expect(formatTime(localEvening, 'en')).toBe('21:05');
+			expect(formatHourInDeviceTime(localFullHour, 'en')).toBe('21:00');
+			expect(formatTimeAtLocation(Date.UTC(2026, 9, 5, 0, 5), 0, 'en')).toBe('00:05');
+		});
+
+		it('shows the place clock and the alert time in 24-hour', () => {
+			expect(formatLocationCurrentTime(deviceOffset, 'en')).toMatch(/^\d{2}:\d{2}$/);
+			expect(formatAlertTime(localEvening, 'en')).toContain('21:05');
+			expect(formatDate(localEvening, 'en')).toContain('21:05');
+		});
+	});
+
+	describe('12-hour', () => {
+		beforeEach(() => setUses24HourClock(false));
+
+		it('shows a full-hour label as "h a" and a time with minutes as "h:mm a"', () => {
+			expect(formatHourAtLocation(utcFullHour, 0, 'en')).toBe('9 PM');
+			expect(formatTimeAtLocation(utcEvening, 0, 'en')).toBe('9:05 PM');
+			expect(formatTime(localEvening, 'en')).toBe('9:05 PM');
+			expect(formatHourInDeviceTime(localFullHour, 'en')).toBe('9 PM');
+		});
+
+		it('shows midnight and noon as 12', () => {
+			expect(formatHourAtLocation(Date.UTC(2026, 9, 5, 0, 0), 0, 'en')).toBe('12 AM');
+			expect(formatHourAtLocation(Date.UTC(2026, 9, 5, 12, 0), 0, 'en')).toBe('12 PM');
+			expect(formatTimeAtLocation(Date.UTC(2026, 9, 5, 0, 5), 0, 'en')).toBe('12:05 AM');
+		});
+
+		it('keeps the minutes of an hour label that is not on the full hour', () => {
+			// A place at UTC+5:30
+			expect(formatHourAtLocation(Date.UTC(2026, 9, 5, 15, 30), 19800, 'en')).toBe('9:00 PM');
+			expect(formatHourInDeviceTime(new Date(2026, 9, 5, 21, 30).getTime(), 'en')).toBe('9:30 PM');
+		});
+
+		it('takes the AM/PM marker from the app language, with no dots', () => {
+			expect(formatTimeAtLocation(utcEvening, 0, 'es')).toBe('9:05 pm');
+			expect(formatTimeAtLocation(utcEvening, 0, 'zh')).toBe('9:05 下午');
+			expect(formatHourAtLocation(Date.UTC(2026, 9, 5, 9, 0), 0, 'ar')).toBe('9 ص');
+		});
+
+		it('uses English AM/PM when Intl does not have the language', () => {
+			vi.spyOn(Intl.DateTimeFormat, 'supportedLocalesOf').mockReturnValue([]);
+			expect(formatTimeAtLocation(utcEvening, 0, 'tlh')).toBe('9:05 PM');
+			vi.restoreAllMocks();
+		});
+
+		it('shows the place clock, the alert time and the full date in 12-hour', () => {
+			expect(formatLocationCurrentTime(deviceOffset, 'en')).toMatch(/^\d{1,2}:\d{2} (AM|PM)$/);
+			// Intl puts a narrow no-break space before the marker
+			expect(formatAlertTime(localEvening, 'en')).toMatch(/09:05\sPM/);
+			expect(formatAlertTime(localEvening, 'es')).not.toContain('.');
+			expect(formatDate(localEvening, 'en')).toMatch(/9:05\sPM/);
 		});
 	});
 });
