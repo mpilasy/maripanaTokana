@@ -13,30 +13,42 @@ class ActivityIndicesTest {
         humidity: Int = 50,
         windMs: Double = 3.0,
         rainMm: Double = 0.0,
-        uvIndex: Double = 2.0
+        uvIndex: Double = 2.0,
+        dewC: Double = tempC - 2,
+        weatherCode: Int = 0,
+        visibility: Int? = 10000,
+        gustMs: Double? = null,
+        // The chance of rain or snow (%) of today, tomorrow and the day after
+        dailyChances: List<Int> = emptyList(),
     ): WeatherData {
         return WeatherData(
             temperature = Temperature.fromCelsius(tempC),
             feelsLike = Temperature.fromCelsius(tempC),
             tempMin = Temperature.fromCelsius(tempC - 5),
             tempMax = Temperature.fromCelsius(tempC + 5),
-            weatherCode = 0,
+            weatherCode = weatherCode,
             locationName = "Test City",
             pressure = Pressure.fromHPa(1013.0),
             humidity = humidity,
-            dewPoint = Temperature.fromCelsius(tempC - 2),
+            dewPoint = Temperature.fromCelsius(dewC),
             windSpeed = WindSpeed.fromMetersPerSecond(windMs),
             windDeg = 180,
-            windGust = null,
+            windGust = gustMs?.let { WindSpeed.fromMetersPerSecond(it) },
             rain = if (rainMm > 0) Precipitation.fromMm(rainMm) else null,
             snow = null,
             cloudCover = 10,
             uvIndex = uvIndex,
-            visibility = 10000,
+            visibility = visibility,
             sunrise = 0,
             sunset = 0,
             hourlyForecast = emptyList(),
-            dailyForecast = emptyList(),
+            dailyForecast = dailyChances.mapIndexed { i, chance ->
+                DailyForecast(
+                    date = i * 86_400_000L, tempMax = Temperature.fromCelsius(tempC + 5), tempMin = Temperature.fromCelsius(tempC - 5),
+                    weatherCode = 0, precipProbability = chance, windSpeed = WindSpeed.fromMetersPerSecond(windMs), windDirection = 180,
+                    precipitation = Precipitation.fromMm(0.0), uvIndexMax = uvIndex,
+                )
+            },
             timestamp = System.currentTimeMillis()
         )
     }
@@ -79,5 +91,43 @@ class ActivityIndicesTest {
         // The other activities do not change at night
         assertEquals(ActivityIndices.fromWeatherData(data, isDay = true).running, indices.running)
         assertEquals(ActivityIndices.fromWeatherData(data, isDay = true).laundry, indices.laundry)
+    }
+
+    private fun indices(data: WeatherData) = ActivityIndices.fromWeatherData(data, isDay = true)
+
+    @Test
+    fun skinComfort_followsDewPointAndHumidity() {
+        assertEquals(ActivityTier.EXCELLENT, indices(mockWeatherData(dewC = 10.0, humidity = 60)).skinComfort)
+        assertEquals(ActivityTier.GOOD, indices(mockWeatherData(dewC = 2.0, humidity = 60)).skinComfort)
+        assertEquals(ActivityTier.FAIR, indices(mockWeatherData(dewC = -5.0, humidity = 60)).skinComfort)
+        assertEquals(ActivityTier.POOR, indices(mockWeatherData(dewC = -12.0, humidity = 60)).skinComfort)
+        // Desert heat: the dew point is not low, but the air is very dry
+        assertEquals(ActivityTier.POOR, indices(mockWeatherData(tempC = 35.0, dewC = 6.0, humidity = 18)).skinComfort)
+    }
+
+    @Test
+    fun carWash_followsTheNextDays() {
+        assertEquals(ActivityTier.EXCELLENT, indices(mockWeatherData(dailyChances = listOf(0, 10, 10))).carWash)
+        assertEquals(ActivityTier.GOOD, indices(mockWeatherData(dailyChances = listOf(0, 10, 25))).carWash)
+        assertEquals(ActivityTier.FAIR, indices(mockWeatherData(dailyChances = listOf(0, 10, 60))).carWash)
+        assertEquals(ActivityTier.FAIR, indices(mockWeatherData(dailyChances = listOf(0, 35, 0))).carWash)
+        assertEquals(ActivityTier.POOR, indices(mockWeatherData(dailyChances = listOf(0, 70, 0))).carWash)
+        // Raining now, or frost (the water freezes)
+        assertEquals(ActivityTier.POOR, indices(mockWeatherData(rainMm = 0.5, dailyChances = listOf(0, 0, 0))).carWash)
+        assertEquals(ActivityTier.POOR, indices(mockWeatherData(tempC = -3.0, dailyChances = listOf(0, 0, 0))).carWash)
+    }
+
+    @Test
+    fun driving_followsIceSnowFogAndGusts() {
+        assertEquals(ActivityTier.EXCELLENT, indices(mockWeatherData()).driving)
+        assertEquals(ActivityTier.GOOD, indices(mockWeatherData(weatherCode = 61)).driving)
+        assertEquals(ActivityTier.FAIR, indices(mockWeatherData(weatherCode = 45, visibility = 800)).driving)
+        assertEquals(ActivityTier.FAIR, indices(mockWeatherData(weatherCode = 71)).driving)
+        assertEquals(ActivityTier.POOR, indices(mockWeatherData(weatherCode = 66)).driving)
+        assertEquals(ActivityTier.POOR, indices(mockWeatherData(gustMs = 27.0)).driving)
+        // Rain at freezing point: black ice
+        assertEquals(ActivityTier.FAIR, indices(mockWeatherData(tempC = 0.5, rainMm = 0.3, weatherCode = 61)).driving)
+        // No visibility or gust data: the weather code alone decides
+        assertEquals(ActivityTier.EXCELLENT, indices(mockWeatherData(visibility = null, gustMs = null)).driving)
     }
 }

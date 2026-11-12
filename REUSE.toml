@@ -31,7 +31,10 @@ SPDX-License-Identifier = "MIT"
 [[annotations]]
 path = [
   "app/src/main/res/drawable/ic_activity_laundry.xml",
+  "app/src/main/res/drawable/ic_activity_car_wash.xml",
+  "app/src/main/res/drawable/ic_activity_driving.xml",
   "app/src/main/res/drawable/ic_activity_run.xml",
+  "app/src/main/res/drawable/ic_activity_skin.xml",
   "app/src/main/res/drawable/ic_activity_sun.xml",
   "app/src/main/res/drawable/ic_chart.xml",
   "app/src/main/res/drawable/ic_cold.xml",

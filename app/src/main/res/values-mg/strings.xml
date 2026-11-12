@@ -105,6 +105,9 @@
     <string name="activity_running">Fanatanjahantena</string>
     <string name="activity_laundry">Fanahazan-damba</string>
     <string name="activity_uv_safety">Aro-masoandro</string>
+    <string name="activity_skin_comfort">Hoditra</string>
+    <string name="activity_car_wash">Fanasana fiara</string>
+    <string name="activity_driving">Fitondrana fiara</string>
     <string name="activity_tier_excellent">Tsara dia tsara</string>
     <string name="activity_tier_good">Tsara</string>
     <string name="activity_tier_fair">Antonony</string>

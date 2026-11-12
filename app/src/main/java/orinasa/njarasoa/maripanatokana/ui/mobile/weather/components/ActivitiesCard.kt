@@ -81,6 +81,21 @@ fun ActivitiesCard(
             title = stringResource(R.string.activity_uv_safety),
             tier = indices.uvSafety
         )
+        ActivityRow(
+            icon = R.drawable.ic_activity_skin,
+            title = stringResource(R.string.activity_skin_comfort),
+            tier = indices.skinComfort
+        )
+        ActivityRow(
+            icon = R.drawable.ic_activity_car_wash,
+            title = stringResource(R.string.activity_car_wash),
+            tier = indices.carWash
+        )
+        ActivityRow(
+            icon = R.drawable.ic_activity_driving,
+            title = stringResource(R.string.activity_driving),
+            tier = indices.driving
+        )
     }
 }
 

@@ -24,7 +24,7 @@ The same APK also runs on Android TV, with screens made for the remote: current 
   - **Current conditions**: temperature with feels-like, precipitation with cloud cover, wind with compass, gusts, pressure gauge, and humidity with dew point.
   - **Sun & Air**: the sun arc with the length of the day and the noon sun from overhead (today and in a year), the moon (arc, phase, rise and set, next new or full moon), the declination of the sun (with the next solstice or equinox), the air-quality gauge, the UV dial, cloud cover and visibility. Tap the air-quality gauge to see each pollutant and, in Europe, 6 pollen types.
   - **Sea**: waves, swell, sea temperature and the next high and low tides, when the place has sea data. The values are estimates, not for navigation.
-  - **Activities**: ratings for running, drying laundry and sun protection.
+  - **Activities**: ratings for running, drying laundry, sun protection, skin comfort (dry air), car washing (rain or snow in the next 3 days) and driving (ice, snow, fog, heavy rain or strong gusts; weather only, no traffic).
 - **Weather alerts** from 7 sources: NWS (US), NHC (hurricanes), MeteoAlarm (Europe), JMA (Japan), ECCC (Canada), BOM (Australia) and GDACS (global). GDACS is used only where no regional source covers the place.
 - **Weather data** from [Open-Meteo](https://open-meteo.com) (default, no key) or [Pirate Weather](https://pirateweather.net) (your own API key).
 - **Offline**: the app keeps the last forecast for each place and shows it when there is no connection.

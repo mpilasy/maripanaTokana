@@ -105,6 +105,9 @@
     <string name="activity_running">الركض</string>
     <string name="activity_laundry">تجفيف الغسيل</string>
     <string name="activity_uv_safety">الحماية من الشمس</string>
+    <string name="activity_skin_comfort">راحة البشرة</string>
+    <string name="activity_car_wash">غسل السيارة</string>
+    <string name="activity_driving">القيادة</string>
     <string name="activity_tier_excellent">ممتاز</string>
     <string name="activity_tier_good">جيد</string>
     <string name="activity_tier_fair">مقبول</string>

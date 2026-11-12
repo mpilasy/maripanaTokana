@@ -105,6 +105,9 @@
     <string name="activity_running">Carrera a pie</string>
     <string name="activity_laundry">Secado de ropa</string>
     <string name="activity_uv_safety">Protección solar</string>
+    <string name="activity_skin_comfort">Confort de la piel</string>
+    <string name="activity_car_wash">Lavado del coche</string>
+    <string name="activity_driving">Conducción</string>
     <string name="activity_tier_excellent">Excelente</string>
     <string name="activity_tier_good">Bueno</string>
     <string name="activity_tier_fair">Regular</string>

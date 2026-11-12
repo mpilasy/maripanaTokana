@@ -105,6 +105,9 @@
     <string name="activity_running">跑步</string>
     <string name="activity_laundry">晾晒衣物</string>
     <string name="activity_uv_safety">防晒保护</string>
+    <string name="activity_skin_comfort">皮肤舒适度</string>
+    <string name="activity_car_wash">洗车</string>
+    <string name="activity_driving">驾驶</string>
     <string name="activity_tier_excellent">极佳</string>
     <string name="activity_tier_good">良好</string>
     <string name="activity_tier_fair">一般</string>

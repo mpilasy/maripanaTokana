@@ -105,6 +105,9 @@
     <string name="activity_running">Running</string>
     <string name="activity_laundry">Drying Laundry</string>
     <string name="activity_uv_safety">Sun Protection</string>
+    <string name="activity_skin_comfort">Skin Comfort</string>
+    <string name="activity_car_wash">Car Washing</string>
+    <string name="activity_driving">Driving</string>
     <string name="activity_tier_excellent">Excellent</string>
     <string name="activity_tier_good">Good</string>
     <string name="activity_tier_fair">Fair</string>

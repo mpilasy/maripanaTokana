@@ -105,6 +105,9 @@
     <string name="activity_running">दौडनु</string>
     <string name="activity_laundry">लुगा सुकाउनु</string>
     <string name="activity_uv_safety">घामबाट सुरक्षा</string>
+    <string name="activity_skin_comfort">छालाको आराम</string>
+    <string name="activity_car_wash">गाडी धुने</string>
+    <string name="activity_driving">गाडी चलाउने</string>
     <string name="activity_tier_excellent">उत्कृष्ट</string>
     <string name="activity_tier_good">राम्रो</string>
     <string name="activity_tier_fair">सामान्य</string>

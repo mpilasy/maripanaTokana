@@ -7,7 +7,7 @@ maripànaTokana (« un seul thermomètre » en malagasy) est une application mé
 • Graphiques : jusqu'à 10 jours heure par heure, dans des graphiques superposés qui défilent ensemble : température, pluie, vent, pression, humidité, UV et qualité de l'air
 • Prévisions minute par minute quand de la pluie ou de la neige arrive
 • Tuiles Conditions actuelles et Soleil et air : ressenti, boussole des vents et rafales, pression, humidité et point de rosée, indice UV, qualité de l'air (AQI US et UE), visibilité, lever et coucher du soleil
-• Activités : course à pied, séchage du linge et protection solaire
+• Activités : course à pied, séchage du linge, protection solaire, confort de la peau (air sec), lavage de voiture et conduite
 • Icônes météo Meteocons, en version jour et nuit
 
 <b>Unités :</b>
