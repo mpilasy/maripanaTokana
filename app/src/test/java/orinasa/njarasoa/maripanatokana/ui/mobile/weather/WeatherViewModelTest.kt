@@ -116,7 +116,7 @@ class WeatherViewModelTest {
         coEvery { weatherRepository.fetchAlerts(any(), any()) } returns Result.success(AlertsResult(emptyList(), emptyList()))
         coEvery { weatherRepository.fetchNormals(any(), any()) } returns null
 
-        viewModel = WeatherViewModel(weatherRepository, locationRepository, settingsRepository, weatherCache, context)
+        viewModel = WeatherViewModel(weatherRepository, locationRepository, settingsRepository, weatherCache, context, testDispatcher)
     }
 
     @After
@@ -231,7 +231,7 @@ class WeatherViewModelTest {
         coEvery { weatherRepository.getWeather(any(), any()) } coAnswers {
             Result.success(realData("سانت بول", firstArg(), secondArg()))
         }
-        viewModel = WeatherViewModel(weatherRepository, locationRepository, settingsRepository, weatherCache, context)
+        viewModel = WeatherViewModel(weatherRepository, locationRepository, settingsRepository, weatherCache, context, testDispatcher)
         viewModel.refresh()
         advanceUntilIdle()
         assertEquals("سانت بول", (viewModel.uiState.value as WeatherUiState.Success).data.locationName)
@@ -267,7 +267,7 @@ class WeatherViewModelTest {
             coEvery { locationRepository.getFreshLocation() } returns Result.success(fix(1.0, 2.0))
         }
 
-        fun viewModel() = WeatherViewModel(weatherRepository, locationRepository, AppSettingsRepository(context), weatherCache, context)
+        fun viewModel() = WeatherViewModel(weatherRepository, locationRepository, AppSettingsRepository(context), weatherCache, context, testDispatcher)
     }
 
     /** Runs queued coroutines until [condition] holds; work on Dispatchers.IO runs on real threads. */

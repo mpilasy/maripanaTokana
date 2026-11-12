@@ -11,6 +11,8 @@ This document provides comprehensive testing procedures for the maripànaTokana 
 
 The unit tests are in `app/src/test/java/orinasa/njarasoa/maripanatokana/` (JUnit 4 and MockK). They cover the domain models (temperature, wind, UV, air quality, precipitation outlook, activities, moon, seasons, sea, normals, forecast changes), the chart view math, the location parsers (coordinates, Plus Codes, shared links, place names, scripts), the geocoders, the Open-Meteo mapper, the weather cache, the alert-source failures, the country resolver, the widget formats and `WeatherViewModel`. There are no instrumented tests (`app/src/androidTest` is empty).
 
+`WeatherViewModel` takes its IO dispatcher in its constructor: the Hilt constructor gives `Dispatchers.IO`, and the tests give their `StandardTestDispatcher`. Then no cache work continues after a test ends. Before, that work came back to the main dispatcher after `Dispatchers.resetMain()`, and the next test failed with `UncaughtExceptionsBeforeTest` (about one run in two). A class that starts coroutines on `Dispatchers.IO` and has coroutine tests must do the same.
+
 CI (`.github/workflows/ci.yml`) runs the i18n parity check, these unit tests, lint (allowed to fail) and the web checks on each push to `main` and on each pull request.
 
 Two scripts test on a device or emulator:

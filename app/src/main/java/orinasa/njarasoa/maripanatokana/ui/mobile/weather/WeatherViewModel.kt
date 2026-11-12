@@ -37,6 +37,7 @@ import orinasa.njarasoa.maripanatokana.domain.repository.LocationRepository
 import orinasa.njarasoa.maripanatokana.domain.repository.WeatherRepository
 import orinasa.njarasoa.maripanatokana.ui.theme.fontPairings
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import orinasa.njarasoa.maripanatokana.data.location.PlusCode
@@ -49,13 +50,23 @@ import javax.inject.Inject
 import orinasa.njarasoa.maripanatokana.ui.common.supportedLocales
 
 @HiltViewModel
-class WeatherViewModel @Inject constructor(
+class WeatherViewModel(
     private val weatherRepository: WeatherRepository,
     private val locationRepository: LocationRepository,
     private val settingsRepository: AppSettingsRepository,
     private val weatherCache: WeatherCache,
-    @ApplicationContext private val appContext: Context,
+    private val appContext: Context,
+    // The dispatcher for file work; tests give theirs, so that no work continues after a test ends
+    private val io: CoroutineDispatcher,
 ) : ViewModel() {
+
+    @Inject constructor(
+        weatherRepository: WeatherRepository,
+        locationRepository: LocationRepository,
+        settingsRepository: AppSettingsRepository,
+        weatherCache: WeatherCache,
+        @ApplicationContext appContext: Context,
+    ) : this(weatherRepository, locationRepository, settingsRepository, weatherCache, appContext, Dispatchers.IO)
 
     private val prefs = appContext.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
     private val privatePrefs = appContext.getSharedPreferences("private_prefs", Context.MODE_PRIVATE)
@@ -166,7 +177,7 @@ class WeatherViewModel @Inject constructor(
         // When the weather model changes, the cached data of all places is from the old model: delete it and refresh
         viewModelScope.launch {
             weatherModel.drop(1).collect {
-                withContext(Dispatchers.IO) { weatherCache.clear() }
+                withContext(io) { weatherCache.clear() }
                 if (_uiState.value is WeatherUiState.Success) refresh()
             }
         }
@@ -263,7 +274,7 @@ class WeatherViewModel @Inject constructor(
         sharedTextJob = viewModelScope.launch {
             try {
                 // The parser can follow short links over the network
-                val parsed = withContext(Dispatchers.IO) { SharedLocationParser.parseLocationText(text) }
+                val parsed = withContext(io) { SharedLocationParser.parseLocationText(text) }
                 if (parsed != null) {
                     // Bare coordinates have no name: use the place name found for them
                     val name = parsed.name
@@ -273,7 +284,7 @@ class WeatherViewModel @Inject constructor(
                     applyLocationOverride(parsed.latitude, parsed.longitude, name)
                     return@launch
                 }
-                val searchQuery = withContext(Dispatchers.IO) { SharedLocationParser.extractSearchQuery(text) }
+                val searchQuery = withContext(io) { SharedLocationParser.extractSearchQuery(text) }
                 val match = if (searchQuery.isNullOrBlank()) null
                     else weatherRepository.searchLocation(searchQuery).getOrNull()?.firstOrNull()
                 finishSharedText()
@@ -498,13 +509,13 @@ class WeatherViewModel @Inject constructor(
         if (gpsCacheJob?.isActive == true) return
         gpsCacheJob = viewModelScope.launch {
             try {
-                val cachedAt = withContext(Dispatchers.IO) { weatherCache.load("gps") }?.timestamp ?: 0L
+                val cachedAt = withContext(io) { weatherCache.load("gps") }?.timestamp ?: 0L
                 if (System.currentTimeMillis() - cachedAt < GPS_CACHE_MAX_AGE_MS) return@launch
                 locationRepository.getFreshLocation().onSuccess { (lat, lon) ->
                     saveLocation(lat, lon)
                     weatherRepository.getWeather(lat, lon).onSuccess { data ->
                         privatePrefs.edit { putString("location_name", data.locationName) }
-                        withContext(Dispatchers.IO) { weatherCache.save("gps", data) }
+                        withContext(io) { weatherCache.save("gps", data) }
                     }
                 }
             } catch (e: CancellationException) {
@@ -553,7 +564,7 @@ class WeatherViewModel @Inject constructor(
                     if (_uiState.value !is WeatherUiState.Success) {
                         _refreshFailed.value = false; _refreshError.value = null
                         // Show the last successful data for this location right away, then refresh
-                        val cached = withContext(Dispatchers.IO) { loadCached() }
+                        val cached = withContext(io) { loadCached() }
                         if (cached != null) {
                             _uiState.value = WeatherUiState.Success(cached)
                             _isRefreshing.value = true
@@ -715,7 +726,7 @@ class WeatherViewModel @Inject constructor(
         ) named.copy(normals = previous.normals) else named
         _uiState.value = WeatherUiState.Success(shown)
         _refreshFailed.value = false; _refreshError.value = null
-        viewModelScope.launch(Dispatchers.IO) { weatherCache.save(cacheKey, shown) }
+        viewModelScope.launch(io) { weatherCache.save(cacheKey, shown) }
         lookUpRomanName(cacheKey, shown)
         if (shown.normals == null) fetchNormalsForData(cacheKey, shown)
     }
@@ -731,7 +742,7 @@ class WeatherViewModel @Inject constructor(
             if (current?.latitude != lat || current.longitude != lon) return@launch
             val updated = current.copy(normals = normals)
             _uiState.value = WeatherUiState.Success(updated)
-            withContext(Dispatchers.IO) { weatherCache.save(cacheKey, updated) }
+            withContext(io) { weatherCache.save(cacheKey, updated) }
         }
     }
 
@@ -748,7 +759,7 @@ class WeatherViewModel @Inject constructor(
             if (current?.latitude != lat || current.locationName != data.locationName || name == data.locationName) return@launch
             val updated = current.copy(romanName = name, romanSubtext = subtext)
             _uiState.value = WeatherUiState.Success(updated)
-            withContext(Dispatchers.IO) { weatherCache.save(cacheKey, updated) }
+            withContext(io) { weatherCache.save(cacheKey, updated) }
         }
     }
 
