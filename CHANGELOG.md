@@ -9,6 +9,8 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.7.20261112190552] - 2026-11-12
+
 - About (Android, Android TV and web): the version, the hash and the commit time (UTC) on every platform, in a tighter block; the web About had only the version, and Android showed the build time ("reproducible" in the F-Droid build). The credits moved to a new Licenses page, opened from About; a tap on a credit shows its licence text in the app, on the web too. On the TV, a Licenses card at the end of the link row opens the credits.
 - About (Android and web): credits for the sea data and the 10-year normals (Open-Meteo Marine and Historical Weather, with the Copernicus lines), the SunCalc moon formulas (BSD-2-Clause), the F-Droid, GitHub and Obtainium badges, and on the web the Material Design and Feather icons and the PWA logo. The web About links to the licence texts of all code and icons in the web bundle (`/licenses/third-party.txt`). Corrected licence names: ECCC Data Services End-use Licence, JMA Public Data License (Version 1.0), GDACS under the European Commission reuse policy.
 
