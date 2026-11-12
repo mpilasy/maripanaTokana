@@ -1,0 +1,7 @@
+- Horas en formato de 12 o 24 h del dispositivo.
+- TV: su hora para otra zona horaria; reintenta tras un fallo.
+- MeteoAlarm corregido (Francia, Italia); widgets solo en la pantalla de inicio.
+- Nuevo: app de Android TV con gráficos; cielo (sol, solsticio, luna); mar (olas, mareas).
+- Temperatura en 6 h, horas en color con lluvia, UV desde moderado.
+- Máx. frente a la normal de 10 años; cambios desde ayer.
+- Ajustes: modelo. Gráficos: por hora o día.
