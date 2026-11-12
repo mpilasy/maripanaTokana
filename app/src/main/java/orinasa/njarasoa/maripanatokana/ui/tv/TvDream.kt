@@ -138,9 +138,10 @@ private fun DreamScreen(load: suspend () -> WeatherData?) {
             delay(REFRESH_MS)
         }
     }
+    // The clock shows minutes: wake at the start of each minute only
     val now by produceState(System.currentTimeMillis()) {
         while (true) {
-            delay(5_000)
+            delay(60_000 - System.currentTimeMillis() % 60_000)
             value = System.currentTimeMillis()
         }
     }

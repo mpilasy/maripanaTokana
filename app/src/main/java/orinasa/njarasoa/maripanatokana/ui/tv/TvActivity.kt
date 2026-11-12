@@ -202,9 +202,15 @@ private fun TvRoot(
     LaunchedEffect(lifecycleOwner, activeId, localeIndex) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
             while (true) {
+                // After a failed load (no network when the TV starts, for example), try again every 5 minutes
+                if (state is TvState.Failed) {
+                    delay(RETRY_MS)
+                    if (state is TvState.Failed) attempt++
+                    continue
+                }
                 val ready = state as? TvState.Ready
                 val data = ready?.data
-                val wait = if (data == null) REFRESH_MS else REFRESH_MS - (System.currentTimeMillis() - data.timestamp)
+                val wait = if (data == null) RETRY_MS / 5 else REFRESH_MS - (System.currentTimeMillis() - data.timestamp)
                 if (data == null || wait > 0) {
                     delay(wait.coerceAtLeast(RETRY_MS / 5))
                     continue

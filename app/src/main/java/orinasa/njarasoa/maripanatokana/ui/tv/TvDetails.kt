@@ -105,7 +105,8 @@ internal fun DetailsScreen(data: WeatherData) {
     val km = stringResource(R.string.visibility_km)
     val mi = stringResource(R.string.visibility_mi)
     val noPrecip = stringResource(R.string.detail_no_precip)
-    val moon = remember { Moon.illumination(System.currentTimeMillis()) }
+    // Again with each weather refresh: a TV can show this screen for days
+    val moon = remember(data.timestamp) { Moon.illumination(System.currentTimeMillis()) }
     val metric = LocalMetricPrimary.current
     val kilometres = data.visibility?.let { km.format(Locale.US, it / 1000.0) }
     val miles = data.visibility?.let { mi.format(Locale.US, it / 1609.34) }

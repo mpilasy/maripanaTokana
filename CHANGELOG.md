@@ -9,6 +9,9 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+- Android TV: after a failed first load (no network when the TV starts, for example), the app tries again every 5 minutes; before, it waited for Retry. The screensaver clock changes at the start of each minute, and the moon phase on the details screen updates with each weather refresh.
+- Web: sharing a card frees the memory of its images at once, gives an error instead of a crash when the browser cannot make the image, and no longer stops the download in some browsers.
+
 ## [1.7.20261112013642] - 2026-11-12
 
 - Android: the place-name lookup of the system geocoder no longer runs on the main thread, so a slow network cannot freeze the app.
