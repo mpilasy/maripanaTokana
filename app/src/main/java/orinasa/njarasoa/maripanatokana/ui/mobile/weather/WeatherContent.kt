@@ -3717,13 +3717,14 @@ private fun MoonTile(lat: Double, lon: Double, utcOffsetSeconds: Int, timeFormat
                 SkyArc(arcT, Color(0xFFCFC8E8), Modifier.fillMaxSize(), belowHorizon = nextRise?.let { Color(0xFFCFC8E8).copy(alpha = 0.35f) }) {
                     drawMoon(illumination.phase, southern, it, 7.dp.toPx())
                 }
-                // The phase, in the middle of the arc, where the sun tile shows the length of the day
+                // The phase, in the middle of the arc, where the sun tile shows the length of the day. Its icon only
+                // while the moon is down: when it is up, the moon on the arc already shows the phase. Twin: the web moon tile
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(2.dp),
-                    modifier = Modifier.align(Alignment.Center).fillMaxWidth(0.6f),
+                    modifier = Modifier.align(Alignment.Center).fillMaxWidth(0.8f),
                 ) {
-                    MoonPhaseIcon(illumination.phase, southern, size = 20.sd(scale))
+                    if (arcT !in 0f..1f) MoonPhaseIcon(illumination.phase, southern, size = 20.sd(scale))
                     Text(
                         text = phaseNames[Moon.phaseIndex(illumination.phase)],
                         fontSize = 12f.s(scale),

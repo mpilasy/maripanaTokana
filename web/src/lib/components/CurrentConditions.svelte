@@ -410,8 +410,9 @@
 					<path d={moonLitPath(moon.illumination.phase, moon.southern, x, y, 7)} fill="#F2EBD3" />
 				{/snippet}
 			</SkyArc>
+			<!-- The phase icon only while the moon is off the arc: on the arc, the moon already shows the phase. Twin: MoonTile in WeatherContent.kt -->
 			<span class="under-arc mid-arc moon-arc-phase">
-				<MoonPhaseIcon phase={moon.illumination.phase} southern={moon.southern} size={20} />
+				{#if !(moon.arcT >= 0 && moon.arcT <= 1)}<MoonPhaseIcon phase={moon.illumination.phase} southern={moon.southern} size={20} />{/if}
 				{($json('moon_phases') as string[])?.[moonPhaseIndex(moon.illumination.phase)] ?? ''}
 			</span>
 		</div>
@@ -654,6 +655,9 @@
 
 	/* The moon's phase in the middle of its arc: the icon over the name */
 	.moon-arc-phase {
+		/* Wider than the sun's text, so a long phase name (Malagasy "Volan-tandrony") stays on one line */
+		left: 10%;
+		right: 10%;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
