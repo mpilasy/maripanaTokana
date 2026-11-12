@@ -9,6 +9,8 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+- Android TV About: one list of full-width rows, like the Fijerena app: the app and its build line (hash and UTC commit time), the copyright and licence, the four sharing link buttons side by side (OK shows the QR code), this device in two columns, and a Licenses row last. The Licenses card of 1.7.20261112190552 is gone: it made the link cards narrow and crowded. The Licenses page has one row for each credit; OK opens a bundled licence text, one card per paragraph.
+
 ## [1.7.20261112222105] - 2026-11-12
 
 - Activities card (phone and web): three new ratings. Skin comfort (dry air: a low dew point or humidity), car washing (no rain or snow now or in the next days, no frost) and driving (ice, snow, fog, heavy rain or strong gusts; weather only, no traffic data).

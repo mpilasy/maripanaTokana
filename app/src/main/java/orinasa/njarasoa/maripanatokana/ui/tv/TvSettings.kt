@@ -8,6 +8,22 @@ import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.view.View
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.annotation.DrawableRes
+import androidx.annotation.RawRes
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.withFrameNanos
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,8 +33,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
@@ -33,13 +47,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.FilterQuality
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -56,11 +68,7 @@ import orinasa.njarasoa.maripanatokana.BuildConfig
 import orinasa.njarasoa.maripanatokana.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.gestures.BringIntoViewSpec
-import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
 import orinasa.njarasoa.maripanatokana.ui.common.about.AppQrCode
-import orinasa.njarasoa.maripanatokana.ui.common.about.DeviceRow
 import orinasa.njarasoa.maripanatokana.ui.common.about.AppQrImage
 import orinasa.njarasoa.maripanatokana.ui.common.about.appQrCodes
 import orinasa.njarasoa.maripanatokana.ui.common.about.labelText
@@ -232,20 +240,28 @@ private fun AboutHeading(text: String) {
 }
 
 @Composable
-private fun AboutLine(text: String, size: Int = 18, modifier: Modifier = Modifier) {
-    Text(text, localize = false, color = Dim, fontSize = size.sp, modifier = modifier)
+private fun AboutLine(text: String, size: Int = 18) {
+    Text(text, localize = false, color = Dim, fontSize = size.sp)
 }
 
-/** The phone's About text. A TV has no browser to rely on, so the addresses show as text. */
-@OptIn(ExperimentalFoundationApi::class)
+/**
+ * About on the TV, laid out like Fijerena's: one list of full-width rows that Up and Down move through.
+ * The app and its build; the copyright and licence; the sharing links as buttons side by side, where OK shows
+ * the QR code for a phone to scan (a TV has no browser to rely on); this device; and the Licenses row, which
+ * opens [LicensesPage].
+ * Focus starts on the first row and comes back to the Licenses row from its page.
+ */
 @Composable
 internal fun AboutPage() {
     val context = LocalContext.current
     val device = remember { deviceInfo(context) }
     var qrCode by remember { mutableStateOf<AppQrCode?>(null) }
-    var licensesOpen by remember { mutableStateOf(false) }
+    var licensesOpen by rememberSaveable { mutableStateOf(false) }
+    var backFromLicenses by remember { mutableStateOf(false) }
+    // Kept while the Licenses page shows, so the list comes back where it was
+    val listState = rememberLazyListState()
     if (licensesOpen) {
-        BackHandler { licensesOpen = false }
+        BackHandler { licensesOpen = false; backFromLicenses = true }
         LicensesPage()
         return
     }
@@ -263,65 +279,184 @@ internal fun AboutPage() {
             }
         }
     }
-    // On a TV, Compose scrolls a focused item to near the middle of the screen; here the page scrolls only when the link is not visible
-    CompositionLocalProvider(LocalBringIntoViewSpec provides object : BringIntoViewSpec {}) { AboutContent(device, onLink = { qrCode = it }, onLicenses = { licensesOpen = true }) }
-}
-
-@Composable
-private fun AboutContent(device: List<DeviceRow>, onLink: (AppQrCode) -> Unit, onLicenses: () -> Unit) {
-    ScrollScreen {
-        PageTitle(stringResource(R.string.about_title))
-        // The app, its version, hash and commit time, close together
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(stringResource(R.string.app_name), localize = false, color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Bold)
-            AboutLine("v${BuildConfig.VERSION_NAME}")
-            AboutLine("#${BuildConfig.GIT_HASH} • ${BuildConfig.COMMIT_TIME} UTC • ${BuildConfig.FLAVOR} (${BuildConfig.VERSION_CODE})", 15)
-            AboutLine("© 2026 Orinasa Njarasoa", modifier = Modifier.padding(top = 6.dp))
-            AboutLine(stringResource(R.string.about_app_license))
+    val firstFocus = remember { FocusRequester() }
+    val licensesFocus = remember { FocusRequester() }
+    // Down from the copyright row and Up from this device go to the first link, not the nearest one
+    val firstLink = remember { FocusRequester() }
+    LaunchedEffect(Unit) { requestFocusAfterLayout(if (backFromLicenses) licensesFocus else firstFocus) }
+    RowList(listState) {
+        item { PageTitle(stringResource(R.string.about_title)) }
+        item {
+            InfoRow(
+                title = stringResource(R.string.app_name),
+                lines = listOf("v${BuildConfig.VERSION_NAME}", "#${BuildConfig.GIT_HASH} • ${BuildConfig.COMMIT_TIME} UTC • ${BuildConfig.FLAVOR}"),
+                modifier = Modifier.focusRequester(firstFocus),
+            )
         }
-        // A TV has no browser to rely on: OK on a link shows its QR code, for a phone to scan.
-        // Left and right move between the links; up and down still scroll the page.
-        val firstLink = remember { FocusRequester() }
-        LaunchedEffect(Unit) { firstLink.requestFocus() }
-        // All cards as tall as the tallest (only F-Droid and Obtainium have a badge)
-        Row(Modifier.padding(vertical = 8.dp).height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            appQrCodes.forEachIndexed { i, code ->
-                FocusCard(Modifier.weight(1f).fillMaxHeight().then(if (i == 0) Modifier.focusRequester(firstLink) else Modifier), onClick = { onLink(code) }) {
-                    Column(Modifier.padding(horizontal = 4.dp, vertical = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(code.labelText(), color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
-                        Text(code.address, localize = false, color = Dim, fontSize = 12.sp, textAlign = TextAlign.Center, maxLines = 2)
-                        // The "Get it on" badge tells that the link gets the app, before OK opens its QR code
-                        code.badge?.let {
-                            Image(painterResource(it), contentDescription = null, modifier = Modifier.padding(top = 8.dp).height(36.dp))
+        item {
+            InfoRow(
+                title = "© 2026 Orinasa Njarasoa",
+                lines = listOf(stringResource(R.string.about_app_license)),
+                modifier = Modifier.focusProperties { down = firstLink },
+            )
+        }
+        item {
+            // The sharing links stay buttons, side by side as before: OK shows the QR code, for a phone to scan.
+            // All cards as tall as the tallest (only F-Droid and Obtainium have a badge)
+            Row(Modifier.height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                appQrCodes.forEachIndexed { i, code ->
+                    FocusCard(Modifier.weight(1f).fillMaxHeight().then(if (i == 0) Modifier.focusRequester(firstLink) else Modifier), onClick = { qrCode = code }) {
+                        Column(Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(code.labelText(), color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                            Text(code.address, localize = false, color = Dim, fontSize = 13.sp, textAlign = TextAlign.Center, maxLines = 2)
+                            // The "Get it on" badge tells that the link gets the app, before OK opens its QR code
+                            code.badge?.let {
+                                Image(painterResource(it), contentDescription = null, modifier = Modifier.padding(top = 8.dp).height(36.dp))
+                            }
                         }
                     }
                 }
             }
-            // In the same row as the links: up and down scroll the page, so only left and right reach it
-            // As wide as the links, so a long label ("Fahazoan'alàlana") breaks only between words
-            FocusCard(Modifier.weight(1f).fillMaxHeight(), onClick = onLicenses) {
-                Box(Modifier.fillMaxSize().padding(horizontal = 4.dp, vertical = 12.dp), contentAlignment = Alignment.Center) {
-                    Text(stringResource(R.string.licenses_title) + " ›", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+        }
+        item { AboutHeading(stringResource(R.string.about_section_device)) }
+        item {
+            // One block, label and value in two columns
+            FocusCard(Modifier.fillMaxWidth().focusProperties { up = firstLink }, onClick = {}) {
+                Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    device.forEach { row ->
+                        Row(Modifier.fillMaxWidth()) {
+                            Text(stringResource(row.labelRes), color = Dim, fontSize = 18.sp, modifier = Modifier.width(240.dp))
+                            Text(row.value, localize = false, color = Color.White, fontSize = 18.sp, modifier = Modifier.weight(1f))
+                        }
+                    }
                 }
             }
         }
-        AboutHeading(stringResource(R.string.about_section_device))
-        device.forEach { row -> AboutLine("${stringResource(row.labelRes)}: ${row.value}") }
+        item {
+            InfoRow(
+                title = stringResource(R.string.licenses_title),
+                lines = listOf(stringResource(R.string.about_row_desc)),
+                opens = true,
+                modifier = Modifier.padding(top = 8.dp).focusRequester(licensesFocus),
+                onClick = { licensesOpen = true },
+            )
+        }
     }
 }
 
-/** The credits of the phone's Licenses page, as text: a TV has no browser for the licence pages. */
+/**
+ * The credits of the phone's Licenses page: one row for each data source, image, font or library, under its
+ * section. OK on a row with a bundled licence text opens [LicenseTextPage]; the others name their licence only,
+ * as a TV has no browser for their pages. Focus comes back to the row that was opened.
+ */
 @Composable
 private fun LicensesPage() {
-    ScrollScreen {
-        PageTitle(stringResource(R.string.licenses_title))
-        creditSections.forEach { section ->
-            AboutHeading(stringResource(section.titleRes))
-            section.items.forEach { item ->
-                val name = item.nameRes?.let { stringResource(it) } ?: item.name
-                val note = item.noteRes?.let { stringResource(it) } ?: item.note
-                AboutLine(listOfNotNull(name, item.license, note).joinToString(" · "))
+    val listState = rememberLazyListState()
+    val credits = creditSections.flatMap { section -> section.items.map { section.titleRes to it } }
+    var openIndex by rememberSaveable { mutableStateOf<Int?>(null) }
+    var backFrom by remember { mutableStateOf(0) }
+    val focus = remember { mutableMapOf<Int, FocusRequester>() }
+    fun focusOf(i: Int) = focus.getOrPut(i) { FocusRequester() }
+    val open = openIndex?.let { credits.getOrNull(it) }?.second
+    val openName = open?.let { it.nameRes?.let { res -> stringResource(res) } ?: it.name }
+    if (open?.textRes != null && openName != null) {
+        BackHandler { backFrom = openIndex ?: 0; openIndex = null }
+        LicenseTextPage(openName, open.textRes)
+        return
+    }
+    LaunchedEffect(Unit) { requestFocusAfterLayout(focusOf(backFrom)) }
+    RowList(listState) {
+        item { PageTitle(stringResource(R.string.licenses_title)) }
+        credits.forEachIndexed { i, (sectionRes, credit) ->
+            if (i == 0 || credits[i - 1].first != sectionRes) item { AboutHeading(stringResource(sectionRes)) }
+            item {
+                val name = credit.nameRes?.let { stringResource(it) } ?: credit.name
+                val note = credit.noteRes?.let { stringResource(it) } ?: credit.note
+                InfoRow(
+                    title = name,
+                    lines = listOfNotNull(credit.license, note),
+                    opens = credit.textRes != null,
+                    modifier = Modifier.focusRequester(focusOf(i)),
+                    onClick = { if (credit.textRes != null) openIndex = i },
+                )
             }
         }
     }
+}
+
+/** A bundled licence text, one card per paragraph: Up and Down cannot scroll through a card taller than the screen. */
+@Composable
+private fun LicenseTextPage(title: String, @RawRes textRes: Int) {
+    val context = LocalContext.current
+    val text by produceState<String?>(null, textRes) {
+        value = withContext(Dispatchers.IO) { context.resources.openRawResource(textRes).bufferedReader().use { it.readText() } }
+    }
+    val paragraphs = remember(text) {
+        text.orEmpty().split(Regex("\\n\\s*\\n")).map { it.trim() }.filter { it.isNotEmpty() }
+    }
+    val firstFocus = remember { FocusRequester() }
+    LaunchedEffect(paragraphs.isNotEmpty()) { if (paragraphs.isNotEmpty()) requestFocusAfterLayout(firstFocus) }
+    RowList(rememberLazyListState()) {
+        item { PageTitle(title) }
+        paragraphs.forEachIndexed { i, paragraph ->
+            item {
+                // "==== name ====" starts each font's licence in the fonts file: a heading, not a card
+                if (paragraph.startsWith("====")) {
+                    AboutHeading(paragraph.trim('=', ' '))
+                } else {
+                    FocusCard(Modifier.fillMaxWidth().then(if (i == 0 || (i == 1 && paragraphs[0].startsWith("===="))) Modifier.focusRequester(firstFocus) else Modifier), onClick = {}) {
+                        Text(paragraph, localize = false, color = Color.White.copy(alpha = 0.85f), fontSize = 18.sp, lineHeight = 26.sp,
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 14.dp))
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** The list of About and Licenses: the TV safe margins, with the vertical one inside the list so a focused border is not cut. */
+@Composable
+private fun RowList(state: LazyListState, content: LazyListScope.() -> Unit) {
+    LazyColumn(
+        state = state,
+        modifier = Modifier.fillMaxSize().padding(horizontal = 48.dp),
+        contentPadding = PaddingValues(vertical = 27.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        content = content,
+    )
+}
+
+/**
+ * One focusable full-width row: the [title], then [lines] in the dim colour; a [badge] image and, when OK opens
+ * something ([opens]), a chevron at the end.
+ */
+@Composable
+private fun InfoRow(
+    title: String,
+    lines: List<String>,
+    modifier: Modifier = Modifier,
+    @DrawableRes badge: Int? = null,
+    opens: Boolean = false,
+    onClick: () -> Unit = {},
+) {
+    FocusCard(modifier.fillMaxWidth(), onClick = onClick) {
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(title, localize = false, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                lines.forEach { Text(it, localize = false, color = Dim, fontSize = 17.sp, maxLines = 3, overflow = TextOverflow.Ellipsis) }
+            }
+            badge?.let { Image(painterResource(it), contentDescription = null, modifier = Modifier.height(36.dp)) }
+            if (opens) Text("›", color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+/** Focus [requester] once its row is laid out; a row that is not composed (scrolled away) is skipped. */
+private suspend fun requestFocusAfterLayout(requester: FocusRequester) {
+    withFrameNanos {}
+    runCatching { requester.requestFocus() }
 }
