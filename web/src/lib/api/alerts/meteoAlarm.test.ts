@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { describe, it, expect } from 'vitest';
-import { areaMatches, meteoAlarmAlert, type MeteoAlarmEntry } from './meteoAlarm';
+import { areaMatches, meteoAlarmAlert, meteoAlarmAreaMatches, type MeteoAlarmEntry } from './meteoAlarm';
+
+const fr = (subdivisionName: string) => ({ countryCode: 'fr', stateCode: null, subdivisionName, regionName: null });
 
 describe('areaMatches', () => {
 	it('matches the same area with other case, accents or hyphens', () => {
@@ -74,15 +76,46 @@ describe('meteoAlarmAlert', () => {
 	});
 
 	it('keeps only alerts for the subdivision when it is known', () => {
-		expect(meteoAlarmAlert(entry, 'Bouches du Rhone')).not.toBeNull();
-		expect(meteoAlarmAlert(entry, 'Vaucluse')).toBeNull();
-		expect(meteoAlarmAlert({ ...entry, areaDesc: '' }, 'Vaucluse')).not.toBeNull();
+		expect(meteoAlarmAlert(entry, fr('Bouches du Rhone'))).not.toBeNull();
+		expect(meteoAlarmAlert(entry, fr('Vaucluse'))).toBeNull();
+		expect(meteoAlarmAlert({ ...entry, areaDesc: '' }, fr('Vaucluse'))).not.toBeNull();
 		// An empty or blank subdivision is not known: keep the alert (the same on Android)
-		expect(meteoAlarmAlert(entry, '')).not.toBeNull();
-		expect(meteoAlarmAlert(entry, ' ')).not.toBeNull();
+		expect(meteoAlarmAlert(entry, fr(''))).not.toBeNull();
+		expect(meteoAlarmAlert(entry, fr(' '))).not.toBeNull();
 	});
 
 	it('gives no time for an onset it cannot read', () => {
 		expect(meteoAlarmAlert({ ...entry, onset: 'soon' }, null)?.time).toBeUndefined();
+	});
+});
+
+describe('meteoAlarmAreaMatches', () => {
+	it('in France a department does not match a department that contains its name', () => {
+		expect(meteoAlarmAreaMatches('fr', 'Haute-Loire', 'Haute-Loire', 'Auvergne-Rhône-Alpes')).toBe(true);
+		expect(meteoAlarmAreaMatches('fr', "Côtes-d'Armor", "Cotes d'Armor", null)).toBe(true);
+		expect(meteoAlarmAreaMatches('fr', 'Haute-Loire', 'Loire', 'Auvergne-Rhône-Alpes')).toBe(false);
+		expect(meteoAlarmAreaMatches('fr', 'Loire', 'Haute-Loire', 'Auvergne-Rhône-Alpes')).toBe(false);
+		expect(meteoAlarmAreaMatches('fr', 'Charente-Maritime', 'Charente', null)).toBe(false);
+		expect(meteoAlarmAreaMatches('fr', 'Haute-Savoie', 'Savoie', null)).toBe(false);
+	});
+
+	it('in Italy the region of the place is used, also with its English name', () => {
+		expect(meteoAlarmAreaMatches('it', 'Umbria', 'Province of Perugia', 'Umbria')).toBe(true);
+		expect(meteoAlarmAreaMatches('it', 'Toscana', 'Metropolitan City of Florence', 'Tuscany')).toBe(true);
+		expect(meteoAlarmAreaMatches('it', 'Emilia e Romagna', 'Bologna', 'Emilia-Romagna')).toBe(true);
+		expect(meteoAlarmAreaMatches('it', 'Lombardia', 'Perugia', 'Umbria')).toBe(false);
+		// Without a region, the subdivision is used
+		expect(meteoAlarmAreaMatches('it', 'Umbria', 'Umbria', null)).toBe(true);
+	});
+
+	it('other countries keep the rule with containment', () => {
+		expect(meteoAlarmAreaMatches('es', 'Litoral norte de Tarragona', 'Tarragona', 'Catalonia')).toBe(true);
+		expect(meteoAlarmAreaMatches('de', 'Kreis Breisgau-Hochschwarzwald und Stadt Freiburg', 'Freiburg im Breisgau', null)).toBe(true);
+	});
+
+	it('keeps an alert when the area of the place or of the alert is not known', () => {
+		expect(meteoAlarmAreaMatches('fr', 'Haute-Loire', null, null)).toBe(true);
+		expect(meteoAlarmAreaMatches('fr', '', 'Loire', null)).toBe(true);
+		expect(meteoAlarmAreaMatches('it', 'Umbria', ' ', ' ')).toBe(true);
 	});
 });

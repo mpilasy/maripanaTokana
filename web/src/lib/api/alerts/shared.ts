@@ -20,11 +20,12 @@ export interface LocationInfo {
 	countryCode: string | null;
 	stateCode: string | null;
 	subdivisionName: string | null;
+	regionName: string | null;
 }
 
 export async function getLocationInfo(lat: number, lon: number, localeTag?: string): Promise<LocationInfo> {
 	const r = await lookupLocation(lat, lon, localeTag);
 	return r
-		? { countryCode: r.countryCode, stateCode: r.stateCode, subdivisionName: r.subdivisionName }
-		: { countryCode: null, stateCode: null, subdivisionName: null };
+		? { countryCode: r.countryCode, stateCode: r.stateCode, subdivisionName: r.subdivisionName, regionName: r.regionName ?? null }
+		: { countryCode: null, stateCode: null, subdivisionName: null, regionName: null };
 }

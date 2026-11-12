@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { WeatherAlert, AlertLevel } from '#lib/domain/weatherData.js';
+import type { LocationInfo } from './shared';
 
 export const METEOALARM_COUNTRIES = new Set([
 	'at','ba','be','bg','hr','cy','cz','dk','ee','fi','fr','de','gr','hu','ie','it',
@@ -30,6 +31,39 @@ function containsWords(hay: string[], needle: string[]): boolean {
 	return false;
 }
 
+const STRICT_AREA_COUNTRIES = new Set(['fr']);
+const REGION_AREA_COUNTRIES = new Set(['it']);
+// English region names (lowercase, without accents) with the Italian names of the MeteoAlarm feed
+const ITALIAN_REGIONS: Record<string, string> = {
+	'lombardy': 'Lombardia', 'piedmont': 'Piemonte', 'tuscany': 'Toscana', 'apulia': 'Puglia',
+	'sicily': 'Sicilia', 'sardinia': 'Sardegna', 'trentino south tyrol': 'Trentino Alto Adige',
+	'aosta valley': "Valle d'Aosta"
+};
+
+/**
+ * True when the MeteoAlarm `areaDesc` covers the place, or when the area of the place is not known.
+ * `subdivision` is the department or county of the place, `region` its region or state.
+ */
+export function meteoAlarmAreaMatches(countryCode: string, areaDesc: string, subdivision: string | null, region: string | null): boolean {
+	if (!areaDesc.trim()) return true;
+	// Italy sends warnings for regions, with their Italian names; the geocoder can give English names
+	const regionName = REGION_AREA_COUNTRIES.has(countryCode) && region?.trim()
+		? ITALIAN_REGIONS[normalizeArea(region)] ?? region
+		: null;
+	const name = regionName ?? (subdivision?.trim() ? subdivision : null);
+	if (!name) return true;
+	// In France a department name can be part of another: "Loire" is not "Haute-Loire"
+	return STRICT_AREA_COUNTRIES.has(countryCode) ? sameArea(areaDesc, name) : areaMatches(areaDesc, name);
+}
+
+/** True when `areaDesc` and `name` have the same words, without the words for the type of area. */
+export function sameArea(areaDesc: string, name: string): boolean {
+	const words = nameWords(areaWords(normalizeArea(areaDesc)));
+	const other = nameWords(areaWords(normalizeArea(name)));
+	return words.size > 0 && words.size === other.size && [...words].every((w) => other.has(w));
+}
+
+/** True when the MeteoAlarm `areaDesc` is the place's `subdivision`. */
 export function areaMatches(areaDesc: string, subdivision: string): boolean {
 	const a = normalizeArea(areaDesc);
 	const b = normalizeArea(subdivision);
@@ -59,12 +93,12 @@ function nameWords(tokens: string[]): Set<string> {
 	return new Set(tokens.filter((w) => w.length >= 3 && !AREA_TYPE_WORDS.has(w)));
 }
 
-export async function fetchMeteoAlarmAlerts(lat: number, lon: number, countryCode: string, subdivisionName: string | null = null): Promise<WeatherAlert[]> {
+export async function fetchMeteoAlarmAlerts(lat: number, lon: number, countryCode: string, place: LocationInfo | null = null): Promise<WeatherAlert[]> {
 	if (!METEOALARM_COUNTRIES.has(countryCode)) return [];
 	const res = await fetch(`/api/alerts/meteoalarm?country=${countryCode}`, { signal: AbortSignal.timeout(10_000) });
 	if (!res.ok) throw new Error(`HTTP ${res.status}`);
 	return readMeteoAlarmEntries(await res.text())
-		.map((e) => meteoAlarmAlert(e, subdivisionName))
+		.map((e) => meteoAlarmAlert(e, place))
 		.filter((a): a is WeatherAlert => a !== null);
 }
 
@@ -101,10 +135,10 @@ function readMeteoAlarmEntries(xml: string): MeteoAlarmEntry[] {
  * The alert for `entry`, or null when it is not an actual alert or is for an area other than
  * `subdivisionName`. The same rules as meteoAlarmAlert in WeatherRepositoryImpl.kt.
  */
-export function meteoAlarmAlert(entry: MeteoAlarmEntry, subdivisionName: string | null): WeatherAlert | null {
+/** The alert for `entry`, or null when it is not an actual alert or is for an area other than that of `place`. */
+export function meteoAlarmAlert(entry: MeteoAlarmEntry, place: LocationInfo | null): WeatherAlert | null {
 	if (!entry.event.trim() || (entry.status.trim() && entry.status !== 'Actual')) return null;
-	// Filter to user's subdivision when known
-	if (subdivisionName?.trim() && entry.areaDesc.trim() && !areaMatches(entry.areaDesc, subdivisionName)) return null;
+	if (place && !meteoAlarmAreaMatches(place.countryCode ?? '', entry.areaDesc, place.subdivisionName, place.regionName)) return null;
 	const severity = entry.severity.toLowerCase();
 	const level: AlertLevel = severity === 'extreme' ? 'emergency' : severity === 'severe' ? 'warning' : 'watch';
 	const time = entry.onset ? new Date(entry.onset).getTime() : NaN;

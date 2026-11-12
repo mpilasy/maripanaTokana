@@ -72,7 +72,8 @@ export async function fetchAllAlerts(
 	if (!settings.alertsEnabled) return { alerts: [], failedSources: [] };
 
 	// A location lookup from the caller prevents a second reverse geocode
-	const { countryCode, stateCode, subdivisionName } = locationInfo ?? await getLocationInfo(lat, lon);
+	const place = locationInfo ?? await getLocationInfo(lat, lon);
+	const { countryCode, stateCode } = place;
 	const cc = countryCode ?? '';
 
 	const region = alertRegions(lat, lon, cc);
@@ -95,7 +96,7 @@ export async function fetchAllAlerts(
 		source('NWS', settings.alertsNwsEnabled && region.inUS, () => fetchNwsAlerts(lat, lon)),
 		// Skipped when a regional source covers the area
 		source('GDACS', settings.alertsGdacsEnabled && !coveredByRegional(region), () => fetchGdacsAlerts(lat, lon)),
-		source('MeteoAlarm', settings.alertsMeteoAlarmEnabled && region.inMeteoAlarm, () => fetchMeteoAlarmAlerts(lat, lon, cc, subdivisionName)),
+		source('MeteoAlarm', settings.alertsMeteoAlarmEnabled && region.inMeteoAlarm, () => fetchMeteoAlarmAlerts(lat, lon, cc, place)),
 		source('JMA', settings.alertsJmaEnabled && region.inJapan, () => fetchJmaAlerts(lat, lon)),
 		source('ECCC', settings.alertsEcccEnabled && region.inCanada, () => fetchEcccAlerts(lat, lon, 'ca')),
 		source('BOM', settings.alertsBomEnabled && region.inAustralia, () => fetchBomAlerts(stateCode)),

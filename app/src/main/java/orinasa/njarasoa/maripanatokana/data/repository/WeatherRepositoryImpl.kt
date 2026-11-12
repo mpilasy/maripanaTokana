@@ -239,7 +239,7 @@ class WeatherRepositoryImpl @Inject constructor(
                 // Skipped when a regional source covers the area
                 source("GDACS", settings.alertsGdacsEnabled && !region.coveredByRegional) { gdacsAlerts(lat, lon) },
                 source("MeteoAlarm", settings.alertsMeteoAlarmEnabled) {
-                    meteoAlarmSlug?.let { meteoAlarmAlerts(it, countryInfo?.subdivision) } ?: emptyList()
+                    meteoAlarmSlug?.let { meteoAlarmAlerts(it, countryInfo) } ?: emptyList()
                 },
                 source("JMA", settings.alertsJmaEnabled && region.inJapan) { jmaAlerts(lat, lon) },
                 source("ECCC", settings.alertsEcccEnabled && region.inCanada) { ecccAlerts(lat, lon) },
@@ -331,9 +331,9 @@ class WeatherRepositoryImpl @Inject constructor(
             }
     }
 
-    /** MeteoAlarm alerts (Europe) for the country feed [slug], kept to [subdivision] when it is known. */
-    private suspend fun meteoAlarmAlerts(slug: String, subdivision: String?): List<WeatherAlert> =
-        parseMeteoAlarmAtom(meteoAlarmApiService.getAlerts(slug).string(), subdivision)
+    /** MeteoAlarm alerts (Europe) for the country feed [slug], kept to the area of [place] when it is known. */
+    private suspend fun meteoAlarmAlerts(slug: String, place: CountryInfo?): List<WeatherAlert> =
+        parseMeteoAlarmAtom(meteoAlarmApiService.getAlerts(slug).string(), place)
 
     /** JMA warnings (Japan), one alert for each warning type with the prefectures it covers. */
     private suspend fun jmaAlerts(lat: Double, lon: Double): List<WeatherAlert> {
@@ -460,10 +460,10 @@ class WeatherRepositoryImpl @Inject constructor(
         return NHC_COMPASS_DIRECTIONS[idx]
     }
 
-    private fun parseMeteoAlarmAtom(xml: String, subdivisionName: String? = null): List<WeatherAlert> {
+    private fun parseMeteoAlarmAtom(xml: String, place: CountryInfo? = null): List<WeatherAlert> {
         // One parser for all entries; a feed can hold hundreds
         val onsetParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
-        return readMeteoAlarmEntries(xml).mapNotNull { meteoAlarmAlert(it, subdivisionName, onsetParser) }
+        return readMeteoAlarmEntries(xml).mapNotNull { meteoAlarmAlert(it, place, onsetParser) }
     }
 
     /** The CAP fields of one Atom entry in a MeteoAlarm feed. */
@@ -515,11 +515,10 @@ class WeatherRepositoryImpl @Inject constructor(
         return entries
     }
 
-    /** The alert for [entry], or null when it is not an actual alert or is for an area other than [subdivisionName]. */
-    private fun meteoAlarmAlert(entry: MeteoAlarmEntry, subdivisionName: String?, onsetParser: SimpleDateFormat): WeatherAlert? {
+    /** The alert for [entry], or null when it is not an actual alert or is for an area other than that of [place]. */
+    private fun meteoAlarmAlert(entry: MeteoAlarmEntry, place: CountryInfo?, onsetParser: SimpleDateFormat): WeatherAlert? {
         if (entry.event.isBlank() || (entry.status.isNotBlank() && entry.status != "Actual")) return null
-        // Keep only the user's subdivision when it is known
-        if (!subdivisionName.isNullOrBlank() && entry.areaDesc.isNotBlank() && !areaMatches(entry.areaDesc, subdivisionName)) return null
+        if (place != null && !meteoAlarmAreaMatches(place.countryCode, entry.areaDesc, place.subdivision, place.adminArea)) return null
         val level = when (entry.severity.lowercase()) {
             "extreme" -> AlertLevel.EMERGENCY
             "severe" -> AlertLevel.WARNING
@@ -538,6 +537,14 @@ class WeatherRepositoryImpl @Inject constructor(
         // Compiled once: area matching runs for each MeteoAlarm entry
         private val DIACRITICS = Regex("\\p{InCombiningDiacriticalMarks}+")
         private val NON_WORD = Regex("[^\\p{L}\\p{N}]+")
+        private val STRICT_AREA_COUNTRIES = setOf("fr")
+        private val REGION_AREA_COUNTRIES = setOf("it")
+        // English region names (lowercase, without accents) with the Italian names of the MeteoAlarm feed
+        private val ITALIAN_REGIONS = mapOf(
+            "lombardy" to "Lombardia", "piedmont" to "Piemonte", "tuscany" to "Toscana", "apulia" to "Puglia",
+            "sicily" to "Sicilia", "sardinia" to "Sardegna", "trentino south tyrol" to "Trentino Alto Adige",
+            "aosta valley" to "Valle d'Aosta",
+        )
         // Words for the type of area and joining words, lowercase without accents: they do not name a place
         private val AREA_TYPE_WORDS = setOf(
             "region", "regione", "regiao", "regionen", "county", "district", "province", "provincia", "provincie",
@@ -552,6 +559,26 @@ class WeatherRepositoryImpl @Inject constructor(
             s.lowercase().replace('-', ' ').trim()
                 .let { java.text.Normalizer.normalize(it, java.text.Normalizer.Form.NFD) }
                 .replace(DIACRITICS, "")
+
+        /**
+         * True when the MeteoAlarm [areaDesc] covers the place, or when the area of the place is not known.
+         * [subdivision] is the department or county of the place, [region] its region or state.
+         */
+        internal fun meteoAlarmAreaMatches(countryCode: String, areaDesc: String, subdivision: String?, region: String?): Boolean {
+            if (areaDesc.isBlank()) return true
+            // Italy sends warnings for regions, with their Italian names; the geocoder can give English names
+            val regionName = region?.takeIf { countryCode in REGION_AREA_COUNTRIES && it.isNotBlank() }
+                ?.let { ITALIAN_REGIONS[normalizeArea(it)] ?: it }
+            val name = regionName ?: subdivision?.takeIf { it.isNotBlank() } ?: return true
+            // In France a department name can be part of another: "Loire" is not "Haute-Loire"
+            return if (countryCode in STRICT_AREA_COUNTRIES) sameArea(areaDesc, name) else areaMatches(areaDesc, name)
+        }
+
+        /** True when [areaDesc] and [name] have the same words, without the words for the type of area. */
+        internal fun sameArea(areaDesc: String, name: String): Boolean {
+            val words = nameWords(areaWords(normalizeArea(areaDesc)))
+            return words.isNotEmpty() && words == nameWords(areaWords(normalizeArea(name)))
+        }
 
         /** True when the MeteoAlarm [areaDesc] is the place's [subdivision]. */
         internal fun areaMatches(areaDesc: String, subdivision: String): Boolean {

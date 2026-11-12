@@ -79,6 +79,8 @@ export interface LocationLookup {
 	countryCode: string | null;
 	stateCode: string | null;
 	subdivisionName: string | null;
+	// Older cached entries have no region
+	regionName?: string | null;
 }
 
 const GEOCODE_TTL_MS = 24 * 60 * 60 * 1000;
@@ -179,7 +181,8 @@ export function lookupLocation(lat: number, lon: number, localeTag?: string): Pr
 				countryCode: addr?.country_code?.toLowerCase() ?? null,
 				stateCode: iso?.split('-')[1] ?? null,
 				// county matches département-level (NUTS3) in most MeteoAlarm countries
-				subdivisionName: addr?.county ?? addr?.city ?? addr?.state ?? null
+				subdivisionName: addr?.county ?? addr?.city ?? addr?.state ?? null,
+				regionName: addr?.state ?? null
 			};
 			writeGeocodeCache(key, value);
 			return value;
