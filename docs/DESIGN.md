@@ -354,6 +354,8 @@ On the first start after install, `DefaultLanguage.kt` selects the first device 
 
 Numeric formatting uses `Locale.US` internally, applying character replacement at display time via `SupportedLocale.localizeDigits()` for 100% consistency. It also changes the decimal point to the language's separator: a comma for French, Spanish and Malagasy, and `٫` for Arabic.
 
+Times follow the 24-hour or 12-hour clock of the device (`DateFormat.is24HourFormat`, whose default comes from the device region) or, on the web, of the browser region (`Intl` `hourCycle`). The helpers are `ui/common/ClockFormat.kt` (`uses24HourClock`, `clockPattern`, `hourLabelPattern`, `clockFormat`) and `web/src/lib/utils/date.ts` (`uses24HourClock`, `formatTimeAtLocation`, `formatHourAtLocation`). A time with minutes is "21:05" or "9:05 PM"; a full-hour label is "21:00" or "9 PM" (a place or device at a :30 or :45 offset keeps the minutes). The AM/PM marker is in the app language, without dots, because the digit helper changes dots to commas.
+
 The texts come from `shared/i18n/locales/*.json`. `shared/i18n/generate-android-strings.js` writes all `res/values*/strings.xml` files, including the English `values/`. The in-app language switch uses a localized `ContextWrapper` (`WeatherScreen.kt`) and `MainActivity.attachBaseContext`.
 
 ---

@@ -38,7 +38,7 @@ The same APK also runs on Android TV, with screens made for the remote: current 
 
 **Display**
 - **Units**: every value shows metric and imperial units. Tap a value to put the other unit first.
-- **8 languages**: Malagasy, Arabic, English, Spanish, French, Hindi, Nepali and Chinese. Tap the flag in the footer to change, or hold it to pick from a list. Local digits for Arabic, Hindi and Nepali, a decimal comma where the language uses one, and right-to-left layout for Arabic. The permission and error screens also show the system language, when it is different.
+- **8 languages**: Malagasy, Arabic, English, Spanish, French, Hindi, Nepali and Chinese. Tap the flag in the footer to change, or hold it to pick from a list. Local digits for Arabic, Hindi and Nepali, a decimal comma where the language uses one, and right-to-left layout for Arabic. Times follow the 24-hour or 12-hour clock of the device or browser region. The permission and error screens also show the system language, when it is different.
 - **22 font choices**: the default font and 21 font pairs. Tap the font name in the footer to change, or hold it to pick from a list.
 - **Share**: each card has a share button that shares the card as an image, with the date and time but no location data.
 - **Help and About pages**: 11 questions and answers; the data sources, fonts, libraries and licenses; what the system reports about the device; and the F-Droid, Obtainium and GitHub badges with QR codes, to pass the app to another person. On the TV, the F-Droid and Obtainium cards show their badges, and OK opens the QR code.
