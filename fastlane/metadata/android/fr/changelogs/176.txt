@@ -1,0 +1,7 @@
+- En-tête replié : l'épingle ramène à votre position.
+- Heures au format 12 h ou 24 h de l'appareil.
+- TV : son heure pour un autre fuseau ; nouvel essai après un échec.
+- MeteoAlarm corrigé (France, Italie) ; widgets mis à jour seulement à l'accueil.
+- Nouveau : appli Android TV avec graphiques ; ciel (soleil, solstice, lune) ; mer (vagues, marées).
+- Température sur 6 h, heures en couleur avec pluie, UV dès modéré.
+- Réglages : modèle météo. Graphiques : heure ou jour.

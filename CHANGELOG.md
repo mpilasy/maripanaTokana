@@ -9,6 +9,8 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.7.20261112154705] - 2026-11-12
+
 - Folded header: at a saved place or a preview, the current-location pin takes the place of the search button, so one tap goes back to where you are. At the current location, the search button stays.
 - Web: the header now folds 3 seconds after the page opens. Before, it often stayed open until the first scroll.
 

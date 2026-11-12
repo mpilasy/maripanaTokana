@@ -1,0 +1,7 @@
+- Folded header: the pin takes you back to your location.
+- Times follow the 12- or 24-hour clock of the device.
+- TV: own time for other time zones; retries after a failure.
+- MeteoAlarm fixes for France and Italy; widgets update only on the home screen.
+- New: Android TV app with charts; sky (noon sun, solstice, moon); sea (waves, tides).
+- 6-hour temperature change, coloured next hours with rain chance, UV from moderate.
+- Settings: weather model. Charts: hourly or daily.
