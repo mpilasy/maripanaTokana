@@ -696,20 +696,25 @@ internal fun WeatherContent(
                         )
                     }
                 }
-                HeaderAction(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = stringResource(R.string.cd_manage_locations),
-                    onClick = onManageLocationsClicked,
-                )
-                // Folded: no favourite and current-location buttons, so the name keeps its room
-                if ((isSavedLocation || hasLocationOverride) && !headerCollapsed) {
+                // Folded at another place: the current-location button takes the place of search,
+                // as the one tap back; no favourite button, so the name keeps its room
+                if (!headerCollapsed || !(isSavedLocation || hasLocationOverride)) {
                     HeaderAction(
-                        imageVector = if (isSavedLocation) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                        contentDescription = stringResource(
-                            if (isSavedLocation) R.string.cd_remove_favorite else R.string.cd_add_favorite
-                        ),
-                        onClick = onToggleFavorite,
+                        imageVector = Icons.Default.Search,
+                        contentDescription = stringResource(R.string.cd_manage_locations),
+                        onClick = onManageLocationsClicked,
                     )
+                }
+                if (isSavedLocation || hasLocationOverride) {
+                    if (!headerCollapsed) {
+                        HeaderAction(
+                            imageVector = if (isSavedLocation) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = stringResource(
+                                if (isSavedLocation) R.string.cd_remove_favorite else R.string.cd_add_favorite
+                            ),
+                            onClick = onToggleFavorite,
+                        )
+                    }
                     HeaderAction(
                         imageVector = Icons.Default.LocationOn,
                         contentDescription = stringResource(R.string.cd_go_to_current_location),

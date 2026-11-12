@@ -9,6 +9,9 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+- Folded header: at a saved place or a preview, the current-location pin takes the place of the search button, so one tap goes back to where you are. At the current location, the search button stays.
+- Web: the header now folds 3 seconds after the page opens. Before, it often stayed open until the first scroll.
+
 ## [1.7.20261112032642] - 2026-11-12
 
 - Times follow the 24-hour or 12-hour clock of the device (phone, TV, screensaver, widgets) or of the browser region (web): "9:05 PM" for a time with minutes and "9 PM" for a full hour on a 12-hour clock; before, most times were always 24-hour.

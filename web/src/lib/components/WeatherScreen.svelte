@@ -283,7 +283,9 @@
 	$effect(() => {
 		const wait = chrome.msUntilFold(performance.now());
 		if (wait == null) return;
-		const id = setTimeout(() => (chrome = chrome.tick(performance.now())), wait);
+		// Rounded up, plus 1 ms: the browser cuts the delay to whole milliseconds, and a timer that fires
+		// before the fold time changes nothing, so no new timer starts and the header stays open
+		const id = setTimeout(() => (chrome = chrome.tick(performance.now())), Math.ceil(wait) + 1);
 		return () => clearTimeout(id);
 	});
 	let contentWrapper = $state<HTMLElement | null>(null);
@@ -567,11 +569,15 @@
 							<span class="sr-only">{updatedText}{#if $refreshFailed}{' ' + refreshFailedText}{/if} {$_('cd_refresh')}</span>
 						</button>
 					{/if}
+					<!-- Folded at another place: the current-location button takes the place of search,
+					     as the one tap back; no favourite button, so the name has room -->
+					{#if !headerCollapsed || ($activeLocationId === null && $locationOverride === null)}
 					<button class="header-action touch-target" onclick={openSavedLocationsDialog} aria-label={$_('cd_manage_locations')} title={$_('cd_manage_locations')}>
 						<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
 					</button>
-					<!-- Folded: no favourite and current-location buttons, so the name has room -->
-					{#if !headerCollapsed && ($activeLocationId !== null || $locationOverride !== null)}
+					{/if}
+					{#if $activeLocationId !== null || $locationOverride !== null}
+						{#if !headerCollapsed}
 						<button
 							class="header-action touch-target"
 							onclick={() => { if ($activeLocationId !== null) unfavoriteCurrentLocation(); else favoriteCurrentLocation(); }}
@@ -586,6 +592,7 @@
 								{/if}
 							</svg>
 						</button>
+						{/if}
 						<button class="header-action touch-target" onclick={() => switchToLocation(null)} aria-label={$_('cd_go_to_current_location')} title={$_('cd_go_to_current_location')}>
 							<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
 						</button>
