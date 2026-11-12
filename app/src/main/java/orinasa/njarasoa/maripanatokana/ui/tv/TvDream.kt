@@ -50,6 +50,7 @@ import orinasa.njarasoa.maripanatokana.ui.theme.temperatureColor
 import orinasa.njarasoa.maripanatokana.ui.common.components.WeatherIcon
 import java.text.SimpleDateFormat
 import java.util.Date
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.isRemoteTimezone
 import javax.inject.Inject
 import kotlin.random.Random
 
@@ -167,6 +168,9 @@ private fun DreamWeather(data: WeatherData) {
     val metric = LocalMetricPrimary.current
     val (temp, tempSecond) = data.temperature.displayDual(metric)
     val hourFormat = rememberPlaceFormat("HH:mm", data.utcOffsetSeconds)
+    // As on the phone: the TV's own time under the place's when the place keeps another time
+    val deviceHour = rememberDeviceFormat("HH:mm")
+    val remote = isRemoteTimezone(data.utcOffsetSeconds)
     Spacer(Modifier.height(8.dp))
     Text(data.locationName, localize = false, color = Dim, fontSize = 28.sp)
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -186,6 +190,7 @@ private fun DreamWeather(data: WeatherData) {
             val night = !isDaytime(hour.time, data.dailySunrise.getOrElse(day) { 0L }, data.dailySunset.getOrElse(day) { 0L })
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(4.dp)) {
                 Text(hourFormat(hour.time), color = Dim, fontSize = 18.sp)
+                if (remote) DeviceTimeText(deviceHour(hour.time), mark = true, color = Dim, fontSize = 14.sp)
                 WeatherIcon(hour.weatherCode, night = night, size = 44.dp)
                 Text(hour.temperature.displayDual(metric).first, color = temperatureColor(hour.temperature.celsius), fontSize = 20.sp, fontWeight = FontWeight.Bold)
             }

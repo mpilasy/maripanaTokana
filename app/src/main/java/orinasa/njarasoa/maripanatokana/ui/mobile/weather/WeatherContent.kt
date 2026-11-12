@@ -3842,13 +3842,13 @@ internal suspend fun shareCardBitmap(context: android.content.Context, bitmap: B
 }
 
 /** True when the place's UTC offset differs from the device's offset now. */
-private fun isRemoteTimezone(utcOffsetSeconds: Int): Boolean {
+internal fun isRemoteTimezone(utcOffsetSeconds: Int): Boolean {
     val deviceOffsetMs = TimeZone.getDefault().getOffset(System.currentTimeMillis())
     return deviceOffsetMs != utcOffsetSeconds * 1000
 }
 
 /** The current time at the place, with the weekday when its date differs from the device's date. */
-private fun formatLocationCurrentTime(utcOffsetSeconds: Int, locale: Locale): String {
+internal fun formatLocationCurrentTime(utcOffsetSeconds: Int, locale: Locale): String {
     val utcNow = System.currentTimeMillis()
     val locationMs = utcNow + utcOffsetSeconds * 1000L
     

@@ -9,6 +9,7 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+- Android TV: times as on the phone. For a place in another time zone, the home panel shows the place's time with a clock, the update time is the TV's own with a TV icon, and the hourly cards and the screensaver hours also show the TV's time.
 - Android TV: after a failed first load (no network when the TV starts, for example), the app tries again every 5 minutes; before, it waited for Retry. The screensaver clock changes at the start of each minute, and the moon phase on the details screen updates with each weather refresh.
 - Web: sharing a card frees the memory of its images at once, gives an error instead of a crash when the browser cannot make the image, and no longer stops the download in some browsers.
 

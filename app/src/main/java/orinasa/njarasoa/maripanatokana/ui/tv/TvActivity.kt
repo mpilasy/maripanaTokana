@@ -18,6 +18,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,6 +31,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -44,13 +47,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dagger.hilt.android.AndroidEntryPoint
@@ -70,6 +77,8 @@ import orinasa.njarasoa.maripanatokana.domain.repository.WeatherRepository
 import orinasa.njarasoa.maripanatokana.ui.theme.MaripanaTokanaTheme
 import orinasa.njarasoa.maripanatokana.ui.theme.temperatureColor
 import orinasa.njarasoa.maripanatokana.ui.common.components.WeatherIcon
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.formatLocationCurrentTime
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.isRemoteTimezone
 import orinasa.njarasoa.maripanatokana.ui.common.components.colorsFor
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -322,6 +331,31 @@ private fun TvApp(data: WeatherData, oldFixTime: Long?, onPlaces: () -> Unit, on
 }
 
 /** A formatter that shows the place's local time; the epoch millis are shifted by [offsetSeconds]. */
+/** The TV's own time: [pattern], or "HH:mm" / "h:mm a" as the TV is set when null (as the phone's "Updated"). */
+@Composable
+internal fun rememberDeviceFormat(pattern: String? = null): (Long) -> String {
+    val context = LocalContext.current
+    val locale = LocalConfiguration.current.locales[0]
+    return remember(pattern, locale) {
+        val format = SimpleDateFormat(pattern ?: if (android.text.format.DateFormat.is24HourFormat(context)) "HH:mm" else "h:mm a", locale)
+        val device: (Long) -> String = { millis -> format.format(Date(millis)) }
+        device
+    }
+}
+
+/** [text], with the TV icon in front when [mark]: a time of the TV itself among times of the place (the phone shows a phone). */
+@Composable
+internal fun DeviceTimeText(text: String, mark: Boolean, color: Color, fontSize: TextUnit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        if (mark) {
+            val iconSize = with(LocalDensity.current) { fontSize.toDp() }
+            Image(painterResource(R.drawable.ic_device_tv), contentDescription = null, colorFilter = ColorFilter.tint(color), modifier = Modifier.size(iconSize))
+            Spacer(Modifier.width(4.dp))
+        }
+        Text(text, color = color, fontSize = fontSize, maxLines = 1)
+    }
+}
+
 @Composable
 internal fun rememberPlaceFormat(pattern: String, offsetSeconds: Int): (Long) -> String {
     val locale = LocalConfiguration.current.locales[0]
@@ -339,6 +373,9 @@ private fun HomeScreen(data: WeatherData, oldFixTime: Long?, focusKey: String, o
     val focus = remember { FocusRequester() }
     LaunchedEffect(Unit) { focus.requestFocus() }
     val hourFormat = rememberPlaceFormat("HH:mm", data.utcOffsetSeconds)
+    // As on the phone: the TV's own time under the place's when the place keeps another time
+    val deviceHour = rememberDeviceFormat("HH:mm")
+    val remote = isRemoteTimezone(data.utcOffsetSeconds)
     // Two lines: a day card is too narrow for the name and the date on one line
     val dayFormat = rememberPlaceFormat("EEE\nd", data.utcOffsetSeconds)
     fun cardModifier(key: String) = if (key == focusKey) Modifier.focusRequester(focus) else Modifier
@@ -353,7 +390,7 @@ private fun HomeScreen(data: WeatherData, oldFixTime: Long?, focusKey: String, o
                     val night = !isDaytime(hour.time, data.dailySunrise.getOrElse(day) { 0L }, data.dailySunset.getOrElse(day) { 0L })
                     val (primary, secondary) = hour.temperature.displayDual(metric)
                     FocusCard(cardModifier("hour$i").weight(1f).fillMaxHeight(), onClick = { onOpen("hour$i", chartAt(hour.time)) }) {
-                        ForecastCell(hourFormat(hour.time), hour.weatherCode, night, labelSize = 20, iconSize = 64) {
+                        ForecastCell(hourFormat(hour.time), hour.weatherCode, night, labelSize = 20, iconSize = 64, deviceLabel = if (remote) deviceHour(hour.time) else null) {
                             TempText(primary, secondary, temperatureColor(hour.temperature.celsius), primarySize = 26, secondarySize = 18)
                         }
                     }
@@ -388,9 +425,11 @@ private fun CurrentPanel(
             Text(data.locationName, localize = false, color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         // The device fix is old: tell when it was taken
+        // The fix time and the load time are the TV's, as on the phone; marked as such when the place keeps another time
+        val remote = isRemoteTimezone(data.utcOffsetSeconds)
+        val deviceTime = rememberDeviceFormat()
         if (oldFixTime != null) {
-            val fixFormat = rememberPlaceFormat("HH:mm", data.utcOffsetSeconds)
-            Text("${stringResource(R.string.last_known_location)} · ${fixFormat(oldFixTime)}", color = Dim, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            DeviceTimeText("${stringResource(R.string.last_known_location)} · ${deviceTime(oldFixTime)}", mark = remote, color = Dim, fontSize = 14.sp)
         }
         data.alerts.maxByOrNull { it.level.ordinal }?.let { worst ->
             PanelButton(cardModifier("alerts"), onClick = { onOpen("alerts", TvScreen.Alerts) }) {
@@ -412,8 +451,16 @@ private fun CurrentPanel(
                 value = System.currentTimeMillis()
             }
         }
-        val timeFormat = rememberPlaceFormat("HH:mm", data.utcOffsetSeconds)
-        Text("${timeFormat(now)} · ${stringResource(R.string.updated_time, timeFormat(data.timestamp))}", color = Dim, fontSize = 16.sp)
+        if (remote) {
+            // As the phone's header chip: the place's time, with the weekday when its date is not the TV's
+            val locale = LocalConfiguration.current.locales[0]
+            val placeNow = remember(now, data.utcOffsetSeconds, locale) { formatLocationCurrentTime(data.utcOffsetSeconds, locale) }
+            // Two lines, as on the phone (the chip, then "Updated"): one line is too long for a 12-hour clock
+            Text("\uD83D\uDD53 $placeNow", color = Dim, fontSize = 16.sp, maxLines = 1)
+            DeviceTimeText(stringResource(R.string.updated_time, deviceTime(data.timestamp)), mark = true, color = Dim, fontSize = 16.sp)
+        } else {
+            Text("${deviceTime(now)} · ${stringResource(R.string.updated_time, deviceTime(data.timestamp))}", color = Dim, fontSize = 16.sp)
+        }
         data.airQuality?.let { aqi ->
             PanelButton(cardModifier("airQuality"), onClick = { onOpen("airQuality", TvScreen.AirQuality) }) {
                 Text(stringResource(R.string.detail_air_quality), color = Color.White, fontSize = 16.sp, modifier = Modifier.weight(1f), maxLines = 1)
@@ -471,8 +518,9 @@ internal fun FocusCard(modifier: Modifier, onClick: () -> Unit, content: @Compos
 }
 
 @Composable
-private fun ForecastCell(label: String, code: Int, night: Boolean, labelSize: Int, iconSize: Int, values: @Composable () -> Unit) {
+private fun ForecastCell(label: String, code: Int, night: Boolean, labelSize: Int, iconSize: Int, deviceLabel: String? = null, values: @Composable () -> Unit) {
     Text(label, color = Dim, fontSize = labelSize.sp, lineHeight = (labelSize + 3).sp, textAlign = TextAlign.Center, maxLines = 2)
+    deviceLabel?.let { DeviceTimeText(it, mark = true, color = Dim, fontSize = (labelSize - 6).sp) }
     Spacer(Modifier.height(8.dp))
     WeatherIcon(code, night = night, size = iconSize.dp)
     Spacer(Modifier.height(8.dp))
