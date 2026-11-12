@@ -1,0 +1,7 @@
+- Cabecera plegada: el pin vuelve a tu ubicación.
+- Horas en formato de 12 o 24 h del dispositivo.
+- TV: su hora para otra zona horaria; reintenta tras un fallo.
+- MeteoAlarm corregido (Francia, Italia); widgets solo en la pantalla de inicio.
+- Nuevo: app de Android TV con gráficos; cielo (sol, solsticio, luna); mar (olas, mareas).
+- Temperaturas en color. Actividades: piel, lavado del coche, conducción.
+- Gráficos: por hora o día. Nueva página de licencias con sus textos.

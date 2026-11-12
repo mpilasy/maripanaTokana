@@ -9,6 +9,8 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.7.20261112222105] - 2026-11-12
+
 - Activities card (phone and web): three new ratings. Skin comfort (dry air: a low dew point or humidity), car washing (no rain or snow now or in the next days, no frost) and driving (ice, snow, fog, heavy rain or strong gusts; weather only, no traffic data).
 
 ## [1.7.20261112203928] - 2026-11-12
