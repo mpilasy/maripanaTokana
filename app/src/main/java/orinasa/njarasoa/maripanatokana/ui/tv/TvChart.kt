@@ -353,13 +353,17 @@ internal fun ChartScreen(data: WeatherData, startIndex: Int) {
             }
             .focusable(),
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            WeatherIcon(hours[selected].weatherCode, night = hours[selected].isNight, size = 40.dp)
-            Text(
-                data.locationName, localize = false, color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Bold,
-                maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false),
-            )
-            Text(titleFormat(hours[selected].time), color = Dim, fontSize = 22.sp, maxLines = 1, softWrap = false)
+        // The place and the selected hour on the left; the time and the update time on the right, as on Details
+        Row(horizontalArrangement = Arrangement.spacedBy(24.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                WeatherIcon(hours[selected].weatherCode, night = hours[selected].isNight, size = 40.dp)
+                Text(
+                    data.locationName, localize = false, color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Bold,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false),
+                )
+                Text(titleFormat(hours[selected].time), color = Dim, fontSize = 22.sp, maxLines = 1, softWrap = false)
+            }
+            TimeLine(data)
         }
         Spacer(Modifier.height(8.dp))
         SeriesStrip(series, selected, shownSeries)
@@ -421,13 +425,17 @@ internal fun DailyChartScreen(data: WeatherData, startIndex: Int) {
             }
             .focusable(),
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            WeatherIcon(days[selected].weatherCode, night = false, size = 40.dp)
-            Text(
-                data.locationName, localize = false, color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Bold,
-                maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false),
-            )
-            Text(titleFormat(days[selected].date), color = Dim, fontSize = 22.sp, maxLines = 1, softWrap = false)
+        // The place and the selected hour on the left; the time and the update time on the right, as on Details
+        Row(horizontalArrangement = Arrangement.spacedBy(24.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                WeatherIcon(days[selected].weatherCode, night = false, size = 40.dp)
+                Text(
+                    data.locationName, localize = false, color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Bold,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false),
+                )
+                Text(titleFormat(days[selected].date), color = Dim, fontSize = 22.sp, maxLines = 1, softWrap = false)
+            }
+            TimeLine(data)
         }
         Spacer(Modifier.height(8.dp))
         SeriesStrip(series, selected, shownSeries)

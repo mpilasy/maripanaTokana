@@ -504,13 +504,13 @@ private fun CurrentPanel(
             val uses24 = uses24HourClock(LocalContext.current)
             val placeNow = remember(now, data.utcOffsetSeconds, locale, uses24) { formatLocationCurrentTime(data.utcOffsetSeconds, locale, uses24) }
             // Two lines, as on the phone (the chip, then "Updated"): one line is too long for a 12-hour clock
-            Text("\uD83D\uDD53 $placeNow", color = Dim, fontSize = 16.sp, maxLines = 1)
+            Text("\uD83D\uDD53 $placeNow", color = Dim, fontSize = 14.sp, maxLines = 1)
             PanelButton(cardModifier("refresh"), onClick = refresh.onRefresh) {
-                DeviceTimeText(updated, mark = !refresh.busy, color = Dim, fontSize = 16.sp)
+                DeviceTimeText(updated, mark = !refresh.busy, color = Dim, fontSize = 14.sp)
             }
         } else {
             PanelButton(cardModifier("refresh"), onClick = refresh.onRefresh) {
-                Text("${deviceTime(now)} · $updated", color = Dim, fontSize = 16.sp)
+                Text("${deviceTime(now)} · $updated", color = Dim, fontSize = 14.sp)
             }
         }
         data.airQuality?.let { aqi ->

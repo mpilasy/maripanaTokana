@@ -231,9 +231,12 @@ internal fun DetailsScreen(data: WeatherData) {
     }
 }
 
-/** The current time and when the weather loaded, as on the home screen: with the place's time when it keeps another time. */
+/**
+ * The current time and when the weather loaded, as on the home screen: with the place's time when it keeps another time.
+ * On the Details screen and the two chart screens.
+ */
 @Composable
-private fun TimeLine(data: WeatherData) {
+internal fun TimeLine(data: WeatherData) {
     val deviceTime = rememberDeviceFormat()
     val now by produceState(System.currentTimeMillis()) {
         while (true) {
@@ -247,11 +250,11 @@ private fun TimeLine(data: WeatherData) {
         val uses24 = uses24HourClock(LocalContext.current)
         val placeNow = remember(now, data.utcOffsetSeconds, locale, uses24) { formatLocationCurrentTime(data.utcOffsetSeconds, locale, uses24) }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text("\uD83D\uDD53 $placeNow", color = Dim, fontSize = 20.sp, maxLines = 1)
-            DeviceTimeText(updated, mark = true, color = Dim, fontSize = 20.sp)
+            Text("\uD83D\uDD53 $placeNow", color = Dim, fontSize = 14.sp, maxLines = 1)
+            DeviceTimeText(updated, mark = true, color = Dim, fontSize = 14.sp)
         }
     } else {
-        Text("${deviceTime(now)} · $updated", color = Dim, fontSize = 20.sp, maxLines = 1)
+        Text("${deviceTime(now)} · $updated", color = Dim, fontSize = 14.sp, maxLines = 1)
     }
 }
 
