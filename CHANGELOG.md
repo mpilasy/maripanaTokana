@@ -2,6 +2,8 @@
 
 All notable changes to maripànaTokana are documented here, based on the curated
 release notes in `fastlane/metadata/android/en-US/changelogs/` and the git history.
+After 1.7.20261113020607, the entries are written for users who are not
+technical, and the F-Droid release notes link to this file.
 The Android app and the web app share one version number as of 1.2.1; before that,
 only Android was versioned. Releases with no change that users can see (build and
 CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
