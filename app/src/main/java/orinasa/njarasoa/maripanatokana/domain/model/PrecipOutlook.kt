@@ -9,32 +9,41 @@ data class PrecipOutlook(val kind: Kind, val snow: Boolean, val time: Long? = nu
 
     companion object {
         private val SNOW_CODES = setOf(71, 73, 75, 77, 85, 86)
-        private const val HOUR = 3_600_000L
 
         // Drizzle, rain, freezing rain, snow, showers and thunderstorms
         private fun isPrecipCode(code: Int) = code in 51..67 || code in 71..77 || code in 80..86 || code >= 95
 
-        /**
-         * An hour is wet when the nowcast covering it shows precipitation (as the nowcast card does), or,
-         * past the nowcast, when its weather code is precipitation (as its icon does). The chance of rain
-         * alone doesn't count: it comes from a different model and can say 50% for an hour drawn as plain cloud.
-         */
-        private fun HourlyForecast.isWet(minutely: List<MinutelyForecast>): Boolean {
-            val covering = minutely.filter { it.time >= time && it.time < time + HOUR }
-            if (covering.isNotEmpty()) return covering.any { it.precipitation.mm > 0.05 }
-            return isPrecipCode(weatherCode)
-        }
+        /** A nowcast value covers this long: 15 minutes (Open-Meteo) or 1 minute (Pirate Weather). */
+        private fun stepOf(minutely: List<MinutelyForecast>) =
+            if (minutely.size >= 2) minutely[1].time - minutely[0].time else 15 * 60_000L
 
-        fun from(hourly: List<HourlyForecast>, minutely: List<MinutelyForecast> = emptyList()): PrecipOutlook? {
+        /**
+         * Rain or snow now comes from the nowcast value that covers [nowMs], as on the nowcast card. The first
+         * hourly value is the next full hour, so it cannot tell. A change inside the nowcast gets its time to the
+         * minute. Past the nowcast, an hour is wet when its weather code is precipitation (as its icon is). The
+         * chance of rain alone doesn't count: it comes from a different model and can say 50% for an hour drawn
+         * as plain cloud. Without a nowcast, the first hour stands for now.
+         */
+        fun from(
+            hourly: List<HourlyForecast>,
+            minutely: List<MinutelyForecast> = emptyList(),
+            nowMs: Long = System.currentTimeMillis(),
+        ): PrecipOutlook? {
             if (hourly.isEmpty()) return null
-            val wet = hourly.map { it.isWet(minutely) }
-            val wetNow = wet[0]
-            val change = wet.indexOfFirst { it != wetNow }
+            val step = stepOf(minutely)
+            val nowcast = minutely.filter { it.time + step > nowMs }
+            val nowcastEnd = nowcast.lastOrNull()?.let { it.time + step } ?: Long.MIN_VALUE
+            // (start time, wet) from now to the end of the hourly forecast
+            val steps = nowcast.map { it.time to (it.precipitation.mm > 0.05) } +
+                hourly.filter { it.time >= nowcastEnd }.map { it.time to isPrecipCode(it.weatherCode) }
+            if (steps.isEmpty()) return null
+            val wetNow = steps[0].second
+            val change = steps.indexOfFirst { it.second != wetNow }
             // The precipitation the summary talks about: the current one, or the one that starts
-            val wetHour = if (wetNow) hourly[0] else hourly.getOrNull(change)
-            val snow = wetHour != null && wetHour.weatherCode in SNOW_CODES
+            val wetTime = if (wetNow) steps[0].first else steps.getOrNull(change)?.first
+            val snow = wetTime != null && (hourly.lastOrNull { it.time <= wetTime } ?: hourly[0]).weatherCode in SNOW_CODES
             if (change == -1) return PrecipOutlook(if (wetNow) Kind.ALL_DAY else Kind.DRY, snow)
-            return PrecipOutlook(if (wetNow) Kind.STOPS else Kind.STARTS, snow, hourly[change].time)
+            return PrecipOutlook(if (wetNow) Kind.STOPS else Kind.STARTS, snow, steps[change].first)
         }
     }
 }

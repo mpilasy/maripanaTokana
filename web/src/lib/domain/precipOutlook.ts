@@ -9,34 +9,47 @@ export type PrecipOutlook =
 	| { kind: 'all_day' | 'dry'; snow: boolean };
 
 const SNOW_CODES = new Set([71, 73, 75, 77, 85, 86]);
-const HOUR = 3_600_000;
 
 // Drizzle, rain, freezing rain, snow, showers and thunderstorms
 function isPrecipCode(code: number): boolean {
 	return (code >= 51 && code <= 67) || (code >= 71 && code <= 77) || (code >= 80 && code <= 86) || code >= 95;
 }
 
-/**
- * An hour is wet when the nowcast covering it shows precipitation (as the nowcast card does), or, past
- * the nowcast, when its weather code is precipitation (as its icon does). The chance of rain alone
- * doesn't count: it comes from a different model and can say 50% for an hour drawn as plain cloud.
- */
-function isWet(h: HourlyForecast, minutely: MinutelyForecast[]): boolean {
-	const covering = minutely.filter((m) => m.time >= h.time && m.time < h.time + HOUR);
-	if (covering.length > 0) return covering.some((m) => m.precipitation.mm > 0.05);
-	return isPrecipCode(h.weatherCode);
+/** A nowcast value covers this long: 15 minutes (Open-Meteo) or 1 minute (Pirate Weather). */
+function stepOf(minutely: MinutelyForecast[]): number {
+	return minutely.length >= 2 ? minutely[1].time - minutely[0].time : 15 * 60_000;
 }
 
-export function precipOutlook(hourly: HourlyForecast[], minutely: MinutelyForecast[] = []): PrecipOutlook | null {
+/**
+ * Rain or snow now comes from the nowcast value that covers `nowMs`, as on the nowcast card. The first
+ * hourly value is the next full hour, so it cannot tell. A change inside the nowcast gets its time to the
+ * minute. Past the nowcast, an hour is wet when its weather code is precipitation (as its icon is). The
+ * chance of rain alone doesn't count: it comes from a different model and can say 50% for an hour drawn
+ * as plain cloud. Without a nowcast, the first hour stands for now.
+ */
+export function precipOutlook(
+	hourly: HourlyForecast[],
+	minutely: MinutelyForecast[] = [],
+	nowMs = Date.now()
+): PrecipOutlook | null {
 	if (hourly.length === 0) return null;
-	const wet = hourly.map((h) => isWet(h, minutely));
-	const wetNow = wet[0];
-	const change = wet.findIndex((w) => w !== wetNow);
+	const step = stepOf(minutely);
+	const nowcast = minutely.filter((m) => m.time + step > nowMs);
+	const nowcastEnd = nowcast.length > 0 ? nowcast[nowcast.length - 1].time + step : -Infinity;
+	// [start time, wet] from now to the end of the hourly forecast
+	const steps: [number, boolean][] = [
+		...nowcast.map((m): [number, boolean] => [m.time, m.precipitation.mm > 0.05]),
+		...hourly.filter((h) => h.time >= nowcastEnd).map((h): [number, boolean] => [h.time, isPrecipCode(h.weatherCode)])
+	];
+	if (steps.length === 0) return null;
+	const wetNow = steps[0][1];
+	const change = steps.findIndex((s) => s[1] !== wetNow);
 	// The precipitation the summary talks about: the current one, or the one that starts
-	const wetHour = wetNow ? hourly[0] : change !== -1 ? hourly[change] : null;
+	const wetTime = wetNow ? steps[0][0] : change !== -1 ? steps[change][0] : null;
+	const wetHour = wetTime == null ? null : ([...hourly].reverse().find((h) => h.time <= wetTime) ?? hourly[0]);
 	const snow = wetHour != null && SNOW_CODES.has(wetHour.weatherCode);
 	if (change === -1) return { kind: wetNow ? 'all_day' : 'dry', snow };
-	return { kind: wetNow ? 'stops' : 'starts', snow, time: hourly[change].time };
+	return { kind: wetNow ? 'stops' : 'starts', snow, time: steps[change][0] };
 }
 
 /** Whether rain falls within the nowcast's two hours; a dry nowcast repeats the hero card's rain line. */

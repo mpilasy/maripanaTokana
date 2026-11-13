@@ -10,9 +10,11 @@ import org.junit.Test
 class PrecipOutlookTest {
     private val h = 3_600_000L
 
-    private fun hours(vararg codes: Int, probability: Int = 80) = codes.mapIndexed { i, code ->
+    private val m = 60_000L
+
+    private fun hours(vararg codes: Int, probability: Int = 80, from: Long = 0L) = codes.mapIndexed { i, code ->
         HourlyForecast(
-            time = i * h,
+            time = from + i * h,
             temperature = Temperature.fromCelsius(10.0),
             weatherCode = code,
             precipProbability = probability,
@@ -23,7 +25,8 @@ class PrecipOutlookTest {
         )
     }
 
-    private fun nowcast(vararg mm: Double) = mm.mapIndexed { i, v -> MinutelyForecast(time = i * 15 * 60_000L, precipitation = Precipitation.fromMm(v)) }
+    private fun nowcast(vararg mm: Double, from: Long = 0L) =
+        mm.mapIndexed { i, v -> MinutelyForecast(time = from + i * 15 * m, precipitation = Precipitation.fromMm(v)) }
 
     @Test
     fun `follows the weather codes, as the hour icons do`() {
@@ -41,10 +44,29 @@ class PrecipOutlookTest {
     fun `lets the nowcast decide the hours it covers`() {
         // Hourly codes say rain now, but the nowcast for the first two hours is dry
         assertEquals(PrecipOutlook(PrecipOutlook.Kind.STARTS, false, 2 * h),
-            PrecipOutlook.from(hours(61, 61, 61), nowcast(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)))
-        // Hourly codes say dry, but the nowcast shows rain in the first hour
-        assertEquals(PrecipOutlook(PrecipOutlook.Kind.STOPS, false, h),
-            PrecipOutlook.from(hours(3, 3), nowcast(0.0, 0.4, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)))
+            PrecipOutlook.from(hours(61, 61, 61), nowcast(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0), nowMs = 0L))
+        // Hourly codes say dry, but the nowcast shows rain from the second quarter hour
+        assertEquals(PrecipOutlook(PrecipOutlook.Kind.STARTS, false, 15 * m),
+            PrecipOutlook.from(hours(3, 3), nowcast(0.0, 0.4, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0), nowMs = 0L))
+    }
+
+    @Test
+    fun `takes now from the nowcast, not from the next full hour`() {
+        // At 06:49 the hours start at 07:00 with drizzle until 11:00, and the nowcast has rain from 07:15:
+        // the rain starts at 07:15; it does not stop at 11:00
+        val now = 6 * h + 49 * m
+        val outlook = PrecipOutlook.from(
+            hours(51, 51, 51, 51, 3, 3, from = 7 * h),
+            nowcast(0.0, 0.0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, from = 6 * h + 45 * m),
+            nowMs = now,
+        )
+        assertEquals(PrecipOutlook(PrecipOutlook.Kind.STARTS, false, 7 * h + 15 * m), outlook)
+    }
+
+    @Test
+    fun `gives the stop time to the minute inside the nowcast`() {
+        val outlook = PrecipOutlook.from(hours(61, 3, 3, from = h), nowcast(0.5, 0.5, 0.0, 0.0, from = 0L), nowMs = 5 * m)
+        assertEquals(PrecipOutlook(PrecipOutlook.Kind.STOPS, false, 30 * m), outlook)
     }
 
     @Test

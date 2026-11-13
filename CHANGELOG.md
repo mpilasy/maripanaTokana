@@ -10,6 +10,7 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 ## [Unreleased]
 
 - TV: the name of the moon phase (for example "Waxing crescent") now fits its tile, on two lines. Before, the end of the name was cut off.
+- Phone and web: the rain or snow line on the main card now agrees with the nowcast. Before, when rain was due to start within the hour, the line could say it was already raining and give the time it would stop.
 
 ## [1.7.20261113020607] - 2026-11-13
 
