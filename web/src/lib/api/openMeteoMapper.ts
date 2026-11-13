@@ -150,7 +150,8 @@ export function mapToWeatherData(response: OpenMeteoResponse, locationName: stri
 		windDeg: c.wind_direction_10m ?? null,
 		windGust: c.wind_gusts_10m != null && c.wind_gusts_10m > 0 ? WindSpeed.fromMetersPerSecond(c.wind_gusts_10m) : null,
 		rain: c.rain != null && c.rain > 0 ? Precipitation.fromMm(c.rain) : null,
-		snow: c.snowfall != null && c.snowfall > 0 ? Precipitation.fromMm(c.snowfall) : null,
+		// Open-Meteo gives the snowfall in cm (the snow depth), not in mm like rain
+		snow: c.snowfall != null && c.snowfall > 0 ? Precipitation.fromMm(c.snowfall * 10) : null,
 		uvIndex: c.uv_index ?? null,
 		cloudCover: c.cloud_cover ?? null,
 		visibility: c.visibility != null ? Math.round(c.visibility) : null,

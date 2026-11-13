@@ -165,7 +165,8 @@ fun OpenMeteoResponse.toDomain(locationName: String, locationSubtext: String? = 
         windDeg = c.windDirection,
         windGust = c.windGusts?.takeIf { it > 0 }?.let { WindSpeed.fromMetersPerSecond(it) },
         rain = c.rain?.takeIf { it > 0 }?.let { Precipitation.fromMm(it) },
-        snow = c.snowfall?.takeIf { it > 0 }?.let { Precipitation.fromMm(it) },
+        // Open-Meteo gives the snowfall in cm (the snow depth), not in mm like rain
+        snow = c.snowfall?.takeIf { it > 0 }?.let { Precipitation.fromMm(it * 10) },
         cloudCover = c.cloudCover,
         uvIndex = c.uvIndex,
         visibility = c.visibility?.toInt(),

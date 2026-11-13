@@ -29,6 +29,14 @@ describe('open-meteo mapper nulls', () => {
 	});
 });
 
+describe('open-meteo mapper snowfall', () => {
+	it('takes the snowfall in cm and the rain in mm', () => {
+		const d = mapToWeatherData({ ...response, current: { ...response.current, weather_code: 73, rain: 0.1, snowfall: 0.7 } }, 'X');
+		expect(d.snow?.mm).toBeCloseTo(7);
+		expect(d.rain?.mm).toBeCloseTo(0.1);
+	});
+});
+
 describe('open-meteo mapper chart hours', () => {
 	// 11 days of hourly data from 2026-11-07 00:00 at UTC+3, as forecast_days=11 gives
 	const pad = (n: number) => String(n).padStart(2, '0');

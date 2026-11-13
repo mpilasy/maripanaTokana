@@ -93,6 +93,27 @@ class OpenMeteoMapperTest {
     }
 
     @Test
+    fun snowfallInCentimetres_becomesMillimetres() {
+        val t1 = isoHour(2)
+        val payload = """
+            {
+              "current": { "temperature_2m": -1.0, "weather_code": 73, "is_day": 1, "rain": 0.1, "snowfall": 0.7 },
+              "daily": {
+                "time": ["2030-01-01"], "temperature_2m_max": [1.0], "temperature_2m_min": [-3.0],
+                "weather_code": [73], "sunrise": ["2030-01-01T06:00"], "sunset": ["2030-01-01T18:00"]
+              },
+              "hourly": { "time": ["$t1"], "temperature_2m": [-1.0], "weather_code": [73] }
+            }
+        """.trimIndent()
+
+        val data = json.decodeFromString(OpenMeteoResponse.serializer(), payload).toDomain("Test")
+
+        // Open-Meteo gives the snowfall in cm and the rain in mm
+        assertEquals(7.0, data.snow!!.mm, 0.001)
+        assertEquals(0.1, data.rain!!.mm, 0.001)
+    }
+
+    @Test
     fun shortSecondaryLists_areIndexedSafely() {
         val t1 = isoHour(2)
         val payload = """
