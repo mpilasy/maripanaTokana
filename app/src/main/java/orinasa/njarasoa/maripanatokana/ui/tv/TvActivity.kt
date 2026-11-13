@@ -34,6 +34,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -523,14 +524,15 @@ private fun CurrentPanel(
         PanelButton(cardModifier("details"), onClick = { onOpen("details", TvScreen.Details) }) {
             Text(stringResource(R.string.section_current_conditions), color = Color.White, fontSize = 16.sp, maxLines = 1)
         }
-        // Side by side, so the panel keeps its height; a long name ("Fandrindrana") smaller, so it is not cut
+        // Side by side, so the panel keeps its height; a long name ("Fandrindrana") smaller, so it is not cut.
+        // Only the width sets the size: a full panel must not make the text smaller
         val halfSize = TextAutoSize.StepBased(minFontSize = 11.sp, maxFontSize = 16.sp)
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             PanelButton(cardModifier("settings").weight(1f), onClick = onSettings) {
-                Text(stringResource(R.string.settings_title), color = Color.White, maxLines = 1, autoSize = halfSize)
+                Text(stringResource(R.string.settings_title), Modifier.wrapContentHeight(unbounded = true), color = Color.White, maxLines = 1, autoSize = halfSize)
             }
             PanelButton(cardModifier("about").weight(1f), onClick = { onOpen("about", TvScreen.About) }) {
-                Text(stringResource(R.string.about_title), color = Color.White, maxLines = 1, autoSize = halfSize)
+                Text(stringResource(R.string.about_title), Modifier.wrapContentHeight(unbounded = true), color = Color.White, maxLines = 1, autoSize = halfSize)
             }
         }
     }
