@@ -721,11 +721,14 @@ internal fun WeatherContent(
                         onClick = onGoToCurrentLocation,
                     )
                 }
-                HeaderAction(
-                    imageVector = Icons.Default.Settings,
-                    contentDescription = stringResource(R.string.settings_title),
-                    onClick = onOpenSettings,
-                )
+                // Folded: no settings button; a scroll opens the header again
+                if (!headerCollapsed) {
+                    HeaderAction(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = stringResource(R.string.settings_title),
+                        onClick = onOpenSettings,
+                    )
+                }
             }
         }
 

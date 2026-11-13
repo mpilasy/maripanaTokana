@@ -301,7 +301,7 @@ The top header provides instant location control:
 - The grid icon opens the location details card: place, DMS and decimal coordinates, Plus Code. Tap a line to open a map; hold a line to copy it.
 - The "Updated" line: tap it to refresh. When a refresh fails, a red line gives the reason.
 - Search, heart, pin and settings actions, and the pager row (see 4.1).
-- After a few seconds without scrolling, the header folds to the name line (`IdleChrome`). Its actions are then refresh, search (at the current location) or the pin (at a saved place or a preview), and settings. A scroll opens the header again.
+- After a few seconds without scrolling, the header folds to the name line (`IdleChrome`). Its actions are then refresh, and search (at the current location) or the pin (at a saved place or a preview); settings is not there. A scroll opens the header again.
 
 ### 8.2 States
 - **Loading**: "Where are we?" cycles through the 8 languages, with a seconds counter.
