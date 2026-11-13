@@ -41,6 +41,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,7 +62,9 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -173,6 +176,10 @@ private fun TvRoot(
     var askedPermission by remember { mutableStateOf(false) }
     val locatable = remember { canLocate(context) }
     val permissions = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { attempt++ }
+    val scope = rememberCoroutineScope()
+    var refreshJob by remember { mutableStateOf<Job?>(null) }
+    var refreshing by remember { mutableStateOf(false) }
+    var refreshFailed by remember { mutableStateOf(false) }
 
     // The language is a key: the place names and the alert text come in the language of the app
     /** Loads the weather of ([lat], [lon]) and then its alerts; false when the weather fails. */
@@ -180,6 +187,7 @@ private fun TvRoot(
         onSuccess = { loaded ->
             val data = if (place != null) loaded.copy(locationName = place.displayName, locationSubtext = place.subtext) else loaded
             state = TvState.Ready(data, oldFixTime)
+            refreshFailed = false
             repository.fetchAlerts(lat, lon).onSuccess { result ->
                 state = TvState.Ready(data.copy(alerts = result.alerts, failedAlertSources = result.failedSources), oldFixTime)
             }
@@ -189,6 +197,8 @@ private fun TvRoot(
     )
 
     LaunchedEffect(activeId, attempt, localeIndex) {
+        refreshJob?.cancel()
+        refreshFailed = false
         state = TvState.Loading
         val place = saved.find { it.id == activeId }
         if (place == null && locatable && !hasLocationPermission(context) && !askedPermission) {
@@ -231,6 +241,26 @@ private fun TvRoot(
                 val lat = data.latitude
                 val lon = data.longitude
                 if (lat == null || lon == null || !load(lat, lon, saved.find { it.id == activeId }, ready.oldFixTime)) delay(RETRY_MS)
+            }
+        }
+    }
+
+    /** Loads the weather again now, from the update time on the home screen. The screen keeps the old weather until then. */
+    fun refreshNow() {
+        val ready = state as? TvState.Ready ?: return
+        if (refreshing) return
+        refreshing = true
+        refreshJob = scope.launch {
+            try {
+                val place = saved.find { it.id == activeId }
+                // The current location: a new device fix, as when the app starts
+                val fix = if (place == null && locatable && hasLocationPermission(context)) deviceLocation(locations) else null
+                val lat = place?.latitude ?: fix?.latitude ?: ready.data.latitude
+                val lon = place?.longitude ?: fix?.longitude ?: ready.data.longitude
+                val oldFixTime = if (fix != null) fix.takeIf { it.isOld() }?.timeMs else ready.oldFixTime
+                refreshFailed = lat == null || lon == null || !load(lat, lon, place, oldFixTime)
+            } finally {
+                refreshing = false
             }
         }
     }
@@ -281,7 +311,8 @@ private fun TvRoot(
                 when (s) {
                     TvState.Loading -> Message(stringResource(R.string.loading))
                     TvState.Failed -> FailedScreen(onRetry = { attempt++ }, onPlaces = { showPlaces = true })
-                    is TvState.Ready -> TvApp(s.data, s.oldFixTime, onPlaces = { showPlaces = true }, onSettings = { showSettings = true })
+                    is TvState.Ready -> TvApp(s.data, s.oldFixTime, TvRefresh(refreshing, refreshFailed, ::refreshNow),
+                        onPlaces = { showPlaces = true }, onSettings = { showSettings = true })
                     TvState.NoLocation -> Unit
                 }
             }
@@ -314,14 +345,17 @@ private fun FailedScreen(onRetry: () -> Unit, onPlaces: () -> Unit) {
     }
 }
 
+/** The refresh from the home screen: [busy] while it loads, [failed] when the last refresh failed. */
+private class TvRefresh(val busy: Boolean, val failed: Boolean, val onRefresh: () -> Unit)
+
 /** Which screen shows. [focusKey] is the card that had focus, so Back returns to it. */
 @Composable
-private fun TvApp(data: WeatherData, oldFixTime: Long?, onPlaces: () -> Unit, onSettings: () -> Unit) {
+private fun TvApp(data: WeatherData, oldFixTime: Long?, refresh: TvRefresh, onPlaces: () -> Unit, onSettings: () -> Unit) {
     var screen by remember { mutableStateOf<TvScreen>(TvScreen.Home) }
     var focusKey by remember { mutableStateOf("hour0") }
     if (screen != TvScreen.Home) BackHandler { screen = TvScreen.Home }
     when (val s = screen) {
-        TvScreen.Home -> HomeScreen(data, oldFixTime, focusKey, onPlaces, onSettings) { key, next ->
+        TvScreen.Home -> HomeScreen(data, oldFixTime, refresh, focusKey, onPlaces, onSettings) { key, next ->
             focusKey = key
             screen = next
         }
@@ -372,7 +406,7 @@ internal fun rememberPlaceFormat(pattern: String, offsetSeconds: Int): (Long) ->
 }
 
 @Composable
-private fun HomeScreen(data: WeatherData, oldFixTime: Long?, focusKey: String, onPlaces: () -> Unit, onSettings: () -> Unit, onOpen: (key: String, screen: TvScreen) -> Unit) {
+private fun HomeScreen(data: WeatherData, oldFixTime: Long?, refresh: TvRefresh, focusKey: String, onPlaces: () -> Unit, onSettings: () -> Unit, onOpen: (key: String, screen: TvScreen) -> Unit) {
     val metric = LocalMetricPrimary.current
     val focus = remember { FocusRequester() }
     LaunchedEffect(Unit) { focus.requestFocus() }
@@ -388,7 +422,7 @@ private fun HomeScreen(data: WeatherData, oldFixTime: Long?, focusKey: String, o
     fun chartAt(time: Long) = TvScreen.Chart(data.chartHourly.indexOfFirst { it.time >= time }.coerceAtLeast(0))
 
     Row(Modifier.fillMaxSize().padding(horizontal = 48.dp, vertical = 27.dp), horizontalArrangement = Arrangement.spacedBy(32.dp)) {
-        CurrentPanel(data, oldFixTime, Modifier.weight(0.3f), ::cardModifier, onPlaces, onSettings, onOpen)
+        CurrentPanel(data, oldFixTime, refresh, Modifier.weight(0.3f), ::cardModifier, onPlaces, onSettings, onOpen)
         Column(Modifier.weight(0.7f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             CardRow(Modifier.weight(1f)) {
                 data.hourlyForecast.take(HOUR_COUNT).forEachIndexed { i, hour ->
@@ -421,7 +455,7 @@ private fun HomeScreen(data: WeatherData, oldFixTime: Long?, focusKey: String, o
 
 @Composable
 private fun CurrentPanel(
-    data: WeatherData, oldFixTime: Long?, modifier: Modifier, cardModifier: (String) -> Modifier, onPlaces: () -> Unit, onSettings: () -> Unit, onOpen: (String, TvScreen) -> Unit,
+    data: WeatherData, oldFixTime: Long?, refresh: TvRefresh, modifier: Modifier, cardModifier: (String) -> Modifier, onPlaces: () -> Unit, onSettings: () -> Unit, onOpen: (String, TvScreen) -> Unit,
 ) {
     val metric = LocalMetricPrimary.current
     val (temp, tempSecond) = data.temperature.displayDual(metric)
@@ -457,6 +491,12 @@ private fun CurrentPanel(
                 value = System.currentTimeMillis()
             }
         }
+        // As on the phone, the update time refreshes the weather; it tells when the refresh fails
+        val updated = when {
+            refresh.busy -> stringResource(R.string.loading)
+            refresh.failed -> stringResource(R.string.refresh_failed, deviceTime(data.timestamp))
+            else -> stringResource(R.string.updated_time, deviceTime(data.timestamp))
+        }
         if (remote) {
             // As the phone's header chip: the place's time, with the weekday when its date is not the TV's
             val locale = LocalConfiguration.current.locales[0]
@@ -464,9 +504,13 @@ private fun CurrentPanel(
             val placeNow = remember(now, data.utcOffsetSeconds, locale, uses24) { formatLocationCurrentTime(data.utcOffsetSeconds, locale, uses24) }
             // Two lines, as on the phone (the chip, then "Updated"): one line is too long for a 12-hour clock
             Text("\uD83D\uDD53 $placeNow", color = Dim, fontSize = 16.sp, maxLines = 1)
-            DeviceTimeText(stringResource(R.string.updated_time, deviceTime(data.timestamp)), mark = true, color = Dim, fontSize = 16.sp)
+            PanelButton(cardModifier("refresh"), onClick = refresh.onRefresh) {
+                DeviceTimeText(updated, mark = !refresh.busy, color = Dim, fontSize = 16.sp)
+            }
         } else {
-            Text("${deviceTime(now)} · ${stringResource(R.string.updated_time, deviceTime(data.timestamp))}", color = Dim, fontSize = 16.sp)
+            PanelButton(cardModifier("refresh"), onClick = refresh.onRefresh) {
+                Text("${deviceTime(now)} · $updated", color = Dim, fontSize = 16.sp)
+            }
         }
         data.airQuality?.let { aqi ->
             PanelButton(cardModifier("airQuality"), onClick = { onOpen("airQuality", TvScreen.AirQuality) }) {
