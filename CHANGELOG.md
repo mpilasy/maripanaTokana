@@ -11,6 +11,8 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.7.20261113164950] - 2026-11-13
+
 - TV: in Malagasy, the Settings and About buttons on the home screen show their whole names ("Fandrindrana", "Mombamomba"). Before, the ends were cut off.
 
 ## [1.7.20261113153811] - 2026-11-13
