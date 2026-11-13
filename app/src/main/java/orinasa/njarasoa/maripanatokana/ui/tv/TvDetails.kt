@@ -89,8 +89,17 @@ private fun Tile(
         Text(label, color = Dim, fontSize = 15.sp, lineHeight = 18.sp, maxLines = 2, textAlign = TextAlign.Center)
         Spacer(Modifier.height(4.dp))
         icon?.invoke()
-        // Long values ("30.02 inHg") a little smaller, so they fit a tile of the five-tile rows
-        Text(primary, color = color, fontSize = if (primary.length > 8) 24.sp else 28.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+        // Long values ("30.02 inHg") a little smaller, so they fit a tile of the five-tile rows;
+        // a moon phase name ("Waxing crescent") smaller again, on up to two lines
+        val size = when {
+            primary.length > 12 -> 18.sp
+            primary.length > 8 -> 24.sp
+            else -> 28.sp
+        }
+        Text(
+            primary, color = color, fontSize = size, lineHeight = size * 1.15f, fontWeight = FontWeight.Bold,
+            maxLines = 2, textAlign = TextAlign.Center,
+        )
         if (secondary != null) Text(secondary, color = Dim, fontSize = 18.sp, maxLines = 1)
         if (extra != null) Text(extra, color = Dim, fontSize = 13.sp, lineHeight = 16.sp, maxLines = 2, textAlign = TextAlign.Center)
     }
@@ -143,7 +152,7 @@ internal fun DetailsScreen(data: WeatherData) {
             { m -> Tile(stringResource(R.string.detail_cloud_cover), data.cloudCover?.let { "$it%" } ?: "--", null, m) },
             { m ->
                 Tile(stringResource(R.string.detail_moon), phases[Moon.phaseIndex(moon.phase)], null, m) {
-                    MoonPhaseIcon(moon.phase, southern = (data.latitude ?: 0.0) < 0, size = 56.dp)
+                    MoonPhaseIcon(moon.phase, southern = (data.latitude ?: 0.0) < 0, size = 48.dp)
                 }
             },
             { m ->
