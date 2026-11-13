@@ -30,7 +30,7 @@ On screens 2, 4 and 5, the card title is just below the folded header.
 TV:
 
 1. Home screen
-2. Chart, opened with OK on the 12:00 hour card
+2. Chart at 12:00: OK on the first hour card, then Right until 12:00 shows
 3. Current conditions
 
 ## Method
