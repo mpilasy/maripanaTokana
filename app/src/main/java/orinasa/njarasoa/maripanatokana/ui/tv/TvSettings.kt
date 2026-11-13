@@ -3,6 +3,7 @@
 
 package orinasa.njarasoa.maripanatokana.ui.tv
 
+import androidx.compose.foundation.text.TextAutoSize
 import android.content.ContextWrapper
 import android.content.SharedPreferences
 import android.content.res.Configuration
@@ -108,12 +109,13 @@ internal fun Text(
     maxLines: Int = Int.MAX_VALUE,
     minLines: Int = 1,
     style: TextStyle? = null,
+    autoSize: TextAutoSize? = null,
 ) {
     val shaped = if (localize) LocalTvShaper.current(text) else text
     androidx.compose.material3.Text(
         shaped, modifier, color = color, fontSize = fontSize, fontWeight = fontWeight, textAlign = textAlign,
         lineHeight = lineHeight, overflow = overflow, softWrap = softWrap, maxLines = maxLines, minLines = minLines,
-        style = style ?: androidx.compose.material3.LocalTextStyle.current,
+        style = style ?: androidx.compose.material3.LocalTextStyle.current, autoSize = autoSize,
     )
 }
 

@@ -11,6 +11,8 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+- TV: in Malagasy, the Settings and About buttons on the home screen show their whole names ("Fandrindrana", "Mombamomba"). Before, the ends were cut off.
+
 ## [1.7.20261113153811] - 2026-11-13
 
 - TV: the Current Conditions screen now shows the temperature (with the wind chill or heat index when it applies) and the precipitation in two large tiles at the top. It also shows the time and when the weather was updated. The cloud cover tile is gone, to make room.

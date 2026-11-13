@@ -3,6 +3,7 @@
 
 package orinasa.njarasoa.maripanatokana.ui.tv
 
+import androidx.compose.foundation.text.TextAutoSize
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
@@ -522,13 +523,14 @@ private fun CurrentPanel(
         PanelButton(cardModifier("details"), onClick = { onOpen("details", TvScreen.Details) }) {
             Text(stringResource(R.string.section_current_conditions), color = Color.White, fontSize = 16.sp, maxLines = 1)
         }
-        // Side by side, so the panel keeps its height
+        // Side by side, so the panel keeps its height; a long name ("Fandrindrana") smaller, so it is not cut
+        val halfSize = TextAutoSize.StepBased(minFontSize = 11.sp, maxFontSize = 16.sp)
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             PanelButton(cardModifier("settings").weight(1f), onClick = onSettings) {
-                Text(stringResource(R.string.settings_title), color = Color.White, fontSize = 16.sp, maxLines = 1)
+                Text(stringResource(R.string.settings_title), color = Color.White, maxLines = 1, autoSize = halfSize)
             }
             PanelButton(cardModifier("about").weight(1f), onClick = { onOpen("about", TvScreen.About) }) {
-                Text(stringResource(R.string.about_title), color = Color.White, fontSize = 16.sp, maxLines = 1)
+                Text(stringResource(R.string.about_title), color = Color.White, maxLines = 1, autoSize = halfSize)
             }
         }
     }
