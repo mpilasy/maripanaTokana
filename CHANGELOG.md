@@ -9,6 +9,10 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.7.20261113020607] - 2026-11-13
+
+- Malagasy: the About row in Settings and the app licence line in About say "fahazoana alàlana", as the Licenses page title does.
+
 ## [1.7.20261112230523] - 2026-11-12
 
 - Android TV About: one list of full-width rows, like the Fijerena app: the app and its build line (hash and UTC commit time), the copyright and licence, the four sharing link buttons side by side (OK shows the QR code), this device in two columns, and a Licenses row last. The Licenses card of 1.7.20261112190552 is gone: it made the link cards narrow and crowded. The Licenses page has one row for each credit; OK opens a bundled licence text, one card per paragraph.
