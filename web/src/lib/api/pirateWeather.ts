@@ -97,7 +97,8 @@ function currentConditions(c: any) {
 		windSpeed: WindSpeed.fromMetersPerSecond(c.windSpeed ?? 0),
 		windDeg: c.windBearing ?? null,
 		windGust: c.windGust != null ? WindSpeed.fromMetersPerSecond(c.windGust) : null,
-		rain: c.precipType === 'rain' && c.precipIntensity > 0 ? Precipitation.fromMm(c.precipIntensity) : null,
+		// Sleet counts as rain: Pirate Weather gives its intensity as liquid, and its weather code (66) gives the icon
+		rain: (c.precipType === 'rain' || c.precipType === 'sleet') && c.precipIntensity > 0 ? Precipitation.fromMm(c.precipIntensity) : null,
 		snow: c.precipType === 'snow' && c.precipIntensity > 0 ? Precipitation.fromMm(c.precipIntensity) : null,
 		uvIndex: c.uvIndex ?? null,
 		cloudCover: c.cloudCover != null ? Math.round(c.cloudCover * 100) : null,

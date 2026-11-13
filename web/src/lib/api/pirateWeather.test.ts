@@ -77,4 +77,18 @@ describe('pirate weather chart hours', () => {
 		expect(hours[0].windGust).toBeNull();
 		expect(hours[0].dewPoint).toBeNull();
 	});
+
+	it('counts sleet as rain', async () => {
+		vi.useFakeTimers({ toFake: ['Date'] });
+		vi.setSystemTime(NOW);
+		const sleet = { ...body, currently: { ...body.currently, icon: 'sleet', precipType: 'sleet', precipIntensity: 0.8 } };
+		vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify(sleet))));
+
+		const d = await fetchPirateWeather(1, 2, 'key', 'X');
+
+		// Before, sleet gave no rain and no snow, and the tile said "None"
+		expect(d.rain?.mm).toBeCloseTo(0.8);
+		expect(d.snow).toBeNull();
+		expect(d.weatherCode).toBe(66);
+	});
 });

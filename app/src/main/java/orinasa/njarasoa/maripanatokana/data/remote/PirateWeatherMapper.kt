@@ -56,7 +56,8 @@ fun PirateWeatherResponse.toDomain(): WeatherData {
         windSpeed = WindSpeed.fromMetersPerSecond(c.windSpeed),
         windDeg = c.windBearing,
         windGust = c.windGust?.let { WindSpeed.fromMetersPerSecond(it) },
-        rain = if (c.precipType == "rain" && c.precipIntensity > 0) Precipitation.fromMm(c.precipIntensity) else null,
+        // Sleet counts as rain: Pirate Weather gives its intensity as liquid, and its weather code (66) gives the icon
+        rain = if ((c.precipType == "rain" || c.precipType == "sleet") && c.precipIntensity > 0) Precipitation.fromMm(c.precipIntensity) else null,
         snow = if (c.precipType == "snow" && c.precipIntensity > 0) Precipitation.fromMm(c.precipIntensity) else null,
         cloudCover = c.cloudCover?.let(::percent),
         uvIndex = c.uvIndex,

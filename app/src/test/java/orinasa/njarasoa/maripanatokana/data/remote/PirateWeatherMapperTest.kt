@@ -37,4 +37,21 @@ class PirateWeatherMapperTest {
         // The 24 hours take the gust from the same hours
         assertEquals(8.0, data.hourlyForecast[1].windGust!!.metersPerSecond, 0.0)
     }
+
+    @Test
+    fun sleetCountsAsRain() {
+        val now = System.currentTimeMillis() / 1000
+        val response = PirateWeatherResponse(
+            currently = PirateWeatherCurrent(
+                time = now, icon = "sleet", precipIntensity = 0.8, precipType = "sleet", temperature = 0.5, apparentTemperature = -2.0,
+            ),
+        )
+
+        val data = response.toDomain()
+
+        // Before, sleet gave no rain and no snow, and the tile said "None"
+        assertEquals(0.8, data.rain!!.mm, 0.001)
+        assertNull(data.snow)
+        assertEquals(66, data.weatherCode)
+    }
 }

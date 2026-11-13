@@ -11,6 +11,8 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+- Phone, TV and web: with the Pirate Weather source, sleet shows its amount. Before, the precipitation tile said "None".
+
 ## [1.7.20261113172900] - 2026-11-13
 
 - TV: the hourly and daily charts also show the time and when the weather was updated, in small text at the top right. On the home screen and the Current Conditions screen, this text is now smaller.
