@@ -77,6 +77,7 @@
 	"feels_like": "अनुभूत तापक्रम",
 	"no_precip": "वर्षा छैन",
 	"precip_chance": "सम्भावना {value}",
+	"precip_rain_also": "वर्षा: {value}",
 	"section_current_conditions": "हालको अवस्था",
 	"section_sun_air": "आकाश र हावा",
 	"section_hourly_forecast": "प्रति घण्टा पूर्वानुमान",

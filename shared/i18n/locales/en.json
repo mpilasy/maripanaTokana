@@ -77,6 +77,7 @@
 	"feels_like": "Feels Like",
 	"no_precip": "No precip",
 	"precip_chance": "{value} chance",
+	"precip_rain_also": "Rain: {value}",
 	"section_current_conditions": "Current Conditions",
 	"section_sun_air": "Sky & Air",
 	"section_hourly_forecast": "Hourly Forecast",

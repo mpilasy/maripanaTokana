@@ -3,15 +3,27 @@
 
 package orinasa.njarasoa.maripanatokana.domain.model
 
+private val SNOW_CODES = setOf(71, 73, 75, 77, 85, 86)
+
+/** Drizzle, rain, freezing rain, snow, showers and thunderstorms. */
+fun isPrecipCode(code: Int) = code in 51..67 || code in 71..77 || code in 80..86 || code >= 95
+
+/**
+ * The weather icon of the rain or snow now: the weather code when it tells the kind (drizzle, sleet, freezing rain,
+ * snow grains, hail), else snow (71) or rain (61). With no rain or snow now, the weather code.
+ */
+fun precipIconCode(weatherCode: Int, rain: Boolean, snow: Boolean): Int = when {
+    (rain || snow) && isPrecipCode(weatherCode) -> weatherCode
+    snow -> 71
+    rain -> 61
+    else -> weatherCode
+}
+
 /** What the next 24 hours hold for rain or snow, for the one-line summary in the hero card. */
 data class PrecipOutlook(val kind: Kind, val snow: Boolean, val time: Long? = null) {
     enum class Kind { STARTS, STOPS, ALL_DAY, DRY }
 
     companion object {
-        private val SNOW_CODES = setOf(71, 73, 75, 77, 85, 86)
-
-        // Drizzle, rain, freezing rain, snow, showers and thunderstorms
-        private fun isPrecipCode(code: Int) = code in 51..67 || code in 71..77 || code in 80..86 || code >= 95
 
         /** A nowcast value covers this long: 15 minutes (Open-Meteo) or 1 minute (Pirate Weather). */
         private fun stepOf(minutely: List<MinutelyForecast>) =

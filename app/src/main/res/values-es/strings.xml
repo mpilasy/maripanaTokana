@@ -54,6 +54,7 @@
     <string name="feels_like">Sensación térmica</string>
     <string name="no_precip">Sin precipitación</string>
     <string name="precip_chance">Probabilidad %1$s</string>
+    <string name="precip_rain_also">Lluvia: %1$s</string>
     <string name="section_current_conditions">Condiciones actuales</string>
     <string name="section_sun_air">Cielo y aire</string>
     <string name="section_hourly_forecast">Pronóstico por hora</string>

@@ -77,6 +77,7 @@
 	"feels_like": "Ohatry ny",
 	"no_precip": "Tsy misy orana",
 	"precip_chance": "Mety {value}",
+	"precip_rain_also": "Orana: {value}",
 	"section_current_conditions": "Izao",
 	"section_sun_air": "Lanitra sy rivotra",
 	"section_hourly_forecast": "Isan'ora",

@@ -54,6 +54,7 @@
     <string name="feels_like">अनुभव</string>
     <string name="no_precip">वर्षा नहीं</string>
     <string name="precip_chance">संभावना %1$s</string>
+    <string name="precip_rain_also">बारिश: %1$s</string>
     <string name="section_current_conditions">वर्तमान स्थिति</string>
     <string name="section_sun_air">आकाश और वायु</string>
     <string name="section_hourly_forecast">प्रति घंटा पूर्वानुमान</string>

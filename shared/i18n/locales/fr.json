@@ -77,6 +77,7 @@
 	"feels_like": "Ressenti",
 	"no_precip": "Pas de précipitations",
 	"precip_chance": "Probabilité {value}",
+	"precip_rain_also": "Pluie : {value}",
 	"section_current_conditions": "Conditions actuelles",
 	"section_sun_air": "Ciel et air",
 	"section_hourly_forecast": "Prévisions horaires",

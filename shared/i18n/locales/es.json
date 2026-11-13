@@ -77,6 +77,7 @@
 	"feels_like": "Sensación térmica",
 	"no_precip": "Sin precipitación",
 	"precip_chance": "Probabilidad {value}",
+	"precip_rain_also": "Lluvia: {value}",
 	"section_current_conditions": "Condiciones actuales",
 	"section_sun_air": "Cielo y aire",
 	"section_hourly_forecast": "Pronóstico por hora",

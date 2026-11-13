@@ -54,6 +54,7 @@
     <string name="feels_like">Ressenti</string>
     <string name="no_precip">Pas de précipitations</string>
     <string name="precip_chance">Probabilité %1$s</string>
+    <string name="precip_rain_also">Pluie : %1$s</string>
     <string name="section_current_conditions">Conditions actuelles</string>
     <string name="section_sun_air">Ciel et air</string>
     <string name="section_hourly_forecast">Prévisions horaires</string>

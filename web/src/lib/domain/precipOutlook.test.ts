@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { describe, expect, it } from 'vitest';
-import { precipOutlook } from './precipOutlook';
+import { precipIconCode, precipOutlook } from './precipOutlook';
 import type { HourlyForecast, MinutelyForecast } from './weatherData';
 import { Precipitation } from './precipitation';
 
@@ -54,5 +54,15 @@ describe('precipOutlook', () => {
 
 	it('is null without hourly data', () => {
 		expect(precipOutlook([])).toBeNull();
+	});
+
+	it('gives the icon of the rain or snow now from the weather code when it tells the kind', () => {
+		expect(precipIconCode(66, true, false)).toBe(66); // freezing rain or sleet
+		expect(precipIconCode(53, true, false)).toBe(53); // drizzle
+		expect(precipIconCode(99, true, false)).toBe(99); // hail
+		expect(precipIconCode(73, true, true)).toBe(73);
+		expect(precipIconCode(3, false, true)).toBe(71); // overcast code, snow falls
+		expect(precipIconCode(3, true, false)).toBe(61);
+		expect(precipIconCode(3, false, false)).toBe(3);
 	});
 });

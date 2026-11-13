@@ -77,6 +77,7 @@
 	"feels_like": "अनुभव",
 	"no_precip": "वर्षा नहीं",
 	"precip_chance": "संभावना {value}",
+	"precip_rain_also": "बारिश: {value}",
 	"section_current_conditions": "वर्तमान स्थिति",
 	"section_sun_air": "आकाश और वायु",
 	"section_hourly_forecast": "प्रति घंटा पूर्वानुमान",

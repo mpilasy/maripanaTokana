@@ -8,6 +8,7 @@ import orinasa.njarasoa.maripanatokana.ui.mobile.weather.chart.ChartViewMode
 import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.FontPicker
 import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.LanguageFlagButton
 import android.content.Intent
+import orinasa.njarasoa.maripanatokana.domain.model.precipIconCode
 import orinasa.njarasoa.maripanatokana.domain.model.ThermalIndices
 import orinasa.njarasoa.maripanatokana.domain.model.greatCircleKm
 import orinasa.njarasoa.maripanatokana.domain.model.isDaytime
@@ -2836,11 +2837,9 @@ private fun PrecipitationTile(data: WeatherData, metricPrimary: Boolean, localiz
     val scale = LocalScale.current
     val amount = data.snow ?: data.rain
     val nowSec = System.currentTimeMillis() / 1000
-    val iconCode = when {
-        data.snow != null -> 71
-        data.rain != null -> 61
-        else -> data.weatherCode
-    }
+    val iconCode = precipIconCode(data.weatherCode, data.rain != null, data.snow != null)
+    // Rain and snow at once: the snow shows, and a line gives the rain
+    val rainAlso = data.rain?.takeIf { data.snow != null }?.displayDual(metricPrimary)
     DetailCard(amount?.let { localizeDigits(it.displayDual(metricPrimary).first) } ?: stringResource(R.string.detail_no_precip), modifier,
         title = stringResource(R.string.detail_precipitation),
         onToggleUnits = if (amount != null) onToggleUnits else null,
@@ -2858,8 +2857,17 @@ private fun PrecipitationTile(data: WeatherData, metricPrimary: Boolean, localiz
         },
         // The chance of precipitation in the next hour, as on the forecast cards
         footer = {
-            PrecipChance(data.hourlyForecast.firstOrNull()?.precipProbability ?: 0, true, 13f.s(scale),
-                LocalBodyFont.current, LocalBodyFontFeatures.current, localizeDigits, withLabel = true)
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                if (rainAlso != null) {
+                    Text(
+                        stringResource(R.string.precip_rain_also, localizeDigits("${rainAlso.first} · ${rainAlso.second}")),
+                        fontSize = 13f.s(scale), fontFamily = LocalBodyFont.current, color = SkyBlue,
+                        style = TextStyle(fontFeatureSettings = LocalBodyFontFeatures.current), textAlign = TextAlign.Center,
+                    )
+                }
+                PrecipChance(data.hourlyForecast.firstOrNull()?.precipProbability ?: 0, true, 13f.s(scale),
+                    LocalBodyFont.current, LocalBodyFontFeatures.current, localizeDigits, withLabel = true)
+            }
         })
 }
 

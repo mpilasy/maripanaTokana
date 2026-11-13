@@ -73,4 +73,15 @@ class PrecipOutlookTest {
     fun `is null without hourly data`() {
         assertNull(PrecipOutlook.from(emptyList()))
     }
+
+    @Test
+    fun `the icon of the rain or snow now follows the weather code when it tells the kind`() {
+        assertEquals(66, precipIconCode(66, rain = true, snow = false)) // freezing rain or sleet
+        assertEquals(53, precipIconCode(53, rain = true, snow = false)) // drizzle
+        assertEquals(99, precipIconCode(99, rain = true, snow = false)) // hail
+        assertEquals(73, precipIconCode(73, rain = true, snow = true))
+        assertEquals(71, precipIconCode(3, rain = false, snow = true)) // overcast code, snow falls
+        assertEquals(61, precipIconCode(3, rain = true, snow = false))
+        assertEquals(3, precipIconCode(3, rain = false, snow = false))
+    }
 }

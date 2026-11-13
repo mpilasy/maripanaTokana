@@ -54,6 +54,7 @@
     <string name="feels_like">الإحساس بالحرارة</string>
     <string name="no_precip">لا هطول</string>
     <string name="precip_chance">احتمال %1$s</string>
+    <string name="precip_rain_also">مطر: %1$s</string>
     <string name="section_current_conditions">الأحوال الحالية</string>
     <string name="section_sun_air">السماء والهواء</string>
     <string name="section_hourly_forecast">التوقعات بالساعة</string>

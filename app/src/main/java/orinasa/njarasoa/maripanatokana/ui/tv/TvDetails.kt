@@ -62,6 +62,7 @@ import orinasa.njarasoa.maripanatokana.ui.common.components.MoonPhaseIcon
 import orinasa.njarasoa.maripanatokana.ui.common.components.colorsFor
 import orinasa.njarasoa.maripanatokana.ui.common.components.WeatherIcon
 import orinasa.njarasoa.maripanatokana.domain.model.isDaytime
+import orinasa.njarasoa.maripanatokana.domain.model.precipIconCode
 import orinasa.njarasoa.maripanatokana.ui.mobile.weather.formatLocationCurrentTime
 import orinasa.njarasoa.maripanatokana.ui.mobile.weather.isRemoteTimezone
 import orinasa.njarasoa.maripanatokana.ui.theme.temperatureColor
@@ -157,13 +158,12 @@ internal fun DetailsScreen(data: WeatherData) {
     val felt = (heatIndex ?: ThermalIndices.windChill(data.temperature, data.windSpeed))?.displayDual(metric)
     val feltLabel = stringResource(if (heatIndex != null) R.string.detail_heat_index else R.string.detail_wind_chill)
     val precipitation = data.snow ?: data.rain
-    // As on the phone: the icon of the rain or snow now, and the chance of precipitation in the next hour
-    val precipIcon = when {
-        data.snow != null -> 71
-        data.rain != null -> 61
-        else -> data.weatherCode
-    }
-    val chance = "${stringResource(R.string.detail_precip_chance)}: ${data.hourlyForecast.firstOrNull()?.precipProbability ?: 0}%"
+    // As on the phone: the icon of the rain or snow now, the rain when it falls with snow, and the chance of
+    // precipitation (of any kind) in the next hour
+    val precipIcon = precipIconCode(data.weatherCode, data.rain != null, data.snow != null)
+    val rainAlso = data.rain?.takeIf { data.snow != null }?.displayDual(metric)
+        ?.let { stringResource(R.string.precip_rain_also, ltr("${it.first} · ${it.second}")) }
+    val chance = stringResource(R.string.precip_chance, "${data.hourlyForecast.firstOrNull()?.precipProbability ?: 0}%")
     val (precipP, precipS) = precipitation?.displayDual(metric) ?: (noPrecip to null)
     val (windP, windS) = data.windSpeed.displayDual(metric)
     val gust = data.windGust?.displayDual(metric)
@@ -180,7 +180,7 @@ internal fun DetailsScreen(data: WeatherData) {
                     extra = felt?.let { "$feltLabel: ${ltr("${it.first} · ${it.second}")}" }, big = true)
             },
             { m ->
-                Tile(stringResource(R.string.detail_precipitation), precipP, precipS, m, extra = chance, big = true) {
+                Tile(stringResource(R.string.detail_precipitation), precipP, precipS, m, extra = listOfNotNull(rainAlso, chance).joinToString("\n"), big = true) {
                     WeatherIcon(precipIcon, night = !isDaytime(System.currentTimeMillis() / 1000, data.sunrise, data.sunset), size = 56.dp)
                 }
             },

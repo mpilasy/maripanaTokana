@@ -54,6 +54,7 @@
     <string name="feels_like">体感温度</string>
     <string name="no_precip">无降水</string>
     <string name="precip_chance">概率 %1$s</string>
+    <string name="precip_rain_also">雨：%1$s</string>
     <string name="section_current_conditions">当前状况</string>
     <string name="section_sun_air">天空与空气</string>
     <string name="section_hourly_forecast">逐时预报</string>

@@ -50,6 +50,7 @@ const PLACEHOLDER_ORDER = {
 	nowcast_starts_in: ['minutes'],
 	daylight_duration: ['hours', 'minutes'],
 	precip_chance: ['value'],
+	precip_rain_also: ['value'],
 	rises_in: ['duration'],
 	daylight_hours_one: ['count'],
 	daylight_hours_other: ['count'],

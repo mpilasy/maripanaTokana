@@ -54,6 +54,7 @@
     <string name="feels_like">Feels Like</string>
     <string name="no_precip">No precip</string>
     <string name="precip_chance">%1$s chance</string>
+    <string name="precip_rain_also">Rain: %1$s</string>
     <string name="section_current_conditions">Current Conditions</string>
     <string name="section_sun_air">Sky &amp; Air</string>
     <string name="section_hourly_forecast">Hourly Forecast</string>

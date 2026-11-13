@@ -54,6 +54,7 @@
     <string name="feels_like">Ohatry ny</string>
     <string name="no_precip">Tsy misy orana</string>
     <string name="precip_chance">Mety %1$s</string>
+    <string name="precip_rain_also">Orana: %1$s</string>
     <string name="section_current_conditions">Izao</string>
     <string name="section_sun_air">Lanitra sy rivotra</string>
     <string name="section_hourly_forecast">Isan\'ora</string>

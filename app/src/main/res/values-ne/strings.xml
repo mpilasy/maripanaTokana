@@ -54,6 +54,7 @@
     <string name="feels_like">अनुभूत तापक्रम</string>
     <string name="no_precip">वर्षा छैन</string>
     <string name="precip_chance">सम्भावना %1$s</string>
+    <string name="precip_rain_also">वर्षा: %1$s</string>
     <string name="section_current_conditions">हालको अवस्था</string>
     <string name="section_sun_air">आकाश र हावा</string>
     <string name="section_hourly_forecast">प्रति घण्टा पूर्वानुमान</string>

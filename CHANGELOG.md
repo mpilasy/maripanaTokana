@@ -11,7 +11,10 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+- Phone, TV and web: when rain and snow fall at once, the precipitation tile shows the snow and a line for the rain. Before, the rain was not shown.
 - Phone, TV and web: with the Pirate Weather source, sleet shows its amount. Before, the precipitation tile said "None".
+- Phone, TV and web: the icon on the precipitation tile shows the kind of precipitation (drizzle, sleet, freezing rain, hail) when the forecast gives it. Before, it showed only rain or snow.
+- TV: the precipitation tile says "13% chance", as on the phone. Before, it said "Chance of rain", also when it was snowing.
 
 ## [1.7.20261113172900] - 2026-11-13
 

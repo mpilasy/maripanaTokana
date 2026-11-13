@@ -7,6 +7,7 @@
 	import WeatherIcon from './WeatherIcon.svelte';
 	import { _, json } from 'svelte-i18n';
 	import { isDaytime, type WeatherData } from '#lib/domain/weatherData.js';
+	import { precipIconCode } from '#lib/domain/precipOutlook.js';
 	import { getCardinalDirection, WindSpeed } from '#lib/domain/windSpeed.js';
 	import { Pressure } from '#lib/domain/pressure.js';
 	import { AQI_TIER_COLORS, aqiDialPosition, type AirQualityIndex } from '#lib/domain/airQuality.js';
@@ -86,6 +87,8 @@
 	let dewDual = $derived(data.dewPoint.displayDual(metricPrimary));
 	let visDual = $derived(visibilityDisplay(data.visibility, metricPrimary));
 	let precipDual = $derived((data.snow ?? data.rain)?.displayDual(metricPrimary));
+	// Rain and snow at once: the snow shows, and a line gives the rain
+	let rainAlso = $derived(data.snow ? data.rain?.displayDual(metricPrimary) : undefined);
 	let nowSec = $derived(Date.now() / 1000);
 
 	/** The numbers of a dual reading ("960 hPa", "28.35 inHg") for one end of a dial's scale, localized, with no ".0" ("30", not "30.0"). */
@@ -245,7 +248,7 @@
 	<DetailCard title={$_('detail_precipitation')} value={precipDual ? loc(precipDual[0]) : $_('no_precip')} onToggleUnits={precipDual ? onToggleUnits : undefined}>
 		{#snippet centerDialSnippet()}
 			<div class="precip-center">
-				<WeatherIcon code={data.snow ? 71 : data.rain ? 61 : data.weatherCode} night={!isDaytime(nowSec, data.sunrise, data.sunset)} size={56} />
+				<WeatherIcon code={precipIconCode(data.weatherCode, data.rain != null, data.snow != null)} night={!isDaytime(nowSec, data.sunrise, data.sunset)} size={56} />
 				{#if precipDual}
 					<DialValue value={loc(precipDual[0])} secondary={loc(precipDual[1])} fill={false} />
 				{:else}
@@ -254,6 +257,9 @@
 			</div>
 		{/snippet}
 		{#snippet footerSnippet()}
+			{#if rainAlso}
+				<span class="precip-chance">{$_('precip_rain_also', { values: { value: loc(`${rainAlso[0]} · ${rainAlso[1]}`) } })}</span>
+			{/if}
 			<!-- The chance of precipitation in the next hour, as on the forecast cards -->
 			<span class="precip-chance">
 				{#if (data.hourlyForecast[0]?.precipProbability ?? 0) > 0}

@@ -10,9 +10,20 @@ export type PrecipOutlook =
 
 const SNOW_CODES = new Set([71, 73, 75, 77, 85, 86]);
 
-// Drizzle, rain, freezing rain, snow, showers and thunderstorms
-function isPrecipCode(code: number): boolean {
+/** Drizzle, rain, freezing rain, snow, showers and thunderstorms. */
+export function isPrecipCode(code: number): boolean {
 	return (code >= 51 && code <= 67) || (code >= 71 && code <= 77) || (code >= 80 && code <= 86) || code >= 95;
+}
+
+/**
+ * The weather icon of the rain or snow now: the weather code when it tells the kind (drizzle, sleet, freezing rain,
+ * snow grains, hail), else snow (71) or rain (61). With no rain or snow now, the weather code.
+ */
+export function precipIconCode(weatherCode: number, rain: boolean, snow: boolean): number {
+	if ((rain || snow) && isPrecipCode(weatherCode)) return weatherCode;
+	if (snow) return 71;
+	if (rain) return 61;
+	return weatherCode;
 }
 
 /** A nowcast value covers this long: 15 minutes (Open-Meteo) or 1 minute (Pirate Weather). */
