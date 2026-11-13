@@ -12,6 +12,7 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 - TV: the name of the moon phase (for example "Waxing crescent") now fits its tile, on two lines. Before, the end of the name was cut off.
 - Phone and web: the rain or snow line on the main card now agrees with the nowcast. Before, when rain was due to start within the hour, the line could say it was already raining and give the time it would stop.
 - Phone and web: the folded header no longer shows the settings button. Scroll to open the header and reach settings.
+- Phone and web: the chip next to the temperature shows only when the temperature will change by more than 5 °C (9 °F) in the next 6 hours, in °C and °F alike. Before, it showed from 2 °C in Celsius but from 4 °F in Fahrenheit, so the same forecast showed it in one unit and not in the other.
 
 ## [1.7.20261113020607] - 2026-11-13
 

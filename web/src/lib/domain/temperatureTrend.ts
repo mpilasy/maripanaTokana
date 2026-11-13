@@ -14,29 +14,29 @@ export interface TemperatureTrend {
 
 const HOUR = 3_600_000;
 
+/** The chip shows only for a change over this many °C (9 °F). */
+export const TREND_MIN_CELSIUS = 5;
+
 /**
  * Compares the current temperature with each forecast hour after now and up to 6 hours later, with
- * the exact values in the primary unit. Gives the hour with the largest difference (the earlier hour on
- * a tie), or null when that difference is less than 2 °C (4 °F when Fahrenheit is primary).
+ * the exact values. Gives the hour with the largest difference (the earlier hour on a tie), or null
+ * when that difference is not over TREND_MIN_CELSIUS, whatever unit shows first.
  */
 export function temperatureTrend(
 	current: Temperature,
 	hourly: HourlyForecast[],
-	metricPrimary: boolean,
 	nowMs = Date.now()
 ): TemperatureTrend | null {
-	// Degrees of the primary unit for each °C of difference
-	const scale = metricPrimary ? 1 : 9 / 5;
 	let best: HourlyForecast | null = null;
 	let bestDiff = 0;
 	for (const h of hourly) {
 		if (h.time <= nowMs || h.time > nowMs + 6 * HOUR) continue;
-		const diff = (h.temperature.celsius - current.celsius) * scale;
+		const diff = h.temperature.celsius - current.celsius;
 		if (Math.abs(diff) > Math.abs(bestDiff)) {
 			best = h;
 			bestDiff = diff;
 		}
 	}
-	if (!best || Math.abs(bestDiff) < (metricPrimary ? 2 : 4)) return null;
+	if (!best || Math.abs(bestDiff) <= TREND_MIN_CELSIUS) return null;
 	return { direction: bestDiff > 0 ? 'up' : 'down', time: best.time, temperature: best.temperature };
 }

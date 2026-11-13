@@ -1705,7 +1705,7 @@ private fun TemperatureWithChip(
 @Composable
 private fun TemperatureTrendChip(data: WeatherData, metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit) {
     // Compared with the current clock time, so cached data shows only the hours still to come
-    val trend = temperatureTrend(data.temperature, data.hourlyForecast, metricPrimary) ?: return
+    val trend = temperatureTrend(data.temperature, data.hourlyForecast) ?: return
     val up = trend.direction == TemperatureTrend.Direction.UP
     val appLocale = LocalConfiguration.current.locales[0]
     val uses24 = uses24HourClock(LocalContext.current)

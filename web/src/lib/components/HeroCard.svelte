@@ -59,7 +59,7 @@
 	});
 
 	// The largest change of temperature in the next 6 hours, in the chip next to the current temperature
-	let trend = $derived(temperatureTrend(data.temperature, data.hourlyForecast, metricPrimary));
+	let trend = $derived(temperatureTrend(data.temperature, data.hourlyForecast));
 	let trendChip = $derived.by(() => {
 		if (!trend) return null;
 		// Both units come from the exact change, so that they agree

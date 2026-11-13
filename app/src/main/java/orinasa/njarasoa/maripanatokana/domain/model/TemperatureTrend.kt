@@ -17,15 +17,17 @@ data class TemperatureTrend(
 
 private const val HOUR = 3_600_000L
 
+/** The chip shows only for a change over this many °C (9 °F). */
+const val TREND_MIN_CELSIUS = 5.0
+
 /**
  * Compares the current temperature with each forecast hour after now and up to 6 hours later, with the
  * exact values. Gives the hour with the largest difference (the earlier hour on a tie), or null when
- * that difference is less than 2 °C (4 °F when Fahrenheit is primary).
+ * that difference is not over [TREND_MIN_CELSIUS], whatever unit shows first.
  */
 fun temperatureTrend(
     current: Temperature,
     hourly: List<HourlyForecast>,
-    metricPrimary: Boolean,
     nowMs: Long = System.currentTimeMillis(),
 ): TemperatureTrend? {
     var best: HourlyForecast? = null
@@ -38,8 +40,6 @@ fun temperatureTrend(
             bestDiff = diff
         }
     }
-    // The same difference in the primary unit: °F degrees are 5/9 of °C degrees
-    val primaryDiff = if (metricPrimary) abs(bestDiff) else abs(bestDiff) * 9 / 5
-    if (best == null || primaryDiff < if (metricPrimary) 2 else 4) return null
+    if (best == null || abs(bestDiff) <= TREND_MIN_CELSIUS) return null
     return TemperatureTrend(if (bestDiff > 0) TemperatureTrend.Direction.UP else TemperatureTrend.Direction.DOWN, best.time, best.temperature)
 }
