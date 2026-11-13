@@ -537,14 +537,14 @@ When capturing screenshots for F-Droid:
 
 ### Capture Sequence
 
-The store screenshots are 4 per language (`1.png` to `4.png`). See [`docs/SCREENSHOTS_README.md`](SCREENSHOTS_README.md) for the capture steps and the content of each screenshot.
+The store screenshots are 6 phone screenshots per language (`1.png` to `6.png`) and 3 TV screenshots. See [`docs/SCREENSHOTS_README.md`](SCREENSHOTS_README.md) for the capture steps and the content of each screenshot.
 
 ### Technical Specs
 - **Format:** PNG or JPEG
 - **Dimensions:** 320px - 3840px per side
 - **Aspect Ratio:** 4:3 to 16:9
-- **Location:** `fastlane/metadata/android/{locale}/images/phoneScreenshots/`
-- **Naming:** `1.png`, `2.png`, `3.png`, `4.png`
+- **Location:** `fastlane/metadata/android/{locale}/images/phoneScreenshots/` (TV: `en-US/images/tvScreenshots/`)
+- **Naming:** `1.png` to `6.png` (TV: `1.png` to `3.png`)
 
 ## Test Report Template
 

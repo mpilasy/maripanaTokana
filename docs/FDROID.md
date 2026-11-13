@@ -298,8 +298,10 @@ fastlane/metadata/android/
 │   │   └── {versionCode}.txt
 │   └── images/
 │       ├── icon.png          (512x512, en-US only)
-│       └── phoneScreenshots/
-│           └── 1.png ... 4.png
+│       ├── phoneScreenshots/
+│       │   └── 1.png ... 6.png
+│       └── tvScreenshots/    (en-US only)
+│           └── 1.png ... 3.png
 ├── mg/  (Malagasy)
 ├── ar/  (Arabic)
 ├── es/  (Spanish)
@@ -314,7 +316,7 @@ Each language directory contains:
 - `short_description.txt`: Short description (max 80 chars)
 - `full_description.txt`: Detailed description with features
 - `changelogs/{versionCode}.txt`: Changelog for each release. Each new release needs one file in all 8 locales, under 500 characters. Some version codes have no file, because those versions were never released. Some old files (43 and 44) are longer than 500 characters
-- `images/phoneScreenshots/`: Exactly 4 screenshots per language (`1.png` to `4.png`). See [SCREENSHOTS_README.md](./SCREENSHOTS_README.md)
+- `images/phoneScreenshots/`: Exactly 6 screenshots per language (`1.png` to `6.png`). `en-US/images/tvScreenshots/`: 3 TV screenshots, which F-Droid also shows for the other languages. See [SCREENSHOTS_README.md](./SCREENSHOTS_README.md)
 
 ### F-Droid YAML Metadata
 Located at: `metadata/orinasa.njarasoa.maripanatokana.yml`
@@ -501,7 +503,7 @@ A version that misses a cycle waits for the next one, so it can take a week. Obt
 
 ### Screenshots
 
-The store has exactly 4 screenshots per language (`1.png` to `4.png`, 32 in total). Save them to `fastlane/metadata/android/{locale}/images/phoneScreenshots/`. A push of screenshots does not start a release. They reach F-Droid with the next release tag. For the capture method, see [SCREENSHOTS_README.md](./SCREENSHOTS_README.md).
+The store has exactly 6 phone screenshots per language (`1.png` to `6.png`, 48 in total) in `fastlane/metadata/android/{locale}/images/phoneScreenshots/`, and 3 TV screenshots in `fastlane/metadata/android/en-US/images/tvScreenshots/`. A push of screenshots does not start a release. They reach F-Droid with the next release tag. For the capture method, see [SCREENSHOTS_README.md](./SCREENSHOTS_README.md).
 
 ### Localization Updates
 

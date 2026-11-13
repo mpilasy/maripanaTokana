@@ -4,9 +4,13 @@
 
 <p align="center">
   <img src="fastlane/metadata/android/mg/images/phoneScreenshots/1.png" width="24%" alt="Main card, in Malagasy">
-  <img src="fastlane/metadata/android/ne/images/phoneScreenshots/2.png" width="24%" alt="Hourly and 10-day forecasts, in Nepali">
-  <img src="fastlane/metadata/android/es/images/phoneScreenshots/3.png" width="24%" alt="Current conditions, in Spanish">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" width="24%" alt="Sun and air, and activities, in English">
+  <img src="fastlane/metadata/android/ne/images/phoneScreenshots/3.png" width="24%" alt="Chart view, in Nepali">
+  <img src="fastlane/metadata/android/es/images/phoneScreenshots/5.png" width="24%" alt="Sky and air, in Spanish">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/6.png" width="24%" alt="Sea and activities, in English">
+</p>
+<p align="center">
+  <img src="fastlane/metadata/android/en-US/images/tvScreenshots/1.png" width="49%" alt="Android TV home screen">
+  <img src="fastlane/metadata/android/en-US/images/tvScreenshots/2.png" width="49%" alt="Android TV chart">
 </p>
 
 ## Features
