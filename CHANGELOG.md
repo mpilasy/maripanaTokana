@@ -11,6 +11,8 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+- Phone and web: "Changed since yesterday" shows the full day name, for example "Saturday: more rain". The day labels above the hours on the chart view also show the full name when it fits.
+
 ## [1.7.20261115164622] - 2026-11-15
 
 - Phone and web: the chart view header shows the full day name, for example "Saturday 15 Nov".

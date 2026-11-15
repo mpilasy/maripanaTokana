@@ -184,10 +184,11 @@
 		return loc(`${primary} (${secondary})`);
 	}
 
-	/** One line of the changes: the day as the cards name it, and what changed, in both units. */
+	/** One line of the changes: the full day name with a capital (it starts the line), and what changed, in both units. */
 	function changeText(change: ForecastChange): string {
 		const day = forecasts.find((f) => placeIsoDate(f.date, utcOffsetSeconds) === change.date);
-		const values: Record<string, string> = { day: day ? formatDayName(day.date, localeTag, utcOffsetSeconds, true, weekdayNames) : change.date };
+		const dayName = day ? formatDayName(day.date, localeTag, utcOffsetSeconds, false, weekdayNames) : change.date;
+		const values: Record<string, string> = { day: dayName.charAt(0).toLocaleUpperCase(localeTag) + dayName.slice(1) };
 		if (change.kind === 'high_warmer' || change.kind === 'high_cooler') {
 			// Both units come from the exact difference, so that they agree
 			const c = `${Math.round(change.value)} °C`;
