@@ -11,6 +11,8 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.7.20261115163758] - 2026-11-15
+
 - Phone, TV and web: new Malagasy short day names: Alh, Alt, Tal, Alr, Alk, Zoma, Sab. Each day has a different name, and Zoma shows in full.
 
 ## [1.7.20261113175918] - 2026-11-13
