@@ -83,15 +83,18 @@ describe('date formatting', () => {
 		});
 	});
 
-	describe('Malagasy Friday', () => {
+	describe('Malagasy short weekdays', () => {
 		// 2026-10-09 is a Friday: "Zoma" is already short, so it stays in full
 		const friday = new Date('2026-10-09T12:00:00Z').getTime();
 		const thursday = new Date('2026-10-08T12:00:00Z').getTime();
 
-		it('shows Zoma in full from Intl', () => {
+		it('shows the app short names from Intl', () => {
 			expect(formatDayName(friday, 'mg', 0, true)).toBe('Zoma');
 			expect(formatDayName(friday, 'mg', 0, false)).toBe('Zoma');
-			expect(formatDayName(thursday, 'mg', 0, true)).toBe('Alak');
+			expect(formatDayName(thursday, 'mg', 0, true)).toBe('Alk');
+			const days = [3, 4, 5, 6, 7].map((d) => formatDayName(new Date(`2026-10-0${d}T12:00:00Z`).getTime(), 'mg', 0, true));
+			expect(days).toEqual(['Sab', 'Alh', 'Alt', 'Tal', 'Alr']);
+			expect(formatDayName(thursday, 'mg', 0, false)).toBe('Alakamisy');
 			expect(formatDayName(friday, 'en', 0, true)).toBe('Fri');
 		});
 
@@ -161,13 +164,15 @@ describe('date formatting', () => {
 	describe('Malagasy without Intl support', () => {
 		afterEach(() => vi.restoreAllMocks());
 
-		it('gives Sunday and Monday different short names, as on Android', () => {
+		it('gives each day a different short name, as on Android', () => {
 			vi.spyOn(Intl.DateTimeFormat, 'supportedLocalesOf').mockReturnValue([]);
 			const sunday = new Date('2026-11-08T12:00:00Z').getTime();
 			const monday = new Date('2026-11-09T12:00:00Z').getTime();
-			expect(formatDayName(sunday, 'mg', 0, true, mgWeekdays)).toBe('Alah');
-			expect(formatDayName(monday, 'mg', 0, true, mgWeekdays)).toBe('Alats');
-			expect(formatShortDate(monday, 'mg', mgWeekdays, mgMonths)).toMatch(/^Alats \d+ Nov$/);
+			expect(formatDayName(sunday, 'mg', 0, true, mgWeekdays)).toBe('Alh');
+			expect(formatDayName(monday, 'mg', 0, true, mgWeekdays)).toBe('Alt');
+			expect(formatShortDate(monday, 'mg', mgWeekdays, mgMonths)).toMatch(/^Alt \d+ Nov$/);
+			const week = [10, 11, 12, 14].map((d) => formatDayName(new Date(`2026-11-${d}T12:00:00Z`).getTime(), 'mg', 0, true, mgWeekdays));
+			expect(week).toEqual(['Tal', 'Alr', 'Alk', 'Sab']);
 		});
 
 		it('shows Zoma (Friday) in full: it is already short', () => {

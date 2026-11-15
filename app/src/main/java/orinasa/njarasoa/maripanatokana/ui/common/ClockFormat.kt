@@ -6,7 +6,6 @@ package orinasa.njarasoa.maripanatokana.ui.common
 import android.content.Context
 import android.text.format.DateFormat
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Locale
 
 /** True when the device shows a 24-hour clock. The default comes from the device region. */
@@ -22,18 +21,20 @@ fun clockPattern(uses24: Boolean): String = if (uses24) "HH:mm" else "h:mm a"
 fun hourLabelPattern(uses24: Boolean, wholeHour: Boolean = true): String = if (uses24 || !wholeHour) clockPattern(uses24) else "h a"
 
 /**
+ * Malagasy short weekday names from Sunday, for "EEE". Three letters of the full name would give "Ala" four times,
+ * and "Zoma" is already short, so it stays in full.
+ */
+val MG_SHORT_WEEKDAYS = listOf("Alh", "Alt", "Tal", "Alr", "Alk", "Zoma", "Sab")
+
+/**
  * A date formatter for [pattern] in [locale]. Use it in place of SimpleDateFormat for patterns with "EEE".
- * Malagasy "Zoma" (Friday) is already short, so "EEE" shows it in full, not as "Zom".
+ * In Malagasy, "EEE" shows [MG_SHORT_WEEKDAYS].
  */
 fun appDateFormat(pattern: String, locale: Locale): SimpleDateFormat =
     SimpleDateFormat(pattern, locale).apply {
         if (locale.language == "mg") {
-            dateFormatSymbols = dateFormatSymbols.apply {
-                val friday = weekdays[Calendar.FRIDAY]
-                if (friday.equals("Zoma", ignoreCase = true)) {
-                    shortWeekdays = shortWeekdays.copyOf().also { it[Calendar.FRIDAY] = friday }
-                }
-            }
+            // The array starts with an empty item: Calendar.SUNDAY is 1
+            dateFormatSymbols = dateFormatSymbols.apply { shortWeekdays = (listOf("") + MG_SHORT_WEEKDAYS).toTypedArray() }
         }
     }
 
