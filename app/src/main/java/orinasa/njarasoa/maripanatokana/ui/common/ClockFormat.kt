@@ -24,7 +24,7 @@ fun hourLabelPattern(uses24: Boolean, wholeHour: Boolean = true): String = if (u
  * Malagasy short weekday names from Sunday, for "EEE". Three letters of the full name would give "Ala" four times,
  * and "Zoma" is already short, so it stays in full.
  */
-val MG_SHORT_WEEKDAYS = listOf("Alh", "Alt", "Tal", "Alr", "Alk", "Zoma", "Sab")
+val MG_SHORT_WEEKDAYS = listOf("Alhd", "Alts", "Tal", "Alrb", "Alk", "Zoma", "Sab")
 
 /**
  * A date formatter for [pattern] in [locale]. Use it in place of SimpleDateFormat for patterns with "EEE".
