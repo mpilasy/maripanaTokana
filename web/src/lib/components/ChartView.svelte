@@ -297,8 +297,8 @@
 	let nights = $derived(chartNightRuns(shown.map((h) => h.isNight)).filter((r) => r.end > drawn.start && r.start < drawn.end));
 
 	const shortMonths = new Map<string, Intl.DateTimeFormat>();
-	/** "EEE d MMM" at the place, for example "Sat 7 Nov". */
-	function dayLabel(time: number): string {
+	/** "EEE d MMM" at the place, for example "Sat 7 Nov"; with [full], "EEEE d MMM" ("Saturday 7 Nov"). */
+	function dayLabel(time: number, full = false): string {
 		const d = new Date(time + utcOffsetSeconds * 1000);
 		let month: string;
 		if (Intl.DateTimeFormat.supportedLocalesOf([localeTag]).length > 0 || !monthNames) {
@@ -312,12 +312,12 @@
 			const name = monthNames[d.getUTCMonth()];
 			month = localeTag === 'ne' ? name : name.substring(0, 3);
 		}
-		return loc(`${formatDayName(time, localeTag, utcOffsetSeconds, true, weekdayNames)} ${d.getUTCDate()} ${month}`);
+		return loc(`${formatDayName(time, localeTag, utcOffsetSeconds, !full, weekdayNames)} ${d.getUTCDate()} ${month}`);
 	}
 
-	/** "EEE d MMM, HH:mm" (or "h:mm a") at the place; only the day in daily mode. */
+	/** The header: "EEEE d MMM, HH:mm" (or "h:mm a") at the place, with the full day name; only the day in daily mode. */
 	function hourLabel(h: ChartHour): string {
-		return daily ? dayLabel(h.time) : `${dayLabel(h.time)}, ${loc(formatTimeAtLocation(h.time, utcOffsetSeconds, localeTag))}`;
+		return daily ? dayLabel(h.time, true) : `${dayLabel(h.time, true)}, ${loc(formatTimeAtLocation(h.time, utcOffsetSeconds, localeTag))}`;
 	}
 
 	/**

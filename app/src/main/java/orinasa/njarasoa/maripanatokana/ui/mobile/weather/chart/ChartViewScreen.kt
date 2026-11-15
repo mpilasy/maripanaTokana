@@ -391,8 +391,9 @@ private fun SelectionHeader(
     val appLocale = LocalConfiguration.current.locales[0]
     val daily = low != null
     val uses24 = uses24HourClock(LocalContext.current)
+    // The full day name: the header has the space
     val timeFormat = remember(appLocale, utcOffsetSeconds, daily, uses24) {
-        clockFormat(if (daily) "EEE d MMM" else "EEE d MMM, ${clockPattern(uses24)}", appLocale).apply { timeZone = buildLocationTimeZone(utcOffsetSeconds) }
+        clockFormat(if (daily) "EEEE d MMM" else "EEEE d MMM, ${clockPattern(uses24)}", appLocale).apply { timeZone = buildLocationTimeZone(utcOffsetSeconds) }
     }
     val directions = stringArrayResource(R.array.cardinal_directions)
     val onSurface = MaterialTheme.colorScheme.onSurface
