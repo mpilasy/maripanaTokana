@@ -63,7 +63,7 @@ class ClockFormatTest {
         assertEquals("Zoma", weekday(friday))
         assertEquals("Alk", weekday(thursday))
         // The other days from Saturday 2026-10-10: each short name is different
-        assertEquals(listOf("Sab", "Alh", "Alt", "Tal", "Alr"), (5..9).map { weekday(Date(evening.time + it * day)) })
+        assertEquals(listOf("Sab", "Alhd", "Alts", "Tal", "Alrb"), (5..9).map { weekday(Date(evening.time + it * day)) })
         // The full name and other languages do not change
         assertEquals("Zoma", appDateFormat("EEEE", mg).apply { timeZone = TimeZone.getTimeZone("UTC") }.format(friday))
         assertEquals("Fri", appDateFormat("EEE", Locale.ENGLISH).apply { timeZone = TimeZone.getTimeZone("UTC") }.format(friday))

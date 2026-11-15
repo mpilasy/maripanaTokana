@@ -50,7 +50,7 @@ function formatIntlParts(formatter: Intl.DateTimeFormat, date: Date, localeTag =
 }
 
 /** Intl's short Malagasy weekdays (CLDR) as the app's short names. Full names and other languages do not change. */
-const MG_INTL_SHORT_WEEKDAYS: Record<string, string> = { Alah: 'Alh', Alats: 'Alt', Alar: 'Alr', Alak: 'Alk', Zom: 'Zoma', Asab: 'Sab' };
+const MG_INTL_SHORT_WEEKDAYS: Record<string, string> = { Alah: 'Alhd', Alats: 'Alts', Alar: 'Alrb', Alak: 'Alk', Zom: 'Zoma', Asab: 'Sab' };
 
 function shortWeekday(name: string, localeTag: string): string {
 	return localeTag.toLowerCase().startsWith('mg') ? (MG_INTL_SHORT_WEEKDAYS[name] ?? name) : name;
@@ -122,7 +122,7 @@ const shortDateFormatters = new Map<string, Intl.DateTimeFormat>();
  * Malagasy short weekday names from Sunday, as Android's MG_SHORT_WEEKDAYS. Three letters of the full name would give "Ala"
  * four times, and "Zoma" is already short, so it stays in full.
  */
-const MG_SHORT_WEEKDAYS = ['Alh', 'Alt', 'Tal', 'Alr', 'Alk', 'Zoma', 'Sab'];
+const MG_SHORT_WEEKDAYS = ['Alhd', 'Alts', 'Tal', 'Alrb', 'Alk', 'Zoma', 'Sab'];
 
 /** Short date like "Mon 12 Oct" (matches Android's "EEE d MMM"), in the device's timezone. */
 export function formatShortDate(timestamp: number, localeTag: string, weekdayNames?: string[], monthNames?: string[]): string {
