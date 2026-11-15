@@ -40,9 +40,18 @@ function cleanDayPeriod(value: string): string {
 	return value.replace(/[.\s]/g, '');
 }
 
-/** An Intl result with the AM/PM marker cleaned as in amPm(). */
-function formatWithCleanDayPeriod(formatter: Intl.DateTimeFormat, date: Date): string {
-	return formatter.formatToParts(date).map((p) => (p.type === 'dayPeriod' ? cleanDayPeriod(p.value) : p.value)).join('');
+/** An Intl result with the AM/PM marker cleaned as in amPm(), and the short Malagasy Friday in full as in shortWeekday(). */
+function formatIntlParts(formatter: Intl.DateTimeFormat, date: Date, localeTag = ''): string {
+	return formatter.formatToParts(date).map((p) => {
+		if (p.type === 'dayPeriod') return cleanDayPeriod(p.value);
+		if (p.type === 'weekday') return shortWeekday(p.value, localeTag);
+		return p.value;
+	}).join('');
+}
+
+/** Intl's short Malagasy Friday ("Zom") in full: "Zoma" is already short. Other names and languages do not change. */
+function shortWeekday(name: string, localeTag: string): string {
+	return name === 'Zom' && localeTag.toLowerCase().startsWith('mg') ? 'Zoma' : name;
 }
 
 /** A time with minutes: "HH:mm" (24-hour) or "h:mm a" (12-hour, "9:05 PM"). As Android's clockPattern(). */
@@ -93,7 +102,7 @@ export function formatDate(timestamp: number, localeTag: string, weekdayNames?: 
 			});
 			dateFormatters.set(key, formatter);
 		}
-		return formatWithCleanDayPeriod(formatter, d);
+		return formatIntlParts(formatter, d);
 	}
 
 	// Build from arrays for unsupported locales (mg, ne)
@@ -107,8 +116,8 @@ export function formatDate(timestamp: number, localeTag: string, weekdayNames?: 
 
 const shortDateFormatters = new Map<string, Intl.DateTimeFormat>();
 
-/** Malagasy short weekday names from Sunday, as in CLDR (Android's "EEE"). */
-const MG_SHORT_WEEKDAYS = ['Alah', 'Alats', 'Tal', 'Alar', 'Alak', 'Zom', 'Asab'];
+/** Malagasy short weekday names from Sunday, as in CLDR (Android's "EEE"), but "Zoma" is already short and stays in full. */
+const MG_SHORT_WEEKDAYS = ['Alah', 'Alats', 'Tal', 'Alar', 'Alak', 'Zoma', 'Asab'];
 
 /** Short date like "Mon 12 Oct" (matches Android's "EEE d MMM"), in the device's timezone. */
 export function formatShortDate(timestamp: number, localeTag: string, weekdayNames?: string[], monthNames?: string[]): string {
@@ -121,7 +130,7 @@ export function formatShortDate(timestamp: number, localeTag: string, weekdayNam
 			formatter = new Intl.DateTimeFormat(localeTag, { weekday: 'short', day: 'numeric', month: 'short' });
 			shortDateFormatters.set(localeTag, formatter);
 		}
-		return formatter.format(d);
+		return formatIntlParts(formatter, d, localeTag);
 	}
 
 	// Build from arrays for unsupported locales (mg, ne); Devanagari names stay in full
@@ -177,7 +186,7 @@ export function formatLocationCurrentTime(utcOffsetSeconds: number, localeTag: s
 			});
 			locationTimeFormatters.set(key, formatter);
 		}
-		return formatWithCleanDayPeriod(formatter, dLocation);
+		return formatIntlParts(formatter, dLocation, localeTag);
 	}
 
 	return clockText(dLocation.getUTCHours(), dLocation.getUTCMinutes(), localeTag);
@@ -209,7 +218,7 @@ export function formatDayName(timestamp: number, localeTag: string, utcOffsetSec
 			formatter = new Intl.DateTimeFormat(localeTag, { weekday: short ? 'short' : 'long', timeZone: 'UTC' });
 			dayNameFormatters.set(key, formatter);
 		}
-		return formatter.format(adjustedDate);
+		return formatIntlParts(formatter, adjustedDate, localeTag);
 	}
 
 	// Build from array for unsupported locales (mg, ne)
@@ -262,5 +271,5 @@ export function formatAlertTime(timestamp: number, localeTag: string): string {
 		});
 		alertTimeFormatters.set(key, formatter);
 	}
-	return formatWithCleanDayPeriod(formatter, new Date(timestamp));
+	return formatIntlParts(formatter, new Date(timestamp));
 }
