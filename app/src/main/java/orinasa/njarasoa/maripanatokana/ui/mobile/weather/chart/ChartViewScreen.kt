@@ -713,7 +713,9 @@ private fun ChartPanels(
     val hourFormat = remember(locationZone, appLocale, uses24) {
         clockFormat(hourLabelPattern(uses24, utcOffsetSeconds % 3600 == 0), appLocale).apply { timeZone = locationZone }
     }
-    val dayFormat = remember(appLocale, locationZone) { appDateFormat("EEE d MMM", appLocale).apply { timeZone = locationZone } }
+    // The day labels of the time axes: the full day name, or the short name when the full name does not fit
+    val dayFormat = remember(appLocale, locationZone) { appDateFormat("EEEE d MMM", appLocale).apply { timeZone = locationZone } }
+    val dayShortFormat = remember(appLocale, locationZone) { appDateFormat("EEE d MMM", appLocale).apply { timeZone = locationZone } }
     // The day labels of the daily mode: the weekday over the day of the month
     val shortDayFormat = remember(appLocale, locationZone) { appDateFormat("EEE'\n'd", appLocale).apply { timeZone = locationZone } }
     // One painter for each icon in use
@@ -1016,10 +1018,12 @@ private fun ChartPanels(
                     val start = if (k == 0) cx(span.startIndex) - slot / 2 else cx(span.startIndex)
                     val end = days.getOrNull(k + 1)?.let { cx(it.startIndex) } ?: (cx(span.endIndex - 1) + slot / 2)
                     if (end < axisPx || start > size.width) return@forEachIndexed
-                    val layout = textMeasurer.measure(localizeDigits(dayFormat.format(Date(span.date))), dayStyle)
                     val pad = 4.dp.toPx()
                     val left = maxOf(start, axisPx) + pad
                     val room = end - pad - left
+                    val layout = textMeasurer.measure(localizeDigits(dayFormat.format(Date(span.date))), dayStyle)
+                        .takeIf { it.size.width <= room }
+                        ?: textMeasurer.measure(localizeDigits(dayShortFormat.format(Date(span.date))), dayStyle)
                     if (layout.size.width > room) return@forEachIndexed
                     val y = if (mirrored) bottom - dayOffset - layout.size.height else top + dayOffset
                     drawText(layout, topLeft = Offset(left, y))

@@ -269,7 +269,7 @@
 	// The moon after each day label of the time axes: its radius, and the gap on each side of it
 	const MOON_R = 5;
 	const MOON_GAP = 4;
-	// The day labels of the time axes (the day at the start stays in view): the date, the moon of the day and, on the day
+	// The day labels of the time axes (the day at the start stays in view): the full day name and date, the moon of the day and, on the day
 	// of a new or full moon, its name, when they fit
 	let dayLabels = $derived.by(() => {
 		// Measured again when the fonts are in
@@ -278,9 +278,11 @@
 		if (daily) return [];
 		const names = ($json('moon_phases') as string[] | undefined) ?? [];
 		return shownDays.flatMap((d) => {
-			const date = dayLabel(d.date);
 			const left = Math.max(d.left, hoursLeft) + 4;
 			const room = d.right - 4 - left;
+			// The full day name, or the short name when the full name does not fit
+			const full = dayLabel(d.date, true);
+			const date = textWidth(full, 'bold', 10, '--font-display') <= room ? full : dayLabel(d.date);
 			const dateWidth = textWidth(date, 'bold', 10, '--font-display');
 			if (dateWidth > room) return [];
 			const { phase, event } = moons[d.k];

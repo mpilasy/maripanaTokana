@@ -2389,9 +2389,9 @@ internal fun DailyForecastList(
 private fun ForecastChangesBlock(changes: List<ForecastChange>, metricPrimary: Boolean, localizeDigits: (String) -> String) {
     if (changes.isEmpty()) return
     val appLocale = LocalConfiguration.current.locales[0]
-    // The ISO dates are read and written in UTC, so the day does not move: the short day name as on the daily cards
+    // The ISO dates are read and written in UTC, so the day does not move. The full day name, with a capital: it starts the line
     val isoFormat = remember { SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = TimeZone.getTimeZone("UTC") } }
-    val dayFormat = remember(appLocale) { appDateFormat("EEE", appLocale).apply { timeZone = TimeZone.getTimeZone("UTC") } }
+    val dayFormat = remember(appLocale) { appDateFormat("EEEE", appLocale).apply { timeZone = TimeZone.getTimeZone("UTC") } }
     val scale = LocalScale.current
     val bodyFont = LocalBodyFont.current
     fun dual(pair: Pair<String, String>) = localizeDigits("${pair.first} (${pair.second})")
@@ -2410,7 +2410,7 @@ private fun ForecastChangesBlock(changes: List<ForecastChange>, metricPrimary: B
             modifier = Modifier.padding(bottom = 2.dp).semantics { heading() },
         )
         changes.forEach { change ->
-            val day = try { isoFormat.parse(change.date)?.let { dayFormat.format(it) } } catch (_: Exception) { null } ?: change.date
+            val day = try { isoFormat.parse(change.date)?.let { dayFormat.format(it).replaceFirstChar { c -> c.titlecase(appLocale) } } } catch (_: Exception) { null } ?: change.date
             val text = when (change.kind) {
                 ForecastChange.Kind.HIGH_WARMER, ForecastChange.Kind.HIGH_COOLER -> {
                     // Each unit's difference comes from the exact difference, so the two units agree
