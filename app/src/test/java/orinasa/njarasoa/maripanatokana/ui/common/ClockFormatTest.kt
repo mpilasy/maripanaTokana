@@ -51,4 +51,21 @@ class ClockFormatTest {
         // Spanish "p. m.": the digit helper would change the dots to decimal commas
         assertEquals("9:05 pm", format(clockPattern(false), evening, Locale.forLanguageTag("es")))
     }
+
+    @Test
+    fun malagasyFridayIsNotShortened() {
+        val mg = Locale.forLanguageTag("mg")
+        val day = 24 * 3600 * 1000L
+        // 2026-10-09 is a Friday: "Zoma" is already short, so it stays in full
+        val friday = Date(evening.time + 4 * day)
+        val thursday = Date(evening.time + 3 * day)
+        fun weekday(date: Date) = appDateFormat("EEE", mg).apply { timeZone = TimeZone.getTimeZone("UTC") }.format(date)
+        assertEquals("Zoma", weekday(friday))
+        assertEquals("Alak", weekday(thursday))
+        // The full name and other languages do not change
+        assertEquals("Zoma", appDateFormat("EEEE", mg).apply { timeZone = TimeZone.getTimeZone("UTC") }.format(friday))
+        assertEquals("Fri", appDateFormat("EEE", Locale.ENGLISH).apply { timeZone = TimeZone.getTimeZone("UTC") }.format(friday))
+        // clockFormat uses the same names
+        assertEquals("Zoma, 21:05", format("EEE, ${clockPattern(true)}", friday, mg))
+    }
 }
