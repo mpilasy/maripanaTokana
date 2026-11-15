@@ -53,7 +53,7 @@ class ClockFormatTest {
     }
 
     @Test
-    fun malagasyFridayIsNotShortened() {
+    fun malagasyShortWeekdays() {
         val mg = Locale.forLanguageTag("mg")
         val day = 24 * 3600 * 1000L
         // 2026-10-09 is a Friday: "Zoma" is already short, so it stays in full
@@ -61,7 +61,9 @@ class ClockFormatTest {
         val thursday = Date(evening.time + 3 * day)
         fun weekday(date: Date) = appDateFormat("EEE", mg).apply { timeZone = TimeZone.getTimeZone("UTC") }.format(date)
         assertEquals("Zoma", weekday(friday))
-        assertEquals("Alak", weekday(thursday))
+        assertEquals("Alk", weekday(thursday))
+        // The other days from Saturday 2026-10-10: each short name is different
+        assertEquals(listOf("Sab", "Alh", "Alt", "Tal", "Alr"), (5..9).map { weekday(Date(evening.time + it * day)) })
         // The full name and other languages do not change
         assertEquals("Zoma", appDateFormat("EEEE", mg).apply { timeZone = TimeZone.getTimeZone("UTC") }.format(friday))
         assertEquals("Fri", appDateFormat("EEE", Locale.ENGLISH).apply { timeZone = TimeZone.getTimeZone("UTC") }.format(friday))

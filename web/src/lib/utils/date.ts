@@ -40,7 +40,7 @@ function cleanDayPeriod(value: string): string {
 	return value.replace(/[.\s]/g, '');
 }
 
-/** An Intl result with the AM/PM marker cleaned as in amPm(), and the short Malagasy Friday in full as in shortWeekday(). */
+/** An Intl result with the AM/PM marker cleaned as in amPm(), and the short Malagasy weekdays as in shortWeekday(). */
 function formatIntlParts(formatter: Intl.DateTimeFormat, date: Date, localeTag = ''): string {
 	return formatter.formatToParts(date).map((p) => {
 		if (p.type === 'dayPeriod') return cleanDayPeriod(p.value);
@@ -49,9 +49,11 @@ function formatIntlParts(formatter: Intl.DateTimeFormat, date: Date, localeTag =
 	}).join('');
 }
 
-/** Intl's short Malagasy Friday ("Zom") in full: "Zoma" is already short. Other names and languages do not change. */
+/** Intl's short Malagasy weekdays (CLDR) as the app's short names. Full names and other languages do not change. */
+const MG_INTL_SHORT_WEEKDAYS: Record<string, string> = { Alah: 'Alh', Alats: 'Alt', Alar: 'Alr', Alak: 'Alk', Zom: 'Zoma', Asab: 'Sab' };
+
 function shortWeekday(name: string, localeTag: string): string {
-	return name === 'Zom' && localeTag.toLowerCase().startsWith('mg') ? 'Zoma' : name;
+	return localeTag.toLowerCase().startsWith('mg') ? (MG_INTL_SHORT_WEEKDAYS[name] ?? name) : name;
 }
 
 /** A time with minutes: "HH:mm" (24-hour) or "h:mm a" (12-hour, "9:05 PM"). As Android's clockPattern(). */
@@ -116,8 +118,11 @@ export function formatDate(timestamp: number, localeTag: string, weekdayNames?: 
 
 const shortDateFormatters = new Map<string, Intl.DateTimeFormat>();
 
-/** Malagasy short weekday names from Sunday, as in CLDR (Android's "EEE"), but "Zoma" is already short and stays in full. */
-const MG_SHORT_WEEKDAYS = ['Alah', 'Alats', 'Tal', 'Alar', 'Alak', 'Zoma', 'Asab'];
+/**
+ * Malagasy short weekday names from Sunday, as Android's MG_SHORT_WEEKDAYS. Three letters of the full name would give "Ala"
+ * four times, and "Zoma" is already short, so it stays in full.
+ */
+const MG_SHORT_WEEKDAYS = ['Alh', 'Alt', 'Tal', 'Alr', 'Alk', 'Zoma', 'Sab'];
 
 /** Short date like "Mon 12 Oct" (matches Android's "EEE d MMM"), in the device's timezone. */
 export function formatShortDate(timestamp: number, localeTag: string, weekdayNames?: string[], monthNames?: string[]): string {
@@ -136,7 +141,7 @@ export function formatShortDate(timestamp: number, localeTag: string, weekdayNam
 	// Build from arrays for unsupported locales (mg, ne); Devanagari names stay in full
 	const month = monthNames[d.getMonth()];
 	const short = (name: string) => (localeTag === 'ne' ? name : name.substring(0, 3));
-	// Three letters would make Alahady and Alatsinainy both "Ala": use the short names that Android shows
+	// Three letters would give "Ala" four times: use the short names that Android shows
 	const weekday = localeTag === 'mg' ? MG_SHORT_WEEKDAYS[d.getDay()] : short(weekdayNames[d.getDay()]);
 	return `${weekday} ${d.getDate()} ${short(month)}`;
 }
@@ -224,7 +229,7 @@ export function formatDayName(timestamp: number, localeTag: string, utcOffsetSec
 	// Build from array for unsupported locales (mg, ne)
 	const dayIndex = adjustedDate.getUTCDay();
 	if (short) {
-		// Malagasy uses its own short names (three letters would give "Ala" twice); Devanagari (ne) uses the full name
+		// Malagasy uses its own short names (three letters would give "Ala" four times); Devanagari (ne) uses the full name
 		if (localeTag === 'mg') return MG_SHORT_WEEKDAYS[dayIndex];
 		const name = weekdayNames[dayIndex];
 		return localeTag === 'ne' ? name : name.substring(0, 3);
