@@ -83,6 +83,24 @@ describe('date formatting', () => {
 		});
 	});
 
+	describe('Malagasy Friday', () => {
+		// 2026-10-09 is a Friday: "Zoma" is already short, so it stays in full
+		const friday = new Date('2026-10-09T12:00:00Z').getTime();
+		const thursday = new Date('2026-10-08T12:00:00Z').getTime();
+
+		it('shows Zoma in full from Intl', () => {
+			expect(formatDayName(friday, 'mg', 0, true)).toBe('Zoma');
+			expect(formatDayName(friday, 'mg', 0, false)).toBe('Zoma');
+			expect(formatDayName(thursday, 'mg', 0, true)).toBe('Alak');
+			expect(formatDayName(friday, 'en', 0, true)).toBe('Fri');
+		});
+
+		it('shows Zoma in full in the short date', () => {
+			const local = new Date(2026, 9, 9, 12).getTime();
+			expect(formatShortDate(local, 'mg')).toContain('Zoma');
+		});
+	});
+
 	describe('formatDayMonth', () => {
 		it('should accept custom arrays for Malagasy and return day/month', () => {
 			const result = formatDayMonth(testTimestamp, 'mg', utcOffsetSeconds, mgMonths);
@@ -150,6 +168,13 @@ describe('date formatting', () => {
 			expect(formatDayName(sunday, 'mg', 0, true, mgWeekdays)).toBe('Alah');
 			expect(formatDayName(monday, 'mg', 0, true, mgWeekdays)).toBe('Alats');
 			expect(formatShortDate(monday, 'mg', mgWeekdays, mgMonths)).toMatch(/^Alats \d+ Nov$/);
+		});
+
+		it('shows Zoma (Friday) in full: it is already short', () => {
+			vi.spyOn(Intl.DateTimeFormat, 'supportedLocalesOf').mockReturnValue([]);
+			const friday = new Date('2026-11-13T12:00:00Z').getTime();
+			expect(formatDayName(friday, 'mg', 0, true, mgWeekdays)).toBe('Zoma');
+			expect(formatShortDate(friday, 'mg', mgWeekdays, mgMonths)).toMatch(/^Zoma \d+ Nov$/);
 		});
 	});
 });

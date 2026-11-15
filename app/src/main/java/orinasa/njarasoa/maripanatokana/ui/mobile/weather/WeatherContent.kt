@@ -268,6 +268,7 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 import orinasa.njarasoa.maripanatokana.ui.common.latitudeText
+import orinasa.njarasoa.maripanatokana.ui.common.appDateFormat
 import orinasa.njarasoa.maripanatokana.ui.common.clockFormat
 import orinasa.njarasoa.maripanatokana.ui.common.clockPattern
 import orinasa.njarasoa.maripanatokana.ui.common.hourLabelPattern
@@ -332,7 +333,7 @@ internal fun WeatherContent(
     val context = LocalContext.current
     val appLocale = LocalConfiguration.current.locales[0]
     // Remembered: a SimpleDateFormat is costly to make again on each recomposition
-    val dateFormat = remember(appLocale) { SimpleDateFormat("EEE d MMM", appLocale) }
+    val dateFormat = remember(appLocale) { appDateFormat("EEE d MMM", appLocale) }
     val uses24 = uses24HourClock(context)
     val screenTimeFormat = remember(appLocale, uses24) { clockFormat(clockPattern(uses24), appLocale) }
     // Sunrise and sunset in the place's own time, like the hourly cards and its clock
@@ -2154,7 +2155,7 @@ internal fun DailyForecastList(
     // Day names in the place's time zone: item.date is local midnight at the place, so the device time zone
     // can show the wrong day (for example, for an advanced-mode location far from the device).
     val locationTimeZone = remember(utcOffsetSeconds) { buildLocationTimeZone(utcOffsetSeconds) }
-    val dayFormat = remember(appLocale, locationTimeZone) { SimpleDateFormat("EEE", appLocale).apply { timeZone = locationTimeZone } }
+    val dayFormat = remember(appLocale, locationTimeZone) { appDateFormat("EEE", appLocale).apply { timeZone = locationTimeZone } }
     val dayMonthFormat = remember(appLocale, locationTimeZone) { SimpleDateFormat("d MMM", appLocale).apply { timeZone = locationTimeZone } }
     val bodyFont = LocalBodyFont.current
     val fontFeatures = LocalBodyFontFeatures.current
@@ -2390,7 +2391,7 @@ private fun ForecastChangesBlock(changes: List<ForecastChange>, metricPrimary: B
     val appLocale = LocalConfiguration.current.locales[0]
     // The ISO dates are read and written in UTC, so the day does not move: the short day name as on the daily cards
     val isoFormat = remember { SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = TimeZone.getTimeZone("UTC") } }
-    val dayFormat = remember(appLocale) { SimpleDateFormat("EEE", appLocale).apply { timeZone = TimeZone.getTimeZone("UTC") } }
+    val dayFormat = remember(appLocale) { appDateFormat("EEE", appLocale).apply { timeZone = TimeZone.getTimeZone("UTC") } }
     val scale = LocalScale.current
     val bodyFont = LocalBodyFont.current
     fun dual(pair: Pair<String, String>) = localizeDigits("${pair.first} (${pair.second})")

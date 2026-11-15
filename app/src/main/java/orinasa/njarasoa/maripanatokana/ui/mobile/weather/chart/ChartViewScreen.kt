@@ -126,6 +126,7 @@ import orinasa.njarasoa.maripanatokana.ui.mobile.weather.HeroStatDivider
 import orinasa.njarasoa.maripanatokana.ui.mobile.weather.PrecipChance
 import orinasa.njarasoa.maripanatokana.ui.mobile.weather.buildLocationTimeZone
 import orinasa.njarasoa.maripanatokana.ui.common.components.drawMoon
+import orinasa.njarasoa.maripanatokana.ui.common.appDateFormat
 import orinasa.njarasoa.maripanatokana.ui.common.clockFormat
 import orinasa.njarasoa.maripanatokana.ui.common.clockPattern
 import orinasa.njarasoa.maripanatokana.ui.common.hourLabelPattern
@@ -711,9 +712,9 @@ private fun ChartPanels(
     val hourFormat = remember(locationZone, appLocale, uses24) {
         clockFormat(hourLabelPattern(uses24, utcOffsetSeconds % 3600 == 0), appLocale).apply { timeZone = locationZone }
     }
-    val dayFormat = remember(appLocale, locationZone) { SimpleDateFormat("EEE d MMM", appLocale).apply { timeZone = locationZone } }
+    val dayFormat = remember(appLocale, locationZone) { appDateFormat("EEE d MMM", appLocale).apply { timeZone = locationZone } }
     // The day labels of the daily mode: the weekday over the day of the month
-    val shortDayFormat = remember(appLocale, locationZone) { SimpleDateFormat("EEE'\n'd", appLocale).apply { timeZone = locationZone } }
+    val shortDayFormat = remember(appLocale, locationZone) { appDateFormat("EEE'\n'd", appLocale).apply { timeZone = locationZone } }
     // One painter for each icon in use
     val iconRes = remember(hours) { hours.map { weatherIconRes(it.weatherCode, it.isNight) } }
     val painters: Map<Int, Painter> = iconRes.distinct().associateWith { res -> key(res) { painterResource(res) } }

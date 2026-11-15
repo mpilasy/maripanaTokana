@@ -3,8 +3,8 @@
 
 package orinasa.njarasoa.maripanatokana.widget
 
+import orinasa.njarasoa.maripanatokana.ui.common.appDateFormat
 import orinasa.njarasoa.maripanatokana.ui.mobile.weather.buildLocationTimeZone
-import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
@@ -13,7 +13,7 @@ import java.util.Locale
  * forecast location, so format in that location's timezone, with the app locale.
  */
 internal fun widgetDayName(dateMillis: Long, utcOffsetSeconds: Int, locale: Locale): String =
-    SimpleDateFormat("EEE", locale).apply { timeZone = buildLocationTimeZone(utcOffsetSeconds) }.format(Date(dateMillis))
+    appDateFormat("EEE", locale).apply { timeZone = buildLocationTimeZone(utcOffsetSeconds) }.format(Date(dateMillis))
 
 /** Wraps [s] in an LTR isolate so "16.1°C" keeps number-then-unit order in RTL locales. */
 internal fun ltr(s: String): String = "\u2066$s\u2069"
