@@ -161,7 +161,7 @@ private fun seriesFor(tile: ChartTile, data: WeatherData, metric: Boolean, usLab
     val label = tileLabel(tile)
     return when (tile) {
         ChartTile.TEMPERATURE -> TvSeries(label, hours.map { it.temperature?.celsius }, false, 5.0, { temperatureColor(it) }, { temperatureText(it, metric) })
-        ChartTile.FEELS_LIKE -> TvSeries(
+        ChartTile.THERMAL_INDEX -> TvSeries(
             label,
             hours.map { h -> h.temperature?.let { t -> ThermalIndices.heatIndex(t, h.humidity) ?: h.windSpeed?.let { ThermalIndices.windChill(t, it) } }?.celsius },
             false, 5.0, { temperatureColor(it) }, { temperatureText(it, metric) },
@@ -244,8 +244,8 @@ private fun dailySeries(data: WeatherData, metric: Boolean, usLabel: String, euL
  */
 private fun hourlySeries(data: WeatherData, metric: Boolean, usLabel: String, euLabel: String): List<TvSeries> {
     val hours = data.chartHourly
-    // No Feels Like: the temperature plot draws the heat index and the wind chill
-    val tiles = chartTiles(hours, data.hourlyAirQuality.isNotEmpty(), hasFeelsLike = false)
+    // No heat index or wind chill tile: the temperature plot draws them
+    val tiles = chartTiles(hours, data.hourlyAirQuality.isNotEmpty(), hasThermalIndex = false)
     val heat = hours.map { h -> h.temperature?.let { ThermalIndices.heatIndex(it, h.humidity)?.celsius } }
     val chill = hours.map { h -> h.temperature?.let { t -> h.windSpeed?.let { ThermalIndices.windChill(t, it)?.celsius } } }
     val chance = hours.map { it.precipProbability?.toDouble() }.takeIf { v -> v.any { it != null } }
@@ -301,7 +301,7 @@ private fun chanceSeries(chance: List<Double?>) = TvSeries(
 
 private fun tileLabel(tile: ChartTile) = when (tile) {
     ChartTile.TEMPERATURE -> R.string.detail_temperature
-    ChartTile.FEELS_LIKE -> R.string.feels_like
+    ChartTile.THERMAL_INDEX -> R.string.detail_wind_chill
     ChartTile.DEW_POINT -> R.string.detail_dewpoint
     ChartTile.PRECIPITATION -> R.string.detail_precipitation
     ChartTile.WIND -> R.string.detail_wind

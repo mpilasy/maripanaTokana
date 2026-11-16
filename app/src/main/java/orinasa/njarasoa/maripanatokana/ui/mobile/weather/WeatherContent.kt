@@ -1377,6 +1377,8 @@ internal fun DualUnitText(
     val displayFont = LocalDisplayFont.current
     val fontFeatures = LocalBodyFontFeatures.current
     val resolvedColor = if (color != Color.Unspecified) color else MaterialTheme.colorScheme.onSurface
+    // A value that wraps keeps its lines centred when the value is
+    val textAlign = if (horizontalAlignment == Alignment.CenterHorizontally) TextAlign.Center else TextAlign.Unspecified
     Column(
         horizontalAlignment = horizontalAlignment,
         modifier = if (onClick != null) Modifier.clickable(
@@ -1399,7 +1401,7 @@ internal fun DualUnitText(
                 }
                 append('\u2069')
             },
-            style = TextStyle(fontFeatureSettings = fontFeatures),
+            style = TextStyle(fontFeatureSettings = fontFeatures, textAlign = textAlign),
         )
         Text(
             text = buildAnnotatedString {
@@ -1414,7 +1416,7 @@ internal fun DualUnitText(
                 }
                 append('\u2069')
             },
-            style = TextStyle(fontFeatureSettings = fontFeatures),
+            style = TextStyle(fontFeatureSettings = fontFeatures, textAlign = textAlign),
         )
     }
 }

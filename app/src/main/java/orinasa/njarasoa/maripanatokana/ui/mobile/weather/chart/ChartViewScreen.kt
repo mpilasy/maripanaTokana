@@ -7,6 +7,9 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.compositionLocalOf
+import androidx.annotation.StringRes
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.foundation.clickable
@@ -211,7 +214,16 @@ private val MOON_GAP = 4.dp
 private val CARD_SHAPE = RoundedCornerShape(20.dp)
 private val CARD_MARGIN = 12.dp
 // The size of the values in the selection card, the height of the line under a value, and the padding of a label
-private val VALUE_SIZE = 13.sp
+// The sizes of the card's values, largest first: a smaller one when a value does not fit its tile on one line
+private val VALUE_SIZES = listOf(13.sp, 12.sp, 11.sp, 10.sp)
+private val LocalValueSize = compositionLocalOf { VALUE_SIZES.first() }
+// The least space on each side of a value in its tile
+private val VALUE_GAP = 4.dp
+// The size of the second unit's line against the first one's (DualUnitText's default)
+private const val SECONDARY_SCALE = 0.75f
+
+/** One line of a card value: its text, its size against the value size, and the width that its pill adds. */
+private data class ValueLine(val text: String, val scale: Float, val extra: Dp)
 private val EXTRA_LINE = 16.dp
 private val LABEL_PADDING = 2.dp
 
@@ -221,7 +233,8 @@ private class TileLabel(val text: String, val size: Float, val lines: Int)
 private val ChartTile.labelRes: Int
     get() = when (this) {
         ChartTile.TEMPERATURE -> R.string.detail_temperature
-        ChartTile.FEELS_LIKE -> R.string.feels_like
+        // The heat index when the view has it (thermalLabel)
+        ChartTile.THERMAL_INDEX -> R.string.detail_wind_chill
         ChartTile.DEW_POINT -> R.string.detail_dewpoint
         ChartTile.PRECIPITATION -> R.string.detail_precipitation
         ChartTile.WIND -> R.string.detail_wind
@@ -263,8 +276,8 @@ private fun ModeDropdown(mode: ChartViewMode, onModeChange: (ChartViewMode) -> U
     }
 }
 
-/** The value of the Feels Like tile: the heat index or the wind chill, in the colour of its line. */
-private class FeelsLike(val temperature: Temperature, val color: Color)
+/** The value of the heat index or wind chill tile, in the colour of its line, with the name of the index. */
+private class ThermalValue(val temperature: Temperature, val color: Color, @StringRes val labelRes: Int)
 
 private class DayExtras(val lows: List<Temperature>, val heatIndex: List<Temperature?>, val windChill: List<Temperature?>)
 
@@ -333,11 +346,12 @@ fun ChartViewScreen(
         )
         indices.map { it?.let(hourlyAirQuality::get) }
     }
-    // The heat index or the wind chill of each hour or day, for the Feels Like tile: the values of the lines in the
-    // temperature panel. A day can have both (a hot high and a cold, windy low): the heat index shows
+    // The heat index or the wind chill of each hour or day, for its tile: the values of the lines in the temperature
+    // panel. A day can have both (a hot high and a cold, windy low): the heat index shows
     val feelsLike = remember(hours, dayExtras) {
         fun of(heat: Temperature?, chill: Temperature?) =
-            heat?.let { FeelsLike(it, ChartStyle.heatIndex) } ?: chill?.let { FeelsLike(it, ChartStyle.windChill) }
+            heat?.let { ThermalValue(it, ChartStyle.heatIndex, R.string.detail_heat_index) }
+                ?: chill?.let { ThermalValue(it, ChartStyle.windChill, R.string.detail_wind_chill) }
         dayExtras?.let { d -> d.heatIndex.indices.map { of(d.heatIndex[it], d.windChill[it]) } } ?: hours.map { h ->
             of(h.temperature?.let { ThermalIndices.heatIndex(it, h.humidity) }, h.temperature?.let { t -> h.windSpeed?.let { ThermalIndices.windChill(t, it) } })
         }
@@ -392,7 +406,9 @@ fun ChartViewScreen(
             }
             hours.getOrNull(selected)?.let { hour ->
                 SelectionHeader(
-                    hour, dayExtras?.lows?.getOrNull(selected), feelsLike.getOrNull(selected), tiles, airQuality.getOrNull(selected), aqiStandard, data.utcOffsetSeconds,
+                    // The tile's name: the index of the selected hour, else the first one of the view
+                    hour, dayExtras?.lows?.getOrNull(selected), feelsLike.getOrNull(selected),
+                    feelsLike.getOrNull(selected)?.labelRes ?: feelsLike.firstNotNullOfOrNull { it?.labelRes } ?: R.string.detail_wind_chill, tiles, airQuality.getOrNull(selected), aqiStandard, data.utcOffsetSeconds,
                     metricPrimary, localizeDigits, onToggleUnits,
                 )
             }
@@ -430,7 +446,7 @@ fun ChartViewScreen(
  */
 @Composable
 private fun SelectionHeader(
-    hour: ChartHour, low: Temperature?, feelsLike: FeelsLike?, tiles: List<ChartTile>, airQuality: HourlyAirQuality?, aqiStandard: AqiStandard, utcOffsetSeconds: Int,
+    hour: ChartHour, low: Temperature?, feelsLike: ThermalValue?, @StringRes thermalLabel: Int, tiles: List<ChartTile>, airQuality: HourlyAirQuality?, aqiStandard: AqiStandard, utcOffsetSeconds: Int,
     metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit,
 ) {
     val appLocale = LocalConfiguration.current.locales[0]
@@ -467,7 +483,7 @@ private fun SelectionHeader(
     @Composable
     fun dual(v: Pair<String, String>?) = DualUnitText(
         primary = v?.let { localizeDigits(it.first) } ?: "–", secondary = v?.let { localizeDigits(it.second) } ?: "\u00A0",
-        primarySize = VALUE_SIZE, horizontalAlignment = Alignment.CenterHorizontally,
+        primarySize = LocalValueSize.current, horizontalAlignment = Alignment.CenterHorizontally,
     )
     // A value in a pill of its colour; it moves up by its padding, so its text lines up with the values next to it
     @Composable
@@ -477,7 +493,28 @@ private fun SelectionHeader(
 
     // A value that the hour does not have
     @Composable
-    fun missing() = Text("–", color = onSurface, fontSize = VALUE_SIZE, fontWeight = FontWeight.Bold, fontFamily = displayFont, style = TextStyle())
+    fun missing() = Text("–", color = onSurface, fontSize = LocalValueSize.current, fontWeight = FontWeight.Bold, fontFamily = displayFont, style = TextStyle())
+
+    // The lines of each tile's value as they show, to fit the value size to the tiles: the pills add their padding
+    val pillPad = 20.dp
+    fun duo(v: Pair<String, String>?, extra: Dp = 0.dp) =
+        v?.let { listOf(ValueLine(localizeDigits(it.first), 1f, extra), ValueLine(localizeDigits(it.second), SECONDARY_SCALE, extra)) }.orEmpty()
+    val valueLines = tiles.map { tile ->
+        when (tile) {
+            ChartTile.TEMPERATURE -> duo(hour.temperature?.displayDual(metricPrimary), pillPad) + duo(low?.displayDual(metricPrimary))
+            ChartTile.THERMAL_INDEX -> duo(feelsLike?.temperature?.displayDual(metricPrimary))
+            ChartTile.DEW_POINT -> duo(hour.dewPoint?.displayDual(metricPrimary))
+            ChartTile.PRECIPITATION -> duo(hour.precipitation?.displayDual(metricPrimary))
+            ChartTile.WIND -> duo(hour.windSpeed?.displayDual(metricPrimary))
+            ChartTile.WIND_GUST -> duo(hour.windGust?.displayDual(metricPrimary))
+            ChartTile.PRESSURE -> duo(hour.pressure?.displayDual(metricPrimary))
+            ChartTile.HUMIDITY -> listOfNotNull(hour.humidity?.let { ValueLine(percent(it), 1f, 0.dp) })
+            ChartTile.UV_INDEX -> listOfNotNull(hour.uvIndex?.takeIf { it.isFinite() }?.let { ValueLine(localizeDigits(it.roundToInt().toString()), 1f, pillPad) })
+            ChartTile.AIR_QUALITY -> listOfNotNull(airQuality?.let {
+                ValueLine(localizeDigits((if (aqiStandard == AqiStandard.EUROPEAN) it.europeanValue else it.usValue).toString()), 1f, pillPad)
+            })
+        }
+    }
 
     val cells = tiles.map<ChartTile, @Composable (Modifier, TileLabel) -> Unit> { tile ->
         when (tile) {
@@ -490,7 +527,7 @@ private fun SelectionHeader(
                         // Dark text on the light colours of the scale, both units at full opacity
                         pill(temperatureColor(t.celsius)) {
                             DualUnitText(
-                                primary = localizeDigits(p), secondary = localizeDigits(s), primarySize = VALUE_SIZE,
+                                primary = localizeDigits(p), secondary = localizeDigits(s), primarySize = LocalValueSize.current,
                                 color = Color(0xFF1A1A1A), secondaryAlpha = 1f, horizontalAlignment = Alignment.CenterHorizontally,
                             )
                         }
@@ -498,19 +535,19 @@ private fun SelectionHeader(
                         low?.let {
                             val (lp, ls) = it.displayDual(metricPrimary)
                             DualUnitText(
-                                primary = localizeDigits(lp), secondary = localizeDigits(ls), primarySize = VALUE_SIZE,
+                                primary = localizeDigits(lp), secondary = localizeDigits(ls), primarySize = LocalValueSize.current,
                                 color = ChartStyle.low, horizontalAlignment = Alignment.CenterHorizontally,
                             )
                         }
                     }
                 }
             }
-            ChartTile.FEELS_LIKE -> { m, l ->
+            ChartTile.THERMAL_INDEX -> { m, l ->
                 Tile(m, l) {
                     if (feelsLike == null) dual(null) else {
                         val (p, s) = feelsLike.temperature.displayDual(metricPrimary)
                         DualUnitText(
-                            primary = localizeDigits(p), secondary = localizeDigits(s), primarySize = VALUE_SIZE,
+                            primary = localizeDigits(p), secondary = localizeDigits(s), primarySize = LocalValueSize.current,
                             color = feelsLike.color, horizontalAlignment = Alignment.CenterHorizontally,
                         )
                     }
@@ -538,7 +575,7 @@ private fun SelectionHeader(
             ChartTile.HUMIDITY -> { m, l ->
                 Tile(m, l) {
                     hour.humidity?.let { h ->
-                        Text(percent(h), color = onSurface, fontSize = VALUE_SIZE, fontWeight = FontWeight.Bold, fontFamily = displayFont, style = TextStyle())
+                        Text(percent(h), color = onSurface, fontSize = LocalValueSize.current, fontWeight = FontWeight.Bold, fontFamily = displayFont, style = TextStyle())
                     } ?: missing()
                 }
             }
@@ -549,7 +586,7 @@ private fun SelectionHeader(
                         val shown = uv.roundToInt()
                         val colors = colorsFor(shown.toDouble())
                         pill(colors.background) {
-                            Text(localizeDigits(shown.toString()), color = colors.text, fontSize = VALUE_SIZE, fontWeight = FontWeight.Bold, fontFamily = displayFont, style = TextStyle())
+                            Text(localizeDigits(shown.toString()), color = colors.text, fontSize = LocalValueSize.current, fontWeight = FontWeight.Bold, fontFamily = displayFont, style = TextStyle())
                         }
                     } ?: missing()
                 }
@@ -561,7 +598,7 @@ private fun SelectionHeader(
                         val primary = if (aqiStandard == AqiStandard.EUROPEAN) aq.europeanValue else aq.usValue
                         val colors = colorsFor(aq.tier(aqiStandard))
                         pill(colors.background) {
-                            Text(localizeDigits(primary.toString()), color = colors.text, fontSize = VALUE_SIZE, fontWeight = FontWeight.Bold, fontFamily = displayFont, style = TextStyle())
+                            Text(localizeDigits(primary.toString()), color = colors.text, fontSize = LocalValueSize.current, fontWeight = FontWeight.Bold, fontFamily = displayFont, style = TextStyle())
                         }
                     } ?: missing()
                 }
@@ -571,7 +608,7 @@ private fun SelectionHeader(
     // The tiles spread evenly on the rows
     val rowSizes = chartTileRows(cells.size)
     val rowStarts = rowSizes.runningFold(0) { start, n -> start + n }
-    val labels = tiles.map { stringResource(it.labelRes) }
+    val labels = tiles.map { stringResource(if (it == ChartTile.THERMAL_INDEX) thermalLabel else it.labelRes) }
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
 
@@ -597,6 +634,27 @@ private fun SelectionHeader(
         BoxWithConstraints(modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 12.dp)) {
             // The width of a label in each tile: the row less its dividers, shared by its tiles, less the label padding
             val rowWidth = constraints.maxWidth.toFloat()
+            // The width of a value in each tile, with VALUE_GAP on each side, so the values of two tiles do not touch
+            val tileWidths = rowSizes.flatMap { n -> with(density) { List(n) { (rowWidth - (n - 1) * 1.dp.toPx()) / n - 2 * VALUE_GAP.toPx() } } }
+            // The values at the largest size of VALUE_SIZES at which each fits on one line in its tile. The size only
+            // goes down while the card shows the same tiles, so it does not jump as the selection moves
+            var valueSize by remember(tiles, rowWidth, metricPrimary, daily) { mutableStateOf(VALUE_SIZES.first()) }
+            val needed = remember(valueLines, tileWidths, displayFont, density) {
+                valueLines.indices.maxOfOrNull { i ->
+                    val widest = valueLines[i].maxOfOrNull { line ->
+                        val style = TextStyle(
+                            fontSize = VALUE_SIZES.first() * line.scale, fontFamily = displayFont,
+                            fontWeight = if (line.scale == 1f) FontWeight.Bold else FontWeight.Normal,
+                        )
+                        measurer.measure(line.text, style, softWrap = false, maxLines = 1, density = density).size.width +
+                            with(density) { line.extra.toPx() }
+                    } ?: 0f
+                    widest / tileWidths[i]
+                } ?: 0f
+            }
+            val fitted = VALUE_SIZES.firstOrNull { needed * it.value / VALUE_SIZES.first().value <= 1f } ?: VALUE_SIZES.last()
+            val shownSize = if (fitted < valueSize) fitted else valueSize
+            SideEffect { if (shownSize < valueSize) valueSize = shownSize }
             val fit = remember(labels, rowWidth, bodyFont, density) {
                 val widths = rowSizes.flatMap { n ->
                     with(density) { List(n) { (rowWidth - (n - 1) * 1.dp.toPx()) / n - 2 * LABEL_PADDING.toPx() } }
@@ -605,7 +663,7 @@ private fun SelectionHeader(
                     measurer.measure(text, labelStyle(size), softWrap = false, maxLines = 1, density = density).size.width.toFloat()
                 }
             }
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            CompositionLocalProvider(LocalValueSize provides shownSize) { Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 rowSizes.forEachIndexed { r, n ->
                     // The labels of a row take as many lines as the longest one, so the values line up
                     val start = rowStarts[r]
@@ -623,7 +681,7 @@ private fun SelectionHeader(
                         }
                     }
                 }
-            }
+            } }
         }
     }
 }
