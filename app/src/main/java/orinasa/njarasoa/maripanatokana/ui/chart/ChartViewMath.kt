@@ -252,15 +252,17 @@ fun chartDays(days: List<DailyForecast>, hours: List<ChartHour>, utcOffsetSec: I
 }
 
 /** The value tiles of the selection card, in their order. */
-enum class ChartTile { TEMPERATURE, DEW_POINT, PRECIPITATION, WIND, WIND_GUST, PRESSURE, HUMIDITY, UV_INDEX, AIR_QUALITY }
+enum class ChartTile { TEMPERATURE, FEELS_LIKE, DEW_POINT, PRECIPITATION, WIND, WIND_GUST, PRESSURE, HUMIDITY, UV_INDEX, AIR_QUALITY }
 
 /**
  * The tiles of the selection card: each value that at least one of [hours] has. The card keeps these tiles for every
  * hour (an hour without the value shows a dash), so it keeps the same size when the selection moves.
+ * [hasFeelsLike]: an hour has a heat index or a wind chill.
  */
-fun chartTiles(hours: List<ChartHour>, hasAirQuality: Boolean): List<ChartTile> = ChartTile.entries.filter { tile ->
+fun chartTiles(hours: List<ChartHour>, hasAirQuality: Boolean, hasFeelsLike: Boolean): List<ChartTile> = ChartTile.entries.filter { tile ->
     when (tile) {
         ChartTile.TEMPERATURE -> hours.any { it.temperature != null }
+        ChartTile.FEELS_LIKE -> hasFeelsLike
         ChartTile.DEW_POINT -> hours.any { it.dewPoint != null }
         ChartTile.PRECIPITATION -> hours.any { it.precipitation != null }
         ChartTile.WIND -> hours.any { it.windSpeed != null }

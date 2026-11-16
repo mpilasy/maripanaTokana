@@ -6,6 +6,14 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.AbsoluteAlignment
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.Row
 import androidx.compose.ui.Alignment
 import orinasa.njarasoa.maripanatokana.ui.mobile.weather.ShowAllChevron
@@ -118,6 +126,39 @@ internal fun LanguageFlagButton(
         }
     }
 }
+
+/**
+ * The language flag in a round button over the bottom right corner of a page, in every text direction, as in the
+ * main screen's footer; it takes no height from the page. The page keeps [FLOATING_FLAG_ROOM] under its content, so
+ * the end of the content can scroll out from under it.
+ */
+@Composable
+internal fun BoxScope.FloatingLanguageButton(flag: String, onCycleLanguage: () -> Unit, onSelectLanguage: (Int) -> Unit) {
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+        Box(
+            modifier = Modifier
+                .align(AbsoluteAlignment.BottomRight)
+                .navigationBarsPadding()
+                .padding(16.dp)
+                .clip(RoundedCornerShape(50))
+                .background(Color(0xB30E0B3D))
+                .border(1.dp, Hairline, RoundedCornerShape(50))
+                .padding(horizontal = 4.dp),
+        ) {
+            LanguageFlagButton(
+                flag = flag,
+                fontSize = 18.sp,
+                padding = PaddingValues(start = 10.dp, end = 2.dp, top = 3.dp, bottom = 3.dp),
+                onCycleLanguage = onCycleLanguage,
+                onSelectLanguage = onSelectLanguage,
+                footer = true,
+            )
+        }
+    }
+}
+
+/** The room under a page's content for [FloatingLanguageButton]: its height and its margin. */
+internal val FLOATING_FLAG_ROOM = 80.dp
 
 /**
  * The font button's list: holding the button lists every font pairing to pick one, each name in its own

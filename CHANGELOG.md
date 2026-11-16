@@ -11,6 +11,10 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+- Phone and web: the chart view card has a "Feels Like" tile with the wind chill or the heat index, in the colour of its line in the chart. In the daily mode, it shows the day's value.
+- Phone: in the hourly mode, the chart view card no longer shows a dash under the temperature.
+- Phone and web: the chart view, Settings, Help and About have the language flag in a round button at the bottom right of the screen. It stays on the right in Arabic. A tap shows the next language, and the arrow shows the list.
+
 ## [1.7.20261115185851] - 2026-11-15
 
 - Phone and web: "Changed since yesterday" shows the full day name, for example "Saturday: more rain". The day labels above the hours on the chart view also show the full name when it fits.

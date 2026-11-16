@@ -310,16 +310,18 @@ export function chartDays(days: DailyForecast[], hours: ChartHour[], utcOffsetSe
 }
 
 /** The value tiles of the selection card, in their order. */
-export const CHART_TILES = ['temperature', 'dewPoint', 'precipitation', 'wind', 'windGust', 'pressure', 'humidity', 'uvIndex', 'airQuality'] as const;
+export const CHART_TILES = ['temperature', 'feelsLike', 'dewPoint', 'precipitation', 'wind', 'windGust', 'pressure', 'humidity', 'uvIndex', 'airQuality'] as const;
 export type ChartTile = (typeof CHART_TILES)[number];
 
 /**
  * The tiles of the selection card: each value that at least one of `hours` has. The card keeps these tiles for every
  * hour (an hour without the value shows a dash), so it keeps the same size when the selection moves.
+ * `hasFeelsLike`: an hour has a heat index or a wind chill.
  */
-export function chartTiles(hours: ChartHour[], hasAirQuality: boolean): ChartTile[] {
+export function chartTiles(hours: ChartHour[], hasAirQuality: boolean, hasFeelsLike: boolean): ChartTile[] {
 	const has: Record<ChartTile, () => boolean> = {
 		temperature: () => hours.some((h) => h.temperature != null),
+		feelsLike: () => hasFeelsLike,
 		dewPoint: () => hours.some((h) => h.dewPoint != null),
 		precipitation: () => hours.some((h) => h.precipitation != null),
 		wind: () => hours.some((h) => h.windSpeed != null),

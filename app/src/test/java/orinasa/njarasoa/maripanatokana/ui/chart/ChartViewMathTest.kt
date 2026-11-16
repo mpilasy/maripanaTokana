@@ -389,12 +389,16 @@ class ChartViewMathTest {
     @Test
     fun chartTilesKeepsEachValueThatOneHourHas() {
         val hours = listOf(chartHour(0), chartHour(hour).copy(windGust = WindSpeed.fromMetersPerSecond(5.0), uvIndex = Double.NaN))
-        assertEquals(listOf(ChartTile.TEMPERATURE, ChartTile.WIND_GUST, ChartTile.HUMIDITY), chartTiles(hours, hasAirQuality = false))
+        assertEquals(listOf(ChartTile.TEMPERATURE, ChartTile.WIND_GUST, ChartTile.HUMIDITY), chartTiles(hours, hasAirQuality = false, hasFeelsLike = false))
         assertEquals(
             listOf(ChartTile.TEMPERATURE, ChartTile.WIND_GUST, ChartTile.HUMIDITY, ChartTile.AIR_QUALITY),
-            chartTiles(hours, hasAirQuality = true),
+            chartTiles(hours, hasAirQuality = true, hasFeelsLike = false),
         )
-        assertTrue(chartTiles(emptyList(), hasAirQuality = false).isEmpty())
+        assertEquals(
+            listOf(ChartTile.TEMPERATURE, ChartTile.FEELS_LIKE, ChartTile.WIND_GUST, ChartTile.HUMIDITY),
+            chartTiles(hours, hasAirQuality = false, hasFeelsLike = true),
+        )
+        assertTrue(chartTiles(emptyList(), hasAirQuality = false, hasFeelsLike = false).isEmpty())
     }
 
     // chartLabelFit

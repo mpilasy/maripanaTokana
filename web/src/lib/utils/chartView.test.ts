@@ -294,9 +294,10 @@ describe('chartTiles', () => {
 	});
 	it('keeps each value that one hour has', () => {
 		const list = [hour(T0), { ...hour(T0 + HOUR), windGust: WindSpeed.fromMetersPerSecond(5), uvIndex: NaN }];
-		expect(chartTiles(list, false)).toEqual(['temperature', 'windGust', 'humidity']);
-		expect(chartTiles(list, true)).toEqual(['temperature', 'windGust', 'humidity', 'airQuality']);
-		expect(chartTiles([], false)).toEqual([]);
+		expect(chartTiles(list, false, false)).toEqual(['temperature', 'windGust', 'humidity']);
+		expect(chartTiles(list, true, false)).toEqual(['temperature', 'windGust', 'humidity', 'airQuality']);
+		expect(chartTiles(list, false, true)).toEqual(['temperature', 'feelsLike', 'windGust', 'humidity']);
+		expect(chartTiles([], false, false)).toEqual([]);
 	});
 });
 
