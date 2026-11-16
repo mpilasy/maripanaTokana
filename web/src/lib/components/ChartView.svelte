@@ -758,7 +758,7 @@
 	}
 </script>
 
-<SettingsPage title={placeName.trim() || $_('chart_view_title')} subtitle={placeName.trim() ? $_('chart_view_title') : undefined} stacked {onBack} {languageFlag} {onCycleLanguage}>
+<SettingsPage title={placeName.trim() || $_('chart_view_title')} subtitle={placeName.trim() ? $_('chart_view_title') : undefined} stacked pinned {onBack} {languageFlag} {onCycleLanguage}>
 
 	<!-- Hours or days, when the place has both: after the title, in a list that opens under it, so it takes no width
 	     from the place name and no row from the charts -->
@@ -820,6 +820,8 @@
 	</button>
 	<span id="chart-units-hint" hidden>{$_('cd_toggle_units')}</span>
 
+	<!-- Only the charts scroll: the title and the card above stay in view, as on Android -->
+	<div class="chart-scroll">
 	<!-- Time runs left to right in every language, with the axis column on the left -->
 	<div class="card chart-card">
 	<div
@@ -1070,6 +1072,7 @@
 		</div>
 	</div>
 	</div>
+	</div>
 </SettingsPage>
 
 <style>
@@ -1085,6 +1088,7 @@
 	}
 
 	.selection {
+		flex-shrink: 0;
 		width: calc(100% + 8px);
 		margin-bottom: 8px;
 		padding: 0;
@@ -1219,6 +1223,21 @@
 		font-size: 0.8em;
 		font-weight: 500;
 		opacity: 0.7;
+	}
+
+	/* The part of the page that scrolls, under the card; the room at its end lets the last panel scroll out from under
+	   the language button */
+	.chart-scroll {
+		flex: 1;
+		min-height: 0;
+		overflow-y: auto;
+		scrollbar-width: none;
+		margin: 0 -16px;
+		padding: 0 16px calc(64px + env(safe-area-inset-bottom));
+	}
+
+	.chart-scroll::-webkit-scrollbar {
+		display: none;
 	}
 
 	.mode-sep {
