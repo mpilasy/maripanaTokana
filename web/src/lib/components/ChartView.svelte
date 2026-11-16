@@ -5,7 +5,7 @@
 	import SettingsPage from './SettingsPage.svelte';
 	import WeatherIcon from './WeatherIcon.svelte';
 	import DualUnitText from './DualUnitText.svelte';
-	import ForecastTabs from './ForecastTabs.svelte';
+	import PickerMenu from './PickerMenu.svelte';
 	import { tick } from 'svelte';
 	import type { ChartHour, DailyForecast, HourlyAirQuality } from '#lib/domain/weatherData.js';
 	import type { Temperature } from '#lib/domain/temperature.js';
@@ -57,6 +57,8 @@
 
 	let { hours, dailyForecast, mode = $bindable(), utcOffsetSeconds, southern, placeName, metricPrimary, localeTag, hourlyAirQuality, aqiStandard, loc, onToggleUnits, languageFlag, onCycleLanguage, onBack }: Props = $props();
 	let daily = $derived(mode === 'daily');
+	// The list of the modes, under the mode after the title
+	let modeOpen = $state(false);
 
 	// Sizes in px, the same as on Android: the axis column, the gap between panels, the title line,
 	// the room above the wind line for the direction arrows, the room above and under the temperature
@@ -721,12 +723,21 @@
 
 <SettingsPage title={placeName.trim() || $_('chart_view_title')} subtitle={placeName.trim() ? $_('chart_view_title') : undefined} stacked {onBack} {languageFlag} {onCycleLanguage}>
 
-	<!-- Hours or days, when the place has both -->
-	{#if dailyForecast.length > 0}
-		<div class="mode-tabs">
-			<ForecastTabs tabs={[{ id: 'hourly', label: $_('chart_view_hourly') }, { id: 'daily', label: $_('chart_view_daily') }]} selected={mode} onSelect={(id) => setMode(id as ChartViewMode)} />
-		</div>
-	{/if}
+	<!-- Hours or days, when the place has both: after the title, in a list that opens under it, so it takes no width
+	     from the place name and no row from the charts -->
+	{#snippet subtitleEnd()}
+		{#if dailyForecast.length > 0}
+			{#if placeName.trim()}<span class="mode-sep" aria-hidden="true">·</span>{/if}
+			<span class="mode-box">
+				<button type="button" class="mode-btn touch-target" aria-haspopup="listbox" aria-expanded={modeOpen} onclick={(e) => { e.stopPropagation(); modeOpen = !modeOpen; }}>
+					{daily ? $_('chart_view_daily') : $_('chart_view_hourly')}
+					<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+				</button>
+				<PickerMenu bind:open={modeOpen} items={[{ label: $_('chart_view_hourly') }, { label: $_('chart_view_daily') }]} current={daily ? 1 : 0}
+					onSelect={(i) => setMode(i === 1 ? 'daily' : 'hourly')} alignStart />
+			</span>
+		{/if}
+	{/snippet}
 
 	<!-- The selected hour's values; a screen reader reads them again when the selection moves, a tap swaps the units -->
 	<button type="button" class="card selection" onclick={onToggleUnits} aria-describedby="chart-units-hint">
@@ -1173,8 +1184,32 @@
 		opacity: 0.7;
 	}
 
-	.mode-tabs {
-		margin-bottom: 8px;
+	.mode-sep {
+		color: rgba(255, 255, 255, 0.6);
+		font-size: 0.875rem;
+	}
+
+	.mode-box {
+		position: relative;
+		display: flex;
+	}
+
+	.mode-btn {
+		display: flex;
+		align-items: center;
+		padding: 0;
+		border: none;
+		background: none;
+		color: white;
+		font-family: var(--font-body);
+		font-size: 0.875rem;
+		font-weight: 600;
+		white-space: nowrap;
+		cursor: pointer;
+	}
+
+	.mode-btn svg {
+		opacity: 0.7;
 	}
 
 	.chart-card {

@@ -184,6 +184,20 @@ internal fun FontPicker(currentIndex: Int, onSelectFont: (Int) -> Unit, onDismis
     )
 }
 
+/** A short list of [labels] to pick one, in the look of the font list. Put it in a Box around its button. */
+@Composable
+internal fun LabelPicker(labels: List<String>, currentIndex: Int, onSelect: (Int) -> Unit, onDismiss: () -> Unit) {
+    PickerPopup(
+        count = labels.size,
+        currentIndex = currentIndex,
+        alignEnd = false,
+        onDismiss = onDismiss,
+        onSelect = onSelect,
+        leading = null,
+        label = { i, current -> PickerLabel(labels[i], current) },
+    )
+}
+
 @Composable
 private fun PickerLabel(text: String, current: Boolean) {
     Text(

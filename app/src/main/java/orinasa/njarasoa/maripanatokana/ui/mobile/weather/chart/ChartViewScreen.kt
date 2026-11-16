@@ -7,6 +7,8 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.animateScrollBy
@@ -134,7 +136,8 @@ import orinasa.njarasoa.maripanatokana.ui.common.uses24HourClock
 import orinasa.njarasoa.maripanatokana.ui.mobile.weather.glass
 import orinasa.njarasoa.maripanatokana.ui.common.components.colorsFor
 import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.computeMonotoneCubicControlPoints
-import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.ForecastTabs
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.LabelPicker
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.TouchTarget
 import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.FloatingLanguageButton
 import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.FLOATING_FLAG_ROOM
 import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.dualLabel
@@ -236,6 +239,30 @@ enum class ChartViewMode { HOURLY, DAILY }
  * The values of the daily mode that a day as an hour (chartDays) does not hold: the low of each day, the heat index of
  * the high and the wind chill of the low.
  */
+/** The mode with an arrow; a tap lists the hours and the days to pick one. */
+@Composable
+private fun ModeDropdown(mode: ChartViewMode, onModeChange: (ChartViewMode) -> Unit) {
+    val modes = listOf(
+        ChartViewMode.HOURLY to stringResource(R.string.chart_view_hourly),
+        ChartViewMode.DAILY to stringResource(R.string.chart_view_daily),
+    )
+    val current = modes.indexOfFirst { it.first == mode }
+    val onSurface = MaterialTheme.colorScheme.onSurface
+    var open by remember { mutableStateOf(false) }
+    Box {
+        TouchTarget(Modifier.clip(RoundedCornerShape(50)).clickable(role = Role.DropdownList) { open = true }) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    modes[current].second, color = onSurface, fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
+                    fontFamily = LocalBodyFont.current, maxLines = 1,
+                )
+                Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = onSurface.copy(alpha = 0.7f), modifier = Modifier.size(18.dp))
+            }
+        }
+        if (open) LabelPicker(modes.map { it.second }, current, onSelect = { onModeChange(modes[it].first) }, onDismiss = { open = false })
+    }
+}
+
 /** The value of the Feels Like tile: the heat index or the wind chill, in the colour of its line. */
 private class FeelsLike(val temperature: Temperature, val color: Color)
 
@@ -350,21 +377,19 @@ fun ChartViewScreen(
                         name, color = onSurface, fontSize = 30.sp, lineHeight = 36.sp, fontWeight = FontWeight.Bold,
                         fontFamily = displayFont, maxLines = 1, overflow = TextOverflow.Ellipsis,
                     )
-                    if (data.locationName.isNotBlank()) {
-                        Text(title, color = onSurface.copy(alpha = 0.6f), fontSize = 14.sp, fontFamily = bodyFont, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    // The title, then the hours or the days in a list that opens under it: it takes no width from the
+                    // place name and no row from the charts
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (data.locationName.isNotBlank()) {
+                            Text(
+                                "$title · ", color = onSurface.copy(alpha = 0.6f), fontSize = 14.sp, fontFamily = bodyFont,
+                                maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false),
+                            )
+                        }
+                        ModeDropdown(mode, onModeChange)
                     }
                 }
             }
-            // The switch between the hours and the days
-            ForecastTabs(
-                tabs = listOf(
-                    ChartViewMode.HOURLY to stringResource(R.string.chart_view_hourly),
-                    ChartViewMode.DAILY to stringResource(R.string.chart_view_daily),
-                ),
-                selected = mode,
-                onSelect = onModeChange,
-                modifier = Modifier.padding(start = CARD_MARGIN, end = CARD_MARGIN, top = 4.dp),
-            )
             hours.getOrNull(selected)?.let { hour ->
                 SelectionHeader(
                     hour, dayExtras?.lows?.getOrNull(selected), feelsLike.getOrNull(selected), tiles, airQuality.getOrNull(selected), aqiStandard, data.utcOffsetSeconds,

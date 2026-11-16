@@ -25,9 +25,11 @@
 		onCycleLanguage?: () => void;
 		/** The title as a large line (as the place name on the main screen) with the subtitle under it, instead of side by side. */
 		stacked?: boolean;
+		/** With `stacked`: a control after the subtitle, on the same line. */
+		subtitleEnd?: Snippet;
 	}
 
-	let { title, subtitle, onBack, children, languageFlag, onCycleLanguage, stacked = false }: Props = $props();
+	let { title, subtitle, onBack, children, languageFlag, onCycleLanguage, stacked = false, subtitleEnd }: Props = $props();
 
 	const id = Symbol();
 	onMount(() => {
@@ -55,8 +57,11 @@
 		{#if stacked}
 			<div class="titles">
 				<h2>{title}</h2>
-				{#if subtitle}
-					<span class="subtitle">{subtitle}</span>
+				{#if subtitle || subtitleEnd}
+					<span class="subtitle-row">
+						{#if subtitle}<span class="subtitle">{subtitle}</span>{/if}
+						{@render subtitleEnd?.()}
+					</span>
 				{/if}
 			</div>
 		{:else}
@@ -161,6 +166,13 @@
 	.titles {
 		display: flex;
 		flex-direction: column;
+		min-width: 0;
+	}
+
+	.subtitle-row {
+		display: flex;
+		align-items: center;
+		gap: 4px;
 		min-width: 0;
 	}
 
