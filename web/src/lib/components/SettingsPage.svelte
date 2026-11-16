@@ -27,9 +27,11 @@
 		stacked?: boolean;
 		/** With `stacked`: a control after the subtitle, on the same line. */
 		subtitleEnd?: Snippet;
+		/** The page does not scroll: its children stack under the header, and a child with its own scroll fills the rest. */
+		pinned?: boolean;
 	}
 
-	let { title, subtitle, onBack, children, languageFlag, onCycleLanguage, stacked = false, subtitleEnd }: Props = $props();
+	let { title, subtitle, onBack, children, languageFlag, onCycleLanguage, stacked = false, subtitleEnd, pinned = false }: Props = $props();
 
 	const id = Symbol();
 	onMount(() => {
@@ -47,7 +49,7 @@
 
 <svelte:window onkeydown={handleKey} />
 
-<div class="page" class:with-flag={languageFlag && onCycleLanguage}>
+<div class="page" class:with-flag={languageFlag && onCycleLanguage} class:pinned>
 	<header>
 		<button class="back-btn" onclick={onBack} aria-label={$_('settings_back')}>
 			<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
@@ -194,6 +196,14 @@
 	   so the end of the content can scroll out from under it */
 	.page.with-flag {
 		padding-bottom: calc(64px + env(safe-area-inset-bottom));
+	}
+
+	/* After .with-flag: the child that scrolls keeps the room for the flag */
+	.page.pinned {
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		padding-bottom: 0;
 	}
 
 	.flag-dock {
