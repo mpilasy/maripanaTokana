@@ -11,6 +11,8 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.7.20261116164548] - 2026-11-16
+
 - Phone and web: on the chart view, the Hourly and Daily buttons are now a list after "Chart view", under the place name. Tap "Hourly" or "Daily" to change. The charts get the row that the buttons used.
 
 ## [1.7.20261116163154] - 2026-11-16

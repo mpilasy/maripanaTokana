@@ -28,8 +28,8 @@ android {
         applicationId = "orinasa.njarasoa.maripanatokana"
         minSdk = 24
         targetSdk = 36
-        versionCode = 191
-        versionName = "1.7.20261116163154"
+        versionCode = 192
+        versionName = "1.7.20261116164548"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         // Always 7 characters. "--short" gives more on a clone with more objects (F-Droid's), and then the APKs do not match.
