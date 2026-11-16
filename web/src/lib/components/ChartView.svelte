@@ -529,21 +529,24 @@
 		/** The tile has a line under the value, which keeps its height when it is empty. */
 		extraLine?: boolean;
 	}
-	// The tiles of the chart, the same for every hour, so the card keeps its size when the selection moves
-	// The heat index or the wind chill of each hour or day, for the Feels Like tile: the values of the lines in the
-	// temperature panel. A day can have both (a hot high and a cold, windy low): the heat index shows
+	// The heat index or the wind chill of each hour or day, for its tile: the values of the lines in the temperature
+	// panel, with the name of the index. A day can have both (a hot high and a cold, windy low): the heat index shows
 	const feelsLikeOf = (heat: Temperature | null, chill: Temperature | null) =>
-		heat ? { temperature: heat, color: ChartStyle.heatIndex } : chill ? { temperature: chill, color: ChartStyle.windChill } : null;
+		heat ? { temperature: heat, color: ChartStyle.heatIndex, labelKey: 'detail_heat_index' }
+			: chill ? { temperature: chill, color: ChartStyle.windChill, labelKey: 'detail_wind_chill' } : null;
 	let feelsLike = $derived(daily
 		? dailyForecast.map((d) => feelsLikeOf(dailyHeatIndex(d), dailyWindChill(d)))
 		: shown.map((h) => feelsLikeOf(h.temperature ? heatIndex(h.temperature, h.humidity) : null, h.temperature && h.windSpeed ? windChill(h.temperature, h.windSpeed) : null)));
+	// The tiles of the chart, the same for every hour, so the card keeps its size when the selection moves
 	let tiles = $derived(chartTiles(shown, hasAirQuality, feelsLike.some((f) => f != null)));
+	// The name of the index tile: the index of the selected hour, else the first one of the view
+	let thermalLabelKey = $derived(feelsLike[selectedIndex]?.labelKey ?? feelsLike.find((f) => f != null)?.labelKey ?? 'detail_wind_chill');
 	const TILE_LABEL_KEYS: Record<ChartTile, string> = {
-		temperature: 'detail_temperature', feelsLike: 'feels_like', dewPoint: 'detail_dewpoint', precipitation: 'detail_precipitation', wind: 'detail_wind',
+		temperature: 'detail_temperature', thermalIndex: 'detail_wind_chill', dewPoint: 'detail_dewpoint', precipitation: 'detail_precipitation', wind: 'detail_wind',
 		windGust: 'detail_wind_gust', pressure: 'detail_pressure', humidity: 'detail_humidity', uvIndex: 'detail_uv_index',
 		airQuality: 'detail_air_quality',
 	};
-	let labels = $derived(tiles.map((tile) => $_(TILE_LABEL_KEYS[tile])));
+	let labels = $derived(tiles.map((tile) => $_(tile === 'thermalIndex' ? thermalLabelKey : TILE_LABEL_KEYS[tile])));
 	// The label size of the card (chartLabelFit), measured with the font of the labels. The strips share their rows
 	// with their cells (subgrid), so the values line up when a label takes 2 lines
 	let rowsEl = $state<HTMLElement | null>(null);
@@ -580,7 +583,7 @@
 					const low = daily ? dual(dailyForecast[selectedIndex]?.tempMin.displayDual(metricPrimary)) : undefined;
 					return { dual: dual(h.temperature?.displayDual(metricPrimary)), pill: h.temperature ? { background: temperatureColor(h.temperature.celsius), color: '#1A1A1A' } : undefined, low, extraLine: daily };
 				}
-				case 'feelsLike': {
+				case 'thermalIndex': {
 					const f = feelsLike[selectedIndex];
 					return { dual: dual(f?.temperature.displayDual(metricPrimary)), color: f?.color };
 				}
@@ -615,6 +618,40 @@
 		const cells = values.map((v, i): Cell => ({ ...v, label: labels[i] }));
 		let start = 0;
 		return chartTileRows(cells.length).map((size) => cells.slice(start, (start += size)));
+	});
+
+	// The values at the largest of VALUE_SIZES (px) at which each fits on one line in its cell, measured with the font
+	// of the values; the pills add their padding. The size only goes down while the card shows the same tiles, so it
+	// does not jump as the selection moves
+	const VALUE_SIZES = [13, 12, 11, 10];
+	// The least space on each side of a value in its cell (px)
+	const VALUE_GAP = 4;
+	let valueFit = $derived.by(() => {
+		void fontsReady;
+		const context = rowsEl ? document.createElement('canvas').getContext('2d') : null;
+		if (!rowsEl || !context || rowsWidth <= 0) return VALUE_SIZES[0];
+		const style = getComputedStyle(rowsEl);
+		const family = style.getPropertyValue('--font-display').trim() || style.fontFamily;
+		const width = (text: string, size: number, bold: boolean) => {
+			context.font = `${bold ? 700 : 400} ${size}px ${family}`;
+			return context.measureText(text).width;
+		};
+		const content = rowsWidth - 2 * 12;
+		// The width of a value in each cell, with VALUE_GAP on each side, so the values of two cells do not touch
+		const widths = chartTileRows(labels.length).flatMap((n) => Array<number>(n).fill(content / n - 2 * VALUE_GAP));
+		const base = VALUE_SIZES[0];
+		const needed = rows.flat().reduce((most, c, i) => {
+			const pad = c.pill ? 20 : 0;
+			const lines = c.dual ? [width(c.dual[0], base, true), width(c.dual[1], base * 0.75, false)] : c.text ? [width(c.text, base, true)] : [];
+			return Math.max(most, ...lines.map((w) => (w + pad) / widths[i]));
+		}, 0);
+		return VALUE_SIZES.find((size) => (needed * size) / base <= 1) ?? VALUE_SIZES[VALUE_SIZES.length - 1];
+	});
+	let valueKey = $derived(`${tiles.join()}|${metricPrimary}|${daily}|${rowsWidth}`);
+	let valueFloor = $state({ key: '', size: VALUE_SIZES[0] });
+	let valueSize = $derived(valueFloor.key === valueKey ? Math.min(valueFloor.size, valueFit) : valueFit);
+	$effect(() => {
+		if (valueFloor.key !== valueKey || valueSize < valueFloor.size) valueFloor = { key: valueKey, size: valueSize };
 	});
 
 	/** The colours of an air quality level on a pill: dark text on the light colours, as on Android. */
@@ -756,13 +793,13 @@
 									{#if c.dual}
 										{#if c.pill}
 											<span class="pill sel-temp" style:background={c.pill.background}>
-												<DualUnitText primary={c.dual[0]} secondary={c.dual[1]} primarySize="0.8125rem" align="center" />
+												<DualUnitText primary={c.dual[0]} secondary={c.dual[1]} primarySize="{valueSize}px" align="center" />
 											</span>
 										{:else}
-											<DualUnitText primary={c.dual[0]} secondary={c.dual[1]} primarySize="0.8125rem" align="center" color={c.color} />
+											<DualUnitText primary={c.dual[0]} secondary={c.dual[1]} primarySize="{valueSize}px" align="center" color={c.color} />
 										{/if}
 									{:else if c.text}
-										<bdi dir="ltr" class="sel-text" class:pill={c.pill} style:background={c.pill?.background} style:color={c.pill?.color}>{c.text}</bdi>
+										<bdi dir="ltr" class="sel-text" style:font-size="{valueSize}px" class:pill={c.pill} style:background={c.pill?.background} style:color={c.pill?.color}>{c.text}</bdi>
 									{/if}
 									{#if c.chance}
 										<span class="sel-sub sel-chance">
