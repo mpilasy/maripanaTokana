@@ -11,6 +11,8 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.7.20261116170621] - 2026-11-16
+
 - Phone and web: on the chart view card, the "Feels Like" tile is now named "Wind Chill" or "Heat Index", as in the chart. It shows a dash at an hour when the index is not felt much.
 - Phone and web: on small screens, the values on the chart view card get smaller when one does not fit, for example a pressure of 1025 hPa. They stay on one line.
 
