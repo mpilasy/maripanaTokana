@@ -8,10 +8,7 @@
 <script lang="ts">
 	import { onMount, type Snippet } from 'svelte';
 	import { _ } from 'svelte-i18n';
-	import { longPress } from '#lib/actions/longPress.js';
-	import PickerMenu from './PickerMenu.svelte';
-	import { SUPPORTED_LOCALES } from '#lib/i18n/locales.js';
-	import { localeIndex, selectLanguage } from '#lib/stores/preferences.js';
+	import LanguageFlagButton from './LanguageFlagButton.svelte';
 
 	/** Shared shell for Settings-style pages: gradient + Blue Marble background, back header, scrolling body. */
 	interface Props {
@@ -20,7 +17,10 @@
 		subtitle?: string;
 		onBack: () => void;
 		children: Snippet;
-		/** The language flag at the top, as in the main screen's footer: a tap shows the next language, holding it lists them. */
+		/**
+		 * The language flag in a round button over the bottom right corner, as in the main screen's footer (also in
+		 * right-to-left languages); it takes no height from the page.
+		 */
 		languageFlag?: string;
 		onCycleLanguage?: () => void;
 		/** The title as a large line (as the place name on the main screen) with the subtitle under it, instead of side by side. */
@@ -28,9 +28,6 @@
 	}
 
 	let { title, subtitle, onBack, children, languageFlag, onCycleLanguage, stacked = false }: Props = $props();
-
-	let pickerOpen = $state(false);
-	const languageItems = SUPPORTED_LOCALES.map((l) => ({ lead: l.flag, label: l.name, lang: l.tag }));
 
 	const id = Symbol();
 	onMount(() => {
@@ -48,7 +45,7 @@
 
 <svelte:window onkeydown={handleKey} />
 
-<div class="page">
+<div class="page" class:with-flag={languageFlag && onCycleLanguage}>
 	<header>
 		<button class="back-btn" onclick={onBack} aria-label={$_('settings_back')}>
 			<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
@@ -68,14 +65,13 @@
 				<span class="subtitle">{subtitle}</span>
 			{/if}
 		{/if}
-		{#if languageFlag && onCycleLanguage}
-			<span class="flag-box">
-				<button type="button" class="page-flag" onclick={onCycleLanguage} use:longPress={() => (pickerOpen = true)} aria-label={$_('cd_change_language')}>{languageFlag}</button>
-				<PickerMenu bind:open={pickerOpen} items={languageItems} current={$localeIndex} onSelect={selectLanguage} />
-			</span>
-		{/if}
 	</header>
 	{@render children()}
+	{#if languageFlag && onCycleLanguage}
+		<div class="flag-dock" dir="ltr">
+			<LanguageFlagButton flag={languageFlag} {onCycleLanguage} />
+		</div>
+	{/if}
 </div>
 
 <style>
@@ -182,26 +178,24 @@
 		color: rgba(255, 255, 255, 0.6);
 	}
 
-	/* Shared building blocks for pages rendered inside this shell */
-	.flag-box {
-		position: relative;
-		margin-inline-start: auto;
+	/* The flag at the bottom right of the screen, whatever the text direction. The page keeps room under its content,
+	   so the end of the content can scroll out from under it */
+	.page.with-flag {
+		padding-bottom: calc(64px + env(safe-area-inset-bottom));
 	}
 
-	.page-flag {
-		padding: 6px 10px;
-		border: none;
+	.flag-dock {
+		position: fixed;
+		z-index: 2;
+		right: 16px;
+		bottom: max(16px, env(safe-area-inset-bottom));
+		padding: 4px;
+		border: 1px solid var(--hairline);
 		border-radius: 999px;
-		background: none;
-		font-size: 1.375rem;
-		line-height: 1;
-		cursor: pointer;
+		background: rgba(14, 11, 61, 0.7);
 	}
 
-	.page-flag:hover {
-		background: var(--surface-tile);
-	}
-
+	/* Shared building blocks for pages rendered inside this shell */
 	.page :global(.section) {
 		margin-bottom: 24px;
 	}

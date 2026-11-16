@@ -135,6 +135,8 @@ import orinasa.njarasoa.maripanatokana.ui.mobile.weather.glass
 import orinasa.njarasoa.maripanatokana.ui.common.components.colorsFor
 import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.computeMonotoneCubicControlPoints
 import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.ForecastTabs
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.FloatingLanguageButton
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.FLOATING_FLAG_ROOM
 import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.dualLabel
 import orinasa.njarasoa.maripanatokana.ui.common.components.weatherIconRes
 import kotlinx.coroutines.launch
@@ -216,6 +218,7 @@ private class TileLabel(val text: String, val size: Float, val lines: Int)
 private val ChartTile.labelRes: Int
     get() = when (this) {
         ChartTile.TEMPERATURE -> R.string.detail_temperature
+        ChartTile.FEELS_LIKE -> R.string.feels_like
         ChartTile.DEW_POINT -> R.string.detail_dewpoint
         ChartTile.PRECIPITATION -> R.string.detail_precipitation
         ChartTile.WIND -> R.string.detail_wind
@@ -233,6 +236,9 @@ enum class ChartViewMode { HOURLY, DAILY }
  * The values of the daily mode that a day as an hour (chartDays) does not hold: the low of each day, the heat index of
  * the high and the wind chill of the low.
  */
+/** The value of the Feels Like tile: the heat index or the wind chill, in the colour of its line. */
+private class FeelsLike(val temperature: Temperature, val color: Color)
+
 private class DayExtras(val lows: List<Temperature>, val heatIndex: List<Temperature?>, val windChill: List<Temperature?>)
 
 /** The values of one hour (or day, with [days]) in the primary unit, as the charts draw them. */
@@ -272,6 +278,9 @@ fun ChartViewScreen(
     localizeDigits: (String) -> String,
     onModeChange: (ChartViewMode) -> Unit,
     onToggleUnits: () -> Unit,
+    languageFlag: String,
+    onCycleLanguage: () -> Unit,
+    onSelectLanguage: (Int) -> Unit,
     onBack: () -> Unit,
 ) {
     BackHandler(onBack = onBack)
@@ -297,7 +306,16 @@ fun ChartViewScreen(
         )
         indices.map { it?.let(hourlyAirQuality::get) }
     }
-    val tiles = remember(hours, airQuality) { chartTiles(hours, airQuality.any { it != null }) }
+    // The heat index or the wind chill of each hour or day, for the Feels Like tile: the values of the lines in the
+    // temperature panel. A day can have both (a hot high and a cold, windy low): the heat index shows
+    val feelsLike = remember(hours, dayExtras) {
+        fun of(heat: Temperature?, chill: Temperature?) =
+            heat?.let { FeelsLike(it, ChartStyle.heatIndex) } ?: chill?.let { FeelsLike(it, ChartStyle.windChill) }
+        dayExtras?.let { d -> d.heatIndex.indices.map { of(d.heatIndex[it], d.windChill[it]) } } ?: hours.map { h ->
+            of(h.temperature?.let { ThermalIndices.heatIndex(it, h.humidity) }, h.temperature?.let { t -> h.windSpeed?.let { ThermalIndices.windChill(t, it) } })
+        }
+    }
+    val tiles = remember(hours, airQuality, feelsLike) { chartTiles(hours, airQuality.any { it != null }, feelsLike.any { it != null }) }
     // Each mode keeps its own selection, and the hourly mode its scroll, while the view is open
     val hourlySelected = remember(data) { mutableIntStateOf(0) }
     val dailySelected = remember(data) { mutableIntStateOf(0) }
@@ -349,11 +367,12 @@ fun ChartViewScreen(
             )
             hours.getOrNull(selected)?.let { hour ->
                 SelectionHeader(
-                    hour, dayExtras?.lows?.getOrNull(selected), tiles, airQuality.getOrNull(selected), aqiStandard, data.utcOffsetSeconds,
+                    hour, dayExtras?.lows?.getOrNull(selected), feelsLike.getOrNull(selected), tiles, airQuality.getOrNull(selected), aqiStandard, data.utcOffsetSeconds,
                     metricPrimary, localizeDigits, onToggleUnits,
                 )
             }
-            Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(top = 8.dp, bottom = 16.dp)) {
+            // The room at the bottom lets the last panel scroll out from under the language button
+            Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(top = 8.dp, bottom = FLOATING_FLAG_ROOM)) {
                 // The chart card: the axis column and the panels, with no title row
                 Box(
                     modifier = Modifier
@@ -373,6 +392,7 @@ fun ChartViewScreen(
                 }
             }
         }
+        FloatingLanguageButton(languageFlag, onCycleLanguage, onSelectLanguage)
     }
 }
 
@@ -385,7 +405,7 @@ fun ChartViewScreen(
  */
 @Composable
 private fun SelectionHeader(
-    hour: ChartHour, low: Temperature?, tiles: List<ChartTile>, airQuality: HourlyAirQuality?, aqiStandard: AqiStandard, utcOffsetSeconds: Int,
+    hour: ChartHour, low: Temperature?, feelsLike: FeelsLike?, tiles: List<ChartTile>, airQuality: HourlyAirQuality?, aqiStandard: AqiStandard, utcOffsetSeconds: Int,
     metricPrimary: Boolean, localizeDigits: (String) -> String, onToggleUnits: () -> Unit,
 ) {
     val appLocale = LocalConfiguration.current.locales[0]
@@ -438,7 +458,9 @@ private fun SelectionHeader(
         when (tile) {
             ChartTile.TEMPERATURE -> { m, l ->
                 Tile(m, l) {
-                    hour.temperature?.let { t ->
+                    // Not "?.let ... ?:": the hourly mode has no low, and the null of low?.let would also show the dash
+                    val t = hour.temperature
+                    if (t == null) dual(null) else {
                         val (p, s) = t.displayDual(metricPrimary)
                         // Dark text on the light colours of the scale, both units at full opacity
                         pill(temperatureColor(t.celsius)) {
@@ -455,7 +477,18 @@ private fun SelectionHeader(
                                 color = ChartStyle.low, horizontalAlignment = Alignment.CenterHorizontally,
                             )
                         }
-                    } ?: dual(null)
+                    }
+                }
+            }
+            ChartTile.FEELS_LIKE -> { m, l ->
+                Tile(m, l) {
+                    if (feelsLike == null) dual(null) else {
+                        val (p, s) = feelsLike.temperature.displayDual(metricPrimary)
+                        DualUnitText(
+                            primary = localizeDigits(p), secondary = localizeDigits(s), primarySize = VALUE_SIZE,
+                            color = feelsLike.color, horizontalAlignment = Alignment.CenterHorizontally,
+                        )
+                    }
                 }
             }
             ChartTile.DEW_POINT -> { m, l -> Tile(m, l) { dual(hour.dewPoint?.displayDual(metricPrimary)) } }

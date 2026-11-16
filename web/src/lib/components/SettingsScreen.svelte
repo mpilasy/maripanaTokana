@@ -16,8 +16,8 @@
 	import { WEATHER_MODELS, weatherModelFor } from '#lib/domain/weatherModel.js';
 	import { SUPPORTED_LOCALES, localizeDigits } from '#lib/i18n/index.js';
 
-	interface Props { onBack: () => void; onOpenAbout: () => void; }
-	let { onBack, onOpenAbout }: Props = $props();
+	interface Props { onBack: () => void; onOpenAbout: () => void; languageFlag: string; onCycleLanguage: () => void; }
+	let { onBack, onOpenAbout, languageFlag, onCycleLanguage }: Props = $props();
 
 	let pendingApiKey = $state($weatherApiKey);
 	// An unknown stored key shows as Automatic (empty key)
@@ -65,7 +65,7 @@
 	}
 </script>
 
-<SettingsPage title={$_('settings_title')} {onBack}>
+<SettingsPage title={$_('settings_title')} {onBack} {languageFlag} {onCycleLanguage}>
 	<div class="section group">
 		<label class="toggle-row advanced-toggle">
 			<span class="advanced-label">{$_('settings_advanced_mode')}</span>

@@ -136,7 +136,7 @@ fun WeatherScreen(
             val modelName = weatherModelFor(weatherModel)?.name?.takeIf { weatherSource == WeatherSource.OPEN_METEO }
             AboutScreen(onBack = { showAbout = false }, onOpenHelp = { showHelp = true }, languageFlag = supportedLocales[localeIndex].flag, onCycleLanguage = viewModel::cycleLanguage, onSelectLanguage = viewModel::selectLanguage, weatherModelName = modelName)
         } else if (showSettings) {
-            SettingsScreen(onBack = { showSettings = false }, onOpenAbout = { showAbout = true }, localizeDigits = supportedLocales[localeIndex]::localizeDigits)
+            SettingsScreen(onBack = { showSettings = false }, onOpenAbout = { showAbout = true }, localizeDigits = supportedLocales[localeIndex]::localizeDigits, languageFlag = supportedLocales[localeIndex].flag, onCycleLanguage = viewModel::cycleLanguage, onSelectLanguage = viewModel::selectLanguage)
         } else if (chartViewMode != null && chartData != null) {
             val metricPrimary by viewModel.metricPrimary.collectAsState()
             ChartViewScreen(
@@ -149,6 +149,9 @@ fun WeatherScreen(
                 aqiStandard = chartData.airQuality?.primaryStandard ?: AqiStandard.US,
                 localizeDigits = supportedLocales[localeIndex]::localizeDigits,
                 onToggleUnits = viewModel::toggleUnits,
+                languageFlag = supportedLocales[localeIndex].flag,
+                onCycleLanguage = viewModel::cycleLanguage,
+                onSelectLanguage = viewModel::selectLanguage,
                 onBack = { chartViewMode = null },
             )
         } else {

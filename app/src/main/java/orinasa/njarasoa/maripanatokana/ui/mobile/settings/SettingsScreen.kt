@@ -13,8 +13,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import orinasa.njarasoa.maripanatokana.ui.theme.Hairline
-import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.LanguageFlagButton
-import androidx.compose.foundation.layout.PaddingValues
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.FloatingLanguageButton
+import orinasa.njarasoa.maripanatokana.ui.mobile.weather.components.FLOATING_FLAG_ROOM
 import orinasa.njarasoa.maripanatokana.ui.theme.SectionSurface
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -77,13 +77,16 @@ fun SettingsScreen(
     onBack: () -> Unit,
     onOpenAbout: () -> Unit,
     localizeDigits: (String) -> String,
+    languageFlag: String,
+    onCycleLanguage: () -> Unit,
+    onSelectLanguage: (Int) -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val settings by viewModel.settings.collectAsState()
     val pendingApiKey by viewModel.pendingApiKey.collectAsState()
     val testState by viewModel.testState.collectAsState()
 
-    SettingsPage(title = stringResource(R.string.settings_title), onBack = onBack) {
+    SettingsPage(title = stringResource(R.string.settings_title), onBack = onBack, languageFlag = languageFlag, onCycleLanguage = onCycleLanguage, onSelectLanguage = onSelectLanguage) {
         // — Advanced Mode —
         SettingsGroup {
         Row(
@@ -319,7 +322,7 @@ fun SettingsScreen(
 internal fun SettingsPage(
     title: String,
     onBack: () -> Unit,
-    // The language flag at the top, as in the main screen's footer: a tap shows the next language, holding it lists them
+    // The language flag in a round button over the bottom right corner (FloatingLanguageButton)
     languageFlag: String? = null,
     onCycleLanguage: (() -> Unit)? = null,
     onSelectLanguage: ((Int) -> Unit)? = null,
@@ -355,21 +358,15 @@ internal fun SettingsPage(
                 }
                 Spacer(Modifier.width(8.dp))
                 Text(title, color = MaterialTheme.colorScheme.onSurface, fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                if (languageFlag != null && onCycleLanguage != null && onSelectLanguage != null) {
-                    LanguageFlagButton(
-                        flag = languageFlag,
-                        fontSize = 22.sp,
-                        padding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
-                        onCycleLanguage = onCycleLanguage,
-                        onSelectLanguage = onSelectLanguage,
-                    )
-                }
             }
-            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+            Column(modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())) {
                 Spacer(Modifier.height(8.dp))
                 content()
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(if (languageFlag != null) FLOATING_FLAG_ROOM else 16.dp))
             }
+        }
+        if (languageFlag != null && onCycleLanguage != null && onSelectLanguage != null) {
+            FloatingLanguageButton(languageFlag, onCycleLanguage, onSelectLanguage)
         }
     }
 }

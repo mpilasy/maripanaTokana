@@ -49,10 +49,13 @@
 		aqiStandard: AqiStandard;
 		loc: (s: string) => string;
 		onToggleUnits: () => void;
+		/** The language flag at the top, as on the Help, About and Settings pages. */
+		languageFlag: string;
+		onCycleLanguage: () => void;
 		onBack: () => void;
 	}
 
-	let { hours, dailyForecast, mode = $bindable(), utcOffsetSeconds, southern, placeName, metricPrimary, localeTag, hourlyAirQuality, aqiStandard, loc, onToggleUnits, onBack }: Props = $props();
+	let { hours, dailyForecast, mode = $bindable(), utcOffsetSeconds, southern, placeName, metricPrimary, localeTag, hourlyAirQuality, aqiStandard, loc, onToggleUnits, languageFlag, onCycleLanguage, onBack }: Props = $props();
 	let daily = $derived(mode === 'daily');
 
 	// Sizes in px, the same as on Android: the axis column, the gap between panels, the title line,
@@ -519,13 +522,22 @@
 		direction?: string;
 		/** The day's low under the high, in daily mode. */
 		low?: [string, string];
+		/** The colour of the value, when it is not the text colour. */
+		color?: string;
 		/** The tile has a line under the value, which keeps its height when it is empty. */
 		extraLine?: boolean;
 	}
 	// The tiles of the chart, the same for every hour, so the card keeps its size when the selection moves
-	let tiles = $derived(chartTiles(shown, hasAirQuality));
+	// The heat index or the wind chill of each hour or day, for the Feels Like tile: the values of the lines in the
+	// temperature panel. A day can have both (a hot high and a cold, windy low): the heat index shows
+	const feelsLikeOf = (heat: Temperature | null, chill: Temperature | null) =>
+		heat ? { temperature: heat, color: ChartStyle.heatIndex } : chill ? { temperature: chill, color: ChartStyle.windChill } : null;
+	let feelsLike = $derived(daily
+		? dailyForecast.map((d) => feelsLikeOf(dailyHeatIndex(d), dailyWindChill(d)))
+		: shown.map((h) => feelsLikeOf(h.temperature ? heatIndex(h.temperature, h.humidity) : null, h.temperature && h.windSpeed ? windChill(h.temperature, h.windSpeed) : null)));
+	let tiles = $derived(chartTiles(shown, hasAirQuality, feelsLike.some((f) => f != null)));
 	const TILE_LABEL_KEYS: Record<ChartTile, string> = {
-		temperature: 'detail_temperature', dewPoint: 'detail_dewpoint', precipitation: 'detail_precipitation', wind: 'detail_wind',
+		temperature: 'detail_temperature', feelsLike: 'feels_like', dewPoint: 'detail_dewpoint', precipitation: 'detail_precipitation', wind: 'detail_wind',
 		windGust: 'detail_wind_gust', pressure: 'detail_pressure', humidity: 'detail_humidity', uvIndex: 'detail_uv_index',
 		airQuality: 'detail_air_quality',
 	};
@@ -565,6 +577,10 @@
 				case 'temperature': {
 					const low = daily ? dual(dailyForecast[selectedIndex]?.tempMin.displayDual(metricPrimary)) : undefined;
 					return { dual: dual(h.temperature?.displayDual(metricPrimary)), pill: h.temperature ? { background: temperatureColor(h.temperature.celsius), color: '#1A1A1A' } : undefined, low, extraLine: daily };
+				}
+				case 'feelsLike': {
+					const f = feelsLike[selectedIndex];
+					return { dual: dual(f?.temperature.displayDual(metricPrimary)), color: f?.color };
 				}
 				case 'dewPoint':
 					return { dual: dual(h.dewPoint?.displayDual(metricPrimary)) };
@@ -703,7 +719,7 @@
 	}
 </script>
 
-<SettingsPage title={placeName.trim() || $_('chart_view_title')} subtitle={placeName.trim() ? $_('chart_view_title') : undefined} stacked {onBack}>
+<SettingsPage title={placeName.trim() || $_('chart_view_title')} subtitle={placeName.trim() ? $_('chart_view_title') : undefined} stacked {onBack} {languageFlag} {onCycleLanguage}>
 
 	<!-- Hours or days, when the place has both -->
 	{#if dailyForecast.length > 0}
@@ -732,7 +748,7 @@
 												<DualUnitText primary={c.dual[0]} secondary={c.dual[1]} primarySize="0.8125rem" align="center" />
 											</span>
 										{:else}
-											<DualUnitText primary={c.dual[0]} secondary={c.dual[1]} primarySize="0.8125rem" align="center" />
+											<DualUnitText primary={c.dual[0]} secondary={c.dual[1]} primarySize="0.8125rem" align="center" color={c.color} />
 										{/if}
 									{:else if c.text}
 										<bdi dir="ltr" class="sel-text" class:pill={c.pill} style:background={c.pill?.background} style:color={c.pill?.color}>{c.text}</bdi>

@@ -810,7 +810,8 @@
 {/if}
 
 {#if showSettings}
-	<SettingsScreen onBack={() => showSettings = false} onOpenAbout={() => showAbout = true} />
+	<SettingsScreen onBack={() => showSettings = false} onOpenAbout={() => showAbout = true}
+		languageFlag={SUPPORTED_LOCALES[$localeIndex].flag} onCycleLanguage={cycleLanguage} />
 {/if}
 
 {#if showAbout}
@@ -832,6 +833,8 @@
 		aqiStandard={$weatherState.data.airQuality?.primaryStandard ?? 'US'}
 		{loc}
 		onToggleUnits={toggleUnits}
+		languageFlag={SUPPORTED_LOCALES[$localeIndex].flag}
+		onCycleLanguage={cycleLanguage}
 		onBack={() => (chartPlace = null)}
 	/>
 {/if}
