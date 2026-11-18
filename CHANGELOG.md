@@ -11,7 +11,10 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.7.20261118024115] - 2026-11-18
+
 - License: maripànaTokana is now free software under the GNU AGPL, version 3 or later. The AGPL is the GPL with one more rule: anyone who runs a changed copy of the web app for other people must give them its source code. Versions 1.5.25 to 1.7.20261116171218 stay under the GNU GPL, version 3 or later.
+- Technical: SvelteKit 3.3.1 and adapter-node 6.0.4 (web).
 
 ## [1.7.20261116171218] - 2026-11-16
 
