@@ -43,4 +43,4 @@ maripànaTokana (Malagasy for "a single thermometer") is a weather app for Andro
 • Your location is used only to get the weather
 • No account, no ads, no tracking
 • No personal data collected
-• Free software (GNU GPL v3 or later)
+• Free software (GNU AGPL v3 or later)

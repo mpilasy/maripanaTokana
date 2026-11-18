@@ -10,7 +10,7 @@ SPDX-PackageDownloadLocation = "https://github.com/mpilasy/maripanaTokana"
 path = "**"
 precedence = "closest"
 SPDX-FileCopyrightText = "Orinasa Njarasoa"
-SPDX-License-Identifier = "GPL-3.0-or-later"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
 
 # Font files: each family has its own copyright line in its LICENSE.txt
 # (web) or in app/src/main/res/raw/font_licenses.txt (Android).
@@ -104,10 +104,10 @@ SPDX-License-Identifier = "Apache-2.0"
 
 # License texts
 [[annotations]]
-path = ["LICENSE", "app/src/main/res/raw/gpl_license.txt"]
+path = ["LICENSE", "app/src/main/res/raw/agpl_license.txt"]
 precedence = "override"
 SPDX-FileCopyrightText = "Free Software Foundation, Inc."
-SPDX-License-Identifier = "GPL-3.0-or-later"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
 
 # SunCalc licence text shown in the Android About page
 [[annotations]]

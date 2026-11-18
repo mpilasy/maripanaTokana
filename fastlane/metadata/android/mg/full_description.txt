@@ -43,4 +43,4 @@ maripànaTokana dia fampiharana toetrandro ho an'ny Android. Aseho miaraka amin'
 • Ny hangalana ny toetrandro fotsiny no hampiasana ny toerana misy anao
 • Tsy misy kaonty, tsy misy dokam-barotra, tsy misy fanaraha-maso
 • Tsy misy angona manokana alaina
-• Rindrankajy malalaka (GNU GPL v3 na vaovao kokoa)
+• Rindrankajy malalaka (GNU AGPL v3 na vaovao kokoa)

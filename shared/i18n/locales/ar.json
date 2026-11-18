@@ -373,7 +373,7 @@
 	"about_title": "حول التطبيق",
 	"about_row_desc": "مصادر البيانات والمكتبات والتراخيص",
 	"licenses_title": "التراخيص",
-	"about_app_license": "برنامج حر ومفتوح المصدر بموجب رخصة GNU GPL، الإصدار 3 أو أي إصدار لاحق",
+	"about_app_license": "برنامج حر ومفتوح المصدر بموجب رخصة GNU AGPL، الإصدار 3 أو أي إصدار لاحق",
 	"about_source_code": "الشيفرة المصدرية",
 	"about_web_version": "على الويب",
 	"about_section_weather": "بيانات الطقس",

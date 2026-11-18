@@ -381,7 +381,7 @@ The first submission is done. The inclusion MR (`!33362`) merged into `fdroid/fd
 
 To change other metadata fields, change them here first, then open an MR from the fork `mpilasy/fdroiddata`. The last one, MR !53903 (`License: GPL-3.0-or-later`, `WebSite` and the `TetheredNet` text), merged on 2026-10-26. Keep such an MR to the changed fields only. If it also changes build entries, its `checkupdates` job fails after each new tag.
 
-The license changed from MIT to GPL-3.0-or-later in 1.5.25. Versions up to and including 1.5.24 were released under MIT.
+The license changed from MIT to GPL-3.0-or-later in 1.5.25, and from GPL-3.0-or-later to AGPL-3.0-or-later after 1.7.20261116171218. Versions up to and including 1.5.24 were released under MIT. The `License:` field in fdroiddata needs an MR for the AGPL change.
 
 ## Testing Locally
 

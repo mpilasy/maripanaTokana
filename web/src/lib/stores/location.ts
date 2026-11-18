@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 const LOCATION_KEY = 'cached_location';
 const MOVE_THRESHOLD = 0.045; // ~5 km in degrees

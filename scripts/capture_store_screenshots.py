@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-FileCopyrightText: Orinasa Njarasoa
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Takes the 6 phone store screenshots on the Pixel emulator, for one or more app languages.
 Set up the emulator first (docs/SCREENSHOTS_README.md, steps 1-5). The app must be open on the main page.
 Usage: python3 scripts/capture_store_screenshots.py OUT_DIR lang [lang ...]   (lang: ar en es fr hi mg ne zh)

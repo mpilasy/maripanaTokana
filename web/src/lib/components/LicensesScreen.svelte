@@ -1,5 +1,5 @@
 <!-- SPDX-FileCopyrightText: Orinasa Njarasoa -->
-<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 <!-- Twin: LicensesScreen in app/src/main/java/orinasa/njarasoa/maripanatokana/ui/mobile/settings/LicensesScreen.kt -->
 <script lang="ts">
 	import { _ } from 'svelte-i18n';

@@ -373,7 +373,7 @@
 	"about_title": "About",
 	"about_row_desc": "Data sources, libraries and licenses",
 	"licenses_title": "Licenses",
-	"about_app_license": "Free and open-source software under the GNU GPL, version 3 or later",
+	"about_app_license": "Free and open-source software under the GNU AGPL, version 3 or later",
 	"about_source_code": "Source code",
 	"about_web_version": "On the web",
 	"about_section_weather": "Weather data",

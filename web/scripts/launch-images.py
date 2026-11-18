@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-FileCopyrightText: Orinasa Njarasoa
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Makes the iOS launch images of the web app: the globe of the app icon on the app background.
 
 iOS shows a launch image while a web app that is open from the Home Screen loads. iOS uses an

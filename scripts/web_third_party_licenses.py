@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-FileCopyrightText: Orinasa Njarasoa
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Writes the licence texts of the code, icons and fonts that the web app ships, to web/static/licenses/:
 third-party.txt (all of them), one file for each package or icon set (<name>.txt, '@scope/x' as 'scope-x.txt'),
 fonts.txt (all font licences) and meteocons.txt. The Licenses page (src/lib/credits.ts) shows them in the app.

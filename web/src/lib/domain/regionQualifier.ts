@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 // Postal abbreviations people type after a city name ("Sudbury, ON", "Austin, TX")
 const REGION_ABBREVIATIONS: Record<string, string> = {

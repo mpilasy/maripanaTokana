@@ -1,5 +1,5 @@
 <!-- SPDX-FileCopyrightText: Orinasa Njarasoa -->
-<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 <script lang="ts">
 	import { runsOf, splitDual } from '#lib/utils/dualLabel.js';
 	import { monotonePath } from '#lib/utils/monotonePath.js';

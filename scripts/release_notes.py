@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-FileCopyrightText: Orinasa Njarasoa
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Print the CHANGELOG.md notes for a version. Fail if the version has no notes.
 
 Usage: release_notes.py VERSION   (for example 1.5.31 or v1.5.31)

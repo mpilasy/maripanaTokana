@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { dailyNormals, type DayNormal } from '../domain/normals';
 import { FETCH_TIMEOUT_MS, HttpError, netFetch } from './http';

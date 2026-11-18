@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 /** The sea at a coastal place now (Open-Meteo marine). Null values are missing. Directions: where the waves come from. */
 export interface SeaConditions {

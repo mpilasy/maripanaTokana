@@ -43,4 +43,4 @@ maripànaTokana («un solo termómetro» en malagasy) es una aplicación del tie
 • Tu ubicación se usa solo para obtener el tiempo
 • Sin cuenta, sin anuncios, sin seguimiento
 • No se recopilan datos personales
-• Software libre (GNU GPL v3 o posterior)
+• Software libre (GNU AGPL v3 o posterior)

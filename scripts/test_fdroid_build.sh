@@ -1,6 +1,6 @@
 #!/bin/bash
 # SPDX-FileCopyrightText: Orinasa Njarasoa
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: AGPL-3.0-or-later
 
 # F-Droid Build Verification & Testing
 # Performs automated tests on F-Droid flavor build
@@ -146,8 +146,8 @@ test_metadata() {
     # Check for required fields
     local yaml_file="metadata/orinasa.njarasoa.maripanatokana.yml"
 
-    if grep -q "^License: GPL-3.0-or-later" "$yaml_file"; then
-      pass_test "License field correct (GPL-3.0-or-later)"
+    if grep -q "^License: AGPL-3.0-or-later" "$yaml_file"; then
+      pass_test "License field correct (AGPL-3.0-or-later)"
     else
       fail_test "License field missing or incorrect"
     fi
@@ -223,10 +223,10 @@ test_github_structure() {
 
   # Check LICENSE
   if [ -f "LICENSE" ]; then
-    if grep -q "GNU GENERAL PUBLIC LICENSE" "LICENSE"; then
-      pass_test "LICENSE file exists with GPL v3 license"
+    if grep -q "GNU AFFERO GENERAL PUBLIC LICENSE" "LICENSE"; then
+      pass_test "LICENSE file exists with AGPL v3 license"
     else
-      fail_test "LICENSE file exists but doesn't contain GPL v3"
+      fail_test "LICENSE file exists but doesn't contain AGPL v3"
     fi
   else
     fail_test "LICENSE file missing"

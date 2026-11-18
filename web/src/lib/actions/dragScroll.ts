@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 /**
  * Svelte action: lets a mouse drag a horizontally scrolling row, as a finger can. Touch and pen keep
