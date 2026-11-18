@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 /** An Open-Meteo forecast model the user can choose. Names and centres are proper names: not translated. */
 export interface WeatherModel {

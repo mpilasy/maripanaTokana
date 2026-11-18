@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 /** The normal high and low of one day of the year, in °C. */
 export interface DayNormal {

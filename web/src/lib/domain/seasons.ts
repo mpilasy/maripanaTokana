@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 /**
  * The sun's declination, and the solstices and equinoxes, calculated in the browser. The formulas are those of

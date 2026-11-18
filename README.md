@@ -199,13 +199,15 @@ WorkManager adds the permissions it needs to refresh the widgets: `WAKE_LOCK`, `
 
 (c) Orinasa Njarasoa
 
-This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. See [LICENSE](LICENSE).
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. See [LICENSE](LICENSE).
 
-Versions up to and including 1.5.24 were released under the MIT License.
+If you run a changed copy of the web app as a service, the AGPL tells you to give its users the source code of your copy.
+
+Versions up to and including 1.5.24 were released under the MIT License. Versions 1.5.25 to 1.7.20261116171218 were released under the GNU GPL, version 3 or later.
 
 ### Additional permission for Google Play services
 
-Additional permission under GNU GPL version 3 section 7: if you modify this program, or any covered work, by linking or combining it with the Google Play services libraries (or a modified version of those libraries), containing parts covered by the terms of the Android Software Development Kit License Agreement, the licensors of this program grant you additional permission to convey the resulting work.
+Additional permission under GNU AGPL version 3 section 7: if you modify this program, or any covered work, by linking or combining it with the Google Play services libraries (or a modified version of those libraries), containing parts covered by the terms of the Android Software Development Kit License Agreement, the licensors of this program grant you additional permission to convey the resulting work.
 
 Only the Standard APK uses Google Play services. The F-Droid APK does not use it and does not need this permission.
 

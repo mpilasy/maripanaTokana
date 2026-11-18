@@ -1,6 +1,6 @@
 #!/bin/bash
 # SPDX-FileCopyrightText: Orinasa Njarasoa
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: AGPL-3.0-or-later
 # Builds the standard release APK once and installs it on every device in a targets file.
 # Usage: scripts/deploy_all.sh [targets file, default scripts/deploy-targets.local]
 #

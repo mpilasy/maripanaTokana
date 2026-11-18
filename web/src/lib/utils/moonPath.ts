@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 /**
  * The SVG path of the moon's lit part for `phase` (0 = new, 0.5 = full), centred on (cx, cy) with

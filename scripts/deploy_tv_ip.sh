@@ -1,6 +1,6 @@
 #!/bin/bash
 # SPDX-FileCopyrightText: Orinasa Njarasoa
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: AGPL-3.0-or-later
 # Builds the standard release APK once and installs it on one or more network TVs.
 # Usage: scripts/deploy_tv_ip.sh <ip>[:port] [<ip>[:port] ...]
 set -euo pipefail

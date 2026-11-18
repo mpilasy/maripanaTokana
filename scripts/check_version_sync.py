@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-FileCopyrightText: Orinasa Njarasoa
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Fail if the Android and web version strings have drifted apart,
 or if the current version has no release notes."""
 import json

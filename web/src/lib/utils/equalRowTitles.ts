@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 /**
  * A Svelte action for a grid of tiles: the titles of the tiles in one row get the height of the

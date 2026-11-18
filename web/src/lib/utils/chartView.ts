@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 // Pure functions of the chart view and the charts on the main page. Android has the same functions with the same
 // rules in ChartViewMath.kt.

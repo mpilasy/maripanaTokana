@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
 // SPDX-FileCopyrightText: 2014 Volodymyr Agafonkin (SunCalc formulas)
-// SPDX-License-Identifier: GPL-3.0-or-later AND BSD-2-Clause
+// SPDX-License-Identifier: AGPL-3.0-or-later AND BSD-2-Clause
 
 /**
  * The moon's phase, place in the sky, rise and set, calculated in the browser. The formulas are

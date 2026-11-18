@@ -192,4 +192,4 @@ Pairings 16 to 20 use `font-feature-settings: "tnum"` (tabular numbers) for the 
 
 ## License
 
-GPL-3.0-or-later. (c) Orinasa Njarasoa. See [LICENSE](../LICENSE). Versions up to and including 1.5.24 were released under the MIT License.
+AGPL-3.0-or-later. (c) Orinasa Njarasoa. See [LICENSE](../LICENSE). If you run a changed copy of the web app as a service, give its users the source code of your copy (the About page links to the source). Versions up to and including 1.5.24 were released under the MIT License. Versions 1.5.25 to 1.7.20261116171218 were released under GPL-3.0-or-later.

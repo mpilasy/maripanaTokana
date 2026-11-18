@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: Orinasa Njarasoa
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 export type AqiStandard = 'US' | 'EUROPEAN';
 export type AqiTier = 'good' | 'moderate' | 'unhealthy' | 'very_unhealthy' | 'hazardous';
