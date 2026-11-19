@@ -52,7 +52,7 @@ done
 # 4. Commit version bump & feature changes
 echo "2. Committing version bump & pending changes..."
 git add -A
-git commit -m "Bump to v${NEW_VERSION}"
+git commit -m "chore(release): v${NEW_VERSION}"
 
 BUMP_COMMIT=$(git rev-parse HEAD)
 echo "Bump commit: ${BUMP_COMMIT}"
@@ -74,7 +74,7 @@ grep -P '^Binaries: $' metadata/orinasa.njarasoa.maripanatokana.yml >/dev/null |
 # 7. Commit metadata update with [skip ci]
 echo "5. Committing metadata update..."
 git add metadata/orinasa.njarasoa.maripanatokana.yml
-git commit -m "Update F-Droid metadata for v${NEW_VERSION} [skip ci]"
+git commit -m "chore(fdroid): update metadata for v${NEW_VERSION} [skip ci]"
 
 # 8. Push main and tag
 echo "6. Pushing main and tag v${NEW_VERSION} to origin..."
