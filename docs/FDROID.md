@@ -444,7 +444,7 @@ Releases are usually made by hand:
 3. Write `fastlane/metadata/android/{locale}/changelogs/{versionCode}.txt` in all 8 locales (ar, en-US, es, fr, hi, mg, ne, zh-CN). Each file has only the line `See changelog at https://github.com/mpilasy/maripanaTokana/blob/main/CHANGELOG.md`, the same in all 8 locales. F-Droid shows the file of the newest build, and `CHANGELOG.md` lists every version, so F-Droid users who skip versions see all the changes. F-Droid limits the file to 500 characters; the link does not come near it. (Up to versionCode 181, each file listed the changes of every version not yet on the F-Droid page, in its own language.)
 4. Add an entry at the top of `CHANGELOG.md` (move the Unreleased items into it). Each release must have notes: the GitHub release shows this entry, and the F-Droid page links to the file. Since versionCode 182, write the entry for users who are not technical: what they can see or do, and on which platform (phone, TV, web). Put technical details in the commit messages and `docs/DESIGN.md`. When a release needs a technical record, add a short "Technical" list under the user lines. Do not change older entries.
 5. Run `python3 scripts/check_version_sync.py`. It fails when the version strings differ, or when the current version has no `CHANGELOG.md` entry or no changelog file in one of the 8 locales.
-6. Commit as `Bump to vX.Y.Z`, push `main`, then create and push the tag `vX.Y.Z`.
+6. Commit as `chore(release): vX.Y.Z`, push `main`, then create and push the tag `vX.Y.Z`.
 
 Version names (after 1.6.0): `MAJOR.MINOR.YYYYMMDDHHMMSS`, with the release time in UTC as the third number, for example `1.6.20261027143005`. Each release gets a new, higher version, also two releases on the same day. UTC has no clock changes, so the order is always correct. The version stays valid semver. `versionCode` still adds 1 for each release.
 
@@ -464,7 +464,7 @@ The script performs these steps:
 2. Runs `npm install --package-lock-only` in `web/` to update the lock file.
 3. Validates the version sync and the release notes with `python3 scripts/check_version_sync.py`.
 4. Checks that the changelog exists in all 8 locales.
-5. Commits all pending changes as `Bump to vX.Y.Z`.
+5. Commits all pending changes as `chore(release): vX.Y.Z`.
 6. Creates the tag `vX.Y.Z` on the bump commit.
 7. Updates the F-Droid metadata with `python3 scripts/update_metadata.py` and checks the `Binaries: ` line.
 8. Commits the metadata with `[skip ci]`.
@@ -474,7 +474,7 @@ The tag push starts `.github/workflows/fdroid-build.yml`. The workflow takes abo
 1. `build`: checks the release notes first and stops when `CHANGELOG.md` has no entry for the tag (`scripts/release_notes.py`). Then builds the F-Droid and standard flavors (`assembleFdroidRelease assembleStandardRelease`). The Gradle files come from the cache that `ci.yml` saves on `main` (`setup-java` with `cache: 'gradle'`).
 2. `fdroid`: at the same time as `build`, does F-Droid's build of the tag (`scripts/fdroid_check.sh --build-only`).
 3. `scan`: after `build`, scans both APKs on VirusTotal, at the same time as `fdroid`.
-4. `release`: after the other three, compares our F-Droid APK with F-Droid's build (`scripts/fdroid_compare.py`). Then runs `scripts/update_metadata.py` again on the latest `main` (not on the tag), validates the `Binaries: ` line, and pushes an `Update F-Droid metadata for vX.Y.Z [skip ci]` commit to `main` if the file changed. When `main` already has a newer `CurrentVersionCode` (tags pushed close together), the metadata does not change and the release continues. A failed push is tried again on the new `main`, up to three times. Pull this commit before the next change. Last, creates a GitHub release with the `CHANGELOG.md` entry as its notes and two APKs: `maripanaTokana-vX.Y.Z.apk` (F-Droid flavor) and `maripanaTokana-standard-vX.Y.Z.apk` (standard flavor).
+4. `release`: after the other three, compares our F-Droid APK with F-Droid's build (`scripts/fdroid_compare.py`). Then runs `scripts/update_metadata.py` again on the latest `main` (not on the tag), validates the `Binaries: ` line, and pushes a `chore(fdroid): update metadata for vX.Y.Z [skip ci]` commit to `main` if the file changed. When `main` already has a newer `CurrentVersionCode` (tags pushed close together), the metadata does not change and the release continues. A failed push is tried again on the new `main`, up to three times. Pull this commit before the next change. Last, creates a GitHub release with the `CHANGELOG.md` entry as its notes and two APKs: `maripanaTokana-vX.Y.Z.apk` (F-Droid flavor) and `maripanaTokana-standard-vX.Y.Z.apk` (standard flavor).
 
 A manual run (`workflow_dispatch`) does the same jobs on `main`, but does not update the metadata or make a release.
 

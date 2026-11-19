@@ -13,6 +13,42 @@ When you send a contribution (a pull request, a patch or a translation), you agr
 
 Add a `Signed-off-by:` line to each commit (`git commit -s`) to show that you agree. The line follows the [Developer Certificate of Origin](https://developercertificate.org/).
 
+## Commit messages
+
+Write commit messages as [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/):
+
+```
+type(scope): description
+
+An optional body that tells what changed and why.
+
+Signed-off-by: Your Name <you@example.com>
+```
+
+- **type** is one of these:
+  - `feat`: a new feature that users can see.
+  - `fix`: a bug fix.
+  - `docs`: a change to documentation only.
+  - `refactor`: a code change that does not change what the app does.
+  - `perf`: a change that makes the app faster or smaller.
+  - `test`: a change to tests only.
+  - `build`: a change to Gradle, npm or dependencies.
+  - `ci`: a change to the GitHub Actions workflows.
+  - `chore`: other work, for example releases and F-Droid metadata.
+  - `revert`: a commit that reverts an earlier commit.
+- **scope** is optional. It is the area of the change: `android`, `web`, `tv`, `widget`, `alerts`, `i18n`, `fdroid`, `release` or `deps`.
+- **description** starts with a lower-case verb in the imperative ("add", "fix", "remove"), and has no period at the end. Keep the first line at 72 characters or less.
+- If a change breaks something that users or contributors depend on, put `!` before the colon, and explain the change in a `BREAKING CHANGE:` line at the end of the body.
+
+Examples:
+
+```
+feat(tv): show the moon phase on the main screen
+fix(alerts): show MeteoAlarm "Moderate" alerts as a watch
+build(deps): update the Compose BOM to 2026.09.00
+chore(release): v1.7.20261118024115
+```
+
 ## New files
 
 Each new source file starts with two SPDX lines, in the comment style of its language:

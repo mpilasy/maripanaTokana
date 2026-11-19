@@ -216,7 +216,7 @@ jobs:
               echo "The metadata on main is already up to date."
               break
             fi
-            git commit -q -m "Update F-Droid metadata for ${{ github.ref_name }} [skip ci]"
+            git commit -q -m "chore(fdroid): update metadata for ${{ github.ref_name }} [skip ci]"
             if git push origin HEAD:main; then
               break
             fi
