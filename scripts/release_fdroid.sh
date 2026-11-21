@@ -35,19 +35,15 @@ sed -i -E "s/<span class=\"version\">v[^<]+<\/span>/<span class=\"version\">v${N
 
 (cd web && npm install --package-lock-only)
 
-# 2. Verify version sync
-python3 scripts/check_version_sync.py
-
-# 3. Ensure changelog files exist
+# 2. Write the F-Droid changelog files (the same text in all 8 locales)
 LOCALES=("ar" "en-US" "es" "fr" "hi" "mg" "ne" "zh-CN")
 for loc in "${LOCALES[@]}"; do
-    CL_FILE="fastlane/metadata/android/${loc}/changelogs/${NEW_CODE}.txt"
-    if [ ! -f "$CL_FILE" ]; then
-        echo "Error: Missing changelog $CL_FILE" >&2
-        echo "Please create $CL_FILE before running release." >&2
-        exit 1
-    fi
+    printf 'Version %s\nSee changelog at https://github.com/mpilasy/maripanaTokana/blob/main/CHANGELOG.md\n' "${NEW_VERSION}" \
+        > "fastlane/metadata/android/${loc}/changelogs/${NEW_CODE}.txt"
 done
+
+# 3. Verify version sync and release notes
+python3 scripts/check_version_sync.py
 
 # 4. Commit version bump & feature changes
 echo "2. Committing version bump & pending changes..."

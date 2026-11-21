@@ -15,6 +15,8 @@ PACKAGE_JSON_PATH = "web/package.json"
 PACKAGE_LOCK_PATH = "web/package-lock.json"
 FOOTER_PATH = "web/src/lib/components/Footer.svelte"
 FASTLANE_DIR = "fastlane/metadata/android"
+# From this versionCode, each fastlane changelog file names its version.
+VERSION_IN_CHANGELOG_SINCE = 196
 
 
 def read(path):
@@ -61,6 +63,8 @@ def missing_release_notes(version, code):
         path = f"{FASTLANE_DIR}/{locale}/changelogs/{code}.txt"
         if not os.path.isfile(path) or not read(path).strip():
             missing.append(path)
+        elif int(code) >= VERSION_IN_CHANGELOG_SINCE and version not in read(path):
+            missing.append(f"{path} (does not name {version})")
     return missing
 
 

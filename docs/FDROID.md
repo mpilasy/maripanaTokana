@@ -315,7 +315,7 @@ Each language directory contains:
 - `title.txt`: App name (max 50 chars)
 - `short_description.txt`: Short description (max 80 chars)
 - `full_description.txt`: Detailed description with features
-- `changelogs/{versionCode}.txt`: Changelog for each release. Each new release needs one file in all 8 locales. Since versionCode 182, each file has only the line `See changelog at https://github.com/mpilasy/maripanaTokana/blob/main/CHANGELOG.md`. Some version codes have no file, because those versions were never released. Some old files (43 and 44) are longer than 500 characters
+- `changelogs/{versionCode}.txt`: Changelog for each release. Each new release needs one file in all 8 locales. Since versionCode 182, each file has only the line `See changelog at https://github.com/mpilasy/maripanaTokana/blob/main/CHANGELOG.md`. Since versionCode 196, the line `Version X.Y.Z` comes before it, because the F-Droid client does not show the version near "What's new". Some version codes have no file, because those versions were never released. Some old files (43 and 44) are longer than 500 characters
 - `images/phoneScreenshots/`: Exactly 6 screenshots per language (`1.png` to `6.png`). `en-US/images/tvScreenshots/`: 3 TV screenshots, which F-Droid also shows for the other languages. See [SCREENSHOTS_README.md](./SCREENSHOTS_README.md)
 
 ### F-Droid YAML Metadata
@@ -441,7 +441,12 @@ Releases are usually made by hand:
 
 1. Audit the dependencies (`gradle/libs.versions.toml`, and `npm outdated` and `npm audit` in `web/`), and apply small updates.
 2. Bump the version in `app/build.gradle.kts` (`versionCode` and `versionName`), `web/package.json`, `web/package-lock.json` (2 entries) and `web/src/lib/components/Footer.svelte`.
-3. Write `fastlane/metadata/android/{locale}/changelogs/{versionCode}.txt` in all 8 locales (ar, en-US, es, fr, hi, mg, ne, zh-CN). Each file has only the line `See changelog at https://github.com/mpilasy/maripanaTokana/blob/main/CHANGELOG.md`, the same in all 8 locales. F-Droid shows the file of the newest build, and `CHANGELOG.md` lists every version, so F-Droid users who skip versions see all the changes. F-Droid limits the file to 500 characters; the link does not come near it. (Up to versionCode 181, each file listed the changes of every version not yet on the F-Droid page, in its own language.)
+3. Write `fastlane/metadata/android/{locale}/changelogs/{versionCode}.txt` in all 8 locales (ar, en-US, es, fr, hi, mg, ne, zh-CN). Each file has only these two lines, the same in all 8 locales:
+   ```
+   Version X.Y.Z
+   See changelog at https://github.com/mpilasy/maripanaTokana/blob/main/CHANGELOG.md
+   ```
+   `scripts/release_fdroid.sh` writes these files. `scripts/check_version_sync.py` fails when a file does not name the version (since versionCode 196). F-Droid shows the file of the newest build, and `CHANGELOG.md` lists every version, so F-Droid users who skip versions see all the changes. F-Droid limits the file to 500 characters; the link does not come near it. (Up to versionCode 181, each file listed the changes of every version not yet on the F-Droid page, in its own language.)
 4. Add an entry at the top of `CHANGELOG.md` (move the Unreleased items into it). Each release must have notes: the GitHub release shows this entry, and the F-Droid page links to the file. Since versionCode 182, write the entry for users who are not technical: what they can see or do, and on which platform (phone, TV, web). Put technical details in the commit messages and `docs/DESIGN.md`. When a release needs a technical record, add a short "Technical" list under the user lines. Do not change older entries.
 5. Run `python3 scripts/check_version_sync.py`. It fails when the version strings differ, or when the current version has no `CHANGELOG.md` entry or no changelog file in one of the 8 locales.
 6. Commit as `chore(release): vX.Y.Z`, push `main`, then create and push the tag `vX.Y.Z`.
@@ -450,20 +455,20 @@ Version names (after 1.6.0): `MAJOR.MINOR.YYYYMMDDHHMMSS`, with the release time
 
 Do not edit `metadata/orinasa.njarasoa.maripanatokana.yml` by hand. The release workflow updates it.
 
-`scripts/release_fdroid.sh` can do steps 2, 5 and 6:
+`scripts/release_fdroid.sh` can do steps 2, 3, 5 and 6:
 ```bash
 ./scripts/release_fdroid.sh [VERSION_NAME] [VERSION_CODE]
 # Example: ./scripts/release_fdroid.sh 1.6.20261027143005 114
 # Without arguments, the version is MAJOR.MINOR.YYYYMMDDHHMMSS (now, in UTC). The version code adds 1.
 ```
 
-Write the changelogs and the `CHANGELOG.md` entry first. The script stops if a changelog file or the `CHANGELOG.md` entry is missing.
+Write the `CHANGELOG.md` entry first. The script stops if the `CHANGELOG.md` entry is missing.
 
 The script performs these steps:
 1. Updates the version in `app/build.gradle.kts`, `web/package.json` and `web/src/lib/components/Footer.svelte`.
 2. Runs `npm install --package-lock-only` in `web/` to update the lock file.
-3. Validates the version sync and the release notes with `python3 scripts/check_version_sync.py`.
-4. Checks that the changelog exists in all 8 locales.
+3. Writes the changelog file in all 8 locales.
+4. Validates the version sync and the release notes with `python3 scripts/check_version_sync.py`.
 5. Commits all pending changes as `chore(release): vX.Y.Z`.
 6. Creates the tag `vX.Y.Z` on the bump commit.
 7. Updates the F-Droid metadata with `python3 scripts/update_metadata.py` and checks the `Binaries: ` line.
