@@ -86,7 +86,7 @@ internal val LocalMetricPrimary = staticCompositionLocalOf { true }
 internal val LocalTvShaper = staticCompositionLocalOf<(String) -> String> { { it } }
 
 /** Keeps [text] left to right inside a right-to-left line. */
-internal fun ltr(text: String) = "⁦$text⁩"
+internal fun ltr(text: String) = "\u2066$text\u2069"
 
 private fun hasRtlLetters(text: String) = text.any {
     val direction = Character.getDirectionality(it)
