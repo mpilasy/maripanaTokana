@@ -1,6 +1,6 @@
 # maripànaTokana
 
-**maripànaTokana** (Malagasy for "a single thermometer") is a weather app for Android and Android TV, and a [web app](./web) with the same features as the phone app. A hosted copy of the web app is at **[maripana.njarasoa.org](https://maripana.njarasoa.org)**, with no install needed. Every value shows in metric and imperial units side by side. The app has 8 languages and 22 font choices. On the first start it uses the language of the device or browser when the app has it, else English.
+**maripànaTokana** (Malagasy for "a single thermometer") is a weather app for Android and Android TV, and a [web app](./web) with the same features as the phone app. A hosted copy of the web app is at **[maripana.njarasoa.org](https://maripana.njarasoa.org)**, with no install needed. Every value shows in metric and imperial units side by side. The app has 8 languages and 23 font choices. On the first start it uses the language of the device or browser when the app has it, else English.
 
 <p align="center">
   <img src="fastlane/metadata/android/mg/images/phoneScreenshots/1.png" width="24%" alt="Main card, in Malagasy">
@@ -43,7 +43,7 @@ The same APK also runs on Android TV, with screens made for the remote: current 
 **Display**
 - **Units**: every value shows metric and imperial units. Tap a value to put the other unit first.
 - **8 languages**: Malagasy, Arabic, English, Spanish, French, Hindi, Nepali and Chinese. Tap the flag in the footer to change, or hold it to pick from a list. Local digits for Arabic, Hindi and Nepali, a decimal comma where the language uses one, and right-to-left layout for Arabic. Times follow the 24-hour or 12-hour clock of the device or browser region. The permission and error screens also show the system language, when it is different.
-- **22 font choices**: the default font and 21 font pairs. Tap the font name in the footer to change, or hold it to pick from a list.
+- **23 font choices**: the default font, 21 font pairs and Allo (one font for headings and text). Tap the font name in the footer to change, or hold it to pick from a list.
 - **Share**: each card has a share button that shares the card as an image, with the date and time but no location data.
 - **Help, About and Licenses pages**: 11 questions and answers; the version, hash and commit time; what the system reports about the device; and the F-Droid, Obtainium and GitHub badges with QR codes, to pass the app to another person. The Licenses page, opened from About, credits the data sources, images, fonts and libraries and shows their licence texts. On the TV, the F-Droid and Obtainium cards show their badges, and OK opens the QR code.
 - **Refresh**: pull down, or tap the update time. The app also refreshes when you come back to it and the data is more than 30 minutes old.

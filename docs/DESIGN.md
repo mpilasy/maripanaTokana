@@ -160,7 +160,7 @@ maripanaTokana/
 │   │   │   │   │   ├── TvSettings.kt        # Units, language, Help and About
 │   │   │   │   │   └── TvDream.kt           # Screensaver (DreamService)
 │   │   │   │   └── theme/
-│   │   │   │       ├── AppFonts.kt          # 22 font pairings
+│   │   │   │       ├── AppFonts.kt          # 23 font pairings
 │   │   │   │       ├── Theme.kt             # Material3 theme
 │   │   │   │       └── Color.kt / Type.kt
 │   │   │   └── widget/
@@ -365,7 +365,7 @@ The texts come from `shared/i18n/locales/*.json`. `shared/i18n/generate-android-
 
 ## 10. Font System
 
-Bundles 22 font pairings (system default + 21 Google Fonts pairings). Distributed through the composable tree via `LocalDisplayFont` and `LocalBodyFont` CompositionLocals. Tabular numbers (`tnum`) are enabled for 5 pairings (indexes 16 to 20).
+Bundles 23 font pairings (system default + 21 Google Fonts pairings + Allo, index 22, one family for display and body). Distributed through the composable tree via `LocalDisplayFont` and `LocalBodyFont` CompositionLocals. Tabular numbers (`tnum`) are enabled for 6 pairings (indexes 16 to 20, and 22).
 
 ---
 

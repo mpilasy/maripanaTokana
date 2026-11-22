@@ -101,6 +101,7 @@ internal val creditSections = listOf(
         R.string.about_section_fonts,
         listOf(
             Credit("Google Fonts", license = "SIL OFL 1.1", note = FONT_FAMILIES, textRes = R.raw.font_licenses),
+            Credit("Allo", license = "SIL OFL 1.1", note = "Josh Puckett", textRes = R.raw.font_licenses),
         ),
     ),
     CreditSection(

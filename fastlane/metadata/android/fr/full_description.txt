@@ -28,7 +28,7 @@ maripànaTokana (« un seul thermomètre » en malagasy) est une application mé
 • 8 langues : malagasy, arabe, anglais, espagnol, français, hindi, népalais et chinois. Touchez le drapeau pour changer de langue
 • Chiffres locaux pour l'arabe, le hindi et le népalais
 • Affichage de droite à gauche pour l'arabe
-• 22 paires de polices au choix
+• 23 paires de polices au choix
 • Partagez n'importe quelle carte en image
 • Pages Aide et À propos
 

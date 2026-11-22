@@ -168,4 +168,12 @@ export const fontPairings: FontPairing[] = [
 		bodyFamily: "'Lora', serif",
 		fontCssUrl: '/fonts/roboto-lora.css',
 	},
+	// 22: one family for display and body (not from Google Fonts)
+	{
+		name: 'Allo',
+		displayFamily: "'Allo', sans-serif",
+		bodyFamily: "'Allo', sans-serif",
+		bodyFontFeatures: '"tnum"',
+		fontCssUrl: '/fonts/allo.css',
+	},
 ];

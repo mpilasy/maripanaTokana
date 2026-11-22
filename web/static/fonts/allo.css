@@ -1,0 +1,15 @@
+@font-face {
+  font-family: 'Allo';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/allo/allo-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Allo';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/allo/allo-700.woff2') format('woff2');
+}

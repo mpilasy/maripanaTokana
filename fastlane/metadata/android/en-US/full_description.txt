@@ -28,7 +28,7 @@ maripànaTokana (Malagasy for "a single thermometer") is a weather app for Andro
 • 8 languages: Malagasy, Arabic, English, Spanish, French, Hindi, Nepali and Chinese. Tap the flag to change the language
 • Local digits for Arabic, Hindi and Nepali
 • Right-to-left layout for Arabic
-• 22 font pairs to choose from
+• 23 font pairs to choose from
 • Share any card as an image
 • Help and About pages
 

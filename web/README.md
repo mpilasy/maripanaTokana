@@ -1,6 +1,6 @@
 # maripànaTokana Web App
 
-**maripànaTokana** (Malagasy for "a single thermometer") is a weather app. This folder holds its web version, built with SvelteKit. It has the same features as the [Android app](../README.md), except the widgets, the TV screens and the geocoder choice. It always shows metric and imperial units side by side, and it has 8 languages and 22 font choices.
+**maripànaTokana** (Malagasy for "a single thermometer") is a weather app. This folder holds its web version, built with SvelteKit. It has the same features as the [Android app](../README.md), except the widgets, the TV screens and the geocoder choice. It always shows metric and imperial units side by side, and it has 8 languages and 23 font choices.
 
 A hosted copy is at **[maripana.njarasoa.org](https://maripana.njarasoa.org)**.
 
@@ -123,7 +123,7 @@ web/
 │   │   ├── utils/            # Date and chart path helpers
 │   │   ├── credits.ts        # Credits on the About page
 │   │   ├── deviceInfo.ts     # Device information on the About page
-│   │   ├── fonts.ts          # The 22 font choices and their CSS files
+│   │   ├── fonts.ts          # The 23 font choices and their CSS files
 │   │   ├── installHint.ts    # iOS Install link: when to show it
 │   │   └── share.ts          # html2canvas capture, Web Share API or download
 │   ├── routes/               # +page.svelte, +layout.svelte, +error.svelte
@@ -182,6 +182,7 @@ All number formatting uses ASCII digits. `localizeDigits()` changes them to nati
 | 19 | Plus Jakarta Sans + Inter | Plus Jakarta Sans | Inter |
 | 20 | Archivo + Archivo Narrow | Archivo | Archivo Narrow |
 | 21 | Roboto + Lora | system-ui | Lora |
+| 22 | Allo | Allo | Allo |
 
 Pairings 16 to 20 use `font-feature-settings: "tnum"` (tabular numbers) for the body font.
 

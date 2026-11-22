@@ -167,6 +167,10 @@ private val Lora = FontFamily(
     Font(R.font.lora, FontWeight.Normal),
     Font(R.font.lora, FontWeight.Bold),
 )
+private val Allo = FontFamily(
+    Font(R.font.allo_regular, FontWeight.Normal),
+    Font(R.font.allo_bold, FontWeight.Bold),
+)
 
 data class FontPairing(
     val name: String,
@@ -205,6 +209,8 @@ val fontPairings = listOf(
     FontPairing("Plus Jakarta Sans + Inter", PlusJakartaSans, Inter, bodyFontFeatures = "tnum"),
     FontPairing("Archivo + Archivo Narrow", Archivo, ArchivoNarrow, bodyFontFeatures = "tnum"),
     FontPairing("Roboto + Lora", FontFamily.Default, Lora),
+    // One family for display and body (not from Google Fonts)
+    FontPairing("Allo", Allo, Allo, bodyFontFeatures = "tnum"),
 )
 
 /**
