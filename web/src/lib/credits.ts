@@ -88,6 +88,7 @@ export const creditSections: CreditSection[] = [
 		titleKey: 'about_section_fonts',
 		items: [
 			{ name: 'Google Fonts', license: 'SIL OFL 1.1', url: 'https://fonts.google.com', note: FONT_FAMILIES, text: LICENSES + 'fonts.txt' },
+			{ name: 'Allo', license: 'SIL OFL 1.1', url: 'https://allo.joshpuckett.me', note: 'Josh Puckett', text: LICENSES + 'fonts.txt' },
 		],
 	},
 	{

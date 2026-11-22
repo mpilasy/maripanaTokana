@@ -28,7 +28,7 @@ maripànaTokana («un solo termómetro» en malagasy) es una aplicación del tie
 • 8 idiomas: malagasy, árabe, inglés, español, francés, hindi, nepalí y chino. Toca la bandera para cambiar de idioma
 • Dígitos locales para árabe, hindi y nepalí
 • Diseño de derecha a izquierda para árabe
-• 22 pares de fuentes para elegir
+• 23 pares de fuentes para elegir
 • Comparte cualquier tarjeta como imagen
 • Páginas de Ayuda y Acerca de
 
