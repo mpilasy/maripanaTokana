@@ -1060,7 +1060,9 @@ internal fun WeatherContent(
                     if (headerGrowth != 0 && scrollState.value > 0) scrollState.dispatchRawDelta(headerGrowth.toFloat())
                     headerGrowth = 0
                 }
-                // Soft fade where content scrolls under the fixed header, and under the footer while it is in view
+                // Soft fade where content scrolls under the fixed header, and under the footer while it is in view.
+                // The offscreen layer lets the content fade over the Blue Marble image (a plain overlay shows a band).
+                // Keep it unless profiling on a low-end device shows jank during scroll.
                 .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
                 .drawWithContent {
                     drawContent()

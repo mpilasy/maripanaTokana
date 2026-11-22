@@ -408,6 +408,7 @@ Official alerts are fetched from 7 upstream sources: NWS (US), GDACS (global), M
 - **Derived alerts removed**: Derived/algorithmic alerts were removed in v1.2.1 to prevent false alarms.
 - **Multiple Alerts UI**: Multi-source alerts display merged source badges on the banner, with individual expand/collapse triggers per alert. The banner is collapsed by default: orange for a watch, red for a warning or emergency. Source badges link to the alert.
 - **Coverage**: each source is used only for its countries (with bounding boxes as fallback). GDACS is skipped where a regional source covers the place. The GDACS feed lists events for the whole world, so one download is kept for 10 minutes.
+- **MeteoAlarm areas**: an alert shows only when its area names the place's area. France must have the same department name ("Loire" is not "Haute-Loire"). Italy uses the region, with its Italian name. Other countries match whole words, without the words for the type of area. In Spain, Slovenia, Norway, Sweden, Estonia, Finland, Ukraine, Czechia and Poland, the alert areas are zones that place names cannot match, so these countries also use the whole-word rule. Matching them exactly needs the MeteoAlarm zone shapes, which the project does not use (a decision, not a gap).
 - **Loading**: alerts load after the weather shows. Results for other coordinates are dropped.
 
 ---
