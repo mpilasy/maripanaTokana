@@ -11,7 +11,11 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.7.20261122012252] - 2026-11-22
+
 - Phone and web: a new font choice, Allo, a friendly font with numbers of the same width. Tap the font name in the footer, or hold it to pick from the list.
+- F-Droid: the "What's new" text now starts with the version number.
+- Technical: lifecycle 2.11.1 and KSP 2.3.14 (Android); SvelteKit 3.4.0, adapter-node 6.0.5, Svelte 5.59.1 and Vitest 5.1.1 (web).
 
 ## [1.7.20261118024115] - 2026-11-18
 
