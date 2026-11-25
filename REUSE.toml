@@ -123,3 +123,10 @@ path = "web/static/licenses/**"
 precedence = "override"
 SPDX-FileCopyrightText = "The copyright holders named in each licence text"
 SPDX-License-Identifier = "MIT AND BSD-2-Clause AND BSD-3-Clause AND 0BSD AND Apache-2.0 AND OFL-1.1"
+
+# Code of conduct, adapted from the Contributor Covenant 2.1
+[[annotations]]
+path = "CODE_OF_CONDUCT.md"
+precedence = "override"
+SPDX-FileCopyrightText = "Coraline Ada Ehmke and the Contributor Covenant contributors"
+SPDX-License-Identifier = "CC-BY-4.0"

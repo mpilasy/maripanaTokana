@@ -2,6 +2,8 @@
 
 Thank you for your help. Bug reports, translations and code are welcome.
 
+All contributors must obey the [Code of Conduct](CODE_OF_CONDUCT.md). Do not report a security problem in a public issue. See [SECURITY.md](SECURITY.md).
+
 ## License of contributions
 
 When you send a contribution (a pull request, a patch or a translation), you agree to these terms:
