@@ -50,7 +50,7 @@ On a phone with more than one user, install for the current user only: `adb inst
 
 To test a fixed place on an emulator:
 - `scripts/set_default_mock_location.sh` puts all running emulators at Antananarivo (`emu geo fix`).
-- For another place, or for the `network` and `fused` providers too, use the test-provider commands in [SCREENSHOTS_README.md](SCREENSHOTS_README.md#method) (step 2), and remove the test providers when you finish (step 9).
+- For another place, or for the `network` and `fused` providers too, use the test-provider commands in [SCREENSHOTS.md](SCREENSHOTS.md#method) (step 2), and remove the test providers when you finish (step 9).
 
 ## Pre-Installation Verification
 
@@ -537,7 +537,7 @@ When capturing screenshots for F-Droid:
 
 ### Capture Sequence
 
-The store screenshots are 6 phone screenshots per language (`1.png` to `6.png`) and 3 TV screenshots. See [`docs/SCREENSHOTS_README.md`](SCREENSHOTS_README.md) for the capture steps and the content of each screenshot.
+The store screenshots are 6 phone screenshots per language (`1.png` to `6.png`) and 3 TV screenshots. See [`docs/SCREENSHOTS.md`](SCREENSHOTS.md) for the capture steps and the content of each screenshot.
 
 ### Technical Specs
 - **Format:** PNG or JPEG

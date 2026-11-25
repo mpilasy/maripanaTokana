@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: Orinasa Njarasoa
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Takes the 6 phone store screenshots on the Pixel emulator, for one or more app languages.
-Set up the emulator first (docs/SCREENSHOTS_README.md, steps 1-5). The app must be open on the main page.
+Set up the emulator first (docs/SCREENSHOTS.md, steps 1-5). The app must be open on the main page.
 Usage: python3 scripts/capture_store_screenshots.py OUT_DIR lang [lang ...]   (lang: ar en es fr hi mg ne zh)
 Writes OUT_DIR/<lang>/1.png to 6.png, uncompressed:
 1 main card, 2 hourly forecast, 3 chart view, 4 current conditions, 5 sky and air, 6 sea and activities.
