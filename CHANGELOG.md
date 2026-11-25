@@ -11,6 +11,12 @@ CI retriggers, such as 1.0.1, 1.0.8, 1.0.9, 1.0.19 to 1.0.35 and the
 
 ## [Unreleased]
 
+## [1.7.20261125175637] - 2026-11-25
+
+- F-Droid: the app page has a Changelog link.
+- Project: a code of conduct and a security policy, which tells you how to report a security problem in private.
+- Technical: Svelte 5.59.2, vite-plugin-svelte 7.3.2 and Vitest 5.1.2 (web).
+
 ## [1.7.20261122012252] - 2026-11-22
 
 - Phone and web: a new font choice, Allo, a friendly font with numbers of the same width. Tap the font name in the footer, or hold it to pick from the list.

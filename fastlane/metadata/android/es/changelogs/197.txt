@@ -1,0 +1,2 @@
+Version 1.7.20261125175637
+See changelog at https://github.com/mpilasy/maripanaTokana/blob/main/CHANGELOG.md
