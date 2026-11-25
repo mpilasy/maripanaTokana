@@ -189,10 +189,13 @@ WorkManager adds the permissions it needs to refresh the widgets: `WAKE_LOCK`, `
 ## Documentation
 
 - [CHANGELOG.md](CHANGELOG.md): the changes in each version.
+- [CONTRIBUTING.md](CONTRIBUTING.md): how to contribute.
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md): the rules of behavior in the project.
+- [SECURITY.md](SECURITY.md): how to report a security problem.
 - [docs/DESIGN.md](docs/DESIGN.md): the design of the Android app.
 - [docs/FDROID.md](docs/FDROID.md): F-Droid build rules and the release process.
-- [docs/TESTING_GUIDE.md](docs/TESTING_GUIDE.md): how to test the Android app.
-- [docs/SCREENSHOTS_README.md](docs/SCREENSHOTS_README.md): how to take the store screenshots.
+- [docs/TESTING.md](docs/TESTING.md): how to test the Android app.
+- [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md): how to take the store screenshots.
 - [web/README.md](web/README.md), [web/docs/DESIGN.md](web/docs/DESIGN.md) and [web/docs/TESTING.md](web/docs/TESTING.md): the web app.
 
 ## License
