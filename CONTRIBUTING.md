@@ -2,7 +2,7 @@
 
 Thank you for your help. Bug reports, translations and code are welcome.
 
-All contributors must obey the [Code of Conduct](CODE_OF_CONDUCT.md). Do not report a security problem in a public issue. See [SECURITY.md](SECURITY.md).
+All contributors must obey the [Code of Conduct](.github/CODE_OF_CONDUCT.md). Do not report a security problem in a public issue. See [SECURITY.md](.github/SECURITY.md).
 
 ## License of contributions
 

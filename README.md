@@ -190,8 +190,8 @@ WorkManager adds the permissions it needs to refresh the widgets: `WAKE_LOCK`, `
 
 - [CHANGELOG.md](CHANGELOG.md): the changes in each version.
 - [CONTRIBUTING.md](CONTRIBUTING.md): how to contribute.
-- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md): the rules of behavior in the project.
-- [SECURITY.md](SECURITY.md): how to report a security problem.
+- [CODE_OF_CONDUCT.md](.github/CODE_OF_CONDUCT.md): the rules of behavior in the project.
+- [SECURITY.md](.github/SECURITY.md): how to report a security problem.
 - [docs/DESIGN.md](docs/DESIGN.md): the design of the Android app.
 - [docs/FDROID.md](docs/FDROID.md): F-Droid build rules and the release process.
 - [docs/TESTING.md](docs/TESTING.md): how to test the Android app.
